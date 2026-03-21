@@ -1,0 +1,61 @@
+<style>
+  #cursor-blob {
+    position: fixed;
+    width: 22px; height: 22px;
+    pointer-events: none;
+    z-index: 99999;
+    left: 0; top: 0;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    will-change: transform;
+    border-radius: 60% 40% 70% 30% / 50% 60% 40% 70%;
+    animation: blob-morph 3.8s ease-in-out infinite;
+    backdrop-filter: blur(6px) brightness(1.1) saturate(1.2);
+    -webkit-backdrop-filter: blur(6px) brightness(1.1) saturate(1.2);
+    border: 1px solid rgba(255,255,255,0.32);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      0 2px 12px rgba(0,0,0,0.2);
+    background: radial-gradient(ellipse at 38% 30%,
+      rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 50%, transparent 70%);
+  }
+  @keyframes blob-morph {
+    0%   { border-radius: 60% 40% 70% 30% / 50% 60% 40% 70%; }
+    25%  { border-radius: 40% 60% 40% 60% / 60% 40% 65% 35%; }
+    50%  { border-radius: 70% 30% 55% 45% / 40% 65% 35% 58%; }
+    75%  { border-radius: 35% 65% 45% 55% / 58% 38% 60% 42%; }
+    100% { border-radius: 60% 40% 70% 30% / 50% 60% 40% 70%; }
+  }
+</style>
+
+<div id="cursor-blob"></div>
+
+<script>
+(function () {
+  const blob = document.getElementById('cursor-blob');
+  let mx = 0, my = 0, cx = 0, cy = 0;
+  let pmx = 0, pmy = 0, vx = 0, vy = 0;
+  let on = false;
+  document.addEventListener('mousemove', (e) => {
+    vx = e.clientX - pmx; vy = e.clientY - pmy;
+    pmx = mx; pmy = my;
+    mx = e.clientX; my = e.clientY;
+    if (!on) { blob.style.opacity = '1'; on = true; }
+  });
+  document.addEventListener('mouseleave', () => { blob.style.opacity = '0'; on = false; });
+  document.addEventListener('mousedown', () => { blob.style.width = '16px'; blob.style.height = '16px'; });
+  document.addEventListener('mouseup',   () => { blob.style.width = '22px'; blob.style.height = '22px'; });
+  (function loop() {
+    requestAnimationFrame(loop);
+    cx += (mx - cx) * 0.14;
+    cy += (my - cy) * 0.14;
+    const speed   = Math.min(Math.sqrt(vx*vx + vy*vy), 28);
+    const angle   = Math.atan2(vy, vx) * 180 / Math.PI;
+    const stretch = 1 + speed * 0.014;
+    blob.style.left = cx + 'px';
+    blob.style.top  = cy + 'px';
+    blob.style.transform = `translate(-50%,-50%) rotate(${angle}deg) scaleX(${stretch}) scaleY(${1/stretch}) rotate(${-angle}deg)`;
+  })();
+})();
+</script>
