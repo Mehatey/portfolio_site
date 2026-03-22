@@ -7,7 +7,7 @@ tagline: A guerrilla AR exhibition at the Metropolitan Museum of Art reinterpret
 category: AR · Exhibition
 year: 2025
 hero_bg: "radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
-hero_image: "1.met/00.png"
+hero_image: "1.met/0.png"
 meta:
   - label: Year
     value: "2025"
@@ -30,6 +30,7 @@ reflection: >
 
 
   What this project revealed is how physical AR actually is. Precision is not something you configure. It is something you earn through repetition, light, and timing. When alignment finally holds, it does not announce itself. It just belongs.
+refl_bg: "1.met/12.png"
 next_projects:
   - title: AI SELF_
     url: /ai-self/
@@ -57,10 +58,10 @@ next_projects:
     <span class="intro-label">Recognition</span>
     <div>
       <p class="cs-body" style="margin-bottom: 0;">Featured in Artnet, The Art Newspaper, and Agog for reinterpreting the American Wing through Indigenous perspectives.</p>
-      <div class="cs-body cs-body--tight" style="margin-top: 28px;">
-        <p><a href="https://news.artnet.com/art-world/unsanctioned-augmented-reality-indigenous-art-met-museum-2699689" target="_blank" rel="noopener">Artnet — Unsanctioned AR at the Met</a></p>
-        <p><a href="https://agog.org/reframing-the-american-wing-encoded-at-the-metropolitan-museum-of-art/" target="_blank" rel="noopener">Agog — Reframing the American Wing</a></p>
-        <p><a href="https://www.theartnewspaper.com/2025/10/13/indigenous-artists-unsanctioned-augmented-reality-exhibition-metropolitan-museum" target="_blank" rel="noopener">The Art Newspaper — Indigenous Artists at the Met</a></p>
+      <div class="press-row" style="display:flex;flex-wrap:wrap;gap:0;margin-top:24px;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
+        <a href="https://news.artnet.com/art-world/unsanctioned-augmented-reality-indigenous-art-met-museum-2699689" target="_blank" rel="noopener" style="font-family:var(--font-head);font-size:14px;color:rgba(255,255,255,0.50);padding:16px 28px 16px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.50)'">Artnet ↗</a>
+        <a href="https://agog.org/reframing-the-american-wing-encoded-at-the-metropolitan-museum-of-art/" target="_blank" rel="noopener" style="font-family:var(--font-head);font-size:14px;color:rgba(255,255,255,0.50);padding:16px 28px 16px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.50)'">Agog ↗</a>
+        <a href="https://www.theartnewspaper.com/2025/10/13/indigenous-artists-unsanctioned-augmented-reality-exhibition-metropolitan-museum" target="_blank" rel="noopener" style="font-family:var(--font-head);font-size:14px;color:rgba(255,255,255,0.50);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.50)'">The Art Newspaper ↗</a>
       </div>
     </div>
   </div>
@@ -88,41 +89,50 @@ next_projects:
     </div>
   </div>
   <div class="cs-pair-media">
-    <video autoplay muted loop playsinline preload="metadata">
-      <source src="{{ site.baseurl }}/1.met/03.mp4" type="video/mp4" />
+    <video autoplay muted loop playsinline preload="auto">
+      <source src="{{ site.baseurl }}/1.met/2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
-    <source src="{{ site.baseurl }}/1.met/2.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- 02 TESTING — video left, text right -->
+<!-- Scanning secondary — video left, text right -->
 <div class="cs-pair cs-pair--reverse">
-  <div class="cs-pair-media">
-    <video autoplay muted loop playsinline preload="metadata">
-      <source src="{{ site.baseurl }}/1.met/04.mp4" type="video/mp4" />
+  <div class="cs-pair-text">
+    <span class="cs-pair-label">On-site</span>
+    <div class="cs-body">
+      <p>Each visit meant recalibrating. Light changed, crowds shifted, and scans that worked one day failed the next. The process was as physical as the artworks themselves.</p>
+    </div>
+  </div>
+  <div class="cs-pair-media cs-pair-media--no-fade">
+    <video autoplay muted loop playsinline preload="auto">
+      <source src="{{ site.baseurl }}/1.met/3.mp4" type="video/mp4" />
     </video>
   </div>
+</div>
+
+<!-- 02 TESTING — text left, video right -->
+<div class="cs-pair">
   <div class="cs-pair-text">
     <span class="cs-pair-label">Testing</span>
     <div class="cs-body">
       <p>Alignments drifted between visits. Things that worked one day broke the next. Testing meant returning, rescanning, and holding until the mesh stayed true.</p>
     </div>
   </div>
+  <div class="cs-pair-media cs-pair-media--no-fade">
+    <video autoplay muted loop playsinline preload="auto">
+      <source src="{{ site.baseurl }}/1.met/4.mp4" type="video/mp4" />
+    </video>
+  </div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
-    <source src="{{ site.baseurl }}/1.met/05.mp4" type="video/mp4" />
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="{{ site.baseurl }}/1.met/5.mp4" type="video/mp4" />
   </video>
 </div>
 
-<!-- 03 ACTIVATION — payoff: image leads, text steps back -->
-<div class="cs-pair cs-pair--hero">
+<!-- 03 ACTIVATION — text left, video right -->
+<div class="cs-pair">
   <div class="cs-pair-text">
     <span class="cs-pair-label">Activation</span>
     <div class="cs-body">
@@ -130,36 +140,24 @@ next_projects:
     </div>
   </div>
   <div class="cs-pair-media">
-    <video autoplay muted loop playsinline preload="metadata">
-      <source src="{{ site.baseurl }}/1.met/06.mp4" type="video/mp4" />
+    <video autoplay muted loop playsinline preload="auto">
+      <source src="{{ site.baseurl }}/1.met/6.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
-<!-- IN THE GALLERY -->
-<div class="cs-chapter cs-chapter--gallery">
+<!-- FINAL OUTCOME -->
+<div class="cs-chapter">
   <canvas class="cs-chapter-water" id="gallery-water"></canvas>
   <div class="cs-chapter-inner">
-    <span class="cs-chapter-title">In the gallery</span>
+    <span class="cs-chapter-title">Final Outcome</span>
   </div>
 </div>
 
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto" data-max-time="10">
-    <source src="{{ site.baseurl }}/1.met/07.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
-    <source src="{{ site.baseurl }}/1.met/08.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- FEATURED ARTISTS — grouped with gallery videos below -->
-<div class="cs-row cs-row--tight">
+<!-- FEATURED ARTISTS -->
+<div class="cs-row">
   <div class="cs-content">
-    <h2 class="cs-heading">Featured artists</h2>
+    <span class="cs-pair-label">Featured Artists</span>
     <div class="cs-body">
       <p class="cs-artists-credits">Amelia Winger-Bearskin · Bear Fox · Bird x Bird · Cannupa Hanska Luger · Cass Gardiner · Demian DinéYazhi´ · Lite Brite Neon · Flechas · Jarrette Werk · Jeremy Dennis · Josué Rivas · Katsitsionni Fox · Lokotah Sanborn · Mali Obomsawin · Mer Young · Nicholas Galanin · Priscilla Dobler Dzul · Skawennati</p>
       <p style="margin-top:1.6em;"><a href="https://www.encodedatthemet.com/" target="_blank" rel="noopener">View Full Exhibition →</a></p>
@@ -168,23 +166,35 @@ next_projects:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="{{ site.baseurl }}/1.met/7.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="{{ site.baseurl }}/1.met/8.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/1.met/9.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
+  <video autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/1.met/10.mp4" type="video/mp4" />
   </video>
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/1.met/1.5.png" alt="" />
-</div>
-
-<div class="cs-bleed-full">
-  <video autoplay muted loop playsinline preload="metadata">
+<div class="cs-bleed-full" style="position:relative;">
+  <video id="promo-video" autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/1.met/11.mp4" type="video/mp4" />
   </video>
+  <button class="cover-audio-btn muted" onclick="const v=document.getElementById('promo-video');v.muted=!v.muted;this.classList.toggle('muted');" aria-label="Toggle audio">
+    <svg class="audio-icon-on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"/></svg>
+    <svg class="audio-icon-off" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"/></svg>
+  </button>
 </div>
