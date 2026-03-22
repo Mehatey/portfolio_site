@@ -3,8 +3,8 @@ const ninja = document.querySelector('ninja-keys');
 
 // add the home and posts menu items
 ninja.data = [{
-    id: "nav-siddharth-mehta",
-    title: "Siddharth Mehta",
+    id: "nav-sid-mehta",
+    title: "Sid Mehta",
     section: "Navigation",
     handler: () => {
       window.location.href = "/al-folio/";
