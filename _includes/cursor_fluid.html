@@ -1,61 +1,218 @@
 <style>
-  #cursor-blob {
+  * { cursor: none !important; }
+
+  /* Glass refraction lens — distorts content behind cursor */
+  #cur-lens {
     position: fixed;
-    width: 22px; height: 22px;
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 99998;
+    backdrop-filter: blur(3px) brightness(1.18) saturate(1.3);
+    -webkit-backdrop-filter: blur(3px) brightness(1.18) saturate(1.3);
+    will-change: left, top;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  /* 3D cube on top of lens */
+  #cur-scene {
+    position: fixed;
+    width: 38px; height: 38px;
+    perspective: 300px;
     pointer-events: none;
     z-index: 99999;
-    left: 0; top: 0;
     transform: translate(-50%, -50%);
+    will-change: left, top;
     opacity: 0;
-    transition: opacity 0.2s ease;
-    will-change: transform;
-    border-radius: 60% 40% 70% 30% / 50% 60% 40% 70%;
-    animation: blob-morph 3.8s ease-in-out infinite;
-    backdrop-filter: blur(6px) brightness(1.1) saturate(1.2);
-    -webkit-backdrop-filter: blur(6px) brightness(1.1) saturate(1.2);
-    border: 1px solid rgba(255,255,255,0.32);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.5),
-      0 2px 12px rgba(0,0,0,0.2);
-    background: radial-gradient(ellipse at 38% 30%,
-      rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.04) 50%, transparent 70%);
+    transition: opacity 0.2s;
   }
-  @keyframes blob-morph {
-    0%   { border-radius: 60% 40% 70% 30% / 50% 60% 40% 70%; }
-    25%  { border-radius: 40% 60% 40% 60% / 60% 40% 65% 35%; }
-    50%  { border-radius: 70% 30% 55% 45% / 40% 65% 35% 58%; }
-    75%  { border-radius: 35% 65% 45% 55% / 58% 38% 60% 42%; }
-    100% { border-radius: 60% 40% 70% 30% / 50% 60% 40% 70%; }
+
+  #cur-cube {
+    width: 38px; height: 38px;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(-18deg) rotateY(0deg);
   }
+
+  .cur-face {
+    position: absolute;
+    width: 38px; height: 38px;
+    border: 1px solid rgba(255,255,255,0.28);
+    background: rgba(0,0,0,0.25);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  .cur-front  { transform: translateZ(19px);                  border-color: rgba(255,255,255,0.30); }
+  .cur-back   { transform: rotateY(180deg)  translateZ(19px); border-color: rgba(255,255,255,0.10); }
+  .cur-left   { transform: rotateY(-90deg)  translateZ(19px); border-color: rgba(200,220,255,0.18); }
+  .cur-right  { transform: rotateY(90deg)   translateZ(19px); border-color: rgba(200,220,255,0.18); }
+  .cur-top    { transform: rotateX(90deg)   translateZ(19px); border-color: rgba(220,230,255,0.15); }
+  .cur-bottom { transform: rotateX(-90deg)  translateZ(19px); border-color: rgba(220,230,255,0.12); }
 </style>
 
-<div id="cursor-blob"></div>
+<div id="cur-lens"></div>
+<div id="cur-scene">
+  <div id="cur-cube">
+    <div class="cur-face cur-front"></div>
+    <div class="cur-face cur-back"></div>
+    <div class="cur-face cur-left"></div>
+    <div class="cur-face cur-right"></div>
+    <div class="cur-face cur-top"></div>
+    <div class="cur-face cur-bottom"></div>
+  </div>
+</div>
 
 <script>
 (function () {
-  const blob = document.getElementById('cursor-blob');
-  let mx = 0, my = 0, cx = 0, cy = 0;
-  let pmx = 0, pmy = 0, vx = 0, vy = 0;
-  let on = false;
-  document.addEventListener('mousemove', (e) => {
-    vx = e.clientX - pmx; vy = e.clientY - pmy;
-    pmx = mx; pmy = my;
+  const scene = document.getElementById('cur-scene');
+  const cube  = document.getElementById('cur-cube');
+  const lens  = document.getElementById('cur-lens');
+  if (!scene || !cube || !lens) return;
+
+  let mx = -100, my = -100;
+  let rotX = -18, rotY = 0;
+  let spinActive = false, spinStart = 0, spinFromY = 0;
+  const SPIN_MS = 900;
+  let alive = false;
+
+  // Expose for dust
+  window.__cursorX = -100;
+  window.__cursorY = -100;
+
+  document.addEventListener('mousemove', e => {
     mx = e.clientX; my = e.clientY;
-    if (!on) { blob.style.opacity = '1'; on = true; }
+    window.__cursorX = mx;
+    window.__cursorY = my;
+    if (!alive) {
+      alive = true;
+      scene.style.opacity = '1';
+      lens.style.opacity  = '1';
+    }
+  }, { passive: true });
+
+  document.addEventListener('mouseleave', () => {
+    alive = false;
+    scene.style.opacity = '0';
+    lens.style.opacity  = '0';
   });
-  document.addEventListener('mouseleave', () => { blob.style.opacity = '0'; on = false; });
-  document.addEventListener('mousedown', () => { blob.style.width = '16px'; blob.style.height = '16px'; });
-  document.addEventListener('mouseup',   () => { blob.style.width = '22px'; blob.style.height = '22px'; });
+
+  document.addEventListener('mousedown', () => {
+    if (!spinActive) {
+      spinActive = true;
+      spinStart = performance.now();
+      spinFromY = rotY;
+    }
+  });
+
+  const t0 = performance.now();
+
   (function loop() {
     requestAnimationFrame(loop);
-    cx += (mx - cx) * 0.14;
-    cy += (my - cy) * 0.14;
-    const speed   = Math.min(Math.sqrt(vx*vx + vy*vy), 28);
-    const angle   = Math.atan2(vy, vx) * 180 / Math.PI;
-    const stretch = 1 + speed * 0.014;
-    blob.style.left = cx + 'px';
-    blob.style.top  = cy + 'px';
-    blob.style.transform = `translate(-50%,-50%) rotate(${angle}deg) scaleX(${stretch}) scaleY(${1/stretch}) rotate(${-angle}deg)`;
+
+    // Snap — zero positional lag
+    scene.style.left = mx + 'px';
+    scene.style.top  = my + 'px';
+    lens.style.left  = mx + 'px';
+    lens.style.top   = my + 'px';
+
+    const t = (performance.now() - t0) * 0.001;
+
+    if (spinActive) {
+      const elapsed = performance.now() - spinStart;
+      const p = Math.min(elapsed / SPIN_MS, 1);
+      const eased = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p+2,3)/2;
+      rotY = spinFromY + eased * 360;
+      rotX = -18 + Math.sin(t * 1.1) * 6;
+      if (p >= 1) { spinFromY = rotY % 360; spinActive = false; }
+    } else {
+      rotY += 0.35;
+      rotX = -18 + Math.sin(t * 0.55) * 7;
+    }
+
+    cube.style.transform = `rotateX(${rotX.toFixed(1)}deg) rotateY(${rotY.toFixed(1)}deg)`;
+  })();
+})();
+
+// ── FLOATING DUST — runs on every page ──
+(function () {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:2;';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  let dpr = 1;
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    canvas.width  = window.innerWidth  * dpr;
+    canvas.height = window.innerHeight * dpr;
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.scale(dpr, dpr);
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  const W = () => window.innerWidth;
+  const H = () => window.innerHeight;
+  let lastScroll = window.scrollY;
+
+  const pts = Array.from({ length: 90 }, (_, i) => {
+    const isMote = i < 8;
+    return {
+      x:  Math.random() * window.innerWidth,
+      y:  Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.08,
+      vy: -Math.random() * 0.05 - 0.01,
+      r:  isMote ? Math.random() * 1.2 + 0.8 : Math.random() * 0.6 + 0.2,
+      a:  isMote ? Math.random() * 0.20 + 0.12 : Math.random() * 0.15 + 0.05,
+      ph: Math.random() * Math.PI * 2,
+      spd: Math.random() * 0.005 + 0.003,
+      depth: 0.4 + Math.random() * 0.6,
+    };
+  });
+
+  (function draw() {
+    requestAnimationFrame(draw);
+    ctx.clearRect(0, 0, W(), H());
+
+    const curScroll = window.scrollY;
+    const scrollDelta = curScroll - lastScroll;
+    lastScroll = curScroll;
+
+    const cmx = window.__cursorX || -200;
+    const cmy = window.__cursorY || -200;
+
+    for (const p of pts) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.ph += p.spd;
+
+      // Scroll parallax
+      p.y -= scrollDelta * p.depth * 0.12;
+
+      // Cursor push
+      const cdx = p.x - cmx, cdy = p.y - cmy;
+      const cDist = Math.sqrt(cdx * cdx + cdy * cdy);
+      if (cDist < 100 && cDist > 0) {
+        const push = (100 - cDist) / 100 * 0.12;
+        p.x += (cdx / cDist) * push;
+        p.y += (cdy / cDist) * push;
+      }
+
+      if (p.y < -4)      { p.y = H() + 4; p.x = Math.random() * W(); }
+      if (p.y > H() + 4) { p.y = -4;      p.x = Math.random() * W(); }
+      if (p.x < -4)        p.x = W() + 4;
+      if (p.x > W() + 4)   p.x = -4;
+
+      const alpha = p.a * (0.5 + 0.5 * Math.sin(p.ph));
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
   })();
 })();
 </script>

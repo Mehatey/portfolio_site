@@ -1,5 +1,5 @@
 ---
 layout: sid_home
-title: Siddharth Mehta
+title: Sid Mehta
 permalink: /
 ---
