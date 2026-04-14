@@ -231,10 +231,10 @@ next_project:
     margin-top: 8px;
   }
 
-  /* ── FILM GRIDS: cover-crop real-world footage ── */
+  /* ── FILM/GAME GRIDS: no cropping ── */
   .film-grid .cs-grid-item video,
   .film-grid .cs-grid-item img {
-    object-fit: cover !important;
+    object-fit: contain !important;
     object-position: center center !important;
   }
 
@@ -591,7 +591,7 @@ next_project:
 <!-- 3.1 + 3.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" style="object-fit: contain !important;" />
+    <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" />
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
