@@ -448,7 +448,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.1.mov" type="video/mp4" />
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
