@@ -171,15 +171,15 @@ next_project:
     transition: filter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* ── SLOW DRIFT: applied to grid items so overflow:hidden creates a pan effect ── */
+  /* ── SLOW DRIFT: conception grids only ── */
   @keyframes driftLeft  { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-16px); } }
   @keyframes driftRight { 0%,100% { transform: translateX(0); } 50% { transform: translateX(16px); } }
 
-  .cs-grid .cs-grid-item:nth-child(1),
+  .cs-grid:not(.film-grid) .cs-grid-item:nth-child(1),
   .cs-grid-3 .cs-grid-item:nth-child(1) {
     animation: driftRight 9s ease-in-out infinite;
   }
-  .cs-grid .cs-grid-item:nth-child(2),
+  .cs-grid:not(.film-grid) .cs-grid-item:nth-child(2),
   .cs-grid-3 .cs-grid-item:nth-child(2) {
     animation: driftLeft 11s ease-in-out infinite;
   }
@@ -565,7 +565,7 @@ next_project:
 </div>
 
 <!-- 2D: 1 standalone -->
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/1.mp4" type="video/mp4" />
   </video>
@@ -591,7 +591,7 @@ next_project:
 <!-- 3.1 + 3.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" style="object-fit: contain !important;" />
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
