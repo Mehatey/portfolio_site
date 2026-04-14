@@ -34,13 +34,13 @@ next_project:
     <h2 class="cs-heading">Can technology deepen<br>self-awareness?</h2>
     <div class="cs-body">
       <p>Mandalas is an interactive meditation experience using generative visuals to explore whether technology can serve contemplation rather than distraction.</p>
-      <p>Participants sit within a projected environment where their body movement — tracked through MediaPipe — shapes the mandala in real time. Stillness creates complexity. Restlessness simplifies.</p>
+      <p>Participants sit within a projected environment where their body movement, tracked through MediaPipe, shapes the mandala in real time. Stillness creates complexity. Restlessness simplifies.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Generative mandala — projected environment</div>
+  <div class="vis-ph">Generative mandala, projected environment</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -62,8 +62,8 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Body tracking — MediaPipe input</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Mandala generation — TouchDesigner output</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Body tracking, MediaPipe input</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Mandala generation, TouchDesigner output</div></div>
 </div>
 
 <div class="cs-wide">
@@ -81,7 +81,7 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">A noticeable shift toward<br>greater emotional awareness.</h2>
     <div class="cs-body">
-      <p>Participants reported a noticeable shift toward greater emotional awareness. The experience revealed how sensitive attention is to sensory balance — some chose to close their eyes and focus only on audio, finding their own path into the meditation.</p>
+      <p>Participants reported a noticeable shift toward greater emotional awareness. The experience revealed how sensitive attention is to sensory balance, some chose to close their eyes and focus only on audio, finding their own path into the meditation.</p>
     </div>
   </div>
 </div>

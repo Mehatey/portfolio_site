@@ -36,13 +36,13 @@ next_project:
     <h2 class="cs-heading">Externalizing emotion<br>through light and touch.</h2>
     <div class="cs-body">
       <p>Mind Your Feelings is an interactive installation that helps people externalize and understand their emotions through a touchscreen interface and a responsive LED brain sculpture.</p>
-      <p>Users interact with a kiosk to express how they feel. The LED brain responds in real time, translating internal states into visible, shared light — making the invisible tangible.</p>
+      <p>Users interact with a kiosk to express how they feel. The LED brain responds in real time, translating internal states into visible, shared light, making the invisible tangible.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Installation view — LED brain responding to input</div>
+  <div class="vis-ph">Installation view, LED brain responding to input</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -64,13 +64,13 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Touchscreen interface — emotion selection</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">LED brain — color response mapping</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Touchscreen interface, emotion selection</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">LED brain, color response mapping</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Installation in use — visitor interaction</div>
+    <div class="vis-ph">Installation in use, visitor interaction</div>
   </div>
   <p class="cap-text">JavaScript · Python · Arduino/WLED · Web Interface</p>
 </div>
@@ -83,7 +83,7 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">180 users in 2 weeks.</h2>
     <div class="cs-body">
-      <p>When emotions become visible and shared, people engage differently. The installation created a space where internal states could be expressed without words — light became the language.</p>
+      <p>When emotions become visible and shared, people engage differently. The installation created a space where internal states could be expressed without words, light became the language.</p>
     </div>
   </div>
 </div>

@@ -29,14 +29,14 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Design for the places<br>you care about.</h2>
     <div class="cs-body">
-      <p>Apna Adda was a college food stall redesign — branding, simplified menu, basic online ordering. Done for free because the place genuinely mattered.</p>
+      <p>Apna Adda was a college food stall redesign, branding, simplified menu, basic online ordering. Done for free because the place genuinely mattered.</p>
       <p>For small businesses, design can be the difference between being noticed and being ignored. The project started from affection, not a brief.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Stall branding — before and after</div>
+  <div class="vis-ph">Stall branding, before and after</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -51,20 +51,20 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">From affection to action.</h2>
     <div class="cs-body">
-      <p>The menu was simplified — fewer items, clearer hierarchy, better pricing visibility. The branding gave the stall a recognizable identity it never had. Basic online ordering was added to handle rush-hour volume.</p>
+      <p>The menu was simplified, fewer items, clearer hierarchy, better pricing visibility. The branding gave the stall a recognizable identity it never had. Basic online ordering was added to handle rush-hour volume.</p>
       <p>This was the first time seeing design change something in the real world. Then COVID hit and the stall closed.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Menu redesign — simplified layout</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Brand identity — logo and system</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Menu redesign, simplified layout</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Brand identity, logo and system</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Stall in use — branded environment</div>
+    <div class="vis-ph">Stall in use, branded environment</div>
   </div>
   <p class="cap-text">Apna Adda · passion project · 2018</p>
 </div>

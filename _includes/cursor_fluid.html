@@ -1,250 +1,158 @@
 <style>
-  * { cursor: none !important; }
+  * {
+    cursor: none !important;
+  }
 
-  /* Glass refraction lens — distorts content behind cursor */
-  #cur-lens {
+  #cur-dot {
     position: fixed;
-    width: 68px; height: 68px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
-    z-index: 99998;
-    backdrop-filter: blur(4px) brightness(1.15) saturate(1.35);
-    -webkit-backdrop-filter: blur(4px) brightness(1.15) saturate(1.35);
-    will-change: left, top;
-    opacity: 0;
-    transition: opacity 0.25s;
-  }
-
-  /* 3D cube — each face warps background differently */
-  #cur-scene {
-    position: fixed;
-    width: 52px; height: 52px;
-    perspective: 280px;
-    pointer-events: none;
     z-index: 99999;
-    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(160, 210, 255, 0.5) 40%, rgba(80, 150, 240, 0.15) 70%, transparent 100%);
+    box-shadow:
+      0 0 8px 2px rgba(120, 180, 255, 0.3),
+      0 0 20px 4px rgba(80, 140, 240, 0.12);
     will-change: left, top;
     opacity: 0;
-    transition: opacity 0.25s;
-  }
-
-  #cur-cube {
-    width: 52px; height: 52px;
-    position: relative;
-    transform-style: preserve-3d;
-    transform: rotateX(-18deg) rotateY(0deg);
-  }
-
-  .cur-face {
-    position: absolute;
-    width: 52px; height: 52px;
-    border: 1px solid rgba(255,255,255,0.22);
-    background: transparent;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-  }
-  /* Each face has a different warp — creates true 3D refraction feel */
-  .cur-front  {
-    transform: translateZ(26px);
-    border-color: rgba(255,255,255,0.30);
-    backdrop-filter: blur(2px) brightness(1.25) hue-rotate(8deg);
-    -webkit-backdrop-filter: blur(2px) brightness(1.25) hue-rotate(8deg);
-  }
-  .cur-back {
-    transform: rotateY(180deg) translateZ(26px);
-    border-color: rgba(255,255,255,0.06);
-    backdrop-filter: blur(6px) brightness(0.8) saturate(0.5);
-    -webkit-backdrop-filter: blur(6px) brightness(0.8) saturate(0.5);
-  }
-  .cur-left {
-    transform: rotateY(-90deg) translateZ(26px);
-    border-color: rgba(180,200,255,0.18);
-    backdrop-filter: blur(3px) brightness(1.1) hue-rotate(-12deg) contrast(1.15);
-    -webkit-backdrop-filter: blur(3px) brightness(1.1) hue-rotate(-12deg) contrast(1.15);
-  }
-  .cur-right {
-    transform: rotateY(90deg) translateZ(26px);
-    border-color: rgba(200,180,255,0.18);
-    backdrop-filter: blur(4px) brightness(1.3) saturate(1.6) hue-rotate(15deg);
-    -webkit-backdrop-filter: blur(4px) brightness(1.3) saturate(1.6) hue-rotate(15deg);
-  }
-  .cur-top {
-    transform: rotateX(90deg) translateZ(26px);
-    border-color: rgba(220,230,255,0.14);
-    backdrop-filter: blur(1px) brightness(1.4) saturate(1.8);
-    -webkit-backdrop-filter: blur(1px) brightness(1.4) saturate(1.8);
-  }
-  .cur-bottom {
-    transform: rotateX(-90deg) translateZ(26px);
-    border-color: rgba(200,210,255,0.10);
-    backdrop-filter: blur(5px) brightness(0.9) saturate(0.7) hue-rotate(-8deg);
-    -webkit-backdrop-filter: blur(5px) brightness(0.9) saturate(0.7) hue-rotate(-8deg);
+    transition: opacity 0.2s;
   }
 </style>
 
-<div id="cur-lens"></div>
-<div id="cur-scene">
-  <div id="cur-cube">
-    <div class="cur-face cur-front"></div>
-    <div class="cur-face cur-back"></div>
-    <div class="cur-face cur-left"></div>
-    <div class="cur-face cur-right"></div>
-    <div class="cur-face cur-top"></div>
-    <div class="cur-face cur-bottom"></div>
-  </div>
-</div>
+<div id="cur-dot"></div>
 
 <script>
-(function () {
-  const scene = document.getElementById('cur-scene');
-  const cube  = document.getElementById('cur-cube');
-  const lens  = document.getElementById('cur-lens');
-  if (!scene || !cube || !lens) return;
+  (function () {
+    const dot = document.getElementById("cur-dot");
+    if (!dot) return;
 
-  let mx = -100, my = -100;
-  let rotX = -18, rotY = 0;
-  let spinActive = false, spinStart = 0, spinFromY = 0;
-  const SPIN_MS = 900;
-  let alive = false;
+    let mx = -100,
+      my = -100,
+      alive = false;
+    window.__cursorX = -100;
+    window.__cursorY = -100;
 
-  // Expose for dust
-  window.__cursorX = -100;
-  window.__cursorY = -100;
+    document.addEventListener(
+      "mousemove",
+      (e) => {
+        mx = e.clientX;
+        my = e.clientY;
+        window.__cursorX = mx;
+        window.__cursorY = my;
+        if (!alive) {
+          alive = true;
+          dot.style.opacity = "1";
+        }
+      },
+      { passive: true }
+    );
 
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX; my = e.clientY;
-    window.__cursorX = mx;
-    window.__cursorY = my;
-    if (!alive) {
+    document.addEventListener("mouseleave", () => {
+      alive = false;
+      dot.style.opacity = "0";
+    });
+    document.addEventListener("mouseenter", () => {
       alive = true;
-      scene.style.opacity = '1';
-      lens.style.opacity  = '1';
-    }
-  }, { passive: true });
+      dot.style.opacity = "1";
+    });
 
-  document.addEventListener('mouseleave', () => {
-    alive = false;
-    scene.style.opacity = '0';
-    lens.style.opacity  = '0';
-  });
-
-  document.addEventListener('mousedown', () => {
-    if (!spinActive) {
-      spinActive = true;
-      spinStart = performance.now();
-      spinFromY = rotY;
-    }
-  });
-
-  const t0 = performance.now();
-
-  (function loop() {
-    requestAnimationFrame(loop);
-
-    // Snap — zero positional lag
-    scene.style.left = mx + 'px';
-    scene.style.top  = my + 'px';
-    lens.style.left  = mx + 'px';
-    lens.style.top   = my + 'px';
-
-    const t = (performance.now() - t0) * 0.001;
-
-    if (spinActive) {
-      const elapsed = performance.now() - spinStart;
-      const p = Math.min(elapsed / SPIN_MS, 1);
-      const eased = p < 0.5 ? 4*p*p*p : 1 - Math.pow(-2*p+2,3)/2;
-      rotY = spinFromY + eased * 360;
-      rotX = -18 + Math.sin(t * 1.1) * 10;
-      if (p >= 1) { spinFromY = rotY % 360; spinActive = false; }
-    } else {
-      rotY += 0.45;
-      rotX = -18 + Math.sin(t * 0.55) * 12;
-    }
-
-    cube.style.transform = `rotateX(${rotX.toFixed(1)}deg) rotateY(${rotY.toFixed(1)}deg)`;
+    (function loop() {
+      requestAnimationFrame(loop);
+      dot.style.left = mx + "px";
+      dot.style.top = my + "px";
+    })();
   })();
-})();
 
-// ── FLOATING DUST — runs on every page ──
-(function () {
-  const canvas = document.createElement('canvas');
-  // z-index:1 keeps dust behind all content
-  canvas.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;';
-  document.body.appendChild(canvas);
-  const ctx = canvas.getContext('2d');
-  let dpr = 1;
+  // ── FLOATING DUST ──
+  (function () {
+    const canvas = document.createElement("canvas");
+    canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;";
+    document.body.appendChild(canvas);
+    const ctx = canvas.getContext("2d");
+    let dpr = 1;
 
-  function resize() {
-    dpr = window.devicePixelRatio || 1;
-    canvas.width  = window.innerWidth  * dpr;
-    canvas.height = window.innerHeight * dpr;
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.scale(dpr, dpr);
-  }
-  resize();
-  window.addEventListener('resize', resize, { passive: true });
+    function resize() {
+      dpr = window.devicePixelRatio || 1;
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+    }
+    resize();
+    window.addEventListener("resize", resize, { passive: true });
 
-  const W = () => window.innerWidth;
-  const H = () => window.innerHeight;
-  let lastScroll = window.scrollY;
+    const W = () => window.innerWidth;
+    const H = () => window.innerHeight;
+    let lastScroll = window.scrollY;
 
-  const pts = Array.from({ length: 110 }, (_, i) => {
-    const isMote = i < 12;
-    return {
-      x:  Math.random() * window.innerWidth,
-      y:  Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.10,
-      vy: -Math.random() * 0.06 - 0.01,
-      r:  isMote ? Math.random() * 1.1 + 0.6 : Math.random() * 0.5 + 0.2,
-      a:  isMote ? Math.random() * 0.12 + 0.06 : Math.random() * 0.08 + 0.02,
-      ph: Math.random() * Math.PI * 2,
-      spd: Math.random() * 0.006 + 0.003,
-      depth: 0.3 + Math.random() * 0.7,
-    };
-  });
+    let pageVisible = true;
+    document.addEventListener("visibilitychange", () => {
+      pageVisible = !document.hidden;
+    });
 
-  (function draw() {
-    requestAnimationFrame(draw);
-    ctx.clearRect(0, 0, W(), H());
+    const pts = Array.from({ length: 80 }, (_, i) => {
+      const isMote = i < 12;
+      return {
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        vx: (Math.random() - 0.5) * 0.1,
+        vy: -Math.random() * 0.06 - 0.01,
+        r: isMote ? Math.random() * 1.1 + 0.6 : Math.random() * 0.5 + 0.2,
+        a: isMote ? Math.random() * 0.12 + 0.06 : Math.random() * 0.08 + 0.02,
+        ph: Math.random() * Math.PI * 2,
+        spd: Math.random() * 0.006 + 0.003,
+        depth: 0.3 + Math.random() * 0.7,
+      };
+    });
 
-    const curScroll = window.scrollY;
-    const scrollDelta = curScroll - lastScroll;
-    lastScroll = curScroll;
+    (function draw() {
+      requestAnimationFrame(draw);
+      if (!pageVisible) return;
+      ctx.clearRect(0, 0, W(), H());
 
-    const cmx = window.__cursorX || -200;
-    const cmy = window.__cursorY || -200;
+      const curScroll = window.scrollY;
+      const scrollDelta = curScroll - lastScroll;
+      lastScroll = curScroll;
 
-    for (const p of pts) {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.ph += p.spd;
+      const cmx = window.__cursorX || -200;
+      const cmy = window.__cursorY || -200;
 
-      // Scroll parallax
-      p.y -= scrollDelta * p.depth * 0.15;
+      for (const p of pts) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.ph += p.spd;
+        p.y -= scrollDelta * p.depth * 0.15;
 
-      // Cursor push
-      const cdx = p.x - cmx, cdy = p.y - cmy;
-      const cDist = Math.sqrt(cdx * cdx + cdy * cdy);
-      if (cDist < 120 && cDist > 0) {
-        const push = (120 - cDist) / 120 * 0.18;
-        p.x += (cdx / cDist) * push;
-        p.y += (cdy / cDist) * push;
+        const cdx = p.x - cmx,
+          cdy = p.y - cmy;
+        const cDist = Math.sqrt(cdx * cdx + cdy * cdy);
+        if (cDist < 120 && cDist > 0) {
+          const push = ((120 - cDist) / 120) * 0.18;
+          p.x += (cdx / cDist) * push;
+          p.y += (cdy / cDist) * push;
+        }
+
+        if (p.y < -4) {
+          p.y = H() + 4;
+          p.x = Math.random() * W();
+        }
+        if (p.y > H() + 4) {
+          p.y = -4;
+          p.x = Math.random() * W();
+        }
+        if (p.x < -4) p.x = W() + 4;
+        if (p.x > W() + 4) p.x = -4;
+
+        const alpha = p.a * (0.45 + 0.55 * Math.sin(p.ph));
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = "rgba(180,190,210,0.7)";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
       }
-
-      if (p.y < -4)      { p.y = H() + 4; p.x = Math.random() * W(); }
-      if (p.y > H() + 4) { p.y = -4;      p.x = Math.random() * W(); }
-      if (p.x < -4)        p.x = W() + 4;
-      if (p.x > W() + 4)   p.x = -4;
-
-      const alpha = p.a * (0.45 + 0.55 * Math.sin(p.ph));
-      ctx.globalAlpha = alpha;
-      ctx.fillStyle = 'rgba(180,190,210,0.7)';
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
+      ctx.globalAlpha = 1;
+    })();
   })();
-})();
 </script>

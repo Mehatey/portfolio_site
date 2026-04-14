@@ -29,14 +29,14 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Interrupting<br>passive evolution.</h2>
     <div class="cs-body">
-      <p>The Fun Side is a retreat that feels like a tribe. No phones, minimum one week. It is a system designed to interrupt passive evolution — the unconscious drift shaped by technology, routine, and disconnection.</p>
+      <p>The Fun Side is a retreat that feels like a tribe. No phones, minimum one week. It is a system designed to interrupt passive evolution, the unconscious drift shaped by technology, routine, and disconnection.</p>
       <p>We are not evolving consciously, but by default. Technology shapes routines, disconnecting us from nature and each other.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Retreat branding — visual identity</div>
+  <div class="vis-ph">Retreat branding, visual identity</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -51,20 +51,20 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Rules that feel worth choosing.</h2>
     <div class="cs-body">
-      <p>The design challenge was creating constraints that feel restrictive enough to challenge but believable enough to choose. No phones is not a punishment — it is the entry point to a different kind of attention.</p>
-      <p>The branding, schedule structure, and physical environment were all designed as a cohesive system — each element reinforcing the others.</p>
+      <p>The design challenge was creating constraints that feel restrictive enough to challenge but believable enough to choose. No phones is not a punishment, it is the entry point to a different kind of attention.</p>
+      <p>The branding, schedule structure, and physical environment were all designed as a cohesive system, each element reinforcing the others.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Brand system — retreat identity</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Experience structure — daily flow</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Brand system, retreat identity</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Experience structure, daily flow</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Retreat environment — designed space</div>
+    <div class="vis-ph">Retreat environment, designed space</div>
   </div>
   <p class="cap-text">The Fun Side · experience design system</p>
 </div>
@@ -77,7 +77,7 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">We are not evolving consciously,<br>but by default.</h2>
     <div class="cs-body">
-      <p>Technology shapes routines, disconnecting us from nature and each other. The project asked whether design can create the conditions for conscious evolution — not through content, but through structure and constraint.</p>
+      <p>Technology shapes routines, disconnecting us from nature and each other. The project asked whether design can create the conditions for conscious evolution, not through content, but through structure and constraint.</p>
     </div>
   </div>
 </div>

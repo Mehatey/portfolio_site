@@ -25,21 +25,22 @@ meta:
     value: Read in Detail
     url: https://www.encodedatthemet.com/
     priority: cta
+refl_type: Testimonial
 reflection: >
-  Working inside a live museum taught me the environment always wins. Bronze statues we planned to use couldn't be scanned. Plans shifted on the floor. Things that held one day broke the next. The real work was staying adaptive across teams in LA and Melbourne, returning again and again until the activations locked in.
-
-
-  What this project revealed is how physical AR actually is. Precision is not something you configure. It is something you earn through repetition, light, and timing. When alignment finally holds, it does not announce itself. It just belongs.
+  Siddharth took ownership of on-site 3D scanning and spatial deployment for ENCODED at the Metropolitan Museum of Art. He handled the full pipeline from Polycam capture to Niantic Lightship integration, remaining persistent through unstable uploads and inconsistent scans. His ability to work discreetly within the museum, collaborate across LA and Melbourne, and contribute beyond his core scope made him a strong and dependable part of the team.
+refl_source: Stuart Campbell
+refl_role: Founder, EyeJack
+refl_avatar: "1.met/stuart.png"
 refl_bg: "1.met/12.png"
 next_projects:
   - title: AI SELF_
     url: /ai-self/
     desc: A VR narrative where AI attempts to understand humanity through memory, conflict, and choice.
     bg: "radial-gradient(ellipse at 25% 35%, #0d1f4a 0%, #060d1f 45%, #020508 100%)"
-  - title: ENCODED
-    url: /encoded/
-    desc: Guerrilla AR exhibition at the Met reinterpreting the American Wing through Indigenous perspectives.
-    bg: "radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
+  - title: Mind Your Feelings
+    url: /mind-your-feelings/
+    desc: An immersive installation exploring emotional landscapes through spatial interaction and light.
+    bg: "radial-gradient(ellipse at 25% 55%, #1a0d35 0%, #0d0620 50%, #050210 100%)"
 ---
 
 <!-- IMPACT -->
@@ -85,7 +86,7 @@ next_projects:
   <div class="cs-pair-text">
     <span class="cs-pair-label">Scanning</span>
     <div class="cs-body">
-      <p>Capturing geometry on-site required multiple passes from different angles. Reflective bronze and gold surfaces made several sculptures impossible to scan. We dropped them and rethought on the spot.</p>
+      <p>Scanning the Met with Polycam meant working around a live museum. Visitors walking into the scan zone, security watching closely, gallery light shifting by the hour. Some materials refused to cooperate. Reflective bronze, gilded frames, and glass cases broke depth mapping entirely. Those pieces had to be dropped and rethought on the spot.</p>
     </div>
   </div>
   <div class="cs-pair-media">
@@ -96,11 +97,11 @@ next_projects:
 </div>
 
 <!-- Scanning secondary — video left, text right -->
-<div class="cs-pair cs-pair--reverse">
+<div class="cs-pair">
   <div class="cs-pair-text">
-    <span class="cs-pair-label">On-site</span>
+    <span class="cs-pair-label">Pipeline</span>
     <div class="cs-body">
-      <p>Each visit meant recalibrating. Light changed, crowds shifted, and scans that worked one day failed the next. The process was as physical as the artworks themselves.</p>
+      <p>Each sculpture needed 10 to 15 Polycam scans uploaded to Niantic's Geospatial Browser. Uploads frequently failed or produced unstable meshes, requiring fresh scans at different times of day. Once a scan held, the Melbourne and LA teams would layer AR content, and I would return to verify alignment in the live gallery.</p>
     </div>
   </div>
   <div class="cs-pair-media cs-pair-media--no-fade">
@@ -110,12 +111,12 @@ next_projects:
   </div>
 </div>
 
-<!-- 02 TESTING — text left, video right -->
+<!-- 02 ALIGNMENT — text left, video right -->
 <div class="cs-pair">
   <div class="cs-pair-text">
-    <span class="cs-pair-label">Testing</span>
+    <span class="cs-pair-label">Alignment</span>
     <div class="cs-body">
-      <p>Alignments drifted between visits. Things that worked one day broke the next. Testing meant returning, rescanning, and holding until the mesh stayed true.</p>
+      <p>Activations that locked in one day would drift the next. Lighting shifts, spatial anchoring inconsistencies, new obstructions in the gallery. Every visit meant recalibrating. Precision was earned through repetition.</p>
     </div>
   </div>
   <div class="cs-pair-media cs-pair-media--no-fade">

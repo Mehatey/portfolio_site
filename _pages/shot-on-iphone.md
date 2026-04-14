@@ -29,14 +29,14 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">An image can become<br>a shared space.</h2>
     <div class="cs-body">
-      <p>Shot on iPhone reimagines photographs as entry points into conversations. Each image is paired with a QR code that unlocks the story behind it — context, memory, and intention made accessible.</p>
+      <p>Shot on iPhone reimagines photographs as entry points into conversations. Each image is paired with a QR code that unlocks the story behind it, context, memory, and intention made accessible.</p>
       <p>Photography does not have to remain one-way. An image can become a shared space where the viewer and the photographer meet.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Photograph with QR code — story unlocked</div>
+  <div class="vis-ph">Photograph with QR code, story unlocked</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -52,19 +52,19 @@ next_project:
     <h2 class="cs-heading">Simplicity first.</h2>
     <div class="cs-body">
       <p>The challenge was adding interaction without overcomplicating the simplicity of the original idea. The QR code had to feel like a natural extension, not an interruption.</p>
-      <p>Each story page was kept minimal — a few sentences, the context of the moment, and nothing more. The photograph remained the primary experience.</p>
+      <p>Each story page was kept minimal, a few sentences, the context of the moment, and nothing more. The photograph remained the primary experience.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">QR code integration — physical display</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Story page — mobile experience</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">QR code integration, physical display</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Story page, mobile experience</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Photography series — selected images</div>
+    <div class="vis-ph">Photography series, selected images</div>
   </div>
   <p class="cap-text">Shot on iPhone · interactive photography</p>
 </div>
@@ -77,7 +77,7 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Photography does not have<br>to remain one-way.</h2>
     <div class="cs-body">
-      <p>An image can become a shared space. When photographs carry their stories with them, the viewer is no longer guessing — they are participating in the moment.</p>
+      <p>An image can become a shared space. When photographs carry their stories with them, the viewer is no longer guessing, they are participating in the moment.</p>
     </div>
   </div>
 </div>

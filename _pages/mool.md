@@ -40,7 +40,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">App screens — primary interface</div>
+  <div class="vis-ph">App screens, primary interface</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -62,13 +62,13 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Design system — components</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Cultural visual language — motifs</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Design system, components</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Cultural visual language, motifs</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Full app flow — key screens</div>
+    <div class="vis-ph">Full app flow, key screens</div>
   </div>
   <p class="cap-text">Kyoorius Design Awards 2021 · Leaf Design Studio</p>
 </div>
@@ -81,7 +81,7 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Trust is built through<br>cultural relevance, not just function.</h2>
     <div class="cs-body">
-      <p>When financial tools reflect the culture of their users, trust forms faster. The project showed that accessibility in finance is not about simplification alone — it is about resonance.</p>
+      <p>When financial tools reflect the culture of their users, trust forms faster. The project showed that accessibility in finance is not about simplification alone, it is about resonance.</p>
     </div>
   </div>
 </div>

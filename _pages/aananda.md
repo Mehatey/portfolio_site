@@ -36,7 +36,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">App interface — philosophy made accessible</div>
+  <div class="vis-ph">App interface, philosophy made accessible</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -51,20 +51,20 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Responsibility in translation.</h2>
     <div class="cs-body">
-      <p>Translating philosophy into design was about responsibility — keeping meaning intact while being approachable. The app, book, and installations each serve a different entry point into the same content.</p>
+      <p>Translating philosophy into design was about responsibility, keeping meaning intact while being approachable. The app, book, and installations each serve a different entry point into the same content.</p>
       <p>The temple-inspired book uses physical form to mirror the experience of entering a sacred space. QR installations bring the philosophy into everyday environments.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Temple-inspired book — physical design</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">QR installation — public space</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Temple-inspired book, physical design</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">QR installation, public space</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Full system — app, book, installation</div>
+    <div class="vis-ph">Full system, app, book, installation</div>
   </div>
   <p class="cap-text">Aananda · Jain philosophy across mediums</p>
 </div>

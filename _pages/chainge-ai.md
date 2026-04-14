@@ -36,7 +36,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Mixed reality interface — ambient presence</div>
+  <div class="vis-ph">Mixed reality interface, ambient presence</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -52,19 +52,19 @@ next_project:
     <h2 class="cs-heading">The line between help<br>and intrusion.</h2>
     <div class="cs-body">
       <p>The hardest design challenge was defining when the AI should speak and when it should stay silent. Every intervention needed to feel like a suggestion, never a demand.</p>
-      <p>The interface is ambient — spatial cues in mixed reality that appear at the edges of attention rather than the center. Presence without pressure.</p>
+      <p>The interface is ambient, spatial cues in mixed reality that appear at the edges of attention rather than the center. Presence without pressure.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Interaction model — ambient cues</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Daily flow — moment connections</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Interaction model, ambient cues</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Daily flow, moment connections</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Mixed reality prototype — daily use scenario</div>
+    <div class="vis-ph">Mixed reality prototype, daily use scenario</div>
   </div>
   <p class="cap-text">AI presence · mixed reality companion</p>
 </div>

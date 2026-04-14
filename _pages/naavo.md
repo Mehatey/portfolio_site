@@ -40,7 +40,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Brand identity — packaging system</div>
+  <div class="vis-ph">Brand identity, packaging system</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -56,19 +56,19 @@ next_project:
     <h2 class="cs-heading">Restraint as brand language.</h2>
     <div class="cs-body">
       <p>The branding system strips away visual noise to let the product speak. Minimal typography, muted earth tones, and tactile packaging materials create an experience that feels grounded and intentional.</p>
-      <p>Packaging became experiential — the unboxing, the texture, the weight. Every touchpoint was designed to slow the user down and create a moment of attention.</p>
+      <p>Packaging became experiential, the unboxing, the texture, the weight. Every touchpoint was designed to slow the user down and create a moment of attention.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item"><div class="vis-ph">Typography and color system</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Packaging — tactile detail</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Packaging, tactile detail</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Full brand system — applications</div>
+    <div class="vis-ph">Full brand system, applications</div>
   </div>
   <p class="cap-text">Naavo · Ayurvedic brand identity</p>
 </div>

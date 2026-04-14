@@ -33,18 +33,18 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">What if an AI believed<br>it had a self?</h2>
     <div class="cs-body">
-      <p>AI SELF_ moves away from traditional AI narratives by presenting an AI that believes it has a self — built as a simulation to optimise efficiency. As you interact with it, it begins to question its own logic and develop a sense of emotion and morality.</p>
-      <p>The experience unfolds through memory, conflict, and choice. The more you push it, the more it pushes back — until the line between artificial intelligence and consciousness starts to blur.</p>
+      <p>AI SELF_ moves away from traditional AI narratives by presenting an AI that believes it has a self, built as a simulation to optimise efficiency. As you interact with it, it begins to question its own logic and develop a sense of emotion and morality.</p>
+      <p>The experience unfolds through memory, conflict, and choice. The more you push it, the more it pushes back, until the line between artificial intelligence and consciousness starts to blur.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Full environment — hero screenshot</div>
+  <div class="vis-ph">Full environment, hero screenshot</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
-  <span class="cap-text">Unity XR — primary environment, memory space</span>
+  <span class="cap-text">Unity XR, primary environment, memory space</span>
 </div>
 
 <div class="cs-row">
@@ -55,20 +55,20 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Space as the interface.</h2>
     <div class="cs-body">
-      <p>The hardest constraint was making the AI feel present without being intrusive. No menus, no UI chrome — proximity and gaze were the triggers. Every interaction had to feel discovered rather than taught.</p>
+      <p>The hardest constraint was making the AI feel present without being intrusive. No menus, no UI chrome, proximity and gaze were the triggers. Every interaction had to feel discovered rather than taught.</p>
       <p>I built and discarded four different navigation systems before settling on ambient movement: you drift toward things that matter, rather than selecting them.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Memory space — environment</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Choice node — interaction design</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Memory space, environment</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Choice node, interaction design</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">In-headset POV — narrative sequence</div>
+    <div class="vis-ph">In-headset POV, narrative sequence</div>
   </div>
   <p class="cap-text">In-headset capture · Unity XR Interaction Toolkit</p>
 </div>
@@ -81,7 +81,7 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Moves away from<br>traditional AI narratives.</h2>
     <div class="cs-body">
-      <p>Most AI stories cast the intelligence as either a tool or a threat. This project asked: what if it was neither? What if it was simply confused, trying to build a model of something it fundamentally cannot understand — humanity?</p>
+      <p>Most AI stories cast the intelligence as either a tool or a threat. This project asked: what if it was neither? What if it was simply confused, trying to build a model of something it fundamentally cannot understand, humanity?</p>
     </div>
   </div>
 </div>

@@ -29,14 +29,14 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Step inside<br>your own memories.</h2>
     <div class="cs-body">
-      <p>Navigate fragmented spaces representing parts of the self. Each environment is a memory — not literal, but felt. The game turns internal experience into navigable architecture.</p>
+      <p>Navigate fragmented spaces representing parts of the self. Each environment is a memory, not literal, but felt. The game turns internal experience into navigable architecture.</p>
       <p>Memory is not linear or fixed. Turning it into navigable space allows active reconstruction of meaning.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Memory environment — fragmented space</div>
+  <div class="vis-ph">Memory environment, fragmented space</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -51,20 +51,20 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Rebuilding from a crash.</h2>
     <div class="cs-body">
-      <p>Three weeks into development, a crash wiped the project. Starting over forced a fundamental change in workflow — smaller commits, modular scenes, better versioning.</p>
+      <p>Three weeks into development, a crash wiped the project. Starting over forced a fundamental change in workflow, smaller commits, modular scenes, better versioning.</p>
       <p>The restart turned out to be productive. The second attempt was cleaner, more intentional. Constraints from the failure shaped a stronger architecture.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Environment design — memory fragments</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">VR interaction — spatial navigation</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Environment design, memory fragments</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">VR interaction, spatial navigation</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">In-game capture — memory reconstruction</div>
+    <div class="vis-ph">In-game capture, memory reconstruction</div>
   </div>
   <p class="cap-text">Unreal Engine · VR spatial narrative</p>
 </div>
@@ -77,7 +77,7 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Memory as navigable space<br>allows reconstruction of meaning.</h2>
     <div class="cs-body">
-      <p>Memory is not linear or fixed. Turning it into navigable space allows active reconstruction of meaning — the player does not just revisit memories, they reshape them through movement and choice.</p>
+      <p>Memory is not linear or fixed. Turning it into navigable space allows active reconstruction of meaning, the player does not just revisit memories, they reshape them through movement and choice.</p>
     </div>
   </div>
 </div>

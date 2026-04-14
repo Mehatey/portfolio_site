@@ -36,7 +36,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">App interface — carbon footprint dashboard</div>
+  <div class="vis-ph">App interface, carbon footprint dashboard</div>
 </div>
 <div class="cs-bleed-cap">
   <span></span>
@@ -51,20 +51,20 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">Quantifying everyday impact.</h2>
     <div class="cs-body">
-      <p>The system translates daily choices — commute, meals, purchases — into a point system that makes carbon impact tangible. Challenges and comparisons add social motivation.</p>
+      <p>The system translates daily choices, commute, meals, purchases, into a point system that makes carbon impact tangible. Challenges and comparisons add social motivation.</p>
       <p>The design question was how far simplification can go before it becomes misleading. A balance had to be struck between accessibility and accuracy.</p>
     </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Point system — daily tracking</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Challenges — social comparison</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Point system, daily tracking</div></div>
+  <div class="cs-grid-item"><div class="vis-ph">Challenges, social comparison</div></div>
 </div>
 
 <div class="cs-wide">
   <div class="cs-wide-inner">
-    <div class="vis-ph">Full app flow — decision to impact</div>
+    <div class="vis-ph">Full app flow, decision to impact</div>
   </div>
   <p class="cap-text">Garmi Lagi · carbon footprint system</p>
 </div>
@@ -77,7 +77,7 @@ next_project:
   <div class="cs-content">
     <h2 class="cs-heading">When impact is quantified,<br>it becomes actionable.</h2>
     <div class="cs-body">
-      <p>Sustainability fails at the point of decision, not intention. When impact is quantified, it shifts from abstract to actionable — people change behavior when they can see the number move.</p>
+      <p>Sustainability fails at the point of decision, not intention. When impact is quantified, it shifts from abstract to actionable, people change behavior when they can see the number move.</p>
     </div>
   </div>
 </div>
