@@ -390,13 +390,20 @@ next_project:
 
 <!-- FILM POSTER -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/short film hd/1.png" alt="Squarube film poster" style="object-fit: contain;" />
+  <img src="{{ site.baseurl }}/2.cube/short%20film%20hd/0.png" alt="Squarube film poster" style="object-fit: contain;" />
 </div>
 
-<!-- FILM PREMISE -->
-<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding-top: 32px;">The film follows an alien square searching for meaning. He comes to Earth.</p>
+<!-- OPENING SHOT -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/1.mp4" type="video/mp4" />
+  </video>
+</div>
 
-<!-- FILM CLIPS 2.1 + 2.2 -->
+<!-- TEXT: home planet -->
+<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding: 32px var(--gutter) 0;">An alien square. Lives on a planet of two-dimensional beings. Flat, contained, known.</p>
+
+<!-- 2.1 + 2.2 -->
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
@@ -406,6 +413,141 @@ next_project:
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/2.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- TEXT: leaves for Earth -->
+<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding: 48px var(--gutter) 0;">He leaves. Comes to Earth searching for meaning. Finds three humans and follows them.</p>
+
+<!-- 3.1 + 3.2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/3.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/3.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 4 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/4.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- TEXT: six insights -->
+<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding: 48px var(--gutter) 0;">Each human gives him something. Six insights. Each one adds a side.</p>
+
+<!-- 5.1 + 5.2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.1.mov" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 6.1 + 6.2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/6.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/6.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 7.1 + 7.2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/7.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/7.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 8.1 + 8.2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/8.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/8.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 9.1 + 9.2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.1.mp4.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 10 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/10.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- TEXT: evolution -->
+<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding: 48px var(--gutter) 0;">Six sides complete. The square becomes a cube. A new dimension added to his life.</p>
+
+<!-- 11.1 + 11.2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.2.mp4.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 12.1 + 12.2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
