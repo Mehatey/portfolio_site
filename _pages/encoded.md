@@ -43,12 +43,40 @@ next_projects:
     bg: "radial-gradient(ellipse at 25% 55%, #1a0d35 0%, #0d0620 50%, #050210 100%)"
 ---
 
+<style>
+  /* ── LABEL TREATMENT: match cube mono style ── */
+  .intro-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: rgba(255,255,255,0.28);
+  }
+  .cs-pair-label {
+    font-family: var(--font-mono) !important;
+    font-size: 11px !important;
+    letter-spacing: 0.18em !important;
+    color: rgba(255,255,255,0.28) !important;
+    margin-bottom: 0 !important;
+  }
+
+  /* ── BODY TEXT: tighter, dimmer ── */
+  .cs-pair-text .cs-body {
+    font-size: clamp(13px, 1.2vw, 15px);
+    color: rgba(255,255,255,0.60);
+    line-height: 1.7;
+  }
+  .cs-intro .cs-body {
+    font-size: clamp(14px, 1.4vw, 17px);
+    color: rgba(255,255,255,0.68);
+  }
+</style>
+
 <!-- IMPACT -->
 <div class="cs-intro">
   <div class="intro-inner">
     <span class="intro-label">Impact</span>
     <div class="cs-body">
-      <p>Creative Technologist. Built the spatial AR layer by scanning artworks on-site and translating them into precise location-based activations across the American Wing. 25+ artworks transformed. 2,000+ user activations across the exhibition run.</p>
+      <p>Built the spatial AR layer across the American Wing. 25+ artworks scanned and activated. 2,000+ user interactions across the exhibition run.</p>
     </div>
   </div>
 </div>
@@ -86,11 +114,11 @@ next_projects:
   <div class="cs-pair-text">
     <span class="cs-pair-label">Scanning</span>
     <div class="cs-body">
-      <p>Scanning the Met with Polycam meant working around a live museum. Visitors walking into the scan zone, security watching closely, gallery light shifting by the hour. Some materials refused to cooperate. Reflective bronze, gilded frames, and glass cases broke depth mapping entirely. Those pieces had to be dropped and rethought on the spot.</p>
+      <p>Live museum, security watching, visitors in frame. Reflective bronze and gilded frames broke depth mapping. Dropped what wouldn't hold, adapted on site.</p>
     </div>
   </div>
   <div class="cs-pair-media">
-    <video autoplay muted loop playsinline preload="auto">
+    <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/1.met/2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -101,11 +129,11 @@ next_projects:
   <div class="cs-pair-text">
     <span class="cs-pair-label">Pipeline</span>
     <div class="cs-body">
-      <p>Each sculpture needed 10 to 15 Polycam scans uploaded to Niantic's Geospatial Browser. Uploads frequently failed or produced unstable meshes, requiring fresh scans at different times of day. Once a scan held, the Melbourne and LA teams would layer AR content, and I would return to verify alignment in the live gallery.</p>
+      <p>10 to 15 scans per sculpture, frequently failing. Once stable, Melbourne and LA layered AR content while I returned to verify alignment in the live gallery.</p>
     </div>
   </div>
   <div class="cs-pair-media cs-pair-media--no-fade">
-    <video autoplay muted loop playsinline preload="auto">
+    <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/1.met/3.mp4" type="video/mp4" />
     </video>
   </div>
@@ -116,18 +144,18 @@ next_projects:
   <div class="cs-pair-text">
     <span class="cs-pair-label">Alignment</span>
     <div class="cs-body">
-      <p>Activations that locked in one day would drift the next. Lighting shifts, spatial anchoring inconsistencies, new obstructions in the gallery. Every visit meant recalibrating. Precision was earned through repetition.</p>
+      <p>Content that locked one day would drift the next. Every return visit meant recalibrating. Precision was earned through repetition.</p>
     </div>
   </div>
   <div class="cs-pair-media cs-pair-media--no-fade">
-    <video autoplay muted loop playsinline preload="auto">
+    <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/1.met/4.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video autoplay muted loop playsinline preload="none">
     <source src="{{ site.baseurl }}/1.met/5.mp4" type="video/mp4" />
   </video>
 </div>
@@ -137,11 +165,11 @@ next_projects:
   <div class="cs-pair-text">
     <span class="cs-pair-label">Activation</span>
     <div class="cs-body">
-      <p>Final activations placed digital content precisely over physical artworks, letting the narrative emerge directly in the gallery. When it holds, it does not feel added on top. It feels like it belongs there.</p>
+      <p>Digital content placed precisely over physical artworks. When it holds, it does not feel added. It belongs there.</p>
     </div>
   </div>
   <div class="cs-pair-media">
-    <video autoplay muted loop playsinline preload="auto">
+    <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/1.met/6.mp4" type="video/mp4" />
     </video>
   </div>
@@ -167,31 +195,31 @@ next_projects:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video autoplay muted loop playsinline preload="none">
     <source src="{{ site.baseurl }}/1.met/7.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video autoplay muted loop playsinline preload="none">
     <source src="{{ site.baseurl }}/1.met/8.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video autoplay muted loop playsinline preload="none">
     <source src="{{ site.baseurl }}/1.met/9.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video autoplay muted loop playsinline preload="none">
     <source src="{{ site.baseurl }}/1.met/10.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed-full" style="position:relative;">
-  <video id="promo-video" autoplay muted loop playsinline preload="auto">
+  <video id="promo-video" autoplay muted loop playsinline preload="none">
     <source src="{{ site.baseurl }}/1.met/11.mp4" type="video/mp4" />
   </video>
   <button class="cover-audio-btn muted" onclick="const v=document.getElementById('promo-video');v.muted=!v.muted;this.classList.toggle('muted');" aria-label="Toggle audio">

@@ -337,7 +337,7 @@ next_project:
 <!-- 8.1 + 8.2 + 8.3 -->
 <div class="cs-grid-3 cs-grid-3--equal">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" style="object-fit: cover; object-position: top center;">
+    <video autoplay muted loop playsinline preload="none" style="object-fit: cover; object-position: top center;">
       <source src="{{ site.baseurl }}/2.cube/conception/8.1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -351,7 +351,7 @@ next_project:
 
 <!-- 9 -->
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/conception/9.mp4" type="video/mp4" />
   </video>
 </div>
@@ -365,7 +365,7 @@ next_project:
     <img src="{{ site.baseurl }}/2.cube/conception/10.2.png" alt="" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto">
+    <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/conception/10.3.mp4" type="video/mp4" />
     </video>
   </div>

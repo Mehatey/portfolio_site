@@ -15,7 +15,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,7 +25,7 @@
         --text-max: 900px;
         --font-head: 'Satoshi', sans-serif;
         --font-mono: 'DM Mono', monospace;
-        --font-title: 'Inter', sans-serif;
+        --font-title: 'Satoshi', sans-serif;
         --fg: #fff;
         --muted: rgba(255,255,255,0.38);
         --dim: rgba(255,255,255,0.18);
@@ -140,10 +139,10 @@
       }
       .proj-title {
         font-family: var(--font-title);
-        font-size: clamp(56px, 9vw, 130px);
-        font-weight: 600;
-        letter-spacing: -0.025em;
-        line-height: 0.9;
+        font-size: clamp(64px, 10.5vw, 152px);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        line-height: 0.88;
         color: #fff;
         opacity: 0;
       }
@@ -1264,6 +1263,30 @@
         .forEach((el) => {
           observer.observe(el);
         });
+
+      // Lazy-load videos: load + play only when approaching viewport
+      const videoLazyObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              const v = e.target;
+              if (v.preload === "none") {
+                v.preload = "auto";
+                v.load();
+                v.play().catch(() => {});
+              }
+              videoLazyObserver.unobserve(v);
+            }
+          });
+        },
+        { rootMargin: "400px 0px 400px 0px" }
+      );
+      document.querySelectorAll('video[preload="none"]').forEach((v) => videoLazyObserver.observe(v));
+
+      // Lazy-load images below the fold
+      document.querySelectorAll("img:not([loading])").forEach((img) => {
+        img.setAttribute("loading", "lazy");
+      });
 
       // Cover audio toggle
       const coverWrap = document.querySelector(".cs-bleed-full[data-audio]");
