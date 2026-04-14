@@ -376,6 +376,32 @@ next_project:
   <span class="cs-section-label">Film</span>
 </div>
 
+<!-- FILM INTRO -->
+<div class="cs-intro">
+  <span class="intro-overview-label">Short Film · 2022</span>
+  <div class="cs-body">
+    <p>Squarube. An alien square lands on Earth looking for purpose. He observes three humans, collects their insights, and adds a side with each one. Six minutes. The first time years of sketches became something you could actually watch.</p>
+  </div>
+  <div class="cs-body cs-body--insight">
+    <span class="insight-label">Origin</span>
+    <p>In 2023 I went on a trip with two friends. I learned some truths about myself and the world and wanted to share those. The film became the way to do it, indirectly, through a character who could carry what I could not always say directly.</p>
+  </div>
+</div>
+
+<!-- FILM 1 + 2 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/film/1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/film/2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
 <!-- SECTION: 2D GAME -->
 <div class="cs-section">
   <span class="cs-section-label">2D Game</span>
