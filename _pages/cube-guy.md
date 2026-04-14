@@ -205,7 +205,7 @@ next_project:
   .cube-cap {
     font-family: var(--font-mono);
     font-size: 13px;
-    color: rgba(255,255,255,0.24);
+    color: rgba(255,255,255,0.42);
     padding: 8px var(--gutter) 0;
     margin: 0;
     line-height: 1.5;
@@ -227,6 +227,17 @@ next_project:
   .cube-cap--above + .cs-grid-3 {
     margin-top: 8px;
   }
+  .cube-cap--above + .cs-grid {
+    margin-top: 8px;
+  }
+
+  /* ── FILM GRIDS: cover-crop real-world footage ── */
+  .film-grid .cs-grid-item video,
+  .film-grid .cs-grid-item img {
+    object-fit: cover !important;
+    object-position: center center !important;
+  }
+
   /* Tighter gap when a bleed follows a grid (e.g. 8.x→9, 10.x→10.3) */
   .cs-grid + .cs-bleed {
     margin-top: 24px;
@@ -289,11 +300,11 @@ next_project:
   <img src="{{ site.baseurl }}/2.cube/conception/0.png" alt="" style="object-fit: contain;" />
 </div>
 
-<!-- 1 + caption -->
+<!-- caption + 1 -->
+<p class="cube-cap" style="padding-top: 24px;"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/2.cube/conception/1.png" alt="" style="object-fit: contain;" />
 </div>
-<p class="cube-cap"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
 
 <!-- 2 -->
 <div class="cs-bleed">
@@ -376,18 +387,6 @@ next_project:
   <span class="cs-section-label">Film</span>
 </div>
 
-<!-- FILM INTRO -->
-<div class="cs-intro">
-  <span class="intro-overview-label">Short Film · 2022</span>
-  <div class="cs-body">
-    <p>Squarube. An alien square lands on Earth looking for purpose. He observes three humans, collects their insights, and adds a side with each one. Six minutes. The first time years of sketches became something you could actually watch.</p>
-  </div>
-  <div class="cs-body cs-body--insight">
-    <span class="insight-label">Origin</span>
-    <p>In 2023 I went on a trip with two friends. I learned some truths about myself and the world and wanted to share those. The film became the way to do it, indirectly, through a character who could carry what I could not always say directly.</p>
-  </div>
-</div>
-
 <!-- FILM POSTER -->
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/2.cube/short%20film%20hd/0.png" alt="Squarube film poster" style="object-fit: contain;" />
@@ -400,11 +399,19 @@ next_project:
   </video>
 </div>
 
+<!-- FILM INTRO -->
+<div class="cs-intro">
+  <span class="intro-overview-label">Short Film · 2022</span>
+  <div class="cs-body">
+    <p>Squarube. An alien square lands on Earth looking for purpose. He observes three humans, collects their insights, and adds a side with each one. Six minutes. The first time years of sketches became something you could actually watch.</p>
+  </div>
+</div>
+
 <!-- TEXT: home planet -->
-<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding: 32px var(--gutter) 0;">An alien square. Lives on a planet of two-dimensional beings. Flat, contained, known.</p>
+<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>An alien square. Lives on a planet of two-dimensional beings. Flat, contained, known.</em></p>
 
 <!-- 2.1 + 2.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/2.1.mp4" type="video/mp4" />
@@ -418,10 +425,10 @@ next_project:
 </div>
 
 <!-- TEXT: leaves for Earth -->
-<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding: 48px var(--gutter) 0;">He leaves. Comes to Earth searching for meaning. Finds three humans and follows them.</p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>He leaves. Comes to Earth searching for meaning. Finds three humans and follows them.</em></p>
 
 <!-- 3.1 + 3.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/3.1.mp4" type="video/mp4" />
@@ -442,10 +449,10 @@ next_project:
 </div>
 
 <!-- TEXT: six insights -->
-<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding: 48px var(--gutter) 0;">Each human gives him something. Six insights. Each one adds a side.</p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Each human gives him something. Six insights. Each one adds a side.</em></p>
 
 <!-- 5.1 + 5.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.1.mp4" type="video/mp4" />
@@ -459,7 +466,7 @@ next_project:
 </div>
 
 <!-- 6.1 + 6.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/6.1.mp4" type="video/mp4" />
@@ -473,7 +480,7 @@ next_project:
 </div>
 
 <!-- 7.1 + 7.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/7.1.mp4" type="video/mp4" />
@@ -487,7 +494,7 @@ next_project:
 </div>
 
 <!-- 8.1 + 8.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/8.1.mp4" type="video/mp4" />
@@ -501,7 +508,7 @@ next_project:
 </div>
 
 <!-- 9.1 + 9.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.1.mp4.mp4" type="video/mp4" />
@@ -522,10 +529,10 @@ next_project:
 </div>
 
 <!-- TEXT: evolution -->
-<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding: 48px var(--gutter) 0;">Six sides complete. The square becomes a cube. A new dimension added to his life.</p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Six sides complete. The square becomes a cube. A new dimension added to his life.</em></p>
 
 <!-- 11.1 + 11.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.1.mp4" type="video/mp4" />
@@ -539,7 +546,7 @@ next_project:
 </div>
 
 <!-- 12.1 + 12.2 -->
-<div class="cs-grid">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.1.mp4" type="video/mp4" />
@@ -555,6 +562,140 @@ next_project:
 <!-- SECTION: 2D GAME -->
 <div class="cs-section">
   <span class="cs-section-label">2D Game</span>
+</div>
+
+<!-- 2D: 1 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/1.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- 2.1 + 2.2 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/2.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/2.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- TEXT: drawings into character -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Sketches given motion. Flat drawings turned into a character you could actually play.</em></p>
+
+<!-- 3.1 + 3.2 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/3.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 4.1 + 4.2 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/4.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/4.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- TEXT: personalised game -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The game built around you. Your music, your playlists, your world inside the level.</em></p>
+
+<!-- 5.1 + 5.2 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/5.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/5.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 6 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/6.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- TEXT: distractions given form -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Distractions given shape. The things that pull you off course become obstacles to dodge.</em></p>
+
+<!-- 7.1 + 7.2 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/7.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/7.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 8 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/8.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- TEXT: familiar enemies -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The enemies borrowed from memory. Characters already lodged in the brain, now in your way.</em></p>
+
+<!-- 9 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/9.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- 10.jpg + 10.mp4 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/2d/10.jpg" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/10.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 11.2 + 11.3 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/11.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/2d/11.3.mp4" type="video/mp4" />
+    </video>
+  </div>
 </div>
 
 <!-- SECTION: 3D GAME -->
