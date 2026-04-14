@@ -3,85 +3,398 @@ layout: project
 permalink: /cube-guy/
 project_title: Cube Guy
 proj_num: "04"
-tagline: A character built since 2018. A square lands in an unfamiliar world searching for meaning, collecting insights that add new sides, evolving into a cube.
-category: Game · Film
-year: 2018-2025
+tagline: A character built since 2018. A square in an unfamiliar world, collecting insights, adding sides, becoming a cube.
+category: Film · Game · Character
+year: 2018–2025
 hero_bg: "radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)"
+hero_image: "2.cube/cover.png"
 meta:
-  - label: Role
-    value: Solo
-  - label: Duration
-    value: 4 months (ongoing)
   - label: Year
-    value: 2018-2025
-  - label: Tools
-    value: Premiere Pro · Unreal Engine · HTML/CSS/JS
+    value: "2018–2025"
+    priority: dim
   - label: Client
     value: Self Initiated
+    priority: secondary
+  - label: Role
+    value: Director · Designer · Developer
+    priority: primary
+  - label: Tools
+    value: Unreal Engine
+    priority: dim
 reflection: >
-  A six-year journey. The film came first, then translating into systems and interaction through the game.
+  This project has been a six year journey rather than a single build. The film came first, and was one of the most fulfilling pieces I've made. It was the first time the character felt complete, taking years of sketches and ideas and turning them into something I could actually see and share.
+
+
+  Coming back to it through the game was a very different challenge. It meant translating the same idea into systems and interaction, not just visuals. I had to learn how to build that from scratch, and the process was messy. I lost versions of the project, rebuilt large parts of it, and only then understood the importance of saving, structuring, and managing work properly.
+
+
+  What stayed consistent through all of this was the character itself. Even as the medium changed, the idea held. This project is not just about a character or a game, but an ongoing body of work where each iteration adds another side to the cube, and in many ways, to me.
+hide_overview: true
 next_project:
   title: B + b
   url: /b-plus-b/
 ---
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">01</span>
-    Concept
+<style>
+  /* ── KEYFRAMES ── */
+  @keyframes trackIn {
+    from { opacity: 0; letter-spacing: 0.04em; transform: translateY(6px); }
+    to   { opacity: 1; letter-spacing: 0.18em; transform: translateY(0); }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes lineGrow {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* ── INTRO ── */
+  .cs-intro {
+    opacity: 1 !important;
+    transform: none !important;
+    max-width: none !important;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 56px var(--gutter) 0;
+    gap: 16px;
+  }
+  /* Label: tracking expands as it fades in */
+  .cs-intro .intro-overview-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+    animation: trackIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
+  }
+  /* Body: slides up */
+  .cs-intro .cs-body {
+    font-size: clamp(14px, 1.5vw, 20px);
+    line-height: 1.6;
+    color: rgba(255,255,255,0.68);
+    max-width: 740px;
+    margin: 0;
+    animation: fadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
+  }
+  /* Insight block: line draws, then block slides up */
+  .cs-intro .cs-body--insight {
+    font-size: clamp(14px, 1.5vw, 20px);
+    color: rgba(255,255,255,0.68);
+    max-width: 740px;
+    position: relative;
+    margin-top: 24px;
+    padding-top: 24px;
+    animation: fadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.78s both;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  /* The divider line draws left-to-right just before the block appears */
+  .cs-intro .cs-body--insight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: rgba(255,255,255,0.07);
+    transform-origin: left center;
+    animation: lineGrow 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
+  }
+  /* Insight label: tracks in after the block */
+  .cs-intro .cs-body--insight .insight-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+    animation: trackIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.9s both;
+  }
+
+  /* ── GRID SIZING ── */
+  .cs-grid {
+    height: clamp(360px, 60vh, 720px);
+    grid-template-rows: 1fr;
+  }
+  .cs-grid--asymmetric {
+    grid-template-columns: 2fr 3fr;
+    height: clamp(360px, 60vh, 720px);
+  }
+  .cs-grid-3--equal {
+    height: clamp(360px, 60vh, 720px);
+    grid-template-rows: 1fr;
+  }
+
+  /* ── GRID ITEMS ── */
+  .cs-grid-item {
+    aspect-ratio: unset !important;
+    height: 100%;
+    min-height: 0;
+    background: #000;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .cs-grid-item img,
+  .cs-grid-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center center;
+    display: block;
+    will-change: transform;
+  }
+  /* Edge alignment */
+  .cs-grid .cs-grid-item:first-child img,
+  .cs-grid .cs-grid-item:first-child video,
+  .cs-grid-3 .cs-grid-item:first-child img,
+  .cs-grid-3 .cs-grid-item:first-child video {
+    object-position: left center;
+  }
+  .cs-grid .cs-grid-item:last-child img,
+  .cs-grid .cs-grid-item:last-child video,
+  .cs-grid-3 .cs-grid-item:last-child img,
+  .cs-grid-3 .cs-grid-item:last-child video {
+    object-position: right center;
+  }
+  /* Hover: brighten slightly */
+  .cs-grid-item:hover img,
+  .cs-grid-item:hover video {
+    filter: brightness(1.12);
+    transition: filter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* ── SLOW DRIFT: applied to grid items so overflow:hidden creates a pan effect ── */
+  @keyframes driftLeft  { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-16px); } }
+  @keyframes driftRight { 0%,100% { transform: translateX(0); } 50% { transform: translateX(16px); } }
+
+  .cs-grid .cs-grid-item:nth-child(1),
+  .cs-grid-3 .cs-grid-item:nth-child(1) {
+    animation: driftRight 9s ease-in-out infinite;
+  }
+  .cs-grid .cs-grid-item:nth-child(2),
+  .cs-grid-3 .cs-grid-item:nth-child(2) {
+    animation: driftLeft 11s ease-in-out infinite;
+  }
+  .cs-grid-3 .cs-grid-item:nth-child(3) {
+    animation: driftRight 7s ease-in-out infinite;
+  }
+
+
+  /* ── IDEA BLOCK ── */
+  .cs-idea {
+    padding: 64px var(--gutter) 48px;
+  }
+  .cs-idea p {
+    font-size: clamp(15px, 1.5vw, 19px);
+    line-height: 1.8;
+    color: rgba(255,255,255,0.38);
+    font-style: normal;
+    max-width: 560px;
+    margin: 0;
+  }
+
+  /* ── CAPTIONS ── */
+  .cube-cap {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: rgba(255,255,255,0.24);
+    padding: 8px var(--gutter) 0;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .cube-cap em {
+    font-style: italic;
+  }
+  .cube-cap--center {
+    text-align: center;
+    padding: 16px var(--gutter) 0;
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  .cube-cap--above {
+    padding: 0 var(--gutter) 8px;
+  }
+
+  /* ── PROXIMITY: captions attach tight to the element they describe ── */
+  .cube-cap--above + .cs-grid-3 {
+    margin-top: 8px;
+  }
+  /* Tighter gap when a bleed follows a grid (e.g. 8.x→9, 10.x→10.3) */
+  .cs-grid + .cs-bleed {
+    margin-top: 24px;
+  }
+  /* Tight spacing around 1.png (0→1, caption→2) */
+  .cs-bleed + .cs-bleed {
+    margin-top: 16px;
+  }
+  .cube-cap + .cs-bleed {
+    margin-top: 16px;
+  }
+
+  /* ── SECTION LABELS: line draws left-to-right, then label fades ── */
+  .cs-section {
+    padding: 80px var(--gutter) 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cs-section::before {
+    content: '';
+    display: block;
+    width: 0;
+    height: 1px;
+    background: rgba(255,255,255,0.18);
+    flex-shrink: 0;
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+  }
+  .cs-section.is-visible::before {
+    width: 28px;
+  }
+  .cs-section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.22);
+    opacity: 0;
+    transition: opacity 0.7s ease 0.55s;
+  }
+  .cs-section.is-visible .cs-section-label {
+    opacity: 1;
+  }
+</style>
+
+<!-- INTRO -->
+<div class="cs-intro">
+  <span class="intro-overview-label">Intro</span>
+  <div class="cs-body">
+    <p>A character I've been building since 2018. Developed across a short film, a 2D platform game, and a 3D world in Unreal Engine. A square in an unfamiliar world, collecting insights, adding a side with each one, slowly becoming a cube.</p>
   </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">A square searching<br>for meaning.</h2>
-    <div class="cs-body">
-      <p>Cube Guy is a character built since 2018. A square lands in an unfamiliar world searching for meaning, collecting insights that add new sides — evolving into a cube.</p>
-      <p>What began as a simple character became a way to externalize fears, insecurities, and experiences. The narrative grew alongside its creator.</p>
-    </div>
+  <div class="cs-body cs-body--insight">
+    <span class="insight-label">Insight</span>
+    <p>What began as a simple character became a way for me to externalize my own fears, insecurities, and experiences. It turned into a kind of metaphor, a way of saying things indirectly, where the character carries what I cannot always articulate directly.</p>
   </div>
 </div>
 
+<!-- 0 -->
 <div class="cs-bleed">
-  <div class="vis-ph">Cube Guy — character evolution</div>
-</div>
-<div class="cs-bleed-cap">
-  <span></span>
-  <span class="cap-text">Premiere Pro · Unreal Engine · HTML/CSS/JS</span>
+  <img src="{{ site.baseurl }}/2.cube/conception/0.png" alt="" style="object-fit: contain;" />
 </div>
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">02</span>
-    Process
-  </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">From film to system.</h2>
-    <div class="cs-body">
-      <p>The film came first — a short narrative establishing the character and world. Then came the challenge of translating that linear story into systems and interaction through a game built in Unreal Engine.</p>
-      <p>Each medium demanded a different approach to the same story. Film controlled pacing; the game handed it to the player.</p>
-    </div>
-  </div>
+<!-- 1 + caption -->
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/2.cube/conception/1.png" alt="" style="object-fit: contain;" />
+</div>
+<p class="cube-cap"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
+
+<!-- 2 -->
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/2.cube/conception/2.png" alt="" style="object-fit: contain;" />
 </div>
 
+<!-- 6.1 + 6.2 -->
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Film stills — narrative sequence</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Game environment — Unreal Engine</div></div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/6.1.png" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/6.2.png" alt="" />
+  </div>
 </div>
 
-<div class="cs-wide">
-  <div class="cs-wide-inner">
-    <div class="vis-ph">Character progression — square to cube</div>
+<!-- Ideating sketches label + 7.1 + 7.2 + 7.3 -->
+<p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p>
+<div class="cs-grid-3 cs-grid-3--equal">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/7.1.png" alt="" />
   </div>
-  <p class="cap-text">Six-year character evolution · film and game</p>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/7.2.png" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/7.3.jpg" alt="" />
+  </div>
 </div>
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">03</span>
-    Insight
+<!-- 7.4 + 7.5 -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/7.4.png" alt="" />
   </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">A way to externalize fears,<br>insecurities, and experiences.</h2>
-    <div class="cs-body">
-      <p>What began as a simple character became a vehicle for processing real emotions. The project proved that personal narratives, when abstracted enough, become universally relatable.</p>
-    </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/7.5.png" alt="" />
   </div>
 </div>
+
+<!-- 8.1 + 8.2 + 8.3 -->
+<div class="cs-grid-3 cs-grid-3--equal">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto" style="object-fit: cover; object-position: top center;">
+      <source src="{{ site.baseurl }}/2.cube/conception/8.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/8.2.png" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/8.3.png" alt="" />
+  </div>
+</div>
+
+<!-- 9 -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="auto" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/conception/9.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- 10.1 + 10.2 + 10.3 -->
+<div class="cs-grid-3 cs-grid-3--equal">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/10.1.png" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/conception/10.2.png" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto">
+      <source src="{{ site.baseurl }}/2.cube/conception/10.3.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- SECTION: FILM -->
+<div class="cs-section">
+  <span class="cs-section-label">Film</span>
+</div>
+
+<!-- SECTION: 2D GAME -->
+<div class="cs-section">
+  <span class="cs-section-label">2D Game</span>
+</div>
+
+<!-- SECTION: 3D GAME -->
+<div class="cs-section">
+  <span class="cs-section-label">3D Game</span>
+</div>
+
+<script>
+  (function () {
+    var extras = document.querySelectorAll('.cs-section');
+    if (!extras.length) return;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
+      });
+    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
+    extras.forEach(function (el) { io.observe(el); });
+  })();
+</script>
