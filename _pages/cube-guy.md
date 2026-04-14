@@ -388,16 +388,24 @@ next_project:
   </div>
 </div>
 
-<!-- FILM 1 + 2 -->
+<!-- FILM POSTER -->
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/2.cube/short film hd/1.png" alt="Squarube film poster" style="object-fit: contain;" />
+</div>
+
+<!-- FILM PREMISE -->
+<p class="cube-cap" style="font-size: clamp(13px, 1.3vw, 16px); color: rgba(255,255,255,0.45); max-width: 560px; line-height: 1.7; padding-top: 32px;">The film follows an alien square searching for meaning. He comes to Earth.</p>
+
+<!-- FILM CLIPS 2.1 + 2.2 -->
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/film/1.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/2.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/film/2.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/2.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
