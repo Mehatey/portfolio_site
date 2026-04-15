@@ -231,6 +231,11 @@ next_project:
     margin-top: 8px;
   }
 
+  /* ── ASYMMETRIC: left column heavier ── */
+  .cs-grid--left-heavy {
+    grid-template-columns: 3fr 2fr;
+  }
+
   /* ── FILM/GAME GRIDS: no cropping ── */
   .film-grid .cs-grid-item video,
   .film-grid .cs-grid-item img {
@@ -589,7 +594,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Sketches given motion. Flat drawings turned into a character you could actually play.</em></p>
 
 <!-- 3.1 + 3.2 -->
-<div class="cs-grid film-grid">
+<div class="cs-grid film-grid cs-grid--left-heavy">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" />
   </div>
@@ -615,7 +620,7 @@ next_project:
 </div>
 
 <!-- TEXT: personalised game -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The game built around you. Your music, your playlists, your world inside the level.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p>
 
 <!-- 5.1 + 5.2 -->
 <div class="cs-grid film-grid">
