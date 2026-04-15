@@ -321,7 +321,8 @@ next_project:
   <img src="{{ site.baseurl }}/2.cube/conception/2.png" alt="" style="object-fit: contain;" />
 </div>
 
-<!-- 6.1 + 6.2 -->
+<!-- Ideating sketches label + 6.1 + 6.2 -->
+<p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/2.cube/conception/6.1.png" alt="" />
@@ -331,8 +332,7 @@ next_project:
   </div>
 </div>
 
-<!-- Ideating sketches label + 7.1 + 7.2 + 7.3 -->
-<p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p>
+<!-- 7.1 + 7.2 + 7.3 -->
 <div class="cs-grid-3 cs-grid-3--equal">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/2.cube/conception/7.1.png" alt="" />
@@ -690,7 +690,7 @@ next_project:
 </div>
 
 <!-- TEXT: boss battle -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Clip from the boss battle — a fight with Doubt.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Clip from the boss battle. A fight with Doubt.</em></p>
 
 <!-- 11 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
@@ -733,33 +733,33 @@ next_project:
 </div>
 
 <!-- TEXT: character goes 3D -->
-<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>The flat drawings taken into a new dimension. The character rebuilt in Meshy AI — given volume, weight, and shadow for the first time.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>The flat drawings taken into a new dimension. The character rebuilt in Meshy AI, given volume, weight, and shadow for the first time.</em></p>
 
-<!-- 1 + 2 -->
-<div class="cs-grid film-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/3d/1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/3d/2.mp4" type="video/mp4" />
-    </video>
-  </div>
+<!-- 1 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/1.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- 2 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/2.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- TEXT: world exploration -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Different worlds tried on. Mirror-like spaces, distorted geometry — looking for a place that felt like the inside of a mind.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Different worlds tried on. Mirror-like spaces and distorted geometry, looking for a place that felt like the inside of a mind.</em></p>
 
-<!-- 3 + 4 -->
-<div class="cs-grid film-grid">
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/3d/3.png" alt="" />
-  </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/3d/4.png" alt="" />
-  </div>
+<!-- 3 standalone -->
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/2.cube/3d/3.png" alt="" style="object-fit: contain;" />
+</div>
+
+<!-- 4 standalone -->
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/2.cube/3d/4.png" alt="" style="object-fit: contain;" />
 </div>
 
 <!-- TEXT: final scene -->
@@ -775,60 +775,60 @@ next_project:
 <!-- TEXT: gameplay begins -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The game begins. Six years of a character, now something you can move through.</em></p>
 
-<!-- 6 + 7 -->
-<div class="cs-grid film-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/3d/6.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/3d/7.mp4" type="video/mp4" />
-    </video>
-  </div>
+<!-- 6 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/6.mp4" type="video/mp4" />
+  </video>
 </div>
 
-<!-- 8 + 9.1 -->
-<div class="cs-grid film-grid film-grid--no-top">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/3d/8.mp4" type="video/mp4" />
-    </video>
-  </div>
+<!-- 7 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/7.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- 8 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/8.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- 9.1 + 9.2 -->
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/3d/9.1.mp4" type="video/mp4" />
     </video>
   </div>
-</div>
-
-<!-- 9.2 + 10.1 -->
-<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/3d/9.2.mp4" type="video/mp4" />
     </video>
   </div>
+</div>
+
+<!-- 10.1 + 10.2 -->
+<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/3d/10.1.mp4" type="video/mp4" />
     </video>
   </div>
-</div>
-
-<!-- 10.2 + 11 -->
-<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/3d/10.2.mp4" type="video/mp4" />
     </video>
   </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/3d/11.mp4" type="video/mp4" />
-    </video>
-  </div>
+</div>
+
+<!-- 11 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/11.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- 12 standalone -->
@@ -839,7 +839,7 @@ next_project:
 </div>
 
 <!-- TEXT: inner child -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Congratulations. Your inner child has been found, and integrated. The square became a cube. The cube found its world.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Congratulations. Your inner child has been found and integrated. The square became a cube. The cube found its world.</em></p>
 
 <!-- 13 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
