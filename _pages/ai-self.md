@@ -98,9 +98,14 @@ next_project:
   .cs-grid-item video {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center center;
     display: block;
+  }
+  /* No zoom or crop on any media on this page */
+  .cs-bleed img, .cs-bleed video,
+  .cs-bleed-full img, .cs-bleed-full video {
+    object-fit: contain !important;
   }
   .cube-cap {
     font-family: var(--font-mono);
