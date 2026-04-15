@@ -605,6 +605,13 @@ next_project:
   </div>
 </div>
 
+<!-- 4 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/4.mp4" type="video/mp4" />
+  </video>
+</div>
+
 <!-- 4.1 + 4.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
