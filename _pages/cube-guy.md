@@ -531,9 +531,6 @@ next_project:
   </div>
 </div>
 
-<!-- TEXT: evolution -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Six sides complete. The square becomes a cube. A new dimension added to his life.</em></p>
-
 <!-- 11.1 + 11.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
@@ -547,6 +544,9 @@ next_project:
     </video>
   </div>
 </div>
+
+<!-- TEXT: evolution -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Six sides complete. The square becomes a cube. A new dimension added to his life.</em></p>
 
 <!-- 12.1 + 12.2 -->
 <div class="cs-grid film-grid">
