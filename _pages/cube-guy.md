@@ -685,6 +685,9 @@ next_project:
   </video>
 </div>
 
+<!-- TEXT: boss battle -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Clip from the boss battle — a fight with Doubt.</em></p>
+
 <!-- 11 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
   <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
