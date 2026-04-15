@@ -643,13 +643,6 @@ next_project:
   </div>
 </div>
 
-<!-- 6 standalone -->
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source src="{{ site.baseurl }}/2.cube/2d/6.mp4" type="video/mp4" />
-  </video>
-</div>
-
 <!-- TEXT: distractions given form -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Distractions given shape. The things that pull you off course become obstacles to dodge.</em></p>
 
