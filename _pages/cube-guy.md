@@ -444,13 +444,6 @@ next_project:
   </div>
 </div>
 
-<!-- 4 standalone -->
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/4.mp4" type="video/mp4" />
-  </video>
-</div>
-
 <!-- TEXT: six insights -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Each human gives him something. Six insights. Each one adds a side.</em></p>
 
@@ -538,11 +531,8 @@ next_project:
   </div>
 </div>
 
-<!-- TEXT: evolution -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Six sides complete. The square becomes a cube. A new dimension added to his life.</em></p>
-
 <!-- 12.1 + 12.2 -->
-<div class="cs-grid film-grid">
+<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.1.mp4" type="video/mp4" />
@@ -553,6 +543,16 @@ next_project:
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.2.mp4" type="video/mp4" />
     </video>
   </div>
+</div>
+
+<!-- TEXT: evolution -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Six sides complete. The square becomes a cube. A new dimension added to his life.</em></p>
+
+<!-- 13 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/13.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- CONCLUSION -->
