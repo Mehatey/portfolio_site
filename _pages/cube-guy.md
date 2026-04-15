@@ -713,6 +713,137 @@ next_project:
   <span class="cs-section-label">3D Game</span>
 </div>
 
+<!-- 3D: 0 opening bleed -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/0.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- 3D INTRO -->
+<div class="cs-intro">
+  <span class="intro-overview-label">3D Game · 2024</span>
+  <div class="cs-body">
+    <p>The same character, now fully three-dimensional. Built in Unreal Engine. What started as a sketch on paper had become a film, then a 2D game, and now a world you could actually walk through.</p>
+  </div>
+</div>
+
+<!-- TEXT: character goes 3D -->
+<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>The flat drawings taken into a new dimension. The character rebuilt in Meshy AI — given volume, weight, and shadow for the first time.</em></p>
+
+<!-- 1 + 2 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- TEXT: world exploration -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Different worlds tried on. Mirror-like spaces, distorted geometry — looking for a place that felt like the inside of a mind.</em></p>
+
+<!-- 3 + 4 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/3d/3.png" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/3d/4.png" alt="" />
+  </div>
+</div>
+
+<!-- TEXT: final scene -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The chosen scene. The one that stayed.</em></p>
+
+<!-- 5 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/5.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- TEXT: gameplay begins -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The game begins. Six years of a character, now something you can move through.</em></p>
+
+<!-- 6 + 7 -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/6.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/7.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 8 + 9.1 -->
+<div class="cs-grid film-grid film-grid--no-top">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/8.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/9.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 9.2 + 10.1 -->
+<div class="cs-grid film-grid film-grid--no-top">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/9.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/10.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 10.2 + 11 -->
+<div class="cs-grid film-grid film-grid--no-top">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/10.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/2.cube/3d/11.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<!-- 12 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/12.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- TEXT: inner child -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Congratulations. Your inner child has been found, and integrated. The square became a cube. The cube found its world.</em></p>
+
+<!-- 13 standalone -->
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/3d/13.mp4" type="video/mp4" />
+  </video>
+</div>
+
 <script>
   (function () {
     var extras = document.querySelectorAll('.cs-section');
