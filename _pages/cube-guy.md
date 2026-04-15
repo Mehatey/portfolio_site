@@ -674,7 +674,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/9.2.jpg" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/2d/9.2.png" alt="" />
   </div>
 </div>
 
