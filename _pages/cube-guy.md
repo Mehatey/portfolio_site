@@ -675,23 +675,23 @@ next_project:
 <!-- TEXT: familiar enemies -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The enemies borrowed from memory. Characters already lodged in the brain, now in your way.</em></p>
 
-<!-- 9 standalone -->
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source src="{{ site.baseurl }}/2.cube/2d/9.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- 10.jpg + 10.mp4 -->
+<!-- 9.1 + 9.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/10.jpg" alt="" />
-  </div>
-  <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/2d/10.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/2.cube/2d/9.1.mp4" type="video/mp4" />
     </video>
   </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/2d/9.2.jpg" alt="" />
+  </div>
+</div>
+
+<!-- 10 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/10.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- 11.2 standalone -->
