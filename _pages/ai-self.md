@@ -21,7 +21,7 @@ reflection: >
   The research started as a joke. Feeding images into Cloud Vision just to see how badly it misread them. But the patterns kept surfacing. Not about what AI fails at, but about what it has decided is worth noticing in the first place.
 
 
-  Chainge was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference.
+  Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference.
 
 
   AI SELF_ was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.
@@ -98,7 +98,7 @@ next_project:
   .cs-grid-item video {
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: contain !important;
     object-position: center center;
     display: block;
   }
@@ -200,28 +200,28 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/3.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/4.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/5.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>A billboard in the New York subway. The way it framed AI as a confident helpful presence already embedded in daily life. I started noticing how much people were opening up to it.</em></p>
 <div class="cs-bleed ai-contain">
   <img src="{{ site.baseurl }}/3.ai/6.png" alt="" loading="lazy" />
 </div>
+<p class="cube-cap" style="font-size: 11px;"><em>A billboard in the New York subway. The way it framed AI as a confident helpful presence already embedded in daily life. I started noticing how much people were opening up to it.</em></p>
 
 <div class="cs-intro">
   <span class="intro-overview-label">Experiments</span>
@@ -231,7 +231,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/7.mp4" type="video/mp4" />
   </video>
 </div>
@@ -244,7 +244,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/8.mp4" type="video/mp4" />
   </video>
 </div>
@@ -262,7 +262,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Two visual directions. A hologram presence. Or an AI that takes the form of someone who is no longer here.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/10.1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -271,13 +271,13 @@ next_project:
   </div>
 </div>
 
-<!-- SECTION: CHAINGE -->
+<!-- SECTION: CHAISE -->
 <div class="cs-section">
-  <span class="cs-section-label">Chainge</span>
+  <span class="cs-section-label">Chaise</span>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/11.mp4" type="video/mp4" />
   </video>
 </div>
@@ -301,17 +301,18 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">AR Direction</span>
   <div class="cs-body">
-    <p>Going beyond the app. Films had shown AR woven into everyday life, not a screen you hold up but a layer that lives with you. That became the direction for Chainge.</p>
+    <p>Going beyond the app. Films had shown AR woven into everyday life, not a screen you hold up but a layer that lives with you. That became the direction for Chaise.</p>
   </div>
 </div>
 
+<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>HYPER-REALITY · Keiichi Matsuda, 2016</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/3.ai/13.png" alt="" loading="lazy" />
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>AR walkthrough · idea conception, not a live build · a simulation of what Chainge feels like in your space</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>AR walkthrough · idea conception, not a live build · a simulation of what Chaise feels like in your space</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/14.1.mp4" type="video/mp4" />
   </video>
 </div>
@@ -321,20 +322,20 @@ next_project:
     <img src="{{ site.baseurl }}/3.ai/14.2.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/15.1.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/15.2.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="ai-watch-link">
-  <a href="https://www.youtube.com/watch?v=aj6NS5bwz6I" target="_blank" rel="noopener">Watch Chainge Walkthrough ↗</a>
+  <a href="https://www.youtube.com/watch?v=aj6NS5bwz6I" target="_blank" rel="noopener">Watch Chaise Walkthrough ↗</a>
 </div>
 
 <!-- SECTION: AI SELF_ -->
@@ -344,14 +345,14 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>I asked Claude if it dreams. This is that conversation.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/16.1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/16.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -361,7 +362,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/18.mp4" type="video/mp4" />
   </video>
 </div>
@@ -373,20 +374,20 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed-full">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/19.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/20.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/20.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -413,33 +414,33 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Eva. The AI that wakes up. This is her opening.</em></p>
-<div class="cs-bleed-full">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/23.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed-full" data-audio>
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/24.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/25.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/3.ai/25.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/3.ai/26.mp4" type="video/mp4" />
   </video>
 </div>
