@@ -521,7 +521,7 @@ next_project:
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.1.mp4.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
@@ -529,13 +529,6 @@ next_project:
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.2.mp4" type="video/mp4" />
     </video>
   </div>
-</div>
-
-<!-- 10 standalone -->
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/10.mp4" type="video/mp4" />
-  </video>
 </div>
 
 <!-- TEXT: evolution -->
@@ -550,7 +543,7 @@ next_project:
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.2.mp4.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
