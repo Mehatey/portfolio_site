@@ -694,18 +694,18 @@ next_project:
   </div>
 </div>
 
-<!-- 11.2 + 11.3 -->
-<div class="cs-grid film-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/2d/11.2.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/2d/11.3.mp4" type="video/mp4" />
-    </video>
-  </div>
+<!-- 11.2 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/11.2.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- 11.3 standalone -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/11.3.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- 2D GAME LINKS -->
