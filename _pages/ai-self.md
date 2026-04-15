@@ -16,6 +16,7 @@ meta:
     value: Unity · ARKit · Figma · Google Cloud Vision
   - label: Client
     value: Self Initiated
+hide_overview: true
 reflection: >
   The research started as a joke. Feeding images into Cloud Vision just to see how badly it misread them. But the patterns kept surfacing — not about what AI fails at, but about what it has decided is worth noticing in the first place.
 
@@ -30,105 +31,196 @@ next_project:
 ---
 
 <style>
-  .ai-cap {
-    display: block;
+  /* ── INTRO ── */
+  .cs-intro {
+    opacity: 1 !important;
+    transform: none !important;
+    max-width: none !important;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    text-align: left;
+    padding: 56px var(--gutter) 0;
+    gap: 16px;
+  }
+  .cs-intro .intro-overview-label {
     font-family: var(--font-mono);
     font-size: 11px;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: rgba(255,255,255,0.28);
-    padding: 0 var(--gutter);
-    margin-top: 14px;
   }
-  .ai-cap em {
-    font-style: normal;
-    color: rgba(255,255,255,0.18);
+  .cs-intro .cs-body {
+    font-size: clamp(14px, 1.5vw, 20px);
+    line-height: 1.6;
+    color: rgba(255,255,255,0.68);
+    max-width: 740px;
+    margin: 0;
   }
-  /* Perception images: contain so diagrams aren't cropped */
-  .cs-contain img {
-    object-fit: contain !important;
-    background: rgba(255,255,255,0.02);
+  .cs-intro .cs-body--insight {
+    font-size: clamp(14px, 1.5vw, 20px);
+    color: rgba(255,255,255,0.68);
+    max-width: 740px;
+    position: relative;
+    margin-top: 24px;
+    padding-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
   }
-  .cs-contain video {
-    object-fit: contain !important;
+  .cs-intro .cs-body--insight::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 1px;
+    background: rgba(255,255,255,0.07);
   }
-  /* Small app ref grid — taller aspect for portrait screenshots */
-  .cs-grid--portrait .cs-grid-item {
-    aspect-ratio: 9 / 16;
+  .cs-intro .cs-body--insight .insight-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
   }
-  /* Chapter break title sizing */
-  .cs-chapter-title {
+
+  /* ── GRID SIZING ── */
+  .cs-grid {
+    height: clamp(360px, 60vh, 720px);
+    grid-template-rows: 1fr;
+  }
+  .cs-grid-item {
+    aspect-ratio: unset !important;
+    height: 100%;
+    min-height: 0;
+    background: #000;
+    overflow: hidden;
+  }
+  .cs-grid-item img,
+  .cs-grid-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+  }
+
+  /* ── CAPTIONS ── */
+  .cube-cap {
+    font-family: var(--font-mono);
     font-size: 13px;
+    color: rgba(255,255,255,0.42);
+    padding: 8px var(--gutter) 0;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .cube-cap em {
+    font-style: italic;
+  }
+  .cube-cap--above {
+    padding: 0 var(--gutter) 8px;
+  }
+  .cube-cap--above + .cs-grid { margin-top: 8px; }
+  .cube-cap--above + .cs-bleed { margin-top: 8px; }
+  .cube-cap + .cs-bleed { margin-top: 16px; }
+  .cs-bleed + .cs-bleed { margin-top: 16px; }
+  .cs-grid + .cs-bleed { margin-top: 24px; }
+
+  /* ── SECTION LABELS ── */
+  .cs-section {
+    padding: 80px var(--gutter) 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cs-section::before {
+    content: '';
+    display: block;
+    width: 0;
+    height: 1px;
+    background: rgba(255,255,255,0.18);
+    flex-shrink: 0;
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+  }
+  .cs-section.is-visible::before {
+    width: 28px;
+  }
+  .cs-section-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.22);
+    opacity: 0;
+    transition: opacity 0.7s ease 0.55s;
+  }
+  .cs-section.is-visible .cs-section-label {
+    opacity: 1;
+  }
+
+  /* Contain for diagrams / screenshots that shouldn't be cropped */
+  .ai-contain img,
+  .ai-contain video {
+    object-fit: contain !important;
   }
 </style>
 
 <!-- ─── OVERVIEW ─── -->
 <div class="cs-intro">
-  <div class="intro-inner">
-    <span class="intro-label">Overview</span>
-    <p class="intro-tagline">Three projects that share the same question. In the first, a set of experiments with Google Cloud Vision — feeding it images to see what the machine decided mattered. In the second, a concept for an AI companion that lives in mixed reality alongside your day. In the third, a VR experience where an AI has built a model of humanity and you walk through it.</p>
+  <span class="intro-overview-label">Overview</span>
+  <div class="cs-body">
+    <p>Three projects built around the same question. First, a set of experiments with Google Cloud Vision — feeding it images to see what the machine decided mattered. Then a concept for an AI companion that lives in mixed reality alongside your day. Then a VR experience where an AI has built a model of humanity and you walk through it.</p>
+  </div>
+  <div class="cs-body cs-body--insight">
+    <span class="insight-label">Insight</span>
+    <p>AI does not misunderstand us by accident. The gaps are structural, built into what it has been asked to see. These projects try to make that legible.</p>
   </div>
 </div>
 
-<!-- ─── CHAPTER 01: PERCEPTION ─── -->
-<div class="cs-chapter">
-  <canvas class="cs-chapter-water"></canvas>
-  <div class="cs-chapter-inner">
-    <span class="cs-chapter-title">AI Perception</span>
-    <span class="cs-chapter-sub">01 — Research</span>
-  </div>
+<!-- ─── SECTION: PERCEPTION ─── -->
+<div class="cs-section">
+  <span class="cs-section-label">AI Perception</span>
 </div>
 
-<div class="cs-row">
-  <div class="cs-content">
-    <h2 class="cs-heading">What does the machine actually see?</h2>
-    <div class="cs-body">
-      <p>The experiments began simply: run images through Google Cloud Vision and read back what it returned. Labels, categories, confidence scores. The machine's vocabulary for the world, flattened into taxonomy.</p>
-      <p>The results were satirical at first. It saw grocery items in paintings and detected emotions in faces with unsettling confidence. But over time the experiments became more observational than funny. The machine was not wrong, exactly — it was applying a consistent logic. The question was whose logic, and what it missed.</p>
-    </div>
-  </div>
-</div>
-
-<div class="cs-bleed cs-contain">
+<div class="cs-bleed ai-contain">
   <img src="{{ site.baseurl }}/3.ai/perception/0.png" alt="Google Cloud Vision API output" loading="lazy" />
 </div>
-<span class="ai-cap">Google Cloud Vision API — label detection output</span>
 
-<div class="cs-row">
-  <div class="cs-content">
-    <h2 class="cs-heading">What people already use AI for.</h2>
-    <div class="cs-body">
-      <p>Alongside the experiments, I looked at how AI was already embedded in everyday emotional and mental lives. Companion apps, chatbot platforms, wellness tools. The statistics were striking — not because of the numbers themselves, but because of what people were asking these systems to do. And what the systems were choosing to respond to.</p>
-    </div>
+<div class="cs-intro">
+  <span class="intro-overview-label">Research · 2024</span>
+  <div class="cs-body">
+    <p>The experiments began simply: run images through Google Cloud Vision and read back what it returned. Labels, categories, confidence scores — the machine's vocabulary for the world, flattened into taxonomy.</p>
+    <p>The results were satirical at first. It saw grocery items in paintings and detected emotions in faces with unsettling confidence. But the experiments became more observational than funny. The machine was not wrong exactly — it was applying a consistent logic. The question was whose logic, and what it missed.</p>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item cs-contain">
+  <div class="cs-grid-item ai-contain">
     <img src="{{ site.baseurl }}/3.ai/perception/1.png" alt="AI perception research diagram" loading="lazy" />
   </div>
-  <div class="cs-grid-item cs-contain">
+  <div class="cs-grid-item ai-contain">
     <img src="{{ site.baseurl }}/3.ai/perception/2.png" alt="Chatbot statistics" loading="lazy" />
   </div>
 </div>
-<span class="ai-cap">Research findings — AI adoption in emotional and mental health contexts</span>
 
-<div class="cs-grid cs-grid--portrait">
-  <div class="cs-grid-item cs-contain">
-    <img src="{{ site.baseurl }}/3.ai/perception/3.png" alt="Replika app" loading="lazy" />
+<p class="cube-cap" style="padding-top: 8px;"><em>Research findings — AI adoption in emotional and mental health contexts</em></p>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Replika · Wysa — existing AI companions in market</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/3.ai/perception/3.png" alt="Replika" loading="lazy" />
   </div>
-  <div class="cs-grid-item cs-contain">
-    <img src="{{ site.baseurl }}/3.ai/perception/4.png" alt="Wysa app" loading="lazy" />
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/3.ai/perception/4.png" alt="Wysa" loading="lazy" />
   </div>
 </div>
-<span class="ai-cap">Replika · Wysa — existing AI companions in market</span>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
     <source src="{{ site.baseurl }}/3.ai/perception/5.mov" type="video/mp4" />
   </video>
 </div>
-<span class="ai-cap">Perception experiment — live Cloud Vision label output</span>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
@@ -136,65 +228,46 @@ next_project:
   </video>
 </div>
 
-<!-- ─── CHAPTER 02: CHAINGE ─── -->
-<div class="cs-chapter" style="margin-top:96px;">
-  <canvas class="cs-chapter-water"></canvas>
-  <div class="cs-chapter-inner">
-    <span class="cs-chapter-title">Chainge</span>
-    <span class="cs-chapter-sub">02 — AR Concept</span>
-  </div>
-</div>
-
-<div class="cs-row">
-  <div class="cs-content">
-    <h2 class="cs-heading">What if AI lived with you?</h2>
-    <div class="cs-body">
-      <p>Chainge is a concept for an AI presence in mixed reality — not an app you open, but something that lives at the edges of your attention. It observes patterns across your day, connects moments you would not connect yourself, and surfaces them when it matters.</p>
-      <p>Most people lack reflection and support, not information. The design question was whether an AI companion could be built that understood that difference.</p>
-    </div>
-  </div>
+<!-- ─── SECTION: CHAINGE ─── -->
+<div class="cs-section">
+  <span class="cs-section-label">Chainge</span>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item cs-contain">
+  <div class="cs-grid-item ai-contain">
     <img src="{{ site.baseurl }}/3.ai/chainge/0.png" alt="Chainge logo" loading="lazy" />
   </div>
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/3.ai/chainge/1.png" alt="Chainge inspiration" loading="lazy" />
   </div>
 </div>
-<span class="ai-cap">Identity · Inspiration references</span>
 
-<div class="cs-row">
-  <div class="cs-content">
-    <h2 class="cs-heading">Designed for someone specific.</h2>
-    <div class="cs-body">
-      <p>The persona work centered on Maria — someone who wanted to feel more aware of her own patterns but not more productive. She was not looking for a task manager with feelings. She wanted reflection, not answers. That distinction shaped every design decision that followed.</p>
-    </div>
+<div class="cs-intro">
+  <span class="intro-overview-label">AR Concept · 2025</span>
+  <div class="cs-body">
+    <p>Chainge is a concept for an AI presence in mixed reality — not an app you open, but something that lives at the edges of your attention. It observes patterns across your day, connects moments you would not connect yourself, and surfaces them when it matters.</p>
+    <p>Most people lack reflection and support, not information. The design question was whether an AI companion could be built that understood that difference.</p>
   </div>
 </div>
 
+<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>Maria — primary persona. Wants reflection, not answers.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/3.ai/chainge/2.png" alt="Maria persona" loading="lazy" />
 </div>
-<span class="ai-cap">Maria — primary persona</span>
+
+<div class="cs-intro">
+  <span class="intro-overview-label">Experience Design</span>
+  <div class="cs-body">
+    <p>The hardest design challenge was defining when the AI should speak and when it should stay silent. Every intervention needed to feel like a suggestion, never a demand. Spatial cues at the edges of attention rather than the center. Presence without pressure.</p>
+  </div>
+</div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/3.png" alt="Experience design 1" loading="lazy" />
+    <img src="{{ site.baseurl }}/3.ai/chainge/3.png" alt="Experience 1" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/4.png" alt="Experience design 2" loading="lazy" />
-  </div>
-</div>
-<span class="ai-cap">Experience design — AR interaction models</span>
-
-<div class="cs-row">
-  <div class="cs-content">
-    <h2 class="cs-heading">Presence without pressure.</h2>
-    <div class="cs-body">
-      <p>The hardest design challenge was defining when the AI should speak and when it should stay silent. Every intervention needed to feel like a suggestion, never a demand. The interface is ambient — spatial cues at the edges of attention rather than the center.</p>
-    </div>
+    <img src="{{ site.baseurl }}/3.ai/chainge/4.png" alt="Experience 2" loading="lazy" />
   </div>
 </div>
 
@@ -207,6 +280,7 @@ next_project:
   </div>
 </div>
 
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Testing — interaction prototypes</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/3.ai/chainge/7.png" alt="Testing" loading="lazy" />
@@ -217,14 +291,13 @@ next_project:
     </video>
   </div>
 </div>
-<span class="ai-cap">Testing — interaction prototypes</span>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
     <source src="{{ site.baseurl }}/3.ai/chainge/9.mov" type="video/mp4" />
   </video>
 </div>
-<span class="ai-cap">Conversation prototype — dummy interaction flow</span>
+<p class="cube-cap" style="padding-top: 8px;"><em>Conversation prototype — dummy interaction flow</em></p>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
@@ -233,43 +306,29 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/11.png" alt="Conversation 2" loading="lazy" />
+    <img src="{{ site.baseurl }}/3.ai/chainge/11.png" alt="Conversation" loading="lazy" />
   </div>
 </div>
-<span class="ai-cap">Conversation design — AI response patterns</span>
+<p class="cube-cap" style="padding-top: 8px;"><em>Conversation design — AI response patterns</em></p>
 
-<!-- ─── CHAPTER 03: AI SELF_ VR ─── -->
-<div class="cs-chapter" style="margin-top:96px;">
-  <canvas class="cs-chapter-water"></canvas>
-  <div class="cs-chapter-inner">
-    <span class="cs-chapter-title">AI SELF_</span>
-    <span class="cs-chapter-sub">03 — VR Experience</span>
-  </div>
-</div>
-
-<div class="cs-row">
-  <div class="cs-content">
-    <h2 class="cs-heading">What if AI believed it had a self?</h2>
-    <div class="cs-body">
-      <p>AI SELF_ takes the question to its extreme. An AI that has built a model of what it means to be human — rough, earnest, incomplete — and invites you to walk through it. The experience unfolds through memory, conflict, and choice. Spaces that feel architectural but also associative. Rooms organized not by logic but by what the AI has decided matters most about being human.</p>
-      <p>Built in Unity with the XR Interaction Toolkit. No menus, no UI chrome. Proximity and gaze are the triggers. Every interaction feels discovered rather than taught.</p>
-    </div>
-  </div>
+<!-- ─── SECTION: AI SELF_ VR ─── -->
+<div class="cs-section">
+  <span class="cs-section-label">AI SELF_</span>
 </div>
 
 <div class="cs-bleed-full">
   <img src="{{ site.baseurl }}/3.ai/vr/0.png" alt="AI SELF_ VR cover" loading="lazy" />
 </div>
 
-<div class="cs-row">
-  <div class="cs-content">
-    <h2 class="cs-heading">A dream the machine built.</h2>
-    <div class="cs-body">
-      <p>The opening sequence moves through a space that reads as memory — not yours, but the AI's reconstruction of what memory should feel like. Text drifts. Geometry assembles around you. The AI is present as a voice building the environment as you explore it.</p>
-    </div>
+<div class="cs-intro">
+  <span class="intro-overview-label">VR Experience · 2024</span>
+  <div class="cs-body">
+    <p>AI SELF_ takes the question to its extreme. An AI that has built a model of what it means to be human — rough, earnest, incomplete — and invites you to walk through it. Spaces that feel architectural but also associative. Rooms organized not by logic but by what the AI has decided matters most about being human.</p>
+    <p>Built in Unity with the XR Interaction Toolkit. No menus, no UI chrome. Proximity and gaze are the triggers. Every interaction feels discovered rather than taught.</p>
   </div>
 </div>
 
+<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>Opening sequence — a dream the machine built</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
@@ -282,7 +341,6 @@ next_project:
     </video>
   </div>
 </div>
-<span class="ai-cap">Opening sequence — dream space and text environment</span>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
@@ -328,4 +386,4 @@ next_project:
     </video>
   </div>
 </div>
-<span class="ai-cap">AI SELF_ — Unity XR, in-headset environment captures</span>
+<p class="cube-cap" style="padding-top: 8px;"><em>AI SELF_ — Unity XR, in-headset environment captures</em></p>
