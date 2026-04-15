@@ -411,7 +411,7 @@ next_project:
 </div>
 
 <!-- TEXT: home planet -->
-<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>An alien square. Lives on a planet of two-dimensional beings. Flat, contained, known.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>An alien square. Lives on a planet of two-dimensional beings. Flat, contained, known.</em></p>
 
 <!-- 2.1 + 2.2 -->
 <div class="cs-grid film-grid">
@@ -583,12 +583,12 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">2D Game · 2021</span>
   <div class="cs-body">
-    <p>The character brought into an interactive world. A 2D platformer built from scratch — the same square from the film, now something you could actually play. Personalised to the player, populated with distractions, ending in a boss fight with Doubt itself.</p>
+    <p>The character brought into an interactive world. A 2D platformer built from scratch, the same square from the film, now something you could actually play. Personalised to the player, populated with distractions, ending in a boss fight with Doubt itself.</p>
   </div>
 </div>
 
 <!-- TEXT: opening gameplay -->
-<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>The game in motion. The world the character walks through.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The game in motion. The world the character walks through.</em></p>
 
 <!-- 2.2 + 2.3 -->
 <div class="cs-grid film-grid">
@@ -733,7 +733,7 @@ next_project:
 </div>
 
 <!-- TEXT: character goes 3D -->
-<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>The flat drawings taken into a new dimension. The character rebuilt in Meshy AI, given volume, weight, and shadow for the first time.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The flat drawings taken into a new dimension. The character rebuilt in Meshy AI, given volume, weight, and shadow for the first time.</em></p>
 
 <!-- 1 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
@@ -752,14 +752,14 @@ next_project:
 <!-- TEXT: world exploration -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Different worlds tried on. Mirror-like spaces and distorted geometry, looking for a place that felt like the inside of a mind.</em></p>
 
-<!-- 3 standalone -->
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/3d/3.png" alt="" style="object-fit: contain;" />
-</div>
-
-<!-- 4 standalone -->
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/3d/4.png" alt="" style="object-fit: contain;" />
+<!-- 3 + 3.1 grid -->
+<div class="cs-grid film-grid">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/3d/3.png" alt="" />
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/2.cube/3d/3.1.png" alt="" />
+  </div>
 </div>
 
 <!-- TEXT: final scene -->
@@ -845,6 +845,14 @@ next_project:
 <div class="cs-bleed cs-bleed--no-fade">
   <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/13.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- END OF CUBE -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Meh thanks you for staying till the end.</em></p>
+<div class="cs-bleed cs-bleed--no-fade">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/end%20of%20cube%20.mp4" type="video/mp4" />
   </video>
 </div>
 
