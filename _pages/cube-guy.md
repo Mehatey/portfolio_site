@@ -231,6 +231,11 @@ next_project:
     margin-top: 8px;
   }
 
+  /* ── NO TOP GAP: stacked grids in a set ── */
+  .film-grid--no-top {
+    margin-top: 0 !important;
+  }
+
   /* ── ASYMMETRIC: left column heavier ── */
   .cs-grid--left-heavy {
     grid-template-columns: 3fr 2fr;
@@ -630,7 +635,7 @@ next_project:
 </div>
 
 <!-- 5.1 + 5.2 -->
-<div class="cs-grid film-grid">
+<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/2d/5.1.mp4" type="video/mp4" />
