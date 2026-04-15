@@ -586,16 +586,16 @@ next_project:
   </video>
 </div>
 
-<!-- 2.1 + 2.2 -->
+<!-- 2.2 + 2.3 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/2d/2.1.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/2.cube/2d/2.2.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/2d/2.2.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/2.cube/2d/2.3.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
