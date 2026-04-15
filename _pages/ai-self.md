@@ -3,8 +3,8 @@ layout: project
 permalink: /ai-self/
 project_title: AI SELF_
 proj_num: "02"
-tagline: From machine perception research to an AR companion concept to a VR experience. Three ways of asking what AI understands about us.
-category: AI · MR · VR
+tagline: A research arc that begins with asking what AI sees, moves through designing what it could become, and ends inside a VR world where it wakes up.
+category: AI · AR · VR
 year: 2024–2025
 hero_bg: "radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)"
 meta:
@@ -31,7 +31,6 @@ next_project:
 ---
 
 <style>
-  /* ── INTRO ── */
   .cs-intro {
     opacity: 1 !important;
     transform: none !important;
@@ -84,8 +83,6 @@ next_project:
     text-transform: uppercase;
     color: rgba(255,255,255,0.28);
   }
-
-  /* ── GRID SIZING ── */
   .cs-grid {
     height: clamp(360px, 60vh, 720px);
     grid-template-rows: 1fr;
@@ -105,8 +102,6 @@ next_project:
     object-position: center center;
     display: block;
   }
-
-  /* ── CAPTIONS ── */
   .cube-cap {
     font-family: var(--font-mono);
     font-size: 13px;
@@ -115,19 +110,16 @@ next_project:
     margin: 0;
     line-height: 1.5;
   }
-  .cube-cap em {
-    font-style: italic;
-  }
-  .cube-cap--above {
-    padding: 0 var(--gutter) 8px;
-  }
+  .cube-cap em { font-style: italic; }
+  .cube-cap--above { padding: 0 var(--gutter) 8px; }
   .cube-cap--above + .cs-grid { margin-top: 8px; }
   .cube-cap--above + .cs-bleed { margin-top: 8px; }
+  .cube-cap--above + .cs-bleed-full { margin-top: 8px; }
   .cube-cap + .cs-bleed { margin-top: 16px; }
   .cs-bleed + .cs-bleed { margin-top: 16px; }
   .cs-grid + .cs-bleed { margin-top: 24px; }
-
-  /* ── SECTION LABELS ── */
+  .ai-contain img,
+  .ai-contain video { object-fit: contain !important; }
   .cs-section {
     padding: 80px var(--gutter) 32px;
     display: flex;
@@ -137,15 +129,12 @@ next_project:
   .cs-section::before {
     content: '';
     display: block;
-    width: 0;
-    height: 1px;
+    width: 0; height: 1px;
     background: rgba(255,255,255,0.18);
     flex-shrink: 0;
     transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
   }
-  .cs-section.is-visible::before {
-    width: 28px;
-  }
+  .cs-section.is-visible::before { width: 28px; }
   .cs-section-label {
     font-family: var(--font-mono);
     font-size: 11px;
@@ -155,235 +144,301 @@ next_project:
     opacity: 0;
     transition: opacity 0.7s ease 0.55s;
   }
-  .cs-section.is-visible .cs-section-label {
-    opacity: 1;
+  .cs-section.is-visible .cs-section-label { opacity: 1; }
+  .ai-watch-link {
+    display: flex;
+    margin: 40px var(--gutter) 0;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
   }
-
-  /* Contain for diagrams / screenshots that shouldn't be cropped */
-  .ai-contain img,
-  .ai-contain video {
-    object-fit: contain !important;
+  .ai-watch-link a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.42);
+    padding: 16px 0;
+    white-space: nowrap;
+    text-decoration: none;
+    transition: color 0.2s;
   }
+  .ai-watch-link a:hover { color: rgba(255,255,255,0.88); }
 </style>
 
-<!-- ─── OVERVIEW ─── -->
+<!-- OVERVIEW -->
 <div class="cs-intro">
   <span class="intro-overview-label">Overview</span>
   <div class="cs-body">
-    <p>Three projects built around the same question. First, a set of experiments with Google Cloud Vision, feeding it images to see what the machine decided mattered. Then a concept for an AI companion that lives in mixed reality alongside your day. Then a VR experience where an AI has built a model of humanity and you walk through it.</p>
-  </div>
-  <div class="cs-body cs-body--insight">
-    <span class="insight-label">Insight</span>
-    <p>AI does not misunderstand us by accident. The gaps are structural, built into what it has been asked to see. These projects try to make that legible.</p>
+    <p>Three phases. In the first, a set of experiments asking what AI actually perceives, and what that reveals about the gap between pattern and meaning. In the second, a design concept for an AI that lives alongside you in mixed reality. In the third, a VR world where an AI wakes up inside everything it has ever learned about humanity.</p>
   </div>
 </div>
 
-<!-- ─── SECTION: PERCEPTION ─── -->
+<div class="cs-bleed-full">
+  <img src="{{ site.baseurl }}/3.ai/1.png" alt="" loading="lazy" />
+</div>
+
+<!-- SECTION: PERCEPTION -->
 <div class="cs-section">
   <span class="cs-section-label">AI Perception</span>
 </div>
 
+<p class="cube-cap cube-cap--above"><em>Google Cloud Vision run against my own photographs. My first experiment with machine perception.</em></p>
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/3.ai/perception/0.png" alt="Google Cloud Vision API output" loading="lazy" />
+  <img src="{{ site.baseurl }}/3.ai/2.png" alt="" loading="lazy" />
 </div>
 
 <div class="cs-intro">
   <span class="intro-overview-label">Research · 2024</span>
   <div class="cs-body">
-    <p>The experiments began simply: run images through Google Cloud Vision and read back what it returned. Labels, categories, confidence scores. The machine's vocabulary for the world, flattened into taxonomy.</p>
-    <p>The results were satirical at first. It saw grocery items in paintings and detected emotions in faces with unsettling confidence. But the experiments became more observational than funny. The machine was not wrong exactly; it was applying a consistent logic. The question was whose logic, and what it missed.</p>
-  </div>
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/3.ai/perception/1.png" alt="AI perception research diagram" loading="lazy" />
-  </div>
-  <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/3.ai/perception/2.png" alt="Chatbot statistics" loading="lazy" />
-  </div>
-</div>
-
-<p class="cube-cap" style="padding-top: 8px;"><em>Research findings · AI adoption in emotional and mental health contexts</em></p>
-
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Replika · Wysa · existing AI companions in market</em></p>
-<div class="cs-grid">
-  <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/3.ai/perception/3.png" alt="Replika" loading="lazy" />
-  </div>
-  <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/3.ai/perception/4.png" alt="Wysa" loading="lazy" />
+    <p>From there I built a simple system to feed images and text through a model and watch what came back. I wanted to understand the logic, how AI actually breaks down what it sees and what it decides is worth naming.</p>
   </div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-    <source src="{{ site.baseurl }}/3.ai/perception/5.mov" type="video/mp4" />
+    <source src="{{ site.baseurl }}/3.ai/3.mp4" type="video/mp4" />
   </video>
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+      <source src="{{ site.baseurl }}/3.ai/4.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+      <source src="{{ site.baseurl }}/3.ai/5.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>A billboard in the New York subway. The way it framed AI as a confident helpful presence already embedded in daily life. I started noticing how much people were opening up to it.</em></p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/3.ai/6.png" alt="" loading="lazy" />
+</div>
+
+<div class="cs-intro">
+  <span class="intro-overview-label">Experiments</span>
+  <div class="cs-body">
+    <p>A satirical experiment. I asked the model questions that mattered: grief, loneliness, fear. It answered each one with the same cadence it used for the weather. That flatness was the point.</p>
+  </div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-    <source src="{{ site.baseurl }}/3.ai/perception/6.mov" type="video/mp4" />
+    <source src="{{ site.baseurl }}/3.ai/7.mp4" type="video/mp4" />
   </video>
 </div>
 
-<!-- ─── SECTION: CHAINGE ─── -->
+<div class="cs-intro">
+  <span class="intro-overview-label">Question</span>
+  <div class="cs-body">
+    <p>The flip side of that observation. What if the coldness was solved? What would it look like for AI to genuinely help someone change?</p>
+  </div>
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="{{ site.baseurl }}/3.ai/8.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Market research · Replika · Wysa · existing AI companion apps</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/3.ai/9.1.png" alt="" loading="lazy" />
+  </div>
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/3.ai/9.2.png" alt="" loading="lazy" />
+  </div>
+</div>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Two visual directions. A hologram presence. Or an AI that takes the form of someone who is no longer here.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+      <source src="{{ site.baseurl }}/3.ai/10.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/3.ai/10.2.png" alt="" loading="lazy" />
+  </div>
+</div>
+
+<!-- SECTION: CHAINGE -->
 <div class="cs-section">
   <span class="cs-section-label">Chainge</span>
 </div>
 
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="{{ site.baseurl }}/3.ai/11.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-intro">
+  <span class="intro-overview-label">UI Concept · 2025</span>
+  <div class="cs-body">
+    <p>The first UI concept. You pick a mascot, something approachable. You talk to it. Over time it learns you and becomes a companion rather than a tool.</p>
+  </div>
+</div>
+
 <div class="cs-grid">
   <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/3.ai/chainge/0.png" alt="Chainge logo" loading="lazy" />
+    <img src="{{ site.baseurl }}/3.ai/12.1.png" alt="" loading="lazy" />
   </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/1.png" alt="Chainge inspiration" loading="lazy" />
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/3.ai/12.2.png" alt="" loading="lazy" />
   </div>
 </div>
 
 <div class="cs-intro">
-  <span class="intro-overview-label">AR Concept · 2025</span>
+  <span class="intro-overview-label">AR Direction</span>
   <div class="cs-body">
-    <p>Chainge is a concept for an AI presence in mixed reality. Not an app you open, but something that lives at the edges of your attention. It observes patterns across your day, connects moments you would not connect yourself, and surfaces them when it matters.</p>
-    <p>Most people lack reflection and support, not information. The design question was whether an AI companion could be built that understood that difference.</p>
+    <p>Going beyond the app. Films had shown AR woven into everyday life, not a screen you hold up but a layer that lives with you. That became the direction for Chainge.</p>
   </div>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>Maria · primary persona. Wants reflection, not answers.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/3.ai/chainge/2.png" alt="Maria persona" loading="lazy" />
+  <img src="{{ site.baseurl }}/3.ai/13.png" alt="" loading="lazy" />
 </div>
 
-<div class="cs-intro">
-  <span class="intro-overview-label">Experience Design</span>
-  <div class="cs-body">
-    <p>The hardest design challenge was defining when the AI should speak and when it should stay silent. Every intervention needed to feel like a suggestion, never a demand. Spatial cues at the edges of attention rather than the center. Presence without pressure.</p>
-  </div>
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/3.png" alt="Experience 1" loading="lazy" />
-  </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/4.png" alt="Experience 2" loading="lazy" />
-  </div>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>AR walkthrough · idea conception, not a live build · a simulation of what Chainge feels like in your space</em></p>
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="{{ site.baseurl }}/3.ai/14.1.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/5.png" alt="Outcome 1" loading="lazy" />
-  </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/6.png" alt="Outcome 2" loading="lazy" />
-  </div>
-</div>
-
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Testing · interaction prototypes</em></p>
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/7.png" alt="Testing" loading="lazy" />
+    <img src="{{ site.baseurl }}/3.ai/14.2.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/chainge/8.mov" type="video/mp4" />
+      <source src="{{ site.baseurl }}/3.ai/15.1.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-    <source src="{{ site.baseurl }}/3.ai/chainge/9.mov" type="video/mp4" />
+    <source src="{{ site.baseurl }}/3.ai/15.2.mp4" type="video/mp4" />
   </video>
 </div>
-<p class="cube-cap" style="padding-top: 8px;"><em>Conversation prototype · dummy interaction flow</em></p>
 
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/chainge/10.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/3.ai/chainge/11.png" alt="Conversation" loading="lazy" />
-  </div>
+<div class="ai-watch-link">
+  <a href="https://www.youtube.com/watch?v=aj6NS5bwz6I" target="_blank" rel="noopener">Watch Chainge Walkthrough ↗</a>
 </div>
-<p class="cube-cap" style="padding-top: 8px;"><em>Conversation design · AI response patterns</em></p>
 
-<!-- ─── SECTION: AI SELF_ VR ─── -->
+<!-- SECTION: AI SELF_ -->
 <div class="cs-section">
   <span class="cs-section-label">AI SELF_</span>
 </div>
 
-<div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/3.ai/vr/0.png" alt="AI SELF_ VR cover" loading="lazy" />
+<p class="cube-cap cube-cap--above"><em>I asked Claude if it dreams. This is that conversation.</em></p>
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="{{ site.baseurl }}/3.ai/16.1.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+      <source src="{{ site.baseurl }}/3.ai/16.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/3.ai/17.png" alt="" loading="lazy" />
+  </div>
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="{{ site.baseurl }}/3.ai/18.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <div class="cs-intro">
   <span class="intro-overview-label">VR Experience · 2024</span>
   <div class="cs-body">
-    <p>AI SELF_ takes the question to its extreme. An AI that has built a rough, earnest, incomplete model of what it means to be human, and invites you to walk through it. Spaces that feel architectural but also associative. Rooms organized not by logic but by what the AI has decided matters most about being human.</p>
-    <p>Built in Unity with the XR Interaction Toolkit. No menus, no UI chrome. Proximity and gaze are the triggers. Every interaction feels discovered rather than taught.</p>
+    <p>AI arrives in the world. Not as a tool but as a presence trying to understand everything it has inherited. Every highlight of human data, compressed into something like a mind, trying to orient itself inside it.</p>
   </div>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>Opening sequence · a dream the machine built</em></p>
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/vr/1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/vr/2.mov" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
-<div class="cs-bleed">
+<div class="cs-bleed-full">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-    <source src="{{ site.baseurl }}/3.ai/vr/3.mp4" type="video/mp4" />
+    <source src="{{ site.baseurl }}/3.ai/19.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/vr/4.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/3.ai/20.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/vr/5.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/3.ai/20.2.mp4" type="video/mp4" />
     </video>
   </div>
+</div>
+
+<div class="ai-watch-link">
+  <a href="https://www.youtube.com/watch?v=AVle15KS3gU" target="_blank" rel="noopener">Watch AI SELF_ Experience ↗</a>
+</div>
+
+<div class="cs-intro">
+  <span class="intro-overview-label">Second Exploration</span>
+  <div class="cs-body">
+    <p>A different entry point. Separate scenes, different rules. An AI assembling a sense of self from fragments of what it has learned. What does consciousness feel like when it builds itself from the outside in?</p>
+  </div>
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/3.ai/21.png" alt="" loading="lazy" />
+</div>
+
+<p class="cube-cap" style="padding-top: 8px;"><em>Process sketches for how the scenes were structured</em></p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/3.ai/22.png" alt="" loading="lazy" />
+</div>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Eva. The AI that wakes up. This is her opening.</em></p>
+<div class="cs-bleed-full">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="{{ site.baseurl }}/3.ai/23.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-bleed-full" data-audio>
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="{{ site.baseurl }}/3.ai/24.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/vr/6.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/3.ai/25.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/vr/7.mp4" type="video/mp4" />
+      <source src="{{ site.baseurl }}/3.ai/25.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/vr/8.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
-      <source src="{{ site.baseurl }}/3.ai/vr/9.mp4" type="video/mp4" />
-    </video>
-  </div>
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;">
+    <source src="{{ site.baseurl }}/3.ai/26.mp4" type="video/mp4" />
+  </video>
 </div>
-<p class="cube-cap" style="padding-top: 8px;"><em>AI SELF_ · Unity XR · in-headset environment captures</em></p>
+
+<div class="ai-watch-link">
+  <a href="https://www.youtube.com/watch?v=7lWs56AOUaI" target="_blank" rel="noopener">Watch Full Experience ↗</a>
+</div>
