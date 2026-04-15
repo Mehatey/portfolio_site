@@ -231,9 +231,9 @@ next_project:
     margin-top: 8px;
   }
 
-  /* ── TIGHT STACK: 16px between paired grids ── */
+  /* ── TIGHT STACK: no gap between paired grids in same set ── */
   .film-grid--no-top {
-    margin-top: 16px !important;
+    margin-top: 0 !important;
   }
 
   /* ── ASYMMETRIC: left column heavier ── */
@@ -476,7 +476,7 @@ next_project:
 </div>
 
 <!-- 6.1 + 6.2 -->
-<div class="cs-grid film-grid">
+<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/6.1.mp4" type="video/mp4" />
@@ -490,7 +490,7 @@ next_project:
 </div>
 
 <!-- 7.1 + 7.2 -->
-<div class="cs-grid film-grid">
+<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/7.1.mp4" type="video/mp4" />
@@ -504,7 +504,7 @@ next_project:
 </div>
 
 <!-- 8.1 + 8.2 -->
-<div class="cs-grid film-grid">
+<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/8.1.mp4" type="video/mp4" />
@@ -518,7 +518,7 @@ next_project:
 </div>
 
 <!-- 9.1 + 9.2 -->
-<div class="cs-grid film-grid">
+<div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.1.mp4.mp4" type="video/mp4" />
@@ -585,6 +585,17 @@ next_project:
     <source src="{{ site.baseurl }}/2.cube/2d/1.mp4" type="video/mp4" />
   </video>
 </div>
+
+<!-- 2D INTRO -->
+<div class="cs-intro">
+  <span class="intro-overview-label">2D Game · 2021</span>
+  <div class="cs-body">
+    <p>The character brought into an interactive world. A 2D platformer built from scratch — the same square from the film, now something you could actually play. Personalised to the player, populated with distractions, ending in a boss fight with Doubt itself.</p>
+  </div>
+</div>
+
+<!-- TEXT: opening gameplay -->
+<p class="cube-cap cube-cap--above" style="padding-top: 32px;"><em>The game in motion. The world the character walks through.</em></p>
 
 <!-- 2.2 + 2.3 -->
 <div class="cs-grid film-grid">
@@ -679,7 +690,7 @@ next_project:
 </div>
 
 <!-- 10 standalone -->
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/10.mp4" type="video/mp4" />
   </video>
