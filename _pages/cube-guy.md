@@ -231,9 +231,9 @@ next_project:
     margin-top: 8px;
   }
 
-  /* ── NO TOP GAP: stacked grids in a set ── */
+  /* ── TIGHT STACK: 16px between paired grids ── */
   .film-grid--no-top {
-    margin-top: 0 !important;
+    margin-top: 16px !important;
   }
 
   /* ── ASYMMETRIC: left column heavier ── */
