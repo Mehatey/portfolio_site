@@ -685,17 +685,17 @@ next_project:
   </video>
 </div>
 
-<!-- 11.2 standalone -->
+<!-- 11 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
   <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source src="{{ site.baseurl }}/2.cube/2d/11.2.mp4" type="video/mp4" />
+    <source src="{{ site.baseurl }}/2.cube/2d/11.mp4" type="video/mp4" />
   </video>
 </div>
 
-<!-- 11.3 standalone -->
+<!-- 12 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
   <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source src="{{ site.baseurl }}/2.cube/2d/11.3.mp4" type="video/mp4" />
+    <source src="{{ site.baseurl }}/2.cube/2d/12.mp4" type="video/mp4" />
   </video>
 </div>
 
