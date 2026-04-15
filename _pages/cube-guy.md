@@ -666,7 +666,7 @@ next_project:
 </div>
 
 <!-- 8 standalone -->
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/8.mp4" type="video/mp4" />
   </video>
