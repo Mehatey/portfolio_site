@@ -22,13 +22,13 @@ meta:
     value: Unreal Engine
     priority: dim
 reflection: >
-  This project has been a six year journey rather than a single build. The film came first, and was one of the most fulfilling pieces I've made. It was the first time the character felt complete, taking years of sketches and ideas and turning them into something I could actually see and share.
+  The film was the first time it felt finished. Years of sketching finally became six minutes of something I could actually share, and that alone made it one of the most fulfilling things I had made.
 
 
-  Coming back to it through the game was a very different challenge. It meant translating the same idea into systems and interaction, not just visuals. I had to learn how to build that from scratch, and the process was messy. I lost versions of the project, rebuilt large parts of it, and only then understood the importance of saving, structuring, and managing work properly.
+  The game was harder. Building interactivity from scratch meant learning by breaking things. I lost versions, rebuilt sections, and came out understanding the work in a way I could not have otherwise.
 
 
-  What stayed consistent through all of this was the character itself. Even as the medium changed, the idea held. This project is not just about a character or a game, but an ongoing body of work where each iteration adds another side to the cube, and in many ways, to me.
+  What surprised me most was how little the idea needed to change through all of it. The medium kept shifting. The character did not.
 hide_overview: true
 next_project:
   title: B + b
@@ -556,8 +556,8 @@ next_project:
 </div>
 
 <!-- CONCLUSION -->
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+<div class="cs-bleed-full">
+  <video autoplay muted loop playsinline preload="none">
     <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/1.mp4" type="video/mp4" />
   </video>
 </div>
