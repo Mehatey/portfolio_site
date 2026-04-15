@@ -569,6 +569,11 @@ next_project:
   </div>
 </div>
 
+<!-- FILM LINK -->
+<div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
+  <a href="https://www.youtube.com/watch?v=fl8L5V_pOUU" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.42)'">Watch Full Film ↗</a>
+</div>
+
 <!-- SECTION: 2D GAME -->
 <div class="cs-section">
   <span class="cs-section-label">2D Game</span>
@@ -618,24 +623,10 @@ next_project:
 </div>
 
 <!-- TEXT: personalised game -->
-<p class="cube-cap cube-cap--above" style="padding-top: 16px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p>
-
-<!-- 4.1 + 4.2 -->
-<div class="cs-grid film-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/2d/4.1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/2d/4.2.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p>
 
 <!-- 5.1 + 5.2 -->
-<div class="cs-grid film-grid film-grid--no-top">
+<div class="cs-grid film-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/2.cube/2d/5.1.mp4" type="video/mp4" />
