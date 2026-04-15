@@ -402,13 +402,6 @@ next_project:
   <img src="{{ site.baseurl }}/2.cube/short%20film%20hd/0.png" alt="Squarube film poster" style="object-fit: contain;" />
 </div>
 
-<!-- OPENING SHOT -->
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/1.mp4" type="video/mp4" />
-  </video>
-</div>
-
 <!-- FILM INTRO -->
 <div class="cs-intro">
   <span class="intro-overview-label">Short Film · 2022</span>
@@ -560,6 +553,13 @@ next_project:
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.2.mp4" type="video/mp4" />
     </video>
   </div>
+</div>
+
+<!-- CONCLUSION -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/1.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- FILM LINK -->
