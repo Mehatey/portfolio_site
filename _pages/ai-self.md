@@ -214,7 +214,7 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>A billboard in the New York subway. The way it framed AI as a confident helpful presence already embedded in daily life. I started noticing how much people were opening up to it.</em></p>
-<div class="cs-bleed">
+<div class="cs-bleed ai-contain">
   <img src="{{ site.baseurl }}/3.ai/6.png" alt="" loading="lazy" />
 </div>
 
