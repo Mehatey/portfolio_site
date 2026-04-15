@@ -848,6 +848,11 @@ next_project:
   </video>
 </div>
 
+<!-- 3D GAME LINK -->
+<div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
+  <a href="https://www.youtube.com/watch?v=2q1UYA1BzR0" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.42)'">Watch Walkthrough ↗</a>
+</div>
+
 <!-- END OF CUBE -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Meh thanks you for staying till the end.</em></p>
 <div class="cs-bleed cs-bleed--no-fade">
