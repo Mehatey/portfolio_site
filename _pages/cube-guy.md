@@ -618,7 +618,7 @@ next_project:
 </div>
 
 <!-- TEXT: personalised game -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 16px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p>
 
 <!-- 4.1 + 4.2 -->
 <div class="cs-grid film-grid">
