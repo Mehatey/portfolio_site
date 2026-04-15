@@ -44,26 +44,23 @@ next_projects:
 ---
 
 <style>
-  /* ── LABEL TREATMENT: match cube mono style ── */
-  .intro-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    color: rgba(255,255,255,0.28);
-  }
+  /* ── LABELS: match cube mono style ── */
+  .intro-label,
   .cs-pair-label {
     font-family: var(--font-mono) !important;
     font-size: 11px !important;
     letter-spacing: 0.18em !important;
+    text-transform: uppercase !important;
     color: rgba(255,255,255,0.28) !important;
-    margin-bottom: 0 !important;
+    font-weight: 400 !important;
+    margin-bottom: 12px !important;
   }
 
-  /* ── BODY TEXT: tighter, dimmer ── */
+  /* ── BODY TEXT ── */
   .cs-pair-text .cs-body {
-    font-size: clamp(13px, 1.2vw, 15px);
-    color: rgba(255,255,255,0.60);
-    line-height: 1.7;
+    font-size: clamp(14px, 1.3vw, 16px);
+    color: rgba(255,255,255,0.68);
+    line-height: 1.75;
   }
   .cs-intro .cs-body {
     font-size: clamp(14px, 1.4vw, 17px);
