@@ -1,8 +1,8 @@
 ---
 layout: project
 permalink: /cube-guy/
-project_title: Cube Guy
-proj_num: "04"
+project_title: Cube of Creations
+proj_num: "01"
 tagline: A character built since 2018. A square in an unfamiliar world, collecting insights, adding sides, becoming a cube.
 category: Film · Game · Character
 year: 2018–2025
