@@ -612,6 +612,9 @@ next_project:
   </video>
 </div>
 
+<!-- TEXT: personalised game -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p>
+
 <!-- 4.1 + 4.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
@@ -625,9 +628,6 @@ next_project:
     </video>
   </div>
 </div>
-
-<!-- TEXT: personalised game -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p>
 
 <!-- 5.1 + 5.2 -->
 <div class="cs-grid film-grid">
