@@ -38,8 +38,8 @@ next_project:
     align-items: flex-start;
     justify-content: flex-start;
     text-align: left;
-    padding: 56px var(--gutter) 0;
-    gap: 16px;
+    padding: 56px var(--gutter) 72px;
+    gap: 24px;
   }
   .cs-intro .intro-overview-label {
     font-family: var(--font-mono);
@@ -50,9 +50,9 @@ next_project:
   }
   .cs-intro .cs-body {
     font-size: clamp(14px, 1.5vw, 20px);
-    line-height: 1.6;
+    line-height: 1.75;
     color: rgba(255,255,255,0.68);
-    max-width: 740px;
+    max-width: 680px;
     margin: 0;
   }
   .cs-grid {
@@ -145,11 +145,12 @@ next_project:
   .m-watch-link a:hover { color: rgba(255,255,255,0.88); }
   .cs-intro .cs-body--insight {
     font-size: clamp(14px, 1.5vw, 20px);
+    line-height: 1.75;
     color: rgba(255,255,255,0.68);
-    max-width: 740px;
+    max-width: 680px;
     position: relative;
-    margin-top: 24px;
-    padding-top: 24px;
+    margin-top: 8px;
+    padding-top: 32px;
     display: flex;
     flex-direction: column;
     gap: 16px;
