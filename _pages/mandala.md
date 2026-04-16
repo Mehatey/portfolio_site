@@ -94,6 +94,10 @@ next_project:
   .cube-cap + .cs-bleed { margin-top: 16px; }
   .cs-bleed + .cs-bleed { margin-top: 16px; }
   .cs-grid + .cs-bleed { margin-top: 24px; }
+  .cs-grid-3 {
+    height: clamp(300px, 48vh, 560px);
+    grid-template-rows: 1fr;
+  }
   .ai-contain img,
   .ai-contain video { object-fit: contain !important; }
   .cs-section {
@@ -158,10 +162,10 @@ next_project:
   <span class="cs-section-label">Concept</span>
 </div>
 
+<p class="cube-cap cube-cap--above"><em>In India, mandalas were made on festival floors in chalk and color, then walked over and dissolved. This project started from that memory.</em></p>
 <div class="cs-bleed ai-contain">
   <img src="{{ site.baseurl }}/4.mandala/2.png" alt="" loading="lazy" />
 </div>
-<p class="cube-cap" style="font-size: 11px;"><em>Growing up in India, mandalas were made on floors before festivals, in chalk and colored powder, then walked over and dissolved. The geometry always came before the image. This project started from that memory.</em></p>
 
 <div class="cs-intro">
   <span class="intro-overview-label">Golden Record</span>
@@ -170,7 +174,7 @@ next_project:
   </div>
 </div>
 
-<div class="cs-grid">
+<div class="cs-grid-3">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/4.mandala/3.1.mp4" type="video/mp4" />
@@ -181,12 +185,11 @@ next_project:
       <source src="{{ site.baseurl }}/4.mandala/3.2.mp4" type="video/mp4" />
     </video>
   </div>
-</div>
-
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-    <source src="{{ site.baseurl }}/4.mandala/3.3.mp4" type="video/mp4" />
-  </video>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/3.3.mp4" type="video/mp4" />
+    </video>
+  </div>
 </div>
 
 <div class="cs-intro">
