@@ -1,7 +1,7 @@
 ---
 layout: project
 permalink: /mandalas/
-project_title: Mandala
+project_title: "Who are you, to you"
 proj_num: "04"
 tagline: An interactive installation built around one question. Generative mandalas, layered audio, and a darkened space designed to make room for reflection.
 category: Installation · TouchDesigner
@@ -143,6 +143,31 @@ next_project:
     transition: color 0.2s;
   }
   .m-watch-link a:hover { color: rgba(255,255,255,0.88); }
+  .cs-intro .cs-body--insight {
+    font-size: clamp(14px, 1.5vw, 20px);
+    color: rgba(255,255,255,0.68);
+    max-width: 740px;
+    position: relative;
+    margin-top: 24px;
+    padding-top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .cs-intro .cs-body--insight::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 1px;
+    background: rgba(255,255,255,0.07);
+  }
+  .cs-intro .cs-body--insight .insight-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.28);
+  }
 
   /* Continuous slow breathing zoom on all images */
   @keyframes slow-zoom {
@@ -159,7 +184,11 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">Overview</span>
   <div class="cs-body">
-    <p>I wanted to understand what actually creates the conditions for reflection. Before the digital visuals, before TouchDesigner, I started with physical spaces: light, candles, refraction, and photographs. The question was always the same. What does it take to make someone slow down and look inward?</p>
+    <p>I wanted to understand what actually creates the conditions for reflection. Before the digital visuals, before TouchDesigner, I started with physical spaces: light, candles, refraction, and photographs. The question throughout was the same. What does it take to make someone slow down and look inward?</p>
+  </div>
+  <div class="cs-body--insight">
+    <span class="insight-label">Insight</span>
+    <p>Technology can either distract or deepen attention, and the difference is entirely in the conditions. Darker rooms. Seated postures. Audio carrying more weight than visuals. Stillness as a design material, not an afterthought.</p>
   </div>
 </div>
 
