@@ -144,14 +144,14 @@ next_project:
   }
   .m-watch-link a:hover { color: rgba(255,255,255,0.88); }
 
-  /* Slow graceful zoom on hover for all images */
+  /* Continuous slow breathing zoom on all images */
+  @keyframes slow-zoom {
+    from { transform: scale(1); }
+    to   { transform: scale(1.06); }
+  }
   .cs-grid-item img,
   .cs-bleed img {
-    transition: transform 1.6s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .cs-grid-item:hover img,
-  .cs-bleed:hover img {
-    transform: scale(1.05);
+    animation: slow-zoom 12s ease-in-out infinite alternate;
   }
 </style>
 
