@@ -159,60 +159,12 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">Overview</span>
   <div class="cs-body">
-    <p>A meditation experience built around one question: who are you to you? Using real-time visuals generated in TouchDesigner and projected into a physical space, visitors were invited to sit with that question. The audio layered voices of Alan Watts and Terence McKenna alongside my own. Every design decision was about using technology to slow someone down rather than occupy them.</p>
+    <p>I wanted to understand what actually creates the conditions for reflection. Before the digital visuals, before TouchDesigner, I started with physical spaces: light, candles, refraction, and photographs. The question was always the same. What does it take to make someone slow down and look inward?</p>
   </div>
 </div>
 
 <div class="cs-bleed-full">
   <img src="{{ site.baseurl }}/4.mandala/1.png" alt="" loading="lazy" />
-</div>
-
-<!-- SECTION: CONCEPT -->
-<div class="cs-section">
-  <span class="cs-section-label">Concept</span>
-</div>
-
-<p class="cube-cap cube-cap--above"><em>In India, mandalas were made on festival floors in chalk and color, then walked over and dissolved. This project started from that memory.</em></p>
-<div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/2.png" alt="" loading="lazy" />
-</div>
-
-<div class="cs-intro">
-  <span class="intro-overview-label">Golden Record</span>
-  <div class="cs-body">
-    <p>In 1977 the Voyager probe carried a golden record into space. A selection of sounds, images, and music meant to say: this is who we are. The mandala started from the same question. If you had to compress yourself into a single document, what would it include? A brain scan. Your name in binary. Your voice. The ideas you keep returning to even when you cannot explain why.</p>
-  </div>
-</div>
-
-<div class="cs-grid-3">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-      <source src="{{ site.baseurl }}/4.mandala/3.1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-      <source src="{{ site.baseurl }}/4.mandala/3.2.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-      <source src="{{ site.baseurl }}/4.mandala/3.3.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
-<div class="cs-intro">
-  <span class="intro-overview-label">Cosmic Spiral</span>
-  <div class="cs-body">
-    <p>The same geometry appears in a nautilus shell and in a galaxy. Every mandala pattern points outward from a center that was always already there. This piece traces that path, from two atoms to the cosmos, one layer at a time.</p>
-  </div>
-</div>
-
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-    <source src="{{ site.baseurl }}/4.mandala/4.mp4" type="video/mp4" />
-  </video>
 </div>
 
 <!-- SECTION: FIRST SPACE -->
@@ -315,6 +267,54 @@ next_project:
   <div class="cs-grid-item ai-contain">
     <img src="{{ site.baseurl }}/4.mandala/13.3.png" alt="" loading="lazy" />
   </div>
+</div>
+
+<!-- SECTION: MANDALA -->
+<div class="cs-section">
+  <span class="cs-section-label">Mandala</span>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>In India, mandalas were made on festival floors in chalk and color, then walked over and dissolved. This project started from that memory.</em></p>
+<div class="cs-bleed ai-contain">
+  <img src="{{ site.baseurl }}/4.mandala/2.png" alt="" loading="lazy" />
+</div>
+
+<div class="cs-intro">
+  <span class="intro-overview-label">Golden Record</span>
+  <div class="cs-body">
+    <p>In 1977 the Voyager probe carried a golden record into space. A selection of sounds, images, and music meant to say: this is who we are. The mandala started from the same question. If you had to compress yourself into a single document, what would it include? A brain scan. Your name in binary. Your voice. The ideas you keep returning to even when you cannot explain why.</p>
+  </div>
+</div>
+
+<div class="cs-grid-3">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/3.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/3.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/3.3.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<div class="cs-intro">
+  <span class="intro-overview-label">Cosmic Spiral</span>
+  <div class="cs-body">
+    <p>The same geometry appears in a nautilus shell and in a galaxy. Every mandala pattern points outward from a center that was always already there. This piece traces that path, from two atoms to the cosmos, one layer at a time.</p>
+  </div>
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+    <source src="{{ site.baseurl }}/4.mandala/4.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <div class="m-watch-link">
