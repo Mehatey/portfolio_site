@@ -143,6 +143,16 @@ next_project:
     transition: color 0.2s;
   }
   .m-watch-link a:hover { color: rgba(255,255,255,0.88); }
+
+  /* Slow graceful zoom on hover for all images */
+  .cs-grid-item img,
+  .cs-bleed img {
+    transition: transform 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .cs-grid-item:hover img,
+  .cs-bleed:hover img {
+    transform: scale(1.05);
+  }
 </style>
 
 <!-- OVERVIEW -->
