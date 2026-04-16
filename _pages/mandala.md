@@ -184,11 +184,11 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">Overview</span>
   <div class="cs-body">
-    <p>I wanted to understand what actually creates the conditions for reflection. Before the digital visuals, before TouchDesigner, I started with physical spaces: light, candles, refraction, and photographs. The question throughout was the same. What does it take to make someone slow down and look inward?</p>
+    <p>A research project into what creates the conditions for reflection. It started with physical spaces before becoming something digital.</p>
   </div>
   <div class="cs-body--insight">
     <span class="insight-label">Insight</span>
-    <p>Technology can either distract or deepen attention, and the difference is entirely in the conditions. Darker rooms. Seated postures. Audio carrying more weight than visuals. Stillness as a design material, not an afterthought.</p>
+    <p>The difference between technology that distracts and technology that deepens is entirely in the conditions it creates. Stillness is a design material.</p>
   </div>
 </div>
 
@@ -204,14 +204,14 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">Set Design · 2025</span>
   <div class="cs-body">
-    <p>The first version of the space. Photographs of myself and others on the walls, a guided audio to help people move inward, and a prompt to write something true about how they felt. The idea was to give people something to look at before they had to look inward.</p>
+    <p>Photos on the walls, a guided audio track, and a prompt to write something true. Something to look at before having to look inward.</p>
   </div>
 </div>
 
 <div class="cs-intro">
   <span class="intro-overview-label">Reflection Forms</span>
   <div class="cs-body">
-    <p>Writing without a prompt is harder than it sounds. Most people need a question to begin. The forms gave them that entry point, before and after, and the responses were the clearest sign the space was doing something.</p>
+    <p>Most people need a question to begin. The reflection forms were that entry point, and the responses were the clearest sign the space was working.</p>
   </div>
 </div>
 
@@ -234,7 +234,7 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">The Lit Room</span>
   <div class="cs-body">
-    <p>The second version. Brighter lighting, more reflective surfaces, mandalas bouncing between mirrors. People found it harder to sit still. The darkness in the first space had been doing more work than I realized. This version clarified what the design conditions actually needed to be.</p>
+    <p>Brighter, more reflective, harder to settle into. The darkness in the first space had been doing more work than I realized.</p>
   </div>
 </div>
 
@@ -311,7 +311,7 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">Golden Record</span>
   <div class="cs-body">
-    <p>In 1977 the Voyager probe carried a golden record into space. A selection of sounds, images, and music meant to say: this is who we are. The mandala started from the same question. If you had to compress yourself into a single document, what would it include? A brain scan. Your name in binary. Your voice. The ideas you keep returning to even when you cannot explain why.</p>
+    <p>Voyager carried a golden record into space: sounds, images, and music compressed into a self-portrait for the cosmos. The mandala asked the same question. What would yours contain?</p>
   </div>
 </div>
 
@@ -336,7 +336,7 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">Cosmic Spiral</span>
   <div class="cs-body">
-    <p>The same geometry appears in a nautilus shell and in a galaxy. Every mandala pattern points outward from a center that was always already there. This piece traces that path, from two atoms to the cosmos, one layer at a time.</p>
+    <p>The same geometry appears in a shell, a storm, and a galaxy. This traces that path outward, from two atoms to the cosmos.</p>
   </div>
 </div>
 
