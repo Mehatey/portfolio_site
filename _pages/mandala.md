@@ -184,11 +184,11 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">Overview</span>
   <div class="cs-body">
-    <p>A research project into what creates the conditions for reflection. It started with physical spaces before becoming something digital.</p>
+    <p>I wanted to understand what actually creates the conditions for reflection. Before the digital visuals, before TouchDesigner, I built physical spaces with light, candles, and refraction. Participants completed a short self-reflection survey before and after each session, and most reported a noticeable shift toward greater emotional awareness.</p>
   </div>
   <div class="cs-body--insight">
     <span class="insight-label">Insight</span>
-    <p>The difference between technology that distracts and technology that deepens is entirely in the conditions it creates. Stillness is a design material.</p>
+    <p>Some people chose to close their eyes and focus only on the audio, which showed me that immersion is not about adding more but knowing when to step back. The darker and more seated the setting, the deeper the reflection. Stillness turned out to be the most important design decision.</p>
   </div>
 </div>
 
@@ -196,23 +196,9 @@ next_project:
   <img src="{{ site.baseurl }}/4.mandala/1.png" alt="" loading="lazy" />
 </div>
 
-<!-- SECTION: FIRST SPACE -->
+<!-- SECTION: WHAT GETS PEOPLE TO MEDITATE -->
 <div class="cs-section">
-  <span class="cs-section-label">First Space</span>
-</div>
-
-<div class="cs-intro">
-  <span class="intro-overview-label">Set Design · 2025</span>
-  <div class="cs-body">
-    <p>Photos on the walls, a guided audio track, and a prompt to write something true. Something to look at before having to look inward.</p>
-  </div>
-</div>
-
-<div class="cs-intro">
-  <span class="intro-overview-label">Reflection Forms</span>
-  <div class="cs-body">
-    <p>Most people need a question to begin. The reflection forms were that entry point, and the responses were the clearest sign the space was working.</p>
-  </div>
+  <span class="cs-section-label">What gets people to meditate</span>
 </div>
 
 <div class="cs-bleed">
@@ -224,20 +210,14 @@ next_project:
 <div class="cs-bleed ai-contain">
   <img src="{{ site.baseurl }}/4.mandala/7.png" alt="" loading="lazy" />
 </div>
-<p class="cube-cap" style="font-size: 11px;"><em>People settled into the space more than expected. Some sat for longer than the session asked for.</em></p>
+<p class="cube-cap"><em>People settled into the space more than expected. Some sat for longer than the session asked for.</em></p>
 
-<!-- SECTION: SECOND SPACE -->
+<!-- SECTION: INTROSPECTIVE SPACES -->
 <div class="cs-section">
-  <span class="cs-section-label">Second Space</span>
+  <span class="cs-section-label">Introspective spaces</span>
 </div>
 
-<div class="cs-intro">
-  <span class="intro-overview-label">The Lit Room</span>
-  <div class="cs-body">
-    <p>Brighter, more reflective, harder to settle into. The darkness in the first space had been doing more work than I realized.</p>
-  </div>
-</div>
-
+<p class="cube-cap cube-cap--above"><em>The lit room. Brighter, more reflective. People found it harder to settle.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/4.mandala/8.mp4" type="video/mp4" />
@@ -298,9 +278,9 @@ next_project:
   </div>
 </div>
 
-<!-- SECTION: MANDALA -->
+<!-- SECTION: MANDALAS -->
 <div class="cs-section">
-  <span class="cs-section-label">Mandala</span>
+  <span class="cs-section-label">Mandalas</span>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>In India, mandalas were made on festival floors in chalk and color, then walked over and dissolved. This project started from that memory.</em></p>
@@ -308,13 +288,7 @@ next_project:
   <img src="{{ site.baseurl }}/4.mandala/2.png" alt="" loading="lazy" />
 </div>
 
-<div class="cs-intro">
-  <span class="intro-overview-label">Golden Record</span>
-  <div class="cs-body">
-    <p>Voyager carried a golden record into space: sounds, images, and music compressed into a self-portrait for the cosmos. The mandala asked the same question. What would yours contain?</p>
-  </div>
-</div>
-
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Sid's record. A brain scan, a name in binary, a voice, the ideas he keeps returning to. Inspired by the Voyager golden record.</em></p>
 <div class="cs-grid-3">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
@@ -333,13 +307,7 @@ next_project:
   </div>
 </div>
 
-<div class="cs-intro">
-  <span class="intro-overview-label">Cosmic Spiral</span>
-  <div class="cs-body">
-    <p>The same geometry appears in a shell, a storm, and a galaxy. This traces that path outward, from two atoms to the cosmos.</p>
-  </div>
-</div>
-
+<p class="cube-cap" style="padding-top: 8px;"><em>The cosmic spiral. The same geometry in a shell, a storm, a galaxy. From two atoms outward.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
     <source src="{{ site.baseurl }}/4.mandala/4.mp4" type="video/mp4" />
