@@ -217,14 +217,15 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-    <source src="{{ site.baseurl }}/4.mandala/5.1.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/4.mandala/5.2.png" alt="" loading="lazy" />
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/5.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/4.mandala/5.2.png" alt="" loading="lazy" />
+  </div>
 </div>
 
 <div class="cs-intro">
@@ -234,16 +235,17 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-    <source src="{{ site.baseurl }}/4.mandala/6.1.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-    <source src="{{ site.baseurl }}/4.mandala/6.2.mp4" type="video/mp4" />
-  </video>
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/6.1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/6.2.mp4" type="video/mp4" />
+    </video>
+  </div>
 </div>
 
 <div class="cs-bleed ai-contain">
