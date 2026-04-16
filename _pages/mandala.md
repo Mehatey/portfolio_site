@@ -184,33 +184,17 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">Overview</span>
   <div class="cs-body">
-    <p>I wanted to understand what actually creates the conditions for reflection. Before the digital visuals, before TouchDesigner, I built physical spaces with light, candles, and refraction. Participants completed a short self-reflection survey before and after each session, and most reported a noticeable shift toward greater emotional awareness.</p>
+    <p>This was my thesis but it was really a personal question. I had been getting into meditation, spending a lot of time with Alan Watts and Ram Dass, sitting with the idea that most of us move through life without ever stopping to ask who we actually are. I wanted to find my own kind of quiet, and I wanted to know whether design could create the conditions for someone else to find theirs.</p>
   </div>
   <div class="cs-body--insight">
     <span class="insight-label">Insight</span>
-    <p>Some people chose to close their eyes and focus only on the audio, which showed me that immersion is not about adding more but knowing when to step back. The darker and more seated the setting, the deeper the reflection. Stillness turned out to be the most important design decision.</p>
+    <p>I was moved by the Strangers Project, where people write what they are carrying and leave it anonymously for the world. There is something in that which tells you we are all holding the same questions, just in different bodies. This installation started from there, from the belief that the human condition is not something you sit with alone.</p>
   </div>
 </div>
 
 <div class="cs-bleed-full">
   <img src="{{ site.baseurl }}/4.mandala/1.png" alt="" loading="lazy" />
 </div>
-
-<!-- SECTION: WHAT GETS PEOPLE TO MEDITATE -->
-<div class="cs-section">
-  <span class="cs-section-label">What gets people to meditate</span>
-</div>
-
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-    <source src="{{ site.baseurl }}/4.mandala/6.1.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/7.png" alt="" loading="lazy" />
-</div>
-<p class="cube-cap"><em>People settled into the space more than expected. Some sat for longer than the session asked for.</em></p>
 
 <!-- SECTION: INTROSPECTIVE SPACES -->
 <div class="cs-section">
@@ -313,6 +297,22 @@ next_project:
     <source src="{{ site.baseurl }}/4.mandala/4.mp4" type="video/mp4" />
   </video>
 </div>
+
+<!-- SECTION: WHAT GETS PEOPLE TO MEDITATE -->
+<div class="cs-section">
+  <span class="cs-section-label">What gets people to meditate</span>
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+    <source src="{{ site.baseurl }}/4.mandala/6.1.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-bleed ai-contain">
+  <img src="{{ site.baseurl }}/4.mandala/7.png" alt="" loading="lazy" />
+</div>
+<p class="cube-cap"><em>People settled into the space more than expected. Some sat for longer than the session asked for.</em></p>
 
 <div class="m-watch-link">
   <a href="https://www.youtube.com/watch?v=PLACEHOLDER" target="_blank" rel="noopener">Watch Experience ↗</a>
