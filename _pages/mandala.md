@@ -49,10 +49,10 @@ next_project:
     color: rgba(255,255,255,0.28);
   }
   .cs-intro .cs-body {
-    font-size: clamp(14px, 1.5vw, 20px);
-    line-height: 1.75;
-    color: rgba(255,255,255,0.68);
-    max-width: 680px;
+    font-size: clamp(22px, 3vw, 40px);
+    line-height: 1.6;
+    color: rgba(255,255,255,0.82);
+    max-width: 800px;
     margin: 0;
   }
   .cs-grid {
@@ -144,10 +144,10 @@ next_project:
   }
   .m-watch-link a:hover { color: rgba(255,255,255,0.88); }
   .cs-intro .cs-body--insight {
-    font-size: clamp(14px, 1.5vw, 20px);
-    line-height: 1.75;
-    color: rgba(255,255,255,0.68);
-    max-width: 680px;
+    font-size: clamp(22px, 3vw, 40px);
+    line-height: 1.6;
+    color: rgba(255,255,255,0.82);
+    max-width: 800px;
     position: relative;
     margin-top: 8px;
     padding-top: 32px;
@@ -168,6 +168,28 @@ next_project:
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: rgba(255,255,255,0.28);
+  }
+
+  /* Typewriter cursor blink */
+  @keyframes tw-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .tw-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: rgba(255,255,255,0.6);
+    margin-left: 3px;
+    vertical-align: middle;
+    animation: tw-blink 0.7s step-end infinite;
+  }
+  .cs-intro .cs-body p,
+  .cs-intro .cs-body--insight p {
+    visibility: hidden;
+  }
+  .cs-intro .cs-body--insight {
+    visibility: hidden;
   }
 
   /* Continuous slow breathing zoom on all images */
@@ -318,3 +340,67 @@ next_project:
 <div class="m-watch-link">
   <a href="https://www.youtube.com/watch?v=PLACEHOLDER" target="_blank" rel="noopener">Watch Experience ↗</a>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var paras = Array.from(
+      document.querySelectorAll(
+        '.cs-intro .cs-body p, .cs-intro .cs-body--insight p'
+      )
+    );
+
+    function typeEl(el, done) {
+      var text = el.textContent;
+      el.textContent = '';
+      el.style.visibility = 'visible';
+
+      var cursor = document.createElement('span');
+      cursor.className = 'tw-cursor';
+      el.appendChild(cursor);
+
+      var i = 0;
+      var speed = 18;
+      var timer = setInterval(function () {
+        if (i < text.length) {
+          el.insertBefore(document.createTextNode(text[i]), cursor);
+          i++;
+        } else {
+          clearInterval(timer);
+          setTimeout(function () {
+            cursor.remove();
+            if (done) done();
+          }, 350);
+        }
+      }, speed);
+    }
+
+    var idx = 0;
+    function next() {
+      if (idx < paras.length) {
+        // Before typing the insight paragraph, make the whole block visible
+        var insightBlock = document.querySelector('.cs-intro .cs-body--insight');
+        if (insightBlock && paras[idx].closest('.cs-body--insight')) {
+          insightBlock.style.visibility = 'visible';
+        }
+        typeEl(paras[idx], function () {
+          idx++;
+          setTimeout(next, 180);
+        });
+      }
+    }
+
+    setTimeout(next, 400);
+
+    // cs-section line + label animation
+    var sections = document.querySelectorAll('.cs-section');
+    var sectionIO = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-visible');
+          sectionIO.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.3 });
+    sections.forEach(function (s) { sectionIO.observe(s); });
+  });
+</script>
