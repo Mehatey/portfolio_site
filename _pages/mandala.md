@@ -187,6 +187,11 @@ next_project:
   .proj-title {
     font-size: clamp(48px, 7.5vw, 108px) !important;
   }
+  .hero-video {
+    object-fit: contain !important;
+    transform: scale(0.62) translateY(18%) !important;
+    transform-origin: center center;
+  }
   .f-vid-wrap {
     width: 100%;
     margin: 40px 0 0;
@@ -428,7 +433,7 @@ next_project:
   <a href="https://www.youtube.com/watch?v=v14nAzshrLs" target="_blank" rel="noopener">Watch Full Meditation ↗</a>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Most people needed a prompt to begin. Without direction, reflection stayed on the surface.</em></p>
+<p class="cube-cap cube-cap--above" style="margin-top:48px;"><em>Most people needed a prompt to begin. Without direction, reflection stayed on the surface.</em></p>
 <div class="cs-grid" style="align-items:stretch;">
   <div class="cs-grid-item" style="height:clamp(360px,60vh,720px);overflow:hidden;">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.08);transform-origin:center center;">
