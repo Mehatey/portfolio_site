@@ -7,6 +7,7 @@ tagline: An interactive installation built around one question. Generative manda
 category: Installation · TouchDesigner
 year: 2025
 hero_bg: "radial-gradient(ellipse at 40% 60%, #160d24 0%, #080408 55%, #020102 100%)"
+hero_image: "4.mandala/cover.png"
 meta:
   - label: Role
     value: Solo
