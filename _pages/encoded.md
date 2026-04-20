@@ -62,6 +62,10 @@ next_projects:
     color: rgba(255,255,255,0.68);
     line-height: 1.75;
   }
+  .cs-intro {
+    padding: 0 var(--gutter) 40px;
+    gap: 16px;
+  }
   .cs-intro .cs-body {
     font-size: clamp(14px, 1.4vw, 17px);
     color: rgba(255,255,255,0.68);

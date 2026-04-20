@@ -31,6 +31,10 @@ next_project:
 ---
 
 <style>
+  .cs-intro {
+    padding: 56px var(--gutter) 0;
+    gap: 16px;
+  }
   .cs-intro .cs-body {
     font-size: clamp(16px, 1.8vw, 26px);
     line-height: 1.7;
