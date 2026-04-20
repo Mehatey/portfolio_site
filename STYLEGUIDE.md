@@ -10,6 +10,20 @@ This file is the single source of truth for layout, typography, and component co
 
 ---
 
+## Page inventory
+
+| File                           | proj_num | Status      | Notes                                                          |
+| ------------------------------ | -------- | ----------- | -------------------------------------------------------------- |
+| `_pages/encoded.md`            | 00       | Live        | Uses cs-pair layout, Testimonial reflection, two next_projects |
+| `_pages/cube-guy.md`           | 01       | Live        | Reference page. Has custom keyframe animations on cs-intro     |
+| `_pages/ai-self.md`            | 02       | Live        | Three cs-section dividers, uses global animations              |
+| `_pages/mandala.md`            | 04       | Live        | Word-reveal JS on intro, custom hero (cover.png), audio toggle |
+| `_pages/b-plus-b.md`           | 05       | Placeholder | Old cs-row/vis-ph system, needs rebuild for project 5          |
+| `_pages/mool.md`               | 06       | Placeholder | Old cs-row/vis-ph system                                       |
+| `_pages/mind-your-feelings.md` | 02       | Placeholder | Old cs-row/vis-ph system                                       |
+
+---
+
 ## Page structure (mandatory order)
 
 ```
@@ -24,6 +38,27 @@ frontmatter (layout: project, hide_overview: true, ...)
 
 ---
 
+## Global CSS (project.html) — what's already defined
+
+The following are defined GLOBALLY in `_layouts/project.html` and do NOT need to be re-declared in page style blocks:
+
+- **cs-section** + **cs-section-label** — divider animation (IntersectionObserver in JS adds `is-visible`)
+- **cube-cap** + **cube-cap--above** — caption styles
+- **cs-intro** base — padding 56px/72px, gap 24px, font clamp(14px,1.5vw,20px)
+- **Intro entry animations** — `introTrackIn` (label) + `introFadeUp` (cs-body, cs-body--insight) fire on load globally
+- **cs-grid**, **cs-grid-3**, **cs-bleed**, **cs-bleed-full** — layout containers
+- **Scroll reveal** — IntersectionObserver adds `.reveal` to most cs-\* elements (NOT cs-intro — intro animates on load instead)
+- **Section observer** — IntersectionObserver adds `is-visible` to `.cs-section` elements
+
+**Pages that override cs-intro per-page (correct — page-level wins cascade):**
+
+- cube-guy: uses custom `trackIn`/`fadeUp` keyframes, `padding: 56px var(--gutter) 0`, `gap: 16px`
+- mandala: disables global fadeUp (`animation: none` on cs-body), uses word-reveal JS instead; `padding: 56px var(--gutter) 72px`
+- ai-self: `padding: 56px var(--gutter) 0`, `gap: 16px`
+- encoded: `padding: 0 var(--gutter) 40px`, `gap: 16px` (two stacked intro blocks)
+
+---
+
 ## Text hierarchy
 
 | Element         | Class                             | Purpose                                                        |
@@ -32,18 +67,16 @@ frontmatter (layout: project, hide_overview: true, ...)
 | Overview block  | `cs-intro` > `cs-body`            | Opening paragraph. Large. Only at page top.                    |
 | Insight block   | `cs-intro` > `cs-body--insight`   | Reflection. Same size as overview. Only at page top.           |
 | Caption below   | `cube-cap`                        | 13px mono, all mid-page text                                   |
-| Caption above   | `cube-cap cube-cap--above`        | Same, placed before media                                      |
+| Caption above   | `cube-cap cube-cap--above`        | Same, placed BEFORE media (tight 8px attach)                   |
 
-**Never use `cs-intro` mid-page.** Never use `cs-chapter`, `cs-row`, `cs-content`, or `cs-heading`.
+**Never use `cs-intro` mid-page.** Never use `cs-chapter`, `cs-row`, `cs-content`, or `cs-heading` (old system).
 
 ---
 
-## cs-intro CSS (copy exactly)
+## cs-intro CSS (global in project.html — per-page overrides fine)
 
 ```css
 .cs-intro {
-  opacity: 1 !important;
-  transform: none !important;
   max-width: none !important;
   width: 100%;
   display: flex;
@@ -52,53 +85,23 @@ frontmatter (layout: project, hide_overview: true, ...)
   padding: 56px var(--gutter) 72px;
   gap: 24px;
 }
+/* Entry animations fire on load (not scroll-reveal) */
 .cs-intro .intro-overview-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.28);
+  animation: introTrackIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
 }
 .cs-intro .cs-body {
-  font-size: clamp(14px, 1.5vw, 20px);
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.68);
-  max-width: 680px;
-  margin: 0;
+  animation: introFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
 }
 .cs-intro .cs-body--insight {
-  font-size: clamp(14px, 1.5vw, 20px);
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.68);
-  max-width: 680px;
-  position: relative;
-  margin-top: 8px;
-  padding-top: 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.cs-intro .cs-body--insight::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.07);
-}
-.cs-intro .cs-body--insight .insight-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.28);
+  animation: introFadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.78s both;
 }
 ```
 
+**If a page uses JS-driven text reveal (like word-reveal), add `animation: none` to override.**
+
 ---
 
-## cs-section CSS (copy exactly)
+## cs-section CSS (global in project.html)
 
 ```css
 .cs-section {
@@ -108,23 +111,13 @@ frontmatter (layout: project, hide_overview: true, ...)
   gap: 12px;
 }
 .cs-section::before {
-  content: "";
-  display: block;
   width: 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.18);
-  flex-shrink: 0;
-  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+  transition: width 1s...;
 }
 .cs-section.is-visible::before {
   width: 28px;
 }
 .cs-section-label {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.22);
   opacity: 0;
   transition: opacity 0.7s ease 0.55s;
 }
@@ -135,7 +128,7 @@ frontmatter (layout: project, hide_overview: true, ...)
 
 ---
 
-## cube-cap CSS (copy exactly)
+## cube-cap CSS (global in project.html)
 
 ```css
 .cube-cap {
@@ -143,11 +136,6 @@ frontmatter (layout: project, hide_overview: true, ...)
   font-size: 13px;
   color: rgba(255, 255, 255, 0.42);
   padding: 8px var(--gutter) 0;
-  margin: 0;
-  line-height: 1.5;
-}
-.cube-cap em {
-  font-style: italic;
 }
 .cube-cap--above {
   padding: 0 var(--gutter) 8px;
@@ -158,23 +146,11 @@ frontmatter (layout: project, hide_overview: true, ...)
 .cube-cap--above + .cs-bleed {
   margin-top: 8px;
 }
-.cube-cap--above + .cs-bleed-full {
-  margin-top: 8px;
-}
-.cube-cap + .cs-bleed {
-  margin-top: 16px;
-}
-.cs-bleed + .cs-bleed {
-  margin-top: 16px;
-}
-.cs-grid + .cs-bleed {
-  margin-top: 24px;
-}
 ```
 
 ---
 
-## Grid sizing CSS (copy exactly)
+## Grid sizing CSS (add per-page to override global aspect-ratio)
 
 ```css
 .cs-grid {
@@ -202,16 +178,20 @@ frontmatter (layout: project, hide_overview: true, ...)
 }
 ```
 
+**If specific items need `object-fit: cover`, add a class like `.g-cover .cs-grid-item img { object-fit: cover !important; }` and apply it to the grid — inline `object-fit:cover` CANNOT override `!important`.**
+
 ---
 
 ## Media rules
 
-- All images and videos: `object-fit: contain !important` (never cover)
+- All images and videos in grids: `object-fit: contain !important` (never cover by default)
 - Hero cover only: `cs-bleed-full` (full bleed, 100vw)
 - All other images: `cs-bleed` or `cs-grid-item`
-- Never add `style="object-fit:cover"` inline on video elements
+- Never add `style="object-fit:cover"` inline when page CSS uses `!important` — use a class override
 - Decimal filenames → grids: `x.1 + x.2` → `cs-grid`, `x.1 + x.2 + x.3` → `cs-grid-3`
 - Videos: always `autoplay muted loop playsinline preload="none"`
+- Max 2 three-column grids per section (items get too small otherwise)
+- Bitrate target: CRF 18/medium/30fps (~3–10 Mbps). Anything above ~12 Mbps will stall in browser
 
 ---
 
@@ -238,7 +218,7 @@ meta:
     value: Self Initiated
 reflection: >
   One or two short paragraphs. No em dashes.
-next_project:
+next_project: # singular for one, next_projects: (array) for multiple
   title: Project Name
   url: /slug/
 ```
@@ -250,6 +230,30 @@ next_project:
 - No em dashes anywhere (not in text, not in captions, not in frontmatter)
 - No emojis
 - Captions: sentence case, italic via `<em>`, one line preferred
+- Reflection: 2–3 short paragraphs, same weight as cube-guy.md
+
+---
+
+## Known page-specific quirks
+
+**mandala.md:**
+
+- Word-reveal JS fires on cs-body/cs-body--insight — `animation: none` overrides global fadeUp
+- Audio toggle on `mandala-shorter.mp4` uses Web Audio API GainNode (video stays muted, sound via gain)
+- `f-vid-wrap` custom div bypasses cs-bleed-full cropping for natural-ratio display
+- `.g-cover` class forces cover on g.mp4/j.png grid; `.ma-cover` on test-ma26.png
+
+**cube-guy.md:**
+
+- Has own `@keyframes trackIn`, `fadeUp`, `lineGrow` — these override global `introTrackIn`/`introFadeUp`
+- Drift animations on grid items (driftLeft/driftRight)
+
+**encoded.md:**
+
+- Uses `next_projects:` (array, plural) — layout supports both singular and plural
+- Uses `refl_type: Testimonial` with `refl_source` / `refl_avatar` / `refl_bg`
+- Uses cs-pair layout (not cs-intro mid-page)
+- Has two cs-chapter water canvas sections (`id="chapter-water"` and `id="gallery-water"`)
 
 ---
 

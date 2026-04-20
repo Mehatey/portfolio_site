@@ -52,8 +52,6 @@ next_project:
 
   /* ── INTRO ── */
   .cs-intro {
-    opacity: 1 !important;
-    transform: none !important;
     max-width: none !important;
     width: 100%;
     display: flex;

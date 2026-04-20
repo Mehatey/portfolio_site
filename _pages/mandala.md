@@ -30,8 +30,6 @@ next_project:
 
 <style>
   .cs-intro {
-    opacity: 1 !important;
-    transform: none !important;
     max-width: none !important;
     width: 100%;
     display: flex;
@@ -49,13 +47,16 @@ next_project:
     text-transform: uppercase;
     color: rgba(255,255,255,0.28);
   }
+  /* Word-reveal JS handles cs-body — disable global fadeUp */
   .cs-intro .cs-body {
     font-size: clamp(16px, 1.8vw, 26px);
     line-height: 1.7;
     color: rgba(255,255,255,0.82);
     max-width: min(860px, 68vw);
     margin: 0;
+    animation: none;
   }
+  .cs-intro .cs-body--insight { animation: none; }
   .cs-grid {
     height: clamp(360px, 60vh, 720px);
     grid-template-rows: 1fr;
