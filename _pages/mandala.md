@@ -560,6 +560,10 @@ next_project:
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;"><source src="{{ site.baseurl }}/4.mandala/blobs.mp4" type="video/mp4" /></video></div>
 </div>
 
+<div class="m-watch-link">
+  <a href="https://mehatey.github.io/sid-mandala-camera-one/" target="_blank" rel="noopener">Try the Full Experience ↗</a>
+</div>
+
 <div class="cs-grid">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/4.mandala/p1.png" alt="" loading="lazy" />
