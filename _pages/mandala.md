@@ -182,7 +182,9 @@ next_project:
   }
   .cs-intro {
     padding-bottom: 96px;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .proj-title {
+    font-size: clamp(48px, 7.5vw, 108px) !important;
   }
   .f-vid-wrap {
     width: 100%;
@@ -255,7 +257,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Spiral concept of evolution interested me.</em></p>
 <div class="f-vid-wrap">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/f.mp4" type="video/mp4" />
+    <source src="{{ site.baseurl }}/4.mandala/first.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -517,8 +519,7 @@ next_project:
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;"><source src="{{ site.baseurl }}/4.mandala/ma25.mp4" type="video/mp4" /></video></div>
 </div>
 
-<div class="cs-grid-3 ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;"><source src="{{ site.baseurl }}/4.mandala/ma27.mp4" type="video/mp4" /></video></div>
+<div class="cs-grid ma-grid">
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;"><source src="{{ site.baseurl }}/4.mandala/ma28.mp4" type="video/mp4" /></video></div>
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;"><source src="{{ site.baseurl }}/4.mandala/ma29.mp4" type="video/mp4" /></video></div>
 </div>
