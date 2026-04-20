@@ -75,18 +75,18 @@ next_project:
   }
   /* Body: slides up */
   .cs-intro .cs-body {
-    font-size: clamp(14px, 1.5vw, 20px);
-    line-height: 1.6;
+    font-size: clamp(16px, 1.8vw, 26px);
+    line-height: 1.7;
     color: rgba(255,255,255,0.68);
-    max-width: 740px;
+    max-width: min(860px, 68vw);
     margin: 0;
     animation: fadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
   }
   /* Insight block: line draws, then block slides up */
   .cs-intro .cs-body--insight {
-    font-size: clamp(14px, 1.5vw, 20px);
+    font-size: clamp(16px, 1.8vw, 26px);
     color: rgba(255,255,255,0.68);
-    max-width: 740px;
+    max-width: min(860px, 68vw);
     position: relative;
     margin-top: 24px;
     padding-top: 24px;
@@ -260,37 +260,6 @@ next_project:
     margin-top: 16px;
   }
 
-  /* ── SECTION LABELS: line draws left-to-right, then label fades ── */
-  .cs-section {
-    padding: 80px var(--gutter) 32px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .cs-section::before {
-    content: '';
-    display: block;
-    width: 0;
-    height: 1px;
-    background: rgba(255,255,255,0.18);
-    flex-shrink: 0;
-    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
-  }
-  .cs-section.is-visible::before {
-    width: 28px;
-  }
-  .cs-section-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.22);
-    opacity: 0;
-    transition: opacity 0.7s ease 0.55s;
-  }
-  .cs-section.is-visible .cs-section-label {
-    opacity: 1;
-  }
 </style>
 
 <!-- INTRO -->
@@ -860,16 +829,3 @@ next_project:
     <source src="{{ site.baseurl }}/2.cube/end%20of%20cube%20.mp4" type="video/mp4" />
   </video>
 </div>
-
-<script>
-  (function () {
-    var extras = document.querySelectorAll('.cs-section');
-    if (!extras.length) return;
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); }
-      });
-    }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
-    extras.forEach(function (el) { io.observe(el); });
-  })();
-</script>

@@ -31,57 +31,15 @@ next_project:
 ---
 
 <style>
-  .cs-intro {
-    opacity: 1 !important;
-    transform: none !important;
-    max-width: none !important;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    text-align: left;
-    padding: 56px var(--gutter) 0;
-    gap: 16px;
-  }
-  .cs-intro .intro-overview-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.28);
-  }
   .cs-intro .cs-body {
-    font-size: clamp(14px, 1.5vw, 20px);
-    line-height: 1.6;
-    color: rgba(255,255,255,0.68);
-    max-width: 740px;
-    margin: 0;
+    font-size: clamp(16px, 1.8vw, 26px);
+    line-height: 1.7;
+    max-width: min(860px, 68vw);
   }
   .cs-intro .cs-body--insight {
-    font-size: clamp(14px, 1.5vw, 20px);
-    color: rgba(255,255,255,0.68);
-    max-width: 740px;
-    position: relative;
-    margin-top: 24px;
-    padding-top: 24px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  .cs-intro .cs-body--insight::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 1px;
-    background: rgba(255,255,255,0.07);
-  }
-  .cs-intro .cs-body--insight .insight-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.28);
+    font-size: clamp(16px, 1.8vw, 26px);
+    line-height: 1.7;
+    max-width: min(860px, 68vw);
   }
   .cs-grid {
     height: clamp(360px, 60vh, 720px);
@@ -107,49 +65,9 @@ next_project:
   .cs-bleed-full img, .cs-bleed-full video {
     object-fit: contain !important;
   }
-  .cube-cap {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: rgba(255,255,255,0.42);
-    padding: 8px var(--gutter) 0;
-    margin: 0;
-    line-height: 1.5;
-  }
-  .cube-cap em { font-style: italic; }
-  .cube-cap--above { padding: 0 var(--gutter) 8px; }
-  .cube-cap--above + .cs-grid { margin-top: 8px; }
-  .cube-cap--above + .cs-bleed { margin-top: 8px; }
-  .cube-cap--above + .cs-bleed-full { margin-top: 8px; }
-  .cube-cap + .cs-bleed { margin-top: 16px; }
   .cs-bleed + .cs-bleed { margin-top: 16px; }
-  .cs-grid + .cs-bleed { margin-top: 24px; }
   .ai-contain img,
   .ai-contain video { object-fit: contain !important; }
-  .cs-section {
-    padding: 80px var(--gutter) 32px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .cs-section::before {
-    content: '';
-    display: block;
-    width: 0; height: 1px;
-    background: rgba(255,255,255,0.18);
-    flex-shrink: 0;
-    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
-  }
-  .cs-section.is-visible::before { width: 28px; }
-  .cs-section-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.22);
-    opacity: 0;
-    transition: opacity 0.7s ease 0.55s;
-  }
-  .cs-section.is-visible .cs-section-label { opacity: 1; }
   .ai-watch-link {
     display: flex;
     margin: 40px var(--gutter) 0;

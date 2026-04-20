@@ -19,10 +19,10 @@ meta:
     value: Self Initiated
 hide_overview: true
 reflection: >
-  This project made me realize how sensitive attention is to sensory balance. Some people chose to close their eyes and focus only on the audio, which showed me that immersion isn't about adding more, but knowing when to step back.
+  Some people closed their eyes and let go of the visuals entirely. That told me more about immersion than anything I had designed for.
 
 
-  It also worked far better in darker and seated settings, pushing me to think of design as shaping the conditions where reflection can actually happen.
+  The installation worked best in darker, quieter rooms where conditions invited stillness. I realized that design is not always about what you show, but what you make room for.
 next_project:
   title: B+b
   url: /b-plus-b/
@@ -79,22 +79,7 @@ next_project:
   .cs-bleed-full img, .cs-bleed-full video {
     object-fit: contain !important;
   }
-  .cube-cap {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: rgba(255,255,255,0.42);
-    padding: 8px var(--gutter) 0;
-    margin: 0;
-    line-height: 1.5;
-  }
-  .cube-cap em { font-style: italic; }
-  .cube-cap--above { padding: 0 var(--gutter) 8px; }
-  .cube-cap--above + .cs-grid { margin-top: 8px; }
-  .cube-cap--above + .cs-bleed { margin-top: 8px; }
-  .cube-cap--above + .cs-bleed-full { margin-top: 8px; }
-  .cube-cap + .cs-bleed { margin-top: 16px; }
   .cs-bleed + .cs-bleed { margin-top: 16px; }
-  .cs-grid + .cs-bleed { margin-top: 24px; }
   .cs-grid-3 {
     height: clamp(360px, 56vh, 680px);
     grid-template-rows: 1fr;
@@ -102,31 +87,6 @@ next_project:
   }
   .ai-contain img,
   .ai-contain video { object-fit: contain !important; }
-  .cs-section {
-    padding: 80px var(--gutter) 32px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-  .cs-section::before {
-    content: '';
-    display: block;
-    width: 0; height: 1px;
-    background: rgba(255,255,255,0.18);
-    flex-shrink: 0;
-    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
-  }
-  .cs-section.is-visible::before { width: 28px; }
-  .cs-section-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.22);
-    opacity: 0;
-    transition: opacity 0.7s ease 0.55s;
-  }
-  .cs-section.is-visible .cs-section-label { opacity: 1; }
   .m-watch-link {
     display: flex;
     margin: 40px var(--gutter) 0;
@@ -267,6 +227,12 @@ next_project:
   </video>
 </div>
 
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+    <source src="{{ site.baseurl }}/4.mandala/people.mp4" type="video/mp4" />
+  </video>
+</div>
+
 <!-- SECTION: INTROSPECTIVE SPACES -->
 <div class="cs-section">
   <span class="cs-section-label">Introspective spaces</span>
@@ -380,12 +346,6 @@ next_project:
 <!-- SECTION: GUIDED MEDITATION -->
 <div class="cs-section">
   <span class="cs-section-label">Guided meditation</span>
-</div>
-
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
-    <source src="{{ site.baseurl }}/4.mandala/ma12.mp4" type="video/mp4" />
-  </video>
 </div>
 
 <div class="cs-grid">
@@ -597,10 +557,6 @@ next_project:
   </video>
 </div>
 
-<div class="m-watch-link">
-  <a href="https://www.youtube.com/watch?v=v14nAzshrLs" target="_blank" rel="noopener">Watch Experience ↗</a>
-</div>
-
 <script>
   document.addEventListener('DOMContentLoaded', function () {
     var paras = Array.from(
@@ -673,16 +629,5 @@ next_project:
       });
     }
 
-    // cs-section line + label animation
-    var sections = document.querySelectorAll('.cs-section');
-    var sectionIO = new IntersectionObserver(function (entries) {
-      entries.forEach(function (e) {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-visible');
-          sectionIO.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.3 });
-    sections.forEach(function (s) { sectionIO.observe(s); });
   });
 </script>
