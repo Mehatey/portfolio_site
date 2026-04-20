@@ -394,6 +394,19 @@ next_project:
 </div>
 
 <div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/ab.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">
+      <source src="{{ site.baseurl }}/4.mandala/abc.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<div class="cs-grid">
   <div class="cs-grid-item" style="position:relative;">
     <video id="mandala-compiled-vid" autoplay muted loop playsinline preload="auto" style="width:100%;height:100%;display:block;">
       <source src="{{ site.baseurl }}/4.mandala/mandala-shorter.mp4" type="video/mp4" />
@@ -509,6 +522,7 @@ next_project:
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;"><source src="{{ site.baseurl }}/4.mandala/ma20.mp4" type="video/mp4" /></video></div>
 </div>
 
+<p class="cube-cap cube-cap--above"><em>Going beyond mandalas and playing with different eye tracking forms.</em></p>
 <div class="cs-grid ma-grid">
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;"><source src="{{ site.baseurl }}/4.mandala/ma21.mp4" type="video/mp4" /></video></div>
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;"><source src="{{ site.baseurl }}/4.mandala/ma23.mp4" type="video/mp4" /></video></div>
