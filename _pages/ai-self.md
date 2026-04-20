@@ -330,7 +330,7 @@ next_project:
   <img src="{{ site.baseurl }}/3.ai/21.png" alt="" loading="lazy" />
 </div>
 
-<p class="cube-cap" style="padding-top: 8px;"><em>Process sketches for how the scenes were structured</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 8px;"><em>Process sketches for how the scenes were structured</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/3.ai/22.png" alt="" loading="lazy" />
 </div>

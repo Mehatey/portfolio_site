@@ -87,6 +87,10 @@ next_project:
   }
   .ai-contain img,
   .ai-contain video { object-fit: contain !important; }
+  /* Specific items that must crop to fill (cover), not letterbox */
+  .g-cover .cs-grid-item img,
+  .g-cover .cs-grid-item video { object-fit: cover !important; }
+  .ma-cover { object-fit: cover !important; }
   .m-watch-link {
     display: flex;
     margin: 40px var(--gutter) 0;
@@ -394,14 +398,14 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above" style="margin-top:48px;"><em>Most people needed a prompt to begin. Without direction, reflection stayed on the surface.</em></p>
-<div class="cs-grid" style="align-items:stretch;">
+<div class="cs-grid g-cover" style="align-items:stretch;">
   <div class="cs-grid-item" style="height:clamp(360px,60vh,720px);overflow:hidden;">
-    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.08);transform-origin:center center;">
+    <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;transform:scale(1.08);transform-origin:center center;">
       <source src="{{ site.baseurl }}/4.mandala/g.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item" style="height:clamp(360px,60vh,720px);">
-    <img src="{{ site.baseurl }}/4.mandala/j.png" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />
+    <img src="{{ site.baseurl }}/4.mandala/j.png" alt="" loading="lazy" style="width:100%;height:100%;display:block;" />
   </div>
 </div>
 
@@ -432,7 +436,7 @@ next_project:
 
 <div class="cs-grid ma-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/test-ma26.png" alt="" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;" />
+    <img src="{{ site.baseurl }}/4.mandala/test-ma26.png" alt="" loading="lazy" class="ma-cover" style="width:100%;height:100%;display:block;" />
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none" style="width:100%;height:100%;display:block;">

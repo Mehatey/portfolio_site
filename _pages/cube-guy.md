@@ -280,7 +280,7 @@ next_project:
 </div>
 
 <!-- caption + 1 -->
-<p class="cube-cap" style="padding-top: 24px;"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/2.cube/conception/1.png" alt="" style="object-fit: contain;" />
 </div>
