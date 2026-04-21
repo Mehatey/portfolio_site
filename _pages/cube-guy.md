@@ -31,8 +31,8 @@ reflection: >
   What surprised me most was how little the idea needed to change through all of it. The medium kept shifting. The character did not.
 hide_overview: true
 next_project:
-  title: B + b
-  url: /b-plus-b/
+  title: AI SELF_
+  url: /ai-self/
 ---
 
 <style>

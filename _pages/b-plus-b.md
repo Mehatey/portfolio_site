@@ -29,8 +29,8 @@ reflection: >
 
   The design didn't need to do much. The simplest structure worked best, and anything more would have gotten in the way.
 next_project:
-  title: Mool
-  url: /mool/
+  title: ENCODED
+  url: /encoded/
 ---
 
 <style>

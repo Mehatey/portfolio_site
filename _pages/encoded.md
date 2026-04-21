@@ -33,6 +33,9 @@ refl_role: Founder, EyeJack
 refl_avatar: "1.met/stuart.png"
 refl_bg: "1.met/12.png"
 hide_overview: true
+next_project:
+  title: Cube of Creations
+  url: /cube-guy/
 next_projects:
   - title: AI SELF_
     url: /ai-self/

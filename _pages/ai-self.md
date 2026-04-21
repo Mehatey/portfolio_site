@@ -26,8 +26,8 @@ reflection: >
 
   AI SELF_ was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.
 next_project:
-  title: Mind Your Feelings
-  url: /mind-your-feelings/
+  title: Who are you, to you
+  url: /mandalas/
 ---
 
 <style>
