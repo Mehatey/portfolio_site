@@ -274,51 +274,51 @@ next_project:
 
 <!-- 0 -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/0.png" alt="" style="object-fit: contain;" />
+  <img src="{{ site.baseurl }}/2.cube/conception/0.png" alt="" style="object-fit: contain;" loading="lazy" />
 </div>
 
 <!-- caption + 1 -->
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/1.png" alt="" style="object-fit: contain;" />
+  <img src="{{ site.baseurl }}/2.cube/conception/1.png" alt="" style="object-fit: contain;" loading="lazy" />
 </div>
 
 <!-- 2 -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/2.png" alt="" style="object-fit: contain;" />
+  <img src="{{ site.baseurl }}/2.cube/conception/2.png" alt="" style="object-fit: contain;" loading="lazy" />
 </div>
 
 <!-- Ideating sketches label + 6.1 + 6.2 -->
 <p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/6.1.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/6.1.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/6.2.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/6.2.png" alt="" loading="lazy" />
   </div>
 </div>
 
 <!-- 7.1 + 7.2 + 7.3 -->
 <div class="cs-grid-3 cs-grid-3--equal">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.1.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.1.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.2.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.2.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.3.jpg" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.3.jpg" alt="" loading="lazy" />
   </div>
 </div>
 
 <!-- 7.4 + 7.5 -->
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.4.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.4.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.5.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.5.png" alt="" loading="lazy" />
   </div>
 </div>
 
@@ -330,10 +330,10 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/8.2.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/8.2.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/8.3.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/8.3.png" alt="" loading="lazy" />
   </div>
 </div>
 
@@ -347,10 +347,10 @@ next_project:
 <!-- 10.1 + 10.2 + 10.3 -->
 <div class="cs-grid-3 cs-grid-3--equal">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/10.1.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/10.1.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/10.2.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/conception/10.2.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
@@ -366,7 +366,7 @@ next_project:
 
 <!-- FILM POSTER -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/short%20film%20hd/0.png" alt="Squarube film poster" style="object-fit: contain;" />
+  <img src="{{ site.baseurl }}/2.cube/short%20film%20hd/0.png" alt="Squarube film poster" style="object-fit: contain;" loading="lazy" />
 </div>
 
 <!-- FILM INTRO -->
@@ -577,7 +577,7 @@ next_project:
 <!-- 3.1 + 3.2 -->
 <div class="cs-grid film-grid cs-grid--left-heavy">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
@@ -645,7 +645,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/9.2.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/2d/9.2.png" alt="" loading="lazy" />
   </div>
 </div>
 
@@ -722,10 +722,10 @@ next_project:
 <!-- 3 + 3.1 grid -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/3d/3.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/3d/3.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/3d/3.1.png" alt="" />
+    <img src="{{ site.baseurl }}/2.cube/3d/3.1.png" alt="" loading="lazy" />
   </div>
 </div>
 

@@ -100,7 +100,7 @@ next_projects:
 
 <!-- COVER -->
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/1.met/1.png" alt="ENCODED at the Met" />
+  <img src="{{ site.baseurl }}/1.met/1.png" alt="ENCODED at the Met" loading="lazy" />
 </div>
 
 <!-- PROCESS CHAPTER -->
