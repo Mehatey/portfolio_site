@@ -87,6 +87,21 @@ next_projects:
   <div class="intro-inner">
     <span class="intro-label">Recognition</span>
     <div>
+      <!-- Webby Awards -->
+      <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:32px;">
+        <div style="flex:1;min-width:220px;border:1px solid rgba(255,255,255,0.1);padding:20px 24px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(255,220,80,0.6),rgba(255,220,80,0) 70%);"></div>
+          <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,220,80,0.65);margin-bottom:10px;">The Webby Awards · 2026</p>
+          <p style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.88);font-weight:500;margin-bottom:6px;">Best Use of Augmented Reality</p>
+          <p style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.04em;">Apps, Software &amp; Immersive</p>
+        </div>
+        <div style="flex:1;min-width:220px;border:1px solid rgba(255,255,255,0.1);padding:20px 24px;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,rgba(255,220,80,0.6),rgba(255,220,80,0) 70%);"></div>
+          <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,220,80,0.65);margin-bottom:10px;">The Webby Awards · 2026</p>
+          <p style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.88);font-weight:500;margin-bottom:6px;">Best Community Engagement</p>
+          <p style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.04em;">Apps, Software &amp; Immersive</p>
+        </div>
+      </div>
       <p class="cs-body" style="margin-bottom: 0;">Featured in Artnet, The Art Newspaper, and Agog for reinterpreting the American Wing through Indigenous perspectives.</p>
       <div class="press-row" style="display:flex;flex-wrap:wrap;gap:0;margin-top:24px;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
         <a href="https://news.artnet.com/art-world/unsanctioned-augmented-reality-indigenous-art-met-museum-2699689" target="_blank" rel="noopener" style="font-family:var(--font-head);font-size:14px;color:rgba(255,255,255,0.50);padding:16px 28px 16px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.50)'">Artnet ↗</a>
