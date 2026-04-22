@@ -827,3 +827,137 @@ next_project:
     <source src="{{ site.baseurl }}/2.cube/end%20of%20cube%20.mp4" type="video/mp4" />
   </video>
 </div>
+
+<!-- CUBE-GUY CURSOR — desktop only, this page only -->
+<style>
+  @media (hover: hover) and (pointer: fine) {
+    #cur-dot { display: none !important; }
+    #cube-cursor-canvas { display: block; }
+  }
+</style>
+<canvas id="cube-cursor-canvas" style="display:none;position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999;" aria-hidden="true"></canvas>
+<script>
+(function () {
+  if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+
+  const canvas = document.getElementById('cube-cursor-canvas');
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  let W, H, dpr;
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(1,0,0,1,0,0); ctx.scale(dpr, dpr);
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  let mx = -200, my = -200, lastX = -200, lastY = -200;
+  let rotation = 0;
+  let isSpinning = false, spinStart = 0;
+  const SPIN_DUR = 1500;
+  let trail = [];
+
+  function easeInOutQuart(x) {
+    return x < 0.5 ? 8*x*x*x*x : 1 - Math.pow(-2*x+2,4)/2;
+  }
+  function lerp(a,b,t) { return a+(b-a)*t; }
+  function dist(x1,y1,x2,y2) { return Math.sqrt((x2-x1)**2+(y2-y1)**2); }
+  function rmap(v,a,b,c,d) { return c+(v-a)/(b-a)*(d-c); }
+  function rr(x,y,w,h,r) {
+    ctx.beginPath();
+    if (ctx.roundRect) { ctx.roundRect(x,y,w,h,r); }
+    else {
+      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+      ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+      ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+      ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+    }
+  }
+
+  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; }, { passive: true });
+  document.addEventListener('mousedown', () => {
+    if (!isSpinning) { isSpinning = true; spinStart = performance.now(); }
+  });
+
+  const R=100, G=180, B=255; // cyan
+
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+
+    const dx = mx - lastX, dy = my - lastY;
+
+    // Trail
+    if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+      trail.unshift({ x: mx, y: my });
+      if (trail.length > 3) trail.pop();
+    }
+    for (let i = trail.length-1; i >= 0; i--) {
+      const p = trail[i];
+      const tx = i===0 ? mx : trail[i-1].x;
+      const ty = i===0 ? my : trail[i-1].y;
+      p.x = lerp(p.x, tx, 0.35); p.y = lerp(p.y, ty, 0.35);
+      if (i>0 && dist(p.x,p.y,tx,ty)<1) { trail.splice(i,1); continue; }
+      const fa = rmap(i, 0, trail.length, 55/255, 0);
+      ctx.save();
+      ctx.fillStyle = `rgba(${R},${G},${B},${fa.toFixed(3)})`;
+      rr(p.x-9, p.y-9, 18, 18, 2); ctx.fill();
+      ctx.restore();
+    }
+
+    // Rotation
+    if (!isSpinning && (Math.abs(dx)>0.5 || Math.abs(dy)>0.5)) {
+      let target = Math.atan2(dy,dx);
+      let diff = target - rotation;
+      while (diff > Math.PI) diff -= Math.PI*2;
+      while (diff < -Math.PI) diff += Math.PI*2;
+      rotation += diff * 0.12;
+    }
+    if (isSpinning) {
+      const elapsed = performance.now() - spinStart;
+      if (elapsed < SPIN_DUR) {
+        rotation = rmap(easeInOutQuart(elapsed/SPIN_DUR), 0, 1, 0, Math.PI*6);
+      } else { isSpinning = false; }
+    }
+
+    lastX = mx; lastY = my;
+    const sz = 15;
+
+    ctx.save();
+    ctx.translate(mx, my);
+    ctx.rotate(rotation);
+
+    // Glow
+    ctx.shadowBlur = 40;
+    ctx.shadowColor = `rgba(${R},${G},${B},0.8)`;
+
+    // Body
+    ctx.strokeStyle = `rgb(${Math.round(R*0.6)},${Math.round(G*0.6)},${Math.round(B*0.6)})`;
+    ctx.lineWidth = 2;
+    ctx.fillStyle = `rgb(${R},${G},${B})`;
+    rr(-sz,-sz,sz*2,sz*2,3); ctx.fill(); ctx.stroke();
+
+    ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
+
+    // Eye whites
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.beginPath(); ctx.ellipse(-5,-3,2.5,6,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse( 5,-3,2.5,6,0,0,Math.PI*2); ctx.fill();
+    // Eye pupils
+    ctx.fillStyle = '#000';
+    ctx.beginPath(); ctx.ellipse(-5,-3,1.25,5,0,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse( 5,-3,1.25,5,0,0,Math.PI*2); ctx.fill();
+    // Mouth
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fillRect(-3,7,6,3);
+    ctx.fillStyle = '#000';
+    ctx.fillRect(-2,7,4,1.5);
+
+    ctx.restore();
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
