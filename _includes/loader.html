@@ -275,9 +275,17 @@
     const barWrap = document.getElementById("sl-bar-wrap");
     if (!loader) return;
 
-    // ── Show only once per browser session ──
+    // ── On return visits: keep black cover until page is ready, then remove instantly ──
     if (sessionStorage.getItem("sid_loaded")) {
-      loader.remove();
+      if (document.readyState === "complete") {
+        loader.remove();
+      } else {
+        window.addEventListener("load", () => loader.remove(), { once: true });
+      }
+      // Also handle bfcache restores
+      window.addEventListener("pageshow", (e) => {
+        if (e.persisted) { loader.remove(); }
+      }, { once: true });
       return;
     }
     sessionStorage.setItem("sid_loaded", "1");

@@ -492,15 +492,30 @@
         display: none;
         position: fixed;
         inset: 0;
-        background: #000;
+        background: rgba(0,0,0,0.92);
         z-index: 500;
         align-items: center;
         justify-content: center;
       }
-      #intro-modal-video {
+      #intro-modal-iframe {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: contain;
+        border: 0;
+      }
+      /* portrait floats above modal overlay */
+      .modal-open .hero-cluster { z-index: 600; }
+      /* hide surrounding content when modal is open */
+      .modal-open .nav {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s;
+      }
+      .modal-open .hero-text-block {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.35s;
       }
       #intro-modal-close {
         position: absolute;
@@ -666,13 +681,18 @@
 
     <!-- INTRO VIDEO MODAL -->
     <div id="intro-modal">
-      <video id="intro-modal-video" controls playsinline preload="none">
-        <source src="{{ site.baseurl }}/assets/video/intro.mp4" type="video/mp4" />
-      </video>
+      <iframe id="intro-modal-iframe"
+        src="about:blank"
+        data-src="https://player.vimeo.com/video/1185323166?autoplay=1&badge=0&autopause=0&player_id=intro-modal-iframe&app_id=58479"
+        frameborder="0"
+        allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+        allowfullscreen>
+      </iframe>
       <button id="intro-modal-close" aria-label="Close video">✕</button>
     </div>
 
     {% include cursor_fluid.html %} {% include cube_idle.html %}
+    <script src="https://player.vimeo.com/api/player.js" defer></script>
 
     <script>
       (function () {
@@ -1031,31 +1051,35 @@
           }
         });
 
-        /* ─── INTRO MODAL ─── */
+        /* ─── INTRO MODAL (Vimeo) ─── */
         const introBtn = document.getElementById("intro-btn");
         const introModal = document.getElementById("intro-modal");
-        const introModalVideo = document.getElementById("intro-modal-video");
+        const introModalIframe = document.getElementById("intro-modal-iframe");
         const introModalClose = document.getElementById("intro-modal-close");
+        let vimeoPlayer = null;
+
+        function openIntroModal() {
+          // lazy-load the iframe src on first open
+          if (introModalIframe.src === "about:blank") {
+            introModalIframe.src = introModalIframe.dataset.src;
+          }
+          introModal.style.display = "flex";
+          document.body.classList.add("modal-open");
+          // play via Vimeo API once iframe is ready
+          if (window.Vimeo) {
+            if (!vimeoPlayer) vimeoPlayer = new Vimeo.Player(introModalIframe);
+            vimeoPlayer.play().catch(() => {});
+          }
+        }
 
         function closeIntroModal() {
-          introModalVideo.pause();
-          introModalVideo.currentTime = 0;
           introModal.style.display = "none";
-          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
-          else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+          document.body.classList.remove("modal-open");
+          if (vimeoPlayer) vimeoPlayer.pause().catch(() => {});
         }
 
-        if (introBtn) {
-          introBtn.addEventListener("click", () => {
-            introModal.style.display = "flex";
-            introModalVideo.play().catch(() => {});
-            if (introModal.requestFullscreen) introModal.requestFullscreen().catch(() => {});
-            else if (introModal.webkitRequestFullscreen) introModal.webkitRequestFullscreen();
-          });
-        }
-        if (introModalClose) {
-          introModalClose.addEventListener("click", closeIntroModal);
-        }
+        if (introBtn) introBtn.addEventListener("click", openIntroModal);
+        if (introModalClose) introModalClose.addEventListener("click", closeIntroModal);
         document.addEventListener("keydown", (e) => {
           if (e.key === "Escape" && introModal && introModal.style.display !== "none") {
             closeIntroModal();
