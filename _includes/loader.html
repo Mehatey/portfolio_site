@@ -275,20 +275,18 @@
     const barWrap = document.getElementById("sl-bar-wrap");
     if (!loader) return;
 
-    // ── On return visits: keep black cover until page is ready, then remove instantly ──
+    // ── On return visits: remove instantly, no animation ──
     if (sessionStorage.getItem("sid_loaded")) {
-      if (document.readyState === "complete") {
-        loader.remove();
-      } else {
-        window.addEventListener("load", () => loader.remove(), { once: true });
-      }
-      // Also handle bfcache restores
-      window.addEventListener("pageshow", (e) => {
-        if (e.persisted) { loader.remove(); }
-      }, { once: true });
+      // Remove immediately — assets are cached, no need to wait
+      loader.remove();
       return;
     }
     sessionStorage.setItem("sid_loaded", "1");
+
+    // ── Hard safety timeout: always remove after 6s no matter what ──
+    setTimeout(() => {
+      if (loader && loader.parentNode) loader.remove();
+    }, 6000);
 
     const MIN_MS = 1600;
     const start = Date.now();
