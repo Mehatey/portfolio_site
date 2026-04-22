@@ -7,6 +7,7 @@ tagline: A research arc that begins with asking what AI sees, moves through desi
 category: AI · AR · VR
 year: 2024–2025
 hero_bg: "radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)"
+hero_image: "3.ai/cover.png"
 meta:
   - label: Role
     value: Solo
