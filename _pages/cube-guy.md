@@ -835,7 +835,9 @@ next_project:
     #cube-cursor-canvas { display: block; }
   }
 </style>
+
 <canvas id="cube-cursor-canvas" style="display:none;position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999;" aria-hidden="true"></canvas>
+
 <script>
 (function () {
   if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return;

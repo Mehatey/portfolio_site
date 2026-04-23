@@ -243,8 +243,12 @@
         opacity: 1 !important;
       }
       @keyframes warpReveal {
-        from { opacity: 0; }
-        to   { opacity: 1; }
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
       }
 
       /* ── HERO STAGE ── */
@@ -1155,10 +1159,10 @@
           "  float dist=length(d);",
           "  float age=u_t-r.z;",
           "  if(age<0.0||age>3.5)return 0.0;",
-          "  float radius=0.4*age;",                              // expanding ring
-          "  float ring=exp(-pow(dist-radius,2.0)*160.0);",       // narrow bright band
-          "  float osc=sin((dist-radius)*52.0-age*1.8);",         // oscillation
-          "  float decay=exp(-age*0.85)*exp(-dist*2.0);",         // time + spatial falloff
+          "  float radius=0.4*age;", // expanding ring
+          "  float ring=exp(-pow(dist-radius,2.0)*160.0);", // narrow bright band
+          "  float osc=sin((dist-radius)*52.0-age*1.8);", // oscillation
+          "  float decay=exp(-age*0.85)*exp(-dist*2.0);", // time + spatial falloff
           "  return ring*osc*decay*0.6;",
           "}",
           "",
@@ -1196,8 +1200,8 @@
         gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
 
         var uRes = gl.getUniformLocation(prog, "u_res");
-        var uT   = gl.getUniformLocation(prog, "u_t");
-        var uR   = [];
+        var uT = gl.getUniformLocation(prog, "u_t");
+        var uR = [];
         for (var i = 0; i < N; i++) uR.push(gl.getUniformLocation(prog, "u_r[" + i + "]"));
 
         // Ring buffer for ripple events
@@ -1206,28 +1210,37 @@
         for (var i = 0; i < N; i++) rips[i * 3 + 2] = -999; // inactive sentinel
 
         var t0 = performance.now();
-        var lastX = -1, lastY = -1, lastRipT = -99;
+        var lastX = -1,
+          lastY = -1,
+          lastRipT = -99;
 
-        window.addEventListener("mousemove", function (e) {
-          var nx = e.clientX / window.innerWidth;
-          var ny = 1.0 - e.clientY / window.innerHeight; // flip Y for GL coords
-          var dx = nx - lastX, dy = ny - lastY;
-          var t = (performance.now() - t0) / 1000;
-          // Spawn a new ripple if cursor moved enough or enough time has passed
-          if (lastX < 0 || dx * dx + dy * dy > 0.0008 || t - lastRipT > 0.12) {
-            var idx = rHead++ % N;
-            rips[idx * 3]     = nx;
-            rips[idx * 3 + 1] = ny;
-            rips[idx * 3 + 2] = t;
-            lastX = nx; lastY = ny; lastRipT = t;
-          }
-        }, { passive: true });
+        window.addEventListener(
+          "mousemove",
+          function (e) {
+            var nx = e.clientX / window.innerWidth;
+            var ny = 1.0 - e.clientY / window.innerHeight; // flip Y for GL coords
+            var dx = nx - lastX,
+              dy = ny - lastY;
+            var t = (performance.now() - t0) / 1000;
+            // Spawn a new ripple if cursor moved enough or enough time has passed
+            if (lastX < 0 || dx * dx + dy * dy > 0.0008 || t - lastRipT > 0.12) {
+              var idx = rHead++ % N;
+              rips[idx * 3] = nx;
+              rips[idx * 3 + 1] = ny;
+              rips[idx * 3 + 2] = t;
+              lastX = nx;
+              lastY = ny;
+              lastRipT = t;
+            }
+          },
+          { passive: true }
+        );
 
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
         function resize() {
-          canvas.width  = window.innerWidth;
+          canvas.width = window.innerWidth;
           canvas.height = window.innerHeight;
           gl.viewport(0, 0, canvas.width, canvas.height);
         }
