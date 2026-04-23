@@ -606,6 +606,62 @@
         }
       }
 
+      /* ── DVD BRAIN SCAN ── */
+      .dvd-brain {
+        position: fixed;
+        z-index: 110;
+        width: 190px;
+        pointer-events: auto;
+        cursor: none;
+        user-select: none;
+        will-change: transform;
+      }
+      .dvd-brain-img {
+        width: 100%;
+        display: block;
+        filter: contrast(1.55) brightness(1.18) saturate(0.55) sharpen(1);
+        border: 1px solid rgba(180, 220, 255, 0.2);
+        box-shadow:
+          0 0 18px rgba(100, 160, 255, 0.12),
+          0 0 48px rgba(80, 130, 255, 0.06);
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+      }
+      .dvd-brain-hover {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.62);
+        opacity: 0;
+        transition: opacity 0.22s ease;
+      }
+      .dvd-brain:hover .dvd-brain-hover {
+        opacity: 1;
+      }
+      .dvd-brain-btn {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        padding: 9px 18px;
+        cursor: none;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      .dvd-brain-btn:hover {
+        border-color: rgba(255, 255, 255, 0.6);
+        color: #fff;
+      }
+
       /* ── WATER SHADER BG ── */
       #water-bg {
         position: fixed;
@@ -622,6 +678,14 @@
 
     <!-- Water shader background -->
     <canvas id="water-bg" aria-hidden="true"></canvas>
+
+    <!-- DVD-bouncing brain scan -->
+    <div class="dvd-brain" id="dvd-brain">
+      <img class="dvd-brain-img" src="{{ site.baseurl }}/assets/img/brain-scan.png" alt="Brain scan" draggable="false" />
+      <div class="dvd-brain-hover">
+        <button class="dvd-brain-btn" id="dvd-brain-btn"><span>▶</span>Play Intro</button>
+      </div>
+    </div>
 
     <!-- Liquify filter -->
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
@@ -1258,6 +1322,92 @@
           requestAnimationFrame(tick);
         }
         tick();
+      })();
+    </script>
+
+    <!-- DVD brain scan bounce -->
+    <script>
+      (function () {
+        var el = document.getElementById("dvd-brain");
+        var brainBtn = document.getElementById("dvd-brain-btn");
+        if (!el) return;
+
+        var NAV_H = 52;
+        var SPEED = 1.4; // px per frame
+
+        // Random starting direction
+        var angle = (Math.random() * Math.PI) / 2 + Math.PI / 8;
+        var dx = Math.cos(angle) * SPEED * (Math.random() < 0.5 ? 1 : -1);
+        var dy = Math.sin(angle) * SPEED * (Math.random() < 0.5 ? 1 : -1);
+
+        var W = el.offsetWidth || 190;
+        var H = el.offsetHeight || 145;
+        var x = Math.random() * (window.innerWidth - W);
+        var y = NAV_H + Math.random() * (window.innerHeight - NAV_H - H);
+        var paused = false;
+
+        el.style.left = "0";
+        el.style.top = "0";
+        el.style.transform = "translate(" + x + "px," + y + "px)";
+
+        el.addEventListener("mouseenter", function () {
+          paused = true;
+        });
+        el.addEventListener("mouseleave", function () {
+          paused = false;
+          W = el.offsetWidth;
+          H = el.offsetHeight;
+        });
+
+        // Wire brain button to open the intro modal
+        if (brainBtn) {
+          brainBtn.addEventListener("click", function () {
+            var btn = document.getElementById("intro-btn");
+            if (btn) btn.click();
+          });
+        }
+
+        function bounce() {
+          if (!paused) {
+            x += dx;
+            y += dy;
+
+            var maxX = window.innerWidth - W;
+            var maxY = window.innerHeight - H;
+
+            if (x <= 0) {
+              x = 0;
+              dx = Math.abs(dx);
+            }
+            if (x >= maxX) {
+              x = maxX;
+              dx = -Math.abs(dx);
+            }
+            if (y <= NAV_H) {
+              y = NAV_H;
+              dy = Math.abs(dy);
+            }
+            if (y >= maxY) {
+              y = maxY;
+              dy = -Math.abs(dy);
+            }
+
+            el.style.transform = "translate(" + x + "px," + y + "px)";
+          }
+          requestAnimationFrame(bounce);
+        }
+
+        // Wait for image to load to get real height
+        var img = el.querySelector("img");
+        if (img && img.complete) {
+          H = el.offsetHeight || H;
+        } else if (img) {
+          img.addEventListener("load", function () {
+            H = el.offsetHeight;
+          });
+        }
+
+        bounce();
       })();
     </script>
   </body>
