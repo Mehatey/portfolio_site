@@ -365,9 +365,9 @@
         text-transform: uppercase;
       }
 
-      /* Code canvas — covers full cluster, code drawn above portrait */
+      /* Code canvas — full viewport overlay */
       #code-canvas {
-        position: absolute;
+        position: fixed;
         inset: 0;
         z-index: 5;
         pointer-events: none;
@@ -988,10 +988,10 @@
         let crumbling = false;
 
         function initCode() {
-          codeCanvas.width = imgContainer.offsetWidth || 600;
-          codeCanvas.height = imgContainer.offsetHeight || 650;
+          codeCanvas.width = window.innerWidth || 1440;
+          codeCanvas.height = window.innerHeight || 900;
           for (let i = 0; i < N; i++) {
-            lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.2 : -codeCanvas.width * 1.2;
+            lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.1 : -codeCanvas.width * 1.1;
           }
         }
         initCode();
@@ -1009,7 +1009,7 @@
               lineTargets[i] = 1;
               if (!lineTriggered[i]) {
                 lineTriggered[i] = true;
-                lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.2 : -codeCanvas.width * 1.2;
+                lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.1 : -codeCanvas.width * 1.1;
               }
             }, LINE_DELAYS[i]);
             revealTimers.push(t);
@@ -1031,27 +1031,31 @@
             // Ease: fast glitch then quick fade
             const fadeAlpha = Math.max(0, 1 - progress * progress * 1.1);
             const jitter = (1 - progress) * 14;
-            const FONT = '13px "DM Mono", monospace';
-            const SUB_H = 18;
-            const GAP = 22;
+            const FONT = '42px "DM Mono", monospace';
+            const SUB_H = 56;
+            const GAP = 32;
+            const PILL_PAD_X = 18;
+            const PILL_PAD_Y = 14;
+            const PILL_H = 56;
 
             codeCtx.font = FONT;
             codeCtx.textAlign = "left";
 
             // Compute y positions (same as drawCode)
-            let curY = codeCanvas.height * 0.2;
+            let curY = codeCanvas.height * 0.22;
             const lineY = [];
             for (let i = 0; i < N; i++) {
               lineY.push(curY);
               const sub = Array.isArray(CODE_LINES[i]) ? CODE_LINES[i] : [CODE_LINES[i]];
               curY += sub.length * SUB_H + GAP;
             }
+            const BASE_XS_G = [codeCanvas.width * 0.04, codeCanvas.width * 0.08, codeCanvas.width * 0.05, codeCanvas.width * 0.1];
 
             const now = Date.now() / 1000;
             for (let i = 0; i < N; i++) {
               if (startOpacities[i] < 0.01) continue;
-              const drift = Math.sin(now * LINE_SPEED[i] + LINE_PHASE[i]) * LINE_AMP[i];
-              const baseX = 14 + drift;
+              const drift = Math.sin(now * LINE_SPEED[i] + LINE_PHASE[i]) * LINE_AMP[i] * 2.5;
+              const baseX = BASE_XS_G[i] + drift;
               const sub = Array.isArray(CODE_LINES[i]) ? CODE_LINES[i] : [CODE_LINES[i]];
 
               sub.forEach((text, si) => {
@@ -1061,12 +1065,12 @@
                 const tw = codeCtx.measureText(text).width;
 
                 // Dark pill — glitch-shift it too
-                codeCtx.globalAlpha = fadeAlpha * startOpacities[i] * 0.72;
+                codeCtx.globalAlpha = fadeAlpha * startOpacities[i] * 0.78;
                 codeCtx.fillStyle = "rgba(0,0,0,1)";
-                codeCtx.fillRect(baseX + rx - 5, sy + ry - 13, tw + 10, 18);
+                codeCtx.fillRect(baseX + rx - PILL_PAD_X, sy + ry - PILL_PAD_Y - 2, tw + PILL_PAD_X * 2, PILL_H);
 
                 // Chromatic aberration layers
-                const chromaStrength = (1 - progress) * 4;
+                const chromaStrength = (1 - progress) * 10;
                 codeCtx.globalAlpha = fadeAlpha * startOpacities[i] * 0.45;
                 codeCtx.fillStyle = "rgba(255,0,80,1)";
                 codeCtx.fillText(text, baseX + rx - chromaStrength, sy + ry);
@@ -1101,7 +1105,7 @@
           crumbling = false;
           blastTriggered = false;
           for (let i = 0; i < N; i++) {
-            lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.2 : -codeCanvas.width * 1.2;
+            lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.1 : -codeCanvas.width * 1.1;
           }
         }
 
@@ -1115,18 +1119,21 @@
           // Code overlay — lines anchored to left side of image
           const anyActive = lineOpacities.some((o) => o > 0.003) || lineTargets.some((t) => t > 0);
           if (anyActive) {
-            const LEFT_X = 14;
-            const FONT = '13px "DM Mono", monospace';
-            const SUB_H = 18; // height per sub-line within a wrapped entry
-            const GAP = 22; // extra gap between logical lines
+            const FONT = '42px "DM Mono", monospace';
+            const SUB_H = 56; // height per sub-line
+            const GAP = 32; // extra gap between logical lines
+            const PILL_PAD_X = 18;
+            const PILL_PAD_Y = 14;
+            const PILL_H = 56;
             const now = Date.now() / 1000;
 
             codeCtx.font = FONT;
             codeCtx.textAlign = "left";
 
-            // Compute y positions accounting for wrapped line heights
-            let curY = codeCanvas.height * 0.2;
+            // Spread lines vertically: start at ~22% down, space evenly
+            const startY = codeCanvas.height * 0.22;
             const lineY = [];
+            let curY = startY;
             for (let i = 0; i < N; i++) {
               lineY.push(curY);
               const subLines = Array.isArray(CODE_LINES[i]) ? CODE_LINES[i] : [CODE_LINES[i]];
@@ -1136,8 +1143,11 @@
             // Smooth cursor tracking for code displacement
             codeCursorNX += (codeCursorTargetNX - codeCursorNX) * 0.08;
             codeCursorNY += (codeCursorTargetNY - codeCursorNY) * 0.08;
-            const cursorDX = codeCursorNX * 18;
-            const cursorDY = codeCursorNY * 10;
+            const cursorDX = codeCursorNX * 32;
+            const cursorDY = codeCursorNY * 18;
+
+            // Base X: each line anchored at a different horizontal zone
+            const BASE_XS = [codeCanvas.width * 0.04, codeCanvas.width * 0.08, codeCanvas.width * 0.05, codeCanvas.width * 0.1];
 
             for (let i = 0; i < N; i++) {
               lineOpacities[i] += (lineTargets[i] * LINE_PEAK_OPACITY[i] - lineOpacities[i]) * 0.04;
@@ -1145,11 +1155,11 @@
               lineOffsets[i] += (slideTarget - lineOffsets[i]) * 0.05;
               if (lineOpacities[i] < 0.003) continue;
 
-              const drift = Math.sin(now * LINE_SPEED[i] + LINE_PHASE[i]) * LINE_AMP[i];
-              // Each line displaced by cursor but at slightly different scales (parallax)
+              const drift = Math.sin(now * LINE_SPEED[i] + LINE_PHASE[i]) * LINE_AMP[i] * 2.5;
+              // Each line displaced by cursor at slightly different parallax scales
               const px = cursorDX * (0.7 + i * 0.15);
               const py = cursorDY * (0.6 + i * 0.12);
-              const x = LEFT_X + lineOffsets[i] + drift + px;
+              const x = BASE_XS[i] + lineOffsets[i] + drift + px;
               const subLines = Array.isArray(CODE_LINES[i]) ? CODE_LINES[i] : [CODE_LINES[i]];
               const alpha = lineOpacities[i];
 
@@ -1157,9 +1167,9 @@
                 const sy = lineY[i] + si * SUB_H + py;
                 const tw = codeCtx.measureText(sub).width;
                 // Dark pill behind text for legibility
-                codeCtx.globalAlpha = alpha * 0.72;
+                codeCtx.globalAlpha = alpha * 0.78;
                 codeCtx.fillStyle = "rgba(0,0,0,1)";
-                codeCtx.fillRect(x - 5, sy - 13, tw + 10, 18);
+                codeCtx.fillRect(x - PILL_PAD_X, sy - PILL_PAD_Y - 2, tw + PILL_PAD_X * 2, PILL_H);
                 // Text
                 codeCtx.globalAlpha = alpha;
                 codeCtx.fillStyle = "rgba(0, 225, 80, 1)";
@@ -1603,28 +1613,35 @@
           "uniform sampler2D u_tex;",
           "uniform float u_t;",
           "uniform float u_rev;", // 0→1 reveal progress
-          "uniform vec3 u_lo;", // duotone shadow color
-          "uniform vec3 u_hi;", // duotone highlight color
+          "uniform vec3 u_lo;", // tint shadow color
+          "uniform vec3 u_hi;", // tint highlight color
           "varying vec2 v_uv;",
           "float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
           "void main(){",
-          // chromatic aberration
-          "  float ca=0.0055;",
+          // chromatic aberration (subtle)
+          "  float ca=0.004;",
           "  float r=texture2D(u_tex,v_uv+vec2(ca,0.0)).r;",
           "  float g=texture2D(u_tex,v_uv).g;",
           "  float b=texture2D(u_tex,v_uv-vec2(ca,0.0)).b;",
-          // duotone via luminance
-          "  float lum=dot(vec3(r,g,b),vec3(0.299,0.587,0.114));",
-          "  vec3 col=mix(u_lo,u_hi,pow(lum,0.72));",
-          // vignette
+          "  vec3 img=vec3(r,g,b);",
+          // partial desaturate then tint-multiply with u_hi
+          "  float lum=dot(img,vec3(0.299,0.587,0.114));",
+          "  vec3 desat=mix(img,vec3(lum),0.55);",
+          "  vec3 col=desat*mix(u_lo*1.4,u_hi*1.6,lum);",
+          // boost brightness so images are clearly visible
+          "  col=clamp(col*1.35,0.0,1.0);",
+          // scanlines — thin horizontal bands
+          "  float scan=0.5+0.5*sin(v_uv.y*280.0);",
+          "  col*=0.88+scan*0.12;",
+          // light vignette
           "  vec2 vig=v_uv*2.0-1.0;",
-          "  col*=1.0-dot(vig,vig)*0.58;",
-          // grain
-          "  col+=(h(v_uv+vec2(floor(u_t*14.0)*0.017))-0.5)*0.042;",
-          // noise-dissolve reveal: random threshold per pixel
+          "  col*=1.0-dot(vig,vig)*0.38;",
+          // subtle grain
+          "  col+=(h(v_uv+vec2(floor(u_t*12.0)*0.019))-0.5)*0.028;",
+          // noise-dissolve reveal
           "  float n=h(v_uv*3.6+vec2(0.31,0.72));",
-          "  float edge=smoothstep(0.0,0.18,u_rev-n);",
-          "  gl_FragColor=vec4(clamp(col,0.0,1.0),edge*0.52);",
+          "  float dissolve=smoothstep(0.0,0.18,u_rev-n);",
+          "  gl_FragColor=vec4(clamp(col,0.0,1.0),dissolve*0.82);",
           "}",
         ].join("\n");
 
@@ -1844,20 +1861,19 @@
           }
         }
 
-        /* Attach to hero cluster hover */
-        var hero = document.getElementById("img-container");
-        if (hero) {
-          hero.addEventListener("mouseenter", function () {
+        /* Reveal collage on any cursor movement in the page */
+        document.addEventListener("mousemove", function () {
+          if (targetReveal !== 1) {
             targetReveal = 1;
             hoverStart = performance.now();
             startRender();
-          });
-          hero.addEventListener("mouseleave", function () {
-            targetReveal = 0;
-            hoverStart = null;
-            startRender();
-          });
-        }
+          }
+        });
+        document.addEventListener("mouseleave", function () {
+          targetReveal = 0;
+          hoverStart = null;
+          startRender();
+        });
       })();
     </script>
   </body>
