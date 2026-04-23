@@ -386,20 +386,15 @@
         max-width: 90%;
         object-fit: contain;
         object-position: bottom center;
-        -webkit-mask-image: linear-gradient(to bottom, black 30%, rgba(0, 0, 0, 0.88) 54%, rgba(0, 0, 0, 0.38) 74%, transparent 88%);
-        mask-image: linear-gradient(to bottom, black 30%, rgba(0, 0, 0, 0.88) 54%, rgba(0, 0, 0, 0.38) 74%, transparent 88%);
+        -webkit-mask-image:
+          linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%),
+          linear-gradient(to bottom, black 28%, rgba(0, 0, 0, 0.82) 52%, rgba(0, 0, 0, 0.28) 72%, transparent 88%);
+        -webkit-mask-composite: source-in;
+        mask-image:
+          linear-gradient(to right, transparent 0%, black 14%, black 86%, transparent 100%),
+          linear-gradient(to bottom, black 28%, rgba(0, 0, 0, 0.82) 52%, rgba(0, 0, 0, 0.28) 72%, transparent 88%);
+        mask-composite: intersect;
         transform-origin: bottom center;
-      }
-      /* Black gradient overlay at bottom — strong anchor */
-      .cluster-fade {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 40%;
-        background: linear-gradient(to top, #000 0%, rgba(0, 0, 0, 0.75) 50%, transparent 100%);
-        z-index: 4;
-        pointer-events: none;
       }
 
       /* ── TEXT BLOCK ── */
@@ -700,6 +695,16 @@
         filter: saturate(0.22) brightness(0.58) contrast(1.1);
       }
 
+      /* ── DUST PARTICLES ── */
+      #dust-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 3;
+      }
+
       /* ── WATER SHADER BG ── */
       #water-bg {
         position: fixed;
@@ -716,6 +721,9 @@
 
     <!-- Water shader background -->
     <canvas id="water-bg" aria-hidden="true"></canvas>
+
+    <!-- Dust + noise particles -->
+    <canvas id="dust-canvas" aria-hidden="true"></canvas>
 
     <!-- Backdrop image fragments — revealed on hero hover -->
     <div id="backdrop-wrap" aria-hidden="true">
@@ -828,9 +836,6 @@
             <source srcset="{{ site.baseurl }}/assets/img/sidpic-1400.webp" type="image/webp" />
             <img id="hero-img-src" src="{{ site.baseurl }}/assets/img/sidpic.png" alt="Siddharth Mehta" fetchpriority="high" />
           </picture>
-
-          <!-- Black gradient fade at bottom — blends portrait into background -->
-          <div class="cluster-fade"></div>
         </div>
 
         <!-- Headline + bio -->
@@ -1221,15 +1226,26 @@
         const introModalVideo = document.getElementById("intro-modal-video");
         const introModalClose = document.getElementById("intro-modal-close");
 
+        const dvdBrain = document.getElementById("dvd-brain");
+
         function openIntroModal() {
           introModal.style.display = "flex";
           introModalVideo.play().catch(() => {});
+          if (dvdBrain) {
+            dvdBrain.style.transition = "opacity 0.3s ease";
+            dvdBrain.style.opacity = "0";
+            dvdBrain.style.pointerEvents = "none";
+          }
         }
 
         function closeIntroModal() {
           introModal.style.display = "none";
           introModalVideo.pause();
           introModalVideo.currentTime = 0;
+          if (dvdBrain) {
+            dvdBrain.style.opacity = "1";
+            dvdBrain.style.pointerEvents = "auto";
+          }
         }
 
         if (introBtn) introBtn.addEventListener("click", openIntroModal);
@@ -1487,6 +1503,99 @@
         }
 
         bounce();
+      })();
+    </script>
+
+    <!-- Dust + atmospheric particle system -->
+    <script>
+      (function () {
+        var c = document.getElementById("dust-canvas");
+        if (!c) return;
+        var ctx = c.getContext("2d");
+
+        function resize() {
+          c.width = window.innerWidth;
+          c.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener("resize", resize, { passive: true });
+
+        var N_DUST = 72;
+        var N_GRAIN = 28; // small fast-noise sparks
+        var particles = [];
+
+        function rand(a, b) {
+          return a + Math.random() * (b - a);
+        }
+
+        // Weighted spawn toward viewport center (portrait area)
+        function spawnX() {
+          var cx = c.width * 0.5;
+          return cx + rand(-c.width * 0.46, c.width * 0.46);
+        }
+        function spawnY() {
+          // bias toward upper-center (face/portrait zone)
+          return rand(c.height * 0.1, c.height * 0.92);
+        }
+
+        for (var i = 0; i < N_DUST + N_GRAIN; i++) {
+          var isGrain = i >= N_DUST;
+          particles.push({
+            x: spawnX(),
+            y: spawnY(),
+            vx: rand(-0.12, 0.12),
+            vy: rand(-0.22, -0.05), // drift upward
+            r: isGrain ? rand(0.4, 0.9) : rand(0.7, 1.8),
+            opacity: isGrain ? rand(0.06, 0.16) : rand(0.08, 0.28),
+            twinkle: rand(0, Math.PI * 2),
+            twinkleSpeed: rand(0.006, 0.022),
+            grain: isGrain,
+          });
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, c.width, c.height);
+
+          var t = Date.now() * 0.001;
+
+          for (var i = 0; i < particles.length; i++) {
+            var p = particles[i];
+
+            // Drift
+            p.x += p.vx + Math.sin(t * 0.4 + i) * 0.04;
+            p.y += p.vy;
+
+            // Wrap — reset at top with new random x near center
+            if (p.y < -4) {
+              p.y = c.height + 2;
+              p.x = spawnX();
+            }
+            if (p.x < 0) p.x += c.width;
+            if (p.x > c.width) p.x -= c.width;
+
+            // Twinkle
+            p.twinkle += p.twinkleSpeed;
+            var alpha = p.opacity * (0.5 + 0.5 * Math.sin(p.twinkle));
+
+            // Distance from portrait center — fade toward edges
+            var dx = (p.x - c.width * 0.5) / (c.width * 0.5);
+            var dy = (p.y - c.height * 0.42) / (c.height * 0.45);
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            var proximity = Math.max(0, 1 - dist * 0.6);
+            alpha *= 0.35 + proximity * 0.65;
+
+            if (alpha < 0.005) continue;
+
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.grain ? "rgba(200,210,255," + alpha + ")" : "rgba(255,255,255," + alpha + ")";
+            ctx.fill();
+          }
+
+          requestAnimationFrame(draw);
+        }
+
+        draw();
       })();
     </script>
 
