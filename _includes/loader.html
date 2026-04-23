@@ -275,10 +275,11 @@
     const barWrap = document.getElementById("sl-bar-wrap");
     if (!loader) return;
 
-    // ── On return visits: remove instantly, no animation ──
+    // ── On return visits: remove instantly, reveal content immediately ──
     if (sessionStorage.getItem("sid_loaded")) {
-      // Remove immediately — assets are cached, no need to wait
       loader.remove();
+      const mw = document.querySelector(".main-wrap");
+      if (mw) mw.classList.add("warp-reveal", "instant");
       return;
     }
     sessionStorage.setItem("sid_loaded", "1");
@@ -332,20 +333,60 @@
       }, 38);
     }
 
-    // ── Finish: complete bar → fade out loader ──
+    // ── Finish: complete bar → fly cube to nav + warp-reveal page ──
     function finishAndFly() {
       if (barIv) clearInterval(barIv);
       barFill.style.transition = "width 0.3s ease";
       barFill.style.width = "100%";
       cyclePhrase("ready");
-      setTimeout(fadeOut, 280);
+      setTimeout(flyToNav, 220);
     }
 
-    function fadeOut() {
-      loader.style.transition = "opacity 0.38s ease";
-      loader.style.opacity = "0";
-      loader.style.pointerEvents = "none";
-      setTimeout(() => { if (loader.parentNode) loader.remove(); }, 420);
+    function flyToNav() {
+      barWrap.style.transition = "opacity 0.15s ease";
+      barWrap.style.opacity = "0";
+      statusEl.style.transition = "opacity 0.15s ease";
+      statusEl.style.opacity = "0";
+
+      const navScene = document.querySelector(".nav .cube-scene");
+      if (!navScene) { fallbackExit(); return; }
+
+      const navRect = navScene.getBoundingClientRect();
+      const scRect  = sceneEl.getBoundingClientRect();
+      const dx = navRect.left + navRect.width  * 0.5 - (scRect.left + scRect.width  * 0.5);
+      const dy = navRect.top  + navRect.height * 0.5 - (scRect.top  + scRect.height * 0.5);
+      const sc = navRect.width / 100;
+
+      // Step 1: brief pull toward corner
+      sceneEl.style.transition = "transform 0.18s cubic-bezier(0.4,0,1,1)";
+      sceneEl.style.transformOrigin = "center center";
+      sceneEl.style.transform = `translate(${dx * 0.15}px,${dy * 0.15}px) scale(0.75)`;
+
+      // Step 2 (180ms): fly cube to nav + simultaneously warp-fade backdrop + reveal page
+      setTimeout(() => {
+        sceneEl.style.transition = "transform 0.45s cubic-bezier(0.4,0,0.15,1)";
+        sceneEl.style.transform  = `translate(${dx}px,${dy}px) scale(${sc})`;
+
+        // Warp the loader backdrop outward as cube departs
+        loader.style.transition   = "opacity 0.46s cubic-bezier(0.7,0,1,1), transform 0.46s ease";
+        loader.style.opacity      = "0";
+        loader.style.transform    = "scale(1.07)";
+        loader.style.pointerEvents = "none";
+
+        // Warp-reveal the page content
+        const mw = document.querySelector(".main-wrap");
+        if (mw) setTimeout(() => mw.classList.add("warp-reveal"), 55);
+      }, 180);
+
+      setTimeout(() => { if (loader.parentNode) loader.remove(); }, 680);
+    }
+
+    function fallbackExit() {
+      loader.style.transition = "opacity 0.35s ease";
+      loader.style.opacity    = "0";
+      setTimeout(() => { if (loader.parentNode) loader.remove(); }, 400);
+      const mw = document.querySelector(".main-wrap");
+      if (mw) mw.classList.add("warp-reveal");
     }
 
     // ── Wait for page load + minimum time ──
