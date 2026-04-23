@@ -672,27 +672,14 @@
         color: #fff;
       }
 
-      /* ── BACKDROP IMAGE FRAGMENTS ── */
-      #backdrop-wrap {
+      /* ── COLLAGE SHADER CANVAS ── */
+      #collage-canvas {
         position: fixed;
         inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
         z-index: 1;
-        pointer-events: none;
-      }
-      .bd-img {
-        position: absolute;
-        pointer-events: none;
-        opacity: 0;
-        filter: saturate(0.18) brightness(0.52) contrast(1.1);
-        transition:
-          opacity 0.65s ease,
-          filter 0.65s ease;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        will-change: transform;
-      }
-      .bd-img.bd-visible {
-        opacity: 0.48;
-        filter: saturate(0.22) brightness(0.58) contrast(1.1);
       }
 
       /* ── DUST PARTICLES ── */
@@ -725,15 +712,8 @@
     <!-- Dust + noise particles -->
     <canvas id="dust-canvas" aria-hidden="true"></canvas>
 
-    <!-- Backdrop image fragments — revealed on hero hover -->
-    <div id="backdrop-wrap" aria-hidden="true">
-      <img class="bd-img" src="{{ site.baseurl }}/assets/img/1.jpg" alt="" />
-      <img class="bd-img" src="{{ site.baseurl }}/assets/img/2.jpg" alt="" />
-      <img class="bd-img" src="{{ site.baseurl }}/assets/img/3.jpg" alt="" />
-      <img class="bd-img" src="{{ site.baseurl }}/assets/img/4.jpg" alt="" />
-      <img class="bd-img" src="{{ site.baseurl }}/assets/img/5.jpg" alt="" />
-      <img class="bd-img" src="{{ site.baseurl }}/assets/img/6.jpg" alt="" />
-    </div>
+    <!-- WebGL collage canvas — project images revealed with shaders on hero hover -->
+    <canvas id="collage-canvas" aria-hidden="true"></canvas>
 
     <!-- DVD-bouncing brain scan -->
     <div class="dvd-brain" id="dvd-brain">
@@ -1599,140 +1579,284 @@
       })();
     </script>
 
-    <!-- Backdrop image fragments — hover reveal with parallax -->
+    <!-- WebGL collage: project images as shaded parallelogram quads, revealed on hero hover -->
     <script>
       (function () {
-        var wrap = document.getElementById("backdrop-wrap");
-        var imgs = wrap ? wrap.querySelectorAll(".bd-img") : [];
-        if (!imgs.length) return;
+        var canvas = document.getElementById("collage-canvas");
+        if (!canvas) return;
+        var gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false });
+        if (!gl) return;
 
-        // Each fragment: position (vw/vh %), rotation, clip-path, size, parallax depth
-        var CONFIG = [
+        function resize() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        resize();
+        window.addEventListener("resize", resize, { passive: true });
+
+        /* ── SHADERS ── */
+        var VS = "attribute vec2 a_pos;attribute vec2 a_uv;varying vec2 v_uv;" + "void main(){gl_Position=vec4(a_pos,0.0,1.0);v_uv=a_uv;}";
+
+        var FS = [
+          "precision mediump float;",
+          "uniform sampler2D u_tex;",
+          "uniform float u_t;",
+          "uniform float u_rev;", // 0→1 reveal progress
+          "uniform vec3 u_lo;", // duotone shadow color
+          "uniform vec3 u_hi;", // duotone highlight color
+          "varying vec2 v_uv;",
+          "float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
+          "void main(){",
+          // chromatic aberration
+          "  float ca=0.0055;",
+          "  float r=texture2D(u_tex,v_uv+vec2(ca,0.0)).r;",
+          "  float g=texture2D(u_tex,v_uv).g;",
+          "  float b=texture2D(u_tex,v_uv-vec2(ca,0.0)).b;",
+          // duotone via luminance
+          "  float lum=dot(vec3(r,g,b),vec3(0.299,0.587,0.114));",
+          "  vec3 col=mix(u_lo,u_hi,pow(lum,0.72));",
+          // vignette
+          "  vec2 vig=v_uv*2.0-1.0;",
+          "  col*=1.0-dot(vig,vig)*0.58;",
+          // grain
+          "  col+=(h(v_uv+vec2(floor(u_t*14.0)*0.017))-0.5)*0.042;",
+          // noise-dissolve reveal: random threshold per pixel
+          "  float n=h(v_uv*3.6+vec2(0.31,0.72));",
+          "  float edge=smoothstep(0.0,0.18,u_rev-n);",
+          "  gl_FragColor=vec4(clamp(col,0.0,1.0),edge*0.52);",
+          "}",
+        ].join("\n");
+
+        function mkS(type, src) {
+          var s = gl.createShader(type);
+          gl.shaderSource(s, src);
+          gl.compileShader(s);
+          return s;
+        }
+        var prog = gl.createProgram();
+        gl.attachShader(prog, mkS(gl.VERTEX_SHADER, VS));
+        gl.attachShader(prog, mkS(gl.FRAGMENT_SHADER, FS));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+
+        var aPos = gl.getAttribLocation(prog, "a_pos");
+        var aUv = gl.getAttribLocation(prog, "a_uv");
+        var uTex = gl.getUniformLocation(prog, "u_tex");
+        var uT = gl.getUniformLocation(prog, "u_t");
+        var uRev = gl.getUniformLocation(prog, "u_rev");
+        var uLo = gl.getUniformLocation(prog, "u_lo");
+        var uHi = gl.getUniformLocation(prog, "u_hi");
+
+        gl.enableVertexAttribArray(aPos);
+        gl.enableVertexAttribArray(aUv);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        /* ── SLOTS: parallelogram quads in clip space (-1..1) ── */
+        // sk = horizontal skew applied to top edge (creates diagonal)
+        // lo/hi = duotone shadow→highlight colors per image
+        // del = reveal stagger delay ms
+        var SLOTS = [
           {
-            left: -3,
-            top: 10,
-            w: 230,
-            rot: -9,
-            depth: 0.06,
-            clip: "polygon(12% 0%, 100% 0%, 88% 100%, 0% 100%)",
+            x0: -1.02,
+            y0: 0.12,
+            x1: -0.28,
+            y1: 0.97,
+            sk: 0.1,
+            lo: [0.03, 0.04, 0.14],
+            hi: [0.42, 0.74, 1.0],
+            del: 0,
+            src: "/2.cube/cover.png",
           },
           {
-            right: -2,
-            top: 14,
-            w: 200,
-            rot: 7,
-            depth: 0.04,
-            clip: "polygon(0% 0%, 88% 0%, 100% 100%, 12% 100%)",
+            x0: 0.26,
+            y0: 0.18,
+            x1: 1.02,
+            y1: 0.94,
+            sk: -0.09,
+            lo: [0.08, 0.03, 0.15],
+            hi: [0.82, 0.48, 1.0],
+            del: 90,
+            src: "/3.ai/cover.png",
           },
           {
-            left: 1,
-            top: 44,
-            w: 180,
-            rot: -5,
-            depth: 0.08,
-            clip: "polygon(8% 0%, 100% 4%, 92% 100%, 0% 96%)",
+            x0: -1.02,
+            y0: -0.3,
+            x1: -0.2,
+            y1: 0.18,
+            sk: 0.08,
+            lo: [0.03, 0.1, 0.12],
+            hi: [0.28, 0.9, 0.82],
+            del: 150,
+            src: "/5.bb/cover.png",
           },
           {
-            right: -1,
-            top: 40,
-            w: 210,
-            rot: 6,
-            depth: 0.05,
-            clip: "polygon(0% 4%, 92% 0%, 100% 96%, 8% 100%)",
+            x0: 0.24,
+            y0: -0.2,
+            x1: 1.02,
+            y1: 0.3,
+            sk: -0.08,
+            lo: [0.12, 0.05, 0.03],
+            hi: [1.0, 0.7, 0.36],
+            del: 200,
+            src: "/1.met/1.png",
           },
           {
-            left: 4,
-            bottom: 8,
-            w: 195,
-            rot: 11,
-            depth: 0.07,
-            clip: "polygon(6% 0%, 94% 0%, 100% 88%, 0% 100%)",
+            x0: -1.02,
+            y0: -0.97,
+            x1: -0.16,
+            y1: -0.26,
+            sk: 0.1,
+            lo: [0.04, 0.04, 0.16],
+            hi: [0.48, 0.8, 1.0],
+            del: 250,
+            src: "/2.cube/conception/7.3.jpg",
           },
           {
-            right: 3,
-            bottom: 7,
-            w: 215,
-            rot: -8,
-            depth: 0.05,
-            clip: "polygon(0% 0%, 100% 0%, 94% 100%, 6% 88%)",
+            x0: 0.18,
+            y0: -0.95,
+            x1: 1.02,
+            y1: -0.18,
+            sk: -0.1,
+            lo: [0.1, 0.04, 0.15],
+            hi: [0.7, 0.48, 1.0],
+            del: 300,
+            src: "/2.cube/film/25.png",
           },
         ];
 
-        // Apply static layout to each image
-        imgs.forEach(function (img, i) {
-          var c = CONFIG[i];
-          if (!c) return;
-          img.style.width = c.w + "px";
-          img.style.transform = "rotate(" + c.rot + "deg)";
-          img.style.clipPath = c.clip;
-          if (c.left !== undefined) img.style.left = c.left + "vw";
-          if (c.right !== undefined) img.style.right = -c.right + "vw";
-          if (c.top !== undefined) img.style.top = c.top + "vh";
-          if (c.bottom !== undefined) img.style.bottom = c.bottom + "vh";
-          img._base = { rot: c.rot, depth: c.depth };
+        // Build a VBO per slot (static parallelogram geometry)
+        var buffers = SLOTS.map(function (s) {
+          var buf = gl.createBuffer();
+          // TL, TR, BL, BR — TRIANGLE_STRIP order
+          // top edge skewed by sk, bottom edge straight
+          var d = new Float32Array([
+            s.x0 + s.sk,
+            s.y1,
+            0,
+            0, // TL
+            s.x1 + s.sk,
+            s.y1,
+            1,
+            0, // TR
+            s.x0,
+            s.y0,
+            0,
+            1, // BL
+            s.x1,
+            s.y0,
+            1,
+            1, // BR
+          ]);
+          gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+          gl.bufferData(gl.ARRAY_BUFFER, d, gl.STATIC_DRAW);
+          return buf;
         });
 
-        var visible = false;
-        var curNX = 0,
-          curNY = 0,
-          targetNX = 0,
-          targetNY = 0;
-        var rafId = null;
+        var textures = SLOTS.map(function () {
+          return null;
+        });
+        var reveals = new Float32Array(SLOTS.length);
+        var targetReveal = 0;
+        var hoverStart = null;
+        var texLoaded = false;
+        var animating = false;
+        var t0 = performance.now();
 
-        function showBackdrop() {
-          if (visible) return;
-          visible = true;
-          imgs.forEach(function (img, i) {
-            setTimeout(function () {
-              img.classList.add("bd-visible");
-            }, i * 55);
-          });
-          startParallax();
+        /* Load textures lazily on first hover */
+        var maxTexSize = Math.min(gl.getParameter(gl.MAX_TEXTURE_SIZE), 2048);
+
+        function loadTex(i) {
+          if (textures[i] !== null) return;
+          textures[i] = "loading"; // sentinel
+          var img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = function () {
+            // Downsample to maxTexSize to avoid GPU OOM on large images
+            var oc = document.createElement("canvas");
+            var sc = Math.min(1, maxTexSize / Math.max(img.width, img.height));
+            oc.width = Math.round(img.width * sc);
+            oc.height = Math.round(img.height * sc);
+            oc.getContext("2d").drawImage(img, 0, 0, oc.width, oc.height);
+            var tex = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, oc);
+            textures[i] = tex;
+          };
+          img.src = SLOTS[i].src;
         }
 
-        function hideBackdrop() {
-          if (!visible) return;
-          visible = false;
-          imgs.forEach(function (img) {
-            img.classList.remove("bd-visible");
-          });
-          if (rafId) {
-            cancelAnimationFrame(rafId);
-            rafId = null;
+        function startRender() {
+          if (animating) return;
+          animating = true;
+          requestAnimationFrame(tick);
+        }
+
+        function tick() {
+          var now = performance.now();
+          var t = (now - t0) * 0.001;
+          var anyActive = false;
+
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.uniform1f(uT, t);
+
+          for (var i = 0; i < SLOTS.length; i++) {
+            // Stagger: slot doesn't start revealing until its delay has passed
+            var slotTarget = 0;
+            if (targetReveal === 1 && hoverStart !== null) {
+              slotTarget = now - hoverStart >= SLOTS[i].del ? 1 : 0;
+            }
+
+            var speed = 0.028;
+            reveals[i] += (slotTarget - reveals[i]) * speed;
+
+            if (reveals[i] > 0.004) anyActive = true;
+
+            // Load texture on demand
+            if (slotTarget > 0 && textures[i] === null) loadTex(i);
+
+            var tex = textures[i];
+            if (!tex || tex === "loading" || reveals[i] < 0.004) continue;
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, buffers[i]);
+            gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 16, 0);
+            gl.vertexAttribPointer(aUv, 2, gl.FLOAT, false, 16, 8);
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.uniform1i(uTex, 0);
+            gl.uniform1f(uRev, reveals[i]);
+            gl.uniform3fv(uLo, SLOTS[i].lo);
+            gl.uniform3fv(uHi, SLOTS[i].hi);
+            gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          }
+
+          if (anyActive || targetReveal === 1) {
+            requestAnimationFrame(tick);
+          } else {
+            animating = false;
           }
         }
 
-        function startParallax() {
-          if (rafId) return;
-          function tick() {
-            curNX += (targetNX - curNX) * 0.06;
-            curNY += (targetNY - curNY) * 0.06;
-            imgs.forEach(function (img) {
-              var d = img._base ? img._base.depth : 0.05;
-              var r = img._base ? img._base.rot : 0;
-              var px = -curNX * d * 55;
-              var py = -curNY * d * 38;
-              img.style.transform = "translate(" + px + "px," + py + "px) rotate(" + r + "deg)";
-            });
-            if (visible) rafId = requestAnimationFrame(tick);
-          }
-          rafId = requestAnimationFrame(tick);
-        }
-
-        window.addEventListener(
-          "mousemove",
-          function (e) {
-            targetNX = (e.clientX / window.innerWidth) * 2 - 1;
-            targetNY = (e.clientY / window.innerHeight) * 2 - 1;
-          },
-          { passive: true }
-        );
-
-        // Trigger on hero cluster hover
-        var heroCluster = document.getElementById("img-container");
-        if (heroCluster) {
-          heroCluster.addEventListener("mouseenter", showBackdrop);
-          heroCluster.addEventListener("mouseleave", hideBackdrop);
+        /* Attach to hero cluster hover */
+        var hero = document.getElementById("img-container");
+        if (hero) {
+          hero.addEventListener("mouseenter", function () {
+            targetReveal = 1;
+            hoverStart = performance.now();
+            startRender();
+          });
+          hero.addEventListener("mouseleave", function () {
+            targetReveal = 0;
+            hoverStart = null;
+            startRender();
+          });
         }
       })();
     </script>
