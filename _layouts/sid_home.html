@@ -673,14 +673,7 @@
       }
 
       /* ── COLLAGE SHADER CANVAS ── */
-      #collage-canvas {
-        position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 1;
-      }
+      /* collage removed — room depth map is the background */
 
       /* ── DUST PARTICLES ── */
       #dust-canvas {
@@ -702,15 +695,7 @@
         z-index: 0;
       }
 
-      /* ── WATER SHADER BG (overlay on depth) ── */
-      #water-bg {
-        position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        z-index: 0;
-      }
+      /* water ripple removed — room depth map is the background */
     </style>
   </head>
   <body>
@@ -719,14 +704,12 @@
     <!-- Depth parallax background -->
     <canvas id="depth-bg" aria-hidden="true"></canvas>
 
-    <!-- Water shader background -->
-    <canvas id="water-bg" aria-hidden="true"></canvas>
+    <!-- Water shader removed -->
 
     <!-- Dust + noise particles -->
     <canvas id="dust-canvas" aria-hidden="true"></canvas>
 
-    <!-- WebGL collage canvas — project images revealed with shaders on hero hover -->
-    <canvas id="collage-canvas" aria-hidden="true"></canvas>
+    <!-- Collage removed -->
 
     <!-- DVD-bouncing brain scan -->
     <div class="dvd-brain" id="dvd-brain">
@@ -1429,134 +1412,10 @@
       })();
     </script>
 
-    <!-- Cursor-reactive water ripple shader -->
+    <!-- Water ripple removed — stub for brain scan bounce compatibility -->
     <script>
       (function () {
-        var canvas = document.getElementById("water-bg");
-        var gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        if (!gl) return;
-
-        var N = 12; // max simultaneous ripples
-
-        var VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}";
-        var FS = [
-          "precision mediump float;",
-          "uniform vec2 u_res;",
-          "uniform float u_t;",
-          "uniform vec3 u_r[12];", // xy = normalized pos (0-1), z = birth time
-          "",
-          "float rip(vec2 uv,vec3 r){",
-          "  vec2 d=uv-r.xy;d.x*=u_res.x/u_res.y;",
-          "  float dist=length(d);",
-          "  float age=u_t-r.z;",
-          "  if(age<0.0||age>3.5)return 0.0;",
-          "  float radius=0.4*age;", // expanding ring
-          "  float ring=exp(-pow(dist-radius,2.0)*160.0);", // narrow bright band
-          "  float osc=sin((dist-radius)*52.0-age*1.8);", // oscillation
-          "  float decay=exp(-age*0.85)*exp(-dist*2.0);", // time + spatial falloff
-          "  return ring*osc*decay*0.35;",
-          "}",
-          "",
-          "void main(){",
-          "  vec2 uv=gl_FragCoord.xy/u_res;",
-          "  float h=0.0;",
-          "  for(int i=0;i<12;i++)h+=rip(uv,u_r[i]);",
-          "  vec3 base=vec3(0.004,0.007,0.014);",
-          "  vec3 wave=vec3(0.026,0.048,0.085);",
-          "  vec3 col=mix(base,wave,clamp(h*2.0+0.5,0.0,1.0));",
-          "  col+=max(h,0.0)*max(h,0.0)*vec3(0.06,0.1,0.18)*5.5;", // specular crests
-          "  gl_FragColor=vec4(col,0.88);",
-          "}",
-        ].join("\n");
-
-        function mk(type, src) {
-          var s = gl.createShader(type);
-          gl.shaderSource(s, src);
-          gl.compileShader(s);
-          return s;
-        }
-
-        var prog = gl.createProgram();
-        gl.attachShader(prog, mk(gl.VERTEX_SHADER, VS));
-        gl.attachShader(prog, mk(gl.FRAGMENT_SHADER, FS));
-        gl.linkProgram(prog);
-        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
-        gl.useProgram(prog);
-
-        var buf = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-        var aLoc = gl.getAttribLocation(prog, "a");
-        gl.enableVertexAttribArray(aLoc);
-        gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
-
-        var uRes = gl.getUniformLocation(prog, "u_res");
-        var uT = gl.getUniformLocation(prog, "u_t");
-        var uR = [];
-        for (var i = 0; i < N; i++) uR.push(gl.getUniformLocation(prog, "u_r[" + i + "]"));
-
-        // Ring buffer for ripple events
-        var rips = new Float32Array(N * 3);
-        var rHead = 0;
-        for (var i = 0; i < N; i++) rips[i * 3 + 2] = -999; // inactive sentinel
-
-        var t0 = performance.now();
-        var lastX = -1,
-          lastY = -1,
-          lastRipT = -99;
-
-        window.addEventListener(
-          "mousemove",
-          function (e) {
-            var nx = e.clientX / window.innerWidth;
-            var ny = 1.0 - e.clientY / window.innerHeight; // flip Y for GL coords
-            var dx = nx - lastX,
-              dy = ny - lastY;
-            var t = (performance.now() - t0) / 1000;
-            // Spawn a new ripple if cursor moved enough or enough time has passed
-            if (lastX < 0 || dx * dx + dy * dy > 0.003 || t - lastRipT > 0.28) {
-              var idx = rHead++ % N;
-              rips[idx * 3] = nx;
-              rips[idx * 3 + 1] = ny;
-              rips[idx * 3 + 2] = t;
-              lastX = nx;
-              lastY = ny;
-              lastRipT = t;
-            }
-          },
-          { passive: true }
-        );
-
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-
-        function resize() {
-          canvas.width = window.innerWidth;
-          canvas.height = window.innerHeight;
-          gl.viewport(0, 0, canvas.width, canvas.height);
-        }
-        resize();
-        window.addEventListener("resize", resize, { passive: true });
-
-        function tick() {
-          var t = (performance.now() - t0) / 1000;
-          gl.uniform2f(uRes, canvas.width, canvas.height);
-          gl.uniform1f(uT, t);
-          for (var i = 0; i < N; i++) {
-            gl.uniform3f(uR[i], rips[i * 3], rips[i * 3 + 1], rips[i * 3 + 2]);
-          }
-          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-          requestAnimationFrame(tick);
-        }
-        // Expose ripple trigger for external callers (e.g. brain scan corner bounce)
-        window.triggerWaterRipple = function (nx, ny) {
-          var idx = rHead++ % N;
-          rips[idx * 3] = nx;
-          rips[idx * 3 + 1] = 1.0 - ny; // flip Y for GL coords
-          rips[idx * 3 + 2] = (performance.now() - t0) / 1000;
-        };
-
-        tick();
+        window.triggerWaterRipple = function () {};
       })();
     </script>
 
@@ -1762,11 +1621,10 @@
       })();
     </script>
 
-    <!-- WebGL collage: project images as shaded parallelogram quads, revealed on hero hover -->
+    <!-- Collage script removed — room depth map is the background -->
     <script>
       (function () {
-        var canvas = document.getElementById("collage-canvas");
-        if (!canvas) return;
+        return; // collage disabled
         var gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false });
         if (!gl) return;
 
