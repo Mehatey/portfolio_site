@@ -979,57 +979,57 @@
         const codeCanvas = document.getElementById("code-canvas");
         const codeCtx = codeCanvas.getContext("2d");
 
-        // Each entry is a single line or [line1, line2] for wrapped display
+        // Code lines — typed character by character like a terminal
         const CODE_LINES = [
-          ["const intent =", '  "make people feel something";'],
+          'const intent = "make people feel something";',
           "design.translate(idea, emotion);",
           "story.compile(reality + self);",
           "export default wonder;",
         ];
         const N = CODE_LINES.length;
-        const LINE_PEAK_OPACITY = [0.78, 0.78, 0.78, 0.78];
-        const LINE_PHASE = Array.from({ length: N }, (_, i) => i * 1.35 + Math.random() * 1.5);
-        const LINE_SPEED = [0.35, 0.6, 0.45, 0.5];
-        const LINE_AMP = [10, 12, 8, 11];
+        const LINE_DELAYS = [400, 2200, 4000, 5800];
+        const CHAR_SPEED = 45;
 
-        // Stagger appearance
-        const LINE_DELAYS = [1200, 3400, 5800, 8200];
-
-        let lineOpacities = new Float32Array(N);
-        let lineTargets = new Float32Array(N);
-        let lineOffsets = new Float32Array(N);
-        let lineTriggered = new Array(N).fill(false);
-        let revealTimers = [];
-        let allLinesRevealed = false;
-
+        let lineChars = new Array(N).fill(0);
+        let lineTimers = [];
+        let lineTyping = new Array(N).fill(false);
+        let codeActive = false;
         let crumbling = false;
+        let cursorVisible = true;
+        let cursorBlinkT = 0;
 
         function initCode() {
           codeCanvas.width = window.innerWidth || 1440;
           codeCanvas.height = window.innerHeight || 900;
-          for (let i = 0; i < N; i++) {
-            lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.1 : -codeCanvas.width * 1.1;
-          }
         }
         initCode();
         window.addEventListener("resize", initCode);
 
         function startCodeReveal() {
-          revealTimers.forEach(clearTimeout);
-          revealTimers = [];
-          allLinesRevealed = false;
-          blastTriggered = false;
+          lineTimers.forEach(clearTimeout);
+          lineTimers = [];
           crumbling = false;
+          blastTriggered = false;
+          codeActive = true;
 
           for (let i = 0; i < N; i++) {
             const t = setTimeout(() => {
-              lineTargets[i] = 1;
-              if (!lineTriggered[i]) {
-                lineTriggered[i] = true;
-                lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.1 : -codeCanvas.width * 1.1;
-              }
+              lineChars[i] = 0;
+              lineTyping[i] = true;
+              typeNextChar(i);
             }, LINE_DELAYS[i]);
-            revealTimers.push(t);
+            lineTimers.push(t);
+          }
+        }
+
+        function typeNextChar(i) {
+          if (!codeActive || crumbling) return;
+          if (lineChars[i] < CODE_LINES[i].length) {
+            lineChars[i]++;
+            const t = setTimeout(() => typeNextChar(i), CHAR_SPEED + Math.random() * 25);
+            lineTimers.push(t);
+          } else {
+            lineTyping[i] = false;
           }
         }
 
@@ -1037,65 +1037,45 @@
           if (blastTriggered) return;
           blastTriggered = true;
           crumbling = true;
+          codeActive = false;
 
-          const startOpacities = lineOpacities.slice();
           let frame = 0;
-          const FRAMES = 28; // ~470ms at 60fps
+          const FRAMES = 22;
 
           function glitch() {
             codeCtx.clearRect(0, 0, codeCanvas.width, codeCanvas.height);
             const progress = frame / FRAMES;
-            // Ease: fast glitch then quick fade
-            const fadeAlpha = Math.max(0, 1 - progress * progress * 1.1);
-            const jitter = (1 - progress) * 14;
-            const FONT = '42px "DM Mono", monospace';
-            const SUB_H = 56;
-            const GAP = 32;
-            const PILL_PAD_X = 18;
-            const PILL_PAD_Y = 14;
-            const PILL_H = 56;
+            const fadeAlpha = Math.max(0, 1 - progress * progress * 1.2);
+            const jitter = (1 - progress) * 8;
+            const FONT = '18px "DM Mono", monospace';
+            const LINE_H = 28;
 
             codeCtx.font = FONT;
             codeCtx.textAlign = "left";
+            const baseX = 32;
+            const baseY = codeCanvas.height * 0.25;
 
-            // Compute y positions (same as drawCode)
-            let curY = codeCanvas.height * 0.22;
-            const lineY = [];
             for (let i = 0; i < N; i++) {
-              lineY.push(curY);
-              const sub = Array.isArray(CODE_LINES[i]) ? CODE_LINES[i] : [CODE_LINES[i]];
-              curY += sub.length * SUB_H + GAP;
-            }
-            const BASE_XS_G = [codeCanvas.width * 0.04, codeCanvas.width * 0.08, codeCanvas.width * 0.05, codeCanvas.width * 0.1];
+              if (lineChars[i] < 1) continue;
+              const text = CODE_LINES[i].substring(0, lineChars[i]);
+              const rx = (Math.random() - 0.5) * jitter;
+              const ry = (Math.random() - 0.5) * jitter * 0.4;
+              const x = baseX + rx;
+              const y = baseY + i * LINE_H + ry;
+              const tw = codeCtx.measureText(text).width;
 
-            const now = Date.now() / 1000;
-            for (let i = 0; i < N; i++) {
-              if (startOpacities[i] < 0.01) continue;
-              const drift = Math.sin(now * LINE_SPEED[i] + LINE_PHASE[i]) * LINE_AMP[i] * 2.5;
-              const baseX = BASE_XS_G[i] + drift;
-              const sub = Array.isArray(CODE_LINES[i]) ? CODE_LINES[i] : [CODE_LINES[i]];
+              codeCtx.globalAlpha = fadeAlpha * 0.7;
+              codeCtx.fillStyle = "rgba(0,0,0,0.85)";
+              codeCtx.fillRect(x - 6, y - 14, tw + 12, 20);
 
-              sub.forEach((text, si) => {
-                const sy = lineY[i] + si * SUB_H;
-                const rx = (Math.random() - 0.5) * jitter;
-                const ry = (Math.random() - 0.5) * jitter * 0.3;
-                const tw = codeCtx.measureText(text).width;
-
-                // Dark pill — glitch-shift it too
-                codeCtx.globalAlpha = fadeAlpha * startOpacities[i] * 0.78;
-                codeCtx.fillStyle = "rgba(0,0,0,1)";
-                codeCtx.fillRect(baseX + rx - PILL_PAD_X, sy + ry - PILL_PAD_Y - 2, tw + PILL_PAD_X * 2, PILL_H);
-
-                // Chromatic aberration layers
-                const chromaStrength = (1 - progress) * 10;
-                codeCtx.globalAlpha = fadeAlpha * startOpacities[i] * 0.45;
-                codeCtx.fillStyle = "rgba(255,0,80,1)";
-                codeCtx.fillText(text, baseX + rx - chromaStrength, sy + ry);
-                codeCtx.fillStyle = "rgba(0,255,120,1)";
-                codeCtx.fillText(text, baseX + rx, sy + ry);
-                codeCtx.fillStyle = "rgba(80,120,255,1)";
-                codeCtx.fillText(text, baseX + rx + chromaStrength, sy + ry);
-              });
+              const cs = (1 - progress) * 3;
+              codeCtx.globalAlpha = fadeAlpha * 0.4;
+              codeCtx.fillStyle = "rgba(255,0,80,1)";
+              codeCtx.fillText(text, x - cs, y);
+              codeCtx.fillStyle = "rgba(0,255,120,1)";
+              codeCtx.fillText(text, x, y);
+              codeCtx.fillStyle = "rgba(80,120,255,1)";
+              codeCtx.fillText(text, x + cs, y);
               codeCtx.globalAlpha = 1;
             }
 
@@ -1108,22 +1088,17 @@
               hideCode();
             }
           }
-
-          lineTargets.fill(0);
           requestAnimationFrame(glitch);
         }
 
         function hideCode() {
-          revealTimers.forEach(clearTimeout);
-          revealTimers = [];
-          lineTargets.fill(0);
-          lineTriggered.fill(false);
-          allLinesRevealed = false;
+          lineTimers.forEach(clearTimeout);
+          lineTimers = [];
+          lineChars.fill(0);
+          lineTyping.fill(false);
+          codeActive = false;
           crumbling = false;
           blastTriggered = false;
-          for (let i = 0; i < N; i++) {
-            lineOffsets[i] = i % 2 === 0 ? codeCanvas.width * 1.1 : -codeCanvas.width * 1.1;
-          }
         }
 
         function drawCode() {
@@ -1133,65 +1108,55 @@
             return;
           }
 
-          // Code overlay — lines anchored to left side of image
-          const anyActive = lineOpacities.some((o) => o > 0.003) || lineTargets.some((t) => t > 0);
-          if (anyActive) {
-            const FONT = '42px "DM Mono", monospace';
-            const SUB_H = 56; // height per sub-line
-            const GAP = 32; // extra gap between logical lines
-            const PILL_PAD_X = 18;
-            const PILL_PAD_Y = 14;
-            const PILL_H = 56;
-            const now = Date.now() / 1000;
+          const anyVisible = lineChars.some((c) => c > 0);
+          if (anyVisible && codeActive) {
+            const FONT = '18px "DM Mono", monospace';
+            const LINE_H = 28;
+            const baseX = 32;
+            const baseY = codeCanvas.height * 0.25;
 
             codeCtx.font = FONT;
             codeCtx.textAlign = "left";
 
-            // Spread lines vertically: start at ~22% down, space evenly
-            const startY = codeCanvas.height * 0.22;
-            const lineY = [];
-            let curY = startY;
-            for (let i = 0; i < N; i++) {
-              lineY.push(curY);
-              const subLines = Array.isArray(CODE_LINES[i]) ? CODE_LINES[i] : [CODE_LINES[i]];
-              curY += subLines.length * SUB_H + GAP;
-            }
+            cursorBlinkT++;
+            if (cursorBlinkT % 32 === 0) cursorVisible = !cursorVisible;
 
-            // Smooth cursor tracking for code displacement
             codeCursorNX += (codeCursorTargetNX - codeCursorNX) * 0.08;
             codeCursorNY += (codeCursorTargetNY - codeCursorNY) * 0.08;
-            const cursorDX = codeCursorNX * 32;
-            const cursorDY = codeCursorNY * 18;
-
-            // Base X: each line anchored at a different horizontal zone
-            const BASE_XS = [codeCanvas.width * 0.04, codeCanvas.width * 0.08, codeCanvas.width * 0.05, codeCanvas.width * 0.1];
+            const px = codeCursorNX * 6;
+            const py = codeCursorNY * 4;
 
             for (let i = 0; i < N; i++) {
-              lineOpacities[i] += (lineTargets[i] * LINE_PEAK_OPACITY[i] - lineOpacities[i]) * 0.04;
-              const slideTarget = lineTriggered[i] ? 0 : lineOffsets[i];
-              lineOffsets[i] += (slideTarget - lineOffsets[i]) * 0.05;
-              if (lineOpacities[i] < 0.003) continue;
+              if (lineChars[i] < 1) continue;
+              const text = CODE_LINES[i].substring(0, lineChars[i]);
+              const x = baseX + px * (0.8 + i * 0.1);
+              const y = baseY + i * LINE_H + py * (0.7 + i * 0.1);
+              const tw = codeCtx.measureText(text).width;
 
-              const drift = Math.sin(now * LINE_SPEED[i] + LINE_PHASE[i]) * LINE_AMP[i] * 2.5;
-              // Each line displaced by cursor at slightly different parallax scales
-              const px = cursorDX * (0.7 + i * 0.15);
-              const py = cursorDY * (0.6 + i * 0.12);
-              const x = BASE_XS[i] + lineOffsets[i] + drift + px;
-              const subLines = Array.isArray(CODE_LINES[i]) ? CODE_LINES[i] : [CODE_LINES[i]];
-              const alpha = lineOpacities[i];
+              codeCtx.globalAlpha = 0.7;
+              codeCtx.fillStyle = "rgba(0,0,0,0.85)";
+              codeCtx.fillRect(x - 6, y - 14, tw + 18, 20);
 
-              subLines.forEach((sub, si) => {
-                const sy = lineY[i] + si * SUB_H + py;
-                const tw = codeCtx.measureText(sub).width;
-                // Dark pill behind text for legibility
-                codeCtx.globalAlpha = alpha * 0.78;
-                codeCtx.fillStyle = "rgba(0,0,0,1)";
-                codeCtx.fillRect(x - PILL_PAD_X, sy - PILL_PAD_Y - 2, tw + PILL_PAD_X * 2, PILL_H);
-                // Text
-                codeCtx.globalAlpha = alpha;
-                codeCtx.fillStyle = "rgba(0, 225, 80, 1)";
-                codeCtx.fillText(sub, x, sy);
-              });
+              codeCtx.globalAlpha = 0.82;
+              codeCtx.fillStyle = "rgba(0, 225, 80, 1)";
+              codeCtx.fillText(text, x, y);
+
+              if (lineTyping[i] && cursorVisible) {
+                codeCtx.fillRect(x + tw + 2, y - 12, 8, 16);
+              }
+              codeCtx.globalAlpha = 1;
+            }
+
+            // Blinking cursor on last completed line
+            const lastTyped = lineChars.reduce((acc, c, i) => (c > 0 && !lineTyping[i] ? i : acc), -1);
+            if (lastTyped >= 0 && !lineTyping.some((t) => t) && cursorVisible) {
+              const text = CODE_LINES[lastTyped];
+              const tw = codeCtx.measureText(text).width;
+              const x = baseX + px * (0.8 + lastTyped * 0.1);
+              const y = baseY + lastTyped * LINE_H + py * (0.7 + lastTyped * 0.1);
+              codeCtx.globalAlpha = 0.82;
+              codeCtx.fillStyle = "rgba(0, 225, 80, 1)";
+              codeCtx.fillRect(x + tw + 2, y - 12, 8, 16);
               codeCtx.globalAlpha = 1;
             }
           }
@@ -1236,7 +1201,7 @@
           codeCursorTargetNX = 0;
           codeCursorTargetNY = 0;
           // Glitch-vanish on exit if code lines are visible
-          if (lineOpacities.some((o) => o > 0.1) && !blastTriggered) {
+          if (lineChars.some((c) => c > 0) && !blastTriggered) {
             triggerGlitchVanish();
           } else {
             hideCode();
@@ -1310,26 +1275,32 @@
           "uniform sampler2D u_color;",
           "uniform sampler2D u_depth;",
           "uniform vec2 u_mouse;", // cursor offset -1..1
+          "uniform vec2 u_cursor;", // cursor UV position 0..1
+          "uniform float u_reveal;", // reveal radius 0..2
           "uniform vec2 u_res;",
           "varying vec2 v_uv;",
           "void main(){",
-          // Read depth: white=close, black=far → invert so close gets more displacement
+          // Read depth
           "  float d = texture2D(u_depth, v_uv).r;",
-          // Displacement amount: close objects shift more
+          // Displacement — close objects shift more
           "  float strength = 0.025;",
           "  vec2 offset = u_mouse * d * strength;",
-          // Chromatic split based on depth for subtle color fringing
+          // Chromatic split based on depth
           "  float ca = d * 0.003;",
           "  float r = texture2D(u_color, v_uv + offset + vec2(ca, 0.0)).r;",
           "  float g = texture2D(u_color, v_uv + offset).g;",
           "  float b = texture2D(u_color, v_uv + offset - vec2(ca, 0.0)).b;",
           "  vec3 col = vec3(r, g, b);",
-          // Darken slightly for ambiance (room shouldn't overpower foreground)
+          // Darken for ambiance
           "  col *= 0.55;",
-          // Subtle vignette
+          // Vignette
           "  vec2 vig = v_uv * 2.0 - 1.0;",
           "  col *= 1.0 - dot(vig, vig) * 0.35;",
-          "  gl_FragColor = vec4(col, 1.0);",
+          // Cursor reveal — soft radial mask centered on cursor
+          "  vec2 aspect = vec2(u_res.x / u_res.y, 1.0);",
+          "  float dist = length((v_uv - u_cursor) * aspect);",
+          "  float mask = smoothstep(u_reveal, u_reveal * 0.4, dist);",
+          "  gl_FragColor = vec4(col * mask, 1.0);",
           "}",
         ].join("\n");
 
@@ -1358,6 +1329,8 @@
         var uColor = gl.getUniformLocation(prog, "u_color");
         var uDepth = gl.getUniformLocation(prog, "u_depth");
         var uMouse = gl.getUniformLocation(prog, "u_mouse");
+        var uCursor = gl.getUniformLocation(prog, "u_cursor");
+        var uReveal = gl.getUniformLocation(prog, "u_reveal");
         var uRes = gl.getUniformLocation(prog, "u_res");
 
         // Texture loading
@@ -1397,12 +1370,29 @@
           mouseY = 0,
           targetX = 0,
           targetY = 0;
+        // Cursor UV for reveal center
+        var cursorUX = 0.5,
+          cursorUY = 0.5,
+          cursorTargetUX = 0.5,
+          cursorTargetUY = 0.5;
+        // Reveal radius — grows as cursor moves, max ~1.8
+        var revealRadius = 0,
+          revealTarget = 0,
+          hasMoved = false;
 
         document.addEventListener(
           "mousemove",
           function (e) {
             targetX = (e.clientX / window.innerWidth) * 2 - 1;
             targetY = -((e.clientY / window.innerHeight) * 2 - 1);
+            cursorTargetUX = e.clientX / window.innerWidth;
+            cursorTargetUY = 1.0 - e.clientY / window.innerHeight;
+            if (!hasMoved) {
+              hasMoved = true;
+              revealTarget = 0.35;
+            }
+            // Each movement grows the reveal
+            revealTarget = Math.min(revealTarget + 0.008, 1.8);
           },
           { passive: true }
         );
@@ -1423,8 +1413,15 @@
           // Heavy damping for slow ambient parallax
           mouseX += (targetX - mouseX) * 0.025;
           mouseY += (targetY - mouseY) * 0.025;
+          // Smooth cursor UV tracking
+          cursorUX += (cursorTargetUX - cursorUX) * 0.06;
+          cursorUY += (cursorTargetUY - cursorUY) * 0.06;
+          // Reveal grows smoothly
+          revealRadius += (revealTarget - revealRadius) * 0.018;
 
           gl.uniform2f(uMouse, mouseX, mouseY);
+          gl.uniform2f(uCursor, cursorUX, cursorUY);
+          gl.uniform1f(uReveal, revealRadius);
           gl.uniform2f(uRes, canvas.width, canvas.height);
           gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
           requestAnimationFrame(tick);
