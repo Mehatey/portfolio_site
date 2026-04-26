@@ -719,15 +719,7 @@
       </div>
     </div>
 
-    <!-- Liquify filter -->
-    <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
-      <defs>
-        <filter id="img-liquify" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
-          <feTurbulence id="liq-turb" type="turbulence" baseFrequency="0.009 0.012" numOctaves="4" seed="1" result="noise" />
-          <feDisplacementMap id="liq-disp" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </defs>
-    </svg>
+    <!-- Liquify filter removed -->
 
     <!-- NAV -->
     <nav class="nav">
@@ -913,50 +905,14 @@
 
         setTimeout(runFull, 500);
 
-        /* ─── LIQUIFY — progressive intensity over hover time ─── */
         const imgContainer = document.getElementById("img-container");
         const heroImg = document.getElementById("hero-img-src");
-        const liqTurb = document.getElementById("liq-turb");
-        const liqDisp = document.getElementById("liq-disp");
-        let liqSeed = 1,
-          liqIntensity = 0;
-        let liqHovering = false,
-          hoverStartTime = null,
-          liqRafId = null;
         let blastTriggered = false;
         // Cursor position relative to container centre (−1..1) for code text displacement
         let codeCursorNX = 0,
           codeCursorNY = 0,
           codeCursorTargetNX = 0,
           codeCursorTargetNY = 0;
-
-        function animateLiquify() {
-          liqSeed += 0.3;
-          if (liqSeed > 1e6) liqSeed = 1;
-
-          let target = 0;
-          if (liqHovering && hoverStartTime !== null) {
-            const elapsed = (Date.now() - hoverStartTime) / 1000;
-            // No cap — keeps growing the longer you hold; first 14s ramps to "strong",
-            // beyond that it stretches into extreme territory
-            target = elapsed / 10;
-          } else {
-            // Slow decay back to 0 on leave
-            target = 0;
-          }
-          liqIntensity += (target - liqIntensity) * 0.022;
-
-          // Scale grows unboundedly — starts subtle, warps wider as you hold longer
-          const scale = liqIntensity * 200;
-          // Frequency oscillates to create horizontal stretch effect at high intensity
-          const bfBase = 0.006 + Math.min(liqIntensity, 1.2) * 0.045;
-          const bfX = bfBase * (1 + Math.sin(liqSeed * 0.008) * liqIntensity * 0.4);
-          const bfY = bfBase * (1.45 + Math.cos(liqSeed * 0.006) * liqIntensity * 0.3);
-          liqTurb.setAttribute("seed", Math.round(liqSeed) % 9999);
-          liqTurb.setAttribute("baseFrequency", `${bfX.toFixed(4)} ${bfY.toFixed(4)}`);
-          liqDisp.setAttribute("scale", scale.toFixed(1));
-          liqRafId = requestAnimationFrame(animateLiquify);
-        }
 
         /* ─── CODE OVERLAY WITH CRUMBLE PHYSICS ─── */
         const codeCanvas = document.getElementById("code-canvas");
@@ -1160,27 +1116,26 @@
         }
 
         /* ─── HOVER EVENTS ─── */
+        // Video scrubs based on cursor X position anywhere on page
+        document.addEventListener(
+          "mousemove",
+          (e) => {
+            if (videoReady && heroImg.duration) {
+              const nx = e.clientX / window.innerWidth;
+              heroImg.currentTime = nx * heroImg.duration;
+            }
+          },
+          { passive: true }
+        );
         imgContainer.addEventListener("mousemove", (e) => {
           const r = imgContainer.getBoundingClientRect();
           codeCursorTargetNX = (e.clientX - r.left - r.width * 0.5) / (r.width * 0.5);
           codeCursorTargetNY = (e.clientY - r.top - r.height * 0.5) / (r.height * 0.5);
-          // Scrub video frame based on cursor X within container
-          if (videoReady && heroImg.duration) {
-            const nx = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
-            heroImg.currentTime = nx * heroImg.duration;
-          }
         });
         imgContainer.addEventListener("mouseenter", () => {
-          liqHovering = true;
-          hoverStartTime = Date.now();
-          heroImg.style.filter = "url(#img-liquify)";
           startCodeReveal();
-          if (!liqRafId) animateLiquify();
         });
         imgContainer.addEventListener("mouseleave", () => {
-          liqHovering = false;
-          hoverStartTime = null;
-          heroImg.style.filter = "none";
           codeCursorTargetNX = 0;
           codeCursorTargetNY = 0;
           // Glitch-vanish on exit if code lines are visible
@@ -1282,7 +1237,7 @@
           // Cursor reveal — soft radial mask centered on cursor
           "  vec2 aspect = vec2(u_res.x / u_res.y, 1.0);",
           "  float dist = length((v_uv - u_cursor) * aspect);",
-          "  float mask = smoothstep(u_reveal, u_reveal * 0.4, dist);",
+          "  float mask = u_reveal < 0.01 ? 0.0 : smoothstep(u_reveal, u_reveal * 0.3, dist);",
           "  gl_FragColor = vec4(col * mask, 1.0);",
           "}",
         ].join("\n");
@@ -1621,10 +1576,10 @@
       })();
     </script>
 
-    <!-- Collage script removed — room depth map is the background -->
+    <!-- Collage removed -->
     <script>
       (function () {
-        return; // collage disabled
+        return;
         var gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false });
         if (!gl) return;
 
