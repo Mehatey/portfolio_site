@@ -545,6 +545,68 @@
         z-index: 3;
       }
 
+      /* ── MONITOR TERMINAL OVERLAY ── */
+      #monitor-terminal {
+        position: fixed;
+        /* Positioned over the monitor in the depth map */
+        left: 32%;
+        top: 62%;
+        width: 22%;
+        height: 16%;
+        z-index: 2;
+        pointer-events: none;
+        overflow: hidden;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        line-height: 1.7;
+        color: rgba(0, 220, 80, 0.65);
+        padding: 8px 10px;
+        opacity: 0;
+        animation: termFadeIn 1.5s ease 2.5s forwards;
+        mix-blend-mode: screen;
+      }
+      @keyframes termFadeIn {
+        to {
+          opacity: 1;
+        }
+      }
+      .term-line {
+        white-space: nowrap;
+        overflow: hidden;
+        opacity: 0;
+      }
+
+      /* ── AMBIENT LIGHT RAYS ── */
+      #light-rays {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: radial-gradient(ellipse at 62% 58%, rgba(255, 220, 140, 0.03) 0%, transparent 50%);
+        mix-blend-mode: screen;
+        animation: lightBreathe 6s ease-in-out infinite;
+      }
+      @keyframes lightBreathe {
+        0%,
+        100% {
+          opacity: 0.4;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* ── RAIN STREAKS ── */
+      #rain-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0.35;
+      }
+
       /* ── DEPTH PARALLAX BG ── */
       #depth-bg {
         position: fixed;
@@ -703,6 +765,15 @@
     <canvas id="depth-bg" aria-hidden="true"></canvas>
 
     <!-- Water shader removed -->
+
+    <!-- Ambient light rays -->
+    <div id="light-rays" aria-hidden="true"></div>
+
+    <!-- Rain streaks -->
+    <canvas id="rain-canvas" aria-hidden="true"></canvas>
+
+    <!-- Monitor terminal overlay -->
+    <div id="monitor-terminal" aria-hidden="true"></div>
 
     <!-- Dust + noise particles -->
     <canvas id="dust-canvas" aria-hidden="true"></canvas>
@@ -1378,6 +1449,127 @@
           requestAnimationFrame(draw);
         }
 
+        draw();
+      })();
+    </script>
+
+    <!-- Monitor terminal animation -->
+    <script>
+      (function () {
+        var term = document.getElementById("monitor-terminal");
+        if (!term) return;
+        var CODE = [
+          "$ node build.js",
+          "> compiling shaders...",
+          "> loading depth map ✓",
+          "> init WebGL context",
+          "  ├─ vertex shader ✓",
+          "  └─ fragment shader ✓",
+          "> mounting scene graph",
+          "> parallax.enable()",
+          "> render loop @ 60fps",
+          "  frame: 0001 | dt: 16ms",
+          "  frame: 0002 | dt: 16ms",
+          "> spatial.calibrate()",
+          "$ deploy --prod",
+          "> uploading assets...",
+          "> CDN cache purged ✓",
+          "> live at sid.design ✓",
+          "$ _",
+        ];
+        var lineIdx = 0;
+        var charIdx = 0;
+        var lines = [];
+        var maxVisible = 8;
+
+        function addChar() {
+          if (lineIdx >= CODE.length) {
+            lineIdx = 0;
+            lines = [];
+            term.innerHTML = "";
+          }
+          var text = CODE[lineIdx];
+          if (charIdx === 0) {
+            var el = document.createElement("div");
+            el.className = "term-line";
+            el.style.opacity = "1";
+            lines.push(el);
+            term.appendChild(el);
+            // Remove old lines if too many
+            while (lines.length > maxVisible) {
+              var old = lines.shift();
+              old.style.transition = "opacity 0.3s";
+              old.style.opacity = "0";
+              setTimeout(
+                function (o) {
+                  o.remove();
+                },
+                300,
+                old
+              );
+            }
+          }
+          charIdx++;
+          lines[lines.length - 1].textContent = text.slice(0, charIdx);
+          if (charIdx >= text.length) {
+            charIdx = 0;
+            lineIdx++;
+            setTimeout(addChar, 300 + Math.random() * 400);
+          } else {
+            setTimeout(addChar, 25 + Math.random() * 35);
+          }
+        }
+        setTimeout(addChar, 3000);
+      })();
+    </script>
+
+    <!-- Rain / light streak particles -->
+    <script>
+      (function () {
+        var c = document.getElementById("rain-canvas");
+        if (!c) return;
+        var ctx = c.getContext("2d");
+        function resize() {
+          c.width = window.innerWidth;
+          c.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener("resize", resize, { passive: true });
+
+        var N = 60;
+        var drops = [];
+        for (var i = 0; i < N; i++) {
+          drops.push({
+            x: Math.random() * c.width,
+            y: Math.random() * c.height,
+            len: 8 + Math.random() * 18,
+            speed: 1.2 + Math.random() * 2.5,
+            alpha: 0.02 + Math.random() * 0.06,
+            drift: (Math.random() - 0.5) * 0.3,
+          });
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, c.width, c.height);
+          for (var i = 0; i < N; i++) {
+            var d = drops[i];
+            d.y += d.speed;
+            d.x += d.drift;
+            if (d.y > c.height + d.len) {
+              d.y = -d.len;
+              d.x = Math.random() * c.width;
+            }
+            if (d.x < 0) d.x = c.width;
+            if (d.x > c.width) d.x = 0;
+            ctx.beginPath();
+            ctx.moveTo(d.x, d.y);
+            ctx.lineTo(d.x + d.drift * 2, d.y + d.len);
+            ctx.strokeStyle = "rgba(180, 210, 255, " + d.alpha + ")";
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+          requestAnimationFrame(draw);
+        }
         draw();
       })();
     </script>
