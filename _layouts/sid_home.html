@@ -277,6 +277,9 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         padding: 0 var(--lp);
         z-index: 10;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
       }
       .ticker-track {
         display: flex;
@@ -545,36 +548,7 @@
         z-index: 3;
       }
 
-      /* ── MONITOR TERMINAL OVERLAY ── */
-      #monitor-terminal {
-        position: fixed;
-        /* Positioned over the monitor in the depth map */
-        left: 32%;
-        top: 62%;
-        width: 22%;
-        height: 16%;
-        z-index: 2;
-        pointer-events: none;
-        overflow: hidden;
-        font-family: var(--font-mono);
-        font-size: 9px;
-        line-height: 1.7;
-        color: rgba(0, 220, 80, 0.65);
-        padding: 8px 10px;
-        opacity: 0;
-        animation: termFadeIn 1.5s ease 2.5s forwards;
-        mix-blend-mode: screen;
-      }
-      @keyframes termFadeIn {
-        to {
-          opacity: 1;
-        }
-      }
-      .term-line {
-        white-space: nowrap;
-        overflow: hidden;
-        opacity: 0;
-      }
+      /* terminal overlay removed */
 
       /* ── AMBIENT LIGHT RAYS ── */
       #light-rays {
@@ -607,28 +581,7 @@
         opacity: 0.35;
       }
 
-      /* ── DESK CUTOUT OVERLAY ── */
-      #desk-cutout {
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: min(85vw, 1100px);
-        z-index: 1;
-        pointer-events: none;
-        opacity: 0;
-        animation: deskFadeIn 1.5s ease 0.5s forwards;
-      }
-      @keyframes deskFadeIn {
-        from {
-          opacity: 0;
-          transform: translateX(-50%) translateY(20px);
-        }
-        to {
-          opacity: 1;
-          transform: translateX(-50%) translateY(0);
-        }
-      }
+      /* desk cutout removed — using as mask for depth map instead */
 
       /* ── FILM GRAIN NOISE ── */
       #noise-overlay {
@@ -676,29 +629,31 @@
         z-index: 6;
         pointer-events: none;
         font-family: var(--font-mono);
-        font-size: 9px;
-        letter-spacing: 0.16em;
+        font-size: 10px;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        line-height: 2.6;
-        color: rgba(255, 255, 255, 0.18);
+        line-height: 2.2;
+        color: rgba(255, 255, 255, 0.28);
       }
       .wall-info-left {
         left: 36px;
-        bottom: 56px;
+        bottom: 52px;
       }
       .wall-info-right {
         right: 36px;
-        bottom: 56px;
+        bottom: 52px;
         text-align: right;
       }
       .wall-info span {
         display: block;
       }
       .wall-label {
-        font-size: 8px;
+        font-size: 9px;
         letter-spacing: 0.22em;
-        color: rgba(255, 255, 255, 0.1);
-        margin-bottom: 6px;
+        color: rgba(255, 255, 255, 0.14);
+        margin-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding-bottom: 6px;
       }
 
       /* ── CORNER ACCENTS ── */
@@ -819,8 +774,7 @@
 
     <!-- Water shader removed -->
 
-    <!-- Desk cutout — visible on load -->
-    <img id="desk-cutout" src="{{ site.baseurl }}/assets/img/desk_cutout.png" alt="" aria-hidden="true" />
+    <!-- Desk cutout removed — using mask approach -->
 
     <!-- Film grain noise -->
     <div id="noise-overlay" aria-hidden="true"></div>
@@ -831,8 +785,7 @@
     <!-- Rain streaks -->
     <canvas id="rain-canvas" aria-hidden="true"></canvas>
 
-    <!-- Monitor terminal overlay -->
-    <div id="monitor-terminal" aria-hidden="true"></div>
+    <!-- Terminal removed -->
 
     <!-- Dust + noise particles -->
     <canvas id="dust-canvas" aria-hidden="true"></canvas>
@@ -1091,7 +1044,7 @@
           "void main(){",
           "  float d = texture2D(u_depth, v_uv).r;",
           // Horizontal-only parallax
-          "  vec2 offset = vec2(u_mouse.x * d * 0.04, 0.0);",
+          "  vec2 offset = vec2(u_mouse.x * d * 0.018, 0.0);",
           "  vec3 col = texture2D(u_color, v_uv + offset).rgb;",
           // Ambient brightness
           "  col *= 0.5;",
@@ -1178,10 +1131,37 @@
         maskCvs.width = MASK_W;
         maskCvs.height = MASK_H;
         var maskCtx = maskCvs.getContext("2d");
-        // Start fully black — desk cutout PNG handles initial visibility
-        // Cursor painting reveals the full room depth map behind it
+        // Start black, then load desk cutout as initial mask shape
         maskCtx.fillStyle = "#000";
         maskCtx.fillRect(0, 0, MASK_W, MASK_H);
+        // Load desk cutout and draw its silhouette as initial mask
+        var cutoutImg = new Image();
+        cutoutImg.crossOrigin = "anonymous";
+        cutoutImg.onload = function () {
+          // The cutout occupies roughly bottom 40% of viewport
+          var dh = MASK_H * 0.42;
+          var dw = MASK_W * 0.82;
+          var dx = (MASK_W - dw) / 2;
+          var dy = MASK_H - dh;
+          maskCtx.drawImage(cutoutImg, dx, dy, dw, dh);
+          // Convert to grayscale luminance mask
+          var imgData = maskCtx.getImageData(0, 0, MASK_W, MASK_H);
+          var px = imgData.data;
+          for (var i = 0; i < px.length; i += 4) {
+            // Use alpha channel — transparent = black, opaque = white
+            var a = px[i + 3];
+            var lum = a > 10 ? Math.min(255, (px[i] + px[i + 1] + px[i + 2]) / 3 + 60) : 0;
+            px[i] = px[i + 1] = px[i + 2] = lum;
+            px[i + 3] = 255;
+          }
+          maskCtx.putImageData(imgData, 0, 0);
+          // Slight blur for soft edges
+          maskCtx.filter = "blur(3px)";
+          maskCtx.drawImage(maskCvs, 0, 0);
+          maskCtx.filter = "none";
+          maskDirty = true;
+        };
+        cutoutImg.src = "{{ site.baseurl }}/assets/img/desk_cutout.png";
 
         // Create GL texture for mask
         var maskTex = gl.createTexture();
@@ -1491,11 +1471,10 @@
       })();
     </script>
 
-    <!-- Monitor terminal animation -->
+    <!-- Terminal removed -->
     <script>
       (function () {
-        var term = document.getElementById("monitor-terminal");
-        if (!term) return;
+        return;
         var CODE = [
           "$ node build.js",
           "> compiling shaders...",
