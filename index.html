@@ -560,18 +560,31 @@ to{opacity:1;transform:translateY(0)}}.interact-hint{position:fixed;bottom:38%;l
         maskCvs.width = MASK_W;
         maskCvs.height = MASK_H;
         var maskCtx = maskCvs.getContext("2d");
-        // Start with only desk/monitor visible (bottom ~25%)
+        // Start with only desk area visible — shaped elliptical mask
         maskCtx.fillStyle = "#000";
         maskCtx.fillRect(0, 0, MASK_W, MASK_H);
-        // Soft gradient: fade in at 68% down (just above monitor top)
-        var grad = maskCtx.createLinearGradient(0, MASK_H * 0.68, 0, MASK_H * 0.78);
-        grad.addColorStop(0, "rgba(255,255,255,0)");
-        grad.addColorStop(1, "rgba(255,255,255,1)");
-        maskCtx.fillStyle = grad;
-        maskCtx.fillRect(0, MASK_H * 0.68, MASK_W, MASK_H * 0.32);
-        // Fully visible below 78% (desk surface + items only)
+        // Soft elliptical reveal centered on desk (50% x, 84% y)
+        var cx = MASK_W * 0.5,
+          cy = MASK_H * 0.84;
+        var rx = MASK_W * 0.4,
+          ry = MASK_H * 0.2;
+        // Concentric ellipses for soft feathered edge
+        for (var ring = 20; ring >= 0; ring--) {
+          var t = ring / 20;
+          var alpha = (1 - t) * 0.06;
+          maskCtx.beginPath();
+          maskCtx.ellipse(cx, cy, rx * (1 + t * 0.35), ry * (1 + t * 0.35), 0, 0, Math.PI * 2);
+          maskCtx.fillStyle = "rgba(255,255,255," + alpha + ")";
+          maskCtx.fill();
+        }
+        // Solid core — desk surface
+        maskCtx.beginPath();
+        maskCtx.ellipse(cx, cy, rx * 0.75, ry * 0.65, 0, 0, Math.PI * 2);
+        maskCtx.fillStyle = "rgba(255,255,255,0.85)";
+        maskCtx.fill();
+        // Bottom strip — desk edge fully visible
         maskCtx.fillStyle = "#fff";
-        maskCtx.fillRect(0, MASK_H * 0.78, MASK_W, MASK_H * 0.22);
+        maskCtx.fillRect(MASK_W * 0.12, MASK_H * 0.9, MASK_W * 0.76, MASK_H * 0.1);
 
         // Create GL texture for mask
         var maskTex = gl.createTexture();
