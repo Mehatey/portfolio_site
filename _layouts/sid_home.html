@@ -491,39 +491,137 @@
         z-index: 6;
         pointer-events: none;
         font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.14em;
+        font-size: 9px;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
-        line-height: 2.4;
-        color: rgba(255, 255, 255, 0.2);
-        mix-blend-mode: screen;
+        line-height: 2.6;
+        color: rgba(255, 255, 255, 0.18);
       }
       .wall-info-left {
         left: 36px;
-        bottom: 60px;
+        bottom: 56px;
       }
       .wall-info-right {
         right: 36px;
-        bottom: 60px;
+        bottom: 56px;
         text-align: right;
       }
       .wall-info span {
         display: block;
       }
-      .wall-info .wall-bright {
-        color: rgba(255, 255, 255, 0.35);
+      .wall-label {
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        color: rgba(255, 255, 255, 0.1);
+        margin-bottom: 6px;
       }
+
+      /* ── CORNER ACCENTS ── */
+      .corner-accent {
+        position: fixed;
+        width: 28px;
+        height: 28px;
+        z-index: 8;
+        pointer-events: none;
+      }
+      .corner-accent::before,
+      .corner-accent::after {
+        content: "";
+        position: absolute;
+        background: rgba(255, 255, 255, 0.12);
+        transition: background 0.6s ease;
+      }
+      .corner-accent::before {
+        width: 28px;
+        height: 1px;
+      }
+      .corner-accent::after {
+        width: 1px;
+        height: 28px;
+      }
+      .ca-tl {
+        top: 20px;
+        left: 20px;
+      }
+      .ca-tl::before {
+        top: 0;
+        left: 0;
+      }
+      .ca-tl::after {
+        top: 0;
+        left: 0;
+      }
+      .ca-tr {
+        top: 20px;
+        right: 20px;
+      }
+      .ca-tr::before {
+        top: 0;
+        right: 0;
+      }
+      .ca-tr::after {
+        top: 0;
+        right: 0;
+      }
+      .ca-bl {
+        bottom: 20px;
+        left: 20px;
+      }
+      .ca-bl::before {
+        bottom: 0;
+        left: 0;
+      }
+      .ca-bl::after {
+        bottom: 0;
+        left: 0;
+      }
+      .ca-br {
+        bottom: 20px;
+        right: 20px;
+      }
+      .ca-br::before {
+        bottom: 0;
+        right: 0;
+      }
+      .ca-br::after {
+        bottom: 0;
+        right: 0;
+      }
+      /* Subtle pulse on corners */
+      .corner-accent::before {
+        animation: corner-pulse 4s ease-in-out infinite;
+      }
+      @keyframes corner-pulse {
+        0%,
+        100% {
+          background: rgba(255, 255, 255, 0.1);
+        }
+        50% {
+          background: rgba(140, 200, 255, 0.18);
+        }
+      }
+
       @media (max-width: 780px) {
         .wall-info {
           font-size: 8px;
         }
         .wall-info-left {
           left: 16px;
-          bottom: 32px;
+          bottom: 28px;
         }
         .wall-info-right {
           right: 16px;
-          bottom: 32px;
+          bottom: 28px;
+        }
+        .corner-accent {
+          width: 18px;
+          height: 18px;
+        }
+        .corner-accent::before {
+          width: 18px;
+        }
+        .corner-accent::after {
+          height: 18px;
         }
       }
     </style>
@@ -541,20 +639,28 @@
 
     <!-- Wall info text -->
     <div class="wall-info wall-info-left" aria-hidden="true">
-      <span class="wall-bright">Siddharth Mehta</span>
+      <span class="wall-label">Info</span>
+      <span>Siddharth Mehta</span>
       <span>Based in New York</span>
       <span>Available for Work</span>
       <span>Parsons Design &amp; Technology</span>
       <span>Graduating May 2026</span>
     </div>
     <div class="wall-info wall-info-right" aria-hidden="true">
-      <span class="wall-bright">Augmented Reality</span>
+      <span class="wall-label">Skills</span>
+      <span>Augmented Reality</span>
       <span>Virtual Reality</span>
       <span>Branding</span>
       <span>UI / UX</span>
       <span>Illustration</span>
       <span>Videography</span>
     </div>
+
+    <!-- Corner accents -->
+    <div class="corner-accent ca-tl"></div>
+    <div class="corner-accent ca-tr"></div>
+    <div class="corner-accent ca-bl"></div>
+    <div class="corner-accent ca-br"></div>
 
     <!-- DVD-bouncing brain scan -->
     <div class="dvd-brain" id="dvd-brain">
@@ -765,21 +871,30 @@
           "uniform sampler2D u_depth;",
           "uniform sampler2D u_mask;",
           "uniform vec2 u_mouse;",
+          "uniform float u_time;",
           "uniform vec2 u_res;",
           "varying vec2 v_uv;",
+          // Noise function for organic dissolve edge
+          "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}",
+          "float noise(vec2 p){",
+          "  vec2 i=floor(p); vec2 f=fract(p); f=f*f*(3.0-2.0*f);",
+          "  return mix(mix(hash(i),hash(i+vec2(1,0)),f.x),",
+          "             mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),f.x),f.y);}",
           "void main(){",
           "  float d = texture2D(u_depth, v_uv).r;",
           // Horizontal-only parallax
           "  vec2 offset = vec2(u_mouse.x * d * 0.04, 0.0);",
-          "  float r = texture2D(u_color, v_uv + offset).r;",
-          "  float g = texture2D(u_color, v_uv + offset).g;",
-          "  float b = texture2D(u_color, v_uv + offset).b;",
-          "  vec3 col = vec3(r, g, b);",
+          "  vec3 col = texture2D(u_color, v_uv + offset).rgb;",
           // Ambient brightness
           "  col *= 0.5;",
-          // Paint-on reveal mask (white = visible)
+          // Paint-on reveal mask with organic dissolve edge
           "  float mask = texture2D(u_mask, v_uv).r;",
-          "  col *= mask;",
+          "  float n = noise(v_uv * 12.0 + u_time * 0.15);",
+          "  float dissolve = smoothstep(0.0, 0.35, mask - n * 0.25);",
+          // Glowing edge at dissolve boundary
+          "  float edgeGlow = smoothstep(0.0, 0.08, mask) * (1.0 - smoothstep(0.08, 0.32, mask));",
+          "  col += vec3(0.04, 0.08, 0.16) * edgeGlow * (0.5 + 0.5 * sin(u_time * 2.0));",
+          "  col *= dissolve;",
           // Soft vignette
           "  vec2 vig = v_uv * 2.0 - 1.0;",
           "  col *= 1.0 - dot(vig, vig) * 0.2;",
@@ -813,6 +928,7 @@
         var uDepth = gl.getUniformLocation(prog, "u_depth");
         var uMask = gl.getUniformLocation(prog, "u_mask");
         var uMouse = gl.getUniformLocation(prog, "u_mouse");
+        var uTime = gl.getUniformLocation(prog, "u_time");
         var uRes = gl.getUniformLocation(prog, "u_res");
 
         // Texture loading
@@ -878,19 +994,40 @@
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, maskCvs);
         gl.uniform1i(uMask, 2);
 
-        // Paint cursor trail onto mask
+        // Paint cursor trail onto mask — larger brush, faster reveal
         var maskDirty = true;
+        var lastPaintX = -1,
+          lastPaintY = -1;
+        function paintAt(mx, my) {
+          var r = 52;
+          var rad = maskCtx.createRadialGradient(mx, my, 0, mx, my, r);
+          rad.addColorStop(0, "rgba(255,255,255,0.18)");
+          rad.addColorStop(0.5, "rgba(255,255,255,0.08)");
+          rad.addColorStop(1, "rgba(255,255,255,0)");
+          maskCtx.fillStyle = rad;
+          maskCtx.fillRect(mx - r, my - r, r * 2, r * 2);
+          maskDirty = true;
+        }
         document.addEventListener(
           "mousemove",
           function (e) {
             var mx = (e.clientX / window.innerWidth) * MASK_W;
             var my = (e.clientY / window.innerHeight) * MASK_H;
-            var rad = maskCtx.createRadialGradient(mx, my, 0, mx, my, 38);
-            rad.addColorStop(0, "rgba(255,255,255,0.12)");
-            rad.addColorStop(1, "rgba(255,255,255,0)");
-            maskCtx.fillStyle = rad;
-            maskCtx.fillRect(mx - 38, my - 38, 76, 76);
-            maskDirty = true;
+            // Interpolate between last and current for smooth trails
+            if (lastPaintX >= 0) {
+              var dx = mx - lastPaintX,
+                dy = my - lastPaintY;
+              var dist = Math.sqrt(dx * dx + dy * dy);
+              var steps = Math.max(1, Math.floor(dist / 4));
+              for (var s = 0; s <= steps; s++) {
+                var t = s / steps;
+                paintAt(lastPaintX + dx * t, lastPaintY + dy * t);
+              }
+            } else {
+              paintAt(mx, my);
+            }
+            lastPaintX = mx;
+            lastPaintY = my;
           },
           { passive: true }
         );
@@ -898,6 +1035,7 @@
         // Smooth parallax (horizontal only)
         var mouseX = 0,
           targetX = 0;
+        var t0 = performance.now();
         document.addEventListener(
           "mousemove",
           function (e) {
@@ -930,6 +1068,7 @@
           }
 
           gl.uniform2f(uMouse, mouseX, 0);
+          gl.uniform1f(uTime, (performance.now() - t0) / 1000);
           gl.uniform2f(uRes, canvas.width, canvas.height);
           gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
           requestAnimationFrame(tick);
