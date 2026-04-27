@@ -607,6 +607,29 @@
         opacity: 0.35;
       }
 
+      /* ── DESK CUTOUT OVERLAY ── */
+      #desk-cutout {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: min(85vw, 1100px);
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0;
+        animation: deskFadeIn 1.5s ease 0.5s forwards;
+      }
+      @keyframes deskFadeIn {
+        from {
+          opacity: 0;
+          transform: translateX(-50%) translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(-50%) translateY(0);
+        }
+      }
+
       /* ── FILM GRAIN NOISE ── */
       #noise-overlay {
         position: fixed;
@@ -795,6 +818,9 @@
     <canvas id="depth-bg" aria-hidden="true"></canvas>
 
     <!-- Water shader removed -->
+
+    <!-- Desk cutout — visible on load -->
+    <img id="desk-cutout" src="{{ site.baseurl }}/assets/img/desk_cutout.png" alt="" aria-hidden="true" />
 
     <!-- Film grain noise -->
     <div id="noise-overlay" aria-hidden="true"></div>
@@ -1152,31 +1178,10 @@
         maskCvs.width = MASK_W;
         maskCvs.height = MASK_H;
         var maskCtx = maskCvs.getContext("2d");
-        // Start with only desk area visible — shaped elliptical mask
+        // Start fully black — desk cutout PNG handles initial visibility
+        // Cursor painting reveals the full room depth map behind it
         maskCtx.fillStyle = "#000";
         maskCtx.fillRect(0, 0, MASK_W, MASK_H);
-        // Soft elliptical reveal centered on desk (50% x, 84% y)
-        var cx = MASK_W * 0.5,
-          cy = MASK_H * 0.84;
-        var rx = MASK_W * 0.4,
-          ry = MASK_H * 0.2;
-        // Concentric ellipses for soft feathered edge
-        for (var ring = 20; ring >= 0; ring--) {
-          var t = ring / 20;
-          var alpha = (1 - t) * 0.06;
-          maskCtx.beginPath();
-          maskCtx.ellipse(cx, cy, rx * (1 + t * 0.35), ry * (1 + t * 0.35), 0, 0, Math.PI * 2);
-          maskCtx.fillStyle = "rgba(255,255,255," + alpha + ")";
-          maskCtx.fill();
-        }
-        // Solid core — desk surface
-        maskCtx.beginPath();
-        maskCtx.ellipse(cx, cy, rx * 0.75, ry * 0.65, 0, 0, Math.PI * 2);
-        maskCtx.fillStyle = "rgba(255,255,255,0.85)";
-        maskCtx.fill();
-        // Bottom strip — desk edge fully visible
-        maskCtx.fillStyle = "#fff";
-        maskCtx.fillRect(MASK_W * 0.12, MASK_H * 0.9, MASK_W * 0.76, MASK_H * 0.1);
 
         // Create GL texture for mask
         var maskTex = gl.createTexture();
