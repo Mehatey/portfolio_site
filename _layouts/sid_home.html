@@ -587,8 +587,13 @@
         width: clamp(340px, 40vw, 600px);
         pointer-events: auto;
         opacity: 0;
-        transition: opacity 0.8s ease;
+        transition:
+          transform 1.2s ease,
+          opacity 0.8s ease;
         filter: drop-shadow(0 4px 40px rgba(0, 0, 0, 0.5));
+      }
+      #desk-stage:hover {
+        transform: translate(-50%, -50%) scale(1.08);
       }
       #desk-stage.revealed {
         opacity: 1;
@@ -597,11 +602,9 @@
       @keyframes deskBreathe {
         0%,
         100% {
-          transform: translate(-50%, -50%) scale(1);
           filter: drop-shadow(0 4px 40px rgba(0, 0, 0, 0.5));
         }
         50% {
-          transform: translate(-50%, -50%) scale(1.01);
           filter: drop-shadow(0 4px 50px rgba(0, 0, 0, 0.6));
         }
       }
@@ -691,6 +694,92 @@
 
       /* Desk hover — no outline, just the shader extrusion */
 
+      /* ── DESK PLAY BUTTON ── */
+      #desk-play-btn {
+        position: absolute;
+        top: 35%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.7);
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(8px);
+        padding: 8px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 4px;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: auto;
+        cursor: pointer;
+        z-index: 10;
+      }
+      #desk-stage:hover #desk-play-btn {
+        opacity: 1;
+      }
+      #desk-play-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(255, 255, 255, 0.3);
+        color: #fff;
+      }
+
+      /* ── CSS ANIMATED FISH ── */
+      .fish {
+        position: fixed;
+        z-index: 2;
+        pointer-events: none;
+        animation: fishSwim linear infinite;
+      }
+      .fish svg {
+        width: 100%;
+        height: 100%;
+      }
+      .fish-1 {
+        width: 60px;
+        top: 25%;
+        animation-duration: 18s;
+        animation-delay: -2s;
+      }
+      .fish-2 {
+        width: 45px;
+        top: 55%;
+        animation-duration: 22s;
+        animation-delay: -8s;
+      }
+      .fish-3 {
+        width: 55px;
+        top: 75%;
+        animation-duration: 20s;
+        animation-delay: -5s;
+      }
+      .fish-4 {
+        width: 35px;
+        top: 15%;
+        animation-duration: 25s;
+        animation-delay: -12s;
+      }
+      @keyframes fishSwim {
+        0% {
+          left: -80px;
+          transform: scaleX(1) translateY(0);
+        }
+        25% {
+          transform: scaleX(1) translateY(-15px);
+        }
+        50% {
+          transform: scaleX(1) translateY(10px);
+        }
+        75% {
+          transform: scaleX(1) translateY(-8px);
+        }
+        100% {
+          left: calc(100vw + 80px);
+          transform: scaleX(1) translateY(0);
+        }
+      }
+
       @media (max-width: 780px) {
         #desk-stage {
           width: clamp(280px, 80vw, 450px);
@@ -707,6 +796,28 @@
     <!-- Background canvas — brush revealed -->
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
     <video id="nature-vid" autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/assets/video/nature.mp4"></video>
+
+    <!-- Swimming fish -->
+    <div class="fish fish-1" aria-hidden="true">
+      <svg viewBox="0 0 80 40" fill="none">
+        <path d="M0 20Q20 0 40 10Q60 0 70 15L80 20L70 25Q60 40 40 30Q20 40 0 20Z" fill="rgba(60,140,220,0.25)" />
+      </svg>
+    </div>
+    <div class="fish fish-2" aria-hidden="true">
+      <svg viewBox="0 0 80 40" fill="none">
+        <path d="M0 20Q20 0 40 10Q60 0 70 15L80 20L70 25Q60 40 40 30Q20 40 0 20Z" fill="rgba(220,140,60,0.2)" />
+      </svg>
+    </div>
+    <div class="fish fish-3" aria-hidden="true">
+      <svg viewBox="0 0 80 40" fill="none">
+        <path d="M0 20Q20 0 40 10Q60 0 70 15L80 20L70 25Q60 40 40 30Q20 40 0 20Z" fill="rgba(60,200,160,0.22)" />
+      </svg>
+    </div>
+    <div class="fish fish-4" aria-hidden="true">
+      <svg viewBox="0 0 80 40" fill="none">
+        <path d="M0 20Q20 0 40 10Q60 0 70 15L80 20L70 25Q60 40 40 30Q20 40 0 20Z" fill="rgba(180,80,220,0.18)" />
+      </svg>
+    </div>
 
     <!-- Film grain noise -->
     <div id="noise-overlay" aria-hidden="true"></div>
@@ -726,6 +837,7 @@
 
     <!-- Desk image with hover crossfade -->
     <div id="desk-stage" aria-hidden="true">
+      <div id="desk-play-btn">&#9654; Play Intro</div>
       <img id="desk-normal" src="{{ site.baseurl }}/assets/img/table_new.png" alt="" class="active" draggable="false" />
       <img id="desk-extruded" src="{{ site.baseurl }}/assets/img/tnew2.png" alt="" draggable="false" />
     </div>
@@ -875,6 +987,18 @@
           setTimeout(function () {
             stage.classList.add("revealed");
           }, 300);
+
+        var playBtn = document.getElementById("desk-play-btn");
+        if (playBtn) {
+          playBtn.addEventListener("click", function () {
+            var modal = document.getElementById("intro-modal");
+            if (modal) {
+              modal.style.display = "flex";
+            }
+            var vid = document.getElementById("intro-modal-video");
+            if (vid) vid.play().catch(function () {});
+          });
+        }
       })();
     </script>
 
@@ -952,48 +1076,53 @@
           ctx.globalCompositeOperation = "source-over";
           ctx.drawImage(maskCvs, 0, 0, w, h);
 
+          // Background breathing offset
+          var time = Date.now() * 0.001;
+          var breatheX = Math.sin(time * 0.3) * 3;
+          var breatheY = Math.cos(time * 0.2) * 2;
+
           // Step 2: Draw text in revealed areas (behind wall art, visible in gaps)
           ctx.globalCompositeOperation = "source-atop";
           ctx.fillStyle = "#fff";
           ctx.globalAlpha = 0.06;
           ctx.font = "bold 100px Inter, sans-serif";
-          ctx.fillText("SIDDHARTH", w * 0.05, h * 0.2);
+          ctx.fillText("SIDDHARTH", w * 0.05 + breatheX * 0.5, h * 0.2 + breatheY * 0.5);
           ctx.globalAlpha = 0.06;
           ctx.font = "bold 80px Inter, sans-serif";
-          ctx.fillText("MEHTA", w * 0.6, h * 0.9);
+          ctx.fillText("MEHTA", w * 0.6 + breatheX * 0.3, h * 0.9 + breatheY * 0.3);
           ctx.globalAlpha = 0.04;
           ctx.font = "60px Inter, sans-serif";
-          ctx.fillText("AR", w * 0.8, h * 0.15);
-          ctx.fillText("VR", w * 0.82, h * 0.22);
+          ctx.fillText("AR", w * 0.8 + breatheX * 0.4, h * 0.15 + breatheY * 0.4);
+          ctx.fillText("VR", w * 0.82 + breatheX * 0.4, h * 0.22 + breatheY * 0.4);
           ctx.globalAlpha = 0.04;
           ctx.font = "40px DM Mono, monospace";
-          ctx.fillText("PARSONS", w * 0.03, h * 0.55);
+          ctx.fillText("PARSONS", w * 0.03 + breatheX * 0.6, h * 0.55 + breatheY * 0.6);
           ctx.font = "35px DM Mono, monospace";
-          ctx.fillText("SPATIAL", w * 0.08, h * 0.85);
+          ctx.fillText("SPATIAL", w * 0.08 + breatheX * 0.5, h * 0.85 + breatheY * 0.5);
           ctx.font = "30px DM Mono, monospace";
-          ctx.fillText("DESIGNER", w * 0.7, h * 0.45);
+          ctx.fillText("DESIGNER", w * 0.7 + breatheX * 0.4, h * 0.45 + breatheY * 0.4);
 
           // Step 3: Draw wall art ONLY where mask is white
           ctx.globalCompositeOperation = "source-in";
           ctx.globalAlpha = 0.6;
           if (wallImg.complete) {
-            ctx.drawImage(wallImg, 0, 0, w, h);
+            ctx.drawImage(wallImg, breatheX, breatheY, w, h);
           }
 
           // Step 4: Draw nature video in circular patches + rounded rects (source-atop keeps the mask)
           ctx.globalCompositeOperation = "source-atop";
-          ctx.globalAlpha = 0.2;
+          ctx.globalAlpha = 0.45;
           if (video.readyState >= 2) {
             ctx.save();
             ctx.beginPath();
-            ctx.arc(w * 0.15, h * 0.3, 120, 0, Math.PI * 2);
-            ctx.arc(w * 0.75, h * 0.6, 140, 0, Math.PI * 2);
-            ctx.arc(w * 0.5, h * 0.12, 80, 0, Math.PI * 2);
-            // Rounded rect at (5%, 70%) 200x120
+            ctx.arc(w * 0.15, h * 0.3, 150, 0, Math.PI * 2);
+            ctx.arc(w * 0.75, h * 0.6, 180, 0, Math.PI * 2);
+            ctx.arc(w * 0.5, h * 0.12, 100, 0, Math.PI * 2);
+            // Rounded rect at (5%, 70%) 250x150
             var rx1 = w * 0.05,
               ry1 = h * 0.7,
-              rw1 = 200,
-              rh1 = 120,
+              rw1 = 250,
+              rh1 = 150,
               rr1 = 20;
             ctx.moveTo(rx1 + rr1, ry1);
             ctx.arcTo(rx1 + rw1, ry1, rx1 + rw1, ry1 + rh1, rr1);
@@ -1001,11 +1130,11 @@
             ctx.arcTo(rx1, ry1 + rh1, rx1, ry1, rr1);
             ctx.arcTo(rx1, ry1, rx1 + rw1, ry1, rr1);
             ctx.closePath();
-            // Rounded rect at (80%, 20%) 150x100
+            // Rounded rect at (80%, 20%) 200x130
             var rx2 = w * 0.8,
               ry2 = h * 0.2,
-              rw2 = 150,
-              rh2 = 100,
+              rw2 = 200,
+              rh2 = 130,
               rr2 = 16;
             ctx.moveTo(rx2 + rr2, ry2);
             ctx.arcTo(rx2 + rw2, ry2, rx2 + rw2, ry2 + rh2, rr2);
