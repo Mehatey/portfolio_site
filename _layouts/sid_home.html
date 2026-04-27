@@ -574,24 +574,9 @@
         transform: translateX(-50%) translateY(0) scale(1);
         opacity: 1;
       }
-      #desk-stage img {
-        position: absolute;
-        bottom: 0;
-        left: 0;
+      #desk-stage canvas {
         width: 100%;
         display: block;
-        opacity: 0;
-        transition: opacity 0.6s ease;
-      }
-      #desk-stage img.active {
-        opacity: 1;
-      }
-      /* CSS filter states for desk */
-      #desk-state-tv {
-        filter: grayscale(1) contrast(1.3) brightness(0.8);
-      }
-      #desk-state-matrix {
-        filter: invert(1) hue-rotate(90deg) saturate(1.5) brightness(0.85);
       }
       /* Subtle glow behind desk */
       #desk-stage::after {
@@ -717,11 +702,7 @@
 
     <!-- Desk image with 5 hover states -->
     <div id="desk-stage" aria-hidden="true">
-      <img id="desk-state-normal" src="{{ site.baseurl }}/assets/img/table_new.png" alt="" class="active" draggable="false" />
-      <img id="desk-state-glitch" src="{{ site.baseurl }}/assets/img/tnew3.png" alt="" draggable="false" />
-      <img id="desk-state-pixel" src="{{ site.baseurl }}/assets/img/tnew2.png" alt="" draggable="false" />
-      <img id="desk-state-tv" src="{{ site.baseurl }}/assets/img/table_new.png" alt="" draggable="false" />
-      <img id="desk-state-matrix" src="{{ site.baseurl }}/assets/img/table_new.png" alt="" draggable="false" />
+      <canvas id="desk-gl" width="1200" height="669"></canvas>
     </div>
 
     <!-- DVD-bouncing brain scan -->
@@ -867,37 +848,161 @@
       </defs>
     </svg>
 
-    <!-- Desk hover state cycling -->
+    <!-- Desk WebGL depth extrusion shader -->
     <script>
       (function () {
         var stage = document.getElementById("desk-stage");
-        if (!stage) return;
-        var states = ["desk-state-normal", "desk-state-glitch", "desk-state-pixel", "desk-state-tv", "desk-state-matrix"];
-        var current = 0;
+        var canvas = document.getElementById("desk-gl");
+        if (!stage || !canvas) return;
+        var gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false });
+        if (!gl) return;
 
-        // Reveal desk with slide-up after warp reveal
+        // Reveal desk
         setTimeout(function () {
           stage.classList.add("revealed");
         }, 200);
 
-        stage.addEventListener("click", function () {
-          // Remove active from current
-          var curImg = document.getElementById(states[current]);
-          if (curImg) curImg.classList.remove("active");
-          // Advance to next state
-          current = (current + 1) % states.length;
-          var nextImg = document.getElementById(states[current]);
-          if (nextImg) nextImg.classList.add("active");
-        });
+        var VS = [
+          "attribute vec2 a_pos;",
+          "varying vec2 v_uv;",
+          "void main(){",
+          "  v_uv = vec2(a_pos.x*0.5+0.5, 1.0-(a_pos.y*0.5+0.5));",
+          "  gl_Position = vec4(a_pos,0,1);",
+          "}",
+        ].join("\n");
 
-        // Also cycle on hover
+        var FS = [
+          "precision mediump float;",
+          "uniform sampler2D u_color;",
+          "uniform sampler2D u_depth;",
+          "uniform float u_extrude;",
+          "uniform vec2 u_mouse;",
+          "uniform float u_time;",
+          "varying vec2 v_uv;",
+          "void main(){",
+          "  float d = texture2D(u_depth, v_uv).r;",
+          // Depth-based displacement — grows with u_extrude
+          "  float strength = u_extrude * 0.06;",
+          "  vec2 offset = vec2(",
+          "    (u_mouse.x - 0.5) * d * strength,",
+          "    (u_mouse.y - 0.5) * d * strength * 0.6",
+          "  );",
+          // Chromatic aberration that increases with extrusion
+          "  float ca = d * u_extrude * 0.008;",
+          "  float r = texture2D(u_color, v_uv + offset + vec2(ca,0.0)).r;",
+          "  float g = texture2D(u_color, v_uv + offset).g;",
+          "  float b = texture2D(u_color, v_uv + offset - vec2(ca,0.0)).b;",
+          "  float a = texture2D(u_color, v_uv + offset).a;",
+          "  vec3 col = vec3(r,g,b);",
+          // Subtle edge highlight on extruded objects
+          "  float dx = texture2D(u_depth, v_uv+vec2(0.003,0)).r - d;",
+          "  float dy = texture2D(u_depth, v_uv+vec2(0,0.003)).r - d;",
+          "  float edge = length(vec2(dx,dy));",
+          "  col += vec3(0.15,0.2,0.35) * edge * u_extrude * 4.0;",
+          "  gl_FragColor = vec4(col, a);",
+          "}",
+        ].join("\n");
+
+        function mkS(t, s) {
+          var sh = gl.createShader(t);
+          gl.shaderSource(sh, s);
+          gl.compileShader(sh);
+          return sh;
+        }
+        var prog = gl.createProgram();
+        gl.attachShader(prog, mkS(gl.VERTEX_SHADER, VS));
+        gl.attachShader(prog, mkS(gl.FRAGMENT_SHADER, FS));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+
+        var buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+        var aPos = gl.getAttribLocation(prog, "a_pos");
+        gl.enableVertexAttribArray(aPos);
+        gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+        var uColor = gl.getUniformLocation(prog, "u_color");
+        var uDepth = gl.getUniformLocation(prog, "u_depth");
+        var uExtrude = gl.getUniformLocation(prog, "u_extrude");
+        var uMouse = gl.getUniformLocation(prog, "u_mouse");
+        var uTime = gl.getUniformLocation(prog, "u_time");
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        var loaded = 0;
+        function loadTex(url, unit, uniform) {
+          var tex = gl.createTexture();
+          var img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = function () {
+            gl.activeTexture(gl.TEXTURE0 + unit);
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.uniform1i(uniform, unit);
+            loaded++;
+            if (loaded >= 2) startRender();
+          };
+          img.src = url;
+        }
+
+        var base = "{{ site.baseurl }}";
+        loadTex(base + "/assets/img/table_new.png", 0, uColor);
+        loadTex(base + "/assets/img/desk_depth.png", 1, uDepth);
+
+        // Extrusion state — grows on hover, decays on leave
+        var extrude = 0,
+          extrudeTarget = 0;
+        var mouseX = 0.5,
+          mouseY = 0.5;
+        var t0 = performance.now();
+        var hovering = false,
+          hoverTime = 0;
+
         stage.addEventListener("mouseenter", function () {
-          var curImg = document.getElementById(states[current]);
-          if (curImg) curImg.classList.remove("active");
-          current = (current + 1) % states.length;
-          var nextImg = document.getElementById(states[current]);
-          if (nextImg) nextImg.classList.add("active");
+          hovering = true;
+          hoverTime = performance.now();
         });
+        stage.addEventListener("mouseleave", function () {
+          hovering = false;
+          extrudeTarget = 0;
+        });
+        stage.addEventListener(
+          "mousemove",
+          function (e) {
+            var r = stage.getBoundingClientRect();
+            mouseX = (e.clientX - r.left) / r.width;
+            mouseY = (e.clientY - r.top) / r.height;
+          },
+          { passive: true }
+        );
+
+        function startRender() {
+          gl.viewport(0, 0, canvas.width, canvas.height);
+          tick();
+        }
+
+        function tick() {
+          // Extrusion grows the longer you hover (max ~1.0 over ~3s)
+          if (hovering) {
+            var elapsed = (performance.now() - hoverTime) / 1000;
+            extrudeTarget = Math.min(1.0, elapsed / 3.0);
+          }
+          extrude += (extrudeTarget - extrude) * 0.04;
+
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.uniform1f(uExtrude, extrude);
+          gl.uniform2f(uMouse, mouseX, mouseY);
+          gl.uniform1f(uTime, (performance.now() - t0) / 1000);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          requestAnimationFrame(tick);
+        }
       })();
     </script>
 
