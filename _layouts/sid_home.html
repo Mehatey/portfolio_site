@@ -318,66 +318,26 @@
         text-align: center;
         pointer-events: none;
       }
-      .hero-name {
+      #hero-tw {
+        display: block;
         font-family: var(--font-title);
-        font-size: clamp(36px, 5vw, 64px);
+        font-size: clamp(32px, 4.5vw, 56px);
         font-weight: 600;
         letter-spacing: -0.02em;
         color: rgba(255, 255, 255, 0.92);
-        opacity: 0;
-        animation: centerFadeIn 1.2s ease 0.3s forwards;
+        min-height: 1.3em;
+        white-space: nowrap;
       }
-      .hero-line {
-        font-family: var(--font-mono);
-        font-size: 12px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.35);
-        line-height: 2.4;
-        opacity: 0;
+      #hero-tw::after {
+        content: "|";
+        animation: twBlink 0.7s step-end infinite;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.45);
       }
-      .hero-line:nth-child(2) {
-        animation: centerFadeIn 0.9s ease 0.9s forwards;
-      }
-      .hero-line:nth-child(3) {
-        animation: centerFadeIn 0.9s ease 1.3s forwards;
-      }
-      .hero-line:nth-child(4) {
-        animation: centerFadeIn 0.9s ease 1.7s forwards;
-        color: rgba(255, 255, 255, 0.5);
-      }
-      .hero-sep {
-        display: block;
-        width: 32px;
-        height: 1px;
-        background: rgba(255, 255, 255, 0.12);
-        margin: 14px auto 10px;
-        opacity: 0;
-        animation: centerFadeIn 0.9s ease 0.7s forwards;
-      }
-      @keyframes centerFadeIn {
-        from {
+      @keyframes twBlink {
+        50% {
           opacity: 0;
-          transform: translateY(8px);
         }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* Cursor glow */
-      #cursor-glow {
-        position: fixed;
-        width: 220px;
-        height: 220px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(100, 160, 255, 0.06) 0%, transparent 70%);
-        pointer-events: none;
-        z-index: 7;
-        transform: translate(-50%, -50%);
-        transition: opacity 0.3s ease;
-        mix-blend-mode: screen;
       }
 
       /* intro-btn kept for JS wiring — visually hidden */
@@ -792,12 +752,12 @@
         <span class="hud-data-value">40.7358°N 73.9942°W</span>
       </div>
       <div class="hud-data hud-data-bl">
-        <span class="hud-data-label">STATUS</span>
-        <span class="hud-data-value hud-blink">AVAILABLE</span>
+        <span class="hud-data-label">FOCUS</span>
+        <span class="hud-data-value">AR · VR · SPATIAL</span>
       </div>
       <div class="hud-data hud-data-br">
-        <span class="hud-data-label">BUILD</span>
-        <span class="hud-data-value">v2.6.0 · PARSONS DT</span>
+        <span class="hud-data-label">STACK</span>
+        <span class="hud-data-value">UNITY · WEBGL · THREE.JS</span>
       </div>
     </div>
 
@@ -866,17 +826,10 @@
           </div>
         </div>
 
-        <!-- Centered hero text -->
+        <!-- Centered typewriter -->
         <div class="hero-center">
-          <p class="hero-name">Sid Mehta</p>
-          <div class="hero-sep"></div>
-          <p class="hero-line">MFA Design &amp; Technology</p>
-          <p class="hero-line">Parsons · New York</p>
-          <p class="hero-line">Graduating May 2026</p>
+          <span id="hero-tw"></span>
         </div>
-
-        <!-- Cursor glow -->
-        <div id="cursor-glow"></div>
 
         <!-- Hidden intro btn for JS wiring -->
         <button class="intro-btn" id="intro-btn" aria-hidden="true" style="display: none"></button>
@@ -898,25 +851,56 @@
 
     <script>
       (function () {
-        /* ─── CURSOR GLOW ─── */
-        const cursorGlow = document.getElementById("cursor-glow");
-        if (cursorGlow) {
-          document.addEventListener(
-            "mousemove",
-            function (e) {
-              cursorGlow.style.left = e.clientX + "px";
-              cursorGlow.style.top = e.clientY + "px";
-            },
-            { passive: true }
-          );
+        /* ─── TYPEWRITER ─── */
+        const twEl = document.getElementById("hero-tw");
+        const TW_LINES = [
+          "Hello",
+          "I'm Sid",
+          "Parsons NYC · May 2026",
+          "I design immersive experiences",
+          "I build spatial interfaces",
+          "I craft narrative-driven systems",
+        ];
+        const TW_TYPE_SPEED = 55;
+        const TW_DEL_SPEED = 28;
+        const TW_PAUSE = [800, 1400, 2200, 2200, 2200, 2200];
+        let twIdx = 0;
+
+        function twType(text, speed, cb) {
+          let i = 0;
+          function t() {
+            twEl.textContent = text.slice(0, ++i);
+            if (i < text.length) setTimeout(t, speed + Math.random() * 20);
+            else if (cb) cb();
+          }
+          t();
         }
-
-        /* code overlay + portrait removed — clean layout */
-        // Stub elements for intro modal compatibility
-        const imgContainer = null;
-        const codeCanvas = null;
-
-        /* code overlay + portrait + video scrub removed */
+        function twDelete(speed, cb) {
+          function d() {
+            var s = twEl.textContent;
+            if (!s.length) {
+              if (cb) cb();
+              return;
+            }
+            twEl.textContent = s.slice(0, -1);
+            setTimeout(d, speed);
+          }
+          d();
+        }
+        function twRun() {
+          var text = TW_LINES[twIdx];
+          var pause = TW_PAUSE[twIdx] || 2200;
+          twType(text, TW_TYPE_SPEED, function () {
+            setTimeout(function () {
+              twDelete(TW_DEL_SPEED, function () {
+                twIdx++;
+                if (twIdx >= TW_LINES.length) twIdx = 3; // loop from "I design..."
+                setTimeout(twRun, 300);
+              });
+            }, pause);
+          });
+        }
+        setTimeout(twRun, 600);
 
         /* ─── INTRO MODAL ─── */
         const introBtn = document.getElementById("intro-btn");
@@ -984,43 +968,26 @@
           "precision mediump float;",
           "uniform sampler2D u_color;",
           "uniform sampler2D u_depth;",
+          "uniform sampler2D u_mask;",
           "uniform vec2 u_mouse;",
-          "uniform vec2 u_cursor;",
-          "uniform float u_time;",
-          "uniform float u_reveal;",
           "uniform vec2 u_res;",
           "varying vec2 v_uv;",
           "void main(){",
           "  float d = texture2D(u_depth, v_uv).r;",
-          // Parallax displacement
-          "  float strength = 0.05;",
-          "  vec2 offset = u_mouse * d * strength;",
-          "  float ca = d * 0.003;",
-          "  float r = texture2D(u_color, v_uv + offset + vec2(ca, 0.0)).r;",
+          // Horizontal-only parallax
+          "  vec2 offset = vec2(u_mouse.x * d * 0.04, 0.0);",
+          "  float r = texture2D(u_color, v_uv + offset).r;",
           "  float g = texture2D(u_color, v_uv + offset).g;",
-          "  float b = texture2D(u_color, v_uv + offset - vec2(ca, 0.0)).b;",
+          "  float b = texture2D(u_color, v_uv + offset).b;",
           "  vec3 col = vec3(r, g, b);",
-          // Very dark base
-          "  col *= 0.22;",
-          // Cursor spotlight — soft flashlight
-          "  vec2 aspect = vec2(u_res.x / u_res.y, 1.0);",
-          "  float spotDist = length((v_uv - u_cursor) * aspect);",
-          "  float spot = exp(-spotDist * spotDist * 3.2);",
-          "  float depthBoost = 0.6 + d * 0.8;",
-          "  col += col * spot * depthBoost * 3.5;",
-          // Edge glow near cursor
-          "  float nearCursor = smoothstep(0.5, 0.0, spotDist);",
-          "  float dx = texture2D(u_depth, v_uv + vec2(0.002, 0.0)).r - d;",
-          "  float dy = texture2D(u_depth, v_uv + vec2(0.0, 0.002)).r - d;",
-          "  float edge = length(vec2(dx, dy));",
-          "  col += vec3(0.06, 0.12, 0.2) * edge * nearCursor * 8.0;",
-          // Center reveal — expands outward from center on load
-          "  float centerDist = length((v_uv - 0.5) * aspect);",
-          "  float reveal = smoothstep(u_reveal, u_reveal * 0.6, centerDist);",
-          // Vignette
+          // Ambient brightness
+          "  col *= 0.5;",
+          // Paint-on reveal mask (white = visible)
+          "  float mask = texture2D(u_mask, v_uv).r;",
+          "  col *= mask;",
+          // Soft vignette
           "  vec2 vig = v_uv * 2.0 - 1.0;",
-          "  col *= 1.0 - dot(vig, vig) * 0.25;",
-          "  col *= reveal;",
+          "  col *= 1.0 - dot(vig, vig) * 0.2;",
           "  gl_FragColor = vec4(col, 1.0);",
           "}",
         ].join("\n");
@@ -1049,10 +1016,8 @@
 
         var uColor = gl.getUniformLocation(prog, "u_color");
         var uDepth = gl.getUniformLocation(prog, "u_depth");
+        var uMask = gl.getUniformLocation(prog, "u_mask");
         var uMouse = gl.getUniformLocation(prog, "u_mouse");
-        var uCursor = gl.getUniformLocation(prog, "u_cursor");
-        var uTime = gl.getUniformLocation(prog, "u_time");
-        var uReveal = gl.getUniformLocation(prog, "u_reveal");
         var uRes = gl.getUniformLocation(prog, "u_res");
 
         // Texture loading
@@ -1087,25 +1052,60 @@
           if (colorLoaded) startRender();
         });
 
-        // Smooth cursor tracking for parallax
-        var mouseX = 0,
-          mouseY = 0,
-          targetX = 0,
-          targetY = 0;
-        var cursorUX = 0.5,
-          cursorUY = 0.5,
-          cursorTargetUX = 0.5,
-          cursorTargetUY = 0.5;
-        var t0 = performance.now();
-        var revealRadius = 0; // grows from 0 to ~2.0 on load
+        // ── Paint-on reveal mask (2D canvas → WebGL texture) ──
+        var MASK_W = 256,
+          MASK_H = 256;
+        var maskCvs = document.createElement("canvas");
+        maskCvs.width = MASK_W;
+        maskCvs.height = MASK_H;
+        var maskCtx = maskCvs.getContext("2d");
+        // Start with desk area visible (bottom ~45%)
+        maskCtx.fillStyle = "#000";
+        maskCtx.fillRect(0, 0, MASK_W, MASK_H);
+        // Soft gradient revealing desk area
+        var grad = maskCtx.createLinearGradient(0, MASK_H * 0.42, 0, MASK_H * 0.55);
+        grad.addColorStop(0, "rgba(255,255,255,0)");
+        grad.addColorStop(1, "rgba(255,255,255,1)");
+        maskCtx.fillStyle = grad;
+        maskCtx.fillRect(0, MASK_H * 0.42, MASK_W, MASK_H * 0.58);
+        maskCtx.fillStyle = "#fff";
+        maskCtx.fillRect(0, MASK_H * 0.55, MASK_W, MASK_H * 0.45);
 
+        // Create GL texture for mask
+        var maskTex = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0 + 2);
+        gl.bindTexture(gl.TEXTURE_2D, maskTex);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, maskCvs);
+        gl.uniform1i(uMask, 2);
+
+        // Paint cursor trail onto mask
+        var maskDirty = true;
+        document.addEventListener(
+          "mousemove",
+          function (e) {
+            var mx = (e.clientX / window.innerWidth) * MASK_W;
+            var my = (e.clientY / window.innerHeight) * MASK_H;
+            var rad = maskCtx.createRadialGradient(mx, my, 0, mx, my, 38);
+            rad.addColorStop(0, "rgba(255,255,255,0.12)");
+            rad.addColorStop(1, "rgba(255,255,255,0)");
+            maskCtx.fillStyle = rad;
+            maskCtx.fillRect(mx - 38, my - 38, 76, 76);
+            maskDirty = true;
+          },
+          { passive: true }
+        );
+
+        // Smooth parallax (horizontal only)
+        var mouseX = 0,
+          targetX = 0;
         document.addEventListener(
           "mousemove",
           function (e) {
             targetX = (e.clientX / window.innerWidth) * 2 - 1;
-            targetY = -((e.clientY / window.innerHeight) * 2 - 1);
-            cursorTargetUX = e.clientX / window.innerWidth;
-            cursorTargetUY = 1.0 - e.clientY / window.innerHeight;
           },
           { passive: true }
         );
@@ -1123,17 +1123,17 @@
         }
 
         function tick() {
-          mouseX += (targetX - mouseX) * 0.035;
-          mouseY += (targetY - mouseY) * 0.035;
-          cursorUX += (cursorTargetUX - cursorUX) * 0.06;
-          cursorUY += (cursorTargetUY - cursorUY) * 0.06;
-          // Slowly reveal from center on load
-          revealRadius += (2.0 - revealRadius) * 0.008;
+          mouseX += (targetX - mouseX) * 0.03;
 
-          gl.uniform2f(uMouse, mouseX, mouseY);
-          gl.uniform2f(uCursor, cursorUX, cursorUY);
-          gl.uniform1f(uTime, (performance.now() - t0) / 1000);
-          gl.uniform1f(uReveal, revealRadius);
+          // Upload mask if changed
+          if (maskDirty) {
+            gl.activeTexture(gl.TEXTURE0 + 2);
+            gl.bindTexture(gl.TEXTURE_2D, maskTex);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, maskCvs);
+            maskDirty = false;
+          }
+
+          gl.uniform2f(uMouse, mouseX, 0);
           gl.uniform2f(uRes, canvas.width, canvas.height);
           gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
           requestAnimationFrame(tick);
