@@ -36,6 +36,9 @@
         rel="stylesheet"
     /></noscript>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
     <style>
       *,
       *::before,
@@ -335,7 +338,7 @@
       /* ── CENTERED HERO TEXT ── */
       .hero-center {
         position: fixed;
-        bottom: 4%;
+        bottom: 6%;
         left: 50%;
         transform: translateX(-50%);
         z-index: 10;
@@ -368,7 +371,7 @@
       }
       .hero-tagline {
         font-family: var(--font-title);
-        font-size: clamp(22px, 3vw, 36px);
+        font-size: clamp(16px, 2vw, 24px);
         font-weight: 500;
         line-height: 1.5;
         color: rgba(255, 255, 255, 0.6);
@@ -515,6 +518,11 @@
         z-index: 3;
       }
 
+      /* char-canvas disabled — needs Blender-exported GLB */
+      #char-canvas {
+        display: none;
+      }
+
       /* ── FILM GRAIN NOISE ── */
       #noise-overlay {
         position: fixed;
@@ -548,11 +556,11 @@
       /* ── DESK STAGE — large and centered ── */
       #desk-stage {
         position: fixed;
-        top: 44%;
+        top: 38%;
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 5;
-        width: clamp(550px, 62vw, 1050px);
+        width: clamp(450px, 50vw, 800px);
         pointer-events: auto;
         opacity: 0;
         transition:
@@ -731,6 +739,8 @@
       <div class="glow-orb g3"></div>
     </div>
 
+    <canvas id="char-canvas" aria-hidden="true"></canvas>
+
     <!-- Desk image with hover crossfade -->
     <div id="desk-stage" aria-hidden="true">
       <canvas id="desk-gl" width="1200" height="669"></canvas>
@@ -799,7 +809,7 @@
         <div class="hero-center" id="hero-center">
           <span class="hero-hello" id="hero-hello"></span>
           <div class="hero-info" id="hero-info">
-            <p class="hero-tagline">I build spatial, branding, and interactive experiences at the intersection of design, code, and emotion.</p>
+            <p class="hero-tagline">I design spatial and interactive experiences across AR, VR, branding, and creative technology.</p>
             <div class="hero-code">
               <span>const intent = "feel something";</span>
               <span>design(idea, emotion);</span>
@@ -1140,6 +1150,92 @@
         }
 
         draw();
+      })();
+    </script>
+
+    <!-- Cube-head character — GLTF with Draco, T-pose for now -->
+    <script>
+      (function () {
+        var canvas = document.getElementById("char-canvas");
+        if (!canvas || typeof THREE === "undefined") return;
+
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 1.2, 5);
+        camera.lookAt(0, 0.8, 0);
+
+        var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setClearColor(0x000000, 0); // Transparent background
+
+        // Warm lighting
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        var dir = new THREE.DirectionalLight(0xffeedd, 0.8);
+        dir.position.set(2, 3, 4);
+        scene.add(dir);
+
+        var gltfLoader = new THREE.GLTFLoader();
+
+        var model = null;
+
+        // Debug: add a test cube immediately to confirm rendering works
+        var testGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
+        var testMat = new THREE.MeshPhongMaterial({ color: 0x00ff80 });
+        var testCube = new THREE.Mesh(testGeo, testMat);
+        testCube.position.set(-2, 0.5, 0);
+        scene.add(testCube);
+        console.log("Test cube added to char scene");
+
+        // Lazy load character after 2 seconds
+        setTimeout(function () {
+          console.log("Loading cube_char.glb...");
+          gltfLoader.load(
+            "{{ site.baseurl }}/assets/img/cube_char.glb",
+            function (gltf) {
+              model = gltf.scene;
+              console.log("GLB loaded, children:", model.children.length);
+              // Auto-scale
+              var box = new THREE.Box3().setFromObject(model);
+              var size = new THREE.Vector3();
+              box.getSize(size);
+              console.log("Model size:", size.x, size.y, size.z);
+              var scale = 1.8 / Math.max(size.x, size.y, size.z);
+              model.scale.set(scale, scale, scale);
+              // Position left of center
+              model.position.set(-2.2, 0, 0);
+              scene.add(model);
+              // Keep test cube for debugging
+              // scene.remove(testCube);
+              console.log("Cube character loaded, scale:", scale);
+            },
+            function (progress) {
+              if (progress.total) console.log("Loading: " + Math.round((progress.loaded / progress.total) * 100) + "%");
+            },
+            function (err) {
+              console.error("Character load error:", err);
+            }
+          );
+        }, 2000);
+
+        window.addEventListener("resize", function () {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Subtle idle sway
+        var t = 0;
+        function animate() {
+          requestAnimationFrame(animate);
+          t += 0.01;
+          if (model) {
+            model.rotation.y = Math.sin(t * 0.5) * 0.15; // Gentle look around
+            model.position.y += Math.sin(t * 0.8) * 0.0003; // Tiny bob
+          }
+          renderer.render(scene, camera);
+        }
+        animate();
       })();
     </script>
 
