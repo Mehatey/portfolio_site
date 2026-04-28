@@ -561,6 +561,17 @@
         }
       }
 
+      /* ── VIGNETTE GL ── */
+      #vignette-gl {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 7;
+        pointer-events: none;
+        mix-blend-mode: screen;
+      }
+
       /* ── DESK STAGE — large and centered ── */
       #desk-stage {
         position: fixed;
@@ -736,6 +747,8 @@
 
     <!-- Film grain noise -->
     <div id="noise-overlay" aria-hidden="true"></div>
+
+    <canvas id="vignette-gl" aria-hidden="true"></canvas>
 
     <!-- Dust + noise particles -->
     <canvas id="dust-canvas" aria-hidden="true"></canvas>
@@ -1162,6 +1175,84 @@
       })();
     </script>
 
+    <!-- Chromatic vignette WebGL shader -->
+    <script>
+      (function () {
+        var canvas = document.getElementById("vignette-gl");
+        if (!canvas) return;
+        var gl = canvas.getContext("webgl", {
+          alpha: true,
+          premultipliedAlpha: false,
+        });
+        if (!gl) return;
+
+        var VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}";
+        var FS = [
+          "precision mediump float;",
+          "uniform vec2 u_res;",
+          "uniform float u_time;",
+          "void main(){",
+          "  vec2 uv = gl_FragCoord.xy / u_res;",
+          "  vec2 p = (uv - 0.5) * vec2(u_res.x/u_res.y, 1.0);",
+          "  float dist = length(p);",
+          "  float vig = smoothstep(0.35, 0.85, dist);",
+          "  float angle = atan(p.y, p.x);",
+          "  float hue = angle / 6.2832 + u_time * 0.08;",
+          "  vec3 col = 0.5 + 0.5 * cos(6.2832 * (hue + vec3(0.0, 0.33, 0.67)));",
+          "  float wobble = sin(angle * 4.0 + u_time * 1.5) * 0.15 + sin(angle * 7.0 - u_time * 0.8) * 0.1;",
+          "  col *= 1.0 + wobble;",
+          "  col *= 0.7 + 0.3 * sin(u_time * 0.4 + angle * 2.0);",
+          "  col *= 0.95 + 0.05 * sin(uv.y * 400.0);",
+          "  gl_FragColor = vec4(col * vig * 0.9, vig * 0.7);",
+          "}",
+        ].join("\n");
+
+        function mk(t, s) {
+          var sh = gl.createShader(t);
+          gl.shaderSource(sh, s);
+          gl.compileShader(sh);
+          return sh;
+        }
+        var prog = gl.createProgram();
+        gl.attachShader(prog, mk(gl.VERTEX_SHADER, VS));
+        gl.attachShader(prog, mk(gl.FRAGMENT_SHADER, FS));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+
+        var buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+        var a = gl.getAttribLocation(prog, "a");
+        gl.enableVertexAttribArray(a);
+        gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+
+        var uRes = gl.getUniformLocation(prog, "u_res");
+        var uTime = gl.getUniformLocation(prog, "u_time");
+        var t0 = performance.now();
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        function resize() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        resize();
+        window.addEventListener("resize", resize, { passive: true });
+
+        function tick() {
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.uniform2f(uRes, canvas.width, canvas.height);
+          gl.uniform1f(uTime, (performance.now() - t0) / 1000);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+          requestAnimationFrame(tick);
+        }
+        tick();
+      })();
+    </script>
+
     <!-- Cube-head character — GLTF with Draco, T-pose for now -->
     <script>
       (function () {
@@ -1185,8 +1276,8 @@
         renderer.setClearColor(0x000000, 0); // Transparent background
 
         // Warm lighting
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-        var dir = new THREE.DirectionalLight(0xffeedd, 0.8);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        var dir = new THREE.DirectionalLight(0xffeedd, 1.2);
         dir.position.set(2, 3, 4);
         scene.add(dir);
 
@@ -1206,16 +1297,11 @@
             "{{ site.baseurl }}/assets/img/cube_char.glb",
             function (gltf) {
               model = gltf.scene;
-              // Measure and auto-scale
-              var bb = new THREE.Box3().setFromObject(model);
-              var ss = new THREE.Vector3();
-              bb.getSize(ss);
-              var charScale = 1.2 / ss.y;
-              model.scale.multiplyScalar(charScale);
-              bb.setFromObject(model);
-              model.position.set(-1.5, -bb.min.y, 0);
+              // Force absolute scale — ignore bounding box (armature skews it)
+              model.scale.set(70, 70, 70);
+              model.position.set(-2, -0.8, 0);
               scene.add(model);
-              console.log("Size:", ss.y, "Scale:", charScale, "Pos:", model.position.y);
+              console.log("Character placed at scale 0.008");
             },
             function (progress) {
               if (progress.total) console.log("Loading: " + Math.round((progress.loaded / progress.total) * 100) + "%");
@@ -1238,8 +1324,8 @@
           requestAnimationFrame(animate);
           t += 0.01;
           if (model) {
-            model.rotation.y = Math.sin(t * 0.5) * 0.15; // Gentle look around
-            model.position.y += Math.sin(t * 0.8) * 0.0003; // Tiny bob
+            model.rotation.y = Math.sin(t * 0.5) * 0.15;
+            model.position.y = -0.8 + Math.sin(t * 0.8) * 0.03;
           }
           renderer.render(scene, camera);
         }
