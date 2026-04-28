@@ -740,21 +740,32 @@
           transform: translate(-20px, 15px) scale(0.9);
         }
       }
+
+      /* ── SCENE INTRO VISIBILITY ── */
+      .scene-hidden {
+        opacity: 0;
+        transition: opacity 0.8s ease;
+        pointer-events: none;
+      }
+      .scene-visible {
+        opacity: 1;
+        pointer-events: auto;
+      }
     </style>
   </head>
   <body>
     {% include loader.html %}
 
     <!-- Film grain noise -->
-    <div id="noise-overlay" aria-hidden="true"></div>
+    <div id="noise-overlay" class="scene-hidden" aria-hidden="true"></div>
 
-    <canvas id="vignette-gl" aria-hidden="true"></canvas>
+    <canvas id="vignette-gl" class="scene-hidden" aria-hidden="true"></canvas>
 
     <!-- Dust + noise particles -->
-    <canvas id="dust-canvas" aria-hidden="true"></canvas>
+    <canvas id="dust-canvas" class="scene-hidden" aria-hidden="true"></canvas>
 
     <!-- Background glow orbs -->
-    <div id="bg-glow" aria-hidden="true">
+    <div id="bg-glow" class="scene-hidden" aria-hidden="true">
       <div class="glow-orb g1"></div>
       <div class="glow-orb g2"></div>
       <div class="glow-orb g3"></div>
@@ -763,7 +774,7 @@
     <canvas id="char-canvas" aria-hidden="true"></canvas>
 
     <!-- Desk image with hover crossfade -->
-    <div id="desk-stage" aria-hidden="true">
+    <div id="desk-stage" class="scene-hidden" aria-hidden="true">
       <canvas id="desk-gl" width="1200" height="669"></canvas>
     </div>
 
@@ -793,7 +804,7 @@
       <!-- LEFT -->
       <div class="panel-left">
         <!-- Metadata ticker -->
-        <div class="ticker-wrap">
+        <div class="ticker-wrap scene-hidden">
           <div class="ticker-track">
             <span class="tick-item tick-featured"
               ><span class="tick-icon">◆</span><span class="tick-label">Webby Award · Best Use of AR 2026</span></span
@@ -828,7 +839,7 @@
         </div>
 
         <!-- Hero text below desk -->
-        <div class="hero-center" id="hero-center">
+        <div class="hero-center scene-hidden" id="hero-center">
           <span class="hero-hello" id="hero-hello"></span>
           <div class="hero-info" id="hero-info">
             <p class="hero-tagline">I design spatial and interactive experiences across AR, VR, branding, and creative technology.</p>
@@ -856,7 +867,7 @@
       </div>
     </div>
 
-    <div class="bottom-bar" aria-hidden="true">
+    <div class="bottom-bar scene-hidden" aria-hidden="true">
       <span class="bottom-role">Designer & Creative Technologist · Parsons NYC · 2026</span>
       <button class="bottom-play" id="bottom-play-btn">&#9654; Play Intro</button>
     </div>
@@ -926,9 +937,6 @@
           img.src = "{{ site.baseurl }}/assets/img/table_new.png";
           img.style.width = "100%";
           stage.appendChild(img);
-          setTimeout(function () {
-            stage.classList.add("revealed");
-          }, 300);
           return;
         }
 
@@ -1053,7 +1061,6 @@
 
         function start() {
           gl.viewport(0, 0, canvas.width, canvas.height);
-          stage.classList.add("revealed");
           tick();
         }
 
@@ -1253,29 +1260,22 @@
       })();
     </script>
 
-    <!-- Cube-head character — GLTF with Draco, T-pose for now -->
+    <!-- Cube-head character — choreographed intro sequence -->
     <script>
       (function () {
-        console.log("CHAR SCRIPT START");
         var canvas = document.getElementById("char-canvas");
-        console.log("canvas:", !!canvas, "THREE:", typeof THREE);
-        if (!canvas || typeof THREE === "undefined") {
-          console.log("CHAR SCRIPT ABORTED — canvas or THREE missing");
-          return;
-        }
-        console.log("CHAR SCRIPT RUNNING");
+        if (!canvas || typeof THREE === "undefined") return;
 
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
         camera.position.set(0, 1.2, 5);
-        camera.lookAt(0, 0.8, 0);
+        camera.lookAt(0, 0.5, 0);
 
         var renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setClearColor(0x000000, 0); // Transparent background
+        renderer.setClearColor(0x000000, 0);
 
-        // Warm lighting
         scene.add(new THREE.AmbientLight(0xffffff, 0.9));
         var dir = new THREE.DirectionalLight(0xffeedd, 1.2);
         dir.position.set(2, 3, 4);
@@ -1287,30 +1287,129 @@
         gltfLoader.setDRACOLoader(dracoLoader);
 
         var model = null;
+        var mixer = null;
+        var clock = new THREE.Clock();
+        var actions = {};
+        var charX = -4;
+        var phase = "loading";
+        var mouseX = 0;
 
-        console.log("Char scene ready, loading model...");
+        document.addEventListener(
+          "mousemove",
+          function (e) {
+            mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+          },
+          { passive: true }
+        );
 
-        // Lazy load character after 2 seconds
+        // Load after loader finishes (delay 1s)
         setTimeout(function () {
-          console.log("Loading cube_char.glb...");
-          gltfLoader.load(
-            "{{ site.baseurl }}/assets/img/cube_char.glb",
-            function (gltf) {
-              model = gltf.scene;
-              // Force absolute scale — ignore bounding box (armature skews it)
-              model.scale.set(70, 70, 70);
-              model.position.set(-2, -0.8, 0);
-              scene.add(model);
-              console.log("Character placed at scale 0.008");
-            },
-            function (progress) {
-              if (progress.total) console.log("Loading: " + Math.round((progress.loaded / progress.total) * 100) + "%");
-            },
-            function (err) {
-              console.error("Character load error:", err);
+          gltfLoader.load("{{ site.baseurl }}/assets/img/cube_char.glb", function (gltf) {
+            model = gltf.scene;
+            model.scale.set(70, 70, 70);
+            model.position.set(charX, -0.8, 0);
+            scene.add(model);
+
+            mixer = new THREE.AnimationMixer(model);
+
+            // Find animations by name
+            gltf.animations.forEach(function (clip) {
+              console.log("Animation:", clip.name);
+              if (clip.name.toLowerCase().includes("walk")) actions.walk = mixer.clipAction(clip);
+              else if (clip.name.toLowerCase().includes("wave") || clip.name.toLowerCase().includes("waving")) actions.wave = mixer.clipAction(clip);
+              else if (clip.name.toLowerCase().includes("idle") || clip.name.toLowerCase().includes("happy")) actions.idle = mixer.clipAction(clip);
+            });
+
+            // Start walk phase
+            if (actions.walk) {
+              actions.walk.play();
+              phase = "walking";
+              console.log("Phase: walking");
+            } else {
+              // No walk animation — skip to wave or idle
+              startWave();
             }
-          );
-        }, 2000);
+          });
+        }, 1500);
+
+        function startWave() {
+          phase = "waving";
+          console.log("Phase: waving");
+          if (actions.walk) actions.walk.fadeOut(0.3);
+          if (actions.wave) {
+            actions.wave.reset().setLoop(THREE.LoopOnce).clampWhenFinished = true;
+            actions.wave.fadeIn(0.3).play();
+          }
+          // Show "Hello" text
+          var hello = document.getElementById("hero-hello");
+          if (hello) {
+            hello.style.display = "block";
+            // Type "Hello"
+            var text = "Hello";
+            var i = 0;
+            function typeH() {
+              hello.textContent = text.slice(0, ++i);
+              if (i < text.length) setTimeout(typeH, 100);
+            }
+            typeH();
+          }
+          // After wave ends, go to reveal
+          setTimeout(startReveal, 2500);
+        }
+
+        function startReveal() {
+          phase = "revealing";
+          console.log("Phase: revealing");
+          // Switch to idle
+          if (actions.wave) actions.wave.fadeOut(0.5);
+          if (actions.idle) actions.idle.reset().fadeIn(0.5).play();
+
+          // Backspace "Hello"
+          var hello = document.getElementById("hero-hello");
+          if (hello) {
+            setTimeout(function bs() {
+              var s = hello.textContent;
+              if (s.length > 0) {
+                hello.textContent = s.slice(0, -1);
+                setTimeout(bs, 50);
+              } else {
+                hello.style.display = "none";
+                // Show info text
+                var info = document.getElementById("hero-info");
+                if (info) info.classList.add("visible");
+              }
+            }, 400);
+          }
+
+          // Staggered reveal of page elements
+          var reveals = [
+            { sel: "#desk-stage", delay: 300 },
+            { sel: ".hero-center", delay: 600 },
+            { sel: "#dust-canvas", delay: 800 },
+            { sel: "#noise-overlay", delay: 900 },
+            { sel: "#bg-glow", delay: 1000 },
+            { sel: "#vignette-gl", delay: 1200 },
+            { sel: ".bottom-bar", delay: 1400 },
+            { sel: ".ticker-wrap", delay: 1400 },
+          ];
+          reveals.forEach(function (r) {
+            setTimeout(function () {
+              var el = document.querySelector(r.sel);
+              if (el) {
+                el.classList.remove("scene-hidden");
+                el.classList.add("scene-visible");
+                // Also trigger desk reveal
+                if (r.sel === "#desk-stage") el.classList.add("revealed");
+              }
+            }, r.delay);
+          });
+
+          // After all revealed, enter steady state
+          setTimeout(function () {
+            phase = "idle";
+            console.log("Phase: idle");
+          }, 2000);
+        }
 
         window.addEventListener("resize", function () {
           camera.aspect = window.innerWidth / window.innerHeight;
@@ -1318,71 +1417,37 @@
           renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Subtle idle sway
-        var t = 0;
         function animate() {
           requestAnimationFrame(animate);
-          t += 0.01;
-          if (model) {
-            model.rotation.y = Math.sin(t * 0.5) * 0.15;
-            model.position.y = -0.8 + Math.sin(t * 0.8) * 0.03;
+          var delta = clock.getDelta();
+          if (mixer) mixer.update(delta);
+
+          // Walking: move character right
+          if (phase === "walking" && model) {
+            charX += 0.025;
+            model.position.x = charX;
+            if (charX >= -1.5) {
+              startWave();
+            }
           }
+
+          // Idle: subtle look toward cursor
+          if (phase === "idle" && model) {
+            model.rotation.y += (mouseX * 0.3 - model.rotation.y) * 0.02;
+          }
+
           renderer.render(scene, camera);
         }
         animate();
       })();
     </script>
 
-    <!-- Typewriter + hover code toggle -->
+    <!-- Hover code toggle (typewriter Hello handled by character script) -->
     <script>
       (function () {
-        var hello = document.getElementById("hero-hello");
-        var info = document.getElementById("hero-info");
         var tagEl = document.querySelector(".hero-tagline");
         var codeEl = document.querySelector(".hero-code");
         var stage = document.getElementById("desk-stage");
-        if (!hello || !info) return;
-
-        // Typewriter utility
-        function typeText(el, text, speed, cb) {
-          var i = 0;
-          function t() {
-            el.textContent = text.slice(0, ++i);
-            if (i < text.length) setTimeout(t, speed + Math.random() * 30);
-            else if (cb) cb();
-          }
-          t();
-        }
-        function backspace(el, speed, cb) {
-          function d() {
-            var s = el.textContent;
-            if (!s.length) {
-              if (cb) cb();
-              return;
-            }
-            el.textContent = s.slice(0, -1);
-            setTimeout(d, speed);
-          }
-          d();
-        }
-
-        // Sequence: Hello → backspace → type tagline
-        setTimeout(function () {
-          typeText(hello, "Hello", 100, function () {
-            setTimeout(function () {
-              backspace(hello, 50, function () {
-                hello.style.display = "none";
-                info.classList.add("visible");
-                // Type the tagline
-                if (tagEl) {
-                  var tagText = tagEl.textContent;
-                  tagEl.textContent = "";
-                  typeText(tagEl, tagText, 30);
-                }
-              });
-            }, 2000);
-          });
-        }, 600);
 
         // Show code on desk hover, hide tagline — type lines one by one
         if (stage && codeEl && tagEl) {
