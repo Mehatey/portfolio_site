@@ -8,6 +8,7 @@ category: UI · Fintech
 year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
 hero_image: "5.mool/cover.png"
+award_badge: "Kyoorius Design Awards 2021"
 meta:
   - label: Role
     value: Visual Designer
@@ -19,7 +20,9 @@ meta:
     value: Figma · Design Systems
   - label: Team
     value: Leaf Design Studio
-award_badge: "Kyoorius Design Awards 2021"
+  - label: Case Study
+    value: View on Leaf Design
+    url: https://www.leafdesign.co/work/mool
 refl_bg: "5.mool/reflection.png"
 reflection: >
   This project fundamentally changed how I approach design. Before Mool, I thought of accessibility as a checklist — larger fonts, better contrast, simpler layouts. Working on a product meant for underserved communities in India taught me that true accessibility runs much deeper than interface decisions.
@@ -35,22 +38,16 @@ next_project:
 ---
 
 <style>
-  /* No cropping — images at natural size */
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
   .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
-  .cs-grid-item img { object-fit: contain !important; height: auto !important; }
-  /* Kill ALL blur overlays */
+  .cs-grid-item img { object-fit: contain !important; height: auto !important; max-height: 500px; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
-  .cs-grid-3::before { display: none !important; }
-  /* More gap in grids + spacing between sections */
   .cs-grid { gap: 24px !important; }
   .cs-bleed { margin-top: 64px !important; }
   .cs-grid { margin-top: 64px !important; }
-  /* Reduce grid item max height so they're not too tall */
-  .cs-grid-item img { max-height: 500px; width: 100%; object-fit: contain !important; }
 </style>
 
 <div style="margin:0 !important; width:100%; position:relative; overflow:hidden;">
@@ -62,8 +59,9 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/1.jpg" alt="Mool" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/2.png" alt="Mool" loading="lazy" />
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.1.png" alt="Mool" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="Mool" loading="lazy" /></div>
 </div>
 
 <div class="cs-bleed">
@@ -71,20 +69,19 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/4.png" alt="Mool" loading="lazy" />
+  <img src="{{ site.baseurl }}/5.mool/4.jpg" alt="Mool" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/5.png" alt="Mool" loading="lazy" />
 </div>
 
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.1.png" alt="Mool" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.2.png" alt="Mool" loading="lazy" /></div>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/5.mool/6.png" alt="Mool" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/7.jpg" alt="Mool" loading="lazy" />
+  <img src="{{ site.baseurl }}/5.mool/7.png" alt="Mool" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
@@ -97,15 +94,6 @@ next_project:
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/10.png" alt="Mool" loading="lazy" />
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/11.1.png" alt="Mool" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/11.2.png" alt="Mool" loading="lazy" /></div>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/12.png" alt="Mool" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
