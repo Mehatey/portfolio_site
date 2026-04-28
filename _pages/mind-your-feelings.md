@@ -11,11 +11,11 @@ hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 1
 hero_image: "6.mindu/cover.webp"
 meta:
   - label: Role
-    value: Creative Technologist & Developer
+    value: Developer
   - label: Duration
-    value: 5 months
+    value: 1 month
   - label: Year
-    value: 2025–2026
+    value: 2026
   - label: Tools
     value: JavaScript · Python · Arduino · WLED
   - label: Team
