@@ -38,6 +38,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 
     <style>
       *,
@@ -127,6 +128,9 @@
         animation: cube-hue 8s ease-in-out infinite;
         backface-visibility: hidden;
         -webkit-backface-visibility: hidden;
+        will-change: transform;
+        transform-style: preserve-3d;
+        -webkit-transform-style: preserve-3d;
       }
       @keyframes cube-hue {
         0%,
@@ -519,7 +523,12 @@
       }
 
       #char-canvas {
-        display: none;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 3;
+        pointer-events: none;
       }
 
       /* ── FILM GRAIN NOISE ── */
@@ -761,6 +770,7 @@
       </a>
       <div class="nav-links">
         <a href="{{ site.baseurl }}/works/" class="nav-primary">Works</a>
+        <a href="{{ site.baseurl }}/play/" class="nav-secondary">Play</a>
         <a href="{{ site.baseurl }}/contact/" class="nav-secondary">Contact</a>
         <a href="{{ site.baseurl }}/about/" class="nav-secondary">About</a>
       </div>
@@ -1180,17 +1190,14 @@
         dir.position.set(2, 3, 4);
         scene.add(dir);
 
+        var dracoLoader = new THREE.DRACOLoader();
+        dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/");
         var gltfLoader = new THREE.GLTFLoader();
+        gltfLoader.setDRACOLoader(dracoLoader);
 
         var model = null;
 
-        // Debug: add a test cube immediately to confirm rendering works
-        var testGeo = new THREE.BoxGeometry(0.3, 0.3, 0.3);
-        var testMat = new THREE.MeshPhongMaterial({ color: 0x00ff80 });
-        var testCube = new THREE.Mesh(testGeo, testMat);
-        testCube.position.set(-2, 0.5, 0);
-        scene.add(testCube);
-        console.log("Test cube added to char scene");
+        console.log("Char scene ready, loading model...");
 
         // Lazy load character after 2 seconds
         setTimeout(function () {
@@ -1199,20 +1206,16 @@
             "{{ site.baseurl }}/assets/img/cube_char.glb",
             function (gltf) {
               model = gltf.scene;
-              // Scale down massively — Blender export is huge
-              // Model is microscopic (0.0001 units) — scale to visible
-              // Height is 0.0001, we want ~1.2 units = scale 12000
-              // But that makes textures fill screen. Use smaller + move back
-              model.scale.setScalar(5000);
-              model.position.set(-1.5, 0, 2);
-              // Move camera to see both cube and character
-              camera.position.set(0, 1, 8);
-              camera.lookAt(0, 0.5, 0);
-              console.log("Character at scale 5000");
+              // Measure and auto-scale
+              var bb = new THREE.Box3().setFromObject(model);
+              var ss = new THREE.Vector3();
+              bb.getSize(ss);
+              var charScale = 1.2 / ss.y;
+              model.scale.multiplyScalar(charScale);
+              bb.setFromObject(model);
+              model.position.set(-1.5, -bb.min.y, 0);
               scene.add(model);
-              // Keep test cube for debugging
-              // scene.remove(testCube);
-              console.log("Cube character loaded");
+              console.log("Size:", ss.y, "Scale:", charScale, "Pos:", model.position.y);
             },
             function (progress) {
               if (progress.total) console.log("Loading: " + Math.round((progress.loaded / progress.total) * 100) + "%");
