@@ -648,8 +648,14 @@
       })();
     </script> <script>
       (function () {
+        console.log("CHAR SCRIPT START");
         var canvas = document.getElementById("char-canvas");
-        if (!canvas || typeof THREE === "undefined") return;
+        console.log("canvas:", !!canvas, "THREE:", typeof THREE);
+        if (!canvas || typeof THREE === "undefined") {
+          console.log("CHAR SCRIPT ABORTED — canvas or THREE missing");
+          return;
+        }
+        console.log("CHAR SCRIPT RUNNING");
 
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -686,20 +692,20 @@
             "/assets/img/cube_char.glb",
             function (gltf) {
               model = gltf.scene;
-              console.log("GLB loaded, children:", model.children.length);
-              // Auto-scale
-              var box = new THREE.Box3().setFromObject(model);
-              var size = new THREE.Vector3();
-              box.getSize(size);
-              console.log("Model size:", size.x, size.y, size.z);
-              var scale = 1.8 / Math.max(size.x, size.y, size.z);
-              model.scale.set(scale, scale, scale);
-              // Position left of center
-              model.position.set(-2.2, 0, 0);
+              // Scale down massively — Blender export is huge
+              // Model is microscopic (0.0001 units) — scale to visible
+              // Height is 0.0001, we want ~1.2 units = scale 12000
+              // But that makes textures fill screen. Use smaller + move back
+              model.scale.setScalar(5000);
+              model.position.set(-1.5, 0, 2);
+              // Move camera to see both cube and character
+              camera.position.set(0, 1, 8);
+              camera.lookAt(0, 0.5, 0);
+              console.log("Character at scale 5000");
               scene.add(model);
               // Keep test cube for debugging
               // scene.remove(testCube);
-              console.log("Cube character loaded, scale:", scale);
+              console.log("Cube character loaded");
             },
             function (progress) {
               if (progress.total) console.log("Loading: " + Math.round((progress.loaded / progress.total) * 100) + "%");
