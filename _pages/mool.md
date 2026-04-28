@@ -19,14 +19,12 @@ meta:
   - label: Year
     value: 2021
   - label: Tools
-    value: Figma · Design Systems
+    value: Figma
   - label: Team
     value: Leaf Design Studio
   - label: Case Study
     value: View on Leaf Design
     url: https://www.leafdesign.co/work/mool
-insight: >
-  The visual identity draws from Indian folk art, regional textile patterns, and traditional color palettes. These are not decorative choices but signals of belonging, translating cultural familiarity into every screen so that someone from a small town feels this app was built for them.
 refl_bg: "5.mool/reflection.png"
 reflection: >
   Before Mool I thought accessible meant simpler. This project taught me it really means resonant. People trust an app not because it looks clean but because it feels like it was made by someone who understands their world.
@@ -93,11 +91,11 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/8.png" alt="Mool" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/9.png" alt="Mool" loading="lazy" />
+<div class="cs-bleed" style="text-align:center;">
+  <img src="{{ site.baseurl }}/5.mool/9.png" alt="Mool" loading="lazy" style="animation: moolBreathe 6s ease-in-out infinite;" />
 </div>
 
-<div class="cs-bleed" style="text-align:center;">
+<div class="cs-bleed" style="text-align:center; max-width:800px; margin-left:auto !important; margin-right:auto !important;">
   <img src="{{ site.baseurl }}/5.mool/10.png" alt="Mool" loading="lazy" style="animation: moolBreathe 6s ease-in-out infinite;" />
 </div>
 
