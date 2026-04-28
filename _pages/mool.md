@@ -3,7 +3,8 @@ layout: project
 permalink: /mool/
 project_title: Mool
 proj_num: "06"
-tagline: Banking app blending culturally grounded Indian visual language with financial tool clarity. 100k+ downloads within 90 days. Kyoorius Design Awards 2021.
+tagline: >
+  The majority of Indians deserve a better shot at money and a source that empowers them with the opportunities they truly need. Mool was built to be that source. A neo banking platform designed for underserved communities across India, blending the visual richness of Indian folk art, traditional motifs, and regional patterns with the precision and trust that financial tools demand. The challenge was making a banking app that doesn't just work, but feels like it belongs to the people using it. 100k+ downloads within 90 days of launch on the Google Play Store. Recognized at the Kyoorius Design Awards 2021.
 category: UI · Fintech
 year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
@@ -26,13 +27,13 @@ meta:
     url: https://www.leafdesign.co/work/mool
 refl_bg: "5.mool/reflection.png"
 reflection: >
-  This project fundamentally changed how I approach design. Before Mool, I thought of accessibility as a checklist — larger fonts, better contrast, simpler layouts. Working on a product meant for underserved communities in India taught me that true accessibility runs much deeper than interface decisions.
+  Before Mool, I thought making something accessible meant making it simpler. Bigger fonts, fewer steps, more white space. This project taught me that accessibility in finance is really about resonance. People don't trust an app because it looks clean. They trust it because it feels like it was made by someone who understands their world.
 
 
-  Trust is not something you can design with a button or a color. It comes from cultural familiarity — the feeling that this tool was made by someone who understands your world. The visual system we built drew from Indian folk art, traditional motifs, and regional patterns, not as decoration but as signals of belonging.
+  We spent weeks studying Indian folk art and regional visual traditions, not to decorate the interface but to find visual cues that would signal familiarity and safety. A pattern from Rajasthan, a color combination from Kerala, an illustration style rooted in miniature painting. None of it was random. Every visual decision was tested against one question: does this make someone from a small town in India feel like this app was built for them.
 
 
-  The biggest lesson was that clarity is not just functional, it is emotional. A user who feels seen by the design is a user who will trust the product with their money. That insight has shaped every project I have taken on since.
+  The most important thing I took from this project is that clarity is emotional, not just functional. A user who feels seen will trust you with their money. A user who feels confused will leave. That understanding has changed how I think about design for every project since.
 next_project:
   title: Unreal Game
   url: /unreal-game/

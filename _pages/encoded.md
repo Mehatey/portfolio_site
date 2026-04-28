@@ -18,8 +18,6 @@ meta:
   - label: Role
     value: Creative Technologist
     priority: primary
-award_badge: "2× Webby Awards 2026"
-award_image: "assets/img/badge_webby.webp"
   - label: Tools
     value: Polycam · Niantic VPS
     priority: dim
@@ -27,6 +25,8 @@ award_image: "assets/img/badge_webby.webp"
     value: Read in Detail
     url: https://www.encodedatthemet.com/
     priority: cta
+award_badge: "2× Webby Awards 2026"
+award_image: "assets/img/badge_webby.webp"
 refl_type: Testimonial
 reflection: >
   Siddharth took ownership of on-site 3D scanning and spatial deployment for ENCODED at the Metropolitan Museum of Art. He handled the full pipeline from Polycam capture to Niantic Lightship integration, remaining persistent through unstable uploads and inconsistent scans. His ability to work discreetly within the museum, collaborate across LA and Melbourne, and contribute beyond his core scope made him a strong and dependable part of the team.
