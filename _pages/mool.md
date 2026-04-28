@@ -25,7 +25,11 @@ next_project:
   url: /unreal-game/
 ---
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
+  <img src="{{ site.baseurl }}/5.mool/cover.png" alt="Mool — Kyoorius Award 2021" loading="eager" />
+</div>
+
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/1.png" alt="Mool — banking experience" loading="eager" />
 </div>
 
@@ -42,11 +46,11 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/2.png" alt="Project brief" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/4.png" alt="Mool naming and etymology" loading="lazy" />
 </div>
 
@@ -63,11 +67,11 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/5.png" alt="Brand voice" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/6.1.png" alt="Cultural inspiration" loading="lazy" />
 </div>
 
@@ -76,7 +80,7 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/3.png" alt="App Store listing" loading="lazy" /></div>
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/7.jpg" alt="Brand guidelines" loading="lazy" />
 </div>
 
@@ -98,7 +102,7 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/9.png" alt="App screen flows" loading="lazy" />
 </div>
 
@@ -112,7 +116,7 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/12.jpg" alt="Features — payments" loading="lazy" /></div>
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Features — investments" loading="lazy" />
 </div>
 
@@ -140,7 +144,7 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/15.png" alt="Website design" loading="lazy" />
 </div>
 
