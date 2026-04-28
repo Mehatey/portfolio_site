@@ -3,87 +3,113 @@ layout: project
 permalink: /mind-your-feelings/
 project_title: Mind Your Feelings
 proj_num: "02"
-tagline: Interactive installation helping people externalize and understand emotions through a touchscreen interface and responsive LED brain.
+tagline: >
+  Mind Your Feelings is a participatory installation at the Johnson Public Library in Hackensack that visualizes the feelings of community members. The system combines a touchscreen interface with a responsive LED brain sculpture, allowing users to select emotions, map them onto the body, and see them come alive through light. Over 800 participants have experienced the installation since December 2025, turning internal emotional states into shared, tangible moments of reflection.
 category: Installation · Creative Tech
-year: 2026
+year: 2025–2026
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)"
+hero_image: "6.mindu/cover.webp"
 meta:
   - label: Role
-    value: Creative Technologist and Developer
+    value: Creative Technologist & Developer
   - label: Duration
-    value: 2 months
+    value: 5 months
   - label: Year
-    value: 2026
+    value: 2025–2026
   - label: Tools
-    value: JavaScript · Python · Arduino/WLED · Web Interface
+    value: JavaScript · Python · Arduino · WLED
   - label: Team
-    value: Juanli C, Rodolfo K, Siddharth M
+    value: Juanli Carrión, Rodolfo Kusulas, Siddharth Mehta
   - label: Client
-    value: Northern NJ Community Foundation
+    value: Northern NJ Community Foundation · ArtsBergen
 reflection: >
-  First time connecting Arduino to Python backend and integrating with live kiosk interface.
+  This was the first project where I had to connect physical hardware to a live software system in a public space. The Arduino brain needed to respond to user input within milliseconds or the experience would feel broken. Getting the Python backend to reliably bridge the web interface to the WLED controller took more debugging than I expected, but once it worked it felt like magic.
+
+
+  What surprised me was how quickly strangers opened up when given a space that felt safe. People were not looking for the right answer. They just wanted to be seen. Watching someone select an emotion, see it light up a brain sculpture, and then pause for a moment of recognition taught me something about what design can do when it steps out of a screen and into a room.
+
+
+  800 participants in five months. The data we collected is now being used by local mental health organizations to better understand community wellbeing. That was never part of the original brief but it became the most meaningful outcome.
 next_project:
   title: Mandalas
   url: /mandalas/
 ---
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">01</span>
-    Concept
+<style>
+  .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
+  .cs-bleed img, .cs-bleed video { object-fit: contain !important; height: auto !important; }
+  .cs-bleed::before { display: none !important; }
+  .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
+  .cs-grid-item img, .cs-grid-item video { object-fit: cover !important; height: 100% !important; }
+  .cs-grid::before { display: none !important; }
+  .cs-grid-item::before { display: none !important; }
+  .cs-grid { gap: 16px !important; align-items: stretch !important; }
+  .cs-bleed { margin-top: 56px !important; }
+  .cs-grid { margin-top: 56px !important; }
+  /* Slow rotation for 1.2 brain webp */
+  .rotate-slow { animation: rotateSlow 20s linear infinite; }
+  @keyframes rotateSlow { to { transform: rotate(360deg); } }
+  /* Small caption above images */
+  .img-caption {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.3);
+    margin-top: 56px;
+    margin-bottom: 12px;
+    padding: 0 var(--gutter);
+  }
+</style>
+
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/6.mindu/1.1.mp4"></video>
   </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">Externalizing emotion<br>through light and touch.</h2>
-    <div class="cs-body">
-      <p>Mind Your Feelings is an interactive installation that helps people externalize and understand their emotions through a touchscreen interface and a responsive LED brain sculpture.</p>
-      <p>Users interact with a kiosk to express how they feel. The LED brain responds in real time, translating internal states into visible, shared light, making the invisible tangible.</p>
-    </div>
+  <div class="cs-grid-item" style="display:flex; align-items:center; justify-content:center; background:#111 !important;">
+    <img src="{{ site.baseurl }}/6.mindu/1.2.webp" alt="LED Brain" class="rotate-slow" style="width:70%; height:auto !important; object-fit:contain !important;" />
   </div>
+</div>
+
+<p class="img-caption">Installation site · Johnson Public Library, Hackensack</p>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/6.mindu/2.1.mp4" style="width:100%; display:block;"></video>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Installation view, LED brain responding to input</div>
-</div>
-<div class="cs-bleed-cap">
-  <span></span>
-  <span class="cap-text">Arduino/WLED · responsive LED sculpture</span>
+  <img src="{{ site.baseurl }}/6.mindu/2.2.JPEG" alt="Installation space" loading="lazy" />
 </div>
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">02</span>
-    Process
-  </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">Bridging hardware and interface.</h2>
-    <div class="cs-body">
-      <p>The system connects a web-based touchscreen interface to a Python backend that drives Arduino-controlled WLED strips. Each emotional input maps to specific color patterns and animations on the brain sculpture.</p>
-      <p>180 users engaged with the installation over two weeks, each interaction adding to a collective emotional landscape visible to everyone in the space.</p>
-    </div>
-  </div>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/6.mindu/3.png" alt="The Neural Landscape" loading="lazy" />
 </div>
+
+<p class="img-caption">Arduino 3D brain sculpture · Designed by Rodolfo Kusulas</p>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Touchscreen interface, emotion selection</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">LED brain, color response mapping</div></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/4.1.jpeg" alt="Brain hardware" loading="lazy" /></div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/6.mindu/4.2.mp4"></video>
+  </div>
 </div>
 
-<div class="cs-wide">
-  <div class="cs-wide-inner">
-    <div class="vis-ph">Installation in use, visitor interaction</div>
-  </div>
-  <p class="cap-text">JavaScript · Python · Arduino/WLED · Web Interface</p>
+<p class="img-caption">UI flow · Touchscreen kiosk interface</p>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/6.mindu/5.png" alt="UI flow" loading="lazy" />
 </div>
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">03</span>
-    Insight
-  </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">180 users in 2 weeks.</h2>
-    <div class="cs-body">
-      <p>When emotions become visible and shared, people engage differently. The installation created a space where internal states could be expressed without words, light became the language.</p>
-    </div>
-  </div>
+<p class="img-caption">User interactions</p>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/6.mindu/6.png" alt="Interactions" loading="lazy" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/6.mindu/7.png" alt="System architecture" loading="lazy" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/6.mindu/8.jpeg" alt="Installation detail" loading="lazy" />
 </div>
