@@ -19,43 +19,27 @@ meta:
     value: Figma · Design Systems
   - label: Team
     value: Leaf Design Studio
+refl_bg: "5.mool/reflection.png"
 reflection: >
-  This project shifted how I think about design beyond interface and into context. Making finance accessible meant understanding people's relationship with money — their fears, habits, and level of awareness. I learned that clarity isn't only functional but emotional, and that design decisions like language, tone, and visual cues can determine whether a user feels confident or excluded.
+  Trust in finance isn't built through features alone — it's built through cultural relevance. This project taught me that accessibility is not about simplification, it's about resonance. When financial tools reflect the culture of their users, trust forms faster.
 next_project:
   title: Unreal Game
   url: /unreal-game/
 ---
 
 <style>
-  /* Hero cover — full width, blurred edges, above stats */
-  .hero-video {
-    position: relative !important;
-    width: 100% !important;
-    height: auto !important;
-    object-fit: contain !important;
-    opacity: 1 !important;
-    filter: none !important;
-  }
-
   /* No cropping — images at natural size */
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
   .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; }
   .cs-grid-item img { object-fit: contain !important; height: auto !important; }
-  .cs-wide-inner { aspect-ratio: auto !important; overflow: visible !important; }
-  .cs-wide-inner img { object-fit: contain !important; height: auto !important; }
+  /* Only 0.png gets blur — handled inline */
+  .mool-blur img { filter: blur(0px); transition: filter 0.3s; }
 </style>
 
-<div class="cs-intro">
-  <span class="intro-overview-label">Insight</span>
-  <div class="cs-body">
-    <p>Why can't banking apps feel rooted in the culture they serve? Mool was designed to bring financial independence to underserved users in India — 100k+ downloads within 90 days of launch on Google Play Store.</p>
-  </div>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool — 100k+ downloads" loading="eager" />
+<div class="cs-bleed" style="position:relative; overflow:hidden !important; aspect-ratio:16/9 !important;">
+  <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool — 100k+ downloads" loading="eager" style="object-fit:cover !important; height:100% !important;" />
 </div>
 
 <div class="cs-row">
@@ -64,27 +48,22 @@ next_project:
     Brief
   </div>
   <div class="cs-content">
-    <h2 class="cs-heading">To craft an inclusive brand experience that speaks to the masses.</h2>
-    <div class="cs-body">
-      <p>Build a seamless, engaging and user-friendly financial service that's easy to use for everyone, regardless of background, experience, or use case. Define an online presence and identity while communicating the brand's message of empowering the largest cohort of new savers.</p>
-    </div>
+    <h2 class="cs-heading">An inclusive brand experience that speaks to the masses.</h2>
   </div>
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/1.png" alt="Mool — banking experience" loading="lazy" />
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/1.1.png" alt="Mool screens" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/1.2.png" alt="Mool naming" loading="lazy" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/2.jpg" alt="Project brief" loading="lazy" />
+  <img src="{{ site.baseurl }}/5.mool/2.png" alt="Project brief" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/3.png" alt="App Store listing" loading="lazy" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/4.png" alt="Mool naming and etymology" loading="lazy" />
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/3.1.png" alt="App Store" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/3.2.png" alt="App screens" loading="lazy" /></div>
 </div>
 
 <div class="cs-row">
@@ -93,11 +72,13 @@ next_project:
     Brand
   </div>
   <div class="cs-content">
-    <h2 class="cs-heading">Familiar form,<br>financial clarity.</h2>
-    <div class="cs-body">
-      <p>The design system balanced warmth and credibility. Color, typography, and iconography were chosen to feel culturally grounded without being decorative. Every element was tested: does this feel like something you would trust with your money?</p>
-    </div>
+    <h2 class="cs-heading">Familiar form, financial clarity.</h2>
   </div>
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/4.1.png" alt="Cultural inspiration" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/4.2.png" alt="Logo" loading="lazy" /></div>
 </div>
 
 <div class="cs-bleed">
@@ -105,21 +86,16 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.1.png" alt="Cultural inspiration" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.2.png" alt="Logo variations" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.1.png" alt="Motifs" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.2.png" alt="Icons" loading="lazy" /></div>
 </div>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/7.jpg" alt="Brand guidelines" loading="lazy" />
 </div>
 
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/8.1.png" alt="Color palette" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/8.2.jpg" alt="Typography" loading="lazy" /></div>
-</div>
-
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/8.jpg" alt="Design system" loading="lazy" />
+  <img src="{{ site.baseurl }}/5.mool/8.png" alt="Design system" loading="lazy" />
 </div>
 
 <div class="cs-row">
@@ -129,54 +105,34 @@ next_project:
   </div>
   <div class="cs-content">
     <h2 class="cs-heading">The app.</h2>
-    <div class="cs-body">
-      <p>A full banking experience — from account opening to debit card, online payments to fund transfers, investment to insurance. Everything a banking platform should have, brought together in partnership with YES Bank.</p>
-    </div>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/9.png" alt="App screen flows" loading="lazy" />
+  <img src="{{ site.baseurl }}/5.mool/9.png" alt="App flows" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/10.jpg" alt="App screens" loading="lazy" />
+  <img src="{{ site.baseurl }}/5.mool/10.png" alt="Screens" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Features" loading="lazy" />
+<div class="cs-grid cs-grid-3">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/11.1.png" alt="Marketing" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/11.2.png" alt="Marketing" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/11.3.png" alt="Marketing" loading="lazy" /></div>
 </div>
 
 <div class="cs-row">
   <div class="cs-label">
     <span class="cs-label-num">04</span>
-    Marketing
+    Website
   </div>
   <div class="cs-content">
     <h2 class="cs-heading">One India, unified by better banking.</h2>
-    <div class="cs-body">
-      <p>Mool stands by Indian households across the income spectrum. Income and wealth in India are spread out across the country, and financial problems are common to us all — even if the proposed solutions are different.</p>
-    </div>
   </div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/14.1.png" alt="Marketing" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/14.2.png" alt="Marketing" loading="lazy" /></div>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/14.3.png" alt="Marketing" loading="lazy" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/15.png" alt="Website design" loading="lazy" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/16.jpg" alt="Additional screens" loading="lazy" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/footer.png" alt="Mool motifs" loading="lazy" />
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/12.1.png" alt="Website" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/12.2.jpg" alt="Website" loading="lazy" /></div>
 </div>
