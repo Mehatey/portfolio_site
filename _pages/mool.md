@@ -19,6 +19,7 @@ meta:
     value: Figma · Design Systems
   - label: Team
     value: Leaf Design Studio
+award_badge: "Kyoorius Design Awards 2021"
 refl_bg: "5.mool/reflection.png"
 reflection: >
   This project fundamentally changed how I approach design. Before Mool, I thought of accessibility as a checklist — larger fonts, better contrast, simpler layouts. Working on a product meant for underserved communities in India taught me that true accessibility runs much deeper than interface decisions.
@@ -44,12 +45,17 @@ next_project:
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
   .cs-grid-3::before { display: none !important; }
-  /* More gap in grids */
+  /* More gap in grids + spacing between sections */
   .cs-grid { gap: 24px !important; }
+  .cs-bleed { margin-top: 64px !important; }
+  .cs-grid { margin-top: 64px !important; }
+  /* Reduce grid item max height so they're not too tall */
+  .cs-grid-item img { max-height: 500px; width: 100%; object-fit: contain !important; }
 </style>
 
-<div class="cs-bleed" style="position:relative; overflow:hidden !important; aspect-ratio:16/9 !important;">
-  <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool — 100k+ downloads" loading="eager" style="object-fit:cover !important; height:100% !important;" />
+<div style="margin:0 !important; width:100%; position:relative; overflow:hidden;">
+  <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool — 100k+ downloads" loading="eager" style="width:100%; display:block;" />
+  <div style="position:absolute; inset:0; pointer-events:none; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.6) 100%);"></div>
 </div>
 
 <div class="cs-bleed">

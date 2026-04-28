@@ -18,6 +18,7 @@ meta:
   - label: Role
     value: Creative Technologist
     priority: primary
+award_badge: "2× Webby Awards 2026"
   - label: Tools
     value: Polycam · Niantic VPS
     priority: dim
