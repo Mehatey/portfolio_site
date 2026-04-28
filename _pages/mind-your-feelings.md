@@ -22,6 +22,7 @@ meta:
     value: Juanli Carrión, Rodolfo Kusulas, Siddharth Mehta
   - label: Client
     value: Northern NJ Community Foundation · ArtsBergen
+refl_bg: "6.mindu/refl_bg.jpg"
 reflection: >
   This was the first project where I had to connect physical hardware to a live software system in a public space. The Arduino brain needed to respond to user input within milliseconds or the experience would feel broken. Getting the Python backend to reliably bridge the web interface to the WLED controller took more debugging than I expected, but once it worked it felt like magic.
 
@@ -54,14 +55,42 @@ next_project:
     0%, 100% { transform: rotate(-15deg) scale(1); }
     50% { transform: rotate(15deg) scale(1.02); }
   }
-  /* Caption matching cube-guy style */
+  /* Caption — anchored close to the image below */
   .myf-cap {
     font-family: var(--font-mono);
     font-size: 13px;
     color: rgba(255,255,255,0.42);
-    padding: 0 var(--gutter) 8px;
-    margin: 56px 0 12px;
+    padding: 0 var(--gutter);
+    margin: 0 0 8px;
     line-height: 1.5;
+  }
+  /* Color blobs behind brain */
+  .brain-wrap {
+    position: relative;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    padding: 40px 0;
+  }
+  .brain-wrap::before {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    top: 50%; left: 40%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(140,80,220,0.15) 0%, transparent 70%);
+    filter: blur(60px);
+    pointer-events: none;
+  }
+  .brain-wrap::after {
+    content: '';
+    position: absolute;
+    width: 250px; height: 250px;
+    top: 45%; left: 60%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(60,180,220,0.12) 0%, transparent 70%);
+    filter: blur(50px);
+    pointer-events: none;
   }
 </style>
 
@@ -74,8 +103,8 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed" style="text-align:center; display:flex; justify-content:center;">
-  <img src="{{ site.baseurl }}/6.mindu/1.webp" alt="LED Brain" class="brain-sway" style="max-width:400px; width:60%; height:auto !important; object-fit:contain !important;" />
+<div class="brain-wrap" style="margin-top:56px;">
+  <img src="{{ site.baseurl }}/6.mindu/1.webp" alt="LED Brain" class="brain-sway" style="max-width:350px; width:50%; height:auto; object-fit:contain; position:relative; z-index:1;" />
 </div>
 
 <p class="myf-cap">Our supporters</p>
@@ -122,10 +151,7 @@ next_project:
   <img src="{{ site.baseurl }}/6.mindu/7.png" alt="System" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/p1.png" alt="Installation" loading="lazy" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/p2.png" alt="Installation" loading="lazy" />
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/p1.png" alt="Installation" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/p2.png" alt="Installation" loading="lazy" /></div>
 </div>
