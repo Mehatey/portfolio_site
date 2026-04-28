@@ -4,7 +4,7 @@ permalink: /mool/
 project_title: Mool
 proj_num: "06"
 tagline: >
-  The majority of Indians deserve a better shot at money and a source that empowers them with the opportunities they truly need. Mool was built to be that source. A neo banking platform designed for underserved communities across India, blending the visual richness of Indian folk art, traditional motifs, and regional patterns with the precision and trust that financial tools demand. The challenge was making a banking app that doesn't just work, but feels like it belongs to the people using it. 100k+ downloads within 90 days of launch on the Google Play Store. Recognized at the Kyoorius Design Awards 2021.
+  The majority of Indians deserve a better shot at money and a source that empowers them with the opportunities they truly need. Mool was built to be that source. A neo banking platform designed for underserved communities across India, blending the visual richness of Indian folk art, traditional motifs, and regional patterns with the precision and trust that financial tools demand. The challenge was making a banking app that doesn't just work, but feels like it belongs to the people using it.
 category: UI · Fintech
 year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
@@ -27,13 +27,13 @@ meta:
     url: https://www.leafdesign.co/work/mool
 refl_bg: "5.mool/reflection.png"
 reflection: >
-  Before Mool, I thought making something accessible meant making it simpler. Bigger fonts, fewer steps, more white space. This project taught me that accessibility in finance is really about resonance. People don't trust an app because it looks clean. They trust it because it feels like it was made by someone who understands their world.
+  Before Mool I thought accessible meant simpler. This project taught me it really means resonant. People trust an app not because it looks clean but because it feels like it was made by someone who understands their world.
 
 
-  We spent weeks studying Indian folk art and regional visual traditions, not to decorate the interface but to find visual cues that would signal familiarity and safety. A pattern from Rajasthan, a color combination from Kerala, an illustration style rooted in miniature painting. None of it was random. Every visual decision was tested against one question: does this make someone from a small town in India feel like this app was built for them.
+  We studied Indian folk art, regional patterns, and traditional color palettes not as decoration but as signals of belonging. Every visual decision was tested against one question: does this make someone from a small town feel like this was built for them.
 
 
-  The most important thing I took from this project is that clarity is emotional, not just functional. A user who feels seen will trust you with their money. A user who feels confused will leave. That understanding has changed how I think about design for every project since.
+  Clarity is emotional, not just functional. A user who feels seen will trust you with their money.
 next_project:
   title: Unreal Game
   url: /unreal-game/
@@ -53,9 +53,17 @@ next_project:
   .cs-grid { margin-top: 64px !important; }
 </style>
 
+<div class="cs-intro">
+  <span class="intro-overview-label">Insight</span>
+  <div class="cs-body cs-body--insight">
+    <span class="insight-label">How do you take a banking app and make it feel Indian?</span>
+    Not by adding a flag or using saffron in the color palette. The answer was in the visual traditions that people already carry with them. Kolam patterns from Tamil Nadu, Madhubani linework from Bihar, textile motifs from Gujarat. These aren't decorative choices. They are the visual language of trust for millions of people who have never felt like a banking app was made for them. The design system we built translates that familiarity into every screen, every icon, every interaction.
+  </div>
+</div>
+
 <div style="margin:0 !important; width:100%; position:relative; overflow:hidden;">
   <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool — 100k+ downloads" loading="eager" style="width:100%; display:block;" />
-  <div style="position:absolute; inset:0; pointer-events:none; background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.6) 100%);"></div>
+  <div style="position:absolute; inset:0; pointer-events:none; background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%), linear-gradient(to right, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.4) 100%);"></div>
 </div>
 
 <div class="cs-bleed">
