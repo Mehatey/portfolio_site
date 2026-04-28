@@ -32,10 +32,25 @@ next_project:
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
-  .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; }
+  .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-grid-item img { object-fit: contain !important; height: auto !important; }
-  /* Only 0.png gets blur — handled inline */
-  .mool-blur img { filter: blur(0px); transition: filter 0.3s; }
+  /* Kill ALL blur overlays on grids */
+  .cs-grid::before { display: none !important; }
+  .cs-grid-item::before { display: none !important; }
+  .cs-grid-3::before { display: none !important; }
+  /* 3-col grid — smaller, with breathing animation */
+  .cs-grid-3 { max-width: 900px; margin-left: auto; margin-right: auto; gap: 16px !important; }
+  .cs-grid-3 .cs-grid-item { aspect-ratio: auto !important; }
+  .cs-grid-3 .cs-grid-item img { animation: moolFloat 6s ease-in-out infinite; }
+  .cs-grid-3 .cs-grid-item:nth-child(1) img { animation-delay: 0s; }
+  .cs-grid-3 .cs-grid-item:nth-child(2) img { animation-delay: -2s; }
+  .cs-grid-3 .cs-grid-item:nth-child(3) img { animation-delay: -4s; }
+  @keyframes moolFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+  /* More gap in regular grids */
+  .cs-grid { gap: 24px !important; }
 </style>
 
 <div class="cs-bleed" style="position:relative; overflow:hidden !important; aspect-ratio:16/9 !important;">
