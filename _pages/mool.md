@@ -30,7 +30,7 @@ next_project:
 </div>
 
 <div class="cs-bleed cs-bleed--no-fade">
-  <img src="{{ site.baseurl }}/5.mool/1.png" alt="Mool — banking experience" loading="eager" />
+  <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool — 100k+ downloads" loading="eager" />
 </div>
 
 <div class="cs-row">
@@ -47,7 +47,15 @@ next_project:
 </div>
 
 <div class="cs-bleed cs-bleed--no-fade">
-  <img src="{{ site.baseurl }}/5.mool/2.png" alt="Project brief" loading="lazy" />
+  <img src="{{ site.baseurl }}/5.mool/1.png" alt="Mool — banking experience" loading="lazy" />
+</div>
+
+<div class="cs-bleed cs-bleed--no-fade">
+  <img src="{{ site.baseurl }}/5.mool/2.jpg" alt="Project brief" loading="lazy" />
+</div>
+
+<div class="cs-bleed cs-bleed--no-fade">
+  <img src="{{ site.baseurl }}/5.mool/3.png" alt="App Store listing" loading="lazy" />
 </div>
 
 <div class="cs-bleed cs-bleed--no-fade">
@@ -71,13 +79,9 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/5.png" alt="Brand voice" loading="lazy" />
 </div>
 
-<div class="cs-bleed cs-bleed--no-fade">
-  <img src="{{ site.baseurl }}/5.mool/6.1.png" alt="Cultural inspiration" loading="lazy" />
-</div>
-
 <div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.1.png" alt="Cultural inspiration" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.2.png" alt="Logo variations" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/3.png" alt="App Store listing" loading="lazy" /></div>
 </div>
 
 <div class="cs-bleed cs-bleed--no-fade">
@@ -86,7 +90,11 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/8.1.png" alt="Color palette" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/8.2.png" alt="Typography" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/8.2.jpg" alt="Typography" loading="lazy" /></div>
+</div>
+
+<div class="cs-bleed cs-bleed--no-fade">
+  <img src="{{ site.baseurl }}/5.mool/8.jpg" alt="Design system" loading="lazy" />
 </div>
 
 <div class="cs-row">
@@ -106,18 +114,12 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/9.png" alt="App screen flows" loading="lazy" />
 </div>
 
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/10.1.jpg" alt="Dashboard" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/10.2.jpg" alt="Investments" loading="lazy" /></div>
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/11.jpg" alt="Features — transfers" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/12.jpg" alt="Features — payments" loading="lazy" /></div>
+<div class="cs-bleed cs-bleed--no-fade">
+  <img src="{{ site.baseurl }}/5.mool/10.jpg" alt="App screens" loading="lazy" />
 </div>
 
 <div class="cs-bleed cs-bleed--no-fade">
-  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Features — investments" loading="lazy" />
+  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Features" loading="lazy" />
 </div>
 
 <div class="cs-row">
@@ -138,21 +140,20 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/14.2.png" alt="Marketing" loading="lazy" /></div>
 </div>
 
-<div class="cs-wide">
-  <div class="cs-wide-inner">
-    <img src="{{ site.baseurl }}/5.mool/14.3.png" alt="Marketing" loading="lazy" />
-  </div>
+<div class="cs-bleed cs-bleed--no-fade">
+  <img src="{{ site.baseurl }}/5.mool/14.3.png" alt="Marketing" loading="lazy" />
 </div>
 
 <div class="cs-bleed cs-bleed--no-fade">
   <img src="{{ site.baseurl }}/5.mool/15.png" alt="Website design" loading="lazy" />
 </div>
 
-<div class="cs-wide">
-  <div class="cs-wide-inner">
-    <img src="{{ site.baseurl }}/5.mool/16.jpg" alt="Additional screens" loading="lazy" />
-  </div>
-  <p class="cap-text">Kyoorius Design Awards 2021 · Leaf Design Studio</p>
+<div class="cs-bleed cs-bleed--no-fade">
+  <img src="{{ site.baseurl }}/5.mool/16.jpg" alt="Additional screens" loading="lazy" />
+</div>
+
+<div class="cs-bleed cs-bleed--no-fade">
+  <img src="{{ site.baseurl }}/5.mool/footer.png" alt="Mool motifs" loading="lazy" />
 </div>
 
 <div class="cs-row">
