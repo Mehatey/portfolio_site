@@ -43,7 +43,8 @@ next_project:
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
   .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
-  .cs-grid-item img { object-fit: contain !important; height: auto !important; max-height: 500px; }
+  .cs-grid-item img { object-fit: cover !important; height: 100% !important; }
+  .cs-grid { align-items: stretch !important; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
   .cs-grid { gap: 24px !important; }
@@ -93,9 +94,16 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/9.png" alt="Mool" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/10.png" alt="Mool" loading="lazy" />
+<div class="cs-bleed" style="text-align:center;">
+  <img src="{{ site.baseurl }}/5.mool/10.png" alt="Mool" loading="lazy" style="animation: moolBreathe 6s ease-in-out infinite;" />
 </div>
+
+<style>
+  @keyframes moolBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.015) translateY(-4px); }
+  }
+</style>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Mool" loading="lazy" />
