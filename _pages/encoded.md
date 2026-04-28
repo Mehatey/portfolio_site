@@ -19,6 +19,7 @@ meta:
     value: Creative Technologist
     priority: primary
 award_badge: "2× Webby Awards 2026"
+award_image: "assets/img/badge_webby.webp"
   - label: Tools
     value: Polycam · Niantic VPS
     priority: dim

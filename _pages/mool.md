@@ -9,6 +9,7 @@ year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
 hero_image: "5.mool/cover.png"
 award_badge: "Kyoorius Design Awards 2021"
+award_image: "assets/img/badge_kyoorius.png"
 meta:
   - label: Role
     value: Visual Designer
