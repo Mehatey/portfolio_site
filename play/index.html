@@ -240,6 +240,8 @@ title: Play — Sid Mehta
         top: 0;
         left: 0;
         will-change: transform;
+        background-image: radial-gradient(circle, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+        background-size: 32px 32px;
       }
 
       /* ── GALLERY ITEMS ── */
@@ -303,11 +305,15 @@ title: Play — Sid Mehta
         max-height: 85vh;
         border-radius: 10px;
         box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
-        transform: scale(0.92);
-        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        transform: scale(0.85);
+        opacity: 0;
+        transition:
+          transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 0.35s ease;
       }
       .overlay.active .overlay-img {
         transform: scale(1);
+        opacity: 1;
       }
 
       /* ── HINT ── */
@@ -410,8 +416,8 @@ title: Play — Sid Mehta
         "use strict";
 
         var TOTAL = 77;
-        var CANVAS_W = 8000;
-        var CANVAS_H = 6000;
+        var CANVAS_W = 4000;
+        var CANVAS_H = 3000;
         var canvasEl = document.getElementById("canvas");
         var viewportEl = document.getElementById("viewport");
         var overlayEl = document.getElementById("overlay");
@@ -421,43 +427,77 @@ title: Play — Sid Mehta
         canvasEl.style.width = CANVAS_W + "px";
         canvasEl.style.height = CANVAS_H + "px";
 
-        /* ── GENERATE ITEMS ── */
+        /* ── GENERATE ITEMS (overlap-aware placement) ── */
         var sizes = [
-          [180, 180],
-          [260, 180],
-          [360, 240],
-          [200, 300],
-          [280, 200],
-          [320, 220],
+          [280, 280],
+          [380, 260],
+          [500, 340],
+          [300, 420],
+          [400, 280],
+          [460, 320],
         ];
-        var items = [];
 
-        for (var i = 1; i <= TOTAL; i++) {
-          var sz = sizes[Math.floor(Math.random() * sizes.length)];
-          var rot = (Math.random() - 0.5) * 6;
+        function placeItems(total) {
+          var placed = [];
+          for (var i = 1; i <= total; i++) {
+            var sz = sizes[Math.floor(Math.random() * sizes.length)];
+            var attempts = 0;
+            var x, y, overlaps;
+            do {
+              x = 40 + Math.random() * (CANVAS_W - sz[0] - 80);
+              y = 40 + Math.random() * (CANVAS_H - sz[1] - 80);
+              overlaps = false;
+              for (var j = 0; j < placed.length; j++) {
+                var p = placed[j];
+                if (x < p.x + p.w + 20 && x + sz[0] + 20 > p.x && y < p.y + p.h + 20 && y + sz[1] + 20 > p.y) {
+                  overlaps = true;
+                  break;
+                }
+              }
+              attempts++;
+            } while (overlaps && attempts < 50);
+
+            var item = {
+              src: "{{ site.baseurl }}/play/assets/p" + i + ".jpg",
+              x: x,
+              y: y,
+              w: sz[0],
+              h: sz[1],
+              rot: (Math.random() - 0.5) * 5,
+            };
+            placed.push(item);
+          }
+          return placed;
+        }
+
+        var items = placeItems(TOTAL);
+        var itemEls = [];
+
+        for (var i = 0; i < items.length; i++) {
+          var it = items[i];
           var breathDur = 8 + Math.random() * 4;
           var breathDelay = Math.random() * -breathDur;
 
           var el = document.createElement("div");
           el.className = "gallery-item";
-          el.style.width = sz[0] + "px";
-          el.style.height = sz[1] + "px";
-          el.style.left = Math.floor(Math.random() * (CANVAS_W - sz[0])) + "px";
-          el.style.top = Math.floor(Math.random() * (CANVAS_H - sz[1])) + "px";
-          el.style.setProperty("--base-transform", "rotate(" + rot.toFixed(2) + "deg)");
-          el.style.transform = "rotate(" + rot.toFixed(2) + "deg)";
+          el.style.width = it.w + "px";
+          el.style.height = it.h + "px";
+          el.style.left = Math.floor(it.x) + "px";
+          el.style.top = Math.floor(it.y) + "px";
+          el.style.setProperty("--base-transform", "rotate(" + it.rot.toFixed(2) + "deg)");
+          el.style.transform = "rotate(" + it.rot.toFixed(2) + "deg)";
           el.style.animation = "breathe " + breathDur.toFixed(1) + "s ease-in-out " + breathDelay.toFixed(1) + "s infinite";
-          el.setAttribute("data-rot", rot.toFixed(2));
+          el.setAttribute("data-rot", it.rot.toFixed(2));
 
           var img = document.createElement("img");
-          img.src = "{{ site.baseurl }}/play/assets/p" + i + ".jpg";
-          img.alt = "Play " + i;
+          img.src = it.src;
+          img.alt = "Play " + (i + 1);
           img.loading = "lazy";
           img.draggable = false;
           el.appendChild(img);
 
           canvasEl.appendChild(el);
-          items.push({ el: el, src: img.src, rot: rot });
+          itemEls.push({ el: el, src: it.src, rot: it.rot });
         }
 
         /* ── HOVER: scale up, zero rotation ── */
@@ -488,6 +528,10 @@ title: Play — Sid Mehta
         var panStartX = 0;
         var panStartY = 0;
         var hintDismissed = false;
+        var velX = 0;
+        var velY = 0;
+        var lastMoveX = 0;
+        var lastMoveY = 0;
 
         function clampPan() {
           var vw = window.innerWidth;
@@ -510,6 +554,20 @@ title: Play — Sid Mehta
         clampPan();
         applyPan();
 
+        /* ── MOMENTUM LOOP ── */
+        function applyMomentum() {
+          if (!isDragging && (Math.abs(velX) > 0.1 || Math.abs(velY) > 0.1)) {
+            panX += velX;
+            panY += velY;
+            velX *= 0.95;
+            velY *= 0.95;
+            clampPan();
+            applyPan();
+          }
+          requestAnimationFrame(applyMomentum);
+        }
+        applyMomentum();
+
         /* ── DRAG TO PAN ── */
         viewportEl.addEventListener("mousedown", function (e) {
           if (e.target.closest(".gallery-item")) {
@@ -518,13 +576,21 @@ title: Play — Sid Mehta
           isDragging = true;
           dragStartX = e.clientX;
           dragStartY = e.clientY;
+          lastMoveX = e.clientX;
+          lastMoveY = e.clientY;
           panStartX = panX;
           panStartY = panY;
+          velX = 0;
+          velY = 0;
           dismissHint();
         });
 
         window.addEventListener("mousemove", function (e) {
           if (!isDragging) return;
+          velX = e.clientX - lastMoveX;
+          velY = e.clientY - lastMoveY;
+          lastMoveX = e.clientX;
+          lastMoveY = e.clientY;
           panX = panStartX + (e.clientX - dragStartX);
           panY = panStartY + (e.clientY - dragStartY);
           clampPan();
@@ -533,6 +599,7 @@ title: Play — Sid Mehta
 
         window.addEventListener("mouseup", function () {
           isDragging = false;
+          /* velocity carries via momentum loop */
         });
 
         /* ── SCROLL / TRACKPAD TO PAN ── */
@@ -554,6 +621,8 @@ title: Play — Sid Mehta
         var touchStartY = 0;
         var touchPanStartX = 0;
         var touchPanStartY = 0;
+        var lastTouchX = 0;
+        var lastTouchY = 0;
 
         viewportEl.addEventListener(
           "touchstart",
@@ -561,8 +630,13 @@ title: Play — Sid Mehta
             if (e.touches.length === 1) {
               touchStartX = e.touches[0].clientX;
               touchStartY = e.touches[0].clientY;
+              lastTouchX = e.touches[0].clientX;
+              lastTouchY = e.touches[0].clientY;
               touchPanStartX = panX;
               touchPanStartY = panY;
+              velX = 0;
+              velY = 0;
+              isDragging = true;
               dismissHint();
             }
           },
@@ -574,6 +648,10 @@ title: Play — Sid Mehta
           function (e) {
             if (e.touches.length === 1) {
               e.preventDefault();
+              velX = e.touches[0].clientX - lastTouchX;
+              velY = e.touches[0].clientY - lastTouchY;
+              lastTouchX = e.touches[0].clientX;
+              lastTouchY = e.touches[0].clientY;
               panX = touchPanStartX + (e.touches[0].clientX - touchStartX);
               panY = touchPanStartY + (e.touches[0].clientY - touchStartY);
               clampPan();
@@ -581,6 +659,14 @@ title: Play — Sid Mehta
             }
           },
           { passive: false }
+        );
+
+        viewportEl.addEventListener(
+          "touchend",
+          function () {
+            isDragging = false;
+          },
+          { passive: true }
         );
 
         /* ── CLICK TO EXPAND ── */
