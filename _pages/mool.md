@@ -39,16 +39,6 @@ next_project:
 ---
 
 <style>
-  /* Hero — cover at natural ratio, full width */
-  .proj-hero { min-height: auto !important; }
-  .hero-video {
-    position: relative !important;
-    width: 100% !important;
-    height: auto !important;
-    object-fit: contain !important;
-    opacity: 0.7 !important;
-  }
-
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
