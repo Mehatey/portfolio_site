@@ -25,6 +25,8 @@ meta:
   - label: Case Study
     value: View on Leaf Design
     url: https://www.leafdesign.co/work/mool
+insight: >
+  The visual identity draws from Indian folk art, regional textile patterns, and traditional color palettes. These are not decorative choices but signals of belonging, translating cultural familiarity into every screen so that someone from a small town feels this app was built for them.
 refl_bg: "5.mool/reflection.png"
 reflection: >
   Before Mool I thought accessible meant simpler. This project taught me it really means resonant. People trust an app not because it looks clean but because it feels like it was made by someone who understands their world.
@@ -53,17 +55,9 @@ next_project:
   .cs-grid { margin-top: 64px !important; }
 </style>
 
-<div class="cs-intro">
-  <span class="intro-overview-label">Insight</span>
-  <div class="cs-body cs-body--insight">
-    <span class="insight-label">How do you take a banking app and make it feel Indian?</span>
-    Not by adding a flag or using saffron in the color palette. The answer was in the visual traditions that people already carry with them. Kolam patterns from Tamil Nadu, Madhubani linework from Bihar, textile motifs from Gujarat. These aren't decorative choices. They are the visual language of trust for millions of people who have never felt like a banking app was made for them. The design system we built translates that familiarity into every screen, every icon, every interaction.
-  </div>
-</div>
-
 <div style="margin:0 !important; width:100%; position:relative; overflow:hidden;">
   <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool — 100k+ downloads" loading="eager" style="width:100%; display:block;" />
-  <div style="position:absolute; inset:0; pointer-events:none; background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 20%, transparent 80%, rgba(0,0,0,0.7) 100%), linear-gradient(to right, rgba(0,0,0,0.4) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.4) 100%);"></div>
+  <div style="position:absolute; inset:0; pointer-events:none; background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 10%, transparent 25%, transparent 75%, rgba(0,0,0,0.7) 100%), linear-gradient(to right, rgba(0,0,0,0.5) 0%, transparent 15%, transparent 85%, rgba(0,0,0,0.5) 100%);"></div>
 </div>
 
 <div class="cs-bleed">
