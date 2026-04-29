@@ -53,7 +53,6 @@ next_project:
     margin: 0;
     line-height: 1.5;
   }
-  /* Caption below image — tight connection */
   .naavo-cap + .cs-bleed,
   .naavo-cap + .cs-grid {
     margin-top: 48px !important;
@@ -68,8 +67,11 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/2.png" alt="Naavo" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/3.png" alt="Naavo" loading="lazy" />
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/3.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/3.2.mp4"></video>
+  </div>
 </div>
 
 <div class="cs-grid">
@@ -87,29 +89,22 @@ next_project:
 </div>
 <p class="naavo-cap">Logo breakdown</p>
 
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/7.1.mp4"></video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/7.2.mp4"></video>
-  </div>
-</div>
-
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/8.mp4" style="width:100%; display:block;"></video>
+  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/7.1.mp4" style="width:100%; display:block;"></video>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/9.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/9.2.mov"></video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/10.2.mp4"></video>
   </div>
 </div>
 <p class="naavo-cap">Making simple shapes out of the dosha patterns</p>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/10.png" alt="Naavo" loading="lazy" />
+  <img src="{{ site.baseurl }}/7.naavo/10.1.png" alt="Naavo" loading="lazy" />
 </div>
 <p class="naavo-cap">Naavo's tone of voice</p>
 
@@ -117,15 +112,13 @@ next_project:
   <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/11.mp4" style="width:100%; display:block;"></video>
 </div>
 
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/12.1.png" alt="Naavo" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/12.2.png" alt="Naavo" loading="lazy" /></div>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/12.png" alt="Naavo" loading="lazy" />
 </div>
 <p class="naavo-cap">Mobile app to purchase guided products</p>
 
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/13.1.png" alt="Naavo" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/13.2.png" alt="Naavo" loading="lazy" /></div>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/13.png" alt="Naavo" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
