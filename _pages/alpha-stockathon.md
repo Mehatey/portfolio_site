@@ -84,7 +84,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/4cbdb8218503255.67b30d766f30d 1.png" alt="Alpha Stockathon" loading="lazy" />
+  <img src="{{ site.baseurl }}/10.alpha/5.png" alt="Alpha Stockathon" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
@@ -188,7 +188,7 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/29.1 2.png" alt="Alpha Stockathon" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/29.1.png" alt="Alpha Stockathon" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/29.2.png" alt="Alpha Stockathon" loading="lazy" /></div>
 </div>
 
