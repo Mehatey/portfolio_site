@@ -23,6 +23,7 @@ reflection: >
 
 
   The challenge was figuring out how far to push interaction without losing simplicity. The strength of the original idea is how effortless it feels. Adding a layer risks overcomplicating it. Balancing that made me think more carefully about what actually adds value and what just adds noise.
+refl_bg: "8.shotoniphone/5.png"
 next_project:
   title: Naavo
   url: /naavo/
@@ -36,14 +37,34 @@ next_project:
   .cs-grid-item img { object-fit: cover !important; height: 100% !important; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
-  .cs-grid { gap: 16px !important; align-items: stretch !important; }
-  .cs-bleed { margin-top: 56px !important; }
-  .cs-grid { margin-top: 56px !important; }
-  @keyframes soiBreathe {
+  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; }
+  .cs-bleed { margin-top: 40px !important; }
+  .cs-bleed + .cs-bleed { margin-top: 16px !important; }
+  .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 16px !important; }
+
+  /* Caption attachment matches cube-guy globals */
+  .cube-cap { margin: 40px 0 0; }
+  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
+  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
+
+  /* Grid sizing matches cube-guy */
+  .cs-grid {
+    height: clamp(320px, 50vh, 560px);
+    grid-template-rows: 1fr;
+  }
+  .cs-grid-item { height: 100% !important; min-height: 0; overflow: hidden !important; }
+  .cs-grid-item img {
+    width: 100%; height: 100%;
+    object-fit: cover !important;
+    object-position: center center;
+  }
+
+  @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.008) translateY(-3px); }
   }
-  .breathe img { animation: soiBreathe 7s ease-in-out infinite; }
+  .breathe img { animation: projBreathe 7s ease-in-out infinite; }
 </style>
 
 <div class="cs-bleed breathe">

@@ -25,9 +25,10 @@ reflection: >
 
 
   I also started thinking more about how packaging is not just visual but experiential. How it sits in someone's hand, on a shelf, and how it communicates value instantly.
+refl_bg: "7.naavo/19.png"
 next_project:
-  title: The Fun Side
-  url: /the-fun-side/
+  title: Aananda
+  url: /aananda/
 ---
 
 <style>
@@ -40,29 +41,37 @@ next_project:
   .cs-grid-item img, .cs-grid-item video { object-fit: cover !important; height: 100% !important; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
-  .cs-grid { gap: 16px !important; align-items: stretch !important; }
-  .cs-bleed { margin-top: 56px !important; }
-  .cs-grid { margin-top: 56px !important; }
-  .naavo-cap {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-style: italic;
-    color: rgba(255,255,255,0.42);
-    padding: 0 var(--gutter) 8px;
-    margin: 48px 0 0;
-    line-height: 1.5;
+  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; }
+  .cs-bleed { margin-top: 40px !important; }
+  .cs-bleed + .cs-bleed { margin-top: 40px !important; }
+  .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-grid { margin-top: 16px !important; }
+
+  /* Caption attachment matches cube-guy globals */
+  .cube-cap { margin: 40px 0 0; }
+  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
+  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
+
+  /* Grid sizing matches cube-guy */
+  .cs-grid {
+    height: clamp(320px, 50vh, 560px);
+    grid-template-rows: 1fr;
   }
-  .naavo-cap + .cs-bleed,
-  .naavo-cap + .cs-grid {
-    margin-top: 8px !important;
+  .cs-grid-item { height: 100% !important; min-height: 0; overflow: hidden !important; }
+  .cs-grid-item img, .cs-grid-item video {
+    width: 100%; height: 100%;
+    object-fit: cover !important;
+    object-position: center center;
   }
+
   /* Subtle breathing on key visuals */
-  @keyframes naavoBreathe {
+  @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.008) translateY(-3px); }
   }
   .breathe img, .breathe video {
-    animation: naavoBreathe 7s ease-in-out infinite;
+    animation: projBreathe 7s ease-in-out infinite;
   }
 </style>
 
@@ -77,11 +86,11 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/3.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/3.2.mp4"></video>
+    <video autoplay muted loop playsinline preload="auto"><source src="{{ site.baseurl }}/7.naavo/3.2.mp4" type="video/mp4" /></video>
   </div>
 </div>
 
-<p class="naavo-cap">Ideation</p>
+<p class="cube-cap cube-cap--above"><em>Ideation.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.2.png" alt="Naavo" loading="lazy" /></div>
@@ -91,25 +100,31 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/5.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Logo breakdown</p>
+<p class="cube-cap cube-cap--above"><em>Logo breakdown.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/6.png" alt="Naavo" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/7.1.mp4" style="width:100%; display:block;"></video>
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="{{ site.baseurl }}/7.naavo/7.1.mp4" type="video/mp4" />
+  </video>
 </div>
 
-<p class="naavo-cap">Making simple shapes out of the dosha patterns</p>
+<p class="cube-cap cube-cap--above"><em>Making simple shapes out of the dosha patterns.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/9.mp4" style="width:100%; display:block;"></video>
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="{{ site.baseurl }}/7.naavo/9.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/11.mp4" style="width:100%; display:block;"></video>
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="{{ site.baseurl }}/7.naavo/11.mp4" type="video/mp4" />
+  </video>
 </div>
 
-<p class="naavo-cap">Mobile app to purchase guided products</p>
+<p class="cube-cap cube-cap--above"><em>Mobile app to purchase guided products.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/12.png" alt="Naavo" loading="lazy" />
 </div>
@@ -118,7 +133,7 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/13.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Naavo packaging labels</p>
+<p class="cube-cap cube-cap--above"><em>Naavo packaging labels.</em></p>
 <div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/7.naavo/13.3 solo.png" alt="Naavo" loading="lazy" />
 </div>
@@ -131,9 +146,11 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/13.5 solo.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Product mock-up</p>
+<p class="cube-cap cube-cap--above"><em>Product mock-up.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/14.mp4" style="width:100%; display:block;"></video>
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="{{ site.baseurl }}/7.naavo/14.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <div class="cs-grid">
@@ -141,7 +158,7 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2 2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
-<p class="naavo-cap">Product incense sticks</p>
+<p class="cube-cap cube-cap--above"><em>Product incense sticks.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.2.png" alt="Naavo" loading="lazy" /></div>
@@ -152,13 +169,13 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
-<p class="naavo-cap">Creams and oils</p>
+<p class="cube-cap cube-cap--above"><em>Creams and oils.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
-<p class="naavo-cap">Branding collaterals</p>
+<p class="cube-cap cube-cap--above"><em>Branding collaterals.</em></p>
 <div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/7.naavo/19.png" alt="Naavo" loading="lazy" />
 </div>
@@ -172,12 +189,12 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/21.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Instagram exemplar posts and stories</p>
+<p class="cube-cap cube-cap--above"><em>Instagram posts and stories.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/22.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Potential advertisements</p>
+<p class="cube-cap cube-cap--above"><em>Potential advertisements.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/23.png" alt="Naavo" loading="lazy" />
 </div>

@@ -11,268 +11,84 @@ hero_image: "2.cube/cover.png"
 meta:
   - label: Year
     value: "2018–2025"
-    priority: dim
   - label: Client
     value: Self Initiated
-    priority: secondary
   - label: Role
     value: Director · Designer · Developer
-    priority: primary
   - label: Tools
     value: Unreal Engine
-    priority: dim
 reflection: >
   The film was the first time it felt finished. Years of sketching finally became six minutes of something I could actually share, and that alone made it one of the most fulfilling things I had made.
 
-
   The game was harder. Building interactivity from scratch meant learning by breaking things. I lost versions, rebuilt sections, and came out understanding the work in a way I could not have otherwise. What surprised me most was how little the idea needed to change through all of it. The medium kept shifting. The character did not.
-hide_overview: true
+refl_bg: "2.cube/5.mp4"
 next_project:
-  title: AI SELF_
+  title: AI Self
   url: /ai-self/
 ---
 
 <style>
-  /* ── KEYFRAMES ── */
-  @keyframes trackIn {
-    from { opacity: 0; letter-spacing: 0.04em; transform: translateY(6px); }
-    to   { opacity: 1; letter-spacing: 0.18em; transform: translateY(0); }
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes lineGrow {
-    from { transform: scaleX(0); }
-    to   { transform: scaleX(1); }
-  }
+  .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
+  .cs-bleed img { object-fit: contain !important; height: auto !important; }
+  .cs-bleed::before { display: none !important; }
+  .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
+  .cs-grid-item img, .cs-grid-item video { object-fit: contain !important; }
+  .cs-grid::before { display: none !important; }
+  .cs-grid-item::before { display: none !important; }
+  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; margin-left: 0 !important; margin-right: 0 !important; }
+  .cs-grid-3 { padding: 0 !important; margin-left: 0 !important; margin-right: 0 !important; }
+  .cs-bleed { margin-top: 40px !important; }
+  .cs-bleed + .cs-bleed { margin-top: 16px !important; }
+  .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-bleed { margin-top: 16px !important; }
+  .cs-bleed + .cs-grid { margin-top: 16px !important; }
 
-  /* ── INTRO ── */
-  .cs-intro {
-    max-width: none !important;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    justify-content: flex-start;
-    text-align: left;
-    padding: 56px var(--gutter) 0;
-    gap: 16px;
-  }
-  /* Label: tracking expands as it fades in */
-  .cs-intro .intro-overview-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.28);
-    animation: trackIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both;
-  }
-  /* Body: slides up */
-  .cs-intro .cs-body {
-    font-size: clamp(16px, 1.8vw, 26px);
-    line-height: 1.7;
-    color: rgba(255,255,255,0.68);
-    max-width: min(860px, 68vw);
-    margin: 0;
-    animation: fadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
-  }
-  /* Insight block: line draws, then block slides up */
-  .cs-intro .cs-body--insight {
-    font-size: clamp(16px, 1.8vw, 26px);
-    color: rgba(255,255,255,0.68);
-    max-width: min(860px, 68vw);
-    position: relative;
-    margin-top: 24px;
-    padding-top: 24px;
-    animation: fadeUp 1s cubic-bezier(0.22, 1, 0.36, 1) 0.78s both;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-  /* The divider line draws left-to-right just before the block appears */
-  .cs-intro .cs-body--insight::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 1px;
-    background: rgba(255,255,255,0.07);
-    transform-origin: left center;
-    animation: lineGrow 0.7s cubic-bezier(0.22, 1, 0.36, 1) 0.6s both;
-  }
-  /* Insight label: tracks in after the block */
-  .cs-intro .cs-body--insight .insight-label {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(255,255,255,0.28);
-    animation: trackIn 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.9s both;
-  }
+  /* Section dividers use global template styling */
 
-  /* ── GRID SIZING ── */
-  .cs-grid {
-    height: clamp(360px, 60vh, 720px);
+  /* Captions */
+  .cube-cap { margin: 40px 0 0; }
+  .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
+  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
+
+  /* Conception grids — fixed height, cover to fill, slow drift */
+  .cs-grid, .cs-grid-3 {
+    height: clamp(320px, 50vh, 560px);
     grid-template-rows: 1fr;
   }
-  .cs-grid--asymmetric {
-    grid-template-columns: 2fr 3fr;
-    height: clamp(360px, 60vh, 720px);
+  .cs-grid-3 {
+    grid-template-columns: 1fr 1fr 1fr !important;
   }
-  .cs-grid-3--equal {
-    height: clamp(360px, 60vh, 720px);
-    grid-template-rows: 1fr;
-  }
-
-  /* ── GRID ITEMS ── */
   .cs-grid-item {
-    aspect-ratio: unset !important;
-    height: 100%;
+    height: 100% !important;
     min-height: 0;
-    background: #000;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden !important;
   }
-  .cs-grid-item img,
-  .cs-grid-item video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
+  .cs-grid-item img, .cs-grid-item video {
+    width: 100%; height: 100%;
+    object-fit: cover !important;
     object-position: center center;
-    display: block;
-    will-change: transform;
-  }
-  /* Edge alignment */
-  .cs-grid .cs-grid-item:first-child img,
-  .cs-grid .cs-grid-item:first-child video,
-  .cs-grid-3 .cs-grid-item:first-child img,
-  .cs-grid-3 .cs-grid-item:first-child video {
-    object-position: left center;
-  }
-  .cs-grid .cs-grid-item:last-child img,
-  .cs-grid .cs-grid-item:last-child video,
-  .cs-grid-3 .cs-grid-item:last-child img,
-  .cs-grid-3 .cs-grid-item:last-child video {
-    object-position: right center;
-  }
-  /* Hover: brighten slightly */
-  .cs-grid-item:hover img,
-  .cs-grid-item:hover video {
-    filter: brightness(1.12);
-    transition: filter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  /* ── SLOW DRIFT: conception grids only ── */
-  @keyframes driftLeft  { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-16px); } }
-  @keyframes driftRight { 0%,100% { transform: translateX(0); } 50% { transform: translateX(16px); } }
-
+  /* Slow drift on conception grids */
+  @keyframes driftLeft  { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-14px); } }
+  @keyframes driftRight { 0%,100% { transform: translateX(0); } 50% { transform: translateX(14px); } }
   .cs-grid:not(.film-grid) .cs-grid-item:nth-child(1),
-  .cs-grid-3 .cs-grid-item:nth-child(1) {
-    animation: driftRight 9s ease-in-out infinite;
-  }
+  .cs-grid-3 .cs-grid-item:nth-child(1) { animation: driftRight 9s ease-in-out infinite; }
   .cs-grid:not(.film-grid) .cs-grid-item:nth-child(2),
-  .cs-grid-3 .cs-grid-item:nth-child(2) {
-    animation: driftLeft 11s ease-in-out infinite;
-  }
-  .cs-grid-3 .cs-grid-item:nth-child(3) {
-    animation: driftRight 7s ease-in-out infinite;
-  }
+  .cs-grid-3 .cs-grid-item:nth-child(2) { animation: driftLeft 11s ease-in-out infinite; }
+  .cs-grid-3 .cs-grid-item:nth-child(3) { animation: driftRight 7s ease-in-out infinite; }
 
-
-  /* ── IDEA BLOCK ── */
-  .cs-idea {
-    padding: 64px var(--gutter) 48px;
-  }
-  .cs-idea p {
-    font-size: clamp(15px, 1.5vw, 19px);
-    line-height: 1.8;
-    color: rgba(255,255,255,0.38);
-    font-style: normal;
-    max-width: 560px;
-    margin: 0;
-  }
-
-  /* ── CAPTIONS ── */
-  .cube-cap {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    color: rgba(255,255,255,0.42);
-    padding: 8px var(--gutter) 0;
-    margin: 0;
-    line-height: 1.5;
-  }
-  .cube-cap em {
-    font-style: italic;
-  }
-  .cube-cap--center {
-    text-align: center;
-    padding: 16px var(--gutter) 0;
-    max-width: 560px;
-    margin: 0 auto;
-  }
-  .cube-cap--above {
-    padding: 0 var(--gutter) 8px;
-  }
-
-  /* ── PROXIMITY: captions attach tight to the element they describe ── */
-  .cube-cap--above + .cs-grid-3 {
-    margin-top: 8px;
-  }
-  .cube-cap--above + .cs-grid {
-    margin-top: 8px;
-  }
-
-  /* ── TIGHT STACK: no gap between paired grids in same set ── */
-  .film-grid--no-top {
-    margin-top: 0 !important;
-  }
-
-  /* ── ASYMMETRIC: left column heavier ── */
-  .cs-grid--left-heavy {
-    grid-template-columns: 3fr 2fr;
-  }
-
-  /* ── FILM/GAME GRIDS: no cropping ── */
-  .film-grid .cs-grid-item video,
-  .film-grid .cs-grid-item img {
-    object-fit: contain !important;
-    object-position: center center !important;
-  }
-
-  /* Tighter gap when a bleed follows a grid (e.g. 8.x→9, 10.x→10.3) */
-  .cs-grid + .cs-bleed {
-    margin-top: 24px;
-  }
-  /* Tight spacing around 1.png (0→1, caption→2) */
-  .cs-bleed + .cs-bleed {
-    margin-top: 16px;
-  }
-  .cube-cap + .cs-bleed {
-    margin-top: 16px;
-  }
+  /* Film grids — tight stacking, no drift */
+  .film-grid .cs-grid-item img, .film-grid .cs-grid-item video { object-fit: contain !important; object-position: center center !important; }
+  .film-grid .cs-grid-item:nth-child(1), .film-grid .cs-grid-item:nth-child(2) { animation: none; }
+  .film-grid--no-top { margin-top: 0 !important; }
+  .cs-grid--left-heavy { grid-template-columns: 3fr 2fr; }
 
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.008) translateY(-3px); }
   }
-
 </style>
-
-<!-- INTRO -->
-<div class="cs-intro">
-  <span class="intro-overview-label">Intro</span>
-  <div class="cs-body">
-    <p>A character I've been building since 2018. Developed across a short film, a 2D platform game, and a 3D world in Unreal Engine. A square in an unfamiliar world, collecting insights, adding a side with each one, slowly becoming a cube.</p>
-  </div>
-  <div class="cs-body cs-body--insight">
-    <span class="insight-label">Insight</span>
-    <p>What began as a simple character became a way for me to externalize my own fears, insecurities, and experiences. It turned into a kind of metaphor, a way of saying things indirectly, where the character carries what I cannot always articulate directly.</p>
-  </div>
-</div>
 
 <!-- 0 -->
 <div class="cs-bleed">
@@ -302,7 +118,7 @@ next_project:
 </div>
 
 <!-- 7.1 + 7.2 + 7.3 -->
-<div class="cs-grid-3 cs-grid-3--equal">
+<div class="cs-grid-3">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/2.cube/conception/7.1.png" alt="" loading="lazy" />
   </div>
@@ -325,14 +141,14 @@ next_project:
 </div>
 
 <!-- 8.1 + 8.2 + 8.3 -->
-<div class="cs-grid-3 cs-grid-3--equal">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="object-fit: cover; object-position: top center;">
-      <source src="{{ site.baseurl }}/2.cube/conception/8.1.mp4" type="video/mp4" />
-    </video>
-  </div>
+<div class="cs-grid-3">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/2.cube/conception/8.2.png" alt="" loading="lazy" />
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="metadata" style="object-fit: cover; object-position: top center;">
+      <source src="{{ site.baseurl }}/2.cube/conception/8.1.mp4" type="video/mp4" />
+    </video>
   </div>
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/2.cube/conception/8.3.png" alt="" loading="lazy" />
@@ -341,13 +157,13 @@ next_project:
 
 <!-- 9 -->
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/conception/9.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 10.1 + 10.2 + 10.3 -->
-<div class="cs-grid-3 cs-grid-3--equal">
+<div class="cs-grid-3">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/2.cube/conception/10.1.png" alt="" loading="lazy" />
   </div>
@@ -355,7 +171,7 @@ next_project:
     <img src="{{ site.baseurl }}/2.cube/conception/10.2.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/conception/10.3.mp4" type="video/mp4" />
     </video>
   </div>
@@ -385,12 +201,12 @@ next_project:
 <!-- 2.1 + 2.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/2.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/2.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -402,12 +218,12 @@ next_project:
 <!-- 3.1 + 3.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/3.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/3.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -419,12 +235,12 @@ next_project:
 <!-- 5.1 + 5.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -433,12 +249,12 @@ next_project:
 <!-- 6.1 + 6.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/6.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/6.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -447,12 +263,12 @@ next_project:
 <!-- 7.1 + 7.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/7.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/7.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -461,12 +277,12 @@ next_project:
 <!-- 8.1 + 8.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/8.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/8.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -475,12 +291,12 @@ next_project:
 <!-- 9.1 + 9.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -489,12 +305,12 @@ next_project:
 <!-- 11.1 + 11.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -503,12 +319,12 @@ next_project:
 <!-- 12.1 + 12.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -519,14 +335,14 @@ next_project:
 
 <!-- 13 standalone -->
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/13.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- CONCLUSION -->
 <div class="cs-bleed-full">
-  <video autoplay muted loop playsinline preload="none">
+  <video autoplay muted loop playsinline preload="metadata">
     <source src="{{ site.baseurl }}/2.cube/short%20film%20hd/1.mp4" type="video/mp4" />
   </video>
 </div>
@@ -543,7 +359,7 @@ next_project:
 
 <!-- 2D: 1 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/1.mp4" type="video/mp4" />
   </video>
 </div>
@@ -552,7 +368,7 @@ next_project:
 <div class="cs-intro">
   <span class="intro-overview-label">2D Game · 2021</span>
   <div class="cs-body">
-    <p>The character brought into an interactive world. A 2D platformer built from scratch, the same square from the film, now something you could actually play. Personalised to the player, populated with distractions, ending in a boss fight with Doubt itself.</p>
+    <p>The character brought into an interactive world. A 2D platformer built from scratch, the same square from the film, now something you could actually play. Personalized to the player, populated with distractions, ending in a boss fight with Doubt itself.</p>
   </div>
 </div>
 
@@ -562,12 +378,12 @@ next_project:
 <!-- 2.2 + 2.3 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/2d/2.2.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/2d/2.3.mp4" type="video/mp4" />
     </video>
   </div>
@@ -582,7 +398,7 @@ next_project:
     <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" loading="lazy" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/2d/3.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -590,7 +406,7 @@ next_project:
 
 <!-- 4 standalone -->
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/4.mp4" type="video/mp4" />
   </video>
 </div>
@@ -601,12 +417,12 @@ next_project:
 <!-- 5.1 + 5.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/2d/5.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/2d/5.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -618,12 +434,12 @@ next_project:
 <!-- 7.1 + 7.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/2d/7.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/2d/7.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -631,7 +447,7 @@ next_project:
 
 <!-- 8 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/8.mp4" type="video/mp4" />
   </video>
 </div>
@@ -639,21 +455,16 @@ next_project:
 <!-- TEXT: familiar enemies -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The enemies borrowed from memory. Characters already lodged in the brain, now in your way.</em></p>
 
-<!-- 9.1 + 9.2 -->
-<div class="cs-grid film-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.cube/2d/9.1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/9.2.png" alt="" loading="lazy" />
-  </div>
+<!-- 9.1 -->
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
+    <source src="{{ site.baseurl }}/2.cube/2d/9.1.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- 10 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/10.mp4" type="video/mp4" />
   </video>
 </div>
@@ -663,14 +474,14 @@ next_project:
 
 <!-- 11 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/11.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 12 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/2d/12.mp4" type="video/mp4" />
   </video>
 </div>
@@ -688,7 +499,7 @@ next_project:
 
 <!-- 3D: 0 opening bleed -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/0.mp4" type="video/mp4" />
   </video>
 </div>
@@ -706,14 +517,14 @@ next_project:
 
 <!-- 1 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 2 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/2.mp4" type="video/mp4" />
   </video>
 </div>
@@ -736,7 +547,7 @@ next_project:
 
 <!-- 5 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/5.mp4" type="video/mp4" />
   </video>
 </div>
@@ -746,34 +557,27 @@ next_project:
 
 <!-- 6 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/6.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 7 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/7.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- 8 standalone -->
-<div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source src="{{ site.baseurl }}/2.cube/3d/8.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 9.1 + 9.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/3d/9.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/3d/9.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -782,12 +586,12 @@ next_project:
 <!-- 10.1 + 10.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/3d/10.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/2.cube/3d/10.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -795,14 +599,14 @@ next_project:
 
 <!-- 11 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/11.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 12 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/12.mp4" type="video/mp4" />
   </video>
 </div>
@@ -812,7 +616,7 @@ next_project:
 
 <!-- 13 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/3d/13.mp4" type="video/mp4" />
   </video>
 </div>
@@ -825,143 +629,9 @@ next_project:
 <!-- END OF CUBE -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Meh thanks you for staying till the end.</em></p>
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video autoplay muted loop playsinline preload="metadata" style="width:100%;display:block;">
     <source src="{{ site.baseurl }}/2.cube/end%20of%20cube%20.mp4" type="video/mp4" />
   </video>
 </div>
 
-<!-- CUBE-GUY CURSOR — desktop only, this page only -->
-<style>
-  @media (hover: hover) and (pointer: fine) {
-    #cur-dot { display: none !important; }
-    #cube-cursor-canvas { display: block; }
-  }
-</style>
-
-<canvas id="cube-cursor-canvas" style="display:none;position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99999;" aria-hidden="true"></canvas>
-
-<script>
-(function () {
-  if (window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
-
-  const canvas = document.getElementById('cube-cursor-canvas');
-  canvas.style.display = 'block';
-  const ctx = canvas.getContext('2d');
-  let W, H, dpr;
-
-  function resize() {
-    dpr = window.devicePixelRatio || 1;
-    W = window.innerWidth; H = window.innerHeight;
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    ctx.setTransform(1,0,0,1,0,0); ctx.scale(dpr, dpr);
-  }
-  resize();
-  window.addEventListener('resize', resize, { passive: true });
-
-  let mx = -200, my = -200, lastX = -200, lastY = -200;
-  let rotation = 0;
-  let isSpinning = false, spinStart = 0;
-  const SPIN_DUR = 1500;
-  let trail = [];
-
-  function easeInOutQuart(x) {
-    return x < 0.5 ? 8*x*x*x*x : 1 - Math.pow(-2*x+2,4)/2;
-  }
-  function lerp(a,b,t) { return a+(b-a)*t; }
-  function dist(x1,y1,x2,y2) { return Math.sqrt((x2-x1)**2+(y2-y1)**2); }
-  function rmap(v,a,b,c,d) { return c+(v-a)/(b-a)*(d-c); }
-  function rr(x,y,w,h,r) {
-    ctx.beginPath();
-    if (ctx.roundRect) { ctx.roundRect(x,y,w,h,r); }
-    else {
-      ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
-      ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
-      ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
-      ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
-    }
-  }
-
-  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; }, { passive: true });
-  document.addEventListener('mousedown', () => {
-    if (!isSpinning) { isSpinning = true; spinStart = performance.now(); }
-  });
-
-  const R=100, G=180, B=255; // cyan
-
-  function draw() {
-    ctx.clearRect(0,0,W,H);
-
-    const dx = mx - lastX, dy = my - lastY;
-
-    // Trail
-    if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
-      trail.unshift({ x: mx, y: my });
-      if (trail.length > 3) trail.pop();
-    }
-    for (let i = trail.length-1; i >= 0; i--) {
-      const p = trail[i];
-      const tx = i===0 ? mx : trail[i-1].x;
-      const ty = i===0 ? my : trail[i-1].y;
-      p.x = lerp(p.x, tx, 0.35); p.y = lerp(p.y, ty, 0.35);
-      if (i>0 && dist(p.x,p.y,tx,ty)<1) { trail.splice(i,1); continue; }
-      const fa = rmap(i, 0, trail.length, 55/255, 0);
-      ctx.save();
-      ctx.fillStyle = `rgba(${R},${G},${B},${fa.toFixed(3)})`;
-      rr(p.x-9, p.y-9, 18, 18, 2); ctx.fill();
-      ctx.restore();
-    }
-
-    // Rotation
-    if (!isSpinning && (Math.abs(dx)>0.5 || Math.abs(dy)>0.5)) {
-      let target = Math.atan2(dy,dx);
-      let diff = target - rotation;
-      while (diff > Math.PI) diff -= Math.PI*2;
-      while (diff < -Math.PI) diff += Math.PI*2;
-      rotation += diff * 0.12;
-    }
-    if (isSpinning) {
-      const elapsed = performance.now() - spinStart;
-      if (elapsed < SPIN_DUR) {
-        rotation = rmap(easeInOutQuart(elapsed/SPIN_DUR), 0, 1, 0, Math.PI*6);
-      } else { isSpinning = false; }
-    }
-
-    lastX = mx; lastY = my;
-    const sz = 15;
-
-    ctx.save();
-    ctx.translate(mx, my);
-    ctx.rotate(rotation);
-
-    // Glow
-    ctx.shadowBlur = 40;
-    ctx.shadowColor = `rgba(${R},${G},${B},0.8)`;
-
-    // Body
-    ctx.strokeStyle = `rgb(${Math.round(R*0.6)},${Math.round(G*0.6)},${Math.round(B*0.6)})`;
-    ctx.lineWidth = 2;
-    ctx.fillStyle = `rgb(${R},${G},${B})`;
-    rr(-sz,-sz,sz*2,sz*2,3); ctx.fill(); ctx.stroke();
-
-    ctx.shadowBlur = 0; ctx.shadowColor = 'transparent';
-
-    // Eye whites
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.beginPath(); ctx.ellipse(-5,-3,2.5,6,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse( 5,-3,2.5,6,0,0,Math.PI*2); ctx.fill();
-    // Eye pupils
-    ctx.fillStyle = '#000';
-    ctx.beginPath(); ctx.ellipse(-5,-3,1.25,5,0,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse( 5,-3,1.25,5,0,0,Math.PI*2); ctx.fill();
-    // Mouth
-    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.fillRect(-3,7,6,3);
-    ctx.fillStyle = '#000';
-    ctx.fillRect(-2,7,4,1.5);
-
-    ctx.restore();
-    requestAnimationFrame(draw);
-  }
-  requestAnimationFrame(draw);
-})();
-</script>
+<!-- custom cursor removed -->

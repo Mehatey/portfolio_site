@@ -37,22 +37,37 @@ next_project:
   .cs-grid-item img { object-fit: cover !important; height: 100% !important; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
-  .cs-grid { gap: 16px !important; align-items: stretch !important; }
-  .cs-bleed { margin-top: 56px !important; }
-  .cs-grid { margin-top: 56px !important; }
-  .aan-cap {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-style: italic;
-    color: rgba(255,255,255,0.42);
-    padding: 0 var(--gutter) 8px;
-    margin: 48px 0 0;
-    line-height: 1.5;
+  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; }
+  .cs-bleed { margin-top: 40px !important; }
+  .cs-bleed + .cs-bleed { margin-top: 40px !important; }
+  .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-grid { margin-top: 16px !important; }
+
+  /* Caption attachment matches cube-guy globals */
+  .cube-cap { margin: 40px 0 0; }
+  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
+  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
+
+  /* Grid sizing matches cube-guy */
+  .cs-grid {
+    height: clamp(320px, 50vh, 560px);
+    grid-template-rows: 1fr;
   }
-  .aan-cap + .cs-bleed,
-  .aan-cap + .cs-grid {
-    margin-top: 8px !important;
+  .cs-grid-item { height: 100% !important; min-height: 0; overflow: hidden !important; }
+  .cs-grid-item img {
+    width: 100%; height: 100%;
+    object-fit: cover !important;
+    object-position: center center;
   }
+
+  /* Narrow centered bleed for accent images */
+  .cs-bleed--narrow {
+    max-width: 480px;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.02) translateY(-6px); }
@@ -63,11 +78,11 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/1.png" alt="Aananda" loading="eager" style="animation: projBreathe 8s ease-in-out infinite;" />
 </div>
 
-<div class="cs-bleed" style="margin-top: 16px !important;">
+<div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/2.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Learning Jainism from my father, who is pursuing a PhD in the subject</p>
+<p class="cube-cap cube-cap--above"><em>Learning Jainism from my father, who is pursuing a PhD in the subject.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/3.png" alt="Aananda" loading="lazy" />
 </div>
@@ -76,22 +91,22 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/4.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Illustration style inspired by Jain temples</p>
+<p class="cube-cap cube-cap--above"><em>Illustration style inspired by Jain temples.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/5.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Mobile application for teachers and students</p>
+<p class="cube-cap cube-cap--above"><em>Mobile application for teachers and students.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/6.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">App screens</p>
+<p class="cube-cap cube-cap--above"><em>App screens.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/7.png" alt="Aananda" loading="lazy" />
 </div>
 
-<div class="cs-bleed" style="max-width:480px; margin-left:auto !important; margin-right:auto !important;">
+<div class="cs-bleed cs-bleed--narrow">
   <img src="{{ site.baseurl }}/9.aananda/8.png" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" />
 </div>
 
@@ -99,7 +114,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/9.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Newspaper advertisement</p>
+<p class="cube-cap cube-cap--above"><em>Newspaper advertisement.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/10.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
@@ -108,7 +123,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/11.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Advertisements for the app</p>
+<p class="cube-cap cube-cap--above"><em>Advertisements for the app.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/12.png" alt="Aananda" loading="lazy" />
 </div>
@@ -117,7 +132,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/13.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Aananda, the book</p>
+<p class="cube-cap cube-cap--above"><em>Aananda, the book.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/14.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
@@ -140,7 +155,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/18.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Cards to be placed in temples</p>
+<p class="cube-cap cube-cap--above"><em>Cards to be placed in temples.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/19.png" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" />
 </div>
@@ -154,7 +169,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/22.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Stands to inform about sculptures</p>
+<p class="cube-cap cube-cap--above"><em>Stands to inform about sculptures.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/23.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>

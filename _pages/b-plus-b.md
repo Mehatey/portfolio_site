@@ -3,177 +3,148 @@ layout: project
 permalink: /b-plus-b/
 project_title: Broken and Beautiful
 proj_num: "05"
-tagline: "A public interaction project asking one question: what feels beautiful and what feels broken."
+tagline: "A public interaction project inspired by the Strangers Project. After hours reading anonymous thoughts there, I wanted to recreate that sense of shared emotion by asking one simple question: what feels beautiful, and what feels broken."
 category: Research · Public Art
 year: 2024
 hero_bg: "radial-gradient(ellipse at 70% 40%, #1a0d0d 0%, #0d0505 50%, #030101 100%)"
-hero_image: "5.bb/cover.png"
+hero_video: "5.bb/d8.mp4"
 meta:
   - label: Role
     value: Solo
-    priority: secondary
   - label: Year
     value: "2024"
-    priority: dim
   - label: Tools
     value: Vercel · Backend · Web Interface
-    priority: dim
   - label: Client
     value: Self Initiated
-    priority: dim
   - label: Watch Experience
     url: "https://www.youtube.com/watch?v=zUG-hui0tkw"
-    priority: cta
-hide_overview: true
 reflection: >
   What stayed with me was how quickly strangers opened up when given a space that felt safe and shared. People weren't looking for perfect words, they just wanted to be heard. Reading others' responses seemed to matter as much as writing their own, almost like realizing their thoughts weren't isolated.
 
   The design didn't need to do much. The simplest structure worked best, and anything more would have gotten in the way.
+refl_bg: "5.bb/board2.2.mp4"
 next_project:
-  title: ENCODED
+  title: Encoded
   url: /encoded/
 ---
 
 <style>
-  .cs-intro {
-    padding: 56px var(--gutter) 0;
-    gap: 16px;
-  }
-  .cs-intro .cs-body,
-  .cs-intro .cs-body--insight {
-    font-size: clamp(16px, 1.8vw, 26px);
-    max-width: min(860px, 68vw);
-  }
+  .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
+  .cs-bleed img, .cs-bleed video { object-fit: contain !important; height: auto !important; }
+  .cs-bleed::before { display: none !important; }
+  .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
+  .cs-grid-item img, .cs-grid-item video { object-fit: cover !important; height: 100% !important; }
+  .cs-grid::before { display: none !important; }
+  .cs-grid-item::before { display: none !important; }
+  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; }
+  .cs-bleed { margin-top: 40px !important; }
+  .cs-bleed + .cs-bleed { margin-top: 16px !important; }
+  .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-bleed, .cs-bleed + .cs-grid, .cs-grid + .cs-grid { margin-top: 16px !important; }
+
+  /* Caption attachment to cube-guy globals */
+  .cube-cap { margin: 40px 0 0; }
+  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
+  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
+
+  /* Grid sizing matches cube-guy */
   .cs-grid {
-    height: clamp(360px, 60vh, 720px);
+    height: clamp(320px, 50vh, 560px);
     grid-template-rows: 1fr;
   }
-  .cs-grid-3 {
-    height: clamp(300px, 48vh, 560px);
-    grid-template-rows: 1fr;
-  }
-  .cs-grid-item {
-    aspect-ratio: unset !important;
-    height: 100%;
-    min-height: 0;
-    background: #000;
-    overflow: hidden;
-  }
-  .cs-grid-item img,
-  .cs-grid-item video {
-    width: 100%;
-    height: 100%;
-    object-fit: contain !important;
+  .cs-grid-item { height: 100% !important; min-height: 0; overflow: hidden !important; }
+  .cs-grid-item img, .cs-grid-item video {
+    width: 100%; height: 100%;
+    object-fit: cover !important;
     object-position: center center;
-    display: block;
   }
-  .bb-process-link {
-    display: block;
-    padding: 32px var(--gutter);
+
+  /* Interview videos — wrapper, name tag, audio toggle */
+  .interview-wrap { position: relative; }
+  .interview-name {
+    position: absolute;
+    bottom: 14px; left: 14px;
+    z-index: 10;
     font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.35);
+    color: rgba(255,255,255,0.92);
+    background: rgba(0,0,0,0.55);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    padding: 6px 10px;
+  }
+  .interview-audio {
+    position: absolute;
+    bottom: 14px; right: 14px;
+    z-index: 10;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(255,255,255,0.30);
+    background: rgba(0,0,0,0.55);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center;
+    cursor: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .interview-audio:hover {
+    border-color: rgba(255,255,255,0.65);
+    background: rgba(0,0,0,0.75);
+  }
+  .interview-audio svg { width: 14px; height: 14px; fill: rgba(255,255,255,0.85); }
+  .interview-audio.is-muted .icon-sound { display: none; }
+  .interview-audio:not(.is-muted) .icon-muted { display: none; }
+
+  /* Process link bar matches cube-guy pattern */
+  .bb-process-link-bar {
+    display: flex;
+    gap: 0;
+    margin: 40px var(--gutter) 0;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .bb-process-link-bar a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.42);
+    padding: 16px 0;
+    white-space: nowrap;
     text-decoration: none;
     transition: color 0.2s;
   }
-  .bb-process-link:hover {
-    color: rgba(255, 255, 255, 0.7);
-  }
+  .bb-process-link-bar a:hover { color: rgba(255,255,255,0.88); }
 
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.008) translateY(-3px); }
   }
-  /* ── INTERVIEW VIDEOS ── */
-  .interview-wrap {
-    position: relative;
-  }
-  .interview-audio {
-    position: absolute;
-    bottom: 20px;
-    right: calc(var(--gutter) + 4px);
-    z-index: 10;
-    background: rgba(0, 0, 0, 0.52);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    color: rgba(255, 255, 255, 0.65);
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    cursor: none;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    transition:
-      border-color 0.2s,
-      color 0.2s;
-  }
-  .interview-audio:hover {
-    border-color: rgba(255, 255, 255, 0.5);
-    color: #fff;
-  }
-  .interview-audio svg {
-    width: 14px;
-    height: 14px;
-    fill: currentColor;
-  }
-  .interview-audio .icon-sound { display: block; }
-  .interview-audio .icon-muted { display: none; }
-  .interview-audio.is-muted .icon-sound { display: none; }
-  .interview-audio.is-muted .icon-muted { display: block; }
-  .cs-grid-item .interview-audio {
-    right: 12px;
-    bottom: 12px;
-  }
-  .interview-name {
-    position: absolute;
-    bottom: 20px;
-    left: var(--gutter);
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.32);
-    padding: 0;
-    margin: 0;
-    pointer-events: none;
-  }
-  .cs-grid-item .interview-name {
-    left: 12px;
-    bottom: 12px;
-  }
 </style>
 
-<!-- OVERVIEW -->
+<!-- INSIGHT -->
 <div class="cs-intro">
-  <div class="intro-inner">
-    <span class="intro-overview-label">Overview</span>
-    <div class="cs-body">
-      <p>A public interaction project inspired by the Strangers Project. After spending hours reading anonymous thoughts there, I wanted to recreate that sense of shared emotion by asking one simple question: what feels beautiful, and what feels broken.</p>
-    </div>
-    <div class="cs-body--insight">
-      <p>285+ responses. 15 street interviews. A quiet thread of human thoughts, gathered in parks and on phones across New York City.</p>
-    </div>
+  <div class="cs-body--insight">
+    <span class="insight-label">Insight</span>
+    <p>285+ responses. 15 street interviews. A quiet thread of human thoughts, gathered in parks and on phones across New York City.</p>
   </div>
 </div>
 
 <!-- HERO -->
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/5.bb/cover.png" alt="Broken and Beautiful" style="animation: projBreathe 7s ease-in-out infinite;" />
+  <video autoplay muted loop playsinline preload="auto">
+    <source src="{{ site.baseurl }}/5.bb/d8.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- SECTION: THE STAND -->
 <div class="cs-section">
-  <div class="cs-section-label">The Stand</div>
+  <span class="cs-section-label">The Stand</span>
 </div>
 
-<p class="cube-cap cube-cap--above">
-  <em>I found a Reddit thread titled "places to cry in NYC" and kept reading it for longer than I expected. People weren't being dramatic. They were just looking for somewhere to feel something without being seen.</em>
-</p>
+<p class="cube-cap cube-cap--above"><em>A Reddit thread titled "places to cry in NYC." People looking for somewhere to feel something without being seen.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.bb/2.png" alt="Reddit thread: places to cry in NYC" />
 </div>
@@ -210,9 +181,7 @@ next_project:
   </div>
 </div>
 
-<p class="cube-cap cube-cap--above">
-  <em>I found a stop sign and decided to use it. A sign that already means something in the world. Stop, pause, pay attention. Redeployed not as a warning but as an invitation.</em>
-</p>
+<p class="cube-cap cube-cap--above"><em>A stop sign already means something. Redeployed not as a warning, but as an invitation.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
@@ -270,11 +239,13 @@ next_project:
   </video>
 </div>
 
-<a href="https://www.youtube.com/watch?v=zUG-hui0tkw" target="_blank" rel="noopener" class="bb-process-link">View Full Process ↗</a>
+<div class="bb-process-link-bar">
+  <a href="https://www.youtube.com/watch?v=zUG-hui0tkw" target="_blank" rel="noopener">View Full Process ↗</a>
+</div>
 
 <!-- SECTION: THE SITE -->
 <div class="cs-section">
-  <div class="cs-section-label">The Site</div>
+  <span class="cs-section-label">The Site</span>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>I had an idea to create an online, Reddit-like site to store stories.</em></p>
@@ -331,9 +302,7 @@ next_project:
   </div>
 </div>
 
-<p class="cube-cap cube-cap--above">
-  <em>I pulled the words people kept using and let them take shape visually. Not illustrating them, just seeing what they looked like when you stopped reading and started looking.</em>
-</p>
+<p class="cube-cap cube-cap--above"><em>Words people kept using, given visual shape. Not illustrating, just looking.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
@@ -347,9 +316,7 @@ next_project:
   </div>
 </div>
 
-<p class="cube-cap cube-cap--above">
-  <em>A concept for taking those same words further. Not a poster, not a site, but an image of what we carry without knowing others carry it too.</em>
-</p>
+<p class="cube-cap cube-cap--above"><em>An image of what we carry without knowing others carry it too.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
     <source src="{{ site.baseurl }}/5.bb/d8.mp4" type="video/mp4" />
@@ -358,7 +325,7 @@ next_project:
 
 <!-- SECTION: STREET INTERVIEWS -->
 <div class="cs-section">
-  <div class="cs-section-label">Street Interviews</div>
+  <span class="cs-section-label">Street Interviews</span>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Fifteen strangers. One question. Here are four of them.</em></p>
@@ -409,28 +376,14 @@ next_project:
 
 <script>
   (function () {
-    var pairs = [
-      ["btn-russell", "int-russell"],
-      ["btn-john", "int-john"],
-      ["btn-karis", "int-karis"],
-      ["btn-tsing", "int-tsing"],
-    ];
-    pairs.forEach(function (pair) {
-      var btn = document.getElementById(pair[0]);
-      var vid = document.getElementById(pair[1]);
-      if (!btn || !vid) return;
+    document.querySelectorAll(".interview-audio").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        // Mute all other interview videos first
-        pairs.forEach(function (other) {
-          if (other[0] !== pair[0]) {
-            var ov = document.getElementById(other[1]);
-            var ob = document.getElementById(other[0]);
-            if (ov) ov.muted = true;
-            if (ob) ob.classList.add("is-muted");
-          }
-        });
+        var vidId = btn.id.replace(/^btn-/, "int-");
+        var vid = document.getElementById(vidId);
+        if (!vid) return;
         vid.muted = !vid.muted;
         btn.classList.toggle("is-muted", vid.muted);
+        if (!vid.muted) vid.play().catch(function () {});
       });
     });
   })();

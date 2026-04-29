@@ -2,7 +2,7 @@
 layout: project
 permalink: /mind-your-feelings/
 project_title: Mind Your Feelings
-proj_num: "02"
+proj_num: "03"
 tagline: >
   Mind Your Feelings is a participatory installation at the Johnson Public Library in Hackensack that visualizes the feelings of community members. The system combines a touchscreen interface with a responsive LED brain sculpture, allowing users to select emotions, map them onto the body, and see them come alive through light. Over 800 participants have experienced the installation since December 2025, turning internal emotional states into shared, tangible moments of reflection.
 category: Installation · Creative Tech
@@ -41,31 +41,44 @@ next_project:
   .cs-grid-item img, .cs-grid-item video { object-fit: cover !important; height: 100% !important; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
-  .cs-grid { gap: 16px !important; align-items: stretch !important; }
-  .cs-bleed { margin-top: 56px !important; }
-  .cs-grid { margin-top: 56px !important; }
-  /* Gentle sway rotation for brain */
+  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; }
+  .cs-bleed { margin-top: 40px !important; }
+  .cs-bleed + .cs-bleed { margin-top: 16px !important; }
+  .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 16px !important; }
+
+  /* Caption attachment matches cube-guy globals */
+  .cube-cap { margin: 40px 0 0; }
+  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
+  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
+
+  /* Grid sizing matches cube-guy */
+  .cs-grid {
+    height: clamp(320px, 50vh, 560px);
+    grid-template-rows: 1fr;
+  }
+  .cs-grid-item { height: 100% !important; min-height: 0; overflow: hidden !important; }
+  .cs-grid-item img, .cs-grid-item video {
+    width: 100%; height: 100%;
+    object-fit: cover !important;
+    object-position: center center;
+  }
+
+  /* Gentle sway for brain */
   .brain-sway {
-    animation: brainSway 8s ease-in-out infinite;
+    animation: projBreathe 8s ease-in-out infinite;
+    max-width: 350px;
+    width: 50%;
+    height: auto;
+    object-fit: contain;
+    position: relative;
+    z-index: 1;
   }
-  @keyframes brainSway {
-    0%, 100% { transform: rotate(-15deg) scale(1); }
-    50% { transform: rotate(15deg) scale(1.02); }
+  @keyframes projBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.008) translateY(-3px); }
   }
-  /* Captions ABOVE images — matching cube-guy style */
-  .myf-cap {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-style: italic;
-    color: rgba(255,255,255,0.42);
-    padding: 0 var(--gutter) 8px;
-    margin: 48px 0 0;
-    line-height: 1.5;
-  }
-  .myf-cap + .cs-bleed,
-  .myf-cap + .cs-grid {
-    margin-top: 8px !important;
-  }
+
   /* Color blobs behind brain */
   .brain-wrap {
     position: relative;
@@ -73,6 +86,7 @@ next_project:
     display: flex;
     justify-content: center;
     padding: 40px 0;
+    margin-top: 40px;
   }
   .brain-wrap::before {
     content: '';
@@ -96,64 +110,50 @@ next_project:
   }
 </style>
 
+<!-- HERO -->
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/6.mindu/0.1.mp4"></video>
+    <video autoplay muted loop playsinline preload="auto">
+      <source src="{{ site.baseurl }}/6.mindu/0.1.mp4" type="video/mp4" />
+    </video>
   </div>
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/6.mindu/0.2.webp" alt="Mind Your Feelings" loading="eager" />
   </div>
 </div>
 
-<div class="brain-wrap" style="margin-top:56px;">
-  <img src="{{ site.baseurl }}/6.mindu/1.webp" alt="LED Brain" class="brain-sway" style="max-width:350px; width:50%; height:auto; object-fit:contain; position:relative; z-index:1;" />
+<div class="brain-wrap">
+  <img src="{{ site.baseurl }}/6.mindu/1.webp" alt="LED Brain" class="brain-sway" />
 </div>
 
-<p class="myf-cap">Our supporters</p>
-
+<p class="cube-cap cube-cap--above"><em>Our supporters.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/6.mindu/2.0.png" alt="Supporters" loading="lazy" />
 </div>
 
-<p class="myf-cap">Designing for a public kiosk meant working through multiple issues connecting Arduino to the web interface in real time.</p>
-
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/6.mindu/2.1.mp4"></video>
-  </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/6.mindu/2.2.JPEG" alt="Installation" loading="lazy" />
-  </div>
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none">
+    <source src="{{ site.baseurl }}/6.mindu/2.1.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/3.png" alt="The Neural Landscape" loading="lazy" />
-</div>
-
-<p class="myf-cap">3D brain sculpture designed by Rodolfo Kusulas</p>
-
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/4.1.jpeg" alt="Brain hardware" loading="lazy" /></div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/6.mindu/4.2.mp4"></video>
-  </div>
-</div>
-
-<p class="myf-cap">The app user flow is simple and intuitive, guiding participants through emotion selection to visualization.</p>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/5.png" alt="UI flow" loading="lazy" />
+  <img src="{{ site.baseurl }}/6.mindu/3.png" alt="Mind Your Feelings" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/6.png" alt="Interactions" loading="lazy" />
+  <img src="{{ site.baseurl }}/6.mindu/5.png" alt="Mind Your Feelings" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/7.png" alt="System" loading="lazy" />
+  <img src="{{ site.baseurl }}/6.mindu/6.png" alt="Mind Your Feelings" loading="lazy" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/p1.png" alt="Installation" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/p2.png" alt="Installation" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.1.png" alt="Mind Your Feelings" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.2.png" alt="Mind Your Feelings" loading="lazy" /></div>
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/6.mindu/gg.png" alt="Mind Your Feelings" loading="lazy" />
 </div>
