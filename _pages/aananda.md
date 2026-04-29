@@ -100,8 +100,8 @@ next_project:
 </div>
 
 <p class="aan-cap">Advertisements for the app</p>
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/10.png" alt="Aananda" loading="lazy" />
+<div class="cs-bleed" style="max-width:600px; margin-left:auto !important; margin-right:auto !important;">
+  <img src="{{ site.baseurl }}/9.aananda/10.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
 <div class="cs-bleed">
