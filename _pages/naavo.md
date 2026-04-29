@@ -130,7 +130,7 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.png" alt="Naavo" loading="lazy" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2 2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
 <p class="naavo-cap">Product incense sticks</p>
