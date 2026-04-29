@@ -81,6 +81,10 @@ next_project:
     object-fit: contain !important;
   }
   .cs-bleed + .cs-bleed { margin-top: 16px; }
+  @keyframes projBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.008) translateY(-3px); }
+  }
   .cs-grid-3 {
     height: clamp(360px, 56vh, 680px);
     grid-template-rows: 1fr;
@@ -316,7 +320,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>In India, mandalas were made on festival floors in chalk and color, then walked over and dissolved. This project started from that memory.</em></p>
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/2.png" alt="" loading="lazy" />
+  <img src="{{ site.baseurl }}/4.mandala/2.png" alt="" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
 <div class="cs-bleed ai-contain">
