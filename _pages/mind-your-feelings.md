@@ -55,14 +55,19 @@ next_project:
     0%, 100% { transform: rotate(-15deg) scale(1); }
     50% { transform: rotate(15deg) scale(1.02); }
   }
-  /* Caption — anchored close to the image below */
+  /* Captions ABOVE images — matching cube-guy style */
   .myf-cap {
     font-family: var(--font-mono);
     font-size: 13px;
+    font-style: italic;
     color: rgba(255,255,255,0.42);
-    padding: 0 var(--gutter);
-    margin: 0 0 8px;
+    padding: 0 var(--gutter) 8px;
+    margin: 48px 0 0;
     line-height: 1.5;
+  }
+  .myf-cap + .cs-bleed,
+  .myf-cap + .cs-grid {
+    margin-top: 8px !important;
   }
   /* Color blobs behind brain */
   .brain-wrap {
