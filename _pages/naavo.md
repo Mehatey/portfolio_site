@@ -32,8 +32,8 @@ next_project:
 
 <style>
   /* Hero cover full width */
-  .proj-hero { min-height: 50vh !important; }
-  .hero-video { object-fit: contain !important; }
+  .proj-hero { min-height: 60vh !important; }
+  .hero-video { object-fit: cover !important; }
 
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img, .cs-bleed video { object-fit: contain !important; height: auto !important; }
