@@ -22,10 +22,7 @@ reflection: >
   The research started as a joke. Feeding images into Cloud Vision just to see how badly it misread them. But the patterns kept surfacing. Not about what AI fails at, but about what it has decided is worth noticing in the first place.
 
 
-  Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference.
-
-
-  AI SELF_ was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.
+  Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference. AI SELF_ was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.
 next_project:
   title: Who are you, to you
   url: /mandalas/
@@ -91,6 +88,11 @@ next_project:
     transition: color 0.2s;
   }
   .ai-watch-link a:hover { color: rgba(255,255,255,0.88); }
+
+  @keyframes projBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.008) translateY(-3px); }
+  }
 </style>
 
 <!-- OVERVIEW -->
@@ -102,7 +104,7 @@ next_project:
 </div>
 
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/3.ai/1.png" alt="" loading="lazy" />
+  <img src="{{ site.baseurl }}/3.ai/1.png" alt="" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
 <!-- SECTION: PERCEPTION -->

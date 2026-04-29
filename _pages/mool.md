@@ -46,8 +46,8 @@ next_project:
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
   .cs-grid { gap: 24px !important; }
-  .cs-bleed { margin-top: 64px !important; }
-  .cs-grid { margin-top: 64px !important; }
+  .cs-bleed { margin-top: 56px !important; }
+  .cs-grid { margin-top: 56px !important; }
 </style>
 
 <div style="margin:0 !important; width:100%; position:relative; overflow:hidden;">

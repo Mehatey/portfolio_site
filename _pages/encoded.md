@@ -72,6 +72,11 @@ next_projects:
     font-size: clamp(14px, 1.4vw, 17px);
     color: rgba(255,255,255,0.68);
   }
+
+  @keyframes projBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.008) translateY(-3px); }
+  }
 </style>
 
 <!-- IMPACT -->
@@ -116,7 +121,7 @@ next_projects:
 
 <!-- COVER -->
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/1.met/1.png" alt="ENCODED at the Met" loading="lazy" />
+  <img src="{{ site.baseurl }}/1.met/1.png" alt="ENCODED at the Met" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
 <!-- PROCESS CHAPTER -->

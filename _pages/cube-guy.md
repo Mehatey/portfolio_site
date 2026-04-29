@@ -25,10 +25,7 @@ reflection: >
   The film was the first time it felt finished. Years of sketching finally became six minutes of something I could actually share, and that alone made it one of the most fulfilling things I had made.
 
 
-  The game was harder. Building interactivity from scratch meant learning by breaking things. I lost versions, rebuilt sections, and came out understanding the work in a way I could not have otherwise.
-
-
-  What surprised me most was how little the idea needed to change through all of it. The medium kept shifting. The character did not.
+  The game was harder. Building interactivity from scratch meant learning by breaking things. I lost versions, rebuilt sections, and came out understanding the work in a way I could not have otherwise. What surprised me most was how little the idea needed to change through all of it. The medium kept shifting. The character did not.
 hide_overview: true
 next_project:
   title: AI SELF_
@@ -258,6 +255,11 @@ next_project:
     margin-top: 16px;
   }
 
+  @keyframes projBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.008) translateY(-3px); }
+  }
+
 </style>
 
 <!-- INTRO -->
@@ -274,7 +276,7 @@ next_project:
 
 <!-- 0 -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/0.png" alt="" style="object-fit: contain;" loading="lazy" />
+  <img src="{{ site.baseurl }}/2.cube/conception/0.png" alt="" style="object-fit: contain; animation: projBreathe 7s ease-in-out infinite;" loading="lazy" />
 </div>
 
 <!-- caption + 1 -->

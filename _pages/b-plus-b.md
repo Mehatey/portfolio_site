@@ -80,6 +80,11 @@ next_project:
   .bb-process-link:hover {
     color: rgba(255, 255, 255, 0.7);
   }
+
+  @keyframes projBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.008) translateY(-3px); }
+  }
   /* ── INTERVIEW VIDEOS ── */
   .interview-wrap {
     position: relative;
@@ -157,7 +162,7 @@ next_project:
 
 <!-- HERO -->
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/5.bb/cover.png" alt="Broken and Beautiful" />
+  <img src="{{ site.baseurl }}/5.bb/cover.png" alt="Broken and Beautiful" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
 <!-- SECTION: THE STAND -->
