@@ -56,9 +56,17 @@ next_project:
   .naavo-cap + .cs-grid {
     margin-top: 8px !important;
   }
+  /* Subtle breathing on key visuals */
+  @keyframes naavoBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.008) translateY(-3px); }
+  }
+  .breathe img, .breathe video {
+    animation: naavoBreathe 7s ease-in-out infinite;
+  }
 </style>
 
-<div class="cs-bleed">
+<div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/7.naavo/1.png" alt="Naavo" loading="eager" />
 </div>
 
@@ -111,7 +119,7 @@ next_project:
 </div>
 
 <p class="naavo-cap">Naavo packaging labels</p>
-<div class="cs-bleed">
+<div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/7.naavo/13.3 solo.png" alt="Naavo" loading="lazy" />
 </div>
 
@@ -119,7 +127,7 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/13.4 solo.png" alt="Naavo" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/7.naavo/13.5 solo.png" alt="Naavo" loading="lazy" />
 </div>
 
@@ -151,7 +159,7 @@ next_project:
 </div>
 
 <p class="naavo-cap">Branding collaterals</p>
-<div class="cs-bleed">
+<div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/7.naavo/19.png" alt="Naavo" loading="lazy" />
 </div>
 
