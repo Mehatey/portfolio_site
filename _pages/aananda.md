@@ -55,7 +55,7 @@ next_project:
   }
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
+    50% { transform: scale(1.02) translateY(-6px); }
   }
 </style>
 
@@ -63,7 +63,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/1.png" alt="Aananda" loading="eager" style="animation: projBreathe 8s ease-in-out infinite;" />
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed" style="margin-top: 16px !important;">
   <img src="{{ site.baseurl }}/9.aananda/2.png" alt="Aananda" loading="lazy" />
 </div>
 
@@ -91,7 +91,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/7.png" alt="Aananda" loading="lazy" />
 </div>
 
-<div class="cs-bleed" style="max-width:700px; margin-left:auto !important; margin-right:auto !important;">
+<div class="cs-bleed" style="max-width:480px; margin-left:auto !important; margin-right:auto !important;">
   <img src="{{ site.baseurl }}/9.aananda/8.png" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" />
 </div>
 
@@ -100,7 +100,7 @@ next_project:
 </div>
 
 <p class="aan-cap">Newspaper advertisement</p>
-<div class="cs-bleed" style="max-width:600px; margin-left:auto !important; margin-right:auto !important;">
+<div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/10.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
@@ -119,7 +119,7 @@ next_project:
 
 <p class="aan-cap">Aananda, the book</p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/14.png" alt="Aananda" loading="lazy" />
+  <img src="{{ site.baseurl }}/9.aananda/14.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
 <div class="cs-grid">
@@ -142,7 +142,7 @@ next_project:
 
 <p class="aan-cap">Cards to be placed in temples</p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/19.png" alt="Aananda" loading="lazy" />
+  <img src="{{ site.baseurl }}/9.aananda/19.png" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" />
 </div>
 
 <div class="cs-grid">
@@ -154,6 +154,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/22.png" alt="Aananda" loading="lazy" />
 </div>
 
+<p class="aan-cap">Stands to inform about sculptures</p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/23.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
