@@ -8,7 +8,8 @@ tagline: >
 category: Branding · App Design
 year: 2020
 hero_bg: "radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)"
-hero_image: "9.aananda/0.png"
+hero_image: "9.aananda/cover.png"
+refl_bg: "9.aananda/reflection.png"
 meta:
   - label: Role
     value: Solo
@@ -107,7 +108,6 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/11.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Aananda, the book</p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/12.png" alt="Aananda" loading="lazy" />
 </div>
@@ -116,7 +116,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/13.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Pages from the book</p>
+<p class="aan-cap">Aananda, the book</p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/14.png" alt="Aananda" loading="lazy" />
 </div>
@@ -154,4 +154,26 @@ next_project:
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/22.png" alt="Aananda" loading="lazy" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/9.aananda/23.png" alt="Aananda" loading="lazy" />
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/24.1.png" alt="Aananda" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/24.2.png" alt="Aananda" loading="lazy" /></div>
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/25.1.png" alt="Aananda" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/25.2.png" alt="Aananda" loading="lazy" /></div>
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/9.aananda/26.png" alt="Aananda" loading="lazy" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/9.aananda/27.png" alt="Aananda" loading="lazy" />
 </div>
