@@ -17,7 +17,7 @@ meta:
   - label: Year
     value: 2020
   - label: Tools
-    value: Illustrator · Branding Systems
+    value: Illustrator
   - label: Client
     value: Self Initiated
 reflection: >
