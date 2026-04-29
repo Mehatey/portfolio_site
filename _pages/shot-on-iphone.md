@@ -19,13 +19,10 @@ meta:
   - label: Client
     value: Self Initiated
 reflection: >
-  This project made me question what most campaigns stop at. Shot on iPhone proves capability, it shows that the camera is good. But after a point it becomes one way. You see something beautiful and move on.
+  This project made me question what most campaigns stop at. Shot on iPhone proves capability, it shows that the camera is good. But after a point it becomes one way. You see something beautiful and move on. What interested me was what happens after that moment, why someone chose that frame, what they felt, and whether a photograph could carry that with it.
 
 
-  What interested me was what happens after that moment. Every image has a reason behind it. Where it was taken, what the person felt, why they chose that frame. So I started thinking about how to turn something static into something that continues. By adding a layer where people can scan, explore the story behind the image, and even respond to it, the work shifts from display to dialogue.
-
-
-  The challenge was figuring out how far to push this without losing simplicity. The strength of the original idea is how effortless it feels. Adding interaction risks overcomplicating it. Balancing that made me think more carefully about what actually adds value and what just adds noise.
+  The challenge was figuring out how far to push interaction without losing simplicity. The strength of the original idea is how effortless it feels. Adding a layer risks overcomplicating it. Balancing that made me think more carefully about what actually adds value and what just adds noise.
 next_project:
   title: Naavo
   url: /naavo/
@@ -42,9 +39,14 @@ next_project:
   .cs-grid { gap: 16px !important; align-items: stretch !important; }
   .cs-bleed { margin-top: 56px !important; }
   .cs-grid { margin-top: 56px !important; }
+  @keyframes soiBreathe {
+    0%, 100% { transform: scale(1) translateY(0); }
+    50% { transform: scale(1.008) translateY(-3px); }
+  }
+  .breathe img { animation: soiBreathe 7s ease-in-out infinite; }
 </style>
 
-<div class="cs-bleed">
+<div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/8.shotoniphone/0.png" alt="Shot on iPhone" loading="eager" />
 </div>
 
@@ -64,7 +66,7 @@ next_project:
   <img src="{{ site.baseurl }}/8.shotoniphone/4.png" alt="Shot on iPhone" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/8.shotoniphone/5.png" alt="Shot on iPhone" loading="lazy" />
 </div>
 
@@ -84,7 +86,7 @@ next_project:
   <img src="{{ site.baseurl }}/8.shotoniphone/9.png" alt="Shot on iPhone" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
+<div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/8.shotoniphone/10.png" alt="Shot on iPhone" loading="lazy" />
 </div>
 

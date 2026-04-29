@@ -27,10 +27,7 @@ reflection: >
   This was the first project where I had to connect physical hardware to a live software system in a public space. The Arduino brain needed to respond to user input within milliseconds or the experience would feel broken. Getting the Python backend to reliably bridge the web interface to the WLED controller took more debugging than I expected, but once it worked it felt like magic.
 
 
-  What surprised me was how quickly strangers opened up when given a space that felt safe. People were not looking for the right answer. They just wanted to be seen. Watching someone select an emotion, see it light up a brain sculpture, and then pause for a moment of recognition taught me something about what design can do when it steps out of a screen and into a room.
-
-
-  800 participants in five months. The data we collected is now being used by local mental health organizations to better understand community wellbeing. That was never part of the original brief but it became the most meaningful outcome.
+  What surprised me was how quickly strangers opened up when given a space that felt safe. People were not looking for the right answer, they just wanted to be seen. 800 participants in five months, and the data we collected is now being used by local mental health organizations to better understand community wellbeing.
 next_project:
   title: Mandalas
   url: /mandalas/

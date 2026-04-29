@@ -27,13 +27,10 @@ meta:
     url: https://www.leafdesign.co/work/mool
 refl_bg: "5.mool/reflection.png"
 reflection: >
-  Before Mool I thought accessible meant simpler. This project taught me it really means resonant. People trust an app not because it looks clean but because it feels like it was made by someone who understands their world.
+  Before Mool I thought accessible meant simpler. This project taught me it really means resonant. People trust an app not because it looks clean but because it feels like it was made by someone who understands their world. We studied Indian folk art, regional patterns, and traditional color palettes not as decoration but as signals of belonging.
 
 
-  We studied Indian folk art, regional patterns, and traditional color palettes not as decoration but as signals of belonging. Every visual decision was tested against one question: does this make someone from a small town feel like this was built for them.
-
-
-  Clarity is emotional, not just functional. A user who feels seen will trust you with their money.
+  Every visual decision was tested against one question: does this make someone from a small town feel like this was built for them. Clarity is emotional, not just functional. A user who feels seen will trust you with their money.
 next_project:
   title: Unreal Game
   url: /unreal-game/
