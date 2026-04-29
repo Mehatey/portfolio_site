@@ -31,6 +31,10 @@ next_project:
 ---
 
 <style>
+  /* Hero cover full width */
+  .proj-hero { min-height: 50vh !important; }
+  .hero-video { object-fit: contain !important; }
+
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img, .cs-bleed video { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
@@ -45,9 +49,14 @@ next_project:
     font-family: var(--font-mono);
     font-size: 13px;
     color: rgba(255,255,255,0.42);
-    padding: 0 var(--gutter);
-    margin: 0 0 8px;
+    padding: 8px var(--gutter) 0;
+    margin: 0;
     line-height: 1.5;
+  }
+  /* Caption below image — tight connection */
+  .naavo-cap + .cs-bleed,
+  .naavo-cap + .cs-grid {
+    margin-top: 48px !important;
   }
 </style>
 
@@ -63,22 +72,20 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/3.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Ideation</p>
-
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
+<p class="naavo-cap">Ideation</p>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/5.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Logo breakdown</p>
-
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/6.png" alt="Naavo" loading="lazy" />
 </div>
+<p class="naavo-cap">Logo breakdown</p>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
@@ -93,42 +100,38 @@ next_project:
   <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/8.mp4" style="width:100%; display:block;"></video>
 </div>
 
-<p class="naavo-cap">Making simple shapes out of the dosha patterns</p>
-
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/9.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/9.2.mov"></video>
   </div>
 </div>
-
-<p class="naavo-cap">Naavo's tone of voice</p>
+<p class="naavo-cap">Making simple shapes out of the dosha patterns</p>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/10.png" alt="Naavo" loading="lazy" />
 </div>
+<p class="naavo-cap">Naavo's tone of voice</p>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/11.mp4" style="width:100%; display:block;"></video>
 </div>
 
-<p class="naavo-cap">Mobile app to purchase guided products</p>
-
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/12.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/12.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
+<p class="naavo-cap">Mobile app to purchase guided products</p>
 
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/13.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/13.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
-<p class="naavo-cap">Naavo packaging labels</p>
-
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/13.3 solo.png" alt="Naavo" loading="lazy" />
 </div>
+<p class="naavo-cap">Naavo packaging labels</p>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/13.4 solo.png" alt="Naavo" loading="lazy" />
@@ -138,41 +141,37 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/13.5 solo.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Product mock-up</p>
-
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/14.mp4" style="width:100%; display:block;"></video>
 </div>
+<p class="naavo-cap">Product mock-up</p>
 
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
-<p class="naavo-cap">Product incense sticks</p>
-
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
+<p class="naavo-cap">Product incense sticks</p>
 
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
-<p class="naavo-cap">Creams and oils</p>
-
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.png" alt="Naavo" loading="lazy" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
-
-<p class="naavo-cap">Branding collaterals</p>
+<p class="naavo-cap">Creams and oils</p>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/19.png" alt="Naavo" loading="lazy" />
 </div>
+<p class="naavo-cap">Branding collaterals</p>
 
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.1.png" alt="Naavo" loading="lazy" /></div>
@@ -183,17 +182,15 @@ next_project:
   <img src="{{ site.baseurl }}/7.naavo/21.png" alt="Naavo" loading="lazy" />
 </div>
 
-<p class="naavo-cap">Instagram exemplar posts and stories</p>
-
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/22.png" alt="Naavo" loading="lazy" />
 </div>
-
-<p class="naavo-cap">Potential advertisements</p>
+<p class="naavo-cap">Instagram exemplar posts and stories</p>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/23.png" alt="Naavo" loading="lazy" />
 </div>
+<p class="naavo-cap">Potential advertisements</p>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/24.png" alt="Naavo" loading="lazy" />
