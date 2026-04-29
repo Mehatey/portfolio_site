@@ -31,10 +31,8 @@ next_project:
 ---
 
 <style>
-  /* Hero cover full width */
   .proj-hero { min-height: 60vh !important; }
   .hero-video { object-fit: cover !important; }
-
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img, .cs-bleed video { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
@@ -45,7 +43,6 @@ next_project:
   .cs-grid { gap: 16px !important; align-items: stretch !important; }
   .cs-bleed { margin-top: 56px !important; }
   .cs-grid { margin-top: 56px !important; }
-  /* Captions ABOVE images — matching cube-guy style */
   .naavo-cap {
     font-family: var(--font-mono);
     font-size: 13px;
@@ -96,18 +93,8 @@ next_project:
 </div>
 
 <p class="naavo-cap">Making simple shapes out of the dosha patterns</p>
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/9.2.mov"></video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/10.2.mp4"></video>
-  </div>
-</div>
-
-<p class="naavo-cap">Naavo's tone of voice</p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/10.1.png" alt="Naavo" loading="lazy" />
+  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/9.mp4" style="width:100%; display:block;"></video>
 </div>
 
 <div class="cs-bleed">
@@ -183,6 +170,9 @@ next_project:
 </div>
 
 <p class="naavo-cap">Potential advertisements</p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/23.png" alt="Naavo" loading="lazy" />
+</div>
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/24.png" alt="Naavo" loading="lazy" />
