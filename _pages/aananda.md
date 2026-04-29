@@ -91,8 +91,8 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/7.png" alt="Aananda" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/8.png" alt="Aananda" loading="lazy" />
+<div class="cs-bleed" style="max-width:700px; margin-left:auto !important; margin-right:auto !important;">
+  <img src="{{ site.baseurl }}/9.aananda/8.png" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" />
 </div>
 
 <div class="cs-bleed">
