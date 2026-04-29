@@ -2,14 +2,16 @@
 layout: project
 permalink: /naavo/
 project_title: Naavo
-proj_num: "10"
-tagline: Reimagining Ayurveda for a contemporary audience with minimal form and cultural cues.
+proj_num: "09"
+tagline: >
+  How can traditional Ayurveda feel relevant to a modern lifestyle? Naavo is a branding and packaging project that reimagines Ayurveda for a contemporary audience. The goal was to move beyond the typical clinical or overly traditional aesthetic and create something that feels rooted yet fresh, balancing cultural authenticity with a clean, modern visual language.
 category: Branding · Packaging
 year: 2020
-hero_bg: "radial-gradient(ellipse at 45% 55%, #1a0d00 0%, #0d0700 50%, #050200 100%)"
+hero_bg: "radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)"
+hero_image: "7.naavo/cover.png"
 meta:
   - label: Role
-    value: Solo
+    value: Branding, Logo Design, Packaging
   - label: Duration
     value: 8 weeks
   - label: Year
@@ -19,69 +21,180 @@ meta:
   - label: Client
     value: Self Initiated
 reflection: >
-  Branding requires restraint. Also started thinking about packaging as experiential.
+  This project taught me how much restraint branding requires. It was easy to lean too heavily into traditional visuals or make it feel too modern and lose its essence. Finding that balance meant being intentional with every element, color, form, and typography.
+
+
+  I also started thinking more about how packaging is not just visual but experiential. How it sits in someone's hand, on a shelf, and how it communicates value instantly.
 next_project:
   title: The Fun Side
   url: /the-fun-side/
 ---
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">01</span>
-    Concept
+<style>
+  .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
+  .cs-bleed img, .cs-bleed video { object-fit: contain !important; height: auto !important; }
+  .cs-bleed::before { display: none !important; }
+  .cs-grid-item { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
+  .cs-grid-item img, .cs-grid-item video { object-fit: cover !important; height: 100% !important; }
+  .cs-grid::before { display: none !important; }
+  .cs-grid-item::before { display: none !important; }
+  .cs-grid { gap: 16px !important; align-items: stretch !important; }
+  .cs-bleed { margin-top: 56px !important; }
+  .cs-grid { margin-top: 56px !important; }
+  .naavo-cap {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: rgba(255,255,255,0.42);
+    padding: 0 var(--gutter);
+    margin: 0 0 8px;
+    line-height: 1.5;
+  }
+</style>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/1.png" alt="Naavo" loading="eager" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/2.png" alt="Naavo" loading="lazy" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/3.png" alt="Naavo" loading="lazy" />
+</div>
+
+<p class="naavo-cap">Ideation</p>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.2.png" alt="Naavo" loading="lazy" /></div>
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/5.png" alt="Naavo" loading="lazy" />
+</div>
+
+<p class="naavo-cap">Logo breakdown</p>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/6.png" alt="Naavo" loading="lazy" />
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/7.1.mp4"></video>
   </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">Ayurveda for a<br>contemporary audience.</h2>
-    <div class="cs-body">
-      <p>Naavo reimagines Ayurveda for a contemporary audience with minimal form and cultural cues. The brand bridges tradition and modernity without diluting either.</p>
-      <p>Finding middle ground between traditional and commercial creates stronger trust. The visual system honors Ayurvedic roots while speaking a modern visual language.</p>
-    </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/7.2.mp4"></video>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <div class="vis-ph">Brand identity, packaging system</div>
-</div>
-<div class="cs-bleed-cap">
-  <span></span>
-  <span class="cap-text">Illustrator · Branding Systems</span>
+  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/8.mp4" style="width:100%; display:block;"></video>
 </div>
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">02</span>
-    Design
+<p class="naavo-cap">Making simple shapes out of the dosha patterns</p>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/9.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/9.2.mov"></video>
   </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">Restraint as brand language.</h2>
-    <div class="cs-body">
-      <p>The branding system strips away visual noise to let the product speak. Minimal typography, muted earth tones, and tactile packaging materials create an experience that feels grounded and intentional.</p>
-      <p>Packaging became experiential, the unboxing, the texture, the weight. Every touchpoint was designed to slow the user down and create a moment of attention.</p>
-    </div>
-  </div>
+</div>
+
+<p class="naavo-cap">Naavo's tone of voice</p>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/10.png" alt="Naavo" loading="lazy" />
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/11.mp4" style="width:100%; display:block;"></video>
+</div>
+
+<p class="naavo-cap">Mobile app to purchase guided products</p>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/12.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/12.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><div class="vis-ph">Typography and color system</div></div>
-  <div class="cs-grid-item"><div class="vis-ph">Packaging, tactile detail</div></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/13.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/13.2.png" alt="Naavo" loading="lazy" /></div>
 </div>
 
-<div class="cs-wide">
-  <div class="cs-wide-inner">
-    <div class="vis-ph">Full brand system, applications</div>
-  </div>
-  <p class="cap-text">Naavo · Ayurvedic brand identity</p>
+<p class="naavo-cap">Naavo packaging labels</p>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/13.3 solo.png" alt="Naavo" loading="lazy" />
 </div>
 
-<div class="cs-row">
-  <div class="cs-label">
-    <span class="cs-label-num">03</span>
-    Insight
-  </div>
-  <div class="cs-content">
-    <h2 class="cs-heading">Middle ground between traditional<br>and commercial builds trust.</h2>
-    <div class="cs-body">
-      <p>Finding middle ground between traditional and commercial creates stronger trust. When heritage brands respect their origins while embracing contemporary form, they earn credibility from both sides.</p>
-    </div>
-  </div>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/13.4 solo.png" alt="Naavo" loading="lazy" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/13.5 solo.png" alt="Naavo" loading="lazy" />
+</div>
+
+<p class="naavo-cap">Product mock-up</p>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="auto" src="{{ site.baseurl }}/7.naavo/14.mp4" style="width:100%; display:block;"></video>
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2.png" alt="Naavo" loading="lazy" /></div>
+</div>
+
+<p class="naavo-cap">Product incense sticks</p>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.2.png" alt="Naavo" loading="lazy" /></div>
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.2.png" alt="Naavo" loading="lazy" /></div>
+</div>
+
+<p class="naavo-cap">Creams and oils</p>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.2.png" alt="Naavo" loading="lazy" /></div>
+</div>
+
+<p class="naavo-cap">Branding collaterals</p>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/19.png" alt="Naavo" loading="lazy" />
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.1.png" alt="Naavo" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.2.png" alt="Naavo" loading="lazy" /></div>
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/21.png" alt="Naavo" loading="lazy" />
+</div>
+
+<p class="naavo-cap">Instagram exemplar posts and stories</p>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/22.png" alt="Naavo" loading="lazy" />
+</div>
+
+<p class="naavo-cap">Potential advertisements</p>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/23.png" alt="Naavo" loading="lazy" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/24.png" alt="Naavo" loading="lazy" />
 </div>
