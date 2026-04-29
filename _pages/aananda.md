@@ -9,7 +9,7 @@ category: Branding · App Design
 year: 2020
 hero_bg: "radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)"
 hero_image: "9.aananda/cover.png"
-refl_bg: "9.aananda/reflection.png"
+refl_bg: "9.aananda/reflection.jpg"
 meta:
   - label: Role
     value: Solo
@@ -60,7 +60,7 @@ next_project:
 </style>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/1.png" alt="Aananda" loading="eager" />
+  <img src="{{ site.baseurl }}/9.aananda/1.png" alt="Aananda" loading="eager" style="animation: projBreathe 8s ease-in-out infinite;" />
 </div>
 
 <div class="cs-bleed">
@@ -77,8 +77,8 @@ next_project:
 </div>
 
 <p class="aan-cap">Illustration style inspired by Jain temples</p>
-<div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/9.aananda/5.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/9.aananda/5.png" alt="Aananda" loading="lazy" />
 </div>
 
 <p class="aan-cap">Mobile application for teachers and students</p>
@@ -91,8 +91,8 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/7.png" alt="Aananda" loading="lazy" />
 </div>
 
-<div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/9.aananda/8.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/9.aananda/8.png" alt="Aananda" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
@@ -157,7 +157,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/23.png" alt="Aananda" loading="lazy" />
+  <img src="{{ site.baseurl }}/9.aananda/23.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
 <div class="cs-grid">
