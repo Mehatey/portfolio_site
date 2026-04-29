@@ -99,7 +99,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/9.png" alt="Aananda" loading="lazy" />
 </div>
 
-<p class="aan-cap">Advertisements for the app</p>
+<p class="aan-cap">Newspaper advertisement</p>
 <div class="cs-bleed" style="max-width:600px; margin-left:auto !important; margin-right:auto !important;">
   <img src="{{ site.baseurl }}/9.aananda/10.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
@@ -108,6 +108,7 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/11.png" alt="Aananda" loading="lazy" />
 </div>
 
+<p class="aan-cap">Advertisements for the app</p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/12.png" alt="Aananda" loading="lazy" />
 </div>
@@ -144,12 +145,9 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/19.png" alt="Aananda" loading="lazy" />
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/20.png" alt="Aananda" loading="lazy" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/21.png" alt="Aananda" loading="lazy" />
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/20.png" alt="Aananda" loading="lazy" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/21.png" alt="Aananda" loading="lazy" /></div>
 </div>
 
 <div class="cs-bleed">
