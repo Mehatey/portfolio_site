@@ -10,31 +10,37 @@ This file is the single source of truth for layout, typography, and component co
 
 ---
 
-## Page inventory
+## Page inventory (last full QA pass: 2026-04-29)
 
-| File                           | proj_num | Status      | Notes                                                          |
-| ------------------------------ | -------- | ----------- | -------------------------------------------------------------- |
-| `_pages/encoded.md`            | 00       | Live        | Uses cs-pair layout, Testimonial reflection, two next_projects |
-| `_pages/cube-guy.md`           | 01       | Live        | Reference page. Has custom keyframe animations on cs-intro     |
-| `_pages/ai-self.md`            | 02       | Live        | Three cs-section dividers, uses global animations              |
-| `_pages/mandala.md`            | 04       | Live        | Word-reveal JS on intro, custom hero (cover.png), audio toggle |
-| `_pages/b-plus-b.md`           | 05       | Placeholder | Old cs-row/vis-ph system, needs rebuild for project 5          |
-| `_pages/mool.md`               | 06       | Placeholder | Old cs-row/vis-ph system                                       |
-| `_pages/mind-your-feelings.md` | 02       | Placeholder | Old cs-row/vis-ph system                                       |
+| File                           | proj_num | Status | Notes                                                              |
+| ------------------------------ | -------- | ------ | ------------------------------------------------------------------ |
+| `_pages/encoded.md`            | 00       | Live   | Reference. Uses cs-pair layout, Testimonial reflection, two next_projects |
+| `_pages/cube-guy.md`           | 01       | Live   | Reference. Custom keyframe animations on cs-intro, refl_bg = .mp4 |
+| `_pages/ai-self.md`            | 02       | Live   | Sections: AI Perception / AR Experience / VR Experience. Audio toggle on 23.mp4 + 24.mp4 |
+| `_pages/mind-your-feelings.md` | 03       | Live   | Brain-wrap LED visualization, no sub-sections                      |
+| `_pages/mandala.md`            | 04       | Live   | Sections: Introspective spaces / Breathe / Vision Pro / Mandalas / Guided meditation / Style explorations |
+| `_pages/b-plus-b.md`           | 05       | Live   | Street Interviews section with audio toggle (Russell/John/Karis/Tsing) |
+| `_pages/mool.md`               | 06       | Live   | Custom mool-hero with vignette, sparse photo-essay layout          |
+| `_pages/shot-on-iphone.md`     | 08       | Live   | Sparse photo-essay layout, breathe animations on featured frames   |
+| `_pages/naavo.md`              | 09       | Live   | Branding portfolio, refl_bg = 19.png                               |
+| `_pages/aananda.md`            | 13       | Live   | Has narrow-bleed accent for 8.png (cs-bleed--narrow class)         |
+| `_pages/alpha-stockathon.md`   | 14       | Live   | Pixel-art game project, refl_bg = 7.png                            |
+| `_pages/illustrations.md`      | 16       | Live   | 6 cs-section sub-projects (Music, Soft Rains, Avatar Vishnu, Astrologer, Reminiscence, Identity) |
 
 ---
 
 ## Page structure (mandatory order)
 
 ```
-frontmatter (layout: project, hide_overview: true, ...)
+frontmatter (layout: project, tagline, hero_image, refl_bg, ...)
 <style> block (page-scoped CSS)
-<!-- OVERVIEW -->
-<div class="cs-intro"> ... </div>
-<div class="cs-bleed-full"> hero image </div>
-[cs-section dividers + media blocks]
-[optional watch/link bar]
+<div class="cs-bleed-full"> hero image </div>     # OR cs-bleed if natural-ratio override is set
+[cs-section dividers + caption + media blocks ...]
+[optional watch/link bar between sections]
+[optional <script> block for audio toggles, etc.]
 ```
+
+The tagline renders as the page Overview automatically (via the layout). Don't add a body-level cs-intro with "Overview" label.
 
 ---
 
@@ -69,7 +75,9 @@ The following are defined GLOBALLY in `_layouts/project.html` and do NOT need to
 | Caption below   | `cube-cap`                        | 13px mono, all mid-page text                                   |
 | Caption above   | `cube-cap cube-cap--above`        | Same, placed BEFORE media (tight 8px attach)                   |
 
-**Never use `cs-intro` mid-page.** Never use `cs-chapter`, `cs-row`, `cs-content`, or `cs-heading` (old system).
+**Never use `cs-intro` mid-page.** Never use `cs-chapter`, `cs-row`, `cs-content`, `cs-heading`, `vis-ph`, or `cs-label` (old system).
+
+**Never duplicate the Overview label.** The frontmatter `tagline:` already renders as the page Overview via the layout default. Do NOT add a `<div class="cs-intro">` with `<span class="intro-overview-label">Overview</span>` in the body — it duplicates. If the tagline isn't rich enough, expand it directly in frontmatter.
 
 ---
 
@@ -201,9 +209,8 @@ The following are defined GLOBALLY in `_layouts/project.html` and do NOT need to
 layout: project
 permalink: /slug/
 project_title: "Title"
-proj_num: "01" # zero-padded, matches works.html card order
-hide_overview: true # always true when page has custom cs-intro
-tagline: "..."
+proj_num: "01" # zero-padded, must be unique across all project pages
+tagline: "..." # renders as the layout's default Overview — make this rich enough to stand alone
 category: "Type · Tool"
 year: 2025
 hero_bg: "radial-gradient(...)"
@@ -227,10 +234,111 @@ next_project: # singular for one, next_projects: (array) for multiple
 
 ## Language rules
 
-- No em dashes anywhere (not in text, not in captions, not in frontmatter)
-- No emojis
-- Captions: sentence case, italic via `<em>`, one line preferred
-- Reflection: 2–3 short paragraphs, same weight as cube-guy.md
+- **No em dashes** anywhere — text, captions, alt text, frontmatter, even CSS comments. Use comma, period, or colon.
+- **No emojis**.
+- **Captions: max 2 lines (~110 chars).** Modern designer practice (2026). Never write paragraph-length captions. Always wrapped in `<em>`, sentence case, ending in a period (or `?` / `!`).
+- Reflection: 2–3 short paragraphs, same weight as cube-guy.md.
+
+---
+
+## Page-level CSS standards (per session 2026-04-29)
+
+Every project page's `<style>` block should set:
+
+```css
+.cs-bleed { margin-top: 40px !important; }
+.cs-bleed + .cs-bleed { margin-top: 40px !important; }      /* consecutive standalones get full breathing room */
+.cs-grid { margin-top: 40px !important; }
+.cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
+.cs-grid + .cs-grid { margin-top: 16px !important; }        /* tighter for series of grids (contact-sheet feel) */
+
+.cube-cap { margin: 40px 0 0; }
+.cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
+.cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
+```
+
+**Never** use page-specific caption classes like `.aan-cap`, `.bb-cap`, `.naavo-cap`, etc. They're dead CSS. Always use the global `cube-cap` / `cube-cap--above`.
+
+---
+
+## Reflection block (`refl_bg`)
+
+The layout's reflection section (`_layouts/project.html`) supports both image AND `.mp4` video for `refl_bg`. Detection is based on `.mp4` substring in the path. Examples:
+
+```yaml
+refl_bg: "2.cube/5.mp4"      # video — auto-loops, used for cube-guy
+refl_bg: "1.met/12.png"      # image — used for encoded
+refl_bg: "2.ai-self/reflection.png"
+```
+
+For Testimonial style (encoded pattern), also set:
+
+```yaml
+refl_type: Testimonial
+refl_source: "Person Name"
+refl_role: "Title"
+refl_avatar: "path/to/headshot.png"  # optional
+```
+
+---
+
+## Link bar pattern (Watch / Play / View links)
+
+Used at the end of a section to link out (YouTube walkthrough, GitHub repo, live demo). Two variants:
+
+**Inline-styled (cube-guy, ai-self, b-plus-b):**
+
+```html
+<div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
+  <a href="https://..." target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.42)'">Watch Full Film ↗</a>
+</div>
+```
+
+**Class-based (mandala uses `.m-watch-link`, b-plus-b uses `.bb-process-link-bar`):** Same visual result via a page-style class. Either works.
+
+---
+
+## Audio toggle pattern (per-video unmute)
+
+For video that has audio worth playing (rare — most should stay muted). Two implementations:
+
+**Layout-driven** (cs-bleed-full only): add `data-audio` attribute. The layout's JS auto-injects a `cover-audio-btn` in the bottom-right.
+
+```html
+<div class="cs-bleed-full" data-audio>
+  <video autoplay muted loop playsinline preload="none">
+    <source src="..." type="video/mp4" />
+  </video>
+</div>
+```
+
+**Page-level** (any video): add the SVG button + page-level click handler. Pattern used in ai-self (23.mp4), b-plus-b interviews, mandala (mandala-shorter.mp4). The button toggles `video.muted` and a `.muted` class for icon swap.
+
+```html
+<div class="cs-bleed">
+  <video id="my-vid" autoplay muted loop playsinline preload="none">
+    <source src="..." type="video/mp4" />
+  </video>
+  <button class="cover-audio-btn muted" id="my-btn" aria-label="Toggle audio">
+    <svg class="audio-icon-on" ...></svg>
+    <svg class="audio-icon-off" ...></svg>
+  </button>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById("my-btn");
+    var vid = document.getElementById("my-vid");
+    btn.addEventListener("click", function () {
+      vid.muted = !vid.muted;
+      btn.classList.toggle("muted", vid.muted);
+      if (!vid.muted) vid.play().catch(function () {});
+    });
+  })();
+</script>
+```
+
+Browsers REQUIRE `muted` for autoplay. There's no way to autoplay-with-sound. Always start muted, let the user click to unmute.
 
 ---
 
