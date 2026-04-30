@@ -96,6 +96,7 @@
         border-bottom: 1px solid rgba(255, 255, 255, 0.07);
         /* filter removed */
       }
+      .nav > a { display: inline-flex; align-items: center; }
       .cube-scene {
         width: 32px;
         height: 32px;
@@ -604,11 +605,11 @@
       /* ── DESK STAGE — large and centered lower ── */
       #desk-stage {
         position: fixed;
-        top: calc(56% + 24px);
+        top: calc(48% + 24px);
         left: 50%;
         transform: translate(-50%, -50%);
         z-index: 5;
-        width: clamp(405px, 45.7vw, 773px);
+        width: clamp(486px, 54.8vw, 928px);
         pointer-events: auto;
         opacity: 0;
         transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.8s ease, filter 0.5s ease;
@@ -824,15 +825,6 @@
         #desk-stage {
           width: clamp(280px, 85vw, 450px);
         }
-        .audio-toggle {
-          top: auto;
-          bottom: 14px;
-          right: 14px;
-          font-size: 9px;
-          padding: 6px 10px;
-          gap: 6px;
-        }
-        .audio-toggle__bars { height: 9px; }
       }
 
       /* ── BACKGROUND GLOW ORBS ── */
@@ -892,59 +884,6 @@
         pointer-events: none;
         opacity: 0.3;
         /* Stay below loader */
-      }
-
-      /* ── AUDIO TOGGLE ── */
-      .audio-toggle {
-        position: fixed;
-        top: calc(var(--nav-h) + 16px);
-        right: 24px;
-        z-index: 50;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: transparent;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        color: rgba(255, 255, 255, 0.55);
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        padding: 8px 14px;
-        cursor: none;
-        transition: color 0.25s ease, border-color 0.25s ease, opacity 0.6s ease;
-      }
-      .audio-toggle:hover {
-        color: rgba(255, 255, 255, 0.92);
-        border-color: rgba(255, 255, 255, 0.45);
-      }
-      .audio-toggle__bars {
-        display: inline-flex;
-        align-items: flex-end;
-        gap: 2px;
-        height: 12px;
-      }
-      .audio-toggle__bars span {
-        display: inline-block;
-        width: 2px;
-        background: currentColor;
-        animation: audio-bar 0.9s ease-in-out infinite;
-      }
-      .audio-toggle__bars span:nth-child(1) { height: 50%; animation-delay: 0s; }
-      .audio-toggle__bars span:nth-child(2) { height: 90%; animation-delay: 0.15s; }
-      .audio-toggle__bars span:nth-child(3) { height: 70%; animation-delay: 0.3s; }
-      .audio-toggle__bars span:nth-child(4) { height: 40%; animation-delay: 0.45s; }
-      @keyframes audio-bar {
-        0%, 100% { transform: scaleY(0.4); }
-        50% { transform: scaleY(1); }
-      }
-      .audio-toggle.muted .audio-toggle__bars span {
-        animation-play-state: paused;
-        transform: scaleY(0.3);
-      }
-      .audio-toggle.muted {
-        color: rgba(255, 255, 255, 0.3);
-        border-color: rgba(255, 255, 255, 0.1);
       }
 
       /* ── PRE-REVEAL MASK ──
@@ -1095,13 +1034,6 @@
       <div class="bottom-center" id="bottom-tagline"></div>
       <span class="bottom-avail"><span class="bottom-dot"></span>Available for Work</span>
     </div>
-
-    <button id="audio-toggle" class="audio-toggle scene-hidden" aria-label="Toggle audio">
-      <span class="audio-toggle__bars" aria-hidden="true">
-        <span></span><span></span><span></span><span></span>
-      </span>
-      <span class="audio-toggle__label">Sound · On</span>
-    </button>
 
     {% include cursor_fluid.html %} {% include cube_idle.html %}
 
@@ -1758,10 +1690,9 @@
           var mw = document.querySelector(".main-wrap");
           if (mw) { mw.style.opacity = "1"; }
 
-          var audioToggle = document.getElementById("audio-toggle");
           if (instant) {
             // Return visit — show everything immediately
-            [nav, desk, bottomBar, ticker, dust, noise, glow, smoke, audioToggle].forEach(function(el) {
+            [nav, desk, bottomBar, ticker, dust, noise, glow, smoke].forEach(function(el) {
               if (el) { el.style.display = ""; el.classList.remove("scene-hidden"); el.classList.add("scene-visible"); }
             });
             if (desk) desk.classList.add("revealed");
@@ -1868,10 +1799,15 @@
           revealPage(true);
         });
 
-        // Fallback: if no loader event after 16s, reveal anyway
+        // If loader already finished before this listener attached (return-visit race), reveal now
+        if (window.__loaderInstantDone || !document.getElementById("site-loader")) {
+          revealPage(true);
+        }
+
+        // Fallback: if no loader event after 3s, reveal anyway
         setTimeout(function() {
-          if (document.querySelector(".scene-hidden")) revealPage(true);
-        }, 16000);
+          if (document.body.classList.contains("loading")) revealPage(true);
+        }, 3000);
 
         // Nature ambient sounds
         // Nature sound — created by Enter button click (user gesture), or create fallback
@@ -1892,27 +1828,6 @@
           });
         }
 
-        // Audio mute toggle
-        var audioBtn = document.getElementById("audio-toggle");
-        if (audioBtn) {
-          var muted = sessionStorage.getItem("sid_muted") === "1";
-          var labelEl = audioBtn.querySelector(".audio-toggle__label");
-          function syncAudioMute() {
-            if (window.__natureSnd) window.__natureSnd.muted = muted;
-            if (window.__typeSound) window.__typeSound.muted = muted;
-            audioBtn.classList.toggle("muted", muted);
-            if (labelEl) labelEl.textContent = muted ? "Sound · Off" : "Sound · On";
-          }
-          audioBtn.addEventListener("click", function() {
-            muted = !muted;
-            sessionStorage.setItem("sid_muted", muted ? "1" : "0");
-            syncAudioMute();
-          });
-          syncAudioMute();
-          // Re-sync after late audio init
-          setTimeout(syncAudioMute, 300);
-          setTimeout(syncAudioMute, 1500);
-        }
       })();
     </script>
   </body>
