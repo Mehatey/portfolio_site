@@ -25,8 +25,8 @@ reflection: >
   The installation worked best in darker, quieter rooms where conditions invited stillness. I realized that design is not always about what you show, but what you make room for.
 refl_bg: "4.mandala/blobs.mp4"
 next_project:
-  title: B+b
-  url: /b-plus-b/
+  title: Mind Your Feelings
+  url: /mind-your-feelings/
 ---
 
 <style>

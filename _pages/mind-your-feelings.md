@@ -29,8 +29,8 @@ reflection: >
 
   What surprised me was how quickly strangers opened up when given a space that felt safe. People were not looking for the right answer, they just wanted to be seen. 800 participants in five months, and the data we collected is now being used by local mental health organizations to better understand community wellbeing.
 next_project:
-  title: Mandalas
-  url: /mandalas/
+  title: Broken and Beautiful
+  url: /b-plus-b/
 ---
 
 <style>

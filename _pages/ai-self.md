@@ -24,7 +24,7 @@ reflection: >
   Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference. AI Self was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.
 refl_bg: "2.ai-self/reflection.png"
 next_project:
-  title: Who are you, to you
+  title: Bloom; who are you
   url: /mandalas/
 ---
 

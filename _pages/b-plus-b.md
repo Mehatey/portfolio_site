@@ -25,8 +25,8 @@ reflection: >
   The design didn't need to do much. The simplest structure worked best, and anything more would have gotten in the way.
 refl_bg: "5.bb/board2.2.mp4"
 next_project:
-  title: Encoded
-  url: /encoded/
+  title: Mool
+  url: /mool/
 ---
 
 <style>

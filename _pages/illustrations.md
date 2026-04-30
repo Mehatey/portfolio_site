@@ -25,8 +25,8 @@ reflection: >
 
   Looking back, the value of this work is not in any single piece, but in the accumulation. It helped me understand how I approach form, color, composition, and storytelling, and gave me the space to experiment without needing everything to resolve perfectly.
 next_project:
-  title: AI Self
-  url: /ai-self/
+  title: Encoded
+  url: /encoded/
 ---
 
 <style>
