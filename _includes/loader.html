@@ -36,21 +36,21 @@
   }
   #sl-hello {
     font-family: "Inter", sans-serif;
-    font-size: clamp(32px, 4.5vw, 52px);
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: rgba(255, 255, 255, 0.92);
-    min-height: 80px;
+    font-size: clamp(18px, 2.2vw, 26px);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    color: rgba(255, 255, 255, 0.55);
+    min-height: 36px;
     text-align: center;
     white-space: nowrap;
   }
   #sl-hello::after {
     content: "";
     display: inline-block;
-    width: 2px;
+    width: 1px;
     height: 0.8em;
-    background: rgba(255, 255, 255, 0.6);
-    margin-left: 4px;
+    background: rgba(255, 255, 255, 0.4);
+    margin-left: 3px;
     vertical-align: text-bottom;
     animation: sl-cursor 0.6s step-end infinite;
   }
@@ -79,6 +79,37 @@
     height: auto;
     display: block;
   }
+
+  /* Onboarding icon row — appears below typewriter text, syncs with phases */
+  #sl-onboard-icons {
+    position: absolute;
+    bottom: 9%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    z-index: 11;
+  }
+  #sl-onboard-icons img {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    opacity: 0;
+    transform: scale(0.55);
+    filter: blur(4px);
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s cubic-bezier(0.2, 1.2, 0.3, 1),
+      filter 0.6s ease;
+  }
+  #sl-onboard-icons img.show {
+    opacity: 0.9;
+    transform: scale(1);
+    filter: blur(0);
+  }
 </style>
 
 <!-- Enter gate — unlocks audio -->
@@ -102,18 +133,21 @@
     id="enter-btn"
     style="
       font-family: &quot;DM Mono&quot;, monospace;
-      font-size: 11px;
-      letter-spacing: 0.18em;
+      font-size: 16px;
+      letter-spacing: 0.22em;
       text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.92);
       background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      padding: 14px 36px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      padding: 22px 60px;
       cursor: none;
       transition:
         border-color 0.3s,
-        color 0.3s;
+        color 0.3s,
+        background 0.3s;
     "
+    onmouseover="this.style.borderColor='rgba(255,255,255,0.85)'; this.style.color='#fff'; this.style.background='rgba(255,255,255,0.04)';"
+    onmouseout="this.style.borderColor='rgba(255,255,255,0.35)'; this.style.color='rgba(255,255,255,0.92)'; this.style.background='transparent';"
   >
     Enter
   </button>
@@ -122,7 +156,15 @@
 <div id="site-loader" style="display: none">
   <canvas id="loader-dust"></canvas>
   <!-- Typewriter text — persists across all phases -->
-  <span id="sl-hello" style="position: absolute; bottom: 18%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
+  <span id="sl-hello" style="position: absolute; top: 14%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
+
+  <!-- Onboarding icons — preview the nav, appear with each typewriter line -->
+  <div id="sl-onboard-icons">
+    <img id="sl-icon-1" src="{{ site.baseurl }}/assets/img/nav/cube.png" alt="" />
+    <img id="sl-icon-2" src="{{ site.baseurl }}/assets/img/nav/flower.png" alt="" />
+    <img id="sl-icon-3" src="{{ site.baseurl }}/assets/img/nav/sparkle.png" alt="" />
+    <img id="sl-icon-4" src="{{ site.baseurl }}/assets/img/nav/cross.png" alt="" />
+  </div>
 
   <div class="sl-phase" id="sl-video-phase">
     <video id="sl-video" playsinline muted preload="auto" src="{{ site.baseurl }}/assets/video/cube_gettingup.mp4"></video>
@@ -155,9 +197,11 @@
       loader.style.display = "flex";
 
       // Start nature sounds immediately on Enter
+      var __sidMuted = sessionStorage.getItem("sid_muted") === "1";
       window.__natureSnd = new Audio("{{ site.baseurl }}/assets/audio/nature.mp3");
       window.__natureSnd.volume = 0;
       window.__natureSnd.loop = true;
+      window.__natureSnd.muted = __sidMuted;
       window.__natureSnd.currentTime = 5;
       window.__natureSnd.play().catch(function () {});
       // Fade in nature gently — very low volume
@@ -173,6 +217,7 @@
       window.__typeSound = new Audio("{{ site.baseurl }}/assets/audio/typing.mp3");
       window.__typeSound.volume = 0.18;
       window.__typeSound.loop = true;
+      window.__typeSound.muted = __sidMuted;
 
       startLoader();
     }
@@ -254,6 +299,15 @@
         { text: "But you can call me anytime", startAt: 7000 },
         { text: "Welcome to my portfolio", startAt: 11000 },
       ];
+
+      // Onboarding icons reveal — each slightly before its line types
+      var iconIds = ["sl-icon-1", "sl-icon-2", "sl-icon-3", "sl-icon-4"];
+      lines.forEach(function (line, idx) {
+        setTimeout(function () {
+          var ic = document.getElementById(iconIds[idx]);
+          if (ic) ic.classList.add("show");
+        }, Math.max(0, line.startAt - 250));
+      });
 
       lines.forEach(function (line, idx) {
         setTimeout(function () {
