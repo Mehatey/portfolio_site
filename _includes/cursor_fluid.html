@@ -33,6 +33,35 @@
       display: none !important;
     }
   }
+
+  /* Click ripple — gentle expanding ring from cursor */
+  .click-ripple {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 99998;
+    transform: translate(-50%, -50%);
+    border: 1px solid rgba(180, 220, 255, 0.55);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.18) 0%, transparent 65%);
+    animation: click-ripple 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+    will-change: transform, opacity;
+  }
+  @keyframes click-ripple {
+    0% {
+      width: 8px;
+      height: 8px;
+      opacity: 0.85;
+      border-width: 1.5px;
+    }
+    100% {
+      width: 70px;
+      height: 70px;
+      opacity: 0;
+      border-width: 0.5px;
+    }
+  }
 </style>
 
 <div id="cur-dot"></div>
@@ -77,6 +106,53 @@
       dot.style.left = mx + "px";
       dot.style.top = my + "px";
     })();
+
+    // ── CLICK HAPTICS ── tiny synthesized click + cursor ripple
+    let __actx = null;
+    function getCtx() {
+      if (!__actx) {
+        const C = window.AudioContext || window.webkitAudioContext;
+        if (!C) return null;
+        __actx = new C();
+      }
+      // Resume on first interaction (browsers suspend AC until gesture)
+      if (__actx.state === "suspended") __actx.resume().catch(() => {});
+      return __actx;
+    }
+    function playClick() {
+      const ctx = getCtx();
+      if (!ctx) return;
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(1600, t);
+      osc.frequency.exponentialRampToValueAtTime(420, t + 0.05);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.04, t + 0.005);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.06);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.07);
+    }
+    document.addEventListener(
+      "mousedown",
+      (e) => {
+        // Skip on right-click and middle-click
+        if (e.button !== 0) return;
+        // Skip on form inputs
+        const tag = e.target && e.target.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        playClick();
+        const r = document.createElement("div");
+        r.className = "click-ripple";
+        r.style.left = e.clientX + "px";
+        r.style.top = e.clientY + "px";
+        document.body.appendChild(r);
+        setTimeout(() => r.remove(), 600);
+      },
+      { passive: true }
+    );
   })();
 
   // ── FLOATING DUST ──
