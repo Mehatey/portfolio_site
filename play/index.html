@@ -277,6 +277,11 @@ title: Play — Sid Mehta
         padding: 0 var(--gutter);
         columns: var(--cols);
         column-gap: var(--gap);
+        opacity: 0;
+        transition: opacity 0.6s var(--ease-out);
+      }
+      .masonry.ready {
+        opacity: 1;
       }
       .card {
         break-inside: avoid;
@@ -284,15 +289,15 @@ title: Play — Sid Mehta
         border-radius: 10px;
         overflow: hidden;
         background: rgba(255, 255, 255, 0.03);
-        opacity: 0;
-        transform: translateY(16px);
-        transition:
-          opacity 0.5s var(--ease-out),
-          transform 0.5s var(--ease-out);
       }
-      .card.vis {
+      .card img,
+      .card video {
+        opacity: 0;
+        transition: opacity 0.4s var(--ease-out);
+      }
+      .card img.loaded,
+      .card video.loaded {
         opacity: 1;
-        transform: translateY(0);
       }
       .card img,
       .card video {
@@ -595,12 +600,15 @@ title: Play — Sid Mehta
             video.loop = true;
             video.playsInline = true;
             video.preload = "metadata";
+            video.addEventListener("loadeddata", function () { video.classList.add("loaded"); });
             card.appendChild(video);
           } else {
             var img = document.createElement("img");
             img.src = item.src;
             img.alt = "Play";
             img.loading = idx < 16 ? "eager" : "lazy";
+            if (img.complete) img.classList.add("loaded");
+            else img.addEventListener("load", function () { img.classList.add("loaded"); });
             card.appendChild(img);
             card.addEventListener("click", function (e) {
               openLb(e.currentTarget.querySelector("img").src);
@@ -610,17 +618,29 @@ title: Play — Sid Mehta
           masonry.appendChild(card);
         });
 
-        // Intersection observer — fade in + start breathing
+        // Reveal masonry once layout has settled (first images loaded, or timeout cap)
+        function revealMasonry() {
+          if (masonry.classList.contains("ready")) return;
+          masonry.classList.add("ready");
+        }
+        if (document.readyState === "complete") {
+          requestAnimationFrame(revealMasonry);
+        } else {
+          window.addEventListener("load", function () {
+            requestAnimationFrame(revealMasonry);
+          });
+        }
+        // Cap: don't wait more than 1500ms
+        setTimeout(revealMasonry, 1500);
+
+        // Intersection observer — start breathing animation when card enters viewport
         var obs = new IntersectionObserver(
           function (entries) {
             entries.forEach(function (e) {
               if (e.isIntersecting) {
                 var el = e.target;
-                el.classList.add("vis");
-                setTimeout(function () {
-                  var f = el.getAttribute("data-float");
-                  if (f) el.classList.add(f);
-                }, 700);
+                var f = el.getAttribute("data-float");
+                if (f) el.classList.add(f);
                 obs.unobserve(el);
               }
             });
