@@ -214,11 +214,14 @@ title: Play — Sid Mehta
         opacity: 0;
       }
 
-      /* MASONRY — CSS columns */
+      /* MASONRY — CSS Grid w/ JS-computed row spans (allows featured items to span 2 cols in flow) */
       .masonry {
         padding: 0 var(--gutter);
-        columns: var(--cols);
-        column-gap: var(--gap);
+        display: grid;
+        grid-template-columns: repeat(var(--cols), 1fr);
+        grid-auto-rows: 8px;
+        grid-auto-flow: dense;
+        gap: var(--gap);
         opacity: 0;
         transition: opacity 0.6s var(--ease-out);
       }
@@ -226,80 +229,57 @@ title: Play — Sid Mehta
         opacity: 1;
       }
       .card {
-        break-inside: avoid;
-        margin-bottom: var(--gap);
         border-radius: 10px;
         overflow: hidden;
         background: rgba(255, 255, 255, 0.03);
+        cursor: none;
+        align-self: start;
       }
       .card img,
       .card video {
         opacity: 0;
-        transition: opacity 0.4s var(--ease-out);
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+        border-radius: 10px;
+        transition: opacity 0.4s var(--ease-out), mix-blend-mode 0.25s ease, filter 0.3s ease;
+        will-change: mix-blend-mode;
       }
       .card img.loaded,
       .card video.loaded {
         opacity: 1;
       }
-      .card img,
-      .card video {
-        width: 100%;
-        display: block;
-        border-radius: 10px;
-        transition: mix-blend-mode 0.25s ease, filter 0.3s ease;
-        will-change: mix-blend-mode;
-      }
-      .card { cursor: none; }
 
-      /* Featured cards — span all columns so design/VR work reads big */
+      /* Featured cards — 2 columns wide, stay in grid flow as landscape highlights */
       .card--featured {
-        column-span: all;
-        -webkit-column-span: all;
-        margin: 16px 0 24px;
-      }
-      .card--featured img,
-      .card--featured video {
-        max-height: 75vh;
-        object-fit: cover;
+        grid-column: span 2;
       }
 
-      /* Breathing — applied after entrance */
+      /* Breathing — applied after entrance. Now with gentle left-right sway too. */
       @keyframes float1 {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-4px);
-        }
+        0%, 100% { transform: translate(0, 0); }
+        25% { transform: translate(2px, -2px); }
+        50% { transform: translate(0, -4px); }
+        75% { transform: translate(-2px, -2px); }
       }
       @keyframes float2 {
-        0%,
-        100% {
-          transform: translateY(0) rotate(0deg);
-        }
-        50% {
-          transform: translateY(-3px) rotate(0.15deg);
-        }
+        0%, 100% { transform: translate(0, 0) rotate(0deg); }
+        33% { transform: translate(-3px, -2px) rotate(-0.15deg); }
+        66% { transform: translate(3px, -3px) rotate(0.15deg); }
       }
       @keyframes float3 {
-        0%,
-        100% {
-          transform: translateY(0);
-        }
-        50% {
-          transform: translateY(-5px);
-        }
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(2px, -5px); }
       }
-      .card.f1 {
-        animation: float1 6s ease-in-out infinite;
+      @keyframes float4 {
+        0%, 100% { transform: translate(0, 0); }
+        50% { transform: translate(-3px, -3px); }
       }
-      .card.f2 {
-        animation: float2 7.5s ease-in-out infinite;
-      }
-      .card.f3 {
-        animation: float3 8s ease-in-out infinite;
-      }
+      .card.f1 { animation: float1 7s ease-in-out infinite; }
+      .card.f2 { animation: float2 8.5s ease-in-out infinite; }
+      .card.f3 { animation: float3 9s ease-in-out infinite; }
+      .card.f4 { animation: float4 7.8s ease-in-out infinite; }
 
       /* LIGHTBOX */
       .lb {
@@ -516,17 +496,19 @@ title: Play — Sid Mehta
 
     <!-- SVG filters used by random hover effects -->
     <svg style="position:absolute;width:0;height:0;" aria-hidden="true">
-      <filter id="play-liquify">
-        <feTurbulence type="fractalNoise" baseFrequency="0.025 0.018" numOctaves="2" seed="3"/>
-        <feDisplacementMap in="SourceGraphic" scale="22"/>
+      <!-- Chunky mosaic — clusters pixels into blocks via morphology dilate -->
+      <filter id="play-mosaic">
+        <feMorphology operator="dilate" radius="4"/>
+        <feColorMatrix values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 1 0"/>
       </filter>
-      <filter id="play-glitch">
-        <feTurbulence type="fractalNoise" baseFrequency="0.9 0.05" numOctaves="1" seed="7"/>
-        <feDisplacementMap in="SourceGraphic" scale="6"/>
+      <!-- Pixelate — heavier dilate for blocky look -->
+      <filter id="play-pixelate">
+        <feMorphology operator="dilate" radius="7"/>
       </filter>
-      <filter id="play-ripple">
-        <feTurbulence type="turbulence" baseFrequency="0.05 0.08" numOctaves="1" seed="5"/>
-        <feDisplacementMap in="SourceGraphic" scale="14"/>
+      <!-- Subtle wave — gentle ripple, NOT heavy warping -->
+      <filter id="play-wave">
+        <feTurbulence type="turbulence" baseFrequency="0.04 0.02" numOctaves="1" seed="9"/>
+        <feDisplacementMap in="SourceGraphic" scale="8"/>
       </filter>
     </svg>
 
@@ -545,7 +527,7 @@ title: Play — Sid Mehta
     <script>
       (function () {
         var masonry = document.getElementById("masonry");
-        var floats = ["f1", "f2", "f3"];
+        var floats = ["f1", "f2", "f3", "f4"];
         var base = "{{ site.baseurl }}";
 
         // Define all items: images p1-p99, videos v1-v33, gifs at p16 and p74; p99 (GroupProject) is featured
@@ -572,24 +554,35 @@ title: Play — Sid Mehta
         }
 
         // Build DOM
-        // Random hover effects — playful zone, each card gets a different vibe each time
+        // Random hover effects — Premiere-style filter playground
         var hoverEffects = [
+          // Heavy blur — soft melt
+          { filter: "blur(8px) saturate(1.6)" },
+          { filter: "blur(14px) brightness(1.2) saturate(2)" },
+          // Posterize / high-contrast punch
+          { filter: "contrast(2.4) saturate(1.6) brightness(0.95)" },
+          { filter: "contrast(3) saturate(0.4) brightness(1.1)" },
+          // Color shifts — kaleidoscope feel
+          { filter: "hue-rotate(120deg) saturate(2)" },
+          { filter: "hue-rotate(240deg) saturate(1.8) contrast(1.3)" },
+          { filter: "hue-rotate(60deg) saturate(2.2) brightness(1.1)" },
+          // Neon / invert
+          { filter: "invert(1) hue-rotate(180deg) saturate(1.4)" },
+          // Monochrome / moody
+          { filter: "saturate(0) contrast(1.4) brightness(1.1)" },
+          { filter: "saturate(0) brightness(0.6) contrast(2)" },
+          // Glow halo
+          { filter: "drop-shadow(0 0 20px rgba(160,220,255,0.85)) brightness(1.15)" },
+          { filter: "drop-shadow(0 0 24px rgba(255,180,220,0.7)) saturate(1.5)" },
+          // Mosaic / chunky pixelate via SVG morphology
+          { filter: "url(#play-mosaic)" },
+          { filter: "url(#play-pixelate)" },
+          // Subtle waves (the gentle one, not heavy liquify)
+          { filter: "url(#play-wave)" },
+          // Blend modes — composite-y
           { blend: "difference" },
           { blend: "exclusion" },
-          { blend: "screen" },
           { blend: "luminosity" },
-          { blend: "overlay" },
-          { filter: "url(#play-liquify)" },
-          { filter: "url(#play-glitch)" },
-          { filter: "url(#play-ripple)" },
-          { filter: "hue-rotate(120deg) saturate(1.6)" },
-          { filter: "hue-rotate(220deg) saturate(1.4)" },
-          { filter: "invert(1) hue-rotate(180deg)" },
-          { filter: "saturate(0) contrast(1.3) brightness(1.1)" },
-          { filter: "contrast(1.6) saturate(1.5)" },
-          { filter: "drop-shadow(0 0 18px rgba(160,220,255,0.9))" },
-          { transform: "rotate(-2deg) scale(1.04)" },
-          { transform: "skew(-3deg, 1deg) scale(1.02)" },
         ];
         function pickEffect() { return hoverEffects[Math.floor(Math.random() * hoverEffects.length)]; }
         function applyEffect(media, effect) {
@@ -643,6 +636,42 @@ title: Play — Sid Mehta
 
           masonry.appendChild(card);
         });
+
+        // Compute grid row span per card so layout becomes proper masonry
+        var GRID_ROW = 8; // px (matches grid-auto-rows)
+        var GRID_GAP = 12; // matches --gap default
+        function setRowSpan(card) {
+          var media = card.querySelector("img, video");
+          if (!media) return;
+          // Use natural aspect ratio + actual rendered width to compute height
+          var w = card.getBoundingClientRect().width;
+          if (!w) return;
+          var ratio;
+          if (media.tagName === "IMG") {
+            if (!media.naturalHeight) return;
+            ratio = media.naturalWidth / media.naturalHeight;
+          } else {
+            if (!media.videoWidth) return;
+            ratio = media.videoWidth / media.videoHeight;
+          }
+          var h = w / ratio;
+          var span = Math.ceil((h + GRID_GAP) / (GRID_ROW + GRID_GAP));
+          card.style.gridRowEnd = "span " + span;
+        }
+        function recomputeAll() {
+          masonry.querySelectorAll(".card").forEach(setRowSpan);
+        }
+        // Hook each media's load event to set its parent's span
+        masonry.querySelectorAll("img, video").forEach(function (m) {
+          if (m.tagName === "IMG") {
+            if (m.complete) setRowSpan(m.closest(".card"));
+            else m.addEventListener("load", function () { setRowSpan(m.closest(".card")); });
+          } else {
+            m.addEventListener("loadedmetadata", function () { setRowSpan(m.closest(".card")); });
+          }
+        });
+        var resizeT;
+        window.addEventListener("resize", function () { clearTimeout(resizeT); resizeT = setTimeout(recomputeAll, 150); });
 
         // Reveal masonry once first-fold media has loaded — kills the 1-2s shuffle
         function revealMasonry() {
@@ -734,28 +763,27 @@ title: Play — Sid Mehta
           { passive: true }
         );
 
-        // Wall reveal — cursor spotlight, revealed areas stay
+        // Wall reveal — Sherlock magnifying-glass: only the area under the cursor shows
         (function () {
           var container = document.getElementById("wall-reveal");
           var canvas = document.getElementById("wall-canvas");
           if (!container || !canvas) return;
           var ctx = canvas.getContext("2d");
 
-          // Mask canvas — tracks revealed areas
-          var maskCanvas = document.createElement("canvas");
-          var maskCtx = maskCanvas.getContext("2d");
-
           var img = new Image();
           img.src = "{{ site.baseurl }}/play/assets/wall.jpg";
-          var mx = -200,
-            my = -200;
-          var radius = 100;
+          var mx = -500, my = -500;
+          var inside = false;
+          var radius = 130;
+          var rendered = { mx: mx, my: my, opacity: 0 };
 
           function resize() {
-            canvas.width = container.offsetWidth;
-            canvas.height = container.offsetHeight;
-            maskCanvas.width = canvas.width;
-            maskCanvas.height = canvas.height;
+            var dpr = window.devicePixelRatio || 1;
+            canvas.width = container.offsetWidth * dpr;
+            canvas.height = container.offsetHeight * dpr;
+            canvas.style.width = container.offsetWidth + "px";
+            canvas.style.height = container.offsetHeight + "px";
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
           }
           resize();
           window.addEventListener("resize", resize);
@@ -763,48 +791,52 @@ title: Play — Sid Mehta
           var hint = document.getElementById("wall-hint");
           var hintFaded = false;
           container.addEventListener("mousemove", function (e) {
-            if (!hintFaded && hint) {
-              hint.classList.add("fade");
-              hintFaded = true;
-            }
+            if (!hintFaded && hint) { hint.classList.add("fade"); hintFaded = true; }
             var r = container.getBoundingClientRect();
             mx = e.clientX - r.left;
             my = e.clientY - r.top;
-            // Paint onto mask — persistent reveal
-            maskCtx.beginPath();
-            maskCtx.arc(mx, my, radius, 0, Math.PI * 2);
-            maskCtx.fillStyle = "#fff";
-            maskCtx.fill();
+            inside = true;
           });
+          container.addEventListener("mouseleave", function () { inside = false; });
 
           function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if (img.complete && img.naturalWidth) {
-              // Fill full area (cover)
-              var imgRatio = img.naturalWidth / img.naturalHeight;
-              var canRatio = canvas.width / canvas.height;
-              var w, h, ox, oy;
-              if (imgRatio > canRatio) {
-                h = canvas.height;
-                w = h * imgRatio;
-                ox = (canvas.width - w) / 2;
-                oy = 0;
-              } else {
-                w = canvas.width;
-                h = w / imgRatio;
-                ox = 0;
-                oy = (canvas.height - h) / 2;
-              }
-
-              // Draw full image
-              ctx.save();
-              ctx.drawImage(img, ox, oy, w, h);
-              // Use mask as composite — only show where mask is white
-              ctx.globalCompositeOperation = "destination-in";
-              ctx.drawImage(maskCanvas, 0, 0);
-              ctx.restore();
-            }
             requestAnimationFrame(draw);
+            var w = container.offsetWidth, h = container.offsetHeight;
+            ctx.clearRect(0, 0, w, h);
+            if (!img.complete || !img.naturalWidth) return;
+
+            // Smooth follow + opacity fade
+            rendered.mx += (mx - rendered.mx) * 0.22;
+            rendered.my += (my - rendered.my) * 0.22;
+            var targetOpacity = inside ? 1 : 0;
+            rendered.opacity += (targetOpacity - rendered.opacity) * 0.12;
+            if (rendered.opacity < 0.01) return;
+
+            // Fit image cover
+            var imgRatio = img.naturalWidth / img.naturalHeight;
+            var canRatio = w / h;
+            var iw, ih, ox, oy;
+            if (imgRatio > canRatio) { ih = h; iw = h * imgRatio; ox = (w - iw) / 2; oy = 0; }
+            else { iw = w; ih = w / imgRatio; ox = 0; oy = (h - ih) / 2; }
+
+            // Draw circular spotlight
+            ctx.save();
+            ctx.globalAlpha = rendered.opacity;
+            ctx.beginPath();
+            ctx.arc(rendered.mx, rendered.my, radius, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.drawImage(img, ox, oy, iw, ih);
+            ctx.restore();
+
+            // Soft white ring around the lens for that detective-glass feel
+            ctx.save();
+            ctx.globalAlpha = rendered.opacity * 0.6;
+            ctx.strokeStyle = "rgba(255,255,255,0.5)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(rendered.mx, rendered.my, radius, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
           }
           draw();
         })();
