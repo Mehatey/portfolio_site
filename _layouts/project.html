@@ -1226,6 +1226,57 @@
         color: rgba(255,255,255,0.6);
       }
 
+      /* ─── TOC DOTS ─── auto-generated from cs-section labels, sticky right */
+      .toc-dots {
+        position: fixed;
+        right: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        pointer-events: auto;
+      }
+      .toc-dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.18);
+        transition: width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), height 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease, transform 0.3s ease;
+        position: relative;
+        display: block;
+      }
+      .toc-dot:hover { background: rgba(255, 255, 255, 0.55); transform: scale(1.5); }
+      .toc-dot.is-active {
+        background: rgba(180, 220, 255, 0.92);
+        width: 14px; height: 14px;
+        box-shadow: 0 0 12px rgba(160, 200, 255, 0.5);
+      }
+      .toc-dot::before {
+        content: attr(data-label);
+        position: absolute;
+        right: 18px;
+        top: 50%;
+        transform: translateY(-50%) translateX(8px);
+        white-space: nowrap;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
+        opacity: 0;
+        transition: opacity 0.18s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+        background: rgba(0, 0, 0, 0.7);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        padding: 5px 9px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 3px;
+        pointer-events: none;
+      }
+      .toc-dot:hover::before { opacity: 1; transform: translateY(-50%) translateX(0); }
+      @media (max-width: 1100px) { .toc-dots { display: none; } }
+
       /* ─── SECTION DIVIDER (global) ─── */
       .cs-section {
         padding: 80px var(--gutter) 32px;
@@ -1634,6 +1685,42 @@
         { threshold: 0.3 }
       );
       document.querySelectorAll(".cs-section").forEach((s) => sectionObserver.observe(s));
+
+      // ── TOC DOTS ── build sticky right-side nav from cs-section labels (only if 2+ sections)
+      (function () {
+        const sections = document.querySelectorAll(".cs-section");
+        if (sections.length < 2) return;
+        const tocContainer = document.createElement("div");
+        tocContainer.className = "toc-dots";
+        tocContainer.setAttribute("aria-label", "Section navigation");
+        sections.forEach((sec, i) => {
+          const labelEl = sec.querySelector(".cs-section-label");
+          const label = labelEl ? labelEl.textContent.trim() : `Section ${i + 1}`;
+          if (!sec.id) sec.id = "section-" + i;
+          const dot = document.createElement("a");
+          dot.href = "#" + sec.id;
+          dot.className = "toc-dot";
+          dot.setAttribute("data-label", label);
+          dot.setAttribute("data-section", sec.id);
+          dot.setAttribute("aria-label", "Jump to " + label);
+          tocContainer.appendChild(dot);
+        });
+        document.body.appendChild(tocContainer);
+        const tocObs = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (e.isIntersecting) {
+                const id = e.target.id;
+                tocContainer.querySelectorAll(".toc-dot").forEach((d) => {
+                  d.classList.toggle("is-active", d.getAttribute("data-section") === id);
+                });
+              }
+            });
+          },
+          { rootMargin: "-30% 0px -50% 0px", threshold: 0 }
+        );
+        sections.forEach((s) => tocObs.observe(s));
+      })();
 
       // Lazy-load images below the fold
       document.querySelectorAll("img:not([loading])").forEach((img) => {
