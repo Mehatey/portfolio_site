@@ -329,6 +329,11 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 64px 48px;
+        perspective: 1400px;
+      }
+      .work-card {
+        transform-style: preserve-3d;
+        will-change: transform;
       }
 
       .work-card {
@@ -1297,6 +1302,31 @@
           card.addEventListener("mouseleave", () => {
             video.pause();
             video.currentTime = 0;
+          });
+        });
+      })();
+
+      // 3D tilt on cursor over each work card — subtle 4° rotateX/Y
+      (function () {
+        const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (prefersReduced) return;
+        document.querySelectorAll(".work-card").forEach((card) => {
+          let raf = null;
+          let nx = 0, ny = 0;
+          card.addEventListener("mousemove", (e) => {
+            const r = card.getBoundingClientRect();
+            nx = (e.clientX - r.left) / r.width - 0.5;
+            ny = (e.clientY - r.top) / r.height - 0.5;
+            if (raf) return;
+            raf = requestAnimationFrame(() => {
+              card.style.transform = `translateY(-6px) rotateX(${-ny * 4}deg) rotateY(${nx * 5}deg)`;
+              raf = null;
+            });
+          });
+          card.addEventListener("mouseleave", () => {
+            card.style.transform = "";
+            if (raf) cancelAnimationFrame(raf);
+            raf = null;
           });
         });
       })();
