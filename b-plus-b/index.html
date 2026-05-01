@@ -280,16 +280,25 @@
         tick();
       })();
 
-      // Progress bar
+      // Progress bar + hero parallax (combined into one rAF loop for perf)
       const progressEl = document.getElementById("progress");
-      window.addEventListener(
-        "scroll",
-        () => {
-          const h = document.documentElement.scrollHeight - window.innerHeight;
-          if (h > 0) progressEl.style.width = (window.scrollY / h) * 100 + "%";
-        },
-        { passive: true }
-      );
+      const heroMedia = document.querySelector(".proj-hero .hero-video");
+      let scrollTicking = false;
+      function onScroll() {
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        if (h > 0 && progressEl) progressEl.style.width = (window.scrollY / h) * 100 + "%";
+        if (heroMedia) {
+          const y = Math.min(window.scrollY * 0.32, 220);
+          heroMedia.style.transform = `translate3d(0, ${y}px, 0) scale(${1 + window.scrollY * 0.0002})`;
+        }
+        scrollTicking = false;
+      }
+      window.addEventListener("scroll", () => {
+        if (!scrollTicking) {
+          requestAnimationFrame(onScroll);
+          scrollTicking = true;
+        }
+      }, { passive: true });
 
       // Scroll reveal
       const observer = new IntersectionObserver(
