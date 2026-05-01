@@ -47,6 +47,35 @@
   .nav > a:hover .logo-cube {
     filter: drop-shadow(0 0 8px rgba(180, 220, 255, 0.4));
   }
+
+  /* Nav auto-hide on scroll down (returns on scroll up) */
+  .nav {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .nav--hidden { transform: translateY(-110%); }
+
+  /* Branded text selection — designers notice */
+  ::selection {
+    background: rgba(160, 220, 255, 0.32);
+    color: #fff;
+    text-shadow: 0 0 8px rgba(160, 220, 255, 0.4);
+  }
+  ::-moz-selection {
+    background: rgba(160, 220, 255, 0.32);
+    color: #fff;
+  }
+
+  /* Branded scrollbar — Webkit browsers */
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(160, 200, 255, 0.25), rgba(180, 230, 220, 0.18));
+    border-radius: 5px;
+    border: 2px solid #000;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(180, 220, 255, 0.5), rgba(200, 240, 230, 0.35));
+  }
   /* On touch devices: restore system cursor, hide custom dot */
   @media (hover: none), (pointer: coarse) {
     *,
@@ -226,6 +255,32 @@
         icon.style.transform = "";
       });
     });
+
+    // ── NAV AUTO-HIDE ON SCROLL DOWN ── returns when scrolling up. Skips home (no scroll).
+    (function () {
+      const navEl = document.querySelector(".nav");
+      if (!navEl) return;
+      let lastY = window.scrollY;
+      let ticking = false;
+      function handleScroll() {
+        const y = window.scrollY;
+        // Always show within first 80px of page
+        if (y < 80) {
+          navEl.classList.remove("nav--hidden");
+        } else if (y > lastY + 8) {
+          // Scrolling down past threshold
+          navEl.classList.add("nav--hidden");
+        } else if (y < lastY - 8) {
+          // Scrolling up
+          navEl.classList.remove("nav--hidden");
+        }
+        lastY = y;
+        ticking = false;
+      }
+      window.addEventListener("scroll", () => {
+        if (!ticking) { requestAnimationFrame(handleScroll); ticking = true; }
+      }, { passive: true });
+    })();
 
     // ── CLICK HAPTICS ── tiny synthesized click + cursor ripple
     let __actx = null;
