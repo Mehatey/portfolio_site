@@ -76,6 +76,14 @@
   ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, rgba(180, 220, 255, 0.5), rgba(200, 240, 230, 0.35));
   }
+
+  /* Konami easter egg — color-cycle the page when triggered */
+  @keyframes kameha {
+    0%, 100% { filter: hue-rotate(0deg) saturate(1) brightness(1); }
+    25% { filter: hue-rotate(90deg) saturate(1.5) brightness(1.05); }
+    50% { filter: hue-rotate(180deg) saturate(1.6) brightness(1.1); }
+    75% { filter: hue-rotate(270deg) saturate(1.5) brightness(1.05); }
+  }
   /* On touch devices: restore system cursor, hide custom dot */
   @media (hover: none), (pointer: coarse) {
     *,
@@ -280,6 +288,25 @@
       window.addEventListener("scroll", () => {
         if (!ticking) { requestAnimationFrame(handleScroll); ticking = true; }
       }, { passive: true });
+    })();
+
+    // ── KONAMI EASTER EGG ── ↑ ↑ ↓ ↓ ← → ← → B A
+    (function () {
+      const seq = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+      let pos = 0;
+      window.addEventListener("keydown", (e) => {
+        const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+        if (k === seq[pos]) {
+          pos++;
+          if (pos === seq.length) {
+            pos = 0;
+            document.body.style.animation = "kameha 1.6s cubic-bezier(0.34, 1.56, 0.64, 1)";
+            setTimeout(() => { document.body.style.animation = ""; }, 1700);
+          }
+        } else {
+          pos = (k === seq[0]) ? 1 : 0;
+        }
+      });
     })();
 
     // ── CLICK HAPTICS ── tiny synthesized click + cursor ripple
