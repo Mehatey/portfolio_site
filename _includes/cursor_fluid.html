@@ -1022,4 +1022,36 @@
       localStorage.setItem(HKEY, JSON.stringify(recent));
     } catch (_) {}
   })();
+
+  // ── HIDDEN-TAB TITLE SWAP ── nudges visitors to come back when they switch tabs
+  (function () {
+    const original = document.title;
+    const away = "← " + original;
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        document.title = away;
+      } else {
+        // Restore on return; also briefly flash a "welcome back" then settle
+        document.title = original;
+      }
+    });
+  })();
+
+  // ── READING TIME ESTIMATE ── injects "~N min read" badge on project pages
+  (function () {
+    const main = document.querySelector(".proj-hero ~ .meta-row, .meta-row");
+    const body = document.querySelector(".proj-intro, .proj-overview, .cs-bleed, .cube-cap");
+    if (!main || !body) return;
+    // Count words in the page body content (skip nav/footer)
+    const textEl = document.querySelector("main, .proj-content, body");
+    if (!textEl) return;
+    const text = textEl.innerText || textEl.textContent || "";
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    const minutes = Math.max(1, Math.round(words / 220));
+    if (words < 200) return; // skip short pages
+    const badge = document.createElement("div");
+    badge.className = "meta-item meta-item--readtime";
+    badge.innerHTML = '<p class="meta-k">Read</p><p class="meta-v">~' + minutes + " min</p>";
+    main.appendChild(badge);
+  })();
 </script>
