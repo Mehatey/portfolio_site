@@ -341,6 +341,15 @@
       .work-card:hover .card-visual video {
         transform: scale(1.04);
       }
+      /* Hover preview video — fades in on hover, hidden by default */
+      .card-hover-video {
+        opacity: 0;
+        transition: opacity 0.5s var(--ease-out), transform 0.6s var(--ease-out) !important;
+        pointer-events: none;
+      }
+      .work-card:hover .card-hover-video {
+        opacity: 1;
+      }
       /* Image-specific zoom — for covers with too much surrounding whitespace */
       .card-visual .card-img--zoom { transform: scale(1.2); }
       .work-card:hover .card-visual .card-img--zoom { transform: scale(1.25); }
@@ -856,7 +865,8 @@
       <!-- 02 · AI Self -->
       <a href="{{ site.baseurl }}/ai-self/" class="work-card" data-cat="xr research">
         <div class="card-visual" style="background: radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)">
-          <video src="{{ site.baseurl }}/2.ai-self/cover.mp4" poster="{{ site.baseurl }}/2.ai-self/cover.png" autoplay muted loop playsinline preload="metadata" aria-label="AI Self"></video>
+          <img src="{{ site.baseurl }}/2.ai-self/cover.png" alt="AI Self" loading="lazy" />
+          <video class="card-hover-video" src="{{ site.baseurl }}/2.ai-self/cover.mp4" muted loop playsinline preload="none" aria-label="AI Self preview"></video>
           <span class="card-num">02</span>
         </div>
         <div class="card-body">
@@ -897,6 +907,7 @@
         <div class="card-visual">
           <span class="card-num">04</span>
           <img src="{{ site.baseurl }}/4.mandala/cover.png" alt="Mandala" loading="lazy" />
+          <video class="card-hover-video" src="{{ site.baseurl }}/4.mandala/cover.mp4" muted loop playsinline preload="none" aria-label="Mandala preview"></video>
         </div>
         <div class="card-body">
           <div class="card-meta">
@@ -1155,6 +1166,23 @@
           { threshold: 0.05, rootMargin: "50px 0px" }
         );
         cards.forEach((c) => observer.observe(c));
+      })();
+
+      // Hover-to-play video previews — only loads + plays when user hovers
+      (function () {
+        document.querySelectorAll(".card-hover-video").forEach((video) => {
+          const card = video.closest(".work-card");
+          if (!card) return;
+          card.addEventListener("mouseenter", () => {
+            video.preload = "metadata";
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          });
+          card.addEventListener("mouseleave", () => {
+            video.pause();
+            video.currentTime = 0;
+          });
+        });
       })();
     </script>
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
