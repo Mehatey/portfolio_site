@@ -541,30 +541,35 @@
       }
     })();
 
-    // ── HOVER AWARENESS ── grow cursor over interactive surfaces
-    const HOVER_SELECTOR =
-      'a, button, [role="button"], .work-card, .nav-icon, .card, video, .filter-btn, .footer-cta, .site-footer-cta, .about-resume-link, .desk-play-reel, .meta-item';
-    document.addEventListener(
-      "mouseover",
-      (e) => {
-        if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
-      },
-      { passive: true }
-    );
-    document.addEventListener(
-      "mouseout",
-      (e) => {
-        if (e.target.closest && e.target.closest(HOVER_SELECTOR)) {
-          // Only remove if we're really leaving the hover surface (not just moving to a child)
-          const to = e.relatedTarget;
-          if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
-        }
-      },
-      { passive: true }
-    );
+    // Skip cursor-driven hover/magnetic effects entirely on touch devices
+    const isTouchDevice = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
 
-    // ── MAGNETIC NAV ICONS ── subtle pull toward cursor
-    document.querySelectorAll(".nav-icon").forEach((icon) => {
+    // ── HOVER AWARENESS ── grow cursor over interactive surfaces
+    if (!isTouchDevice) {
+      const HOVER_SELECTOR =
+        'a, button, [role="button"], .work-card, .nav-icon, .card, video, .filter-btn, .footer-cta, .site-footer-cta, .about-resume-link, .desk-play-reel, .meta-item';
+      document.addEventListener(
+        "mouseover",
+        (e) => {
+          if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
+        },
+        { passive: true }
+      );
+      document.addEventListener(
+        "mouseout",
+        (e) => {
+          if (e.target.closest && e.target.closest(HOVER_SELECTOR)) {
+            // Only remove if we're really leaving the hover surface (not just moving to a child)
+            const to = e.relatedTarget;
+            if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
+          }
+        },
+        { passive: true }
+      );
+    }
+
+    // ── MAGNETIC NAV ICONS ── subtle pull toward cursor (desktop only)
+    if (!isTouchDevice) document.querySelectorAll(".nav-icon").forEach((icon) => {
       icon.addEventListener("mousemove", (ev) => {
         const r = icon.getBoundingClientRect();
         const cx = r.left + r.width / 2;
@@ -578,8 +583,8 @@
       });
     });
 
-    // ── MAGNETIC FOOTER CTAs ── softer pull on Get in Touch / View Resume buttons
-    document.querySelectorAll(".site-footer-cta, .about-resume-link").forEach((cta) => {
+    // ── MAGNETIC FOOTER CTAs ── softer pull on Get in Touch / View Resume buttons (desktop only)
+    if (!isTouchDevice) document.querySelectorAll(".site-footer-cta, .about-resume-link").forEach((cta) => {
       cta.style.transition = "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s, color 0.3s, background 0.3s";
       cta.addEventListener("mousemove", (ev) => {
         const r = cta.getBoundingClientRect();
