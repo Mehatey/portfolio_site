@@ -55,7 +55,7 @@ next_project:
 
 <!-- HERO -->
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/2.ai-self/1.png" alt="" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
+  <img src="{{ site.baseurl }}/2.ai-self/1.png" alt="AI Self — research, design, and VR experience" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
 </div>
 
 <!-- SECTION: AI PERCEPTION -->
@@ -65,7 +65,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Google Cloud Vision run against my own photographs. My first experiment with machine perception.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/2.png" alt="" loading="lazy" />
+  <img src="{{ site.baseurl }}/2.ai-self/2.png" alt="AI Self — research, design, and VR experience" loading="lazy" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>A simple system to feed images through a model and watch what it decides is worth naming.</em></p>
@@ -110,12 +110,12 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The first UI concept. Pick a mascot. Talk to it. Over time it becomes a companion, not a tool.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/12.png" alt="" loading="lazy" />
+  <img src="{{ site.baseurl }}/2.ai-self/12.png" alt="AI Self — research, design, and VR experience" loading="lazy" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Beyond the app. AR woven into everyday life, not a screen you hold up but a layer that lives with you.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/13.png" alt="" loading="lazy" />
+  <img src="{{ site.baseurl }}/2.ai-self/13.png" alt="AI Self — research, design, and VR experience" loading="lazy" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>AR walkthrough. Idea conception, not a live build.</em></p>
@@ -143,7 +143,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/17.png" alt="" loading="lazy" />
+  <img src="{{ site.baseurl }}/2.ai-self/17.png" alt="AI Self — research, design, and VR experience" loading="lazy" />
 </div>
 
 <div class="cs-bleed">
@@ -180,12 +180,12 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>A different entry point. An AI assembling a sense of self from fragments of what it has learned.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/21.png" alt="" loading="lazy" />
+  <img src="{{ site.baseurl }}/2.ai-self/21.png" alt="AI Self — research, design, and VR experience" loading="lazy" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Process sketches for how the scenes were structured.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/22.png" alt="" loading="lazy" />
+  <img src="{{ site.baseurl }}/2.ai-self/22.png" alt="AI Self — research, design, and VR experience" loading="lazy" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Eva. The AI that wakes up. This is her opening.</em></p>
