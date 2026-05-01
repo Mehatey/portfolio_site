@@ -60,7 +60,7 @@ next_project:
 
 <!-- SECTION: AI PERCEPTION -->
 <div class="cs-section">
-  <span class="cs-section-label">AI Perception</span>
+  <h2 class="cs-section-label">AI Perception</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Google Cloud Vision run against my own photographs. My first experiment with machine perception.</em></p>
@@ -105,7 +105,7 @@ next_project:
 
 <!-- SECTION: AR EXPERIENCE -->
 <div class="cs-section">
-  <span class="cs-section-label">AR Experience</span>
+  <h2 class="cs-section-label">AR Experience</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The first UI concept. Pick a mascot. Talk to it. Over time it becomes a companion, not a tool.</em></p>
@@ -132,7 +132,7 @@ next_project:
 
 <!-- SECTION: VR EXPERIENCE -->
 <div class="cs-section">
-  <span class="cs-section-label">VR Experience</span>
+  <h2 class="cs-section-label">VR Experience</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>I asked Claude if it dreams. This is that conversation.</em></p>

@@ -226,7 +226,7 @@ next_project:
 
 <!-- SECTION: INTROSPECTIVE SPACES -->
 <div class="cs-section">
-  <span class="cs-section-label">Introspective spaces</span>
+  <h2 class="cs-section-label">Introspective spaces</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>The lit room. Brighter, more reflective. People found it harder to settle.</em></p>
@@ -298,7 +298,7 @@ next_project:
 
 <!-- SECTION: BREATHE -->
 <div class="cs-section">
-  <span class="cs-section-label">Breathe</span>
+  <h2 class="cs-section-label">Breathe</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>An earlier experiment. A 2D pixel art game asking if play could make you more still.</em></p>
@@ -341,7 +341,7 @@ next_project:
 
 <!-- SECTION: VISION PRO -->
 <div class="cs-section">
-  <span class="cs-section-label">Vision Pro</span>
+  <h2 class="cs-section-label">Vision Pro</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Taking the mandala into augmented reality.</em></p>
@@ -381,7 +381,7 @@ next_project:
 
 <!-- SECTION: BLOOM -->
 <div class="cs-section">
-  <span class="cs-section-label">Bloom</span>
+  <h2 class="cs-section-label">Bloom</h2>
 </div>
 
 <!-- Bloom logo hero -->
@@ -403,7 +403,7 @@ next_project:
 
 <!-- SECTION: BRAIN BIT BAND -->
 <div class="cs-section">
-  <span class="cs-section-label">Brain Bit Band</span>
+  <h2 class="cs-section-label">Brain Bit Band</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Experimenting with the Brain Bit Band to capture live EEG data.</em></p>
@@ -420,7 +420,7 @@ next_project:
 
 <!-- SECTION: MANDALAS -->
 <div class="cs-section">
-  <span class="cs-section-label">Mandalas</span>
+  <h2 class="cs-section-label">Mandalas</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Mandalas made on festival floors, then walked over and dissolved. This started from that memory.</em></p>
@@ -459,7 +459,7 @@ next_project:
 
 <!-- SECTION: GUIDED MEDITATION -->
 <div class="cs-section">
-  <span class="cs-section-label">Guided meditation</span>
+  <h2 class="cs-section-label">Guided meditation</h2>
 </div>
 
 <div class="cs-grid">
@@ -521,7 +521,7 @@ next_project:
 
 <!-- SECTION: MANDALAS STYLE EXPLORATIONS -->
 <div class="cs-section">
-  <span class="cs-section-label">Mandalas style explorations</span>
+  <h2 class="cs-section-label">Mandalas style explorations</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>The goal was for people to not use the cursor. The coin is a distraction.</em></p>

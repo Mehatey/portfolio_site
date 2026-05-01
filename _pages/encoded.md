@@ -148,7 +148,7 @@ next_project:
 </div>
 
 <div class="cs-section">
-  <span class="cs-section-label">Featured Artists</span>
+  <h2 class="cs-section-label">Featured Artists</h2>
 </div>
 <p style="font-family:var(--font-mono);font-size:13px;color:rgba(255,255,255,0.50);line-height:2;padding:0 var(--gutter);max-width:620px;margin-bottom:16px;letter-spacing:0.02em;">Amelia Winger-Bearskin · Bear Fox · Bird x Bird · Cannupa Hanska Luger · Cass Gardiner · Demian DinéYazhi´ · Lite Brite Neon · Flechas · Jarrette Werk · Jeremy Dennis · Josué Rivas · Katsitsionni Fox · Lokotah Sanborn · Mali Obomsawin · Mer Young · Nicholas Galanin · Priscilla Dobler Dzul · Skawennati</p>
 

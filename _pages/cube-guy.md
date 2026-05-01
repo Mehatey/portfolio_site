@@ -179,7 +179,7 @@ next_project:
 
 <!-- SECTION: FILM -->
 <div class="cs-section">
-  <span class="cs-section-label">Film</span>
+  <h2 class="cs-section-label">Film</h2>
 </div>
 
 <!-- FILM POSTER -->
@@ -354,7 +354,7 @@ next_project:
 
 <!-- SECTION: 2D GAME -->
 <div class="cs-section">
-  <span class="cs-section-label">2D Game</span>
+  <h2 class="cs-section-label">2D Game</h2>
 </div>
 
 <!-- 2D: 1 standalone -->
@@ -494,7 +494,7 @@ next_project:
 
 <!-- SECTION: 3D GAME -->
 <div class="cs-section">
-  <span class="cs-section-label">3D Game</span>
+  <h2 class="cs-section-label">3D Game</h2>
 </div>
 
 <!-- 3D: 0 opening bleed -->

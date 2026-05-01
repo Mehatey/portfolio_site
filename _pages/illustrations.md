@@ -75,7 +75,7 @@ next_project:
 
 <!-- SECTION: MUSIC ILLUSTRATIONS -->
 <div class="cs-section">
-  <span class="cs-section-label">Music Illustrations</span>
+  <h2 class="cs-section-label">Music Illustrations</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>30 songs illustrated.</em></p>
@@ -112,7 +112,7 @@ next_project:
 
 <!-- SECTION: THERE WILL COME SOFT RAINS -->
 <div class="cs-section">
-  <span class="cs-section-label">There Will Come Soft Rains</span>
+  <h2 class="cs-section-label">There Will Come Soft Rains</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Illustrative book.</em></p>
@@ -147,7 +147,7 @@ next_project:
 
 <!-- SECTION: AVATAR VISHNU -->
 <div class="cs-section">
-  <span class="cs-section-label">Avatar Vishnu Illustrations</span>
+  <h2 class="cs-section-label">Avatar Vishnu Illustrations</h2>
 </div>
 
 <div class="cs-bleed">
@@ -186,7 +186,7 @@ next_project:
 
 <!-- SECTION: ASTROLOGER IDENTITY -->
 <div class="cs-section">
-  <span class="cs-section-label">Astrologer Identity</span>
+  <h2 class="cs-section-label">Astrologer Identity</h2>
 </div>
 
 <div class="cs-grid">
@@ -206,7 +206,7 @@ next_project:
 
 <!-- SECTION: REMINISCENCE -->
 <div class="cs-section">
-  <span class="cs-section-label">Reminiscence</span>
+  <h2 class="cs-section-label">Reminiscence</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Font designed by me.</em></p>
@@ -241,7 +241,7 @@ next_project:
 
 <!-- SECTION: ILLUSTRATIVE IDENTITY -->
 <div class="cs-section">
-  <span class="cs-section-label">Illustrative Identity</span>
+  <h2 class="cs-section-label">Illustrative Identity</h2>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Made for an Indian small shop owner.</em></p>

@@ -141,7 +141,7 @@ next_project:
 
 <!-- SECTION: THE STAND -->
 <div class="cs-section">
-  <span class="cs-section-label">The Stand</span>
+  <h2 class="cs-section-label">The Stand</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>A Reddit thread titled "places to cry in NYC." People looking for somewhere to feel something without being seen.</em></p>
@@ -245,7 +245,7 @@ next_project:
 
 <!-- SECTION: THE SITE -->
 <div class="cs-section">
-  <span class="cs-section-label">The Site</span>
+  <h2 class="cs-section-label">The Site</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>I had an idea to create an online, Reddit-like site to store stories.</em></p>
@@ -325,7 +325,7 @@ next_project:
 
 <!-- SECTION: STREET INTERVIEWS -->
 <div class="cs-section">
-  <span class="cs-section-label">Street Interviews</span>
+  <h2 class="cs-section-label">Street Interviews</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Fifteen strangers. One question. Here are four of them.</em></p>
