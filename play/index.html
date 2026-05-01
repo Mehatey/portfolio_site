@@ -231,6 +231,18 @@ title: Play — Sid Mehta
         /* Default row span — small placeholder; recomputed from natural aspect on load */
         grid-row-end: span 14;
         align-self: start;
+        /* Card entry state — clip-path reveal + scale + blur, keyed by .reveal-in class */
+        opacity: 0;
+        transform: scale(0.94);
+        filter: blur(14px);
+        clip-path: inset(50% 0 50% 0);
+        transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out), filter 0.7s var(--ease-out), clip-path 0.9s var(--ease-out);
+      }
+      .card.reveal-in {
+        opacity: 1;
+        transform: scale(1);
+        filter: blur(0);
+        clip-path: inset(0 0 0 0);
       }
       .card img,
       .card video {
@@ -246,6 +258,35 @@ title: Play — Sid Mehta
       .card img.loaded,
       .card video.loaded {
         opacity: 1;
+      }
+
+      /* ── SCROLL EDGE BLUR ── content blurs/fades at top + bottom of viewport */
+      .scroll-edge {
+        position: fixed;
+        left: 0;
+        right: 0;
+        height: 110px;
+        pointer-events: none;
+        z-index: 50;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+      .scroll-edge--top {
+        top: var(--nav-h);
+        -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+                mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+      }
+      .scroll-edge--bottom {
+        bottom: 0;
+        -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 30%, transparent 100%);
+                mask-image: linear-gradient(0deg, #000 0%, #000 30%, transparent 100%);
+      }
+      @media (max-width: 600px) {
+        .scroll-edge { height: 70px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .scroll-edge { display: none; }
+        .card { opacity: 1; transform: none; filter: none; clip-path: none; transition: none; }
       }
 
       /* Featured cards — 2 columns wide, stay in grid flow as landscape highlights */
@@ -479,6 +520,10 @@ title: Play — Sid Mehta
 
     <div class="masonry" id="masonry"></div>
 
+    <!-- Scroll edge blur — top + bottom soft fade -->
+    <div class="scroll-edge scroll-edge--top" aria-hidden="true"></div>
+    <div class="scroll-edge scroll-edge--bottom" aria-hidden="true"></div>
+
     <!-- Wall image — revealed by cursor (bottom of page) -->
     <div class="wall-reveal" id="wall-reveal">
       <canvas id="wall-canvas"></canvas>
@@ -657,24 +702,67 @@ title: Play — Sid Mehta
         var resizeT;
         window.addEventListener("resize", function () { clearTimeout(resizeT); resizeT = setTimeout(recomputeAll, 150); });
 
-        // Intersection observer — start breathing animation when card enters viewport
+        // Intersection observer — reveal card (clip+scale+blur) + start breathing
         var obs = new IntersectionObserver(
           function (entries) {
-            entries.forEach(function (e) {
+            entries.forEach(function (e, i) {
               if (e.isIntersecting) {
                 var el = e.target;
-                var f = el.getAttribute("data-float");
-                if (f) el.classList.add(f);
+                // Stagger by intersection-batch index for ripple effect
+                var delay = (i % 4) * 60;
+                setTimeout(function () {
+                  el.classList.add("reveal-in");
+                  var f = el.getAttribute("data-float");
+                  if (f) el.classList.add(f);
+                }, delay);
                 obs.unobserve(el);
               }
             });
           },
-          { threshold: 0.05, rootMargin: "80px" }
+          { threshold: 0.04, rootMargin: "0px 0px -80px 0px" }
         );
 
         document.querySelectorAll(".card").forEach(function (c) {
           obs.observe(c);
         });
+
+        // ── IDLE AUTO-SCROLL ── slow drift if user hasn't interacted in 5s
+        (function () {
+          var lastInteraction = Date.now();
+          var humanScrollY = window.scrollY;
+          var autoScrolling = false;
+          var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (prefersReduced) return;
+          ["mousemove", "touchstart", "wheel", "keydown", "click"].forEach(function (ev) {
+            window.addEventListener(ev, function () {
+              lastInteraction = Date.now();
+              autoScrolling = false;
+              humanScrollY = window.scrollY;
+            }, { passive: true });
+          });
+          // Treat user-initiated scroll as interaction; ignore auto-scroll's own scroll events
+          window.addEventListener("scroll", function () {
+            if (!autoScrolling) {
+              lastInteraction = Date.now();
+              humanScrollY = window.scrollY;
+            }
+          }, { passive: true });
+          var driftY = window.scrollY;
+          function tick() {
+            requestAnimationFrame(tick);
+            var idle = Date.now() - lastInteraction > 5000;
+            var atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 8;
+            if (idle && !atBottom) {
+              autoScrolling = true;
+              driftY += 0.45; // ~27px/sec at 60fps
+              window.scrollTo(0, driftY);
+              setTimeout(function () { autoScrolling = false; }, 50);
+            } else {
+              driftY = window.scrollY;
+            }
+          }
+          tick();
+        })();
 
         // Lightbox
         var lb = document.getElementById("lb");
