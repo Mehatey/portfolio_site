@@ -1422,21 +1422,38 @@
         );
       })();
 
-      // Filter functionality
+      // Filter functionality with URL persistence (?filter=installation)
+      function applyFilter(filter) {
+        document.querySelectorAll(".filter-btn").forEach((b) => {
+          b.classList.toggle("active", b.dataset.filter === filter);
+        });
+        document.querySelectorAll(".work-card").forEach((card) => {
+          if (filter === "all" || (card.dataset.cat || "").includes(filter)) {
+            card.style.display = "";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      }
       document.querySelectorAll(".filter-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
-          document.querySelectorAll(".filter-btn").forEach((b) => b.classList.remove("active"));
-          btn.classList.add("active");
-          const filter = btn.dataset.filter;
-          document.querySelectorAll(".work-card").forEach((card) => {
-            if (filter === "all" || card.dataset.cat.includes(filter)) {
-              card.style.display = "";
-            } else {
-              card.style.display = "none";
-            }
-          });
+          const f = btn.dataset.filter;
+          applyFilter(f);
+          // Sync URL so the filter survives reload + can be deep-linked
+          const url = new URL(window.location.href);
+          if (f === "all") url.searchParams.delete("filter");
+          else url.searchParams.set("filter", f);
+          history.replaceState(null, "", url.toString());
         });
       });
+      // On load: restore filter from URL if present
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const f = params.get("filter");
+        if (f && document.querySelector('.filter-btn[data-filter="' + f + '"]')) {
+          applyFilter(f);
+        }
+      })();
 
       // Scroll-triggered card reveal with row-based stagger
       (function () {

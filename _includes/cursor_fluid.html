@@ -742,6 +742,103 @@
       right: 16px;
     }
   }
+
+  /* ── KEYBOARD HELP OVERLAY ── triggered by "?" */
+  #sid-help {
+    position: fixed;
+    inset: 0;
+    z-index: 998;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 6, 10, 0.74);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease;
+  }
+  #sid-help.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #sid-help .help-panel {
+    width: min(440px, 90vw);
+    padding: 28px 32px 22px;
+    border-radius: 12px;
+    background: rgba(20, 24, 32, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+    color: rgba(255, 255, 255, 0.92);
+  }
+  #sid-help .help-title {
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(160, 200, 255, 0.85);
+    margin-bottom: 18px;
+  }
+  #sid-help .help-list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px 18px;
+    margin: 0;
+  }
+  #sid-help dt,
+  #sid-help dd {
+    margin: 0;
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 12px;
+  }
+  #sid-help dt {
+    text-align: right;
+  }
+  #sid-help dd {
+    color: rgba(255, 255, 255, 0.7);
+  }
+  #sid-help kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.04);
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 10.5px;
+    line-height: 1.2;
+    margin: 0 2px;
+    color: rgba(255, 255, 255, 0.92);
+  }
+  #sid-help .help-foot {
+    margin-top: 22px;
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.4);
+  }
+  html[data-theme="light"] #sid-help {
+    background: rgba(245, 243, 238, 0.7);
+  }
+  html[data-theme="light"] #sid-help .help-panel {
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(0, 0, 0, 0.08);
+    color: #07090f;
+  }
+  html[data-theme="light"] #sid-help .help-title {
+    color: rgba(40, 90, 180, 0.9);
+  }
+  html[data-theme="light"] #sid-help dd {
+    color: rgba(7, 9, 15, 0.7);
+  }
+  html[data-theme="light"] #sid-help kbd {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.14);
+    color: #07090f;
+  }
+  html[data-theme="light"] #sid-help .help-foot {
+    color: rgba(7, 9, 15, 0.45);
+  }
   /* Play page surfaces */
   html[data-theme="light"] .play-title {
     color: #07090f;
@@ -2779,6 +2876,53 @@
       console.log("%cBuilt with HTML, CSS, JS, and patience.\nCurious how something works? sidmehtadesign@gmail.com", dim);
       console.log("%cTry ⌘K to navigate · ↑↑↓↓←→←→ba for the konami easter egg", dim);
     } catch (_) {}
+  })();
+
+  // ── KEYBOARD SHORTCUT HELP ── press ? to surface all bound shortcuts in a small overlay
+  (function () {
+    function build() {
+      const overlay = document.createElement("div");
+      overlay.id = "sid-help";
+      overlay.innerHTML =
+        '<div class="help-panel">' +
+        '<div class="help-title">Keyboard shortcuts</div>' +
+        '<dl class="help-list">' +
+        "<dt><kbd>⌘</kbd>+<kbd>K</kbd></dt><dd>Open command palette</dd>" +
+        "<dt><kbd>R</kbd></dt><dd>Random project</dd>" +
+        "<dt><kbd>?</kbd></dt><dd>This panel</dd>" +
+        "<dt><kbd>Esc</kbd></dt><dd>Close any panel</dd>" +
+        "<dt><kbd>S</kbd>+<kbd>I</kbd>+<kbd>D</kbd></dt><dd>Cube waves</dd>" +
+        "<dt><kbd>↑↑↓↓←→←→BA</kbd></dt><dd>Confetti burst</dd>" +
+        "</dl>" +
+        '<div class="help-foot">Click backdrop or press <kbd>Esc</kbd> to dismiss</div>' +
+        "</div>";
+      document.body.appendChild(overlay);
+      function close() {
+        overlay.classList.remove("is-open");
+      }
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) close();
+      });
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && overlay.classList.contains("is-open")) close();
+      });
+      return overlay;
+    }
+    let overlay = null;
+    window.addEventListener("keydown", (e) => {
+      // Trigger only on bare "?" (Shift+/) — and not while typing in inputs or with Cmd/Ctrl held
+      if (e.key !== "?") return;
+      const tag = document.activeElement && document.activeElement.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // Don't fire if cmd-k or cube-chat is open
+      const palette = document.querySelector(".cmdk-overlay.is-open, #cmdk.is-open");
+      const chat = document.querySelector("#cube-chat.is-open");
+      if (palette || chat) return;
+      e.preventDefault();
+      overlay = overlay || build();
+      overlay.classList.toggle("is-open");
+    });
   })();
 
   // ── SMART PREFETCH ── hover an internal link for 80ms, browser fetches the page in idle so the click feels instant
