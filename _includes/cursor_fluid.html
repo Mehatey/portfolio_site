@@ -598,6 +598,150 @@
   html[data-theme="light"] .site-footer-build::before {
     color: rgba(7, 9, 15, 0.3);
   }
+
+  /* ── COPY-EMAIL TOAST ── floats bottom-center for ~2s after a mailto click */
+  #sid-toast {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translate(-50%, 16px);
+    z-index: 1000;
+    padding: 10px 16px;
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: rgba(0, 0, 0, 0.85);
+    color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(160, 200, 255, 0.18);
+    border-radius: 4px;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    pointer-events: none;
+    opacity: 0;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  #sid-toast.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  html[data-theme="light"] #sid-toast {
+    background: rgba(245, 243, 238, 0.95);
+    color: #07090f;
+    border-color: rgba(40, 90, 180, 0.3);
+  }
+
+  /* ── IMAGE LIGHTBOX ── full-screen image viewer on project case-study pages */
+  #sid-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(5, 6, 10, 0.92);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+  #sid-lightbox.is-open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #sid-lightbox img {
+    max-width: 92vw;
+    max-height: 86vh;
+    object-fit: contain;
+    border-radius: 6px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  }
+  #sid-lightbox .lb-caption {
+    position: absolute;
+    bottom: 64px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    max-width: 80vw;
+    text-align: center;
+  }
+  #sid-lightbox .lb-counter {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: rgba(255, 255, 255, 0.5);
+  }
+  #sid-lightbox .lb-close,
+  #sid-lightbox .lb-prev,
+  #sid-lightbox .lb-next {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 22px;
+    line-height: 1;
+    cursor: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      background 0.2s,
+      transform 0.2s;
+  }
+  #sid-lightbox .lb-close {
+    top: 24px;
+    right: 24px;
+  }
+  #sid-lightbox .lb-prev {
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  #sid-lightbox .lb-next {
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  #sid-lightbox .lb-close:hover {
+    background: rgba(255, 255, 255, 0.14);
+    transform: scale(1.06);
+  }
+  #sid-lightbox .lb-prev:hover {
+    transform: translateY(-50%) scale(1.06);
+    background: rgba(255, 255, 255, 0.14);
+  }
+  #sid-lightbox .lb-next:hover {
+    transform: translateY(-50%) scale(1.06);
+    background: rgba(255, 255, 255, 0.14);
+  }
+  @media (max-width: 600px) {
+    #sid-lightbox .lb-prev,
+    #sid-lightbox .lb-next {
+      display: none;
+    }
+    #sid-lightbox .lb-counter {
+      top: 16px;
+      left: 16px;
+      font-size: 10px;
+    }
+    #sid-lightbox .lb-close {
+      top: 16px;
+      right: 16px;
+    }
+  }
   /* Play page surfaces */
   html[data-theme="light"] .play-title {
     color: #07090f;
@@ -2666,6 +2810,105 @@
       }
       const t = setTimeout(() => prefetch(a.href), 80);
       a.addEventListener("mouseleave", () => clearTimeout(t), { once: true });
+    });
+  })();
+
+  // ── COPY-EMAIL ON CLICK ── intercept mailto clicks, copy address to clipboard + toast (still opens mail client)
+  (function () {
+    function showToast(text) {
+      let toast = document.getElementById("sid-toast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "sid-toast";
+        toast.setAttribute("role", "status");
+        toast.setAttribute("aria-live", "polite");
+        document.body.appendChild(toast);
+      }
+      toast.textContent = text;
+      toast.classList.add("is-visible");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove("is-visible"), 1800);
+    }
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest && e.target.closest('a[href^="mailto:"]');
+      if (!a) return;
+      const email = a
+        .getAttribute("href")
+        .replace(/^mailto:/, "")
+        .split("?")[0];
+      if (!email) return;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(email).then(() => {
+            showToast("Email copied · " + email);
+          });
+        }
+      } catch (_) {}
+      // Don't preventDefault — let mailto: still open if the user has a client set
+    });
+  })();
+
+  // ── IMAGE LIGHTBOX ── click any media in project case-study sections to open full-screen
+  (function () {
+    const isProject = !!document.querySelector(".proj-body, .proj-hero");
+    if (!isProject) return;
+    const targets = document.querySelectorAll(
+      ".proj-body img, .cs-bleed img, .cs-grid img, .cs-row img, .cs-pair img, .cs-split img, .cube-cap + .cs-grid img"
+    );
+    if (!targets.length) return;
+    let overlay = null;
+    let imgEl = null;
+    let captionEl = null;
+    let current = -1;
+    const list = Array.from(targets);
+    function ensureOverlay() {
+      if (overlay) return;
+      overlay = document.createElement("div");
+      overlay.id = "sid-lightbox";
+      overlay.innerHTML =
+        '<button class="lb-close" aria-label="Close">×</button>' +
+        '<button class="lb-prev" aria-label="Previous">‹</button>' +
+        '<button class="lb-next" aria-label="Next">›</button>' +
+        '<img alt="" /><div class="lb-caption"></div><div class="lb-counter"></div>';
+      document.body.appendChild(overlay);
+      imgEl = overlay.querySelector("img");
+      captionEl = overlay.querySelector(".lb-caption");
+      const counterEl = overlay.querySelector(".lb-counter");
+      function setIdx(i) {
+        if (i < 0 || i >= list.length) return;
+        current = i;
+        const src = list[i];
+        imgEl.src = src.currentSrc || src.src;
+        const cap = src.alt || "";
+        captionEl.textContent = cap;
+        captionEl.style.display = cap ? "block" : "none";
+        counterEl.textContent = i + 1 + " / " + list.length;
+      }
+      function close() {
+        overlay.classList.remove("is-open");
+      }
+      overlay.querySelector(".lb-close").addEventListener("click", close);
+      overlay.querySelector(".lb-prev").addEventListener("click", () => setIdx((current - 1 + list.length) % list.length));
+      overlay.querySelector(".lb-next").addEventListener("click", () => setIdx((current + 1) % list.length));
+      overlay.addEventListener("click", (e) => {
+        if (e.target === overlay) close();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (!overlay.classList.contains("is-open")) return;
+        if (e.key === "Escape") close();
+        else if (e.key === "ArrowLeft") setIdx((current - 1 + list.length) % list.length);
+        else if (e.key === "ArrowRight") setIdx((current + 1) % list.length);
+      });
+      overlay._setIdx = setIdx;
+    }
+    list.forEach((img, i) => {
+      img.style.cursor = "zoom-in";
+      img.addEventListener("click", (e) => {
+        e.preventDefault();
+        ensureOverlay();
+        overlay._setIdx(i);
+        overlay.classList.add("is-open");
+      });
     });
   })();
 
