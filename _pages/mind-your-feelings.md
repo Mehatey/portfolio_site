@@ -4,7 +4,7 @@ permalink: /mind-your-feelings/
 project_title: Mind Your Feelings
 proj_num: "03"
 tagline: >
-  Mind Your Feelings is a participatory installation at the Johnson Public Library in Hackensack that visualizes the feelings of community members. The system combines a touchscreen interface with a responsive LED brain sculpture, allowing users to select emotions, map them onto the body, and see them come alive through light. Over 800 participants have experienced the installation since December 2025, turning internal emotional states into shared, tangible moments of reflection.
+  Mind Your Feelings is a participatory installation at the Johnson Public Library in Hackensack that visualizes the feelings of community members. The system combines a touchscreen interface with a responsive LED brain sculpture, allowing users to select emotions, map them onto the body, and see them come alive through light. Over 800 participants have experienced the installation, turning internal emotional states into shared, tangible moments of reflection.
 category: Installation · Creative Tech
 year: 2026
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)"
