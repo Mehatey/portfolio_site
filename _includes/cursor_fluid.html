@@ -650,6 +650,12 @@
     background: rgba(60, 100, 160, 0.18);
     color: #07090f;
   }
+  /* Magnetic CTAs — smooth return to origin when cursor leaves */
+  [data-magnetic] {
+    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
   /* Existing reading progress bar — light-mode tuning */
   html[data-theme="light"] .progress-bar {
     background: rgba(7, 9, 15, 0.05);
@@ -3094,6 +3100,33 @@
       }
       const t = setTimeout(() => prefetch(a.href), 80);
       a.addEventListener("mouseleave", () => clearTimeout(t), { once: true });
+    });
+  })();
+
+  // ── MAGNETIC CTA ── elements with [data-magnetic] subtly pull toward the cursor on hover
+  (function () {
+    const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    if (isTouch) return;
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    const STRENGTH = 0.28;
+    document.querySelectorAll("[data-magnetic]").forEach((el) => {
+      let raf = null;
+      el.addEventListener("mousemove", (e) => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          const r = el.getBoundingClientRect();
+          const dx = (e.clientX - (r.left + r.width / 2)) * STRENGTH;
+          const dy = (e.clientY - (r.top + r.height / 2)) * STRENGTH;
+          el.style.transform = "translate(" + dx + "px, " + dy + "px)";
+          raf = null;
+        });
+      });
+      el.addEventListener("mouseleave", () => {
+        el.style.transform = "";
+        if (raf) cancelAnimationFrame(raf);
+        raf = null;
+      });
     });
   })();
 
