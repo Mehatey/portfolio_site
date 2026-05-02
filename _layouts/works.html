@@ -522,6 +522,32 @@
       .work-card--feature .card-title {
         font-size: clamp(22px, 2.6vw, 28px);
       }
+      /* Cinematic ambient zoom on hero card cover images — slow, breath-like */
+      @keyframes heroAmbient {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.035);
+        }
+      }
+      .work-card--hero .card-visual img,
+      .work-card--feature .card-visual img {
+        animation: heroAmbient 16s ease-in-out infinite;
+      }
+      .work-card--hero:hover .card-visual img,
+      .work-card--feature:hover .card-visual img {
+        animation-play-state: paused;
+        transform: scale(1.05);
+        transition: transform 0.7s var(--ease-out);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .work-card--hero .card-visual img,
+        .work-card--feature .card-visual img {
+          animation: none;
+        }
+      }
       .work-card--hero .card-title {
         font-size: clamp(28px, 4.5vw, 44px);
       }
@@ -1670,6 +1696,39 @@
               card.style.setProperty("--gy", y + "%");
               raf = null;
             });
+          });
+        });
+      })();
+
+      // Project-number scramble on card hover — quick mono-glyph jitter then resettle
+      (function () {
+        const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        if (isTouch) return;
+        const glyphs = "0123456789";
+        document.querySelectorAll(".work-card .card-num").forEach((num) => {
+          const finalText = num.textContent;
+          const card = num.closest(".work-card");
+          if (!card) return;
+          let timer = null;
+          card.addEventListener("mouseenter", () => {
+            let i = 0;
+            clearInterval(timer);
+            timer = setInterval(() => {
+              const out = finalText
+                .split("")
+                .map((ch, idx) => (idx < i ? finalText[idx] : glyphs[Math.floor(Math.random() * glyphs.length)]))
+                .join("");
+              num.textContent = out;
+              i++;
+              if (i > finalText.length) {
+                clearInterval(timer);
+                num.textContent = finalText;
+              }
+            }, 40);
+          });
+          card.addEventListener("mouseleave", () => {
+            clearInterval(timer);
+            num.textContent = finalText;
           });
         });
       })();
