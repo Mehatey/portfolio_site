@@ -57,6 +57,32 @@
     transition: transform 0.25s ease-out;
   }
 
+  /* "Type SID" easter egg — wave the cube logo */
+  @keyframes logoWave {
+    0%,
+    100% {
+      transform: rotateZ(0);
+    }
+    18% {
+      transform: rotateZ(16deg);
+    }
+    36% {
+      transform: rotateZ(-14deg);
+    }
+    54% {
+      transform: rotateZ(10deg);
+    }
+    72% {
+      transform: rotateZ(-6deg);
+    }
+    90% {
+      transform: rotateZ(2deg);
+    }
+  }
+  .logo-cube.logo-wave {
+    animation: logoWave 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
   /* Cube logo path-draw on first paint of each page */
   .logo-cube path,
   .logo-cube rect {
@@ -869,6 +895,41 @@
         { passive: true }
       );
       window.addEventListener("click", dismiss, { passive: true });
+    })();
+
+    // ── TYPE "SID" EASTER EGG ── cube logo waves hello
+    (function () {
+      let typed = "";
+      window.addEventListener("keydown", (e) => {
+        if (e.key.length !== 1) return;
+        const tag = document.activeElement && document.activeElement.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        typed = (typed + e.key.toLowerCase()).slice(-3);
+        if (typed === "sid") {
+          typed = "";
+          document.querySelectorAll(".logo-cube").forEach((l) => {
+            l.classList.add("logo-wave");
+            setTimeout(() => l.classList.remove("logo-wave"), 1500);
+          });
+          // Soft chime
+          try {
+            const ctx = window.__actx || (window.__actx = new (window.AudioContext || window.webkitAudioContext)());
+            if (ctx.state === "suspended") ctx.resume().catch(() => {});
+            const t0 = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const g = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(880, t0);
+            osc.frequency.exponentialRampToValueAtTime(660, t0 + 0.3);
+            g.gain.setValueAtTime(0.0001, t0);
+            g.gain.exponentialRampToValueAtTime(0.025, t0 + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.4);
+            osc.connect(g).connect(ctx.destination);
+            osc.start(t0);
+            osc.stop(t0 + 0.45);
+          } catch (_) {}
+        }
+      });
     })();
 
     // ── KONAMI EASTER EGG ── ↑ ↑ ↓ ↓ ← → ← → B A
