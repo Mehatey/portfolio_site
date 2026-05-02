@@ -51,6 +51,12 @@
   .nav > a:focus-visible .cube-face {
     opacity: 1;
   }
+  /* Cube logo eyes track cursor — sets translate via CSS var */
+  .logo-eye {
+    transform: translateX(calc(var(--eye-x, 0) * 0.7px)) translateY(calc(var(--eye-y, 0) * 0.5px));
+    transition: transform 0.25s ease-out;
+  }
+
   /* Cube logo path-draw on first paint of each page */
   .logo-cube path,
   .logo-cube rect {
@@ -115,6 +121,57 @@
     /* Cmd+K hint hidden on mobile (no Cmd key) */
     .cmdk-hint {
       display: none !important;
+    }
+  }
+
+  /* Scroll hint pill — fades in after 4s of no scroll on long pages */
+  #scroll-hint {
+    position: fixed;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    z-index: 90;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition:
+      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #scroll-hint.is-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .scroll-hint-line {
+    width: 1px;
+    height: 28px;
+    background: linear-gradient(180deg, transparent, rgba(180, 220, 255, 0.65) 70%, transparent);
+    animation: scrollHintLine 1.8s ease-in-out infinite;
+  }
+  @keyframes scrollHintLine {
+    0%,
+    100% {
+      transform: scaleY(1) translateY(0);
+      opacity: 0.9;
+    }
+    50% {
+      transform: scaleY(1.3) translateY(8px);
+      opacity: 0.4;
+    }
+  }
+  .scroll-hint-label {
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.45);
+  }
+  @media (max-width: 600px) {
+    #scroll-hint {
+      bottom: 24px;
     }
   }
 
@@ -728,6 +785,92 @@
       );
     })();
 
+    // ── EYE TRACKING ── cube logo eyes follow cursor (desktop only)
+    if (!isTouchDevice) {
+      let eyeRaf = null;
+      let lastEx = 0,
+        lastEy = 0;
+      document.addEventListener(
+        "mousemove",
+        (ev) => {
+          lastEx = (ev.clientX / window.innerWidth - 0.5) * 2; // -1 to 1
+          lastEy = (ev.clientY / window.innerHeight - 0.5) * 2;
+          if (eyeRaf) return;
+          eyeRaf = requestAnimationFrame(() => {
+            document.documentElement.style.setProperty("--eye-x", lastEx.toFixed(3));
+            document.documentElement.style.setProperty("--eye-y", lastEy.toFixed(3));
+            eyeRaf = null;
+          });
+        },
+        { passive: true }
+      );
+    }
+
+    // ── RANDOM PROJECT (press R) ── delightful keyboard shortcut
+    (function () {
+      const projects = [
+        "/encoded/",
+        "/cube-guy/",
+        "/ai-self/",
+        "/mandalas/",
+        "/mind-your-feelings/",
+        "/b-plus-b/",
+        "/mool/",
+        "/shot-on-iphone/",
+        "/naavo/",
+        "/aananda/",
+        "/alpha-stockathon/",
+        "/illustrations/",
+      ];
+      window.addEventListener("keydown", (e) => {
+        if (e.key !== "r" && e.key !== "R") return;
+        // Skip if user is typing in an input
+        const tag = document.activeElement && document.activeElement.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        // Skip if any modifier is held (Cmd+R = reload, Ctrl+R = reload)
+        if (e.metaKey || e.ctrlKey || e.altKey) return;
+        e.preventDefault();
+        const cur = window.location.pathname;
+        const candidates = projects.filter((p) => p !== cur);
+        const target = candidates[Math.floor(Math.random() * candidates.length)];
+        window.location.href = "{{ site.baseurl }}" + target;
+      });
+    })();
+
+    // ── SCROLL HINT ── small "scroll" pill bottom-center after 4s of no scroll
+    (function () {
+      // Only on pages that actually have scrollable content
+      if (document.documentElement.scrollHeight - window.innerHeight < 300) return;
+      const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+      const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (prefersReduced) return;
+      const hint = document.createElement("div");
+      hint.id = "scroll-hint";
+      hint.setAttribute("aria-hidden", "true");
+      hint.innerHTML = '<span class="scroll-hint-line"></span><span class="scroll-hint-label">Scroll</span>';
+      document.body.appendChild(hint);
+      let dismissed = false;
+      function show() {
+        if (dismissed || window.scrollY > 30) return;
+        hint.classList.add("is-visible");
+      }
+      function dismiss() {
+        if (dismissed) return;
+        dismissed = true;
+        hint.classList.remove("is-visible");
+        setTimeout(() => hint.remove(), 600);
+      }
+      setTimeout(show, isTouch ? 5000 : 4000);
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (window.scrollY > 30) dismiss();
+        },
+        { passive: true }
+      );
+      window.addEventListener("click", dismiss, { passive: true });
+    })();
+
     // ── KONAMI EASTER EGG ── ↑ ↑ ↓ ↓ ← → ← → B A
     (function () {
       const seq = ["ArrowUp", "ArrowUp", "ArrowDown", "ArrowDown", "ArrowLeft", "ArrowRight", "ArrowLeft", "ArrowRight", "b", "a"];
@@ -858,6 +1001,13 @@
         { label: "Aananda — Jain Philosophy", url: "/aananda/", group: "Projects", kbd: "10" },
         { label: "Alpha Stockathon", url: "/alpha-stockathon/", group: "Projects", kbd: "11" },
         { label: "Illustrations", url: "/illustrations/", group: "Projects", kbd: "12" },
+        {
+          label: "Surprise me — random project",
+          url: "__random__",
+          group: "Discover",
+          kbd: "R",
+          random: true,
+        },
         { label: "Email Sid", url: "mailto:sidmehtadesign@gmail.com", group: "Connect", kbd: "@", external: true },
         { label: "LinkedIn", url: "https://www.linkedin.com/in/siddharth-mehta-35560916b/", group: "Connect", kbd: "in", external: true },
         { label: "Instagram", url: "https://www.instagram.com/cubeofcreation/", group: "Connect", kbd: "ig", external: true },
@@ -941,6 +1091,27 @@
         const it = filtered[activeIndex];
         if (!it) return;
         close();
+        if (it.random) {
+          const projects = [
+            "/encoded/",
+            "/cube-guy/",
+            "/ai-self/",
+            "/mandalas/",
+            "/mind-your-feelings/",
+            "/b-plus-b/",
+            "/mool/",
+            "/shot-on-iphone/",
+            "/naavo/",
+            "/aananda/",
+            "/alpha-stockathon/",
+            "/illustrations/",
+          ];
+          const cur = window.location.pathname;
+          const candidates = projects.filter((p) => p !== cur);
+          const t = candidates[Math.floor(Math.random() * candidates.length)];
+          window.location.href = "{{ site.baseurl }}" + t;
+          return;
+        }
         if (it.external) window.open(it.url, "_blank", "noopener");
         else window.location.href = "{{ site.baseurl }}" + it.url;
       }
