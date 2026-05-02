@@ -1093,21 +1093,21 @@
   <body class="loading">
     {% include loader.html %}
 
-    <!-- Hover-driven work collage — reveals project covers underwater behind cursor -->
+    <!-- Hover-driven work collage — covers loaded LAZILY via data-src after window 'load' to avoid blocking first paint (covers total ~62MB) -->
     <div id="work-collage" class="scene-hidden" aria-hidden="true">
       <div class="wc-grid">
-        <img src="{{ site.baseurl }}/1.met/0.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/2.cube/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/2.ai-self/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/4.mandala/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/5.bb/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/5.mool/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/6.mindu/cover 2.webp" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/7.naavo/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/8.shotoniphone/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/9.aananda/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/10.alpha/cover.png" alt="" loading="eager" />
-        <img src="{{ site.baseurl }}/11.illu/24.png" alt="" loading="eager" />
+        <img data-src="{{ site.baseurl }}/1.met/0.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/2.cube/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/2.ai-self/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/4.mandala/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/5.bb/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/5.mool/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/6.mindu/cover 2.webp" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/7.naavo/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/8.shotoniphone/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/9.aananda/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/10.alpha/cover.png" alt="" loading="lazy" decoding="async" />
+        <img data-src="{{ site.baseurl }}/11.illu/24.png" alt="" loading="lazy" decoding="async" />
       </div>
     </div>
 
@@ -1259,6 +1259,18 @@
         if (isTouch || prefersReduced) {
           collage.style.display = "none";
           return;
+        }
+        // Defer image load until idle so it doesn't compete with first paint
+        function loadCovers() {
+          collage.querySelectorAll("img[data-src]").forEach(function (img) {
+            img.src = img.dataset.src;
+            img.removeAttribute("data-src");
+          });
+        }
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(loadCovers, { timeout: 4000 });
+        } else {
+          setTimeout(loadCovers, 1500);
         }
         // Center initial position
         collage.style.setProperty("--cx", window.innerWidth / 2 + "px");

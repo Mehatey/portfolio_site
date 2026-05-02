@@ -218,21 +218,21 @@
 </div>
 
 <div id="site-loader" style="display: none">
-  <!-- Underwater work-collage backing the cube entry animation -->
+  <!-- Underwater work-collage backing the cube entry animation — covers loaded lazily via data-src so they don't block the loader -->
   <div id="loader-collage" aria-hidden="true">
     <div class="lc-grid">
-      <img src="{{ site.baseurl }}/1.met/0.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/2.cube/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/2.ai-self/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/4.mandala/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/5.bb/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/5.mool/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/6.mindu/cover 2.webp" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/7.naavo/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/8.shotoniphone/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/9.aananda/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/10.alpha/cover.png" alt="" loading="eager" />
-      <img src="{{ site.baseurl }}/11.illu/24.png" alt="" loading="eager" />
+      <img data-src="{{ site.baseurl }}/1.met/0.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/2.cube/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/2.ai-self/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/4.mandala/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/5.bb/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/5.mool/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/6.mindu/cover 2.webp" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/7.naavo/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/8.shotoniphone/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/9.aananda/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/10.alpha/cover.png" alt="" loading="lazy" decoding="async" />
+      <img data-src="{{ site.baseurl }}/11.illu/24.png" alt="" loading="lazy" decoding="async" />
     </div>
   </div>
 
@@ -393,6 +393,18 @@
         if (!lc) return;
         var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (prefersReduced) return;
+        // Defer cover loading until idle so it doesn't compete with the cube video
+        function loadLcCovers() {
+          lc.querySelectorAll("img[data-src]").forEach(function (img) {
+            img.src = img.dataset.src;
+            img.removeAttribute("data-src");
+          });
+        }
+        if ("requestIdleCallback" in window) {
+          window.requestIdleCallback(loadLcCovers, { timeout: 2500 });
+        } else {
+          setTimeout(loadLcCovers, 1000);
+        }
         // Reveal it after a beat so it eases in alongside the cube animation
         setTimeout(function () {
           lc.classList.add("is-on");
