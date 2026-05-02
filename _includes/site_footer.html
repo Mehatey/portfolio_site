@@ -117,6 +117,31 @@
     color: rgba(255, 255, 255, 0.36);
     margin-left: 16px;
   }
+  /* Page weight + carbon estimate — sustainability indicator */
+  .site-footer-weight {
+    display: inline-flex;
+    align-items: center;
+    font-family: "DM Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(160, 220, 180, 0.6);
+    margin-left: 14px;
+  }
+  .site-footer-weight::before {
+    content: "◇";
+    color: rgba(160, 230, 180, 0.5);
+    margin-right: 6px;
+    font-size: 9px;
+  }
+  @media (max-width: 700px) {
+    .site-footer-time,
+    .site-footer-weight {
+      display: block;
+      margin-left: 0;
+      margin-top: 4px;
+    }
+  }
   .site-footer-time::before {
     content: "";
     width: 5px;
@@ -143,6 +168,7 @@
   <span class="site-footer-text">
     © 2026 · Siddharth Mehta
     <span class="site-footer-time" id="site-footer-time" aria-label="Current time in New York">—:— NYC</span>
+    <span class="site-footer-weight" id="site-footer-weight" aria-label="Page transfer size and estimated carbon">— KB</span>
   </span>
   <div class="site-footer-social">
     <a href="mailto:sidmehtadesign@gmail.com">Email</a>
@@ -173,5 +199,38 @@
     }
     tick();
     setInterval(tick, 30 * 1000);
+  })();
+
+  // Page weight + carbon estimate — runs after window 'load' so all resources are accounted
+  (function () {
+    var el = document.getElementById("site-footer-weight");
+    if (!el) return;
+    function compute() {
+      try {
+        var total = 0;
+        var resources = performance.getEntriesByType("resource");
+        resources.forEach(function (r) {
+          total += r.transferSize || r.encodedBodySize || 0;
+        });
+        var nav = performance.getEntriesByType("navigation")[0];
+        if (nav) total += nav.transferSize || nav.encodedBodySize || 0;
+        if (total === 0) {
+          el.style.display = "none";
+          return;
+        }
+        var kb = Math.round(total / 1024);
+        // Rough estimate: ~0.5g CO₂ per 1MB transferred (web sustainability avg)
+        var co2 = ((kb * 0.5) / 1024).toFixed(2);
+        el.textContent = kb + " KB · ~" + co2 + "g CO₂";
+        el.title = "Page transfer size and estimated carbon footprint per visit";
+      } catch (_) {
+        el.style.display = "none";
+      }
+    }
+    if (document.readyState === "complete") setTimeout(compute, 800);
+    else
+      window.addEventListener("load", function () {
+        setTimeout(compute, 800);
+      });
   })();
 </script>
