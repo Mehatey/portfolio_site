@@ -3,12 +3,21 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: rgba(0, 0, 0, 0.78);
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: "Inter", sans-serif;
     overflow: hidden;
+  }
+  /* Solid backdrop — hides homepage content (desk WebGL, marquee, bottom-bar) during entry + loader scenes.
+     The work-collage shader paints above this; cube video + typewriter paint above the shader. */
+  #enter-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 8000;
+    background: #08080c;
+    pointer-events: none;
   }
   .sl-phase {
     position: absolute;
@@ -147,11 +156,12 @@
     }
   }
 
-  /* Loader work-collage — top-level fixed so it backs both the Enter gate and the cube animation */
+  /* Loader work-collage — top-level fixed so it backs both the Enter gate and the cube animation.
+     z-index: 8500 sits above the solid #enter-backdrop (8000) and below the cube + Enter button (9999+). */
   #loader-collage {
     position: fixed;
     inset: 0;
-    z-index: 1;
+    z-index: 8500;
     pointer-events: none;
     opacity: 0;
     transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1);
@@ -255,6 +265,9 @@
   </defs>
 </svg>
 
+<!-- Solid dark backdrop — hides homepage content during entry + loader phases -->
+<div id="enter-backdrop"></div>
+
 <!-- Top-level work-collage — backs both Enter scene and loader. Removed when home page is reached.
      Image set chosen for low byte cost (the collage runs through a heavy SVG turbulence filter
      so resolution differences are imperceptible — every src here is ≤ 1.5MB). -->
@@ -275,16 +288,14 @@
   </div>
 </div>
 
-<!-- Enter gate — unlocks audio. Semi-transparent so the underwater work-collage shows through. -->
+<!-- Enter gate — transparent (backdrop + shader paint behind). Just centers the Enter button. -->
 <div
   id="enter-gate"
   style="
     position: fixed;
     inset: 0;
     z-index: 10000;
-    background: rgba(0, 0, 0, 0.62);
-    -webkit-backdrop-filter: blur(2px);
-    backdrop-filter: blur(2px);
+    background: transparent;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -398,6 +409,15 @@
     // When the loader sequence finishes, fade + remove so home page's own work-collage takes over
     window.addEventListener("loaderDone", function () {
       setTimeout(function () {
+        // Backdrop fades out first so home reveals smoothly
+        var backdrop = document.getElementById("enter-backdrop");
+        if (backdrop) {
+          backdrop.style.transition = "opacity 0.6s ease";
+          backdrop.style.opacity = "0";
+          setTimeout(function () {
+            if (backdrop.parentNode) backdrop.remove();
+          }, 700);
+        }
         if (!lc || !lc.parentNode) return;
         lc.style.transition = "opacity 0.6s ease";
         lc.style.opacity = "0";
