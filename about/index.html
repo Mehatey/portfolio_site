@@ -1144,6 +1144,48 @@ html[data-theme="light"] #sid-help .help-foot{color:rgba(7,9,15,0.45)}#play-auto
     } catch (_) {}
   })();
 
+  // ── VIM-STYLE NAVIGATION ── press G then a letter within 1.2s to jump (W=works, P=play, A=about, C=contact, H=home)
+  (function () {
+    var armed = false;
+    var armTimer = null;
+    var BASE = "";
+    var routes = {
+      h: "/",
+      w: "/works/",
+      p: "/play/",
+      a: "/about/",
+      c: "/contact/",
+    };
+    function disarm() {
+      armed = false;
+      clearTimeout(armTimer);
+    }
+    window.addEventListener("keydown", function (e) {
+      var tag = document.activeElement && document.activeElement.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // Don't fire while a panel is open
+      if (document.querySelector("#cmdk.is-open, #cube-chat.is-open, #sid-help.is-open, #sid-lightbox.is-open, #lb.open")) return;
+      var k = e.key.toLowerCase();
+      if (!armed) {
+        if (k === "g") {
+          armed = true;
+          clearTimeout(armTimer);
+          armTimer = setTimeout(disarm, 1200);
+        }
+        return;
+      }
+      // Armed — interpret next key
+      if (routes[k]) {
+        e.preventDefault();
+        disarm();
+        window.location.href = BASE + routes[k];
+      } else {
+        disarm();
+      }
+    });
+  })();
+
   // ── KEYBOARD SHORTCUT HELP ── press ? to surface all bound shortcuts in a small overlay
   (function () {
     function build() {
@@ -1154,6 +1196,7 @@ html[data-theme="light"] #sid-help .help-foot{color:rgba(7,9,15,0.45)}#play-auto
         '<div class="help-title">Keyboard shortcuts</div>' +
         '<dl class="help-list">' +
         "<dt><kbd>⌘</kbd>+<kbd>K</kbd></dt><dd>Open command palette</dd>" +
+        "<dt><kbd>G</kbd> <kbd>W</kbd>/<kbd>P</kbd>/<kbd>A</kbd>/<kbd>C</kbd>/<kbd>H</kbd></dt><dd>Jump to works / play / about / contact / home</dd>" +
         "<dt><kbd>R</kbd></dt><dd>Random project</dd>" +
         "<dt><kbd>T</kbd></dt><dd>Toggle light / dark</dd>" +
         "<dt><kbd>?</kbd></dt><dd>This panel</dd>" +
