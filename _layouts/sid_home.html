@@ -1024,10 +1024,104 @@
       :focus:not(:focus-visible) {
         outline: none;
       }
+
+      /* ─── HOVER WORK-COLLAGE ─── cursor-driven underwater reveal of project covers */
+      #work-collage {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        -webkit-mask-image: radial-gradient(
+          circle 240px at var(--cx, 50%) var(--cy, 50%),
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, 0.7) 35%,
+          rgba(0, 0, 0, 0.25) 65%,
+          transparent 90%
+        );
+        mask-image: radial-gradient(
+          circle 240px at var(--cx, 50%) var(--cy, 50%),
+          rgba(0, 0, 0, 1) 0%,
+          rgba(0, 0, 0, 0.7) 35%,
+          rgba(0, 0, 0, 0.25) 65%,
+          transparent 90%
+        );
+        mix-blend-mode: screen;
+        filter: url(#wc-water);
+      }
+      #work-collage.is-active {
+        opacity: 1;
+      }
+      .wc-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        width: 100%;
+        height: 100%;
+        gap: 0;
+      }
+      .wc-grid img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        /* Underwater tint — cool blues, lower brightness, slight saturate */
+        filter: hue-rotate(190deg) saturate(0.65) brightness(0.55) contrast(1.05);
+      }
+      /* Soft cyan glow tint on top, blends with site palette */
+      #work-collage::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle 240px at var(--cx, 50%) var(--cy, 50%), rgba(120, 180, 240, 0.18) 0%, transparent 60%);
+        pointer-events: none;
+        mix-blend-mode: overlay;
+      }
+      @media (hover: none), (pointer: coarse) {
+        #work-collage {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #work-collage {
+          display: none;
+        }
+      }
     </style>
   </head>
   <body class="loading">
     {% include loader.html %}
+
+    <!-- Hover-driven work collage — reveals project covers underwater behind cursor -->
+    <div id="work-collage" class="scene-hidden" aria-hidden="true">
+      <div class="wc-grid">
+        <img src="{{ site.baseurl }}/1.met/0.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/2.cube/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/2.ai-self/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/4.mandala/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/5.bb/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/5.mool/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/6.mindu/cover 2.webp" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/7.naavo/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/8.shotoniphone/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/9.aananda/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/10.alpha/cover.png" alt="" loading="eager" />
+        <img src="{{ site.baseurl }}/11.illu/24.png" alt="" loading="eager" />
+      </div>
+    </div>
+
+    <!-- Underwater turbulence filter for the work collage -->
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
+      <defs>
+        <filter id="wc-water" x="-10%" y="-10%" width="120%" height="120%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.012 0.022" numOctaves="2" seed="3" result="noise">
+            <animate attributeName="baseFrequency" values="0.012 0.022;0.018 0.014;0.012 0.022" dur="22s" repeatCount="indefinite" />
+          </feTurbulence>
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="28" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+    </svg>
 
     <!-- Smoke shader background — hidden until reveal -->
     <canvas id="smoke-bg" class="scene-hidden" style="display: none" aria-hidden="true"></canvas>
@@ -1154,6 +1248,52 @@
     </div>
 
     {% include cursor_fluid.html %}
+
+    <!-- Cursor-reveal work-collage tracking — desktop only -->
+    <script>
+      (function () {
+        var collage = document.getElementById("work-collage");
+        if (!collage) return;
+        var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (isTouch || prefersReduced) {
+          collage.style.display = "none";
+          return;
+        }
+        // Center initial position
+        collage.style.setProperty("--cx", window.innerWidth / 2 + "px");
+        collage.style.setProperty("--cy", window.innerHeight / 2 + "px");
+        var active = false;
+        var pendingX = 0,
+          pendingY = 0,
+          ticking = false;
+        function flush() {
+          collage.style.setProperty("--cx", pendingX + "px");
+          collage.style.setProperty("--cy", pendingY + "px");
+          ticking = false;
+        }
+        document.addEventListener(
+          "mousemove",
+          function (e) {
+            pendingX = e.clientX;
+            pendingY = e.clientY;
+            if (!active) {
+              active = true;
+              collage.classList.add("is-active");
+            }
+            if (!ticking) {
+              ticking = true;
+              requestAnimationFrame(flush);
+            }
+          },
+          { passive: true }
+        );
+        document.addEventListener("mouseleave", function () {
+          active = false;
+          collage.classList.remove("is-active");
+        });
+      })();
+    </script>
 
     <!-- Intro modal -->
     <script>
@@ -1931,6 +2071,9 @@
           show(dust, 800);
           show(noise, 800);
           show(glow, 600);
+          // Reveal the work-collage (visible only through cursor mask)
+          var workCollage = document.getElementById("work-collage");
+          if (workCollage) show(workCollage, 1200);
 
           // 3. Bottom bar — staggered: MFA (2.5s) → tagline already typing → available (3.5s)
           if (bottomBar) {
