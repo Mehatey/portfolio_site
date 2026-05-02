@@ -303,9 +303,9 @@
         animation: worksFadeUp 0.85s var(--ease-out) 0.28s forwards;
       }
 
-      /* ── FILTER TABS ── */
+      /* ── FILTER TABS ── sticky to top of viewport once user scrolls past hero */
       .filter-bar {
-        padding: 0 var(--gutter);
+        padding: 12px var(--gutter);
         max-width: var(--content-max);
         margin: 56px auto 48px;
         display: flex;
@@ -314,6 +314,21 @@
         flex-wrap: wrap;
         opacity: 0;
         animation: worksFadeUp 0.85s var(--ease-out) 0.42s forwards;
+        position: sticky;
+        top: var(--nav-h);
+        z-index: 50;
+        transition:
+          background 0.3s ease,
+          backdrop-filter 0.3s ease,
+          border-color 0.3s ease;
+        border-radius: 14px;
+        border: 1px solid transparent;
+      }
+      .filter-bar.is-stuck {
+        background: rgba(10, 14, 20, 0.62);
+        -webkit-backdrop-filter: blur(20px) saturate(1.6);
+        backdrop-filter: blur(20px) saturate(1.6);
+        border-color: rgba(255, 255, 255, 0.06);
       }
       .filter-bar .works-count {
         margin-left: auto;
@@ -611,6 +626,18 @@
       }
       .work-card:hover .card-hover-video {
         opacity: 1;
+      }
+      /* Bloom (lead hero) — its video auto-loops at low opacity beneath the cover for ambient motion. Other hover videos stay hover-only to keep bandwidth sane. */
+      .work-card--hero[data-cat="installation"] .card-hover-video {
+        opacity: 0.4;
+      }
+      .work-card--hero[data-cat="installation"]:hover .card-hover-video {
+        opacity: 1;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .work-card--hero[data-cat="installation"] .card-hover-video {
+          opacity: 0;
+        }
       }
       /* Image-specific zoom — for covers with too much surrounding whitespace */
       .card-visual .card-img--zoom {
@@ -1197,100 +1224,6 @@
           padding: 12px 22px;
         }
       }
-      /* ── FOOTER ── */
-      .works-footer {
-        max-width: var(--content-max);
-        margin: 0 auto;
-        padding: 56px var(--gutter) 40px;
-        display: grid;
-        grid-template-columns: 1fr auto 1fr;
-        align-items: center;
-        gap: 24px;
-        position: relative;
-      }
-      .works-footer::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent 0%, rgba(160, 200, 255, 0.18) 30%, rgba(255, 200, 160, 0.18) 70%, transparent 100%);
-      }
-      .works-footer::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 60%;
-        height: 140px;
-        background: radial-gradient(ellipse at top, rgba(160, 200, 255, 0.06) 0%, transparent 70%);
-        pointer-events: none;
-        z-index: -1;
-      }
-      .footer-text {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.32);
-        letter-spacing: 0.08em;
-      }
-      .footer-social {
-        display: flex;
-        gap: 18px;
-        justify-content: center;
-      }
-      .footer-social a {
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.4);
-        transition: color 0.25s ease;
-        position: relative;
-      }
-      .footer-social a::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -3px;
-        height: 1px;
-        background: currentColor;
-        opacity: 0;
-        transform: scaleX(0.3);
-        transform-origin: center;
-        transition:
-          opacity 0.25s ease,
-          transform 0.3s var(--ease-out);
-      }
-      .footer-social a:hover {
-        color: rgba(255, 255, 255, 0.85);
-      }
-      .footer-social a:hover::after {
-        opacity: 0.6;
-        transform: scaleX(1);
-      }
-      .footer-cta {
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        padding: 10px 22px;
-        color: rgba(255, 255, 255, 0.7);
-        justify-self: end;
-        transition:
-          border-color 0.3s var(--ease-out),
-          color 0.3s,
-          background 0.3s;
-      }
-      .footer-cta:hover {
-        border-color: rgba(255, 255, 255, 0.5);
-        color: #fff;
-        background: rgba(255, 255, 255, 0.04);
-      }
-
       /* ── RESPONSIVE ── */
       @media (max-width: 900px) {
         :root {
@@ -1305,12 +1238,6 @@
         }
         .nav-links {
           gap: 12px;
-        }
-
-        .works-footer {
-          flex-direction: column;
-          gap: 20px;
-          text-align: center;
         }
       }
       @media (max-width: 600px) {
@@ -1458,7 +1385,8 @@
             muted
             loop
             playsinline
-            preload="none"
+            autoplay
+            preload="metadata"
             aria-label="Bloom preview"
           ></video>
           <span class="card-num">01</span>
@@ -1875,6 +1803,25 @@
         });
       })();
 
+      // Sticky filter bar — toggle .is-stuck when the bar pins to the top of viewport for a frosted bg
+      (function () {
+        const bar = document.querySelector(".filter-bar");
+        if (!bar) return;
+        // Use a sentinel just above the bar; when it scrolls out of view, bar is "stuck"
+        const sentinel = document.createElement("div");
+        sentinel.style.cssText = "height:1px;position:relative;top:-1px";
+        bar.parentNode.insertBefore(sentinel, bar);
+        const obs = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              bar.classList.toggle("is-stuck", !e.isIntersecting);
+            });
+          },
+          { threshold: 0, rootMargin: "-65px 0px 0px 0px" }
+        );
+        obs.observe(sentinel);
+      })();
+
       // Chapter numeral glitch — when a chapter divider enters viewport, briefly scramble its number then resolve
       (function () {
         const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1911,6 +1858,7 @@
       })();
 
       // Click ripple — tactile pulse from click point on cards
+      // Also: tag the clicked card's image with the matching view-transition-name so it morphs into the project hero
       (function () {
         document.querySelectorAll(".work-card").forEach((card) => {
           card.addEventListener(
@@ -1926,6 +1874,13 @@
               ripple.style.top = y + "px";
               card.appendChild(ripple);
               setTimeout(() => ripple.remove(), 700);
+
+              // Pair the clicked card's image with the project hero on the destination page
+              // (Only on real anchors — locked NDA cards are <div> and shouldn't paint a transition.)
+              if (card.tagName === "A") {
+                const img = card.querySelector(".card-visual img");
+                if (img) img.style.viewTransitionName = "project-hero";
+              }
             },
             { capture: true }
           );
@@ -1965,17 +1920,20 @@
         });
       })();
 
-      // Hover-to-play video previews — only loads + plays when user hovers
+      // Hover-to-play video previews — only loads + plays when user hovers.
+      // Auto-cycling videos (e.g. Bloom hero) have the autoplay attribute and shouldn't be paused on mouseleave.
       (function () {
         document.querySelectorAll(".card-hover-video").forEach((video) => {
           const card = video.closest(".work-card");
           if (!card) return;
+          const isAutoCycle = video.hasAttribute("autoplay");
           card.addEventListener("mouseenter", () => {
             video.preload = "metadata";
             const p = video.play();
             if (p && typeof p.catch === "function") p.catch(() => {});
           });
           card.addEventListener("mouseleave", () => {
+            if (isAutoCycle) return; // keep ambient loop running
             video.pause();
             video.currentTime = 0;
           });

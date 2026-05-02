@@ -188,15 +188,31 @@ title: Play — Sid Mehta
         animation: playFadeUp 0.7s var(--ease-out) 0.25s forwards;
       }
 
-      /* PLAY FILTER PILLS */
+      /* PLAY FILTER PILLS — sticky once you scroll past header */
       .play-filter {
-        padding: 0 var(--gutter) 28px;
+        padding: 12px var(--gutter);
+        margin-bottom: 28px;
         display: flex;
         align-items: center;
         gap: 8px;
         flex-wrap: wrap;
         opacity: 0;
         animation: playFadeUp 0.7s var(--ease-out) 0.4s forwards;
+        position: sticky;
+        top: var(--nav-h);
+        z-index: 50;
+        transition:
+          background 0.3s ease,
+          backdrop-filter 0.3s ease,
+          border-color 0.3s ease;
+        border-radius: 14px;
+        border: 1px solid transparent;
+      }
+      .play-filter.is-stuck {
+        background: rgba(10, 14, 20, 0.62);
+        -webkit-backdrop-filter: blur(20px) saturate(1.6);
+        backdrop-filter: blur(20px) saturate(1.6);
+        border-color: rgba(255, 255, 255, 0.06);
       }
       .pf-btn {
         font-family: var(--font-mono);
@@ -1016,6 +1032,22 @@ title: Play — Sid Mehta
             var t = el.getAttribute("data-pf-count");
             if (counts[t] != null) el.textContent = " · " + counts[t];
           });
+          // Sticky filter bar — frosted bg when scrolled
+          (function () {
+            var bar = document.querySelector(".play-filter");
+            if (!bar) return;
+            var sentinel = document.createElement("div");
+            sentinel.style.cssText = "height:1px;position:relative;top:-1px";
+            bar.parentNode.insertBefore(sentinel, bar);
+            new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (e) {
+                  bar.classList.toggle("is-stuck", !e.isIntersecting);
+                });
+              },
+              { threshold: 0, rootMargin: "-65px 0px 0px 0px" }
+            ).observe(sentinel);
+          })();
           document.querySelectorAll(".pf-btn").forEach(function (btn) {
             btn.addEventListener("click", function () {
               var f = btn.dataset.pf;
