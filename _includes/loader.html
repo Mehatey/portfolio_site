@@ -3,7 +3,7 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: #000;
+    background: rgba(0, 0, 0, 0.78);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -147,11 +147,11 @@
     }
   }
 
-  /* Loader work-collage — same underwater reveal idea as home, slow auto-pan */
+  /* Loader work-collage — top-level fixed so it backs both the Enter gate and the cube animation */
   #loader-collage {
-    position: absolute;
+    position: fixed;
     inset: 0;
-    z-index: 0;
+    z-index: 1;
     pointer-events: none;
     opacity: 0;
     transition: opacity 1s cubic-bezier(0.22, 1, 0.36, 1);
@@ -243,14 +243,46 @@
   }
 </style>
 
-<!-- Enter gate — unlocks audio -->
+<!-- Underwater turbulence filter — used by the work-collage during enter + loader scenes -->
+<svg style="position: fixed; width: 0; height: 0; overflow: hidden" aria-hidden="true">
+  <defs>
+    <filter id="lc-water" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.014 0.020" numOctaves="2" seed="7" result="noise">
+        <animate attributeName="baseFrequency" values="0.014 0.020;0.020 0.014;0.014 0.020" dur="18s" repeatCount="indefinite" />
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="32" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </defs>
+</svg>
+
+<!-- Top-level work-collage — backs both Enter scene and loader. Removed when home page is reached. -->
+<div id="loader-collage" class="is-on" aria-hidden="true">
+  <div class="lc-grid">
+    <img src="{{ site.baseurl }}/1.met/1.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/2.ai-self/17.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/7.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/5.bb/4.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/4.jpg" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/6.mindu/3.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/7.naavo/12.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/8.shotoniphone/11.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/9.aananda/12.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/10.alpha/13.png" alt="" decoding="async" />
+    <img src="{{ site.baseurl }}/11.illu/12.1.png" alt="" decoding="async" />
+  </div>
+</div>
+
+<!-- Enter gate — unlocks audio. Semi-transparent so the underwater work-collage shows through. -->
 <div
   id="enter-gate"
   style="
     position: fixed;
     inset: 0;
     z-index: 10000;
-    background: #000;
+    background: rgba(0, 0, 0, 0.62);
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -293,36 +325,6 @@
 </div>
 
 <div id="site-loader" style="display: none">
-  <!-- Underwater work-collage backing the cube entry animation — covers loaded lazily via data-src so they don't block the loader -->
-  <div id="loader-collage" aria-hidden="true">
-    <div class="lc-grid">
-      <img data-src="{{ site.baseurl }}/1.met/1.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/2.cube/2d/3.1.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/2.ai-self/17.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/4.mandala/7.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/5.bb/4.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/5.mool/4.jpg" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/6.mindu/3.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/7.naavo/12.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/8.shotoniphone/11.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/9.aananda/12.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/10.alpha/13.png" alt="" loading="lazy" decoding="async" />
-      <img data-src="{{ site.baseurl }}/11.illu/12.1.png" alt="" loading="lazy" decoding="async" />
-    </div>
-  </div>
-
-  <!-- Underwater turbulence filter for the loader collage -->
-  <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
-    <defs>
-      <filter id="lc-water" x="-10%" y="-10%" width="120%" height="120%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.014 0.020" numOctaves="2" seed="7" result="noise">
-          <animate attributeName="baseFrequency" values="0.014 0.020;0.020 0.014;0.014 0.020" dur="18s" repeatCount="indefinite" />
-        </feTurbulence>
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="32" xChannelSelector="R" yChannelSelector="G" />
-      </filter>
-    </defs>
-  </svg>
-
   <canvas id="loader-dust"></canvas>
 
   <!-- Top-left intro stream — 6 lines, recruiter-grade info in const() syntax, types in dystopian terminal -->
@@ -355,6 +357,55 @@
 </div>
 
 <script>
+  // ── ENTRY-SCENE WORK-COLLAGE — top-level cursor reveal + auto-pan, runs from page load (backs Enter gate too).
+  // Removed cleanly when the loader sequence completes; home page has its own #work-collage that takes over.
+  (function () {
+    var lc = document.getElementById("loader-collage");
+    if (!lc) return;
+    var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+    var t0 = performance.now();
+    var userTook = false;
+    var lastUserMove = 0;
+    function tick(now) {
+      if (!lc.parentNode) return;
+      var elapsed = (now - t0) / 1000;
+      var w = window.innerWidth,
+        h = window.innerHeight;
+      if (userTook && now - lastUserMove < 1200) {
+        // already set by mousemove handler
+      } else {
+        var cx = (0.5 + 0.32 * Math.sin(elapsed * 0.4)) * w;
+        var cy = (0.5 + 0.22 * Math.sin(elapsed * 0.62)) * h;
+        lc.style.setProperty("--lcx", cx + "px");
+        lc.style.setProperty("--lcy", cy + "px");
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    document.addEventListener(
+      "mousemove",
+      function (e) {
+        userTook = true;
+        lastUserMove = performance.now();
+        lc.style.setProperty("--lcx", e.clientX + "px");
+        lc.style.setProperty("--lcy", e.clientY + "px");
+      },
+      { passive: true }
+    );
+    // When the loader sequence finishes, fade + remove so home page's own work-collage takes over
+    window.addEventListener("loaderDone", function () {
+      setTimeout(function () {
+        if (!lc || !lc.parentNode) return;
+        lc.style.transition = "opacity 0.6s ease";
+        lc.style.opacity = "0";
+        setTimeout(function () {
+          if (lc && lc.parentNode) lc.remove();
+        }, 700);
+      }, 200);
+    });
+  })();
+
   (function () {
     var loader = document.getElementById("site-loader");
     if (!loader) return;
@@ -525,61 +576,7 @@
         setTimeout(typeNext, 1100);
       })();
 
-      // ── LOADER WORK-COLLAGE: auto-pan + cursor override ──
-      (function () {
-        var lc = document.getElementById("loader-collage");
-        if (!lc) return;
-        var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (prefersReduced) return;
-        // Defer cover loading until idle so it doesn't compete with the cube video
-        function loadLcCovers() {
-          lc.querySelectorAll("img[data-src]").forEach(function (img) {
-            img.src = img.dataset.src;
-            img.removeAttribute("data-src");
-          });
-        }
-        if ("requestIdleCallback" in window) {
-          window.requestIdleCallback(loadLcCovers, { timeout: 2500 });
-        } else {
-          setTimeout(loadLcCovers, 1000);
-        }
-        // Reveal it after a beat so it eases in alongside the cube animation
-        setTimeout(function () {
-          lc.classList.add("is-on");
-        }, 600);
-        // Auto-pan a soft figure-8 across the screen until the user takes over
-        var t0 = performance.now();
-        var userTook = false;
-        var lastUserMove = 0;
-        function tick(now) {
-          if (!loader.parentNode) return; // bail if loader removed
-          var elapsed = (now - t0) / 1000;
-          var w = window.innerWidth,
-            h = window.innerHeight;
-          // Override pause: if user moved cursor in last 1.2s, follow them
-          if (userTook && now - lastUserMove < 1200) {
-            // already set by mousemove handler
-          } else {
-            // Lissajous-ish path: x: 0.5 + 0.32*sin(0.4t), y: 0.5 + 0.22*sin(0.6t)
-            var cx = (0.5 + 0.32 * Math.sin(elapsed * 0.4)) * w;
-            var cy = (0.5 + 0.22 * Math.sin(elapsed * 0.62)) * h;
-            lc.style.setProperty("--lcx", cx + "px");
-            lc.style.setProperty("--lcy", cy + "px");
-          }
-          requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-        document.addEventListener(
-          "mousemove",
-          function (e) {
-            userTook = true;
-            lastUserMove = performance.now();
-            lc.style.setProperty("--lcx", e.clientX + "px");
-            lc.style.setProperty("--lcy", e.clientY + "px");
-          },
-          { passive: true }
-        );
-      })();
+      // Loader work-collage cursor tracking lives in a top-level IIFE now (runs from page load), not gated to startLoader.
 
       // Typewriter lines — fade out instead of backspace
       var lines = [
