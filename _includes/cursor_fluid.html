@@ -201,6 +201,77 @@
     }
   }
 
+  /* ── DARK / LIGHT MODE TOGGLE ──
+     The site is design-locked to dark. Light mode is implemented via CSS filter inversion
+     + hue rotation (which keeps brand cyans + peaches consistent), with counter-inversion on media.
+     This is a working MVP — a true light theme would require redesigning every gradient. */
+  html[data-theme="light"] body {
+    filter: invert(0.93) hue-rotate(180deg) saturate(0.88);
+  }
+  /* Counter-invert media so images, videos, canvases render with their actual colors */
+  html[data-theme="light"] img,
+  html[data-theme="light"] video,
+  html[data-theme="light"] canvas,
+  html[data-theme="light"] .logo-cube,
+  html[data-theme="light"] [data-no-invert] {
+    filter: invert(0.93) hue-rotate(180deg) saturate(1.14);
+  }
+  /* Hover-state media inversion needs to compose with existing filter */
+  html[data-theme="light"] .nav-icon:hover img {
+    filter: invert(0.93) hue-rotate(180deg) saturate(1.14) brightness(1.1);
+  }
+  /* Theme toggle button — bottom-left fixed */
+  #theme-toggle {
+    position: fixed;
+    bottom: 22px;
+    left: 22px;
+    z-index: 200;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.45);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: none;
+    transition:
+      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.25s ease,
+      background 0.25s ease;
+    padding: 0;
+  }
+  #theme-toggle:hover {
+    transform: scale(1.08);
+    border-color: rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.6);
+  }
+  #theme-toggle svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  #theme-toggle .theme-sun {
+    display: none;
+  }
+  html[data-theme="light"] #theme-toggle .theme-moon {
+    display: none;
+  }
+  html[data-theme="light"] #theme-toggle .theme-sun {
+    display: block;
+  }
+  @media (max-width: 600px) {
+    #theme-toggle {
+      bottom: 16px;
+      left: 16px;
+      width: 34px;
+      height: 34px;
+    }
+  }
+
   /* Branded text selection — designers notice */
   ::selection {
     background: rgba(160, 220, 255, 0.32);
@@ -636,6 +707,49 @@
 <div id="cursor-spotlight" aria-hidden="true"></div>
 <div id="cur-dot"></div>
 
+<!-- Theme toggle (dark/light) -->
+<button id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+  <svg class="theme-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+  </svg>
+  <svg class="theme-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="4.5"></circle>
+    <line x1="12" y1="2" x2="12" y2="5"></line>
+    <line x1="12" y1="19" x2="12" y2="22"></line>
+    <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"></line>
+    <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"></line>
+    <line x1="2" y1="12" x2="5" y2="12"></line>
+    <line x1="19" y1="12" x2="22" y2="12"></line>
+    <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"></line>
+    <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"></line>
+  </svg>
+</button>
+
+<script>
+  // ── THEME TOGGLE ── persists in localStorage, syncs across tabs
+  (function () {
+    var KEY = "sid_theme";
+    var html = document.documentElement;
+    function apply(theme) {
+      html.setAttribute("data-theme", theme);
+    }
+    var saved = null;
+    try { saved = localStorage.getItem(KEY); } catch (_) {}
+    if (saved === "light" || saved === "dark") apply(saved);
+    var btn = document.getElementById("theme-toggle");
+    if (btn) {
+      btn.addEventListener("click", function () {
+        var cur = html.getAttribute("data-theme") || "dark";
+        var next = cur === "light" ? "dark" : "light";
+        apply(next);
+        try { localStorage.setItem(KEY, next); } catch (_) {}
+      });
+    }
+    // Also expose a global so Cmd+K can call it
+    window.__sidToggleTheme = function () { btn && btn.click(); };
+  })();
+</script>
+
 <!-- Cmd+K command palette -->
 <div id="cmdk" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Command palette">
   <div class="cmdk-bg" data-cmdk-close></div>
@@ -1069,6 +1183,13 @@
           kbd: "R",
           random: true,
         },
+        {
+          label: "Toggle dark / light mode",
+          url: "__theme__",
+          group: "Discover",
+          kbd: "☼",
+          theme: true,
+        },
         { label: "Email Sid", url: "mailto:sidmehtadesign@gmail.com", group: "Connect", kbd: "@", external: true },
         { label: "LinkedIn", url: "https://www.linkedin.com/in/siddharth-mehta-35560916b/", group: "Connect", kbd: "in", external: true },
         { label: "Instagram", url: "https://www.instagram.com/cubeofcreation/", group: "Connect", kbd: "ig", external: true },
@@ -1152,6 +1273,14 @@
         const it = filtered[activeIndex];
         if (!it) return;
         close();
+        if (it.theme) {
+          if (window.__sidToggleTheme) window.__sidToggleTheme();
+          return;
+        }
+        if (it.chat) {
+          if (window.__sidOpenChat) window.__sidOpenChat();
+          return;
+        }
         if (it.random) {
           const projects = [
             "/encoded/",
