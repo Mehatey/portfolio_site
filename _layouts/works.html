@@ -1875,6 +1875,41 @@
         });
       })();
 
+      // Chapter numeral glitch — when a chapter divider enters viewport, briefly scramble its number then resolve
+      (function () {
+        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) return;
+        const glyphs = "0123456789";
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (!entry.isIntersecting) return;
+              const num = entry.target.querySelector(".chapter-num");
+              if (!num || num.dataset.glitched) return;
+              num.dataset.glitched = "1";
+              const final = num.textContent;
+              let frame = 0;
+              const total = 14;
+              const tick = setInterval(() => {
+                frame++;
+                if (frame >= total) {
+                  clearInterval(tick);
+                  num.textContent = final;
+                  return;
+                }
+                num.textContent = final
+                  .split("")
+                  .map((c, i) => (frame > i * 2 ? final[i] : glyphs[Math.floor(Math.random() * 10)]))
+                  .join("");
+              }, 38);
+              observer.unobserve(entry.target);
+            });
+          },
+          { threshold: 0.4 }
+        );
+        document.querySelectorAll(".works-chapter").forEach((c) => observer.observe(c));
+      })();
+
       // Click ripple — tactile pulse from click point on cards
       (function () {
         document.querySelectorAll(".work-card").forEach((card) => {
