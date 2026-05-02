@@ -281,9 +281,13 @@
   html[data-theme="light"] .nav-icon + .nav-icon::before {
     background: rgba(7, 9, 15, 0.18);
   }
-  /* Logo cube — slightly desaturated for legibility on cream */
+  /* Logo cube — disable hue cycle (animation paints washed cyans on cream); pin to a deep ink */
   html[data-theme="light"] .logo-cube {
-    color: rgba(60, 80, 110, 0.85);
+    color: rgba(40, 60, 100, 0.92) !important;
+    animation: none !important;
+  }
+  html[data-theme="light"] .logo-eye {
+    opacity: 0.92 !important;
   }
   /* Bottom bar on home — dark text */
   html[data-theme="light"] .bottom-role-line,
@@ -397,9 +401,12 @@
   html[data-theme="light"] .faq-item[open] summary::after {
     color: rgba(40, 90, 180, 0.95);
   }
-  html[data-theme="light"] .bottom-tagline {
+  html[data-theme="light"] #bottom-tagline,
+  html[data-theme="light"] .bottom-center {
     color: rgba(7, 9, 15, 0.78) !important;
-    -webkit-text-fill-color: rgba(7, 9, 15, 0.78);
+    -webkit-text-fill-color: rgba(7, 9, 15, 0.78) !important;
+    background: none !important;
+    animation: none !important;
   }
   /* Contact page */
   html[data-theme="light"] .c-card {
@@ -2916,7 +2923,7 @@
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       // Don't fire if cmd-k or cube-chat is open
-      const palette = document.querySelector(".cmdk-overlay.is-open, #cmdk.is-open");
+      const palette = document.querySelector("#cmdk.is-open");
       const chat = document.querySelector("#cube-chat.is-open");
       if (palette || chat) return;
       e.preventDefault();
@@ -2927,7 +2934,8 @@
 
   // ── SMART PREFETCH ── hover an internal link for 80ms, browser fetches the page in idle so the click feels instant
   (function () {
-    if (!("connection" in navigator) || navigator.connection.saveData) return; // honor data-saver
+    // Honor data-saver if the browser exposes it; safe-default otherwise
+    if (navigator.connection && navigator.connection.saveData) return;
     const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
     if (isTouch) return; // only on hover-capable devices
     const seen = new Set();
@@ -2996,9 +3004,7 @@
   (function () {
     const isProject = !!document.querySelector(".proj-body, .proj-hero");
     if (!isProject) return;
-    const targets = document.querySelectorAll(
-      ".proj-body img, .cs-bleed img, .cs-grid img, .cs-row img, .cs-pair img, .cs-split img, .cube-cap + .cs-grid img"
-    );
+    const targets = document.querySelectorAll(".proj-body img:not([data-no-lightbox])");
     if (!targets.length) return;
     let overlay = null;
     let imgEl = null;
