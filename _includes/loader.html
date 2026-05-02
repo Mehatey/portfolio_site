@@ -72,6 +72,81 @@
     z-index: 1;
   }
 
+  /* ── LOADER INTRO STREAM ── 6-line cube's-POV typewriter, top-left during cube entry */
+  #loader-stream {
+    position: absolute;
+    top: 8%;
+    left: max(28px, 4vw);
+    z-index: 12;
+    font-family: "DM Mono", monospace;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    line-height: 1.95;
+    color: rgba(160, 220, 255, 0.6);
+    text-shadow: 0 0 10px rgba(160, 220, 255, 0.28);
+    max-width: min(360px, 38vw);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: opacity;
+  }
+  #loader-stream.is-on {
+    opacity: 1;
+  }
+  #loader-stream.is-fade {
+    opacity: 0;
+    transition-duration: 0.4s;
+  }
+  #loader-stream .ls-line {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
+  }
+  #loader-stream .ls-line.ls-active::after {
+    content: "";
+    display: inline-block;
+    width: 7px;
+    height: 11px;
+    background: rgba(160, 220, 255, 0.75);
+    margin-left: 3px;
+    vertical-align: text-bottom;
+    animation: lsCursor 0.55s steps(2) infinite;
+    box-shadow: 0 0 6px rgba(160, 220, 255, 0.6);
+  }
+  @keyframes lsCursor {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  #loader-stream .ls-prompt {
+    color: rgba(180, 230, 255, 0.9);
+    margin-right: 6px;
+  }
+  @media (max-width: 900px) {
+    #loader-stream {
+      font-size: 10px;
+      max-width: 70vw;
+      top: 6%;
+      left: 18px;
+    }
+  }
+  @media (max-width: 600px) {
+    #loader-stream {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #loader-stream .ls-line.ls-active::after {
+      animation: none;
+    }
+  }
+
   /* Loader work-collage — same underwater reveal idea as home, slow auto-pan */
   #loader-collage {
     position: absolute;
@@ -249,6 +324,16 @@
   </svg>
 
   <canvas id="loader-dust"></canvas>
+
+  <!-- Top-left intro stream — 6 lines, cube's POV about Sid, types in dystopian terminal style -->
+  <div id="loader-stream" aria-hidden="true">
+    <span class="ls-line" data-text="&gt; what he builds_"></span>
+    <span class="ls-line" data-text="&gt; spaces that hold strangers"></span>
+    <span class="ls-line" data-text="&gt; mandalas that disappear"></span>
+    <span class="ls-line" data-text="&gt; cubes that grow sides"></span>
+    <span class="ls-line" data-text="&gt; stories you walk through"></span>
+    <span class="ls-line" data-text="&gt; rooms that remember"></span>
+  </div>
   <!-- Typewriter text — persists across all phases -->
   <span id="sl-hello" style="position: absolute; top: 14%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
 
@@ -387,6 +472,59 @@
       videoPhase.classList.add("active");
       video.play().catch(function () {});
 
+      // ── INTRO STREAM ── 6-line typewriter top-left, types throughout cube entry
+      (function () {
+        var stream = document.getElementById("loader-stream");
+        if (!stream) return;
+        var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var lines = stream.querySelectorAll(".ls-line");
+        var texts = [];
+        lines.forEach(function (l) {
+          texts.push(l.getAttribute("data-text") || "");
+        });
+
+        // Reveal the container after a short beat (after cube starts animating)
+        setTimeout(function () {
+          stream.classList.add("is-on");
+        }, 700);
+
+        if (prefersReduced) {
+          // Just show all lines at once
+          setTimeout(function () {
+            lines.forEach(function (l, i) {
+              l.textContent = texts[i];
+            });
+          }, 800);
+          return;
+        }
+
+        var lineIdx = 0;
+        var charIdx = 0;
+        function typeNext() {
+          if (lineIdx >= lines.length) return;
+          var line = lines[lineIdx];
+          var target = texts[lineIdx];
+          if (charIdx === 0) line.classList.add("ls-active");
+          if (charIdx <= target.length) {
+            line.textContent = target.substring(0, charIdx);
+            charIdx++;
+            // Slightly variable speed; pause after the > prompt char
+            var delay = 28 + Math.random() * 26;
+            if (target.charAt(charIdx - 1) === ">") delay = 90;
+            setTimeout(typeNext, delay);
+          } else {
+            line.classList.remove("ls-active");
+            // Mark final char with prompt color via inline span swap (light touch)
+            lineIdx++;
+            charIdx = 0;
+            // Pause between lines
+            setTimeout(typeNext, 280);
+          }
+        }
+        // Begin typing ~1s in (gives cube animation a moment to set the stage)
+        setTimeout(typeNext, 1100);
+      })();
+
       // ── LOADER WORK-COLLAGE: auto-pan + cursor override ──
       (function () {
         var lc = document.getElementById("loader-collage");
@@ -511,6 +649,9 @@
         videoEnded = true;
         videoPhase.classList.remove("active");
         videoPhase.classList.add("exit");
+        // Fade out the intro stream as we move to phase 2
+        var stream = document.getElementById("loader-stream");
+        if (stream) stream.classList.add("is-fade");
         video.pause();
         loadingPhase.classList.add("active");
         loadingVideo.play().catch(function () {});
