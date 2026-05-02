@@ -369,8 +369,75 @@
         padding: 0 var(--gutter) 160px;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 64px 48px;
+        gap: 56px 48px;
         perspective: 1400px;
+      }
+      /* Chapter divider — editorial section break between project groups */
+      .works-chapter {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: flex-end;
+        gap: 28px;
+        padding: 80px 0 4px;
+        position: relative;
+        opacity: 0;
+        transform: translateY(20px);
+        transition:
+          opacity 0.7s var(--ease-out),
+          transform 0.7s var(--ease-out);
+      }
+      .works-chapter.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .works-chapter::before {
+        content: "";
+        position: absolute;
+        top: 64px;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(160, 200, 255, 0.22), transparent);
+      }
+      .chapter-num {
+        font-family: var(--font-mono);
+        font-size: clamp(56px, 9vw, 110px);
+        font-weight: 300;
+        line-height: 0.85;
+        letter-spacing: -0.02em;
+        background: linear-gradient(180deg, rgba(180, 220, 255, 0.95) 0%, rgba(160, 200, 255, 0.18) 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        flex-shrink: 0;
+      }
+      .chapter-text {
+        padding-bottom: 14px;
+      }
+      .chapter-label {
+        font-family: var(--font-title);
+        font-size: clamp(20px, 2.4vw, 28px);
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.92);
+        letter-spacing: -0.01em;
+        margin: 0;
+      }
+      .chapter-meta {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        margin: 8px 0 0;
+      }
+      @media (max-width: 700px) {
+        .works-chapter {
+          gap: 16px;
+          padding: 56px 0 4px;
+        }
+        .works-chapter::before {
+          top: 48px;
+        }
       }
       .work-card {
         transform-style: preserve-3d;
@@ -392,6 +459,27 @@
         opacity: 0;
         transform: translateY(20px);
         overflow: hidden;
+        position: relative;
+      }
+      /* Cursor-reactive glow — soft radial spotlight follows the cursor inside the card */
+      .work-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: radial-gradient(
+          440px circle at var(--gx, 50%) var(--gy, 50%),
+          rgba(160, 200, 255, 0.09),
+          rgba(255, 200, 160, 0.04) 30%,
+          transparent 60%
+        );
+        opacity: 0;
+        transition: opacity 0.45s var(--ease-out);
+        z-index: 5;
+        border-radius: inherit;
+      }
+      .work-card:hover::before {
+        opacity: 1;
       }
       .work-card.visible {
         animation: card-in 0.6s var(--ease-out) forwards;
@@ -475,8 +563,60 @@
         opacity: 0.8;
       }
 
+      /* Project number — small mono ID top-left of regular cards */
       .card-num {
-        display: none;
+        position: absolute;
+        top: 16px;
+        left: 18px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        color: rgba(255, 255, 255, 0.4);
+        z-index: 5;
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+      /* On hero cards: oversized watermark numeral, bottom-right of visual */
+      .work-card--hero .card-num {
+        top: auto;
+        left: auto;
+        bottom: 22px;
+        right: 30px;
+        font-size: clamp(56px, 7vw, 92px);
+        font-weight: 200;
+        letter-spacing: -0.02em;
+        color: rgba(255, 255, 255, 0.075);
+        mix-blend-mode: normal;
+      }
+      .work-card.locked .card-num {
+        opacity: 0.55;
+      }
+      /* Featured pill — top-left on cards we want to spotlight */
+      .card-featured {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        padding: 5px 10px;
+        background: rgba(255, 220, 160, 0.1);
+        color: rgba(255, 220, 160, 0.92);
+        border: 1px solid rgba(255, 220, 160, 0.32);
+        border-radius: 999px;
+        z-index: 12;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+      }
+      .card-featured::before {
+        content: "★";
+        margin-right: 6px;
+        font-size: 9px;
+      }
+      /* When a card has BOTH .card-featured and .card-num, push num down */
+      .work-card--hero:has(.card-featured) .card-num {
+        bottom: 22px;
       }
 
       .card-badge {
@@ -1105,11 +1245,21 @@
 
     <!-- GRID -->
     <div class="works-grid">
+      <!-- ──────── CHAPTER 01 ──────── -->
+      <div class="works-chapter" data-cat="xr game installation research">
+        <span class="chapter-num">01</span>
+        <div class="chapter-text">
+          <h3 class="chapter-label">Immersive Worlds</h3>
+          <p class="chapter-meta">AR · VR · Installation · Film</p>
+        </div>
+      </div>
+
       <!-- 00 · ENCODED — Met AR Exhibition -->
       <a href="{{ site.baseurl }}/encoded/" class="work-card work-card--hero" data-cat="xr">
         <div class="card-visual" style="background: radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)">
           <img src="{{ site.baseurl }}/1.met/0.png" alt="Encoded" loading="lazy" />
           <span class="card-num">00</span>
+          <span class="card-featured">Featured</span>
           <div class="card-badge" data-tooltip="Webby × 2 · 2026">
             <img src="{{ site.baseurl }}/assets/img/badge_webby.webp" alt="Webby Awards" />
           </div>
@@ -1130,6 +1280,7 @@
         <div class="card-visual" style="background: radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)">
           <img src="{{ site.baseurl }}/2.cube/cover.png" alt="Cube of Creations" loading="lazy" />
           <span class="card-num">01</span>
+          <span class="card-featured">Featured</span>
         </div>
         <div class="card-body">
           <div class="card-meta">
@@ -1188,7 +1339,7 @@
       </a>
 
       <!-- 04 · MANDALA -->
-      <a href="{{ site.baseurl }}/mandalas/" class="work-card" data-cat="installation">
+      <a href="{{ site.baseurl }}/mandalas/" class="work-card work-card--feature" data-cat="installation">
         <div class="card-visual">
           <span class="card-num">04</span>
           <img src="{{ site.baseurl }}/4.mandala/cover.png" alt="Mandala" loading="lazy" />
@@ -1213,6 +1364,15 @@
           <p class="card-desc">Thesis. Generative mandalas, layered audio, a darkened room designed for stillness.</p>
         </div>
       </a>
+
+      <!-- ──────── CHAPTER 02 ──────── -->
+      <div class="works-chapter" data-cat="ui branding research game">
+        <span class="chapter-num">02</span>
+        <div class="chapter-text">
+          <h3 class="chapter-label">Product, Brand &amp; Studies</h3>
+          <p class="chapter-meta">UI · Branding · Research · Practice</p>
+        </div>
+      </div>
 
       <!-- 05 · B+b -->
       <a href="{{ site.baseurl }}/b-plus-b/" class="work-card" data-cat="research">
@@ -1434,6 +1594,14 @@
             card.style.display = "none";
           }
         });
+        // Hide chapter dividers whose listed categories don't include the filter
+        document.querySelectorAll(".works-chapter").forEach((ch) => {
+          if (filter === "all" || (ch.dataset.cat || "").includes(filter)) {
+            ch.style.display = "";
+          } else {
+            ch.style.display = "none";
+          }
+        });
       }
       document.querySelectorAll(".filter-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -1455,23 +1623,45 @@
         }
       })();
 
-      // Scroll-triggered card reveal with row-based stagger
+      // Scroll-triggered card + chapter reveal with row-based stagger
       (function () {
         const cards = document.querySelectorAll(".work-card");
-        let revealCount = 0;
+        const chapters = document.querySelectorAll(".works-chapter");
         const observer = new IntersectionObserver(
           (entries) => {
             const batch = entries.filter((e) => e.isIntersecting);
             batch.forEach((entry, i) => {
-              const card = entry.target;
-              card.style.animationDelay = i * 0.08 + "s";
-              card.classList.add("visible");
-              observer.unobserve(card);
+              const el = entry.target;
+              el.style.transitionDelay = i * 0.08 + "s";
+              el.style.animationDelay = i * 0.08 + "s";
+              el.classList.add("visible");
+              observer.unobserve(el);
             });
           },
           { threshold: 0.05, rootMargin: "50px 0px" }
         );
         cards.forEach((c) => observer.observe(c));
+        chapters.forEach((c) => observer.observe(c));
+      })();
+
+      // Cursor-reactive glow — soft radial spotlight follows the cursor inside hovered card
+      (function () {
+        const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        if (isTouch) return;
+        document.querySelectorAll(".work-card").forEach((card) => {
+          let raf = null;
+          card.addEventListener("mousemove", (e) => {
+            if (raf) return;
+            raf = requestAnimationFrame(() => {
+              const r = card.getBoundingClientRect();
+              const x = ((e.clientX - r.left) / r.width) * 100;
+              const y = ((e.clientY - r.top) / r.height) * 100;
+              card.style.setProperty("--gx", x + "%");
+              card.style.setProperty("--gy", y + "%");
+              raf = null;
+            });
+          });
+        });
       })();
 
       // Hover-to-play video previews — only loads + plays when user hovers
