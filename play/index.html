@@ -188,6 +188,103 @@ title: Play — Sid Mehta
         animation: playFadeUp 0.7s var(--ease-out) 0.25s forwards;
       }
 
+      /* PLAY FILTER PILLS */
+      .play-filter {
+        padding: 0 var(--gutter) 28px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        opacity: 0;
+        animation: playFadeUp 0.7s var(--ease-out) 0.4s forwards;
+      }
+      .pf-btn {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        padding: 6px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: transparent;
+        color: rgba(255, 255, 255, 0.5);
+        border-radius: 999px;
+        cursor: none;
+        transition: all 0.3s var(--ease-out);
+      }
+      .pf-btn:hover {
+        border-color: rgba(160, 200, 255, 0.4);
+        color: rgba(220, 240, 255, 0.95);
+        transform: translateY(-1px);
+      }
+      .pf-btn.active {
+        border-color: rgba(180, 220, 255, 0.5);
+        color: #fff;
+        background: rgba(160, 200, 255, 0.08);
+      }
+      .pf-btn-count {
+        margin-left: 6px;
+        opacity: 0.55;
+      }
+
+      /* LIGHTBOX ARROWS + COUNTER */
+      .lb-prev,
+      .lb-next {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 22px;
+        line-height: 1;
+        cursor: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 5;
+        transition:
+          background 0.2s,
+          transform 0.2s;
+      }
+      .lb-prev {
+        left: 24px;
+      }
+      .lb-next {
+        right: 24px;
+      }
+      .lb-prev:hover {
+        transform: translateY(-50%) scale(1.06);
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .lb-next:hover {
+        transform: translateY(-50%) scale(1.06);
+        background: rgba(255, 255, 255, 0.14);
+      }
+      .lb-counter {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        color: rgba(255, 255, 255, 0.5);
+        z-index: 5;
+      }
+      @media (max-width: 600px) {
+        .lb-prev,
+        .lb-next {
+          display: none;
+        }
+        .lb-counter {
+          top: 16px;
+          left: 16px;
+          font-size: 10px;
+        }
+      }
+
       /* WALL REVEAL — cursor spotlight (bottom of page) */
       .wall-reveal {
         position: relative;
@@ -549,7 +646,14 @@ title: Play — Sid Mehta
 
     <div class="play-header">
       <h1 class="play-title">Play</h1>
-      <span class="play-count">127 pieces</span>
+      <span class="play-count" id="play-count">— pieces</span>
+    </div>
+
+    <div class="play-filter" id="play-filter">
+      <button class="pf-btn active" data-pf="all">All</button>
+      <button class="pf-btn" data-pf="img">Photos<span class="pf-btn-count" data-pf-count="img"></span></button>
+      <button class="pf-btn" data-pf="vid">Videos<span class="pf-btn-count" data-pf-count="vid"></span></button>
+      <button class="pf-btn" data-pf="gif">GIFs<span class="pf-btn-count" data-pf-count="gif"></span></button>
     </div>
 
     <div class="masonry" id="masonry"></div>
@@ -567,8 +671,11 @@ title: Play — Sid Mehta
     <div class="lb" id="lb">
       <div class="lb-bg"></div>
       <img id="lb-img" src="" alt="" />
-      <video id="lb-video" controls playsinline style="display:none;"></video>
+      <video id="lb-video" controls playsinline style="display: none"></video>
       <button class="lb-x" aria-label="Close">✕</button>
+      <button class="lb-prev" id="lb-prev" aria-label="Previous">‹</button>
+      <button class="lb-next" id="lb-next" aria-label="Next">›</button>
+      <div class="lb-counter" id="lb-counter"></div>
     </div>
 
     <!-- SVG filters used by random hover effects -->
@@ -610,7 +717,9 @@ title: Play — Sid Mehta
         // Manifest of all media in /play/assets/ — generated from disk so each item maps to a real file with correct extension. Videos spread evenly between images.
         var manifest = [{"type":"img","f":"p1.jpg","feat":false},{"type":"img","f":"p2.jpg","feat":false},{"type":"img","f":"p3.jpg","feat":false},{"type":"img","f":"p4.jpg","feat":false},{"type":"vid","f":"v1.mp4","feat":false},{"type":"img","f":"p5.jpg","feat":false},{"type":"img","f":"p6.jpg","feat":false},{"type":"img","f":"p7.jpg","feat":false},{"type":"vid","f":"v2.mp4","feat":false},{"type":"img","f":"p8.jpg","feat":false},{"type":"img","f":"p9.jpg","feat":false},{"type":"img","f":"p10.jpg","feat":false},{"type":"vid","f":"v3.mp4","feat":false},{"type":"img","f":"p11.jpg","feat":false},{"type":"img","f":"p12.jpg","feat":false},{"type":"img","f":"p13.jpg","feat":false},{"type":"vid","f":"v4.mp4","feat":false},{"type":"img","f":"p14.jpg","feat":false},{"type":"img","f":"p15.jpg","feat":false},{"type":"img","f":"p16.gif","feat":false},{"type":"vid","f":"v5.mp4","feat":false},{"type":"img","f":"p17.jpg","feat":false},{"type":"img","f":"p18.jpg","feat":false},{"type":"img","f":"p19.jpg","feat":false},{"type":"vid","f":"v6.mp4","feat":false},{"type":"img","f":"p20.jpg","feat":false},{"type":"img","f":"p21.jpg","feat":false},{"type":"img","f":"p22.jpg","feat":false},{"type":"vid","f":"v7.mp4","feat":false},{"type":"img","f":"p23.jpg","feat":false},{"type":"img","f":"p24.jpg","feat":false},{"type":"img","f":"p25.jpg","feat":false},{"type":"vid","f":"v8.mp4","feat":false},{"type":"img","f":"p26.jpg","feat":false},{"type":"img","f":"p27.jpg","feat":false},{"type":"img","f":"p28.jpg","feat":false},{"type":"vid","f":"v9.mp4","feat":false},{"type":"img","f":"p29.jpg","feat":false},{"type":"img","f":"p30.jpg","feat":false},{"type":"img","f":"p31.jpg","feat":false},{"type":"vid","f":"v10.mp4","feat":false},{"type":"img","f":"p32.jpg","feat":false},{"type":"img","f":"p33.jpg","feat":false},{"type":"img","f":"p34.jpg","feat":false},{"type":"vid","f":"v11.mp4","feat":false},{"type":"img","f":"p35.jpg","feat":false},{"type":"img","f":"p36.jpg","feat":false},{"type":"img","f":"p37.jpg","feat":false},{"type":"vid","f":"v12.mp4","feat":false},{"type":"img","f":"p38.jpg","feat":false},{"type":"img","f":"p39.jpg","feat":false},{"type":"img","f":"p40.jpg","feat":false},{"type":"vid","f":"v13.mp4","feat":false},{"type":"img","f":"p41.jpg","feat":false},{"type":"img","f":"p42.jpg","feat":false},{"type":"img","f":"p43.jpg","feat":false},{"type":"vid","f":"v14.mp4","feat":false},{"type":"img","f":"p44.jpg","feat":false},{"type":"img","f":"p45.jpg","feat":false},{"type":"img","f":"p46.jpg","feat":false},{"type":"vid","f":"v15.mp4","feat":false},{"type":"img","f":"p47.jpg","feat":false},{"type":"img","f":"p48.jpg","feat":false},{"type":"img","f":"p49.jpg","feat":false},{"type":"vid","f":"v16.mp4","feat":false},{"type":"img","f":"p50.jpg","feat":false},{"type":"img","f":"p51.jpg","feat":false},{"type":"img","f":"p52.jpg","feat":false},{"type":"vid","f":"v17.mp4","feat":false},{"type":"img","f":"p53.jpg","feat":false},{"type":"img","f":"p54.jpg","feat":false},{"type":"img","f":"p55.jpg","feat":false},{"type":"vid","f":"v18.mp4","feat":false},{"type":"img","f":"p56.jpg","feat":false},{"type":"img","f":"p57.jpg","feat":false},{"type":"img","f":"p58.jpg","feat":false},{"type":"vid","f":"v19.mp4","feat":false},{"type":"img","f":"p59.jpg","feat":false},{"type":"img","f":"p60.jpg","feat":false},{"type":"img","f":"p61.jpg","feat":false},{"type":"vid","f":"v20.mp4","feat":false},{"type":"img","f":"p62.jpg","feat":false},{"type":"img","f":"p63.jpg","feat":false},{"type":"img","f":"p64.jpg","feat":false},{"type":"vid","f":"v21.mp4","feat":false},{"type":"img","f":"p65.jpg","feat":false},{"type":"img","f":"p66.jpg","feat":false},{"type":"img","f":"p67.jpg","feat":false},{"type":"vid","f":"v22.mp4","feat":false},{"type":"img","f":"p68.jpg","feat":false},{"type":"img","f":"p69.jpg","feat":false},{"type":"img","f":"p70.jpg","feat":false},{"type":"vid","f":"v23.mp4","feat":false},{"type":"img","f":"p71.jpg","feat":false},{"type":"img","f":"p72.jpg","feat":false},{"type":"img","f":"p73.jpg","feat":false},{"type":"vid","f":"v24.mp4","feat":false},{"type":"img","f":"p74.gif","feat":false},{"type":"img","f":"p75.jpg","feat":false},{"type":"img","f":"p76.jpg","feat":false},{"type":"vid","f":"v25.mp4","feat":false},{"type":"img","f":"p77.jpg","feat":false},{"type":"img","f":"p78.jpg","feat":false},{"type":"img","f":"p79.jpg","feat":false},{"type":"vid","f":"v26.mp4","feat":false},{"type":"img","f":"p80.jpg","feat":false},{"type":"img","f":"p81.jpg","feat":false},{"type":"img","f":"p82.jpg","feat":false},{"type":"vid","f":"v27.mp4","feat":false},{"type":"img","f":"p83.jpg","feat":false},{"type":"img","f":"p84.jpg","feat":false},{"type":"img","f":"p85.jpg","feat":false},{"type":"vid","f":"v28.mp4","feat":false},{"type":"img","f":"p86.jpg","feat":false},{"type":"img","f":"p87.jpg","feat":false},{"type":"img","f":"p88.jpg","feat":false},{"type":"vid","f":"v29.mp4","feat":false},{"type":"img","f":"p89.jpg","feat":false},{"type":"img","f":"p90.jpg","feat":false},{"type":"img","f":"p91.jpg","feat":false},{"type":"vid","f":"v30.mp4","feat":false},{"type":"img","f":"p92.jpg","feat":false},{"type":"img","f":"p93.jpg","feat":false},{"type":"img","f":"p94.jpg","feat":false},{"type":"vid","f":"v31.mp4","feat":false},{"type":"img","f":"p95.jpg","feat":false},{"type":"img","f":"p96.jpg","feat":false},{"type":"img","f":"p97.jpg","feat":false},{"type":"vid","f":"v32.mp4","feat":false},{"type":"img","f":"p98.jpg","feat":false},{"type":"img","f":"p99.png","feat":true},{"type":"img","f":"p100.jpg","feat":false},{"type":"img","f":"p101.png","feat":false},{"type":"img","f":"p102.png","feat":false},{"type":"img","f":"p103.png","feat":false},{"type":"vid","f":"v34.mp4","feat":false},{"type":"img","f":"p104.png","feat":false},{"type":"img","f":"p105.png","feat":false},{"type":"img","f":"p106.png","feat":false},{"type":"vid","f":"v35.mp4","feat":false},{"type":"img","f":"p107.png","feat":false},{"type":"img","f":"p108.jpg","feat":false},{"type":"img","f":"p109.jpg","feat":false},{"type":"vid","f":"v36.mp4","feat":false},{"type":"img","f":"p110.png","feat":false},{"type":"img","f":"p111.png","feat":false},{"type":"img","f":"p112.png","feat":false},{"type":"vid","f":"v37.mp4","feat":false},{"type":"img","f":"p113.png","feat":false},{"type":"img","f":"p114.png","feat":false},{"type":"img","f":"p115.png","feat":false},{"type":"vid","f":"v38.mp4","feat":false},{"type":"img","f":"p116.jpg","feat":false},{"type":"img","f":"p117.jpg","feat":false},{"type":"img","f":"p118.jpg","feat":false},{"type":"vid","f":"v39.mp4","feat":false},{"type":"img","f":"p119.jpg","feat":false},{"type":"img","f":"p120.jpg","feat":false},{"type":"img","f":"p121.jpg","feat":false},{"type":"vid","f":"v40.mp4","feat":false},{"type":"img","f":"p122.jpg","feat":false},{"type":"img","f":"p123.jpg","feat":false},{"type":"img","f":"p124.png","feat":false},{"type":"vid","f":"v41.mp4","feat":false},{"type":"img","f":"p125.jpg","feat":false},{"type":"img","f":"p126.png","feat":false},{"type":"img","f":"p127.jpg","feat":false},{"type":"vid","f":"v42.mp4","feat":false},{"type":"img","f":"p128.jpg","feat":false},{"type":"img","f":"p129.jpg","feat":false},{"type":"img","f":"p130.jpg","feat":false},{"type":"vid","f":"v43.mp4","feat":false},{"type":"img","f":"p131.jpg","feat":false},{"type":"img","f":"p132.jpg","feat":false},{"type":"img","f":"p133.png","feat":false},{"type":"vid","f":"v44.mp4","feat":false},{"type":"img","f":"p134.png","feat":false},{"type":"img","f":"p135.jpg","feat":false},{"type":"img","f":"p136.jpg","feat":false},{"type":"vid","f":"v45.mp4","feat":false},{"type":"img","f":"p137.jpg","feat":false},{"type":"img","f":"p138.jpg","feat":false},{"type":"img","f":"p139.jpg","feat":false},{"type":"img","f":"p140.jpg","feat":false},{"type":"img","f":"p141.jpg","feat":false},{"type":"img","f":"p142.jpg","feat":false},{"type":"img","f":"p143.jpg","feat":false},{"type":"img","f":"p144.jpg","feat":false},{"type":"img","f":"p145.jpg","feat":false},{"type":"img","f":"p146.jpg","feat":false},{"type":"img","f":"p147.jpg","feat":false},{"type":"img","f":"p148.jpg","feat":false},{"type":"img","f":"p149.jpg","feat":false},{"type":"img","f":"p150.jpg","feat":false},{"type":"img","f":"p151.jpg","feat":false},{"type":"img","f":"p152.jpg","feat":false},{"type":"img","f":"p153.jpg","feat":false},{"type":"img","f":"p154.png","feat":false},{"type":"img","f":"p155.jpg","feat":false},{"type":"img","f":"p156.jpg","feat":false},{"type":"img","f":"p157.jpg","feat":false},{"type":"img","f":"p158.jpg","feat":false},{"type":"img","f":"p159.jpg","feat":false},{"type":"img","f":"p160.jpg","feat":false},{"type":"img","f":"p161.jpg","feat":false},{"type":"img","f":"p162.jpg","feat":false},{"type":"img","f":"p163.jpg","feat":false},{"type":"img","f":"p164.png","feat":false},{"type":"img","f":"p165.png","feat":false},{"type":"img","f":"p166.png","feat":false},{"type":"img","f":"p167.png","feat":false},{"type":"img","f":"p168.png","feat":false},{"type":"img","f":"p169.png","feat":false},{"type":"img","f":"p170.png","feat":false},{"type":"img","f":"p171.png","feat":false},{"type":"img","f":"p172.png","feat":false},{"type":"img","f":"p173.jpg","feat":false},{"type":"img","f":"p174.png","feat":false},{"type":"img","f":"p175.png","feat":false},{"type":"img","f":"p176.png","feat":false},{"type":"img","f":"p177.png","feat":false},{"type":"img","f":"p178.png","feat":false},{"type":"img","f":"p179.png","feat":false},{"type":"img","f":"p180.png","feat":false},{"type":"img","f":"p181.jpg","feat":false},{"type":"img","f":"p182.jpg","feat":false},{"type":"img","f":"p183.png","feat":false},{"type":"img","f":"p184.png","feat":false},{"type":"img","f":"p185.png","feat":false},{"type":"img","f":"p186.png","feat":false},{"type":"img","f":"p187.jpg","feat":false},{"type":"img","f":"p188.png","feat":false},{"type":"img","f":"p189.png","feat":false},{"type":"img","f":"p190.png","feat":false},{"type":"img","f":"p191.png","feat":false},{"type":"img","f":"p192.png","feat":false},{"type":"img","f":"p193.png","feat":false},{"type":"img","f":"p194.gif","feat":false},{"type":"img","f":"p195.gif","feat":false},{"type":"img","f":"p196.gif","feat":false},{"type":"img","f":"p197.jpg","feat":false},{"type":"img","f":"p198.jpg","feat":false},{"type":"img","f":"p199.jpg","feat":false},{"type":"img","f":"p200.jpg","feat":false},{"type":"img","f":"p201.jpg","feat":false},{"type":"img","f":"p202.jpg","feat":false},{"type":"img","f":"p203.jpg","feat":false},{"type":"img","f":"p204.jpg","feat":false},{"type":"img","f":"p205.gif","feat":false}];
         var items = manifest.map(function (m) {
-          return { type: m.type, src: base + "/play/assets/" + m.f, featured: m.feat };
+          // pf = "vid" / "gif" / "img" — drives the filter pills
+          var pf = m.type === "vid" ? "vid" : /\.gif$/i.test(m.f) ? "gif" : "img";
+          return { type: m.type, pf: pf, src: base + "/play/assets/" + m.f, featured: m.feat };
         });
 
         // Build DOM
@@ -661,6 +770,8 @@ title: Play — Sid Mehta
           var card = document.createElement("div");
           card.className = "card" + (item.featured ? " card--featured" : "");
           card.setAttribute("data-float", floats[idx % 3]);
+          card.dataset.pf = item.pf;
+          card.dataset.idx = idx;
           card.addEventListener("mouseenter", function () {
             applyEffect(card.querySelector("img, video"), pickEffect());
           });
@@ -679,7 +790,7 @@ title: Play — Sid Mehta
             video.addEventListener("loadeddata", function () { video.classList.add("loaded"); });
             card.appendChild(video);
             card.addEventListener("click", function (e) {
-              openLb(e.currentTarget.querySelector("video").src, "video");
+              openLbByIdx(parseInt(e.currentTarget.dataset.idx, 10));
             });
           } else {
             var img = document.createElement("img");
@@ -690,7 +801,7 @@ title: Play — Sid Mehta
             else img.addEventListener("load", function () { img.classList.add("loaded"); });
             card.appendChild(img);
             card.addEventListener("click", function (e) {
-              openLb(e.currentTarget.querySelector("img").src, "image");
+              openLbByIdx(parseInt(e.currentTarget.dataset.idx, 10));
             });
           }
 
@@ -804,17 +915,38 @@ title: Play — Sid Mehta
         var lbImg = document.getElementById("lb-img");
 
         var lbVid = document.getElementById("lb-video");
-        function openLb(src, kind) {
-          if (kind === "video" && lbVid) {
+        // Lightbox — index-aware so ←/→ traverse the currently-visible (filtered) items
+        var lbCounter = document.getElementById("lb-counter");
+        var lbCurrent = -1;
+        function visibleItemIdxs() {
+          // Returns array of original-list indices for cards currently displayed (respecting filter)
+          var out = [];
+          masonry.querySelectorAll(".card").forEach(function (c) {
+            if (c.style.display !== "none") out.push(parseInt(c.dataset.idx, 10));
+          });
+          return out;
+        }
+        function openLbByIdx(idx) {
+          var visible = visibleItemIdxs();
+          var pos = visible.indexOf(idx);
+          if (pos < 0) return;
+          lbCurrent = idx;
+          var item = items[idx];
+          if (item.type === "vid" && lbVid) {
             lbImg.style.display = "none";
             lbVid.style.display = "block";
-            lbVid.src = src;
+            lbVid.src = item.src;
             lbVid.play().catch(function () {});
           } else {
-            if (lbVid) { lbVid.style.display = "none"; lbVid.pause(); lbVid.src = ""; }
+            if (lbVid) {
+              lbVid.style.display = "none";
+              lbVid.pause();
+              lbVid.src = "";
+            }
             lbImg.style.display = "";
-            lbImg.src = src;
+            lbImg.src = item.src;
           }
+          if (lbCounter) lbCounter.textContent = pos + 1 + " / " + visible.length;
           lb.style.display = "flex";
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
@@ -822,19 +954,70 @@ title: Play — Sid Mehta
             });
           });
         }
+        function lbStep(dir) {
+          var visible = visibleItemIdxs();
+          if (!visible.length) return;
+          var pos = visible.indexOf(lbCurrent);
+          if (pos < 0) return;
+          var nextPos = (pos + dir + visible.length) % visible.length;
+          openLbByIdx(visible[nextPos]);
+        }
         function closeLb() {
           lb.classList.remove("open");
           setTimeout(function () {
             lb.style.display = "none";
             lbImg.src = "";
-            if (lbVid) { lbVid.pause(); lbVid.src = ""; lbVid.style.display = "none"; }
+            if (lbVid) {
+              lbVid.pause();
+              lbVid.src = "";
+              lbVid.style.display = "none";
+            }
+            lbCurrent = -1;
           }, 300);
         }
         lb.querySelector(".lb-bg").addEventListener("click", closeLb);
         lb.querySelector(".lb-x").addEventListener("click", closeLb);
+        var lbPrev = document.getElementById("lb-prev");
+        var lbNext = document.getElementById("lb-next");
+        if (lbPrev) lbPrev.addEventListener("click", function () { lbStep(-1); });
+        if (lbNext) lbNext.addEventListener("click", function () { lbStep(1); });
         document.addEventListener("keydown", function (e) {
-          if (e.key === "Escape" && lb.classList.contains("open")) closeLb();
+          if (!lb.classList.contains("open")) return;
+          if (e.key === "Escape") closeLb();
+          else if (e.key === "ArrowLeft") lbStep(-1);
+          else if (e.key === "ArrowRight") lbStep(1);
         });
+
+        // ── FILTER PILLS ── filter by media type, update count
+        (function () {
+          var counts = { all: items.length, img: 0, vid: 0, gif: 0 };
+          items.forEach(function (it) {
+            counts[it.pf]++;
+          });
+          var countEl = document.getElementById("play-count");
+          if (countEl) countEl.textContent = items.length + " pieces";
+          document.querySelectorAll("[data-pf-count]").forEach(function (el) {
+            var t = el.getAttribute("data-pf-count");
+            if (counts[t] != null) el.textContent = " · " + counts[t];
+          });
+          document.querySelectorAll(".pf-btn").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var f = btn.dataset.pf;
+              document.querySelectorAll(".pf-btn").forEach(function (b) {
+                b.classList.toggle("active", b === btn);
+              });
+              masonry.querySelectorAll(".card").forEach(function (c) {
+                if (f === "all" || c.dataset.pf === f) {
+                  c.style.display = "";
+                } else {
+                  c.style.display = "none";
+                }
+              });
+              // Recompute row spans after filter change
+              setTimeout(recomputeAll, 50);
+            });
+          });
+        })();
 
         // Nav scroll
         window.addEventListener(
