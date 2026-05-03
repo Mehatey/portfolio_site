@@ -1146,6 +1146,85 @@
   html[data-theme="light"] #sid-help .help-foot {
     color: rgba(7, 9, 15, 0.45);
   }
+  /* ── PRINT STYLESHEET ── for recruiters who print case studies / about page.
+     Strips background canvases, dark theme, hover-only effects, fixed nav. */
+  @media print {
+    html,
+    body {
+      background: #fff !important;
+      color: #000 !important;
+    }
+    body * {
+      cursor: auto !important;
+      animation: none !important;
+      transition: none !important;
+    }
+    /* Hide chrome — nav, floating UI, decorative effects */
+    .nav,
+    #cur-dot,
+    #cursor-spotlight,
+    #global-grain,
+    #global-vignette,
+    #smoke-bg,
+    #dust-canvas,
+    #desk-stage,
+    #noise-overlay,
+    #bg-glow,
+    #work-collage,
+    #loader-collage,
+    #enter-backdrop,
+    #site-loader,
+    #enter-gate,
+    #theme-toggle,
+    #cube-chat-fab,
+    #cube-chat,
+    #cmdk,
+    #sid-help,
+    #sid-lightbox,
+    #sid-toast,
+    .scroll-edge,
+    .progress-bar,
+    .site-footer-cta,
+    .works-end-btn,
+    .filter-bar,
+    .play-filter,
+    .works-marquee,
+    .marquee,
+    .works-end::before,
+    #play-autoscroll-indicator {
+      display: none !important;
+    }
+    /* Restore readable typography */
+    h1,
+    h2,
+    h3,
+    h4,
+    p,
+    li {
+      color: #000 !important;
+      page-break-inside: avoid;
+    }
+    a {
+      color: #000 !important;
+      text-decoration: underline;
+    }
+    /* Make sure project hero images and case-study images print full-bleed */
+    img,
+    video {
+      max-width: 100% !important;
+      page-break-inside: avoid;
+    }
+    /* Hero gradients lose their drama on white paper — flatten */
+    .proj-hero {
+      background: none !important;
+      min-height: auto !important;
+    }
+    .proj-hero::before,
+    .hero-overlay {
+      display: none !important;
+    }
+  }
+
   /* Sticky filter bars — light-mode frosted glass */
   html[data-theme="light"] .filter-bar.is-stuck,
   html[data-theme="light"] .play-filter.is-stuck {
@@ -1619,6 +1698,41 @@
   }
   ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, rgba(180, 220, 255, 0.5), rgba(200, 240, 230, 0.35));
+  }
+
+  /* Konami completion tag — small reveal that ties back to the cube/sides narrative */
+  .konami-tag {
+    position: fixed;
+    top: 38%;
+    left: 50%;
+    transform: translate(-50%, 8px);
+    font-family: var(--font-mono, "DM Mono", monospace);
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255, 220, 180, 0.95);
+    background: rgba(15, 18, 26, 0.78);
+    -webkit-backdrop-filter: blur(20px) saturate(1.6);
+    backdrop-filter: blur(20px) saturate(1.6);
+    border: 1px solid rgba(255, 220, 180, 0.32);
+    border-radius: 999px;
+    padding: 10px 22px;
+    pointer-events: none;
+    z-index: 99997;
+    opacity: 0;
+    transition:
+      opacity 0.45s ease,
+      transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  }
+  .konami-tag.is-visible {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  html[data-theme="light"] .konami-tag {
+    color: rgba(180, 90, 30, 0.95);
+    background: rgba(245, 243, 238, 0.92);
+    border-color: rgba(220, 130, 60, 0.4);
   }
 
   /* Konami easter egg — color-cycle the page when triggered */
@@ -2739,6 +2853,21 @@
             });
           }
         } catch (_) {}
+
+        // Reveal — small mono tag mid-screen tying back to the cube/sides narrative
+        var msg = document.createElement("div");
+        msg.className = "konami-tag";
+        msg.textContent = "// you found a side";
+        document.body.appendChild(msg);
+        requestAnimationFrame(function () {
+          msg.classList.add("is-visible");
+        });
+        setTimeout(function () {
+          msg.classList.remove("is-visible");
+          setTimeout(function () {
+            if (msg.parentNode) msg.remove();
+          }, 700);
+        }, 2400);
       }
 
       window.addEventListener("keydown", (e) => {
