@@ -1,6 +1,17 @@
 <script>
+  // Theme bootstrap — applies saved theme OR honors OS preference on first visit.
+  // Runs synchronously before any layout paints so there's no flash-of-wrong-theme.
+  (function () {
+    try {
+      var saved = localStorage.getItem("sid_theme");
+      if (saved === "light" || saved === "dark") {
+        document.documentElement.setAttribute("data-theme", saved);
+      } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+        document.documentElement.setAttribute("data-theme", "light");
+      }
+    } catch (_) {}
+  })();
   // Custom-cursor bootstrap — sets the gating class if JS is alive AND device is hover-capable.
-  // Runs synchronously before any layout paints so there's no flash of system-cursor-then-hidden.
   (function () {
     try {
       if (window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
@@ -662,6 +673,17 @@
     background: rgba(7, 9, 15, 0.06);
   }
   /* 404 page */
+  html[data-theme="light"] .notfound-suggest {
+    color: rgba(7, 9, 15, 0.55);
+  }
+  html[data-theme="light"] .notfound-suggest a {
+    color: rgba(40, 90, 180, 0.95);
+    border-bottom-color: rgba(40, 90, 180, 0.4);
+  }
+  html[data-theme="light"] .notfound-suggest a:hover {
+    color: #07090f;
+    border-bottom-color: rgba(40, 90, 180, 0.9);
+  }
   html[data-theme="light"] .notfound-cube {
     color: rgba(40, 90, 180, 0.45);
     filter: drop-shadow(0 8px 32px rgba(40, 90, 180, 0.18));
@@ -2278,7 +2300,16 @@
     try {
       saved = localStorage.getItem(KEY);
     } catch (_) {}
-    if (saved === "light" || saved === "dark") apply(saved);
+    if (saved === "light" || saved === "dark") {
+      apply(saved);
+    } else {
+      // First visit — honor the OS-level theme preference
+      try {
+        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
+          apply("light");
+        }
+      } catch (_) {}
+    }
     // ARIA live region — announces theme changes to screen readers
     var live = document.createElement("div");
     live.setAttribute("role", "status");

@@ -5,6 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="{{ site.baseurl }}/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="view-transition" content="same-origin" />
+    {% include head_bootstrap.html %}
     <title>Page Not Found — Sid Mehta</title>
     <meta name="description" content="The page you're looking for doesn't exist." />
     <meta property="og:title" content="Page Not Found — Sid Mehta" />
@@ -335,7 +336,27 @@
         line-height: 1.15;
         color: #fff;
         max-width: 480px;
-        margin-bottom: 48px;
+        margin-bottom: 32px;
+      }
+      .notfound-suggest {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 32px;
+      }
+      .notfound-suggest a {
+        color: rgba(180, 220, 255, 0.95);
+        border-bottom: 1px solid rgba(180, 220, 255, 0.4);
+        padding-bottom: 1px;
+        transition:
+          color 0.2s,
+          border-color 0.2s;
+      }
+      .notfound-suggest a:hover {
+        color: #fff;
+        border-color: rgba(180, 220, 255, 0.9);
       }
       .notfound-links {
         display: flex;
@@ -500,12 +521,81 @@
       <p class="notfound-num">404</p>
       <p class="notfound-label">// the alien square went looking for a side that wasn't there</p>
       <p class="notfound-msg">This page doesn't exist. Or it moved. Or it was never built — like the seventh side of a cube.</p>
+      <p class="notfound-suggest" id="notfound-suggest" style="display: none">
+        <span>Did you mean </span><a id="notfound-suggest-link" href="#"></a><span>?</span>
+      </p>
       <div class="notfound-links">
         <a href="{{ site.baseurl }}/works/" class="notfound-link-primary" data-magnetic>View Works →</a>
         <a href="{{ site.baseurl }}/" class="notfound-link-secondary">Go Home</a>
         <span class="notfound-hint">Or press <kbd>⌘K</kbd> to navigate</span>
       </div>
     </div>
+
+    <script>
+      // ── SMART 404 SUGGESTION ── if the typed path is close to a real one, surface it as a clickable hint
+      (function () {
+        var paths = [
+          "/works/",
+          "/play/",
+          "/about/",
+          "/contact/",
+          "/encoded/",
+          "/mandalas/",
+          "/cube-guy/",
+          "/illustrations/",
+          "/mool/",
+          "/ai-self/",
+          "/mind-your-feelings/",
+          "/b-plus-b/",
+          "/shot-on-iphone/",
+          "/naavo/",
+          "/aananda/",
+          "/alpha-stockathon/",
+        ];
+        // Strip baseurl + trailing/leading slashes for comparison
+        var cur = window.location.pathname.replace(/\/$/, "").replace(/^\//, "").toLowerCase();
+        if (!cur) return;
+        // Levenshtein distance (small implementation, good enough for 16 candidates)
+        function dist(a, b) {
+          var m = a.length,
+            n = b.length;
+          if (m === 0) return n;
+          if (n === 0) return m;
+          var prev = new Array(n + 1),
+            curr = new Array(n + 1);
+          for (var j = 0; j <= n; j++) prev[j] = j;
+          for (var i = 1; i <= m; i++) {
+            curr[0] = i;
+            for (var j2 = 1; j2 <= n; j2++) {
+              var cost = a[i - 1] === b[j2 - 1] ? 0 : 1;
+              curr[j2] = Math.min(curr[j2 - 1] + 1, prev[j2] + 1, prev[j2 - 1] + cost);
+            }
+            for (var k = 0; k <= n; k++) prev[k] = curr[k];
+          }
+          return prev[n];
+        }
+        var best = null,
+          bestDist = Infinity;
+        paths.forEach(function (p) {
+          var clean = p.replace(/\/$/, "").replace(/^\//, "").toLowerCase();
+          var d = dist(cur, clean);
+          if (d < bestDist) {
+            bestDist = d;
+            best = p;
+          }
+        });
+        // Only suggest if the match is reasonably close (≤3 edits, and not longer than 50% of shorter string)
+        if (best && bestDist > 0 && bestDist <= 3) {
+          var el = document.getElementById("notfound-suggest");
+          var link = document.getElementById("notfound-suggest-link");
+          if (el && link) {
+            link.textContent = best;
+            link.href = "{{ site.baseurl }}" + best;
+            el.style.display = "block";
+          }
+        }
+      })();
+    </script>
 
     {% include cursor_fluid.html %} {% include site_footer.html %}
 
