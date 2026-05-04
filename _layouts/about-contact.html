@@ -489,6 +489,42 @@
         background: rgba(160, 200, 255, 0.06);
       }
 
+      /* ── Generic scroll reveal — used by .gcol, .exp-item, .faq-item, .cap-tag, etc.
+           One observer flips .is-visible; per-element delay is set inline via --d. ── */
+      [data-reveal] {
+        opacity: 0;
+        transform: translateY(18px);
+        filter: blur(6px);
+        transition:
+          opacity 0.7s var(--ease-out),
+          transform 0.7s var(--ease-out),
+          filter 0.7s var(--ease-out);
+        transition-delay: var(--d, 0s);
+      }
+      [data-reveal].is-visible {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+      /* Cap-tag pills get a tighter, springier reveal (small chips → less travel) */
+      .cap-tag[data-reveal] {
+        transform: translateY(8px) scale(0.92);
+        transition:
+          opacity 0.45s var(--ease-out),
+          transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1),
+          filter 0.45s var(--ease-out);
+      }
+      .cap-tag[data-reveal].is-visible {
+        transform: translateY(0) scale(1);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        [data-reveal] {
+          opacity: 1 !important;
+          transform: none !important;
+          filter: none !important;
+        }
+      }
+
       /* ── GRID: 3 columns ── */
       .about-grid {
         border-top: 1px solid rgba(255, 255, 255, 0.07);
@@ -1093,7 +1129,7 @@
 
       <!-- GRID -->
       <div class="about-grid" id="about-grid">
-        <div class="gcol">
+        <div class="gcol" data-reveal>
           <span class="g-label">Experience</span>
           <ul class="exp-list">
             <li class="exp-item">
@@ -1144,7 +1180,7 @@
           </ul>
         </div>
 
-        <div class="gcol">
+        <div class="gcol" data-reveal>
           <span class="g-label">Recognition</span>
           <ul class="recog-list">
             <li class="recog-item">
@@ -1166,21 +1202,21 @@
           </ul>
         </div>
 
-        <div class="gcol">
+        <div class="gcol" data-reveal>
           <span class="g-label">Capabilities</span>
           <div class="cap-tags">
-            <span class="cap-tag">Product Design</span>
-            <span class="cap-tag">UX Research</span>
-            <span class="cap-tag">AR / XR</span>
-            <span class="cap-tag">Unity</span>
-            <span class="cap-tag">Figma</span>
-            <span class="cap-tag">TouchDesigner</span>
-            <span class="cap-tag">Unreal Engine</span>
-            <span class="cap-tag">JavaScript</span>
-            <span class="cap-tag">Python</span>
-            <span class="cap-tag">Branding</span>
-            <span class="cap-tag">Arduino</span>
-            <span class="cap-tag">Premiere Pro</span>
+            <span class="cap-tag" data-reveal>Product Design</span>
+            <span class="cap-tag" data-reveal>UX Research</span>
+            <span class="cap-tag" data-reveal>AR / XR</span>
+            <span class="cap-tag" data-reveal>Unity</span>
+            <span class="cap-tag" data-reveal>Figma</span>
+            <span class="cap-tag" data-reveal>TouchDesigner</span>
+            <span class="cap-tag" data-reveal>Unreal Engine</span>
+            <span class="cap-tag" data-reveal>JavaScript</span>
+            <span class="cap-tag" data-reveal>Python</span>
+            <span class="cap-tag" data-reveal>Branding</span>
+            <span class="cap-tag" data-reveal>Arduino</span>
+            <span class="cap-tag" data-reveal>Premiere Pro</span>
           </div>
         </div>
       </div>
@@ -1189,42 +1225,42 @@
       <div class="faq-section">
         <span class="g-label">Frequently asked</span>
         <div class="faq-list">
-          <details class="faq-item">
+          <details class="faq-item" data-reveal>
             <summary>Which project taught you the most?</summary>
             <p>
               Mool. Designing a banking app for users new to digital meant unlearning every shortcut I'd taken in design. Every interaction had to
               earn its place. It rewired how I think about clarity.
             </p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item" data-reveal>
             <summary>What kind of team brings out your best work?</summary>
             <p>
               Small. Curious. People who can hold strong opinions loosely. I do my best work when there's room to prototype before there's a brief,
               and a team that treats design as part of the thinking, not the polish at the end.
             </p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item" data-reveal>
             <summary>What do you do when you're stuck?</summary>
             <p>
               I leave the screen. Most of my best ideas have come on a walk, in the shower, or while drawing in a sketchbook. The wall is usually a
               sign I haven't gone wide enough on the inputs yet.
             </p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item" data-reveal>
             <summary>What's the one thing you wish people asked more?</summary>
             <p>
               Why I make. Cube, mandalas, the AR work, the bank, the small daily illustrations. They all come from the same place: a curiosity about
               how design can shift the way people feel about themselves and the world.
             </p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item" data-reveal>
             <summary>Lead end-to-end or join mid-sprint?</summary>
             <p>
               Both. I've shipped solo projects from concept to install, and I've joined product teams to translate research into flows.
               Async-friendly, comfortable across timezones, fast at finding the shape of a problem.
             </p>
           </details>
-          <details class="faq-item">
+          <details class="faq-item" data-reveal>
             <summary>Where are you based?</summary>
             <p>Brooklyn, NYC. Eastern Time. Open to remote, hybrid, or relocating for the right team.</p>
           </details>
@@ -1265,6 +1301,44 @@
           const r = grid.getBoundingClientRect();
           if (r.top < window.innerHeight) grid.classList.add("is-visible");
         });
+      })();
+
+      // Generic scroll reveal — staggers siblings within their parent.
+      (function () {
+        var els = document.querySelectorAll("[data-reveal]");
+        if (!els.length) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          els.forEach(function (el) {
+            el.classList.add("is-visible");
+          });
+          return;
+        }
+        var obs = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (!entry.isIntersecting) return;
+              var el = entry.target;
+              var parent = el.parentElement;
+              var peers = parent ? parent.querySelectorAll(":scope > [data-reveal]") : [el];
+              var idx = Array.prototype.indexOf.call(peers, el);
+              var stagger = el.matches(".cap-tag") ? 0.045 : 0.09;
+              el.style.setProperty("--d", idx * stagger + "s");
+              el.classList.add("is-visible");
+              obs.unobserve(el);
+            });
+          },
+          { threshold: 0.05, rootMargin: "0px 0px -6% 0px" }
+        );
+        els.forEach(function (el) {
+          obs.observe(el);
+        });
+        setTimeout(function () {
+          els.forEach(function (el) {
+            if (el.classList.contains("is-visible")) return;
+            var r = el.getBoundingClientRect();
+            if (r.top < window.innerHeight && r.bottom > 0) el.classList.add("is-visible");
+          });
+        }, 1600);
       })();
 
       // Photo hover cycle: crossfade between 3 images
