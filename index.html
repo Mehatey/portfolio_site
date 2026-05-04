@@ -130,7 +130,8 @@
       body {
         font-family: var(--font-head);
         -webkit-font-smoothing: antialiased;
-        height: 100vh;
+        height: 100vh; /* fallback for older browsers */
+        height: 100dvh; /* iOS: excludes URL bar so desk + bottom-bar stay on-screen */
         overflow: hidden;
         cursor: none;
       }
@@ -1878,6 +1879,13 @@
     }
     var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (prefersReduced) {
+      document.documentElement.classList.add("no-shader");
+      return;
+    }
+    // Skip the loader fbm shader on touch+small — let the static gradient fallback paint instead.
+    var isTouchSmall =
+      window.matchMedia && (window.matchMedia("(hover: none) and (pointer: coarse)").matches || window.matchMedia("(max-width: 700px)").matches);
+    if (isTouchSmall) {
       document.documentElement.classList.add("no-shader");
       return;
     }
@@ -6979,6 +6987,13 @@
       (function () {
         var c = document.getElementById("smoke-bg");
         if (!c) return;
+        // Skip on touch + small screens — fbm shader was hanging low-end mobile GPUs.
+        var isTouchSmall =
+          window.matchMedia && (window.matchMedia("(hover: none) and (pointer: coarse)").matches || window.matchMedia("(max-width: 700px)").matches);
+        if (isTouchSmall) {
+          c.style.display = "none";
+          return;
+        }
         var gl = c.getContext("webgl", { alpha: true, premultipliedAlpha: false });
         if (!gl) return;
 

@@ -49,6 +49,14 @@
     var c = document.getElementById("page-smoke-bg");
     if (!c) return;
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Skip on mobile/touch — fragment-shader fbm noise was hanging low-end Android & older iPhones.
+    // The page already has a fallback dark bg; nothing else depends on this canvas painting.
+    var isTouchSmall =
+      window.matchMedia && (window.matchMedia("(hover: none) and (pointer: coarse)").matches || window.matchMedia("(max-width: 700px)").matches);
+    if (isTouchSmall) {
+      c.style.display = "none";
+      return;
+    }
     var gl = c.getContext("webgl", { alpha: true, premultipliedAlpha: false });
     if (!gl) return;
     function resize() {
