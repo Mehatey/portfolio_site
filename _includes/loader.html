@@ -190,9 +190,9 @@
   .lc-grid {
     display: none;
   }
-  /* Static fallback gradient — only paints if WebGL fails / reduced-motion / shader script doesn't run.
-     If WebGL is alive, #loader-smoke-bg paints over this layer. */
-  #loader-collage::before {
+  /* Static fallback gradient — hidden by default; JS adds .no-shader to <html> if WebGL init fails / reduced-motion.
+     Keeps the WebGL smoke shader as the SOLE background when it works (no double-paint). */
+  html.no-shader #loader-collage::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -203,6 +203,7 @@
     pointer-events: none;
     z-index: 0;
   }
+  /* If JS doesn't run AT ALL (no <script> evaluated), <html> won't have any class set. Provide noscript fallback. */
   /* Layer 2: cursor-following cyan halo — alive, follows the mouse */
   #loader-collage::after {
     content: "";
@@ -471,13 +472,23 @@
   // ── LOADER SMOKE SHADER ── same WebGL noise field used on home #smoke-bg.
   // Runs from page load so the Enter scene has a live shader backdrop, not a static gradient.
   // Cleaned up on loaderDone alongside #loader-collage.
+  // If WebGL fails → set html.no-shader so the static gradient fallback paints instead.
   (function () {
     var c = document.getElementById("loader-smoke-bg");
-    if (!c) return;
+    if (!c) {
+      document.documentElement.classList.add("no-shader");
+      return;
+    }
     var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
+    if (prefersReduced) {
+      document.documentElement.classList.add("no-shader");
+      return;
+    }
     var gl = c.getContext("webgl", { alpha: true, premultipliedAlpha: false });
-    if (!gl) return;
+    if (!gl) {
+      document.documentElement.classList.add("no-shader");
+      return;
+    }
     function resize() {
       c.width = window.innerWidth * 0.5;
       c.height = window.innerHeight * 0.5;
