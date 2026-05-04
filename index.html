@@ -1533,27 +1533,49 @@
 </div>
 
 <style>
+  /* Floating buddha — pointer-events: auto so it's hoverable; transform set inline by JS */
   #enter-3d-stage {
     position: fixed;
     left: 0;
     top: 0;
-    width: 220px;
-    height: 220px;
+    width: 180px;
+    height: 180px;
     z-index: 9050;
-    pointer-events: none;
+    pointer-events: auto;
     opacity: 0;
-    transition: opacity 0.6s ease;
+    transition:
+      opacity 0.6s ease,
+      filter 0.4s ease;
     will-change: transform;
+    cursor: none;
   }
   #enter-3d-stage.is-on {
     opacity: 1;
   }
-  #enter-3d-stage.is-fading {
-    opacity: 0;
+  /* Hover playfulness — buddha wiggles + glows softly */
+  #enter-3d-stage.is-hovering {
+    filter: drop-shadow(0 0 24px rgba(180, 220, 255, 0.55));
+    animation: buddhaWiggle 0.8s ease-in-out infinite;
+  }
+  @keyframes buddhaWiggle {
+    0%,
+    100% {
+      rotate: 0deg;
+    }
+    25% {
+      rotate: -6deg;
+    }
+    50% {
+      rotate: 0deg;
+    }
+    75% {
+      rotate: 6deg;
+    }
   }
   #enter-3d-mount {
     width: 100%;
     height: 100%;
+    pointer-events: none; /* let stage capture hover, not the model-viewer canvas */
   }
   #enter-3d-mount model-viewer {
     width: 100%;
@@ -1563,8 +1585,8 @@
   }
   @media (max-width: 700px) {
     #enter-3d-stage {
-      width: 140px;
-      height: 140px;
+      width: 130px;
+      height: 130px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -1577,9 +1599,8 @@
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js" crossorigin="anonymous"></script>
 
 <script>
-  // Floating 3D sculpture inside the Enter gate. Mounted ~600ms after page load so it never
-  // blocks the smoke shader or Enter button. DVD-bounce drift; on edge collision, fade out,
-  // swap to the next model, fade back in.
+  // Floating buddha head — single model that DVD-bounces around. Slowly grows in size and rotation
+  // speed over time. Hover triggers a playful wiggle + soft glow.
   (function () {
     var stage = document.getElementById("enter-3d-stage");
     var mount = document.getElementById("enter-3d-mount");
@@ -1587,22 +1608,21 @@
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
 
-    var models = ["/assets/models/buddha.glb", "/assets/models/bottle.glb"];
-    var idx = 0;
-
-    function buildViewer(src) {
+    var BUDDHA_SRC = "/assets/models/buddha.glb";
+    var mv;
+    function buildViewer() {
       mount.innerHTML = "";
-      var mv = document.createElement("model-viewer");
-      mv.setAttribute("src", src);
+      mv = document.createElement("model-viewer");
+      mv.setAttribute("src", BUDDHA_SRC);
       mv.setAttribute("auto-rotate", "");
-      mv.setAttribute("rotation-per-second", "20deg");
+      mv.setAttribute("rotation-per-second", "18deg");
       mv.setAttribute("camera-orbit", "0deg 75deg 110%");
       mv.setAttribute("interaction-prompt", "none");
       mv.setAttribute("disable-zoom", "");
       mv.setAttribute("disable-pan", "");
       mv.setAttribute("disable-tap", "");
       mv.setAttribute("environment-image", "neutral");
-      mv.setAttribute("exposure", "0.9");
+      mv.setAttribute("exposure", "0.95");
       mv.setAttribute("shadow-intensity", "0");
       mv.style.pointerEvents = "none";
       mount.appendChild(mv);
@@ -1617,55 +1637,41 @@
     measure();
     window.addEventListener("resize", measure, { passive: true });
 
-    var size = stage.offsetWidth || 220;
-    function randPos() {
+    var baseSize = stage.offsetWidth || 180; // reference at scale 1
+    function randPos(currentSize) {
       var cx = W / 2,
         cy = H / 2;
       for (var attempt = 0; attempt < 30; attempt++) {
-        var rx = Math.random() * (W - size);
-        var ry = Math.random() * (H - size);
-        var dx = rx + size / 2 - cx,
-          dy = ry + size / 2 - cy;
-        if (Math.sqrt(dx * dx + dy * dy) > 280) return [rx, ry];
+        var rx = Math.random() * (W - currentSize);
+        var ry = Math.random() * (H - currentSize);
+        var dx = rx + currentSize / 2 - cx,
+          dy = ry + currentSize / 2 - cy;
+        if (Math.sqrt(dx * dx + dy * dy) > 260) return [rx, ry];
       }
       return [40, 40];
     }
-    var startPos = randPos();
+    var startPos = randPos(baseSize);
     var x = startPos[0],
       y = startPos[1];
     var vx = (Math.random() < 0.5 ? -1 : 1) * (0.55 + Math.random() * 0.25);
     var vy = (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.2);
 
-    var fading = false;
-    function swapModel() {
-      fading = true;
-      stage.classList.add("is-fading");
-      stage.classList.remove("is-on");
-      setTimeout(function () {
-        idx = (idx + 1) % models.length;
-        var mv = buildViewer(models[idx]);
-        mv.addEventListener(
-          "load",
-          function () {
-            stage.classList.remove("is-fading");
-            stage.classList.add("is-on");
-            fading = false;
-          },
-          { once: true }
-        );
-        setTimeout(function () {
-          if (fading) {
-            stage.classList.remove("is-fading");
-            stage.classList.add("is-on");
-            fading = false;
-          }
-        }, 4000);
-      }, 700);
-    }
+    // Hover playfulness — toggle a CSS class so it wiggles + glows. We also cancel propagation
+    // so cube chat / cmdk / etc. don't fight.
+    stage.addEventListener("mouseenter", function () {
+      stage.classList.add("is-hovering");
+      // Speed up rotation while hovering for extra liveliness
+      if (mv) mv.setAttribute("rotation-per-second", "70deg");
+    });
+    stage.addEventListener("mouseleave", function () {
+      stage.classList.remove("is-hovering");
+      if (mv) mv.setAttribute("rotation-per-second", baseRotation + "deg");
+    });
 
+    // Mount once, never swap. Reveal when loaded.
     setTimeout(function () {
-      var mv = buildViewer(models[0]);
-      mv.addEventListener(
+      var inst = buildViewer();
+      inst.addEventListener(
         "load",
         function () {
           stage.classList.add("is-on");
@@ -1673,6 +1679,7 @@
         },
         { once: true }
       );
+      // Safety: reveal anyway after 4s if 'load' doesn't fire
       setTimeout(function () {
         if (!stage.classList.contains("is-on") && stage.parentNode) {
           stage.classList.add("is-on");
@@ -1681,35 +1688,45 @@
       }, 4000);
     }, 600);
 
-    function tick() {
+    var t0 = performance.now();
+    var baseRotation = 18; // deg/sec at start
+    function tick(now) {
       if (!stage.parentNode) return; // user pressed Enter, gate removed
-      if (!fading) {
-        x += vx;
-        y += vy;
-        var hit = false;
-        if (x <= 0) {
-          x = 0;
-          vx = -vx;
-          hit = true;
-        }
-        if (x >= W - size) {
-          x = W - size;
-          vx = -vx;
-          hit = true;
-        }
-        if (y <= 0) {
-          y = 0;
-          vy = -vy;
-          hit = true;
-        }
-        if (y >= H - size) {
-          y = H - size;
-          vy = -vy;
-          hit = true;
-        }
-        stage.style.transform = "translate3d(" + x + "px," + y + "px,0)";
-        if (hit) swapModel();
+      now = now || performance.now();
+      var elapsed = (now - t0) / 1000; // seconds since reveal
+
+      // Slowly grow scale: 1.0 → 1.6 over 60s, then cap (so it doesn't fill the screen)
+      var growth = Math.min(1.0 + elapsed * 0.01, 1.6);
+      var currentSize = baseSize * growth;
+
+      // Slowly increase rotation speed: 18 → 50 deg/sec over 60s
+      if (mv && !stage.classList.contains("is-hovering")) {
+        var rotSpeed = Math.min(baseRotation + elapsed * 0.5, 50);
+        mv.setAttribute("rotation-per-second", rotSpeed + "deg");
       }
+
+      x += vx;
+      y += vy;
+      // Bounce off edges using current grown size
+      if (x <= 0) {
+        x = 0;
+        vx = Math.abs(vx);
+      }
+      if (x >= W - currentSize) {
+        x = W - currentSize;
+        vx = -Math.abs(vx);
+      }
+      if (y <= 0) {
+        y = 0;
+        vy = Math.abs(vy);
+      }
+      if (y >= H - currentSize) {
+        y = H - currentSize;
+        vy = -Math.abs(vy);
+      }
+
+      stage.style.transform = "translate3d(" + x + "px," + y + "px,0) scale(" + growth + ")";
+      stage.style.transformOrigin = "0 0";
       requestAnimationFrame(tick);
     }
   })();
