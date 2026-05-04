@@ -798,24 +798,31 @@ title: Play — Sid Mehta
 
           if (item.type === "vid") {
             var video = document.createElement("video");
-            video.src = item.src;
-            video.autoplay = true;
             video.muted = true;
             video.loop = true;
             video.playsInline = true;
-            video.preload = "metadata";
-            video.addEventListener("loadeddata", function () { video.classList.add("loaded"); });
+            video.preload = "none"; // don't fetch metadata for 45+ videos on page load
+            video.dataset.src = item.src; // src set lazily when card scrolls near viewport
+            video.addEventListener("loadeddata", function () {
+              video.classList.add("loaded");
+            });
             card.appendChild(video);
             card.addEventListener("click", function (e) {
               openLbByIdx(parseInt(e.currentTarget.dataset.idx, 10));
             });
           } else {
             var img = document.createElement("img");
-            img.src = item.src;
             img.alt = "Play";
-            img.loading = idx < 16 ? "eager" : "lazy";
-            if (img.complete) img.classList.add("loaded");
-            else img.addEventListener("load", function () { img.classList.add("loaded"); });
+            // Only first 8 (above-fold) eagerly load src; rest get data-src + native lazy + IO swap
+            if (idx < 8) {
+              img.src = item.src;
+              if (img.complete) img.classList.add("loaded");
+              else img.addEventListener("load", function () { img.classList.add("loaded"); });
+            } else {
+              img.dataset.src = item.src;
+              img.loading = "lazy";
+              img.addEventListener("load", function () { img.classList.add("loaded"); });
+            }
             card.appendChild(img);
             card.addEventListener("click", function (e) {
               openLbByIdx(parseInt(e.currentTarget.dataset.idx, 10));
