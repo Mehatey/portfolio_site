@@ -338,47 +338,45 @@ title: Play — Sid Mehta
         overflow: hidden;
         background: rgba(255, 255, 255, 0.03);
         cursor: none;
-        /* Default row span — small placeholder; recomputed from natural aspect on load */
-        grid-row-end: span 14;
+        /* Larger default placeholder span so masonry doesn't reflow as dramatically when
+           images load (was span 14 → forced massive layout shift on every load) */
+        grid-row-end: span 20;
         align-self: start;
-        /* Card entry state — clip-path reveal + scale + blur, keyed by .reveal-in class */
+        /* Light entry — opacity + tiny lift only. The previous combo (blur 14px + scale 0.94 +
+           clip-path inset 50%) forced 200+ cards to composite separate filter/transform/clip
+           layers simultaneously, which dad's machine couldn't keep up with. */
         opacity: 0;
-        transform: scale(0.94);
-        filter: blur(14px);
-        clip-path: inset(50% 0 50% 0);
-        transition: opacity 0.9s var(--ease-out), transform 0.9s var(--ease-out), filter 0.7s var(--ease-out), clip-path 0.9s var(--ease-out);
+        transform: translateY(8px);
+        transition:
+          opacity 0.5s var(--ease-out),
+          transform 0.5s var(--ease-out);
         position: relative;
       }
-      /* Shimmer skeleton — runs while img/video haven't fired .loaded yet */
+      /* Skeleton — quiet warm-grey while img/video haven't fired .loaded yet.
+         Was an animated shimmer running on every loading card simultaneously; with 200+ cards
+         that's 200+ rAF-driven background-position transitions. Replaced with a static fill —
+         user reads "loading" instantly without the perf tax. */
       .card::before {
         content: "";
         position: absolute;
         inset: 0;
-        background: linear-gradient(110deg, rgba(255, 255, 255, 0.018) 0%, rgba(255, 255, 255, 0.05) 30%, rgba(160, 200, 255, 0.08) 50%, rgba(255, 255, 255, 0.05) 70%, rgba(255, 255, 255, 0.018) 100%);
-        background-size: 200% 100%;
-        animation: cardShimmer 2.4s linear infinite;
+        background: rgba(255, 255, 255, 0.025);
         z-index: 1;
         pointer-events: none;
         opacity: 1;
-        transition: opacity 0.5s var(--ease-out);
+        transition: opacity 0.4s var(--ease-out);
         border-radius: inherit;
       }
       .card:has(img.loaded)::before,
       .card:has(video.loaded)::before {
         opacity: 0;
       }
-      @keyframes cardShimmer {
-        from { background-position: 200% 0; }
-        to { background-position: -200% 0; }
-      }
       @media (prefers-reduced-motion: reduce) {
         .card::before { animation: none; }
       }
       .card.reveal-in {
         opacity: 1;
-        transform: scale(1);
-        filter: blur(0);
-        clip-path: inset(0 0 0 0);
+        transform: translateY(0);
       }
       .card img,
       .card video {
@@ -388,15 +386,20 @@ title: Play — Sid Mehta
         display: block;
         object-fit: cover;
         border-radius: 10px;
-        transition: opacity 0.4s var(--ease-out), mix-blend-mode 0.25s ease, filter 0.3s ease;
-        will-change: mix-blend-mode;
+        transition: opacity 0.4s var(--ease-out);
+        /* will-change: mix-blend-mode was promoting all 200+ images to their own composite
+           layers permanently — major memory pressure. Removed; the hover-effect transition
+           still works fine without it. */
       }
       .card img.loaded,
       .card video.loaded {
         opacity: 1;
       }
 
-      /* ── SCROLL EDGE BLUR ── content blurs/fades at top + bottom of viewport */
+      /* ── SCROLL EDGE FADE ── content fades at top + bottom of viewport.
+         Used to use backdrop-filter: blur(14px) which re-blurred the whole page on every
+         scroll frame — single biggest cause of jank on this page. Replaced with a solid-color
+         gradient overlay that achieves the same fade without the GPU cost. */
       .scroll-edge {
         position: fixed;
         left: 0;
@@ -404,25 +407,21 @@ title: Play — Sid Mehta
         height: 110px;
         pointer-events: none;
         z-index: 50;
-        backdrop-filter: blur(14px);
-        -webkit-backdrop-filter: blur(14px);
       }
       .scroll-edge--top {
         top: var(--nav-h);
-        -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
-                mask-image: linear-gradient(180deg, #000 0%, #000 30%, transparent 100%);
+        background: linear-gradient(180deg, #0a0a0a 0%, rgba(10, 10, 10, 0.7) 50%, transparent 100%);
       }
       .scroll-edge--bottom {
         bottom: 0;
-        -webkit-mask-image: linear-gradient(0deg, #000 0%, #000 30%, transparent 100%);
-                mask-image: linear-gradient(0deg, #000 0%, #000 30%, transparent 100%);
+        background: linear-gradient(0deg, #0a0a0a 0%, rgba(10, 10, 10, 0.7) 50%, transparent 100%);
       }
       @media (max-width: 600px) {
         .scroll-edge { height: 70px; }
       }
       @media (prefers-reduced-motion: reduce) {
         .scroll-edge { display: none; }
-        .card { opacity: 1; transform: none; filter: none; clip-path: none; transition: none; }
+        .card { opacity: 1; transform: none; transition: none; }
       }
 
       /* Featured cards — 2 columns wide, stay in grid flow as landscape highlights */
@@ -1175,8 +1174,30 @@ title: Play — Sid Mehta
           });
           container.addEventListener("mouseleave", function () { inside = false; });
 
+          // Pause the rAF loop entirely when the wall section is off-screen — saves the
+          // 60fps tick from running during the (vast majority of) time the user is browsing
+          // the masonry grid above. Resumes when the wall scrolls into view.
+          var visible = false, rafId = 0;
+          var visObs = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) {
+              if (e.isIntersecting && !visible) {
+                visible = true;
+                if (!rafId) rafId = requestAnimationFrame(draw);
+              } else if (!e.isIntersecting && visible) {
+                visible = false;
+                if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+              }
+            });
+          }, { threshold: 0 });
+          visObs.observe(container);
+          // Also pause when the tab is hidden
+          document.addEventListener("visibilitychange", function () {
+            if (document.hidden && rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+            else if (!document.hidden && visible && !rafId) rafId = requestAnimationFrame(draw);
+          });
+
           function draw() {
-            requestAnimationFrame(draw);
+            rafId = visible && !document.hidden ? requestAnimationFrame(draw) : 0;
             var w = container.offsetWidth, h = container.offsetHeight;
             ctx.clearRect(0, 0, w, h);
             if (!img.complete || !img.naturalWidth) return;
@@ -1214,7 +1235,8 @@ title: Play — Sid Mehta
             ctx.stroke();
             ctx.restore();
           }
-          draw();
+          // No initial draw() call — the IntersectionObserver above kicks off the loop
+          // only when the wall section actually scrolls into view.
         })();
       })();
     </script>

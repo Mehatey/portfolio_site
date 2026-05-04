@@ -994,7 +994,13 @@
     var enterGate = document.getElementById("enter-gate");
     var enterBtn = document.getElementById("enter-btn");
 
-    if (sessionStorage.getItem("sid_loaded")) {
+    // Loader gate — once a visitor has gone through Enter + cube once, never replay it.
+    // We use localStorage (persists across tabs/sessions) instead of sessionStorage (per-tab),
+    // because the previous behavior re-played the cube every time someone came back to home
+    // from another page in a fresh tab. localStorage means: first visit ever → see the show;
+    // every visit after that (today, tomorrow, next month) → skip straight to the desk.
+    // Legacy sessionStorage flag honored too, in case someone has it from before.
+    if (localStorage.getItem("sid_loaded") || sessionStorage.getItem("sid_loaded")) {
       if (enterGate) enterGate.remove();
       loader.remove();
       // Defer to next tick so listeners attached later in the document still receive it
@@ -1007,7 +1013,13 @@
 
     // Wait for Enter click
     function onEnter() {
-      sessionStorage.setItem("sid_loaded", "1");
+      try {
+        localStorage.setItem("sid_loaded", "1");
+      } catch (_) {
+        // Private mode or storage full — fall back to sessionStorage so at least within
+        // this tab the loader doesn't replay between page nav (the original behavior).
+        sessionStorage.setItem("sid_loaded", "1");
+      }
       if (enterGate) enterGate.remove();
       loader.style.display = "flex";
 
