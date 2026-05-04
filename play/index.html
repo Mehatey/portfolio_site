@@ -162,7 +162,7 @@ title: Play — Sid Mehta
 
       /* HEADER */
       .play-header {
-        padding: calc(var(--nav-h) + 40px) var(--gutter) 24px;
+        padding: calc(var(--nav-h) + 100px) var(--gutter) 24px; /* extra top space — was getting cropped under nav */
         display: flex;
         justify-content: space-between;
         align-items: baseline;
@@ -189,7 +189,7 @@ title: Play — Sid Mehta
         animation: playFadeUp 0.7s var(--ease-out) 0.25s forwards;
       }
 
-      /* PLAY FILTER PILLS — sticky once you scroll past header */
+      /* PLAY FILTER PILLS — sits naturally below header (was sticky; was following the user awkwardly) */
       .play-filter {
         padding: 12px var(--gutter);
         margin-bottom: 28px;
@@ -199,21 +199,8 @@ title: Play — Sid Mehta
         flex-wrap: wrap;
         opacity: 0;
         animation: playFadeUp 0.7s var(--ease-out) 0.4s forwards;
-        position: sticky;
-        top: var(--nav-h);
-        z-index: 50;
-        transition:
-          background 0.3s ease,
-          backdrop-filter 0.3s ease,
-          border-color 0.3s ease;
         border-radius: 14px;
         border: 1px solid transparent;
-      }
-      .play-filter.is-stuck {
-        background: rgba(10, 14, 20, 0.62);
-        -webkit-backdrop-filter: blur(20px) saturate(1.6);
-        backdrop-filter: blur(20px) saturate(1.6);
-        border-color: rgba(255, 255, 255, 0.06);
       }
       .pf-btn {
         font-family: var(--font-mono);
@@ -789,6 +776,10 @@ title: Play — Sid Mehta
           card.setAttribute("data-float", floats[idx % 3]);
           card.dataset.pf = item.pf;
           card.dataset.idx = idx;
+          // Reserve a default placeholder height so IntersectionObserver can detect the card
+          // BEFORE its media has loaded. Without this, lazy cards stay 0-height → never intersect →
+          // never load → permanent black gap. setRowSpan() recalculates to actual ratio on load.
+          card.style.gridRowEnd = item.featured ? "span 22" : "span 14";
           card.addEventListener("mouseenter", function () {
             applyEffect(card.querySelector("img, video"), pickEffect());
           });
