@@ -292,7 +292,195 @@
     <span class="enter-btn__swirl" aria-hidden="true"></span>
     <span class="enter-btn__label">Enter</span>
   </button>
+
+  <!-- Floating 3D sculpture — DVD-bounces around the screen, slow rotate, swap models on edge -->
+  <div id="enter-3d-stage" aria-hidden="true">
+    <div id="enter-3d-mount"></div>
+  </div>
 </div>
+
+<style>
+  #enter-3d-stage {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 220px;
+    height: 220px;
+    z-index: 9050;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+    will-change: transform;
+  }
+  #enter-3d-stage.is-on {
+    opacity: 1;
+  }
+  #enter-3d-stage.is-fading {
+    opacity: 0;
+  }
+  #enter-3d-mount {
+    width: 100%;
+    height: 100%;
+  }
+  #enter-3d-mount model-viewer {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    --poster-color: transparent;
+  }
+  @media (max-width: 700px) {
+    #enter-3d-stage {
+      width: 140px;
+      height: 140px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #enter-3d-stage {
+      display: none;
+    }
+  }
+</style>
+
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js" crossorigin="anonymous"></script>
+
+<script>
+  // Floating 3D sculpture inside the Enter gate. Mounted ~600ms after page load so it never
+  // blocks the smoke shader or Enter button. DVD-bounce drift; on edge collision, fade out,
+  // swap to the next model, fade back in.
+  (function () {
+    var stage = document.getElementById("enter-3d-stage");
+    var mount = document.getElementById("enter-3d-mount");
+    if (!stage || !mount) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+
+    var models = ["{{ site.baseurl }}/assets/models/buddha.glb", "{{ site.baseurl }}/assets/models/bottle.glb"];
+    var idx = 0;
+
+    function buildViewer(src) {
+      mount.innerHTML = "";
+      var mv = document.createElement("model-viewer");
+      mv.setAttribute("src", src);
+      mv.setAttribute("auto-rotate", "");
+      mv.setAttribute("rotation-per-second", "20deg");
+      mv.setAttribute("camera-orbit", "0deg 75deg 110%");
+      mv.setAttribute("interaction-prompt", "none");
+      mv.setAttribute("disable-zoom", "");
+      mv.setAttribute("disable-pan", "");
+      mv.setAttribute("disable-tap", "");
+      mv.setAttribute("environment-image", "neutral");
+      mv.setAttribute("exposure", "0.9");
+      mv.setAttribute("shadow-intensity", "0");
+      mv.style.pointerEvents = "none";
+      mount.appendChild(mv);
+      return mv;
+    }
+
+    var W, H;
+    function measure() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+    }
+    measure();
+    window.addEventListener("resize", measure, { passive: true });
+
+    var size = stage.offsetWidth || 220;
+    function randPos() {
+      var cx = W / 2,
+        cy = H / 2;
+      for (var attempt = 0; attempt < 30; attempt++) {
+        var rx = Math.random() * (W - size);
+        var ry = Math.random() * (H - size);
+        var dx = rx + size / 2 - cx,
+          dy = ry + size / 2 - cy;
+        if (Math.sqrt(dx * dx + dy * dy) > 280) return [rx, ry];
+      }
+      return [40, 40];
+    }
+    var startPos = randPos();
+    var x = startPos[0],
+      y = startPos[1];
+    var vx = (Math.random() < 0.5 ? -1 : 1) * (0.55 + Math.random() * 0.25);
+    var vy = (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.2);
+
+    var fading = false;
+    function swapModel() {
+      fading = true;
+      stage.classList.add("is-fading");
+      stage.classList.remove("is-on");
+      setTimeout(function () {
+        idx = (idx + 1) % models.length;
+        var mv = buildViewer(models[idx]);
+        mv.addEventListener(
+          "load",
+          function () {
+            stage.classList.remove("is-fading");
+            stage.classList.add("is-on");
+            fading = false;
+          },
+          { once: true }
+        );
+        setTimeout(function () {
+          if (fading) {
+            stage.classList.remove("is-fading");
+            stage.classList.add("is-on");
+            fading = false;
+          }
+        }, 4000);
+      }, 700);
+    }
+
+    setTimeout(function () {
+      var mv = buildViewer(models[0]);
+      mv.addEventListener(
+        "load",
+        function () {
+          stage.classList.add("is-on");
+          requestAnimationFrame(tick);
+        },
+        { once: true }
+      );
+      setTimeout(function () {
+        if (!stage.classList.contains("is-on") && stage.parentNode) {
+          stage.classList.add("is-on");
+          requestAnimationFrame(tick);
+        }
+      }, 4000);
+    }, 600);
+
+    function tick() {
+      if (!stage.parentNode) return; // user pressed Enter, gate removed
+      if (!fading) {
+        x += vx;
+        y += vy;
+        var hit = false;
+        if (x <= 0) {
+          x = 0;
+          vx = -vx;
+          hit = true;
+        }
+        if (x >= W - size) {
+          x = W - size;
+          vx = -vx;
+          hit = true;
+        }
+        if (y <= 0) {
+          y = 0;
+          vy = -vy;
+          hit = true;
+        }
+        if (y >= H - size) {
+          y = H - size;
+          vy = -vy;
+          hit = true;
+        }
+        stage.style.transform = "translate3d(" + x + "px," + y + "px,0)";
+        if (hit) swapModel();
+      }
+      requestAnimationFrame(tick);
+    }
+  })();
+</script>
 
 <style>
   /* ── ENTER BUTTON — simple circle, swirling multi-color radial gradient inside ── */
