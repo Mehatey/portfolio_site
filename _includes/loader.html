@@ -162,46 +162,39 @@
   }
 
   /* Loader work-collage — top-level fixed so it backs both the Enter gate and the cube animation.
-     z-index: 8500 sits above the solid #enter-backdrop (8000) and below the cube + Enter button (9999+). */
+     z-index: 8500 sits above the solid #enter-backdrop (8000) and below the cube + Enter button (9999+).
+     Opacity 1 from start (instant, no fade-in) — was 1.4s transition that read as "shader takes 2s". */
   #loader-collage {
     position: fixed;
     inset: 0;
     z-index: 8500;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+    opacity: 1;
     overflow: hidden;
   }
-  #loader-collage.is-on {
-    opacity: 1;
+  #loader-smoke-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 8450;
+    pointer-events: none;
+    opacity: 0.65;
   }
   /* Imagery removed per design call — collage is now pure shader (gradient layers only) */
   .lc-grid {
     display: none;
   }
-  /* Pure shader (no imagery) — atmospheric blue depth via layered gradients.
-     Layer 1: deep base — ambient navy with subtle warmth in the corners */
+  /* Static fallback gradient — only paints if WebGL fails / reduced-motion / shader script doesn't run.
+     If WebGL is alive, #loader-smoke-bg paints over this layer. */
   #loader-collage::before {
     content: "";
     position: absolute;
     inset: 0;
     background:
-      radial-gradient(ellipse at 20% 20%, rgba(40, 70, 130, 0.55) 0%, transparent 55%),
-      radial-gradient(ellipse at 80% 80%, rgba(90, 50, 100, 0.35) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 50%, rgba(20, 35, 70, 0.5) 0%, rgba(8, 14, 30, 0.85) 70%);
+      radial-gradient(ellipse at 30% 30%, rgba(40, 70, 130, 0.4) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 70%, rgba(60, 40, 100, 0.28) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(15, 25, 55, 0.55) 0%, rgba(5, 10, 22, 0.92) 75%);
     pointer-events: none;
-    z-index: 1;
-    animation: shaderDrift 28s ease-in-out infinite alternate;
-  }
-  @keyframes shaderDrift {
-    0% {
-      transform: translate(0, 0) scale(1);
-      filter: hue-rotate(0deg);
-    }
-    100% {
-      transform: translate(2%, -1%) scale(1.04);
-      filter: hue-rotate(-12deg);
-    }
+    z-index: 0;
   }
   /* Layer 2: cursor-following cyan halo — alive, follows the mouse */
   #loader-collage::after {
@@ -279,7 +272,10 @@
 <!-- Solid dark backdrop — hides homepage content during entry + loader phases -->
 <div id="enter-backdrop"></div>
 
-<!-- Loader shader backdrop — pure gradient layers, no imagery (saves 5.6MB on entry). -->
+<!-- WebGL smoke shader — same blue-noise field as home #smoke-bg, mounted at loader z-index so it backs the Enter scene -->
+<canvas id="loader-smoke-bg" aria-hidden="true"></canvas>
+
+<!-- Loader shader fallback gradient (paints if WebGL fails) + cursor halo -->
 <div id="loader-collage" class="is-on" aria-hidden="true"></div>
 
 <!-- Enter gate — transparent (backdrop + shader paint behind). Just centers the Enter button. -->
@@ -299,37 +295,138 @@
     cursor: none;
   "
 >
-  <button
-    id="enter-btn"
-    style="
-      font-family: &quot;DM Mono&quot;, monospace;
-      font-size: 16px;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: rgba(255, 255, 255, 0.92);
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.35);
-      padding: 22px 60px;
-      cursor: none;
-      transition:
-        border-color 0.3s,
-        color 0.3s,
-        background 0.3s;
-    "
-    onmouseover="
-      this.style.borderColor = 'rgba(255,255,255,0.85)';
-      this.style.color = '#fff';
-      this.style.background = 'rgba(255,255,255,0.04)';
-    "
-    onmouseout="
-      this.style.borderColor = 'rgba(255,255,255,0.35)';
-      this.style.color = 'rgba(255,255,255,0.92)';
-      this.style.background = 'transparent';
-    "
-  >
-    Enter
+  <button id="enter-btn" class="enter-btn" aria-label="Enter site">
+    <span class="enter-btn__ring enter-btn__ring--1" aria-hidden="true"></span>
+    <span class="enter-btn__ring enter-btn__ring--2" aria-hidden="true"></span>
+    <span class="enter-btn__ring enter-btn__ring--3" aria-hidden="true"></span>
+    <span class="enter-btn__inner">
+      <span class="enter-btn__label">Enter</span>
+    </span>
   </button>
 </div>
+
+<style>
+  /* ── ENTER BUTTON — portal animation: pulsing rings, breathing core, hover lights up ── */
+  #enter-btn.enter-btn {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .enter-btn__inner {
+    position: relative;
+    z-index: 5;
+    width: 132px;
+    height: 132px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 50%, rgba(60, 120, 200, 0.18) 0%, rgba(20, 50, 110, 0.12) 60%, rgba(10, 30, 70, 0.08) 100%);
+    border: 1px solid rgba(180, 220, 255, 0.45);
+    backdrop-filter: blur(6px) saturate(1.3);
+    -webkit-backdrop-filter: blur(6px) saturate(1.3);
+    box-shadow:
+      inset 0 0 32px rgba(140, 200, 255, 0.18),
+      0 0 40px rgba(60, 120, 200, 0.25),
+      0 0 80px rgba(40, 90, 180, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.35s,
+      box-shadow 0.45s;
+    animation: enterCoreBreathe 4s ease-in-out infinite;
+  }
+  .enter-btn__label {
+    font-family: "DM Mono", monospace;
+    font-size: 13px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: rgba(220, 240, 255, 0.95);
+    text-shadow: 0 0 12px rgba(140, 200, 255, 0.7);
+    padding-left: 0.32em; /* compensate for letter-spacing on last char */
+  }
+  /* Three concentric rings pulse outward continuously (staggered) */
+  .enter-btn__ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(160, 210, 255, 0.45);
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.66);
+    animation: enterRingPulse 3.6s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+  }
+  .enter-btn__ring--2 {
+    animation-delay: 1.2s;
+  }
+  .enter-btn__ring--3 {
+    animation-delay: 2.4s;
+  }
+  @keyframes enterRingPulse {
+    0% {
+      opacity: 0;
+      transform: scale(0.66);
+      border-width: 1.5px;
+    }
+    20% {
+      opacity: 0.85;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.4);
+      border-width: 0.5px;
+    }
+  }
+  @keyframes enterCoreBreathe {
+    0%,
+    100% {
+      transform: scale(1);
+      box-shadow:
+        inset 0 0 32px rgba(140, 200, 255, 0.18),
+        0 0 40px rgba(60, 120, 200, 0.25),
+        0 0 80px rgba(40, 90, 180, 0.15);
+    }
+    50% {
+      transform: scale(1.04);
+      box-shadow:
+        inset 0 0 44px rgba(140, 200, 255, 0.28),
+        0 0 56px rgba(60, 120, 200, 0.4),
+        0 0 110px rgba(40, 90, 180, 0.25);
+    }
+  }
+  /* Hover — rings accelerate, core brightens + scales */
+  #enter-btn.enter-btn:hover .enter-btn__inner {
+    transform: scale(1.08);
+    border-color: rgba(220, 240, 255, 0.85);
+    box-shadow:
+      inset 0 0 56px rgba(180, 220, 255, 0.4),
+      0 0 80px rgba(100, 160, 230, 0.5),
+      0 0 160px rgba(60, 130, 210, 0.32);
+  }
+  #enter-btn.enter-btn:hover .enter-btn__ring {
+    animation-duration: 1.8s;
+    border-color: rgba(200, 230, 255, 0.7);
+  }
+  #enter-btn.enter-btn:hover .enter-btn__label {
+    text-shadow: 0 0 18px rgba(180, 220, 255, 0.95);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .enter-btn__ring {
+      animation: none;
+      opacity: 0.4;
+      transform: scale(1);
+    }
+    .enter-btn__inner {
+      animation: none;
+    }
+  }
+</style>
 
 <div id="site-loader" style="display: none">
   <canvas id="loader-dust"></canvas>
@@ -364,6 +461,144 @@
 </div>
 
 <script>
+  // ── LOADER SMOKE SHADER ── same WebGL noise field used on home #smoke-bg.
+  // Runs from page load so the Enter scene has a live shader backdrop, not a static gradient.
+  // Cleaned up on loaderDone alongside #loader-collage.
+  (function () {
+    var c = document.getElementById("loader-smoke-bg");
+    if (!c) return;
+    var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+    var gl = c.getContext("webgl", { alpha: true, premultipliedAlpha: false });
+    if (!gl) return;
+    function resize() {
+      c.width = window.innerWidth * 0.5;
+      c.height = window.innerHeight * 0.5;
+      gl.viewport(0, 0, c.width, c.height);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+    var VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}";
+    var FS = [
+      "precision mediump float;",
+      "uniform float u_time;",
+      "uniform vec2 u_res;",
+      "uniform vec2 u_mouse;",
+      "vec3 mod289(vec3 x){return x-floor(x/289.0)*289.0;}",
+      "vec2 mod289(vec2 x){return x-floor(x/289.0)*289.0;}",
+      "vec3 permute(vec3 x){return mod289((x*34.0+1.0)*x);}",
+      "float snoise(vec2 v){",
+      "  const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);",
+      "  vec2 i=floor(v+dot(v,C.yy));",
+      "  vec2 x0=v-i+dot(i,C.xx);",
+      "  vec2 i1=x0.x>x0.y?vec2(1,0):vec2(0,1);",
+      "  vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;",
+      "  i=mod289(i);",
+      "  vec3 p=permute(permute(i.y+vec3(0,i1.y,1))+i.x+vec3(0,i1.x,1));",
+      "  vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);",
+      "  m=m*m;m=m*m;",
+      "  vec3 x=2.0*fract(p*C.www)-1.0;",
+      "  vec3 h=abs(x)-0.5;",
+      "  vec3 ox=floor(x+0.5);",
+      "  vec3 a0=x-ox;",
+      "  m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);",
+      "  vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;",
+      "  return 130.0*dot(m,g);",
+      "}",
+      "float fbm(vec2 p){float f=0.0;f+=0.5*snoise(p);p*=2.02;f+=0.25*snoise(p);p*=2.03;f+=0.125*snoise(p);p*=2.01;f+=0.0625*snoise(p);return f;}",
+      "void main(){",
+      "  vec2 uv=gl_FragCoord.xy/u_res;",
+      "  float t=u_time*0.13;",
+      "  vec2 mouse=u_mouse;",
+      "  vec2 d=uv-mouse;",
+      "  float dist=length(d);",
+      "  float curl=exp(-dist*2.5)*0.4;",
+      "  vec2 swirl=vec2(-d.y,d.x)*curl;",
+      "  float n1=fbm(uv*2.5+vec2(t*0.7,t*0.5)+swirl*1.8);",
+      "  float n2=fbm(uv*1.6+vec2(-t*0.4,t*0.6)+swirl*1.2+0.5);",
+      "  float n3=fbm(uv*4.0+vec2(t*0.25,-t*0.35)+swirl*2.5+1.0);",
+      "  float smoke=n1*0.5+n2*0.3+n3*0.2;",
+      "  smoke=smoke*0.5+0.5;",
+      "  smoke=smoothstep(0.22,0.78,smoke);",
+      "  // Deeper, more saturated palette than home so the loader feels like a portal",
+      "  vec3 deep=vec3(0.02,0.04,0.10);",
+      "  vec3 mid=vec3(0.06,0.14,0.28);",
+      "  vec3 light=vec3(0.18,0.36,0.55);",
+      "  vec3 highlight=vec3(0.45,0.65,0.85);",
+      "  vec3 col=mix(deep,mid,smoothstep(0.2,0.5,smoke));",
+      "  col=mix(col,light,smoothstep(0.5,0.72,smoke));",
+      "  col=mix(col,highlight,smoothstep(0.75,0.92,smoke)*0.45);",
+      "  // Cursor pull — visible globally with mild proximity boost",
+      "  float proximity=mix(0.45,1.4,exp(-dist*1.6));",
+      "  col*=proximity;",
+      "  // Cursor glow",
+      "  float glow=exp(-dist*9.0)*0.35;",
+      "  col+=vec3(0.4,0.6,0.85)*glow;",
+      "  // Subtle vignette",
+      "  float vig=1.0-dot((uv-0.5)*1.5,(uv-0.5)*1.5);",
+      "  col*=vig;",
+      "  gl_FragColor=vec4(col,1.0);",
+      "}",
+    ].join("\n");
+    function mkShader(type, src) {
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      return s;
+    }
+    var prog = gl.createProgram();
+    gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, VS));
+    gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, FS));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    var a = gl.getAttribLocation(prog, "a");
+    gl.enableVertexAttribArray(a);
+    gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+    var uTime = gl.getUniformLocation(prog, "u_time");
+    var uRes = gl.getUniformLocation(prog, "u_res");
+    var uMouse = gl.getUniformLocation(prog, "u_mouse");
+    var mx = 0.5,
+      my = 0.5,
+      tmx = 0.5,
+      tmy = 0.5,
+      alive = true;
+    document.addEventListener(
+      "mousemove",
+      function (e) {
+        tmx = e.clientX / window.innerWidth;
+        tmy = 1.0 - e.clientY / window.innerHeight;
+      },
+      { passive: true }
+    );
+    var t0 = performance.now();
+    function tick() {
+      if (!alive || !c.parentNode) return;
+      mx += (tmx - mx) * 0.05;
+      my += (tmy - my) * 0.05;
+      gl.uniform1f(uTime, (performance.now() - t0) / 1000);
+      gl.uniform2f(uRes, c.width, c.height);
+      gl.uniform2f(uMouse, mx, my);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      requestAnimationFrame(tick);
+    }
+    tick();
+    window.addEventListener("loaderDone", function () {
+      setTimeout(function () {
+        alive = false;
+        if (c.parentNode) {
+          c.style.transition = "opacity 0.6s ease";
+          c.style.opacity = "0";
+          setTimeout(function () {
+            if (c.parentNode) c.remove();
+          }, 700);
+        }
+      }, 200);
+    });
+  })();
+
   // ── ENTRY-SCENE WORK-COLLAGE — top-level cursor reveal + auto-pan, runs from page load (backs Enter gate too).
   // Removed cleanly when the loader sequence completes; home page has its own #work-collage that takes over.
   (function () {
