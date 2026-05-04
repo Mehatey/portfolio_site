@@ -1829,6 +1829,10 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
           tick();
         }
 
+        var deskHidden = false;
+        var deskRaf = 0;
+        var deskTOff = 0;
+        var deskPauseAt = 0;
         function tick() {
           mouseX += (tgtX - mouseX) * 0.05;
           mouseY += (tgtY - mouseY) * 0.05;
@@ -1845,14 +1849,25 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
           }
           warp += (warpTarget - warp) * 0.04;
 
-          gl.uniform1f(uTime, (performance.now() - t0) / 1000);
+          gl.uniform1f(uTime, (performance.now() - t0 - deskTOff) / 1000);
           gl.uniform2f(uMouse, mouseX, mouseY);
           gl.uniform1f(uBlend, blend);
           gl.uniform1f(uWarp, warp);
           gl.clear(gl.COLOR_BUFFER_BIT);
           gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-          requestAnimationFrame(tick);
+          if (!deskHidden) deskRaf = requestAnimationFrame(tick);
         }
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            deskHidden = true;
+            deskPauseAt = performance.now();
+            if (deskRaf) cancelAnimationFrame(deskRaf);
+          } else if (deskHidden) {
+            deskHidden = false;
+            deskTOff += performance.now() - deskPauseAt;
+            tick();
+          }
+        });
 
         // Bottom play button — trigger intro modal open
         var bottomPlay = document.getElementById("bottom-play-btn");
@@ -1948,8 +1963,20 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
             ctx.fill();
           }
 
-          requestAnimationFrame(draw);
+          if (!dustHidden) dustRaf = requestAnimationFrame(draw);
         }
+
+        var dustHidden = false;
+        var dustRaf = 0;
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            dustHidden = true;
+            if (dustRaf) cancelAnimationFrame(dustRaf);
+          } else if (dustHidden) {
+            dustHidden = false;
+            draw();
+          }
+        });
 
         draw();
       })();
@@ -2172,15 +2199,30 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
         );
 
         var t0 = performance.now();
+        var tOffset = 0; // total ms paused while tab hidden — keeps shader time continuous on resume
+        var pauseAt = 0;
+        var hidden = false;
+        var rafId = 0;
         function tick() {
           mx += (tmx - mx) * 0.03;
           my += (tmy - my) * 0.03;
-          gl.uniform1f(uTime, (performance.now() - t0) / 1000);
+          gl.uniform1f(uTime, (performance.now() - t0 - tOffset) / 1000);
           gl.uniform2f(uRes, c.width, c.height);
           gl.uniform2f(uMouse, mx, my);
           gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-          requestAnimationFrame(tick);
+          if (!hidden) rafId = requestAnimationFrame(tick);
         }
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            hidden = true;
+            pauseAt = performance.now();
+            if (rafId) cancelAnimationFrame(rafId);
+          } else if (hidden) {
+            hidden = false;
+            tOffset += performance.now() - pauseAt;
+            tick();
+          }
+        });
         tick();
       })();
     </script> <script>
