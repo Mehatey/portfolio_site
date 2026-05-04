@@ -36,32 +36,39 @@
     opacity: 0;
   }
 
-  /* Phase 1: Video + typewriter */
+  /* Phase 1: Video + typewriter
+     mix-blend-mode: screen drops the video's black background so the smoke shader shows through.
+     Cube character (white-on-black) survives the blend; black bars don't. */
   #sl-video-phase video {
     max-width: 1150px;
     width: 92vw;
-    border-radius: 8px;
+    border-radius: 0;
     margin-top: 6vh;
+    mix-blend-mode: screen;
+    filter: contrast(1.1) brightness(1.05);
   }
+  /* Hello — bigger, more confident, distinct from the mono const() stream so they don't clash */
   #sl-hello {
     font-family: "Inter", sans-serif;
-    font-size: clamp(18px, 2.2vw, 26px);
-    font-weight: 400;
-    letter-spacing: 0.01em;
-    color: rgba(255, 255, 255, 0.55);
-    min-height: 36px;
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 200;
+    letter-spacing: -0.02em;
+    color: rgba(245, 250, 255, 0.96);
+    text-shadow: 0 0 28px rgba(140, 200, 255, 0.55);
+    min-height: 1.2em;
     text-align: center;
     white-space: nowrap;
   }
   #sl-hello::after {
     content: "";
     display: inline-block;
-    width: 1px;
-    height: 0.8em;
-    background: rgba(255, 255, 255, 0.4);
-    margin-left: 3px;
+    width: 3px;
+    height: 0.74em;
+    background: rgba(180, 220, 255, 0.85);
+    margin-left: 8px;
     vertical-align: text-bottom;
     animation: sl-cursor 0.6s step-end infinite;
+    box-shadow: 0 0 10px rgba(160, 220, 255, 0.7);
   }
   @keyframes sl-cursor {
     0%,
@@ -599,6 +606,57 @@
     });
   })();
 
+  // ── INTRO STREAM ── const() typewriter top-left, runs from page load so it's already typing
+  // when the visitor sees the Enter button. Continues through the cube animation phase.
+  (function () {
+    var stream = document.getElementById("loader-stream");
+    if (!stream) return;
+    var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var lines = stream.querySelectorAll(".ls-line");
+    var texts = [];
+    lines.forEach(function (l) {
+      texts.push(l.getAttribute("data-text") || "");
+    });
+    // Reveal immediately (no delay — visitor needs to see the text on the entry scene)
+    requestAnimationFrame(function () {
+      stream.classList.add("is-on");
+    });
+    if (prefersReduced) {
+      lines.forEach(function (l, i) {
+        l.textContent = texts[i];
+      });
+      return;
+    }
+    var lineIdx = 0;
+    var charIdx = 0;
+    function typeNext() {
+      if (lineIdx >= lines.length) return;
+      var line = lines[lineIdx];
+      var target = texts[lineIdx];
+      if (charIdx === 0) line.classList.add("ls-active");
+      if (charIdx <= target.length) {
+        line.textContent = target.substring(0, charIdx);
+        charIdx++;
+        var delay = 28 + Math.random() * 26;
+        if (target.charAt(charIdx - 1) === ">") delay = 90;
+        setTimeout(typeNext, delay);
+      } else {
+        line.classList.remove("ls-active");
+        lineIdx++;
+        charIdx = 0;
+        setTimeout(typeNext, 280);
+      }
+    }
+    // Start typing 600ms after page load (gives the shader a beat to settle in)
+    setTimeout(typeNext, 600);
+    // Fade out when loader is fully done
+    window.addEventListener("loaderDone", function () {
+      setTimeout(function () {
+        stream.classList.add("is-fade");
+      }, 200);
+    });
+  })();
+
   // ── ENTRY-SCENE WORK-COLLAGE — top-level cursor reveal + auto-pan, runs from page load (backs Enter gate too).
   // Removed cleanly when the loader sequence completes; home page has its own #work-collage that takes over.
   (function () {
@@ -774,60 +832,7 @@
       videoPhase.classList.add("active");
       video.play().catch(function () {});
 
-      // ── INTRO STREAM ── 6-line typewriter top-left, types throughout cube entry
-      (function () {
-        var stream = document.getElementById("loader-stream");
-        if (!stream) return;
-        var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        var lines = stream.querySelectorAll(".ls-line");
-        var texts = [];
-        lines.forEach(function (l) {
-          texts.push(l.getAttribute("data-text") || "");
-        });
-
-        // Reveal the container after a short beat (after cube starts animating)
-        setTimeout(function () {
-          stream.classList.add("is-on");
-        }, 700);
-
-        if (prefersReduced) {
-          // Just show all lines at once
-          setTimeout(function () {
-            lines.forEach(function (l, i) {
-              l.textContent = texts[i];
-            });
-          }, 800);
-          return;
-        }
-
-        var lineIdx = 0;
-        var charIdx = 0;
-        function typeNext() {
-          if (lineIdx >= lines.length) return;
-          var line = lines[lineIdx];
-          var target = texts[lineIdx];
-          if (charIdx === 0) line.classList.add("ls-active");
-          if (charIdx <= target.length) {
-            line.textContent = target.substring(0, charIdx);
-            charIdx++;
-            // Slightly variable speed; pause after the > prompt char
-            var delay = 28 + Math.random() * 26;
-            if (target.charAt(charIdx - 1) === ">") delay = 90;
-            setTimeout(typeNext, delay);
-          } else {
-            line.classList.remove("ls-active");
-            // Mark final char with prompt color via inline span swap (light touch)
-            lineIdx++;
-            charIdx = 0;
-            // Pause between lines
-            setTimeout(typeNext, 280);
-          }
-        }
-        // Begin typing ~1s in (gives cube animation a moment to set the stage)
-        setTimeout(typeNext, 1100);
-      })();
-
-      // Loader work-collage cursor tracking lives in a top-level IIFE now (runs from page load), not gated to startLoader.
+      // Intro stream is now top-level (runs from page load, visible during Enter scene + cube animation)
 
       // Typewriter lines — fade out instead of backspace
       var lines = [
