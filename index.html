@@ -737,6 +737,11 @@
         display: block;
         background: transparent;
       }
+      /* Static desk fallback — same dimensions as WebGL canvas. Toggled by JS. */
+      #desk-static {
+        width: 100%;
+        display: block;
+      }
       #desk-stage {
         background: transparent !important;
       }
@@ -1282,6 +1287,18 @@
     margin-top: 4vh;
     mix-blend-mode: screen;
     filter: contrast(1.1) brightness(1.05);
+  }
+  /* Mobile: the cube was reading as a tiny letterboxed strip on portrait phones.
+     Size by HEIGHT instead of width so the cube character fills the screen vertically;
+     the body's overflow-x: hidden clips the over-wide horizontal edges. */
+  @media (max-width: 700px) {
+    #sl-video-phase video {
+      width: auto;
+      max-width: none;
+      height: 75vh;
+      height: 75dvh;
+      margin-top: 0;
+    }
   }
   /* Hello — bigger, more confident, distinct from the mono const() stream so they don't clash */
   #sl-hello {
@@ -2374,16 +2391,16 @@
         { text: "Most people call me Sid", startAt: 3500 },
       ];
 
-      // Onboarding icons reveal — each slightly before its line types
+      // Onboarding icons reveal — all 4 icons stagger in across the cube animation,
+      // even though we only have 2 typewriter lines. Was: only first 2 icons appeared.
       var iconIds = ["sl-icon-1", "sl-icon-2", "sl-icon-3", "sl-icon-4"];
-      lines.forEach(function (line, idx) {
-        setTimeout(
-          function () {
-            var ic = document.getElementById(iconIds[idx]);
-            if (ic) ic.classList.add("show");
-          },
-          Math.max(0, line.startAt - 250)
-        );
+      // Spread across ~7s of the cube scene so icons reveal in pairs of two
+      var iconDelays = [550, 1700, 2900, 4200];
+      iconIds.forEach(function (id, idx) {
+        setTimeout(function () {
+          var ic = document.getElementById(id);
+          if (ic) ic.classList.add("show");
+        }, iconDelays[idx]);
       });
 
       // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
@@ -2552,6 +2569,8 @@
     <!-- Desk image with hover crossfade -->
     <div id="desk-stage" class="scene-hidden" aria-hidden="true">
       <canvas id="desk-gl" width="1200" height="669"></canvas>
+      <!-- Static fallback — paints when WebGL fails OR on touch devices (warp shader needs hover) -->
+      <img id="desk-static" src="/assets/img/tnew2.png" alt="Sid's desk" style="display: none">
       <button class="desk-play-reel" id="desk-play-reel">▶ Watch Reel</button>
     </div>
 
@@ -4787,6 +4806,10 @@
   @media (hover: none), (pointer: coarse) {
     .nav .nav-icon {
       position: relative;
+      /* Bump default opacity to full on touch — without hover state to lift them, the icons
+         stay stuck at 0.45 and read as half-broken/dull. They're already tinted enough by the
+         pixelated rendering that full opacity isn't loud. */
+      opacity: 1 !important;
     }
     .nav .nav-icon::after {
       content: "" !important;
@@ -4821,6 +4844,24 @@
     /* Home page bottom-bar — same treatment, 18px floor preserves the original spacing */
     .bottom-bar {
       padding-bottom: max(18px, env(safe-area-inset-bottom));
+    }
+  }
+  /* On touch devices, move the theme toggle out of the bottom-left corner — it was
+     overlapping section labels (FAQ "FREQUENTLY ASKED" got its F clipped by the moon
+     icon) which read as a layout bug. Top-right is unambiguous + thumb-reachable. */
+  @media (hover: none), (pointer: coarse) {
+    #theme-toggle {
+      top: max(12px, env(safe-area-inset-top));
+      right: 12px;
+      bottom: auto !important;
+      left: auto !important;
+      width: 36px;
+      height: 36px;
+    }
+    /* Home's bottom-bar override no longer applies since we re-anchored to top */
+    body:has(.bottom-bar) #theme-toggle {
+      top: max(12px, env(safe-area-inset-top));
+      bottom: auto !important;
     }
   }
   /* Crisp tap state for buttons/links on touch devices — replaces the lost hover affordance */
@@ -6745,7 +6786,18 @@
       (function () {
         var stage = document.getElementById("desk-stage");
         var canvas = document.getElementById("desk-gl");
+        var staticImg = document.getElementById("desk-static");
         if (!stage || !canvas) return;
+
+        // On touch devices, the warp shader is useless (it needs hover) AND mobile GPUs were
+        // sometimes failing to paint the canvas at all — leaving an empty space where the desk
+        // should be. Skip WebGL entirely on touch and show the static desk image.
+        var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        if (isTouch) {
+          canvas.style.display = "none";
+          if (staticImg) staticImg.style.display = "block";
+          return;
+        }
 
         var gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false });
         // Paint transparent immediately to avoid white-flash before textures load
@@ -6754,12 +6806,9 @@
           gl.clear(gl.COLOR_BUFFER_BIT);
         }
         if (!gl) {
-          // Fallback — just show the normal image
+          // WebGL init failed — show the static fallback image instead of leaving the stage empty.
           canvas.style.display = "none";
-          var img = document.createElement("img");
-          img.src = "/assets/img/table_new.png";
-          img.style.width = "100%";
-          stage.appendChild(img);
+          if (staticImg) staticImg.style.display = "block";
           return;
         }
 
