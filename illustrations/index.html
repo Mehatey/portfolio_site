@@ -1778,6 +1778,8 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
           { ax: -0.8, ay: 0.6, f: 0.048, s: 0.3, a: 0.04 },
         ];
 
+        let waterHidden = false;
+        let waterRaf = 0;
         function draw() {
           const W = canvas.width,
             H = canvas.height;
@@ -1813,8 +1815,17 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
           }
           ctx.putImageData(img, 0, 0);
           wt += tickSpeed || 0.003;
-          requestAnimationFrame(draw);
+          if (!waterHidden) waterRaf = requestAnimationFrame(draw);
         }
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) {
+            waterHidden = true;
+            if (waterRaf) cancelAnimationFrame(waterRaf);
+          } else if (waterHidden) {
+            waterHidden = false;
+            draw();
+          }
+        });
         draw();
       }
 
@@ -1934,9 +1945,14 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
         }));
 
         let lastScroll = window.scrollY;
+        let motesHidden = false;
+        document.addEventListener("visibilitychange", () => {
+          motesHidden = document.hidden;
+        });
 
         (function draw() {
           requestAnimationFrame(draw);
+          if (motesHidden) return;
           ctx.clearRect(0, 0, W(), H());
 
           const curScroll = window.scrollY;
