@@ -657,24 +657,42 @@
           transform: translateX(-50%);
         }
       }
-      /* Smaller, mono — feels like a quiet log of past work, not a marquee headline */
-      .m-item {
-        font-family: var(--font-mono);
-        font-size: clamp(11px, 1.1vw, 14px);
-        font-weight: 400;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.55);
-        white-space: nowrap;
-        transition: color 0.3s ease;
+      /* Logos — desaturated to a uniform monochrome at rest, full color on hover.
+         Removes the visual chaos of mixed brand palettes and lets the marquee read as one row. */
+      .m-logo {
+        height: 28px;
+        width: auto;
+        max-width: 120px;
+        object-fit: contain;
+        display: block;
+        opacity: 0.55;
+        filter: grayscale(1) brightness(0) invert(1);
+        transition:
+          opacity 0.3s ease,
+          filter 0.4s ease,
+          transform 0.3s ease;
       }
-      .m-item:hover {
-        color: rgba(255, 255, 255, 0.95);
+      .m-logo:hover {
+        opacity: 1;
+        filter: grayscale(0);
+        transform: scale(1.08);
       }
       .m-sep {
         font-family: var(--font-mono);
         font-size: 11px;
-        color: rgba(255, 255, 255, 0.22);
+        color: rgba(255, 255, 255, 0.18);
+      }
+      /* Light mode logo treatment — invert direction so logos sit dark on cream */
+      html[data-theme="light"] .m-logo {
+        filter: grayscale(1) brightness(0);
+        opacity: 0.65;
+      }
+      html[data-theme="light"] .m-logo:hover {
+        opacity: 1;
+        filter: grayscale(0);
+      }
+      html[data-theme="light"] .m-sep {
+        color: rgba(7, 9, 15, 0.18);
       }
       @media (prefers-reduced-motion: reduce) {
         .marquee-track {
@@ -1011,23 +1029,15 @@
         </div>
       </section>
 
-      <!-- Companies marquee — companies only (colleges removed per request); smaller text -->
+      <!-- Companies marquee — actual brand logos. Mono-tinted at rest, full color on hover. -->
+      {% assign collab_logos = "deloitte.jpg|Deloitte,eyejack.png|EyeJack,philips.svg|Philips,marriott.jpg|Marriott,m-health-fairview.jpg|M Health Fairview,leaf.avif|Leaf Design Studio,dabur.png|Dabur,kfc.svg|KFC,google.png|Google,pizza-hut.png|Pizza Hut,taco-bell.png|Taco Bell,del-taco.png|Del Taco" | split: "," %}
       <div class="marquee marquee--companies" aria-label="Past collaborators">
         <span class="marquee-kicker">Past collaborators</span>
         <div class="marquee-mask">
           <div class="marquee-track" aria-hidden="true">
-            <span class="m-item">EyeJack</span><span class="m-sep">◇</span> <span class="m-item">Deloitte Digital</span><span class="m-sep">◇</span>
-            <span class="m-item">Philips</span><span class="m-sep">◇</span> <span class="m-item">Leaf Design Studio</span><span class="m-sep">◇</span>
-            <span class="m-item">The Met</span><span class="m-sep">◇</span> <span class="m-item">Marriott</span><span class="m-sep">◇</span>
-            <span class="m-item">M Health Fairview</span><span class="m-sep">◇</span>
-            <!-- Duplicated so the loop is seamless -->
-            <span class="m-item" aria-hidden="true">EyeJack</span><span class="m-sep" aria-hidden="true">◇</span>
-            <span class="m-item" aria-hidden="true">Deloitte Digital</span><span class="m-sep" aria-hidden="true">◇</span>
-            <span class="m-item" aria-hidden="true">Philips</span><span class="m-sep" aria-hidden="true">◇</span>
-            <span class="m-item" aria-hidden="true">Leaf Design Studio</span><span class="m-sep" aria-hidden="true">◇</span>
-            <span class="m-item" aria-hidden="true">The Met</span><span class="m-sep" aria-hidden="true">◇</span>
-            <span class="m-item" aria-hidden="true">Marriott</span><span class="m-sep" aria-hidden="true">◇</span>
-            <span class="m-item" aria-hidden="true">M Health Fairview</span><span class="m-sep" aria-hidden="true">◇</span>
+            {% for entry in collab_logos %}{% assign p = entry | split: "|" %}<img class="m-logo" src="{{ site.baseurl }}/assets/img/companies/{{ p[0] }}" alt="{{ p[1] }}" loading="lazy" decoding="async" /><span class="m-sep">◇</span>{% endfor %}
+            {% comment %}Duplicated set so the loop is seamless{% endcomment %}
+            {% for entry in collab_logos %}{% assign p = entry | split: "|" %}<img class="m-logo" src="{{ site.baseurl }}/assets/img/companies/{{ p[0] }}" alt="" aria-hidden="true" loading="lazy" decoding="async" /><span class="m-sep" aria-hidden="true">◇</span>{% endfor %}
           </div>
         </div>
       </div>
