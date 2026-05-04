@@ -424,6 +424,28 @@
   #enter-btn.enter-btn:hover .enter-btn__label {
     text-shadow: 0 0 18px rgba(180, 220, 255, 0.95);
   }
+  /* Mobile — shrink portal so it doesn't dominate small phones */
+  @media (max-width: 600px) {
+    #enter-btn.enter-btn {
+      width: 160px;
+      height: 160px;
+    }
+    .enter-btn__inner {
+      width: 108px;
+      height: 108px;
+    }
+    .enter-btn__label {
+      font-size: 12px;
+      letter-spacing: 0.28em;
+    }
+  }
+  /* Hello — push down on small phones so it doesn't overlap the cube video */
+  @media (max-width: 700px) {
+    #sl-hello {
+      font-size: clamp(28px, 8vw, 44px);
+      top: 8% !important;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .enter-btn__ring {
       animation: none;
@@ -772,7 +794,25 @@
 
       startLoader();
     }
-    if (enterBtn) enterBtn.addEventListener("click", onEnter);
+    if (enterBtn) {
+      enterBtn.addEventListener("click", onEnter);
+      // Auto-focus so Enter / Space activate without a tab + click
+      try {
+        enterBtn.focus({ preventScroll: true });
+      } catch (_) {}
+      // Keyboard: Enter or Space anywhere triggers entry while gate is showing
+      var keyHandler = function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+          // Don't fire if user is typing in an input (defensive — no inputs on this scene, but safe)
+          var tag = document.activeElement && document.activeElement.tagName;
+          if (tag === "INPUT" || tag === "TEXTAREA") return;
+          e.preventDefault();
+          onEnter();
+          window.removeEventListener("keydown", keyHandler);
+        }
+      };
+      window.addEventListener("keydown", keyHandler);
+    }
 
     function startLoader() {
       setTimeout(function () {
