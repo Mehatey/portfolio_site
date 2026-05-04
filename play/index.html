@@ -1674,6 +1674,30 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
           obs.observe(c);
         });
 
+        // ── LAZY MEDIA SWAP ── data-src → src as cards approach viewport (~1 screen ahead).
+        // Items beyond idx 8 ship with empty src + data-src to keep first paint cheap;
+        // this IO finishes the job. Without it 90% of the masonry never loads.
+        var lazyObs = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              if (!e.isIntersecting) return;
+              var media = e.target.querySelector("img[data-src], video[data-src]");
+              if (media && !media.src && media.dataset.src) {
+                media.src = media.dataset.src;
+                if (media.tagName === "VIDEO") {
+                  media.load();
+                  media.play().catch(function () {});
+                }
+              }
+              lazyObs.unobserve(e.target);
+            });
+          },
+          { rootMargin: "600px 0px", threshold: 0 }
+        );
+        document.querySelectorAll(".card").forEach(function (c) {
+          if (c.querySelector("img[data-src], video[data-src]")) lazyObs.observe(c);
+        });
+
         // ── IDLE AUTO-SCROLL ── slow drift if user hasn't interacted in 5s (desktop only)
         (function () {
           var lastInteraction = Date.now();
