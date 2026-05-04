@@ -704,6 +704,11 @@
         display: block;
         background: transparent;
       }
+      /* Static desk fallback — same dimensions as WebGL canvas. Toggled by JS. */
+      #desk-static {
+        width: 100%;
+        display: block;
+      }
       #desk-stage {
         background: transparent !important;
       }
@@ -1253,6 +1258,8 @@
     <!-- Desk image with hover crossfade -->
     <div id="desk-stage" class="scene-hidden" aria-hidden="true">
       <canvas id="desk-gl" width="1200" height="669"></canvas>
+      <!-- Static fallback — paints when WebGL fails OR on touch devices (warp shader needs hover) -->
+      <img id="desk-static" src="{{ site.baseurl }}/assets/img/tnew2.png" alt="Sid's desk" style="display: none" />
       <button class="desk-play-reel" id="desk-play-reel">▶ Watch Reel</button>
     </div>
 
@@ -1554,7 +1561,18 @@
       (function () {
         var stage = document.getElementById("desk-stage");
         var canvas = document.getElementById("desk-gl");
+        var staticImg = document.getElementById("desk-static");
         if (!stage || !canvas) return;
+
+        // On touch devices, the warp shader is useless (it needs hover) AND mobile GPUs were
+        // sometimes failing to paint the canvas at all — leaving an empty space where the desk
+        // should be. Skip WebGL entirely on touch and show the static desk image.
+        var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        if (isTouch) {
+          canvas.style.display = "none";
+          if (staticImg) staticImg.style.display = "block";
+          return;
+        }
 
         var gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false });
         // Paint transparent immediately to avoid white-flash before textures load
@@ -1563,12 +1581,9 @@
           gl.clear(gl.COLOR_BUFFER_BIT);
         }
         if (!gl) {
-          // Fallback — just show the normal image
+          // WebGL init failed — show the static fallback image instead of leaving the stage empty.
           canvas.style.display = "none";
-          var img = document.createElement("img");
-          img.src = "{{ site.baseurl }}/assets/img/table_new.png";
-          img.style.width = "100%";
-          stage.appendChild(img);
+          if (staticImg) staticImg.style.display = "block";
           return;
         }
 
