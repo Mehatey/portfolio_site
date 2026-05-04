@@ -614,16 +614,31 @@
       { passive: true }
     );
     var t0 = performance.now();
+    var tOffset = 0; // ms paused while tab hidden — keeps shader time continuous
+    var pauseAt = 0;
+    var hidden = false;
+    var rafId = 0;
     function tick() {
       if (!alive || !c.parentNode) return;
       mx += (tmx - mx) * 0.05;
       my += (tmy - my) * 0.05;
-      gl.uniform1f(uTime, (performance.now() - t0) / 1000);
+      gl.uniform1f(uTime, (performance.now() - t0 - tOffset) / 1000);
       gl.uniform2f(uRes, c.width, c.height);
       gl.uniform2f(uMouse, mx, my);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      requestAnimationFrame(tick);
+      if (!hidden) rafId = requestAnimationFrame(tick);
     }
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        hidden = true;
+        pauseAt = performance.now();
+        if (rafId) cancelAnimationFrame(rafId);
+      } else if (hidden) {
+        hidden = false;
+        tOffset += performance.now() - pauseAt;
+        if (alive && c.parentNode) tick();
+      }
+    });
     tick();
     window.addEventListener("loaderDone", function () {
       setTimeout(function () {
