@@ -328,13 +328,16 @@
     background: #f5f3ee !important;
     color: #07090f;
   }
-  /* Hide dark-only effects (WebGL canvases, dark-tuned overlays). Work-collage stays — restyled below. */
+  /* Hide dark-only atmospheric overlays (dust, noise grain, bg-glow) and the smoke shader (paints dark on cream). */
   html[data-theme="light"] #smoke-bg,
   html[data-theme="light"] #dust-canvas,
-  html[data-theme="light"] #desk-stage,
   html[data-theme="light"] #noise-overlay,
   html[data-theme="light"] #bg-glow {
     display: none !important;
+  }
+  /* Desk WebGL stays visible in light mode — its dark palette reads as a vignette over cream. Soften the deep shadows. */
+  html[data-theme="light"] #desk-stage {
+    filter: drop-shadow(0 8px 40px rgba(0, 0, 0, 0.18)) drop-shadow(0 20px 80px rgba(0, 0, 0, 0.12)) !important;
   }
   /* Light-mode home work-collage — warm cream tones with multiply blend so it tints the cream bg without washing it */
   html[data-theme="light"] #work-collage {
@@ -445,11 +448,12 @@
     background: rgba(7, 9, 15, 0.85);
     border-color: rgba(7, 9, 15, 0.1);
   }
+  /* Nav icons are pixel-art designed for dark bg — invert fully + darken so they pop on cream */
   html[data-theme="light"] .nav-icon img {
-    filter: invert(0.82) hue-rotate(180deg);
+    filter: invert(1) brightness(0.55) saturate(0.7);
   }
   html[data-theme="light"] .nav-icon:hover img {
-    filter: invert(0.82) hue-rotate(180deg) brightness(1.1);
+    filter: invert(1) brightness(0.35) saturate(0.9);
   }
   html[data-theme="light"] .nav-icon + .nav-icon::before {
     background: rgba(7, 9, 15, 0.18);
@@ -499,6 +503,17 @@
   html[data-theme="light"] p,
   html[data-theme="light"] li {
     color: rgba(7, 9, 15, 0.78);
+  }
+  /* Awards ticker (top of home) — dark bar + faint amber would be invisible on cream */
+  html[data-theme="light"] .ticker-wrap {
+    background: rgba(245, 243, 238, 0.85) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  }
+  html[data-theme="light"] .ticker-track {
+    color: rgba(7, 9, 15, 0.6) !important;
+  }
+  html[data-theme="light"] .ticker-wrap:hover .ticker-track {
+    color: #07090f !important;
   }
   /* Works page */
   html[data-theme="light"] .works-count,
@@ -2552,14 +2567,8 @@
     } catch (_) {}
     if (saved === "light" || saved === "dark") {
       apply(saved);
-    } else {
-      // First visit — honor the OS-level theme preference
-      try {
-        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) {
-          apply("light");
-        }
-      } catch (_) {}
     }
+    // First visit defaults to dark (the site's identity). User can explicitly toggle to light.
     // ARIA live region — announces theme changes to screen readers
     var live = document.createElement("div");
     live.setAttribute("role", "status");
