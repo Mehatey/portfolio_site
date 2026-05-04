@@ -1695,59 +1695,53 @@ html[data-theme="light"] a:focus-visible,html[data-theme="light"] button:focus-v
           if (c.querySelector("img[data-src], video[data-src]")) lazyObs.observe(c);
         });
 
-        // ── IDLE AUTO-SCROLL ── slow drift if user hasn't interacted in 5s (desktop only)
+        // ── IDLE AUTO-SCROLL ── slow continuous drift if user hasn't interacted in 2.2s (desktop only).
+        // Refactored to scrollBy with sub-pixel accumulation + no scroll-event listener so the auto-drift
+        // doesn't fight the user's wheel and stutter. setTimeout pattern removed (was racing rAF).
         (function () {
           var lastInteraction = Date.now();
-          var humanScrollY = window.scrollY;
-          var autoScrolling = false;
           var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
           var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
           if (prefersReduced || isTouch) return;
-          ["mousemove", "touchstart", "wheel", "keydown", "click"].forEach(function (ev) {
+          ["mousemove", "touchstart", "wheel", "keydown", "click", "pointerdown"].forEach(function (ev) {
             window.addEventListener(ev, function () {
               lastInteraction = Date.now();
-              autoScrolling = false;
-              humanScrollY = window.scrollY;
             }, { passive: true });
           });
-          // Treat user-initiated scroll as interaction; ignore auto-scroll's own scroll events
-          window.addEventListener("scroll", function () {
-            if (!autoScrolling) {
-              lastInteraction = Date.now();
-              humanScrollY = window.scrollY;
-            }
-          }, { passive: true });
-          var driftY = window.scrollY;
-          // Tiny indicator that fades in when auto-scroll is active so users know it's intentional
           var indicator = document.createElement("div");
           indicator.id = "play-autoscroll-indicator";
           indicator.textContent = "AUTO · MOVE TO PAUSE";
           document.body.appendChild(indicator);
           var indicatorVisible = false;
-          function tick() {
+          var subPx = 0; // accumulate fractional pixels so we scroll smoothly even at <1px/frame
+          var lastT = performance.now();
+          function tick(now) {
             requestAnimationFrame(tick);
-            var idle = Date.now() - lastInteraction > 2200; // engage faster (was 5s — felt asleep)
+            var dt = (now - lastT) / 1000; // seconds since last frame
+            lastT = now;
+            var idle = Date.now() - lastInteraction > 2200;
             var atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 8;
             if (idle && !atBottom) {
-              autoScrolling = true;
-              driftY += 0.6; // ~36px/sec at 60fps (was 0.45)
-              window.scrollTo(0, driftY);
-              setTimeout(function () {
-                autoScrolling = false;
-              }, 50);
+              // Target ~50px/sec — slow but visibly continuous (was 36px/sec)
+              subPx += 50 * dt;
+              if (subPx >= 1) {
+                var px = Math.floor(subPx);
+                subPx -= px;
+                window.scrollBy(0, px);
+              }
               if (!indicatorVisible) {
                 indicator.classList.add("is-visible");
                 indicatorVisible = true;
               }
             } else {
-              driftY = window.scrollY;
+              subPx = 0;
               if (indicatorVisible) {
                 indicator.classList.remove("is-visible");
                 indicatorVisible = false;
               }
             }
           }
-          tick();
+          requestAnimationFrame(tick);
         })();
 
         // Lightbox
