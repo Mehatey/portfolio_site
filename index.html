@@ -1534,49 +1534,56 @@
 </div>
 
 <style>
-  /* Floating buddha — pointer-events: auto so it's hoverable; transform set inline by JS */
+  /* Floating buddha — sits BEHIND the Enter button (z-index below the gate). Smaller stage,
+     gentle drift instead of full-screen DVD bounce. Hover triggers a progressive liquify (blur +
+     hue-rotate + scale) that intensifies the longer you hover. */
   #enter-3d-stage {
     position: fixed;
     left: 0;
     top: 0;
-    width: 180px;
-    height: 180px;
-    z-index: 9050;
+    width: 130px;
+    height: 130px;
+    z-index: 9050; /* below #enter-gate (10000) so the button sits in front */
     pointer-events: auto;
     opacity: 0;
     transition:
       opacity 0.6s ease,
-      filter 0.4s ease;
-    will-change: transform;
+      filter 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform, filter;
     cursor: none;
+    /* Default — quiet, no wiggle, soft glow only */
+    filter: drop-shadow(0 0 14px rgba(180, 220, 255, 0.18));
   }
   #enter-3d-stage.is-on {
     opacity: 1;
   }
-  /* Hover playfulness — buddha wiggles + glows softly */
+  /* Hover liquify — runs once when class is added; fill-mode forwards so it stays at peak distortion
+     until mouseleave reverts via the .is-hovering removal + base-state filter transition. */
   #enter-3d-stage.is-hovering {
-    filter: drop-shadow(0 0 24px rgba(180, 220, 255, 0.55));
-    animation: buddhaWiggle 0.8s ease-in-out infinite;
+    animation: buddhaLiquify 5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-  @keyframes buddhaWiggle {
-    0%,
-    100% {
-      rotate: 0deg;
+  @keyframes buddhaLiquify {
+    0% {
+      filter: drop-shadow(0 0 14px rgba(180, 220, 255, 0.18)) hue-rotate(0deg) saturate(1) blur(0px);
+      transform-origin: center;
     }
-    25% {
-      rotate: -6deg;
+    20% {
+      filter: drop-shadow(0 0 22px rgba(140, 200, 255, 0.4)) hue-rotate(60deg) saturate(1.4) blur(0.5px);
     }
     50% {
-      rotate: 0deg;
+      filter: drop-shadow(0 0 36px rgba(220, 140, 220, 0.55)) hue-rotate(180deg) saturate(2) blur(1.4px);
     }
-    75% {
-      rotate: 6deg;
+    80% {
+      filter: drop-shadow(0 0 50px rgba(240, 180, 100, 0.6)) hue-rotate(280deg) saturate(2.6) blur(2.6px);
+    }
+    100% {
+      filter: drop-shadow(0 0 60px rgba(120, 240, 200, 0.7)) hue-rotate(360deg) saturate(3) blur(3.5px);
     }
   }
   #enter-3d-mount {
     width: 100%;
     height: 100%;
-    pointer-events: none; /* let stage capture hover, not the model-viewer canvas */
+    pointer-events: none; /* stage captures hover, not the model-viewer canvas */
   }
   #enter-3d-mount model-viewer {
     width: 100%;
@@ -1586,8 +1593,8 @@
   }
   @media (max-width: 700px) {
     #enter-3d-stage {
-      width: 130px;
-      height: 130px;
+      width: 96px;
+      height: 96px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -1638,31 +1645,18 @@
     measure();
     window.addEventListener("resize", measure, { passive: true });
 
-    var baseSize = stage.offsetWidth || 180; // reference at scale 1
-    function randPos(currentSize) {
-      var cx = W / 2,
-        cy = H / 2;
-      for (var attempt = 0; attempt < 30; attempt++) {
-        var rx = Math.random() * (W - currentSize);
-        var ry = Math.random() * (H - currentSize);
-        var dx = rx + currentSize / 2 - cx,
-          dy = ry + currentSize / 2 - cy;
-        if (Math.sqrt(dx * dx + dy * dy) > 260) return [rx, ry];
-      }
-      return [40, 40];
-    }
-    var startPos = randPos(baseSize);
-    var x = startPos[0],
-      y = startPos[1];
-    var vx = (Math.random() < 0.5 ? -1 : 1) * (0.55 + Math.random() * 0.25);
-    var vy = (Math.random() < 0.5 ? -1 : 1) * (0.4 + Math.random() * 0.2);
+    var baseSize = stage.offsetWidth || 130; // reference at scale 1 (matches new CSS width)
 
-    // Hover playfulness — toggle a CSS class so it wiggles + glows. We also cancel propagation
-    // so cube chat / cmdk / etc. don't fight.
+    // Slow orbital drift around the screen center, NOT full-screen DVD bounce.
+    // The buddha now lives in a soft halo around the Enter button instead of pinging the corners.
+    var orbitR = Math.min(W, H) * 0.18; // gentle radius — keeps buddha near the button
+    var orbitAng = Math.random() * Math.PI * 2;
+    var orbitVel = 0.0035; // rad per frame — very slow drift
+
+    // Hover playfulness — runs the liquify animation. Rotation slows on hover so the warp reads.
     stage.addEventListener("mouseenter", function () {
       stage.classList.add("is-hovering");
-      // Speed up rotation while hovering for extra liveliness
-      if (mv) mv.setAttribute("rotation-per-second", "70deg");
+      if (mv) mv.setAttribute("rotation-per-second", "8deg"); // slow down for the warp
     });
     stage.addEventListener("mouseleave", function () {
       stage.classList.remove("is-hovering");
@@ -1690,41 +1684,31 @@
     }, 600);
 
     var t0 = performance.now();
-    var baseRotation = 18; // deg/sec at start
+    var baseRotation = 12; // deg/sec at start (was 18 — calmer)
     function tick(now) {
       if (!stage.parentNode) return; // user pressed Enter, gate removed
       now = now || performance.now();
       var elapsed = (now - t0) / 1000; // seconds since reveal
 
-      // Slowly grow scale: 1.0 → 1.6 over 60s, then cap (so it doesn't fill the screen)
-      var growth = Math.min(1.0 + elapsed * 0.01, 1.6);
+      // Slow growth — caps at 1.25 (was 1.6) so it doesn't dominate the Enter scene
+      var growth = Math.min(1.0 + elapsed * 0.005, 1.25);
       var currentSize = baseSize * growth;
 
-      // Slowly increase rotation speed: 18 → 50 deg/sec over 60s
+      // Slowly increase rotation: 12 → 24 deg/sec over 60s (was 18→50, way too fast)
       if (mv && !stage.classList.contains("is-hovering")) {
-        var rotSpeed = Math.min(baseRotation + elapsed * 0.5, 50);
+        var rotSpeed = Math.min(baseRotation + elapsed * 0.2, 24);
         mv.setAttribute("rotation-per-second", rotSpeed + "deg");
       }
 
-      x += vx;
-      y += vy;
-      // Bounce off edges using current grown size
-      if (x <= 0) {
-        x = 0;
-        vx = Math.abs(vx);
-      }
-      if (x >= W - currentSize) {
-        x = W - currentSize;
-        vx = -Math.abs(vx);
-      }
-      if (y <= 0) {
-        y = 0;
-        vy = Math.abs(vy);
-      }
-      if (y >= H - currentSize) {
-        y = H - currentSize;
-        vy = -Math.abs(vy);
-      }
+      // Orbital drift around screen center — buddha lives in a halo around the Enter button.
+      // Recompute orbit radius each frame so it adapts to viewport resize.
+      orbitR = Math.min(W, H) * 0.18;
+      orbitAng += orbitVel;
+      var cx = W / 2,
+        cy = H / 2;
+      // Slight Lissajous wobble so the orbit isn't a clean circle
+      var x = cx + Math.cos(orbitAng) * orbitR + Math.sin(orbitAng * 1.3) * 14 - currentSize / 2;
+      var y = cy + Math.sin(orbitAng) * orbitR * 0.78 + Math.cos(orbitAng * 0.9) * 10 - currentSize / 2;
 
       stage.style.transform = "translate3d(" + x + "px," + y + "px,0) scale(" + growth + ")";
       stage.style.transformOrigin = "0 0";
@@ -1734,61 +1718,160 @@
 </script>
 
 <style>
-  /* ── ENTER BUTTON — simple circle, swirling multi-color radial gradient inside ── */
+  /* ── ENTER BUTTON — abstract morphing box. Border-radius cycles through asymmetric values
+       (organic, never a perfect square or circle). Inside, multiple color washes drift and fade in
+       at different points so colors *accumulate* over time instead of all blasting at once. ── */
   #enter-btn.enter-btn {
     position: relative;
-    width: 160px;
-    height: 160px;
-    border: 1px solid rgba(180, 220, 255, 0.4);
-    border-radius: 50%;
-    background: rgba(8, 14, 30, 0.55);
+    z-index: 2; /* sit above the buddha sculpture which we now pin behind the button */
+    width: 168px;
+    height: 168px;
+    border: 1px solid rgba(180, 220, 255, 0.32);
+    border-radius: 28% 72% 41% 59% / 56% 36% 64% 44%;
+    background: rgba(8, 14, 30, 0.42);
     padding: 0;
     cursor: none;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    outline: none; /* hide focus square — we have our own glow */
+    outline: none;
     box-shadow:
-      0 0 60px rgba(60, 120, 200, 0.18),
-      inset 0 0 40px rgba(0, 0, 0, 0.5);
-    -webkit-backdrop-filter: blur(4px) saturate(1.2);
-    backdrop-filter: blur(4px) saturate(1.2);
+      0 0 70px rgba(60, 120, 200, 0.16),
+      inset 0 0 50px rgba(0, 0, 0, 0.5);
+    -webkit-backdrop-filter: blur(6px) saturate(1.2);
+    backdrop-filter: blur(6px) saturate(1.2);
+    animation:
+      enterShapeMorph 16s ease-in-out infinite,
+      enterButtonSway 9s ease-in-out infinite;
     transition:
-      transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 0.4s,
-      box-shadow 0.4s;
+      border-color 0.5s ease,
+      box-shadow 0.5s ease;
   }
-  .enter-btn__swirl {
-    position: absolute;
-    inset: -15%;
-    background:
-      radial-gradient(circle at 30% 30%, rgba(60, 130, 220, 0.55) 0%, transparent 45%),
-      radial-gradient(circle at 70% 60%, rgba(160, 80, 200, 0.45) 0%, transparent 50%),
-      radial-gradient(circle at 50% 80%, rgba(220, 140, 60, 0.4) 0%, transparent 55%),
-      radial-gradient(circle at 20% 70%, rgba(80, 220, 200, 0.32) 0%, transparent 50%);
-    filter: blur(6px);
-    pointer-events: none;
-    transform-origin: center;
-    animation: enterSwirl 14s ease-in-out infinite;
+  /* Box shape morphs slowly — never the same outline twice */
+  @keyframes enterShapeMorph {
+    0%,
+    100% {
+      border-radius: 28% 72% 41% 59% / 56% 36% 64% 44%;
+    }
+    20% {
+      border-radius: 64% 36% 22% 78% / 38% 64% 36% 62%;
+    }
+    40% {
+      border-radius: 42% 58% 68% 32% / 60% 28% 72% 40%;
+    }
+    60% {
+      border-radius: 18% 82% 56% 44% / 30% 70% 30% 70%;
+    }
+    80% {
+      border-radius: 70% 30% 38% 62% / 56% 60% 40% 44%;
+    }
   }
-  @keyframes enterSwirl {
-    0% {
-      transform: rotate(0deg) scale(1.05);
+  /* Subtle figure-8 sway — adds the "more motion" the design called for */
+  @keyframes enterButtonSway {
+    0%,
+    100% {
+      transform: translate(0, 0) rotate(0deg);
     }
     25% {
-      transform: rotate(90deg) scale(1.2);
+      transform: translate(6px, -4px) rotate(1.2deg);
     }
     50% {
-      transform: rotate(180deg) scale(1.05);
+      transform: translate(-2px, 5px) rotate(-1deg);
     }
     75% {
-      transform: rotate(270deg) scale(1.2);
-    }
-    100% {
-      transform: rotate(360deg) scale(1.05);
+      transform: translate(-5px, -3px) rotate(0.8deg);
     }
   }
+
+  /* The swirl sits inside the button. Three layered color washes; each starts hidden and fades in
+     at its own delay so the button gradually accumulates color rather than blasting everything at once. */
+  .enter-btn__swirl {
+    position: absolute;
+    inset: -20%;
+    pointer-events: none;
+    transform-origin: center;
+  }
+  .enter-btn__swirl::before,
+  .enter-btn__swirl::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    will-change: transform, opacity;
+  }
+  /* Layer 1 — cool blue, drifts in immediately and stays */
+  .enter-btn__swirl {
+    background: radial-gradient(circle at 30% 35%, rgba(70, 140, 230, 0.62) 0%, transparent 50%);
+    filter: blur(10px);
+    opacity: 0;
+    animation:
+      enterColorIn1 1.2s ease 0.3s forwards,
+      enterDrift1 11s ease-in-out infinite 1.5s;
+  }
+  @keyframes enterColorIn1 {
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes enterDrift1 {
+    0%,
+    100% {
+      transform: translate(0, 0) rotate(0deg) scale(1.05);
+    }
+    50% {
+      transform: translate(8%, -6%) rotate(160deg) scale(1.18);
+    }
+  }
+  /* Layer 2 — warm magenta, fades in second */
+  .enter-btn__swirl::before {
+    background: radial-gradient(circle at 70% 65%, rgba(180, 80, 220, 0.55) 0%, transparent 55%);
+    filter: blur(14px);
+    animation:
+      enterColorIn2 1.6s ease 2.4s forwards,
+      enterDrift2 13s ease-in-out infinite 3.5s;
+  }
+  @keyframes enterColorIn2 {
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes enterDrift2 {
+    0%,
+    100% {
+      transform: translate(0, 0) rotate(0deg) scale(1);
+    }
+    50% {
+      transform: translate(-10%, 8%) rotate(-200deg) scale(1.22);
+    }
+  }
+  /* Layer 3 — amber + cyan blend, fades in last for the full palette */
+  .enter-btn__swirl::after {
+    background:
+      radial-gradient(circle at 25% 75%, rgba(240, 160, 80, 0.5) 0%, transparent 50%),
+      radial-gradient(circle at 75% 25%, rgba(80, 220, 200, 0.4) 0%, transparent 55%);
+    filter: blur(12px);
+    animation:
+      enterColorIn3 2s ease 5s forwards,
+      enterDrift3 16s ease-in-out infinite 6.5s;
+  }
+  @keyframes enterColorIn3 {
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes enterDrift3 {
+    0%,
+    100% {
+      transform: translate(0, 0) rotate(0deg) scale(1.1);
+    }
+    50% {
+      transform: translate(6%, 10%) rotate(240deg) scale(1.28);
+    }
+  }
+
   .enter-btn__label {
     position: relative;
     z-index: 2;
@@ -1800,17 +1883,14 @@
     text-shadow:
       0 0 8px rgba(0, 0, 0, 0.6),
       0 0 14px rgba(140, 200, 255, 0.45);
-    padding-left: 0.32em; /* compensate letter-spacing on last char */
+    padding-left: 0.32em;
   }
   #enter-btn.enter-btn:hover {
-    transform: scale(1.06);
     border-color: rgba(220, 240, 255, 0.85);
     box-shadow:
-      0 0 90px rgba(80, 160, 230, 0.4),
-      inset 0 0 50px rgba(0, 0, 0, 0.4);
-  }
-  #enter-btn.enter-btn:hover .enter-btn__swirl {
-    animation-duration: 7s;
+      0 0 100px rgba(80, 160, 230, 0.45),
+      inset 0 0 60px rgba(0, 0, 0, 0.4);
+    animation-duration: 7s, 5s; /* shape + sway both speed up on hover */
   }
   #enter-btn.enter-btn:hover .enter-btn__label {
     text-shadow:
@@ -1820,12 +1900,23 @@
   /* Mobile — slightly smaller */
   @media (max-width: 600px) {
     #enter-btn.enter-btn {
-      width: 130px;
-      height: 130px;
+      width: 132px;
+      height: 132px;
     }
     .enter-btn__label {
       font-size: 12px;
       letter-spacing: 0.28em;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #enter-btn.enter-btn {
+      animation: none;
+    }
+    .enter-btn__swirl,
+    .enter-btn__swirl::before,
+    .enter-btn__swirl::after {
+      animation: none !important;
+      opacity: 1 !important;
     }
   }
   /* Hello — push down on small phones so it doesn't overlap the cube video */
