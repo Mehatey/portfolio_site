@@ -40,10 +40,11 @@
      mix-blend-mode: screen drops the video's black background so the smoke shader shows through.
      Cube character (white-on-black) survives the blend; black bars don't. */
   #sl-video-phase video {
-    max-width: 1150px;
-    width: 92vw;
+    /* Cube video bumped ~15% (1150 → 1322 max, 92vw → 100vw cap) per design call */
+    max-width: 1322px;
+    width: min(100vw, 1322px);
     border-radius: 0;
-    margin-top: 6vh;
+    margin-top: 4vh;
     mix-blend-mode: screen;
     filter: contrast(1.1) brightness(1.05);
   }
@@ -605,8 +606,8 @@
     <span class="ls-line" data-text="&gt; const(class_of) = 2026"></span>
     <span class="ls-line" data-text="&gt; return open_to_work(true);"></span>
   </div>
-  <!-- Typewriter text — persists across all phases -->
-  <span id="sl-hello" style="position: absolute; top: 14%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
+  <!-- Hello text — persists across phases. Top: 22% (was 14%) so it sits below cube head, not above it. -->
+  <span id="sl-hello" style="position: absolute; top: 22%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
 
   <!-- Onboarding icons — preview the nav, appear with each typewriter line -->
   <div id="sl-onboard-icons">
@@ -1056,27 +1057,55 @@
         );
       });
 
+      // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
+      // Replaces the typewriter; reads as a creative-tech / hacker reveal that suits the Inter 200 face.
+      var SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?#@*<>/\\";
+      function scrambleTo(el, target, opts) {
+        opts = opts || {};
+        var duration = opts.duration || 900;
+        var fps = 30;
+        var totalFrames = Math.round((duration / 1000) * fps);
+        var startTime = performance.now();
+        // Per-char: assign a random "settle frame" so chars resolve at staggered times
+        var settleFrames = [];
+        for (var i = 0; i < target.length; i++) {
+          settleFrames.push(Math.floor(totalFrames * (0.3 + 0.65 * (i / Math.max(1, target.length - 1)))));
+        }
+        function frame(now) {
+          var elapsed = now - startTime;
+          var f = Math.floor((elapsed / 1000) * fps);
+          if (f >= totalFrames) {
+            el.textContent = target;
+            if (opts.done) opts.done();
+            return;
+          }
+          var out = "";
+          for (var i = 0; i < target.length; i++) {
+            if (f >= settleFrames[i]) {
+              out += target[i];
+            } else if (target[i] === " ") {
+              out += " ";
+            } else {
+              out += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+            }
+          }
+          el.textContent = out;
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+
       lines.forEach(function (line, idx) {
         setTimeout(function () {
-          // Fade out previous text
-          hello.style.transition = "opacity 0.3s ease";
+          // Fade out previous, scramble in new
+          hello.style.transition = "opacity 0.35s ease, filter 0.35s ease";
           hello.style.opacity = "0";
+          hello.style.filter = "blur(6px)";
           setTimeout(function () {
-            hello.textContent = "";
             hello.style.opacity = "1";
-            // Type new line
-            var i = 0;
-            startTypingSound();
-            (function t() {
-              if (i < line.text.length) {
-                i++;
-                hello.textContent = line.text.slice(0, i);
-                setTimeout(t, 60 + Math.random() * 30);
-              } else {
-                stopTypingSound();
-              }
-            })();
-          }, 300);
+            hello.style.filter = "blur(0)";
+            scrambleTo(hello, line.text, { duration: 900 });
+          }, 350);
         }, line.startAt);
       });
 
