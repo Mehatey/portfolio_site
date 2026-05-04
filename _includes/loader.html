@@ -1047,11 +1047,10 @@
 
       // Intro stream is now top-level (runs from page load, visible during Enter scene + cube animation)
 
-      // Typewriter lines — fade out instead of backspace
+      // Typewriter lines — "Welcome to my portfolio" removed (overstayed its welcome past the cube exit)
       var lines = [
         { text: "Hello", startAt: 800 },
         { text: "Most people call me Sid", startAt: 3500 },
-        { text: "Welcome to my portfolio", startAt: 7000 },
       ];
 
       // Onboarding icons reveal — each slightly before its line types
@@ -1106,24 +1105,35 @@
 
       lines.forEach(function (line, idx) {
         setTimeout(function () {
-          // Fade out previous, then start at LOW opacity and ramp up over the scramble duration.
-          // The big white-on-black is too harsh at full opacity from the first frame; this softens entry.
+          // Fade out previous (opacity 0 + heavy blur).
           hello.style.transition = "opacity 0.35s ease, filter 0.35s ease";
           hello.style.opacity = "0";
-          hello.style.filter = "blur(6px)";
+          hello.style.filter = "blur(8px)";
           setTimeout(function () {
-            // Start scramble at 0.18 opacity, ramp to 1 over 1.1s (covers the 0.9s scramble + small buffer)
-            hello.style.transition = "opacity 1.1s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease";
-            hello.style.opacity = "0.18";
-            hello.style.filter = "blur(0)";
-            // Force a frame so the 0.18 paints, THEN start the ramp + scramble
-            requestAnimationFrame(function () {
-              hello.style.opacity = "1";
-              scrambleTo(hello, line.text, { duration: 900 });
+            // SCRAMBLE PHASE: low opacity + light blur so the cycling random characters are visible
+            // but quiet — they don't steal attention while the text is still forming.
+            hello.style.transition = "none";
+            hello.style.opacity = "0.32";
+            hello.style.filter = "blur(3px)";
+            scrambleTo(hello, line.text, {
+              duration: 900,
+              done: function () {
+                // RESOLVE PHASE: text has fully formed. Smoothly ramp opacity → 1 and unblur.
+                hello.style.transition = "opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), filter 0.7s ease";
+                hello.style.opacity = "1";
+                hello.style.filter = "blur(0)";
+              },
             });
           }, 350);
         }, line.startAt);
       });
+
+      // When the cube video ends, fade the Hello text out so it doesn't linger past the cube exit
+      var fadeHelloOnVideoEnd = function () {
+        hello.style.transition = "opacity 0.5s ease, filter 0.5s ease";
+        hello.style.opacity = "0";
+        hello.style.filter = "blur(6px)";
+      };
 
       // Video ends → loading animation → dissolve
       var videoEnded = false;
@@ -1149,6 +1159,8 @@
         videoEnded = true;
         videoPhase.classList.remove("active");
         videoPhase.classList.add("exit");
+        // Fade Hello out — it overstayed its welcome past the cube exit
+        fadeHelloOnVideoEnd();
         // Fade out the intro stream as we move to phase 2
         var stream = document.getElementById("loader-stream");
         if (stream) stream.classList.add("is-fade");
