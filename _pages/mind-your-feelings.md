@@ -145,6 +145,20 @@ next_project:
   <img src="{{ site.baseurl }}/6.mindu/5.png" alt="Mind Your Feelings" loading="lazy" />
 </div>
 
+<p class="cube-cap cube-cap--above"><em>Walkthrough of the kiosk.</em></p>
+<div class="cs-bleed">
+  <video src="{{ site.baseurl }}/6.mindu/kiosk1.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Walkthrough of the Mind Your Feelings kiosk"></video>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>The color of the emotion you draw is sent to the brain — and the brain lights up in that color.</em></p>
+<div class="cs-bleed">
+  <video src="{{ site.baseurl }}/6.mindu/kiosk2.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Color of the drawn emotion sent to the brain"></video>
+</div>
+
+<div class="cs-bleed">
+  <video src="{{ site.baseurl }}/6.mindu/kiosk3.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Mind Your Feelings kiosk in use"></video>
+</div>
+
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/6.mindu/6.png" alt="Mind Your Feelings" loading="lazy" />
 </div>
