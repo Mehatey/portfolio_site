@@ -1043,29 +1043,40 @@
           height: 26px;
         }
 
+        /* Cramped fix: bottom-bar lines were stacking with no breathing room.
+           More vertical gap + bigger fonts so the page reads less squeezed. */
         .bottom-bar {
-          padding: 10px 16px;
+          padding: 14px 18px 18px;
           flex-direction: column;
-          gap: 6px;
+          gap: 10px;
           align-items: flex-start;
         }
         .bottom-left {
           width: 100%;
+          gap: 6px;
         }
         .bottom-role-line {
-          font-size: 8.5px;
-          letter-spacing: 0.1em;
+          font-size: 9.5px;
+          letter-spacing: 0.12em;
         }
         .bottom-center {
-          font-size: 8.5px;
+          font-size: 9.5px;
           align-self: center;
         }
         .bottom-avail {
-          font-size: 8px;
+          font-size: 9px;
           align-self: flex-end;
         }
+        /* Pull the desk up a bit so it sits closer to vertical center —
+           was floating below center while the top half of the screen was empty. */
         #desk-stage {
-          width: clamp(280px, 85vw, 450px);
+          width: clamp(300px, 92vw, 460px);
+          top: calc(42% + 12px);
+        }
+        /* Award ticker: more breathing room on mobile (was 30px, now larger pad) */
+        .ticker-wrap {
+          height: 36px;
+          font-size: 11px;
         }
       }
 
@@ -1304,16 +1315,29 @@
     mix-blend-mode: screen;
     filter: contrast(1.1) brightness(1.05);
   }
-  /* Mobile: the cube was reading as a tiny letterboxed strip on portrait phones.
-     Size by HEIGHT instead of width so the cube character fills the screen vertically;
-     the body's overflow-x: hidden clips the over-wide horizontal edges. */
+  /* Mobile: fill the viewport edge-to-edge using object-fit cover so the cube
+     character sits centered and any visible "black box" framing the video is
+     cropped out of frame. mix-blend-mode kept for the screens that honor it
+     (most do); on the ones that don't, the cover-crop hides the black bars. */
   @media (max-width: 700px) {
+    #sl-video-phase {
+      /* Override default flex layout so video can fill */
+      padding: 0;
+    }
     #sl-video-phase video {
-      width: auto;
-      max-width: none;
-      height: 75vh;
-      height: 75dvh;
+      width: 100vw;
+      max-width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      object-fit: cover;
       margin-top: 0;
+    }
+  }
+  /* Phase 2 loading-ani video — bigger on mobile so the brain/eyes read clearly */
+  @media (max-width: 700px) {
+    #sl-loading-phase video {
+      width: 90vw;
+      max-width: 90vw;
     }
   }
   /* Hello — bigger, more confident, distinct from the mono const() stream so they don't clash */
@@ -1679,7 +1703,8 @@
     var mount = document.getElementById("enter-3d-mount");
     if (!stage || !mount) return;
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+    // Buddha now runs on touch too — user wants it visible on mobile. CSS already
+    // shrinks the stage on small screens, and the rAF loop is light (<1ms/frame).
 
     var BUDDHA_SRC = "/assets/models/buddha.glb";
     var mv;
