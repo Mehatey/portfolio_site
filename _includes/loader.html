@@ -593,16 +593,18 @@
       }, s.at);
       speechTimers.push(id);
     });
-    // Stop speech the moment user clicks Enter
+    // Stop speech the moment user clicks Enter or hits Enter/Space.
+    // (Don't use { once: true } on keydown — would detach on the first stray key
+    // and miss the actual Enter press.)
     var btn = document.getElementById("enter-btn");
     if (btn) btn.addEventListener("click", cancelSpeech, { once: true });
-    window.addEventListener(
-      "keydown",
-      function (e) {
-        if (e.key === "Enter" || e.key === " ") cancelSpeech();
-      },
-      { once: true }
-    );
+    function speechKeyHandler(e) {
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        cancelSpeech();
+        window.removeEventListener("keydown", speechKeyHandler);
+      }
+    }
+    window.addEventListener("keydown", speechKeyHandler);
   })();
 </script>
 
