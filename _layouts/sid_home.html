@@ -1376,7 +1376,7 @@
         id="intro-modal-video"
         playsinline
         controls
-        preload="none"
+        preload="metadata"
         src="https://github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4"
       ></video>
       <button id="intro-modal-close" aria-label="Close video">✕</button>
@@ -2365,6 +2365,24 @@
             var btn = document.getElementById("intro-btn");
             if (btn) btn.click();
           });
+          // Pre-warm the reel on hover/focus: video is hosted on GitHub Releases
+          // which doesn't stream well — switching preload to "auto" + calling load()
+          // starts the buffer before click so the first ~3s don't stall mid-playback.
+          // Latch with a flag so we only kick off the fetch once.
+          var prewarmed = false;
+          function prewarmReel() {
+            if (prewarmed) return;
+            prewarmed = true;
+            var v = document.getElementById("intro-modal-video");
+            if (!v) return;
+            try {
+              v.preload = "auto";
+              v.load();
+            } catch (e) {}
+          }
+          deskPlayBtn.addEventListener("mouseenter", prewarmReel, { once: true });
+          deskPlayBtn.addEventListener("focus", prewarmReel, { once: true });
+          deskPlayBtn.addEventListener("touchstart", prewarmReel, { once: true, passive: true });
         }
       })();
     </script>
