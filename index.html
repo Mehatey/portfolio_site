@@ -2802,7 +2802,7 @@
 
     <!-- Fullscreen video modal — OUTSIDE main-wrap so z-index works -->
     <div id="intro-modal" role="dialog" aria-modal="true" aria-label="Watch reel video">
-      <video id="intro-modal-video" playsinline controls preload="none" src="https://github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4"></video>
+      <video id="intro-modal-video" playsinline controls preload="metadata" src="https://github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4"></video>
       <button id="intro-modal-close" aria-label="Close video">✕</button>
     </div>
 
@@ -2985,12 +2985,12 @@
     height: 36px !important;
   }
   .nav-icon {
-    width: 32px !important;
-    height: 32px !important;
+    width: 28px !important;
+    height: 28px !important;
   }
   .nav-icon img {
-    width: 32px !important;
-    height: 32px !important;
+    width: 28px !important;
+    height: 28px !important;
   }
   /* 2D BY DEFAULT, 3D ON HOVER — top + right faces are hidden by default; nav-hover reveals them while the cube spins. */
   .logo-cube .cube-face {
@@ -3014,8 +3014,12 @@
   .logo-cube rect:not(.logo-eye) {
     animation-delay: 0.75s;
   }
-  /* Don't path-draw the eyes (rect.logo-eye) — they should appear filled */
-  .logo-cube rect.logo-eye {
+  /* Don't path-draw the eyes (rect.logo-eye) — they should appear filled.
+     Gated on html:not(.cube-drawn) so that after the path-draw finishes the per-layout
+     .logo-eye { animation: logo-blink ... } rule can take effect. Without this gate the
+     rule's higher specificity (.logo-cube rect.logo-eye vs .logo-eye) permanently overrides
+     blink in dark mode. */
+  html:not(.cube-drawn) .logo-cube rect.logo-eye {
     stroke-dasharray: none;
     stroke-dashoffset: 0;
     animation: none;
@@ -3266,12 +3270,18 @@
     background: rgba(7, 9, 15, 0.85);
     border-color: rgba(7, 9, 15, 0.1);
   }
-  /* Nav icons keep their original pixel-art colors in light mode — no filter inversion */
-  html[data-theme="light"] .nav-icon img {
-    filter: none;
+  /* Light mode: cream nav strip + default .nav-icon opacity 0.45 makes pixel-art icons
+     (especially the yellow sparkle) wash out. Force full opacity and max brightness/saturate
+     so each pixel reads cleanly. */
+  html[data-theme="light"] .nav-icon {
+    opacity: 1 !important;
   }
-  html[data-theme="light"] .nav-icon:hover img {
-    filter: brightness(1.05) saturate(1.1);
+  html[data-theme="light"] .nav-icon img {
+    filter: brightness(1.15) contrast(1.18) saturate(1.35);
+  }
+  html[data-theme="light"] .nav-icon:hover img,
+  html[data-theme="light"] .nav-icon.is-active img {
+    filter: brightness(1.25) contrast(1.22) saturate(1.45);
   }
   html[data-theme="light"] .nav-icon + .nav-icon::before {
     background: rgba(7, 9, 15, 0.18);
@@ -3281,8 +3291,23 @@
     color: rgba(40, 60, 100, 0.92) !important;
     animation: none !important;
   }
-  html[data-theme="light"] .logo-eye {
-    opacity: 0.92 !important;
+  /* Eyes sit on a hardcoded fill="#000" front face. currentColor (deep ink) on black is unreadable —
+     force bright fill so the blink reads. Replace blink keyframes with a light-mode variant whose
+     resting opacity is high enough to look intentional on the dark face. */
+  html[data-theme="light"] .logo-cube rect.logo-eye {
+    fill: #fff !important;
+    opacity: 0.95 !important;
+    animation: logo-blink-light 9s ease-in-out infinite !important;
+  }
+  @keyframes logo-blink-light {
+    0%,
+    95%,
+    100% {
+      opacity: 0.95;
+    }
+    97% {
+      opacity: 0;
+    }
   }
   /* Bottom bar on home — dark text */
   html[data-theme="light"] .bottom-role-line {
@@ -4393,7 +4418,8 @@
     width: 360px;
     max-width: calc(100vw - 32px);
     height: 540px;
-    max-height: calc(100vh - 100px);
+    max-height: calc(100vh - 100px); /* fallback */
+    max-height: calc(100dvh - 100px); /* iOS: dynamic viewport — keeps chat from exceeding visible area when URL bar shows */
     background: rgba(14, 16, 22, 0.95);
     -webkit-backdrop-filter: blur(20px) saturate(1.4);
     backdrop-filter: blur(20px) saturate(1.4);
@@ -5080,6 +5106,21 @@
     /* Home page bottom-bar — same treatment, 18px floor preserves the original spacing */
     .bottom-bar {
       padding-bottom: max(18px, env(safe-area-inset-bottom));
+    }
+    /* Transient floating UI — scroll hint, toast, play autoscroll indicator, cmd+K hint.
+       Without this they'd sit ~24-36px above the iPhone home indicator and visually
+       overlap it. max() keeps the original spacing on non-notched devices. */
+    #scroll-hint {
+      bottom: max(36px, env(safe-area-inset-bottom));
+    }
+    #sid-toast {
+      bottom: max(32px, env(safe-area-inset-bottom));
+    }
+    #play-autoscroll-indicator {
+      bottom: max(28px, env(safe-area-inset-bottom));
+    }
+    .cmdk-hint {
+      bottom: max(24px, env(safe-area-inset-bottom));
     }
   }
   /* On touch devices, move the theme toggle out of the bottom-left corner — it was
@@ -7799,6 +7840,24 @@
             var btn = document.getElementById("intro-btn");
             if (btn) btn.click();
           });
+          // Pre-warm the reel on hover/focus: video is hosted on GitHub Releases
+          // which doesn't stream well — switching preload to "auto" + calling load()
+          // starts the buffer before click so the first ~3s don't stall mid-playback.
+          // Latch with a flag so we only kick off the fetch once.
+          var prewarmed = false;
+          function prewarmReel() {
+            if (prewarmed) return;
+            prewarmed = true;
+            var v = document.getElementById("intro-modal-video");
+            if (!v) return;
+            try {
+              v.preload = "auto";
+              v.load();
+            } catch (e) {}
+          }
+          deskPlayBtn.addEventListener("mouseenter", prewarmReel, { once: true });
+          deskPlayBtn.addEventListener("focus", prewarmReel, { once: true });
+          deskPlayBtn.addEventListener("touchstart", prewarmReel, { once: true, passive: true });
         }
       })();
     </script>
