@@ -105,50 +105,50 @@ next_project:
 
 <!-- HERO -->
 <div class="mool-hero">
-  <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool 100k+ downloads" loading="eager" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/0.png" alt="Mool 100k+ downloads" loading="eager" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/1.jpg" alt="Mool" loading="lazy" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/1.jpg" alt="Mool" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.1.png" alt="Mool" loading="lazy" / decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="Mool" loading="lazy" / decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.1.png" alt="Mool" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="Mool" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/3.png" alt="Mool" loading="lazy" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/3.png" alt="Mool" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/4.jpg" alt="Mool" loading="lazy" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/4.jpg" alt="Mool" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/5.png" alt="Mool" loading="lazy" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/5.png" alt="Mool" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/6.png" alt="Mool" loading="lazy" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/6.png" alt="Mool" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/7.png" alt="Mool" loading="lazy" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/7.png" alt="Mool" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/8.png" alt="Mool" loading="lazy" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/8.png" alt="Mool" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed" style="text-align:center;">
-  <img src="{{ site.baseurl }}/5.mool/9.png" alt="Mool" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/9.png" alt="Mool" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed cs-bleed--narrow">
-  <img src="{{ site.baseurl }}/5.mool/10.png" alt="Mool" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/10.png" alt="Mool" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Mool" loading="lazy" / decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Mool" loading="lazy" decoding="async" />
 </div>
