@@ -87,7 +87,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/1.met/1.png" alt="Encoded" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" />
+  <img src="{{ site.baseurl }}/1.met/1.png" alt="Encoded" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" / decoding="async" />
 </div>
 
 <p class="enc-cap">Scanning in the American Wing</p>

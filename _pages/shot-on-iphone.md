@@ -68,57 +68,57 @@ next_project:
 </style>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/8.shotoniphone/0.png" alt="Shot on iPhone" loading="eager" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/0.png" alt="Shot on iPhone" loading="eager" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/1.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/1.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/2.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/2.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/3.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/3.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/4.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/4.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/8.shotoniphone/5.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/5.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/6.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/6.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/7.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/7.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/8.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/8.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/9.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/9.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/8.shotoniphone/10.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/10.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/11.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/11.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/12.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/12.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/13.png" alt="Shot on iPhone" loading="lazy" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/13.png" alt="Shot on iPhone" loading="lazy" / decoding="async" />
 </div>
