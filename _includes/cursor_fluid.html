@@ -2551,7 +2551,7 @@
   </svg>
 </button>
 
-<div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube">
+<div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true">
   <div class="cc-header">
     <div class="cc-avatar">
       <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true">
@@ -2700,11 +2700,13 @@
         initialized = true;
       }
       panel.classList.add("is-open");
+      panel.setAttribute("aria-hidden", "false");
       fab.classList.add("is-open");
     }
 
     function close() {
       panel.classList.remove("is-open");
+      panel.setAttribute("aria-hidden", "true");
       fab.classList.remove("is-open");
     }
 
@@ -3478,7 +3480,10 @@
         if (it.external) window.open(it.url, "_blank", "noopener");
         else window.location.href = "{{ site.baseurl }}" + it.url;
       }
+      let lastFocused = null;
       function open() {
+        // Remember what was focused so we can restore after close (a11y)
+        lastFocused = document.activeElement;
         root.classList.add("is-open");
         root.setAttribute("aria-hidden", "false");
         input.value = "";
@@ -3490,6 +3495,11 @@
       function close() {
         root.classList.remove("is-open");
         root.setAttribute("aria-hidden", "true");
+        // Restore focus to the element that opened the palette so keyboard
+        // users don't get teleported back to <body>.
+        if (lastFocused && typeof lastFocused.focus === "function") {
+          try { lastFocused.focus(); } catch (_) {}
+        }
       }
 
       window.addEventListener("keydown", (e) => {
