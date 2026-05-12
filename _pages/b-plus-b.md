@@ -19,6 +19,7 @@ meta:
   - label: Client
     value: Self Initiated
   - label: Watch Experience
+    value: "YouTube ↗"
     url: "https://www.youtube.com/watch?v=zUG-hui0tkw"
 reflection: >
   What stayed with me was how quickly strangers opened up when given a space that felt safe and shared. People weren't looking for perfect words, they just wanted to be heard. Reading others' responses seemed to matter as much as writing their own, almost like realizing their thoughts weren't isolated.
