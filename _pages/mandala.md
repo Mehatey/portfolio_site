@@ -340,46 +340,6 @@ next_project:
   <a href="https://mehatey.github.io/breathe-game/" target="_blank" rel="noopener">Play Breathe ↗</a>
 </div>
 
-<!-- SECTION: VISION PRO -->
-<div class="cs-section">
-  <h2 class="cs-section-label">Vision Pro</h2>
-</div>
-
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Taking the mandala into augmented reality.</em></p>
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/mandalavr.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- vr1 + vr2 -->
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/vr1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/vr2.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
-<!-- vr3 + vr4 -->
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/vr3.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/vr4.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
 <!-- SECTION: BLOOM -->
 <div class="cs-section">
   <h2 class="cs-section-label">Bloom</h2>
