@@ -157,6 +157,23 @@ next_project:
   <img src="{{ site.baseurl }}/15.bloom-vp/notifications.jpg" alt="Bloom exhibition — engraved wood panel of notification fragments" loading="lazy" decoding="async" />
 </div>
 
+<!-- SECTION: MEASURING THE CALM -->
+<div class="cs-section">
+  <h2 class="cs-section-label">Measuring the calm</h2>
+</div>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim. So an EEG headband read each visitor before the tree, and again after, to see what actually changed.</em></p>
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+    <source src="{{ site.baseurl }}/15.bloom-vp/brainbit.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled on the tree.</em></p>
+<div class="cs-bleed bl-contain">
+  <img src="{{ site.baseurl }}/15.bloom-vp/brainbit.jpg" alt="BrainBit Studio — EEG brain log from a Bloom session" loading="lazy" decoding="async" />
+</div>
+
 <!-- SECTION: IN THE ROOM -->
 <div class="cs-section">
   <h2 class="cs-section-label">In the room</h2>

@@ -362,23 +362,6 @@ next_project:
   </div>
 </div>
 
-<!-- SECTION: BRAIN BIT BAND -->
-<div class="cs-section">
-  <h2 class="cs-section-label">Brain Bit Band</h2>
-</div>
-
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Experimenting with the Brain Bit Band to capture live EEG data.</em></p>
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/4.mandala/brainbit.png" alt="Brain Bit Band" loading="lazy" decoding="async" />
-</div>
-
-<p class="cube-cap cube-cap--above"><em>Planning to take that live EEG data and let it shape the mandalas in real time.</em></p>
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/eeg.mp4" type="video/mp4" />
-  </video>
-</div>
-
 <!-- SECTION: MANDALAS -->
 <div class="cs-section">
   <h2 class="cs-section-label">Mandalas</h2>
