@@ -2911,7 +2911,7 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    transform: translate(-50%, -50%) scale(1);
+    transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 99999;
     background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(160, 210, 255, 0.5) 40%, rgba(80, 150, 240, 0.15) 70%, transparent 100%);
@@ -2920,13 +2920,12 @@
       0 0 20px 4px rgba(80, 140, 240, 0.12);
     will-change: left, top, transform;
     opacity: 0;
-    transition:
-      opacity 0.2s,
-      transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* transform is driven per-frame in JS (velocity stretch + eased hover scale); only fade opacity */
+    transition: opacity 0.2s;
   }
-  /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons */
+  /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons.
+     The scale itself is handled in JS; this rule only swaps the look. */
   #cur-dot.is-hover {
-    transform: translate(-50%, -50%) scale(1.6);
     background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(160, 220, 255, 0.2) 50%, transparent 90%);
     box-shadow:
       0 0 10px 2px rgba(140, 200, 255, 0.18),
@@ -5869,6 +5868,17 @@
     window.__cursorX = -100;
     window.__cursorY = -100;
 
+    // Eased render position + velocity-driven stretch state
+    let rx = -100,
+      ry = -100,
+      px = -100,
+      py = -100,
+      stretch = 0,
+      dirX = 1,
+      dirY = 0,
+      hoverScale = 1;
+    const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     document.addEventListener(
       "mousemove",
       (e) => {
@@ -5878,6 +5888,9 @@
         window.__cursorY = my;
         if (!alive) {
           alive = true;
+          // Snap so the dot doesn't streak in from the corner on first appearance
+          rx = px = mx;
+          ry = py = my;
           dot.style.opacity = "1";
         }
       },
@@ -5896,8 +5909,46 @@
     const spotlight = document.getElementById("cursor-spotlight");
     (function loop() {
       requestAnimationFrame(loop);
-      dot.style.left = mx + "px";
-      dot.style.top = my + "px";
+
+      // Ease the rendered position toward the real pointer — a touch of trail gives it weight
+      rx += (mx - rx) * 0.5;
+      ry += (my - ry) * 0.5;
+
+      // Per-frame velocity drives the stretch
+      const vx = rx - px,
+        vy = ry - py;
+      px = rx;
+      py = ry;
+      const speed = Math.hypot(vx, vy);
+
+      let sx = 1,
+        sy = 1,
+        ang = Math.atan2(dirY, dirX) * 57.2958;
+
+      if (!reduceMotion) {
+        // Ease the heading only while actually moving (avoids spin/jitter at rest)
+        if (speed > 0.35) {
+          dirX += (vx / speed - dirX) * 0.3;
+          dirY += (vy / speed - dirY) * 0.3;
+        }
+        ang = Math.atan2(dirY, dirX) * 57.2958;
+
+        // Stretch follows speed: eases in quickly, springs back to a dot slowly
+        const target = Math.min(speed / 18, 1);
+        stretch += (target - stretch) * (target > stretch ? 0.3 : 0.12);
+
+        sx = 1 + stretch * 1.7; // elongate along the direction of travel
+        sy = 1 - stretch * 0.5; // pinch perpendicular (squash-and-stretch)
+      }
+
+      // Eased hover growth (1.6x over interactive surfaces)
+      const targetHover = dot.classList.contains("is-hover") ? 1.6 : 1;
+      hoverScale += (targetHover - hoverScale) * 0.18;
+
+      dot.style.left = rx + "px";
+      dot.style.top = ry + "px";
+      dot.style.transform = "translate(-50%, -50%) rotate(" + ang + "deg) scale(" + sx * hoverScale + ", " + sy * hoverScale + ")";
+
       if (spotlight) {
         spotlight.style.left = mx + "px";
         spotlight.style.top = my + "px";
