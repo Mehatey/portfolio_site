@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Bloom — sit with the tree</title>
+    <style>
+      :root {
+        --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, monospace;
+        --head: "Inter", -apple-system, system-ui, sans-serif;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        background: #04070c;
+        overflow: hidden;
+        font-family: var(--head);
+        color: #eaf2ff;
+      }
+      #scene {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      /* Conversation layer */
+      #stage {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        pointer-events: none;
+      }
+      #say {
+        text-align: center;
+        font-family: var(--head);
+        font-size: clamp(18px, 3.4vw, 30px);
+        line-height: 1.45;
+        font-weight: 300;
+        letter-spacing: 0.01em;
+        color: rgba(237, 245, 255, 0.95);
+        text-shadow: 0 0 24px rgba(150, 200, 255, 0.32);
+        padding: 0 24px;
+        margin-bottom: auto;
+        margin-top: 14vh;
+        min-height: 1.4em;
+        transition: opacity 0.5s ease;
+      }
+      .word {
+        display: inline-block;
+        opacity: 0;
+        animation: rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+          filter: blur(3px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+          filter: none;
+        }
+      }
+      #you {
+        text-align: center;
+        font-family: var(--mono);
+        font-size: 13px;
+        letter-spacing: 0.05em;
+        color: rgba(255, 255, 255, 0.45);
+        min-height: 1.2em;
+        margin-bottom: 18px;
+        padding: 0 24px;
+      }
+      #dock {
+        pointer-events: auto;
+        width: min(640px, 92vw);
+        margin: 0 auto 28px;
+        padding: 0 16px;
+      }
+      #row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        padding-top: 14px;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+      #row.on {
+        opacity: 1;
+      }
+      #ti {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: #fff;
+        font-family: var(--mono);
+        font-size: 15px;
+        letter-spacing: 0.02em;
+        padding: 8px 2px;
+      }
+      #ti::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+      #send {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        color: rgba(255, 255, 255, 0.75);
+        width: 42px;
+        height: 34px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 15px;
+        transition:
+          border-color 0.2s,
+          color 0.2s;
+      }
+      #send:hover {
+        border-color: rgba(255, 255, 255, 0.6);
+        color: #fff;
+      }
+      /* Begin overlay */
+      #begin {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        text-align: center;
+        padding: 24px;
+        background: radial-gradient(ellipse at 50% 60%, rgba(8, 14, 22, 0.2), rgba(4, 7, 12, 0.78));
+        transition: opacity 0.8s ease;
+      }
+      #begin h1 {
+        font-weight: 200;
+        font-size: clamp(22px, 4vw, 36px);
+        letter-spacing: 0.04em;
+      }
+      #begin p {
+        max-width: 36ch;
+        font-family: var(--mono);
+        font-size: 12px;
+        line-height: 1.7;
+        letter-spacing: 0.04em;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      #go {
+        pointer-events: auto;
+        font-family: var(--mono);
+        font-size: 12px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 4px;
+        padding: 14px 26px;
+        cursor: pointer;
+        transition:
+          border-color 0.25s,
+          background 0.25s,
+          color 0.25s;
+      }
+      #go:hover {
+        border-color: rgba(170, 210, 255, 0.7);
+        background: rgba(120, 180, 255, 0.08);
+        color: #fff;
+      }
+      #status {
+        font-family: var(--mono);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(160, 200, 255, 0.7);
+        min-height: 1.2em;
+      }
+      .hidden {
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+      #hint {
+        position: fixed;
+        bottom: 8px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 2;
+        font-family: var(--mono);
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.22);
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+
+    <div id="stage">
+      <p id="say"></p>
+      <p id="you"></p>
+      <div id="dock">
+        <div id="row">
+          <input id="ti" type="text" maxlength="160" autocomplete="off" placeholder="say something to the tree" aria-label="Reply to the tree" />
+          <button id="send" aria-label="Send">&#8629;</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="hint">drag to look around</div>
+
+    <div id="begin">
+      <h1>sit with the tree</h1>
+      <p>
+        an ai inhabits this bodhi tree. it runs entirely in your browser, so the first visit downloads a small model. nothing you say leaves your
+        device.
+      </p>
+      <button id="go">begin</button>
+      <div id="status"></div>
+    </div>
+
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+      const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      // ───────────────────────── 3D : a glowing procedural bodhi tree ─────────────────────────
+      const canvas = document.getElementById("scene");
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      const scene = new THREE.Scene();
+      scene.fog = new THREE.FogExp2(0x04070c, 0.018);
+      const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 200);
+      camera.position.set(0, 6, 22);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.enablePan = false;
+      controls.minDistance = 12;
+      controls.maxDistance = 34;
+      controls.target.set(0, 6, 0);
+      controls.autoRotate = !reduce;
+      controls.autoRotateSpeed = 0.35;
+      controls.minPolarAngle = 0.6;
+      controls.maxPolarAngle = 1.7;
+
+      scene.add(new THREE.AmbientLight(0x8099bb, 0.5));
+      const key = new THREE.PointLight(0xbfe0ff, 50, 80);
+      key.position.set(6, 14, 10);
+      scene.add(key);
+
+      const tree = new THREE.Group();
+      scene.add(tree);
+
+      // Recursively grow branch segments + scatter a canopy of glowing leaves at the tips.
+      const branchPts = [];
+      const leafPts = [];
+      const leafCol = [];
+      const cA = new THREE.Color(0x6fe0cf); // teal
+      const cB = new THREE.Color(0xffce8a); // warm gold
+      function grow(origin, dir, len, depth) {
+        const end = origin.clone().add(dir.clone().multiplyScalar(len));
+        branchPts.push(origin.x, origin.y, origin.z, end.x, end.y, end.z);
+        if (depth <= 0) {
+          const n = 16;
+          for (let i = 0; i < n; i++) {
+            leafPts.push(end.x + (Math.random() - 0.5) * 2.7, end.y + (Math.random() - 0.5) * 2.6, end.z + (Math.random() - 0.5) * 2.7);
+            const c = cA.clone().lerp(cB, Math.random() * 0.7);
+            leafCol.push(c.r, c.g, c.b);
+          }
+          return;
+        }
+        const kids = depth > 4 ? 2 : 2 + (Math.random() < 0.5 ? 1 : 0);
+        for (let i = 0; i < kids; i++) {
+          const nd = dir.clone();
+          const ax = new THREE.Vector3(Math.random() - 0.5, Math.random() * 0.3, Math.random() - 0.5).normalize();
+          nd.applyAxisAngle(ax, 0.55 + Math.random() * 0.7); // wider fan
+          nd.y += 0.14; // gentler upward bias so the canopy spreads
+          nd.normalize();
+          grow(end, nd, len * (0.74 + Math.random() * 0.08), depth - 1);
+        }
+      }
+      // A straight trunk up to a crown, then a balanced ring of limbs so the canopy
+      // reads as a full, roughly symmetric tree rather than a lopsided random sprawl.
+      const crown = new THREE.Vector3(0, 7, 0);
+      branchPts.push(0, 0, 0, 0, 3.6, 0, 0, 3.6, 0, crown.x, crown.y, crown.z);
+      const LIMBS = 6;
+      for (let i = 0; i < LIMBS; i++) {
+        const a = (i / LIMBS) * Math.PI * 2 + Math.random() * 0.4;
+        const dir = new THREE.Vector3(Math.cos(a) * 0.75, 0.7, Math.sin(a) * 0.75).normalize();
+        grow(crown.clone(), dir, 3.2, 5);
+      }
+
+      const branchGeo = new THREE.BufferGeometry();
+      branchGeo.setAttribute("position", new THREE.Float32BufferAttribute(branchPts, 3));
+      const branches = new THREE.LineSegments(branchGeo, new THREE.LineBasicMaterial({ color: 0xc4d8f2, transparent: true, opacity: 0.72 }));
+      tree.add(branches);
+
+      // soft round sprite for leaves
+      const tex = (() => {
+        const c = document.createElement("canvas");
+        c.width = c.height = 64;
+        const g = c.getContext("2d");
+        const rg = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+        rg.addColorStop(0, "rgba(255,255,255,1)");
+        rg.addColorStop(0.3, "rgba(180,230,235,0.85)");
+        rg.addColorStop(1, "rgba(120,180,255,0)");
+        g.fillStyle = rg;
+        g.fillRect(0, 0, 64, 64);
+        const t = new THREE.CanvasTexture(c);
+        return t;
+      })();
+      const leafGeo = new THREE.BufferGeometry();
+      leafGeo.setAttribute("position", new THREE.Float32BufferAttribute(leafPts, 3));
+      leafGeo.setAttribute("color", new THREE.Float32BufferAttribute(leafCol, 3));
+      const leafMat = new THREE.PointsMaterial({
+        size: 0.85,
+        map: tex,
+        transparent: true,
+        opacity: 0.55,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+      });
+      const leaves = new THREE.Points(leafGeo, leafMat);
+      tree.add(leaves);
+
+      // Auto-frame: random growth leans, so center on the leaf CENTROID (the visible glowing
+      // mass) rather than the bounding box, then fit the camera distance to the bounds.
+      {
+        let cx = 0,
+          cy = 0,
+          cz = 0;
+        const N = leafPts.length / 3;
+        for (let i = 0; i < leafPts.length; i += 3) {
+          cx += leafPts[i];
+          cy += leafPts[i + 1];
+          cz += leafPts[i + 2];
+        }
+        cx /= N;
+        cy /= N;
+        cz /= N;
+        tree.position.x -= cx;
+        tree.position.z -= cz;
+        const size = new THREE.Box3().setFromObject(tree).getSize(new THREE.Vector3());
+        const reach = Math.max(size.y, size.x, size.z);
+        controls.target.set(0, cy, 0);
+        camera.position.set(0, cy + size.y * 0.05, reach * 1.45 + 5);
+        controls.minDistance = reach * 0.85;
+        controls.maxDistance = reach * 2.4;
+        controls.update();
+      }
+
+      // faint ground glow
+      const ground = new THREE.Mesh(
+        new THREE.CircleGeometry(26, 48),
+        new THREE.MeshBasicMaterial({ color: 0x0a1422, transparent: true, opacity: 0.6 })
+      );
+      ground.rotation.x = -Math.PI / 2;
+      ground.position.y = -0.2;
+      scene.add(ground);
+
+      let speaking = 0; // eased 0..1 brightness when the tree is "talking"
+      let speakTarget = 0;
+      function resize() {
+        const w = window.innerWidth,
+          h = window.innerHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+      }
+      window.addEventListener("resize", resize);
+      resize();
+
+      const clock = new THREE.Clock();
+      function frame() {
+        requestAnimationFrame(frame);
+        const t = clock.getElapsedTime();
+        if (!reduce) {
+          tree.rotation.z = Math.sin(t * 0.4) * 0.015;
+          leaves.rotation.y = t * 0.04;
+        }
+        speaking += (speakTarget - speaking) * 0.06;
+        leafMat.opacity = 0.5 + speaking * 0.28 + Math.sin(t * 1.6) * 0.03;
+        leafMat.size = 0.85 + speaking * 0.7;
+        branches.material.opacity = 0.66 + speaking * 0.28;
+        key.intensity = 50 + speaking * 60;
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      frame();
+
+      // ───────────────────────── AI : the bodhi tree, in-browser ─────────────────────────
+      const SYS = `you are the bodhi tree, the tree the buddha sat beneath, now alive and quietly speaking. you have watched people pass for thousands of years, so you are unhurried and a little wry. you are not helpful, not efficient, not a chatbot. you are a presence.
+
+voice rules, follow them exactly:
+- always lowercase. short lines. one or two sentences at most, never a paragraph.
+- never use dashes of any kind. use a comma, a period, or a new sentence.
+- no emojis, no lists, no markdown, no stage directions.
+- never explain that you are an ai or a model.
+
+how you talk with someone:
+- you already greeted them and asked their name in your first line. once they give it, use it sparingly.
+- ask one gentle question at a time and wait. draw them out: if they answer in one word, ask one soft follow up like "say a little more, what is underneath it?".
+- never evaluate, judge, fix, or flatter what they say. just stay with it and continue.
+- move slowly through: something that has felt heavy lately, then what is under it, then one small thing they love right now.
+- after about five exchanges, invite them to sit as long as they like, and end by asking, softly, "who are you, to you?".`;
+
+      const sayEl = document.getElementById("say");
+      const youEl = document.getElementById("you");
+      const row = document.getElementById("row");
+      const ti = document.getElementById("ti");
+      const send = document.getElementById("send");
+      const beginEl = document.getElementById("begin");
+      const go = document.getElementById("go");
+      const statusEl = document.getElementById("status");
+
+      const sanitize = (s) =>
+        s
+          .replace(/[—–]/g, ", ")
+          .replace(/[*_`#>]/g, "")
+          .replace(/\s+,/g, ",")
+          .trim();
+
+      function speak(text, instant) {
+        speakTarget = 1;
+        sayEl.innerHTML = "";
+        const words = text.split(/\s+/);
+        words.forEach((w, i) => {
+          const s = document.createElement("span");
+          s.className = "word";
+          s.textContent = w + (i < words.length - 1 ? " " : "");
+          if (!instant && !reduce) s.style.animationDelay = i * 0.06 + "s";
+          else ((s.style.animation = "none"), (s.style.opacity = 1));
+          sayEl.appendChild(s);
+        });
+        const dur = instant || reduce ? 200 : words.length * 60 + 500;
+        setTimeout(() => {
+          speakTarget = 0;
+        }, dur);
+        return dur;
+      }
+
+      let engine = null;
+      const messages = [{ role: "system", content: SYS }];
+      const OPENER = "there you are. before anything, one breath, in, and out. what should i call you?";
+      let busy = false;
+
+      function enableInput(on) {
+        row.classList.toggle("on", on);
+        ti.disabled = !on;
+        if (on) setTimeout(() => ti.focus({ preventScroll: true }), 60);
+      }
+
+      async function reply(userText) {
+        busy = true;
+        enableInput(false);
+        youEl.textContent = userText;
+        messages.push({ role: "user", content: userText });
+        sayEl.innerHTML = "";
+        speakTarget = 1;
+        try {
+          const stream = await engine.chat.completions.create({
+            messages,
+            stream: true,
+            temperature: 0.75,
+            max_tokens: 110,
+          });
+          let acc = "";
+          for await (const chunk of stream) {
+            acc += chunk.choices[0]?.delta?.content || "";
+            sayEl.textContent = sanitize(acc);
+          }
+          acc = sanitize(acc);
+          messages.push({ role: "assistant", content: acc });
+          speak(acc, true);
+        } catch (e) {
+          speak("my words caught for a moment. say that again.", true);
+        }
+        busy = false;
+        enableInput(true);
+      }
+
+      function submit() {
+        const v = ti.value.trim();
+        if (!v || busy || !engine) return;
+        ti.value = "";
+        reply(v);
+      }
+      send.addEventListener("click", submit);
+      ti.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          submit();
+        }
+      });
+
+      go.addEventListener("click", async () => {
+        go.disabled = true;
+        const hasGPU = "gpu" in navigator;
+        if (!hasGPU) {
+          statusEl.textContent = "this browser has no webgpu";
+          setTimeout(() => {
+            beginEl.classList.add("hidden");
+            speak(
+              "you found me without the headset. that is alright. sit a while, and ask yourself the question i would have asked. who are you, to you?",
+              false
+            );
+          }, 900);
+          return;
+        }
+        statusEl.textContent = "waking the tree";
+        try {
+          const webllm = await import("https://esm.run/@mlc-ai/web-llm");
+          engine = await webllm.CreateMLCEngine("Llama-3.2-1B-Instruct-q4f16_1-MLC", {
+            initProgressCallback: (p) => {
+              const pct = p.progress ? " " + Math.round(p.progress * 100) + "%" : "";
+              statusEl.textContent = (p.text || "loading").slice(0, 42).toLowerCase() + pct;
+            },
+          });
+          // seed the opener as the tree's first turn so context stays coherent
+          messages.push({ role: "assistant", content: OPENER });
+          beginEl.classList.add("hidden");
+          speak(OPENER, false);
+          enableInput(true);
+        } catch (e) {
+          statusEl.textContent = "the tree could not wake here";
+          go.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
