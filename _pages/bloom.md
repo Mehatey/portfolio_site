@@ -120,6 +120,22 @@ next_project:
   </video>
 </div>
 
+<!-- SECTION: SIT WITH IT — live in-browser AI inhabiting a 3D bodhi tree (self-contained, embedded) -->
+<div class="cs-section">
+  <h2 class="cs-section-label">Sit with it</h2>
+</div>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree, alive in the browser. An AI sits inside it. Talk to it.</em></p>
+<div class="cs-bleed" style="margin-top: 12px;">
+  <iframe
+    src="{{ site.baseurl }}/bloom-tree/"
+    title="Bloom — sit with the tree"
+    loading="lazy"
+    allow="autoplay"
+    style="width: 100%; height: clamp(560px, 84vh, 860px); border: 0; display: block; background: #04070c; border-radius: 2px;"
+  ></iframe>
+</div>
+
 <!-- SECTION: ATTENTION IS THE INTERFACE -->
 <div class="cs-section">
   <h2 class="cs-section-label">Attention is the interface</h2>
