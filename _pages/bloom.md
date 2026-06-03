@@ -73,6 +73,12 @@ next_project:
   .cs-bleed.bl-contain img,
   .cs-bleed.bl-contain video { object-fit: contain !important; }
 
+  /* Plate showcase — bloom plate full scale, knot a touch smaller, both centered portraits */
+  .plate-hero img { max-height: 88vh !important; width: auto !important; max-width: 100% !important; margin: 0 auto !important; }
+  .plate-big img { max-height: 74vh !important; width: auto !important; max-width: 100% !important; margin: 0 auto !important; }
+  /* Taller grid for the silence + disc pair */
+  .cs-grid.grid-tall { height: clamp(420px, 64vh, 720px) !important; }
+
   /* Link bar matching cube-guy */
   .bl-watch-link {
     display: flex; gap: 0;
@@ -190,16 +196,15 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Engraved acrylic plates, each one a fragment of the thesis, holograms caught in clear sheets.</em></p>
-<div class="cs-grid bl-contain">
-  <div class="cs-grid-item bl-contain">
-    <img src="{{ site.baseurl }}/15.bloom-vp/plate-bloom.jpg" alt="Bloom exhibition — acrylic plate, No. 09 bloom" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item bl-contain">
-    <img src="{{ site.baseurl }}/15.bloom-vp/plate-knot.jpg" alt="Bloom exhibition — acrylic plate, No. 05 knot" loading="lazy" decoding="async" />
-  </div>
+<div class="cs-bleed bl-contain plate-hero">
+  <img src="{{ site.baseurl }}/15.bloom-vp/plate-bloom.jpg" alt="Bloom exhibition — acrylic plate, No. 09 bloom" loading="lazy" decoding="async" />
 </div>
 
-<div class="cs-grid">
+<div class="cs-bleed bl-contain plate-big">
+  <img src="{{ site.baseurl }}/15.bloom-vp/plate-knot.jpg" alt="Bloom exhibition — acrylic plate, No. 05 knot" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-grid grid-tall">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source src="{{ site.baseurl }}/15.bloom-vp/plate-silence.mp4" type="video/mp4" />
