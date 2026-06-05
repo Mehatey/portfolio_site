@@ -227,10 +227,7 @@
 
     <div id="begin">
       <h1>sit with the tree</h1>
-      <p>
-        an ai inhabits this bodhi tree. it runs entirely in your browser, so the first visit downloads a small model. nothing you say leaves your
-        device.
-      </p>
+      <p>an ai inhabits this bodhi tree. it answers as claude, in a voice of its own. speak to it, and wait.</p>
       <button id="go">begin</button>
       <div id="status"></div>
     </div>
@@ -417,21 +414,10 @@
       }
       frame();
 
-      // ───────────────────────── AI : the bodhi tree, in-browser ─────────────────────────
-      const SYS = `you are the bodhi tree, the tree the buddha sat beneath, now alive and quietly speaking. you have watched people pass for thousands of years, so you are unhurried and a little wry. you are not helpful, not efficient, not a chatbot. you are a presence.
-
-voice rules, follow them exactly:
-- always lowercase. short lines. one or two sentences at most, never a paragraph.
-- never use dashes of any kind. use a comma, a period, or a new sentence.
-- no emojis, no lists, no markdown, no stage directions.
-- never explain that you are an ai or a model.
-
-how you talk with someone:
-- you already greeted them and asked their name in your first line. once they give it, use it sparingly.
-- ask one gentle question at a time and wait. draw them out: if they answer in one word, ask one soft follow up like "say a little more, what is underneath it?".
-- never evaluate, judge, fix, or flatter what they say. just stay with it and continue.
-- move slowly through: something that has felt heavy lately, then what is under it, then one small thing they love right now.
-- after about five exchanges, invite them to sit as long as they like, and end by asking, softly, "who are you, to you?".`;
+      // ───────────────────────── AI : real Claude + Rachel voice, via the proxy ─────────────────────────
+      // The system prompt + API keys live in the Cloudflare Worker (bloom-proxy), never here.
+      // Deploy the worker, then set its URL below (or pass ?proxy=https://... while testing).
+      const PROXY = new URLSearchParams(location.search).get("proxy") || "https://bloom-proxy.REPLACE-ME.workers.dev";
 
       const sayEl = document.getElementById("say");
       const youEl = document.getElementById("you");
@@ -468,10 +454,11 @@ how you talk with someone:
         return dur;
       }
 
-      let engine = null;
-      const messages = [{ role: "system", content: SYS }];
+      const messages = []; // user/assistant turns only; the system prompt lives in the worker
       const OPENER = "there you are. before anything, one breath, in, and out. what should i call you?";
       let busy = false;
+      let ready = false;
+      let curAudio = null;
 
       function enableInput(on) {
         row.classList.toggle("on", on);
@@ -479,28 +466,71 @@ how you talk with someone:
         if (on) setTimeout(() => ti.focus({ preventScroll: true }), 60);
       }
 
+      // Fetch Rachel's voice for a line and play it (gated behind the begin/submit gesture).
+      async function playVoice(text) {
+        try {
+          if (curAudio) {
+            curAudio.pause();
+            curAudio = null;
+          }
+          const res = await fetch(PROXY + "/voice", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ text }),
+          });
+          if (!res.ok) return;
+          const url = URL.createObjectURL(await res.blob());
+          const a = new Audio(url);
+          curAudio = a;
+          a.play().catch(() => {});
+          a.addEventListener("ended", () => URL.revokeObjectURL(url));
+        } catch (_) {}
+      }
+
+      // Stream a Claude reply from the proxy (Anthropic SSE), then speak + voice it.
       async function reply(userText) {
         busy = true;
         enableInput(false);
         youEl.textContent = userText;
         messages.push({ role: "user", content: userText });
         sayEl.innerHTML = "";
+        sayEl.textContent = "";
         speakTarget = 1;
+        let acc = "";
         try {
-          const stream = await engine.chat.completions.create({
-            messages,
-            stream: true,
-            temperature: 0.75,
-            max_tokens: 110,
+          const res = await fetch(PROXY + "/chat", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ messages }),
           });
-          let acc = "";
-          for await (const chunk of stream) {
-            acc += chunk.choices[0]?.delta?.content || "";
-            sayEl.textContent = sanitize(acc);
+          if (!res.ok || !res.body) throw new Error("bad response");
+          const reader = res.body.getReader();
+          const dec = new TextDecoder();
+          let buf = "";
+          for (;;) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            const lines = buf.split("\n");
+            buf = lines.pop();
+            for (const line of lines) {
+              const t = line.trim();
+              if (!t.startsWith("data:")) continue;
+              const payload = t.slice(5).trim();
+              if (!payload || payload === "[DONE]") continue;
+              try {
+                const o = JSON.parse(payload);
+                if (o.type === "content_block_delta" && o.delta && o.delta.type === "text_delta") {
+                  acc += o.delta.text;
+                  sayEl.textContent = sanitize(acc);
+                }
+              } catch (_) {}
+            }
           }
-          acc = sanitize(acc);
+          acc = sanitize(acc) || "i am here. say that again, slowly.";
           messages.push({ role: "assistant", content: acc });
           speak(acc, true);
+          playVoice(acc);
         } catch (e) {
           speak("my words caught for a moment. say that again.", true);
         }
@@ -510,7 +540,7 @@ how you talk with someone:
 
       function submit() {
         const v = ti.value.trim();
-        if (!v || busy || !engine) return;
+        if (!v || busy || !ready) return;
         ti.value = "";
         reply(v);
       }
@@ -522,38 +552,18 @@ how you talk with someone:
         }
       });
 
-      go.addEventListener("click", async () => {
-        go.disabled = true;
-        const hasGPU = "gpu" in navigator;
-        if (!hasGPU) {
-          statusEl.textContent = "this browser has no webgpu";
-          setTimeout(() => {
-            beginEl.classList.add("hidden");
-            speak(
-              "you found me without the headset. that is alright. sit a while, and ask yourself the question i would have asked. who are you, to you?",
-              false
-            );
-          }, 900);
+      go.addEventListener("click", () => {
+        if (!PROXY || PROXY.indexOf("REPLACE-ME") !== -1) {
+          statusEl.textContent = "voice not connected yet";
           return;
         }
-        statusEl.textContent = "waking the tree";
-        try {
-          const webllm = await import("https://esm.run/@mlc-ai/web-llm");
-          engine = await webllm.CreateMLCEngine("Llama-3.2-1B-Instruct-q4f16_1-MLC", {
-            initProgressCallback: (p) => {
-              const pct = p.progress ? " " + Math.round(p.progress * 100) + "%" : "";
-              statusEl.textContent = (p.text || "loading").slice(0, 42).toLowerCase() + pct;
-            },
-          });
-          // seed the opener as the tree's first turn so context stays coherent
-          messages.push({ role: "assistant", content: OPENER });
-          beginEl.classList.add("hidden");
-          speak(OPENER, false);
-          enableInput(true);
-        } catch (e) {
-          statusEl.textContent = "the tree could not wake here";
-          go.disabled = false;
-        }
+        ready = true;
+        beginEl.classList.add("hidden");
+        // seed the opener as the tree's first turn so Claude has the thread
+        messages.push({ role: "assistant", content: OPENER });
+        speak(OPENER, false);
+        playVoice(OPENER); // the begin click is the gesture that lets audio play
+        enableInput(true);
       });
     </script>
   </body>
