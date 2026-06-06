@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>guise</title>
+    <style>
+      :root {
+        --bg: #0a0a0c;
+        --ink: #f4f1ea;
+        --dim: rgba(244, 241, 234, 0.5);
+        --line: rgba(244, 241, 234, 0.16);
+        --accent: #f4f1ea;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { height: 100%; background: var(--bg); overflow: hidden; }
+      body {
+        font-family: ui-sans-serif, -apple-system, "Helvetica Neue", system-ui, sans-serif;
+        color: var(--ink); -webkit-font-smoothing: antialiased;
+      }
+      button, input { font: inherit; color: inherit; }
+
+      /* ── stage ── */
+      #stage { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; }
+      #after, #after2 {
+        position: absolute; inset: 0; background: #000 center/contain no-repeat;
+        opacity: 0;
+        transform: scale(1.05);
+        filter: blur(12px);
+        transition: opacity 1100ms ease, transform 1300ms cubic-bezier(0.16, 1, 0.3, 1), filter 1000ms ease;
+      }
+      #after.on, #after2.on { opacity: 1; transform: scale(1); filter: blur(0px); }
+      #vignette { position: absolute; inset: 0; pointer-events: none;
+        background: radial-gradient(130% 100% at 50% 42%, transparent 55%, rgba(0,0,0,0.6) 100%); }
+
+      /* ── camera bubble ── */
+      #youwrap {
+        position: fixed; left: clamp(18px,3vw,44px); top: 50%; transform: translateY(-50%);
+        width: clamp(150px, 16vw, 240px); aspect-ratio: 3 / 4.4;
+        border-radius: 42% 58% 48% 52% / 34% 46% 54% 66%; overflow: hidden;
+        border: 1px solid var(--line); box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+        background: #000;
+        transition: opacity 500ms ease; z-index: 3;
+        animation: breathe 4.2s ease-in-out infinite, morph 9s ease-in-out infinite;
+      }
+      @keyframes breathe {
+        0%, 100% { transform: translateY(-50%) scale(0.985); box-shadow: 0 14px 40px rgba(0,0,0,0.5); }
+        50%       { transform: translateY(-50%) scale(1.035); box-shadow: 0 14px 40px rgba(0,0,0,0.5); }
+      }
+      @keyframes morph {
+        0%, 100% { border-radius: 42% 58% 48% 52% / 34% 46% 54% 66%; }
+        25%  { border-radius: 56% 44% 62% 38% / 42% 58% 40% 60%; }
+        50%  { border-radius: 38% 62% 44% 56% / 56% 34% 66% 44%; }
+        75%  { border-radius: 62% 38% 52% 48% / 38% 62% 46% 54%; }
+      }
+      #you { display: none; }
+      #particle, #shotthumb { position: absolute; inset: 0; width: 100%; height: 100%; }
+      #particle { opacity: 0.2; }
+      #shotthumb { object-fit: cover; opacity: 0; transition: opacity 350ms ease; transform: scaleX(-1); }
+      #youwrap.locked #shotthumb { opacity: 0.82; }
+      #youwrap.locked #particle  { opacity: 0.08; }
+      #youtag, #shottag {
+        position: absolute; left: 9px; bottom: 7px; font-size: 11px; letter-spacing: 0.16em;
+        text-transform: lowercase; color: var(--ink); text-shadow: 0 1px 8px #000; opacity: 0.85;
+      }
+      #youtag { display: none; }
+      #youwrap.locked #youtag { opacity: 0; }
+      #shottag { right: 9px; left: auto; color: var(--accent); opacity: 0; transition: opacity 250ms ease; }
+      #youwrap.locked #shottag { opacity: 0.95; }
+
+      /* ── countdown ── */
+      #countdown {
+        position: fixed; inset: 0; z-index: 5; display: grid; place-items: center;
+        pointer-events: none; font-size: clamp(72px, 14vw, 180px); font-weight: 200;
+        color: var(--accent);
+        opacity: 0; transform: scale(0.9); transition: opacity 180ms ease, transform 180ms ease;
+      }
+      #countdown.on { opacity: 1; transform: scale(1); }
+
+      /* ── dock ── */
+      #dock {
+        position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; padding: 20px clamp(18px,3vw,44px) 24px;
+        display: flex; flex-direction: column; gap: 14px; align-items: center;
+        background: linear-gradient(to top, rgba(8,8,10,0.92), rgba(8,8,10,0));
+      }
+      #chips { display: flex; gap: 8px; flex-wrap: nowrap; justify-content: center; width: min(980px, 98vw); overflow: visible; }
+      .chip {
+        background: rgba(244,241,234,0.06); border: 1px solid var(--line); border-radius: 999px;
+        padding: 10px 18px; font-size: clamp(11px, 1vw, 13px); letter-spacing: 0.01em; text-transform: lowercase;
+        cursor: pointer; white-space: nowrap;
+        transition: background 180ms ease, border-color 180ms ease, transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), color 180ms ease;
+      }
+      .chip:hover  { background: rgba(244,241,234,0.13); border-color: rgba(244,241,234,0.55); transform: translateY(-3px) scale(1.05); }
+      .chip:active { transform: translateY(0px) scale(0.96); transition-duration: 70ms; }
+
+      #bar { display: flex; align-items: center; gap: 14px; width: min(760px, 94vw); }
+      #prompt {
+        flex: 1; background: rgba(244,241,234,0.07); border: 1px solid var(--line); border-radius: 999px;
+        padding: 14px 20px; outline: none; font-size: 15px; letter-spacing: 0.01em;
+        transition: border-color 200ms ease;
+      }
+      #prompt::placeholder { color: var(--dim); }
+      #prompt:focus { border-color: var(--accent); }
+      #go {
+        background: var(--ink); color: #050506; border: none; border-radius: 999px;
+        padding: 14px 26px; font-weight: 600; letter-spacing: 0.04em; text-transform: lowercase;
+        cursor: pointer; white-space: nowrap;
+        transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1), opacity 200ms ease, box-shadow 200ms ease;
+      }
+      #go:hover    { transform: translateY(-2px) scale(1.03); box-shadow: 0 6px 22px rgba(244,241,234,0.18); }
+      #go:active   { transform: scale(0.96); transition-duration: 70ms; }
+      #go:disabled { opacity: 0.45; cursor: default; transform: none; box-shadow: none; }
+
+      #tools {
+        display: flex; align-items: center; justify-content: center; gap: 28px; flex-wrap: wrap;
+        font-size: 12.5px; color: var(--dim); letter-spacing: 0.04em; min-height: 20px;
+      }
+      #tools .act { cursor: pointer; color: var(--ink); opacity: 0.7; transition: opacity 200ms ease; text-transform: lowercase; }
+      #tools .act:hover { opacity: 1; }
+      #tools .act.off { opacity: 0.25; pointer-events: none; }
+      .slider { display: flex; align-items: center; gap: 9px; text-transform: lowercase; }
+      input[type="range"] { width: min(220px, 44vw); accent-color: var(--accent); }
+      #loader {
+        width: min(720px, 94vw); height: 3px; border-radius: 999px; overflow: hidden;
+        background: rgba(244,241,234,0.09); opacity: 0; transition: opacity 250ms ease;
+      }
+      #loader.on { opacity: 1; }
+      #loaderfill { height: 100%; width: 0%; border-radius: inherit; background: var(--accent); transition: width 220ms ease; }
+
+      /* ── status ── */
+      #status {
+        position: fixed; top: clamp(18px,3vh,34px); left: 50%; transform: translateX(-50%); z-index: 4;
+        font-size: 13px; letter-spacing: 0.14em; text-transform: lowercase; color: var(--ink);
+        opacity: 0; transition: opacity 400ms ease; text-shadow: 0 1px 14px #000; text-align: center;
+        display: flex; flex-direction: column; gap: 6px; pointer-events: none; max-width: 80vw;
+      }
+      #status.on { opacity: 1; }
+      #status .seen { font-size: 11.5px; letter-spacing: 0.06em; color: var(--accent); opacity: 0.85; max-width: 70vw; }
+      #status .dot { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+        margin-right: 7px; animation: pulse 1s ease-in-out infinite; }
+      @keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+      /* ── story typewriter ── */
+      #story {
+        position: fixed; left: 50%; top: 47%; transform: translate(-50%, -50%);
+        z-index: 4; width: min(620px, 72vw); min-height: 3.2em; pointer-events: none;
+        text-align: center; font-size: clamp(18px, 2vw, 30px); line-height: 1.35;
+        font-weight: 300; letter-spacing: 0.02em; color: rgba(244,241,234,0.92);
+        text-shadow: 0 16px 48px rgba(0,0,0,0.8); opacity: 0; transition: opacity 260ms ease;
+      }
+      #story.on { opacity: 1; }
+      #story::after { content: ""; display: inline-block; width: 0.42em; height: 1em; margin-left: 0.12em;
+        border-right: 1px solid currentColor; transform: translateY(0.12em); animation: caret 0.8s steps(1) infinite; }
+      @keyframes caret { 0%, 45% { opacity: 1; } 46%, 100% { opacity: 0; } }
+
+      /* ── guise label ── */
+      #guise {
+        position: fixed; right: clamp(16px,3vw,34px); top: clamp(16px,3vh,30px); z-index: 3;
+        font-size: 13px; letter-spacing: 0.14em; text-transform: lowercase; color: var(--dim);
+        text-shadow: 0 1px 10px #000; opacity: 0; transition: opacity 600ms ease;
+      }
+      #guise.on { opacity: 1; }
+      #stack { position: fixed; right: clamp(16px,3vw,34px); bottom: 14px; z-index: 4;
+        font-size: 10.5px; letter-spacing: 0.1em; text-transform: lowercase; color: rgba(244,241,234,0.28); }
+
+      /* ── shutter flash ── */
+      #flash {
+        position: fixed; inset: 0; z-index: 9; background: #fff;
+        opacity: 0; pointer-events: none; transition: opacity 55ms ease;
+      }
+      #flash.on { opacity: 0.6; }
+
+      /* ── reveal sweep ── */
+      #sweep {
+        position: fixed; inset: 0; z-index: 6; pointer-events: none;
+        background: linear-gradient(to bottom,
+          transparent 0%, rgba(244,241,234,0.04) 38%,
+          rgba(244,241,234,0.14) 50%,
+          rgba(244,241,234,0.04) 62%, transparent 100%);
+        transform: translateY(-110%);
+      }
+      #sweep.scan { animation: sweepDown 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      @keyframes sweepDown { from { transform: translateY(-110%); } to { transform: translateY(110%); } }
+
+      /* ── begin gate ── */
+      #begin {
+        position: fixed; inset: 0; z-index: 10; background: var(--bg);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 22px; text-align: center; padding: 32px; transition: opacity 900ms ease;
+      }
+      #begin.gone { opacity: 0; pointer-events: none; }
+      #begin h1 { font-weight: 300; font-size: clamp(40px,8vw,86px); letter-spacing: 0.32em; text-indent: 0.32em; text-transform: lowercase; }
+      #begin p  { max-width: 30em; line-height: 1.7; color: var(--dim); font-size: clamp(13px,1.6vw,16px); font-weight: 300; }
+      #beginbtn {
+        margin-top: 6px; background: none; border: 1px solid var(--line); border-radius: 999px;
+        padding: 13px 36px; font-size: 15px; letter-spacing: 0.18em; text-transform: lowercase;
+        cursor: pointer; transition: all 350ms ease;
+      }
+      #beginbtn:hover { border-color: var(--ink); letter-spacing: 0.26em; }
+      #beginstatus { height: 1.1em; font-size: 12px; letter-spacing: 0.14em; color: var(--dim); text-transform: lowercase; }
+      .hide { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; left: -10px; top: -10px; }
+    </style>
+  </head>
+  <body>
+    <div id="stage">
+      <div id="after"></div>
+      <div id="after2"></div>
+      <div id="vignette"></div>
+    </div>
+
+    <div id="guise"></div>
+
+    <div id="youwrap">
+      <video id="you" autoplay playsinline muted></video>
+      <canvas id="particle"></canvas>
+      <img id="shotthumb" alt="" />
+      <span id="shottag">shot locked</span>
+    </div>
+
+    <div id="countdown"></div>
+    <div id="flash"></div>
+    <div id="sweep"></div>
+    <div id="status"></div>
+    <div id="story"></div>
+
+    <div id="dock">
+      <div id="chips"></div>
+      <div id="bar">
+        <input id="prompt" type="text" placeholder="type anything to become, then enter" autocomplete="off" />
+        <button id="go">become</button>
+      </div>
+      <div id="loader"><div id="loaderfill"></div></div>
+      <div id="tools">
+        <span class="slider">keep me <input id="strength" type="range" min="0" max="100" value="70" /> go wild</span>
+        <span class="act off" id="download">download</span>
+      </div>
+    </div>
+
+    <div id="stack">florence-2 + flux, live</div>
+
+    <div id="begin">
+      <h1>guise</h1>
+      <p>a live machine looks at you, then becomes whatever you ask. type a world, a character, a material. it keeps your pose and remakes the rest.</p>
+      <button id="beginbtn">begin</button>
+      <div id="beginstatus"></div>
+    </div>
+
+    <script>
+      const PROXY =
+        location.hostname === "localhost" || location.hostname === "127.0.0.1"
+          ? "http://localhost:8011"
+          : `${location.origin}/guise-api`;
+      const QUALITY = "photorealistic, cinematic lighting, sharp focus, rich detail, 35mm";
+
+      const PRESETS = [
+        ["viking warrior",       "a viking warrior in fur and iron, cold northern light, snow"],
+        ["cyberpunk",            "a cyberpunk figure, neon rim light, rain, dense future city"],
+        ["renaissance portrait", "a renaissance oil painting portrait, chiaroscuro, candlelight"],
+        ["marble statue",        "a carved white marble statue, museum light, intricate"],
+        ["studio ghibli",        "a studio ghibli anime painting, soft warm color, hand drawn"],
+        ["film noir",            "a 1940s film noir detective, hard shadows, smoke, monochrome"],
+        ["astronaut",            "an astronaut in a detailed spacesuit, lens flare, orbit behind"],
+        ["bronze deity",         "an ancient bronze deity, patina, gold leaf, temple light"],
+        ["post apocalyptic",     "a post apocalyptic survivor, dust, scavenged armor, ruins"],
+        ["porcelain",            "a fine porcelain figure, glaze, delicate cracks, soft studio light"],
+      ];
+
+      const PRESET_STORIES = {
+        "viking warrior": [
+          "the cold north stirs beneath your skin",
+          "iron is remembering how to become you",
+          "your ancestors lean forward in the dark",
+          "the storm is choosing which parts to keep",
+          "valhalla adjusts to make room",
+        ],
+        "cyberpunk": [
+          "the city grid is sampling your signal",
+          "neon rewriting the spaces between cells",
+          "your reflection flickers on wet concrete",
+          "chrome threading into what used to be skin",
+          "the machine dreams in your frequency",
+        ],
+        "renaissance portrait": [
+          "candlelight learning the curve of your jaw",
+          "five centuries of brushwork converging on this face",
+          "the old masters are arguing about the shadows",
+          "oil and linseed remembering a face like yours",
+          "something immortal is being decided",
+        ],
+        "marble statue": [
+          "the stone was always waiting for this shape",
+          "the chisel finding what was already inside",
+          "millennia of stillness learning your posture",
+          "even the dust is holding its breath",
+          "the museum is making space",
+        ],
+        "studio ghibli": [
+          "the forest spirits noticed you",
+          "something warm and hand-drawn stirs in the frame",
+          "miyazaki-light through an imagined window",
+          "the world is getting softer at its edges",
+          "a gentle magic is deciding your outline",
+        ],
+        "film noir": [
+          "the smoke already knew you were coming",
+          "shadows learning your silhouette by heart",
+          "rain practicing on your reflection",
+          "1947 is adjusting itself to fit you",
+          "the case was always about you",
+        ],
+        "astronaut": [
+          "the void is curious about your face",
+          "orbit recalculating for a new kind of payload",
+          "three hundred miles up, something blinks",
+          "your heartbeat syncing to the hum of the ship",
+          "the stars are waiting to see who arrives",
+        ],
+        "bronze deity": [
+          "the temple remembers a face like yours",
+          "gold and verdigris learning devotion",
+          "ten thousand years of prayer shaping the metal",
+          "the incense smoke is writing your name",
+          "something ancient is granting the transformation",
+        ],
+        "post apocalyptic": [
+          "the ruins are deciding what you survive as",
+          "scrap and salvage learning the weight of you",
+          "the dust has seen worse things become beautiful",
+          "this world has room for one more",
+          "something in the rubble recognizes you",
+        ],
+        "porcelain": [
+          "the kiln dreaming at a thousand degrees",
+          "glaze learning the geography of a face",
+          "crack lines mapping where you have been",
+          "a delicacy that took centuries to perfect",
+          "fragile and eternal are the same word",
+        ],
+      };
+
+      function storyLines(label) {
+        return PRESET_STORIES[label] || [
+          "the machine is studying your edges",
+          `dissolving what you were`,
+          "the image is learning to forget itself",
+          "something new is remembering your shape",
+          "almost",
+        ];
+      }
+
+      // ── audio ─────────────────────────────────────────────────────────────
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      let audioCtx = null;
+
+      function getAudio() {
+        if (!audioCtx) audioCtx = new AudioCtx();
+        if (audioCtx.state === "suspended") audioCtx.resume();
+        return audioCtx;
+      }
+
+      function playTone(freq, dur, type = "sine", vol = 0.14) {
+        try {
+          const ctx = getAudio();
+          const osc = ctx.createOscillator();
+          const g   = ctx.createGain();
+          osc.connect(g); g.connect(ctx.destination);
+          osc.type = type;
+          osc.frequency.value = freq;
+          g.gain.setValueAtTime(vol, ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+          osc.start(ctx.currentTime);
+          osc.stop(ctx.currentTime + dur + 0.01);
+        } catch (e) {}
+      }
+
+      function playClick() {
+        playTone(1400, 0.032, "sine", 0.09);
+      }
+
+      function playBeep(n) {
+        playTone(n === 1 ? 880 : 660, 0.13, "sine", 0.17);
+      }
+
+      function playShutter() {
+        try {
+          const ctx = getAudio();
+          const len = Math.floor(ctx.sampleRate * 0.065);
+          const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+          const d   = buf.getChannelData(0);
+          for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / len) * 0.32;
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          const g = ctx.createGain(); g.gain.value = 0.45;
+          src.connect(g); g.connect(ctx.destination);
+          src.start();
+        } catch (e) {}
+      }
+
+      function playReveal() {
+        [196, 294, 392].forEach((f, i) => setTimeout(() => playTone(f, 1.4, "sine", 0.055), i * 90));
+      }
+
+      // ── DOM ──────────────────────────────────────────────────────────────
+      const you        = document.getElementById("you");
+      const youwrap    = document.getElementById("youwrap");
+      const particle   = document.getElementById("particle");
+      const pctx       = particle.getContext("2d");
+      const shotthumb  = document.getElementById("shotthumb");
+      const afters     = [document.getElementById("after"), document.getElementById("after2")];
+      const chipsEl    = document.getElementById("chips");
+      const promptEl   = document.getElementById("prompt");
+      const go         = document.getElementById("go");
+      const countdownEl= document.getElementById("countdown");
+      const statusEl   = document.getElementById("status");
+      const loaderEl   = document.getElementById("loader");
+      const loaderFill = document.getElementById("loaderfill");
+      const storyEl    = document.getElementById("story");
+      const guiseEl    = document.getElementById("guise");
+      const strengthEl = document.getElementById("strength");
+      const downloadEl = document.getElementById("download");
+      const beginEl    = document.getElementById("begin");
+      const beginBtn   = document.getElementById("beginbtn");
+      const beginStatus= document.getElementById("beginstatus");
+      const flashEl    = document.getElementById("flash");
+      const sweepEl    = document.getElementById("sweep");
+
+      const cap  = document.createElement("canvas");
+      const capx = cap.getContext("2d");
+
+      let busy = false, front = 0, lastUrl = null, lastFreeze = null, ready = false;
+      let progressFrame = null, storyToken = 0;
+
+      // chips
+      for (const [label, full] of PRESETS) {
+        const b = document.createElement("div");
+        b.className = "chip"; b.textContent = label;
+        b.addEventListener("click", () => { playClick(); if (!busy) { promptEl.value = label; run(label, full); } });
+        chipsEl.appendChild(b);
+      }
+
+      function status(main, seen) {
+        statusEl.innerHTML = main
+          ? `<div><span class="dot"></span>${main}</div>` + (seen ? `<div class="seen">${seen}</div>` : "")
+          : "";
+        statusEl.classList.toggle("on", !!main);
+        loaderEl.classList.toggle("on", !!main);
+      }
+
+      function startProgress(seconds = 22) {
+        cancelAnimationFrame(progressFrame);
+        const start = performance.now();
+        loaderFill.style.width = "4%";
+        const tick = (now) => {
+          const raw   = Math.min((now - start) / (seconds * 1000), 1);
+          const eased = 1 - Math.pow(1 - raw, 2.2);
+          loaderFill.style.width = `${Math.min(94, 6 + eased * 88)}%`;
+          if (raw < 1 && busy) progressFrame = requestAnimationFrame(tick);
+        };
+        progressFrame = requestAnimationFrame(tick);
+      }
+
+      function finishProgress() { cancelAnimationFrame(progressFrame); loaderFill.style.width = "100%"; }
+      function clearProgress()  { cancelAnimationFrame(progressFrame); setTimeout(() => { if (!busy) loaderFill.style.width = "0%"; }, 260); }
+
+      async function startStory(lines) {
+        const token = ++storyToken;
+        storyEl.classList.add("on");
+        while (token === storyToken) {
+          for (const line of lines) {
+            storyEl.textContent = "";
+            for (let i = 1; i <= line.length && token === storyToken; i++) {
+              storyEl.textContent = line.slice(0, i);
+              await new Promise((r) => setTimeout(r, 24));
+            }
+            await new Promise((r) => setTimeout(r, 900));
+            for (let i = line.length; i >= 0 && token === storyToken; i -= 2) {
+              storyEl.textContent = line.slice(0, i);
+              await new Promise((r) => setTimeout(r, 12));
+            }
+          }
+        }
+      }
+
+      function stopStory() {
+        storyToken++;
+        storyEl.classList.remove("on");
+        storyEl.textContent = "";
+      }
+
+      async function poseCountdown() {
+        youwrap.classList.remove("locked");
+        for (const [mark, n] of [["3", 3], ["2", 2], ["1", 1]]) {
+          countdownEl.textContent = mark;
+          countdownEl.classList.add("on");
+          status(`pose in ${mark}`);
+          playBeep(n);
+          await new Promise((r) => setTimeout(r, 720));
+          countdownEl.classList.remove("on");
+          await new Promise((r) => setTimeout(r, 140));
+        }
+        countdownEl.textContent = "hold";
+        countdownEl.classList.add("on");
+        status("capturing");
+        await new Promise((r) => setTimeout(r, 260));
+        countdownEl.classList.remove("on");
+      }
+
+      function drawParticles() {
+        requestAnimationFrame(drawParticles);
+        if (!ready || !you.videoWidth) return;
+
+        const box = youwrap.getBoundingClientRect();
+        const w = Math.floor(box.width  * devicePixelRatio);
+        const h = Math.floor(box.height * devicePixelRatio);
+        if (particle.width !== w || particle.height !== h) { particle.width = w; particle.height = h; }
+
+        cap.width = 112; cap.height = 160;
+        const vw = you.videoWidth, vh = you.videoHeight;
+        const targetRatio = cap.width / cap.height;
+        let sx = 0, sy = 0, sw = vw, sh = vh;
+        if (vw / vh > targetRatio) { sw = vh * targetRatio; sx = (vw - sw) / 2; }
+        else                        { sh = vw / targetRatio; sy = (vh - sh) / 2; }
+        capx.save();
+        capx.translate(112, 0); capx.scale(-1, 1);
+        capx.drawImage(you, sx, sy, sw, sh, 0, 0, 112, 160);
+        capx.restore();
+
+        const pixels = capx.getImageData(0, 0, 112, 160).data;
+        pctx.clearRect(0, 0, w, h);
+        pctx.fillStyle = "rgba(0,0,0,0.22)";
+        pctx.fillRect(0, 0, w, h);
+
+        const step   = 4;
+        const xScale = w / 112;
+        const yScale = h / 160;
+        const t      = performance.now() * 0.0015;
+        for (let y = 0; y < 160; y += step) {
+          for (let x = 0; x < 112; x += step) {
+            const i = (y * 112 + x) * 4;
+            const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+            const light = (r + g + b) / 765;
+            if (light < 0.08) continue;
+            const drift  = Math.sin(t + x * 0.1 + y * 0.08) * 0.9;
+            const radius = Math.max(1.15, light * 3.1) * devicePixelRatio;
+            pctx.fillStyle = `rgba(${r + 18}, ${g + 18}, ${b + 18}, ${0.2 + light * 0.28})`;
+            pctx.beginPath();
+            pctx.arc((x + 0.5) * xScale + drift, (y + 0.5) * yScale - drift, radius, 0, Math.PI * 2);
+            pctx.fill();
+          }
+        }
+      }
+
+      function freezeFrame() {
+        const N = 1024; cap.width = N; cap.height = N;
+        const vw = you.videoWidth || N, vh = you.videoHeight || N;
+        const s = Math.min(vw, vh);
+        capx.save();
+        capx.translate(N, 0); capx.scale(-1, 1);
+        capx.drawImage(you, (vw - s) / 2, (vh - s) / 2, s, s, 0, 0, N, N);
+        capx.restore();
+        const data = cap.toDataURL("image/jpeg", 0.9);
+        shotthumb.src = data;
+        youwrap.classList.add("locked");
+        // shutter
+        playShutter();
+        flashEl.classList.add("on");
+        setTimeout(() => flashEl.classList.remove("on"), 150);
+        return data;
+      }
+
+      function showImage(url) {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            const next = front ^ 1;
+            afters[next].style.backgroundImage = `url(${url})`;
+            void afters[next].offsetWidth; // force reflow so transition fires
+            afters[next].classList.add("on");
+            afters[front].classList.remove("on");
+            front = next;
+            // sweep + audio
+            playReveal();
+            sweepEl.classList.remove("scan");
+            void sweepEl.offsetWidth;
+            sweepEl.classList.add("scan");
+            setTimeout(() => sweepEl.classList.remove("scan"), 1200);
+            resolve();
+          };
+          img.onerror = () => resolve();
+          img.src = url;
+        });
+      }
+
+      function cleanCaption(c) {
+        return (c || "").replace(/^the image (shows|is|depicts)\s*/i, "").replace(/\.$/, "").trim().slice(0, 160);
+      }
+
+      function buildPrompt(caption, full) {
+        const wish = full.toLowerCase();
+        const who  = caption ? `the subject is ${caption}. ` : "";
+        const creature = wish.includes("alien")
+          ? "Make the person unmistakably non-human: alien skin texture, altered skull and eyes, strange anatomy, biomechanical or extraterrestrial details. Do not leave them as a normal human selfie."
+          : `Radically transform the visible person into ${full}. Do not merely change lighting, clothes, or makeup.`;
+        return `Edit this source photo. ${who}${creature} Preserve the camera pose and framing, but let the face, body, materials, and world fully become the requested guise. ${QUALITY}`;
+      }
+
+      async function post(path, body) {
+        const r = await fetch(PROXY + path, {
+          method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body),
+        });
+        return r.json();
+      }
+
+      async function run(label, full) {
+        if (busy || !ready) return;
+        full = full || label;
+        busy = true; go.disabled = true;
+        downloadEl.classList.add("off");
+        await poseCountdown();
+        const freeze = freezeFrame();
+        lastFreeze = freeze;
+        try {
+          status("shot locked");
+          await new Promise((r) => setTimeout(r, 650));
+          youwrap.classList.remove("locked");
+          startProgress(22);
+          startStory(storyLines(label));
+          status("seeing you");
+          const seen    = await post("/see", { image_data_url: freeze });
+          const caption = cleanCaption(seen.caption);
+          status(`becoming ${label} · estimating 20s`, caption ? `seen: ${caption}` : "");
+          const control = 1.0 - (strengthEl.value / 100) * 0.4;
+          const tr      = await post("/transform", { prompt: buildPrompt(caption, full), image_data_url: freeze, control });
+          if (!tr.ok) throw new Error(tr.error || "transform failed");
+          finishProgress();
+          await showImage(tr.url);
+          lastUrl = tr.url;
+          guiseEl.textContent = label; guiseEl.classList.add("on");
+          downloadEl.classList.remove("off");
+          stopStory();
+          status("");
+        } catch (e) {
+          stopStory();
+          status("that one slipped. try again.");
+          setTimeout(() => status(""), 1800);
+        }
+        clearProgress();
+        busy = false; go.disabled = false;
+      }
+
+      async function download() {
+        if (!lastUrl) return;
+        try {
+          const blob = await fetch(lastUrl).then((r) => r.blob());
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "guise-" + (guiseEl.textContent || "image").replace(/\s+/g, "-") + ".jpg";
+          a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+        } catch (e) { window.open(lastUrl, "_blank"); }
+      }
+
+      function submit() {
+        const v = promptEl.value.trim();
+        if (v) { playClick(); run(v, v); }
+      }
+      go.addEventListener("click", submit);
+      promptEl.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+      downloadEl.addEventListener("click", () => { playClick(); download(); });
+
+      async function begin() {
+        beginBtn.disabled = true;
+        try {
+          beginStatus.textContent = "opening the camera";
+          const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+          you.srcObject = stream;
+          await new Promise((r) => (you.onloadedmetadata = r));
+          await you.play();
+        } catch (e) { beginStatus.textContent = "camera not available"; beginBtn.disabled = false; return; }
+        try {
+          const h = await fetch(PROXY + "/health").then((r) => r.json());
+          if (!h.ok) throw 0;
+        } catch (e) { beginStatus.textContent = "start the proxy first"; beginBtn.disabled = false; return; }
+        ready = true;
+        beginEl.classList.add("gone");
+        drawParticles();
+        setTimeout(() => promptEl.focus(), 400);
+      }
+      beginBtn.addEventListener("click", () => { playClick(); begin(); });
+    </script>
+  </body>
+</html>
