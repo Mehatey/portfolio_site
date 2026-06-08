@@ -306,6 +306,80 @@
         animation: worksFadeUp 0.85s var(--ease-out) 0.28s forwards;
       }
 
+      /* ── REEL BUTTON ── */
+      .works-reel-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 22px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.52);
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        padding: 10px 18px;
+        cursor: none;
+        transition: border-color 0.25s, color 0.25s;
+        opacity: 0;
+        animation: worksFadeUp 0.85s var(--ease-out) 0.38s forwards;
+      }
+      .works-reel-btn:hover {
+        border-color: rgba(160, 200, 255, 0.45);
+        color: rgba(220, 240, 255, 0.92);
+      }
+
+      /* ── REEL MODAL ── (same pattern as home page intro-modal) */
+      #works-reel-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: #07060c;
+        z-index: 9000;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.4s ease;
+      }
+      #works-reel-modal.open { opacity: 1; }
+      #works-reel-video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        position: relative;
+        z-index: 1;
+      }
+      #works-reel-close {
+        position: absolute;
+        top: max(20px, env(safe-area-inset-top));
+        right: max(24px, env(safe-area-inset-right));
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.5);
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 15px;
+        cursor: none;
+        z-index: 20;
+        transition: border-color 0.2s, color 0.2s, background 0.2s;
+        opacity: 0;
+        animation: none;
+      }
+      #works-reel-modal.open #works-reel-close {
+        animation: modalCloseIn 0.3s ease 0.8s forwards;
+      }
+      @keyframes modalCloseIn { to { opacity: 1; } }
+      #works-reel-close:hover {
+        border-color: rgba(255, 255, 255, 0.5);
+        color: #fff;
+        background: rgba(255, 255, 255, 0.1);
+      }
+
       /* ── FILTER TABS ── sits naturally below hero, scrolls with content (was sticky;
          was overlapping chapter dividers awkwardly as user scrolled). */
       .filter-bar {
@@ -1525,6 +1599,7 @@
     <header class="works-hero" id="main">
       <h1 class="works-title">Selected<br />Work</h1>
       <p class="works-subtitle">Design, technology, and culture. VR narratives, brand systems, interactive installations, and spatial experiences.</p>
+      <button type="button" class="works-reel-btn" id="works-reel-btn" aria-label="Watch intro reel">▶ Watch Reel</button>
     </header>
 
     <!-- Recognition marquee — below hero, before filter -->
@@ -1888,6 +1963,18 @@
          the closing CTA; back-to-back hero-sized type was clashing. Also kills the small vertical
          blue line that was its ::before divider.) -->
 
+    <!-- Reel modal (same video as home page desk hover) -->
+    <div id="works-reel-modal" role="dialog" aria-modal="true" aria-label="Intro reel">
+      <video
+        id="works-reel-video"
+        playsinline
+        controls
+        preload="metadata"
+        src="https://github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4"
+      ></video>
+      <button type="button" id="works-reel-close" aria-label="Close video">✕</button>
+    </div>
+
     <!-- FOOTER -->
     {% include site_footer.html %} {% include cursor_fluid.html %}
 
@@ -2107,6 +2194,33 @@
       })();
 
       // 3D mousemove tilt removed — relying on the CSS :hover lift for a calmer, more confident feel
+
+      // ── REEL MODAL ──
+      (function () {
+        var btn = document.getElementById("works-reel-btn");
+        var modal = document.getElementById("works-reel-modal");
+        var vid = document.getElementById("works-reel-video");
+        var closeBtn = document.getElementById("works-reel-close");
+        if (!btn || !modal || !vid) return;
+
+        function openModal() {
+          modal.style.display = "flex";
+          requestAnimationFrame(function () { modal.classList.add("open"); });
+          vid.play();
+        }
+        function closeModal() {
+          modal.classList.remove("open");
+          setTimeout(function () { modal.style.display = "none"; }, 400);
+          vid.pause();
+          vid.currentTime = 0;
+        }
+
+        btn.addEventListener("click", openModal);
+        closeBtn.addEventListener("click", closeModal);
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && modal.classList.contains("open")) closeModal();
+        });
+      })();
     </script>
 
     <!-- (Works smoke shader now lives in _includes/smoke_bg.html — included at top of body.) -->
