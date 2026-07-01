@@ -8,7 +8,7 @@ tagline: >
 category: Installation · Creative Tech
 year: 2026
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)"
-hero_image: "6.mindu/cover 2.webp"
+hero_image: "6.mindu/cover2.webp"
 meta:
   - label: Role
     value: Developer
@@ -150,7 +150,7 @@ next_project:
   <video src="{{ site.baseurl }}/6.mindu/kiosk1.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Walkthrough of the Mind Your Feelings kiosk"></video>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>The color of the emotion you draw is sent to the brain — and the brain lights up in that color.</em></p>
+<p class="cube-cap cube-cap--above"><em>The color of the emotion you draw is sent to the brain, which lights up in that color.</em></p>
 <div class="cs-bleed">
   <video src="{{ site.baseurl }}/6.mindu/kiosk2.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Color of the drawn emotion sent to the brain"></video>
 </div>

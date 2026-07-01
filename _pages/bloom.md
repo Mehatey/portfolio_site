@@ -120,6 +120,46 @@ next_project:
   </video>
 </div>
 
+<!-- VP SCENES: after opening, before interactive iframe -->
+<p class="cube-cap cube-cap--above"><em>The six scenes the app moves through. Each one a different quality of stillness.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/15.bloom-vp/scene-1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/15.bloom-vp/scene-2.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+    <source src="{{ site.baseurl }}/15.bloom-vp/scene-18.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/15.bloom-vp/scene-21.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source src="{{ site.baseurl }}/15.bloom-vp/scene-22.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<div class="cs-bleed">
+  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+    <source src="{{ site.baseurl }}/15.bloom-vp/scene-23.mp4" type="video/mp4" />
+  </video>
+</div>
+
 <!-- SECTION: SIT WITH IT — live in-browser AI inhabiting a 3D bodhi tree (self-contained, embedded) -->
 <div class="cs-section">
   <h2 class="cs-section-label">Sit with it</h2>
@@ -129,7 +169,7 @@ next_project:
 <div class="cs-bleed" style="margin-top: 12px;">
   <iframe
     src="{{ site.baseurl }}/bloom-tree/"
-    title="Bloom — sit with the tree"
+    title="Bloom: sit with the tree"
     loading="lazy"
     allow="autoplay"
     style="width: 100%; height: clamp(560px, 84vh, 860px); border: 0; display: block; background: #04070c; border-radius: 2px;"
@@ -176,7 +216,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Fragments of that noise, burned into wood. The messages that view you without ever respecting you.</em></p>
 <div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/notifications.jpg" alt="Bloom exhibition — engraved wood panel of notification fragments" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/15.bloom-vp/notifications.jpg" alt="Bloom exhibition: engraved wood panel of notification fragments" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: MEASURING THE CALM -->
@@ -193,7 +233,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled on the tree.</em></p>
 <div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/brainbit.jpg" alt="BrainBit Studio — EEG brain log from a Bloom session" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/15.bloom-vp/brainbit.jpg" alt="BrainBit Studio: EEG brain log from a Bloom session" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: IN THE ROOM -->
@@ -203,21 +243,21 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree made physical. A small altar where the digital stillness met the room.</em></p>
 <div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/altar.jpg" alt="Bloom exhibition — physical bodhi altar with holographic sheet and lotus" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/15.bloom-vp/altar.jpg" alt="Bloom exhibition: physical bodhi altar with holographic sheet and lotus" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>It started with me asking people what is beautiful and broken about the world.</em></p>
 <div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/poem-panel.jpg" alt="Bloom exhibition — laser engraved wooden panel with the project text" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/15.bloom-vp/poem-panel.jpg" alt="Bloom exhibition: laser engraved wooden panel with the project text" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Engraved acrylic plates, each one a fragment of the thesis, holograms caught in clear sheets.</em></p>
 <div class="cs-bleed bl-contain plate-hero">
-  <img src="{{ site.baseurl }}/15.bloom-vp/plate-bloom.jpg" alt="Bloom exhibition — acrylic plate, No. 09 bloom" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/15.bloom-vp/plate-bloom.jpg" alt="Bloom exhibition: acrylic plate, No. 09 bloom" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed bl-contain plate-big">
-  <img src="{{ site.baseurl }}/15.bloom-vp/plate-knot.jpg" alt="Bloom exhibition — acrylic plate, No. 05 knot" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/15.bloom-vp/plate-knot.jpg" alt="Bloom exhibition: acrylic plate, No. 05 knot" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid grid-tall">
@@ -227,7 +267,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item bl-contain">
-    <img src="{{ site.baseurl }}/15.bloom-vp/disc.jpg" alt="Bloom exhibition — clear acrylic disc with engraved text" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/15.bloom-vp/disc.jpg" alt="Bloom exhibition: clear acrylic disc with engraved text" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -248,7 +288,7 @@ next_project:
 <!-- CLOSE: poster -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Who are you, to you.</em></p>
 <div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/poster.jpg" alt="Bloom — who are you, to you" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/15.bloom-vp/poster.jpg" alt="Bloom: who are you, to you" loading="lazy" decoding="async" />
 </div>
 
 <script>
