@@ -499,6 +499,13 @@
         padding-bottom: 48px;
         scrollbar-width: thin;
         scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+        filter: url(#liq-filter);
+        will-change: filter;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .works-list {
+          filter: none;
+        }
       }
       .works-list::-webkit-scrollbar {
         width: 3px;
@@ -1822,6 +1829,42 @@
         setPreview(items[0], false);
       })();
 
+      // ── LIQUIFY WARP — scroll velocity drives SVG displacement scale ──
+      (function () {
+        var list = document.getElementById("works-list");
+        var displace = document.getElementById("liq-displace");
+        if (!list || !displace) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var lastTop = 0;
+        var cur = 0;
+        var target = 0;
+        var rafId = null;
+        function tick() {
+          cur += (target - cur) * 0.14;
+          target *= 0.78;
+          var s = Math.abs(cur);
+          displace.setAttribute("scale", s.toFixed(2));
+          if (s > 0.15 || Math.abs(target) > 0.15) {
+            rafId = requestAnimationFrame(tick);
+          } else {
+            displace.setAttribute("scale", "0");
+            cur = 0;
+            target = 0;
+            rafId = null;
+          }
+        }
+        list.addEventListener(
+          "scroll",
+          function () {
+            var delta = Math.abs(list.scrollTop - lastTop);
+            lastTop = list.scrollTop;
+            target = Math.min(24, target + delta * 0.65);
+            if (!rafId) rafId = requestAnimationFrame(tick);
+          },
+          { passive: true }
+        );
+      })();
+
       // ── LIST STAGGER REVEAL ──
       (function () {
         var rm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -1919,6 +1962,10 @@
         <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.007 0.048" numOctaves="1" seed="9" result="noise" />
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="liq-filter" x="-10%" y="-2%" width="120%" height="104%" color-interpolation-filters="sRGB">
+          <feTurbulence type="turbulence" baseFrequency="0.014 0.007" numOctaves="2" seed="42" result="noise" />
+          <feDisplacementMap id="liq-displace" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </defs>
     </svg>
