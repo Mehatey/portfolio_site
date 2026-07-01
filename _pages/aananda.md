@@ -4,7 +4,7 @@ permalink: /aananda/
 project_title: Aananda
 proj_num: "13"
 tagline: >
-  Aananda is an exploration of how Jain philosophy can be made more accessible, especially for younger audiences. The project began with a simple question: how do we translate something deeply philosophical into a form that feels intuitive, visual, and engaging today? The project spans multiple touchpoints, a mobile app designed after studying existing religious platforms, a book inspired by the visual language of Jain temples, and a broader digital and print identity aimed at building awareness.
+  Aananda explores how Jain philosophy reaches younger audiences without losing what makes it deep. The question was how to translate something ancient and dense into a form that feels present. The project spans a mobile app studied against existing religious platforms, a book drawing from the visual language of Jain temples, and a print identity that holds it together.
 category: Branding · App Design
 year: 2020
 hero_bg: "radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)"
@@ -20,10 +20,10 @@ meta:
   - label: Client
     value: Self Initiated
 reflection: >
-  This project pushed me to work with something that is deeply personal yet culturally complex. Translating Jain philosophy into design was not just about aesthetics but about responsibility, making sure the meaning stayed intact while still feeling approachable. The process was shaped heavily by conversations and research, sitting with my father and understanding these ideas in depth changed how I approached the work.
+  This project pushed me to work with something deeply personal and culturally layered. Translating Jain philosophy into design meant carrying responsibility alongside the aesthetics. The process was shaped more by conversations than by references: sitting with my father and understanding these ideas from the inside changed how I approached the visual decisions.
 
 
-  What stayed with me was the idea that design can act as a bridge, not just between user and product, but between generations, between knowledge and understanding. It was less about designing screens or visuals and more about interpreting meaning.
+  What stayed with me was how much the work depended on staying faithful to the source. Every type choice, color, and compositional pattern had to feel earned rather than borrowed. Design here was interpretation, not just production.
 next_project:
   title: Alpha Stockathon
   url: /alpha-stockathon/

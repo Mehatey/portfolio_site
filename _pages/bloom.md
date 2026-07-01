@@ -54,7 +54,7 @@ next_project:
   .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
   .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid, .cube-cap--above + .cs-grid-3 { margin-top: 12px !important; }
 
-  /* Grid sizing — fixed height, cover to fill (cube-guy pattern) */
+  /* Grid sizing: fixed height, cover to fill (cube-guy pattern) */
   .cs-grid, .cs-grid-3 {
     height: clamp(320px, 50vh, 560px);
     grid-template-rows: 1fr;
@@ -67,13 +67,13 @@ next_project:
     object-position: center center;
   }
 
-  /* bl-contain — override cover where natural ratio matters (portraits, plates) */
+  /* bl-contain: override cover where natural ratio matters (portraits, plates) */
   .cs-grid-item.bl-contain img,
   .cs-grid-item.bl-contain video,
   .cs-bleed.bl-contain img,
   .cs-bleed.bl-contain video { object-fit: contain !important; }
 
-  /* Plate showcase — bloom plate full scale, knot a touch smaller, both centered portraits */
+  /* Plate showcase: bloom plate full scale, knot a touch smaller, both centered portraits */
   .plate-hero img { max-height: 88vh !important; width: auto !important; max-width: 100% !important; margin: 0 auto !important; }
   .plate-big img { max-height: 74vh !important; width: auto !important; max-width: 100% !important; margin: 0 auto !important; }
   /* Taller grid for the silence + disc pair */
@@ -160,7 +160,7 @@ next_project:
   </video>
 </div>
 
-<!-- SECTION: SIT WITH IT — live in-browser AI inhabiting a 3D bodhi tree (self-contained, embedded) -->
+<!-- SECTION: SIT WITH IT - live in-browser AI inhabiting a 3D bodhi tree (self-contained, embedded) -->
 <div class="cs-section">
   <h2 class="cs-section-label">Sit with it</h2>
 </div>

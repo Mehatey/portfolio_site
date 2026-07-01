@@ -4,7 +4,7 @@ permalink: /illustrations/
 project_title: Illustrations
 proj_num: "16"
 tagline: >
-  A collection of illustrations created over the years, functioning more like a playground than a single project. Experiments across styles, themes, and mediums, from personal visual diaries and abstract compositions to culturally inspired graphics and conceptual storytelling. Some pieces are driven by music and emotion, some by structure and geometry, and others by narratives or social ideas.
+  A collection of illustrations built over the years, functioning more like a playground than a single project. Experiments across styles, themes, and mediums: visual diaries, abstract compositions, cultural graphics, conceptual storytelling. The only rule was following what felt interesting at the time.
 category: Illustration · Visual Diary
 year: 2018–2025
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)"

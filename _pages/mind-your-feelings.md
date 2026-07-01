@@ -4,7 +4,7 @@ permalink: /mind-your-feelings/
 project_title: Mind Your Feelings
 proj_num: "03"
 tagline: >
-  Mind Your Feelings is a participatory installation at the Johnson Public Library in Hackensack that visualizes the feelings of community members. The system combines a touchscreen interface with a responsive LED brain sculpture, allowing users to select emotions, map them onto the body, and see them come alive through light. Over 800 participants have experienced the installation, turning internal emotional states into shared, tangible moments of reflection.
+  Mind Your Feelings is a participatory installation at the Johnson Public Library in Hackensack that visualizes the feelings of community members. The system combines a touchscreen interface with a responsive LED brain sculpture, letting people select emotions, map them onto the body, and watch the brain light up in that color. Over 800 participants have been through it, drawing their feelings and watching the brain respond in real time.
 category: Installation · Creative Tech
 year: 2026
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)"
@@ -24,10 +24,10 @@ meta:
     value: Northern NJ Community Foundation · ArtsBergen
 refl_bg: "6.mindu/refl_bg.jpg"
 reflection: >
-  This was the first project where I had to connect physical hardware to a live software system in a public space. The Arduino brain needed to respond to user input within milliseconds or the experience would feel broken. Getting the Python backend to reliably bridge the web interface to the WLED controller took more debugging than I expected, but once it worked it felt like magic.
+  This was the first project where I had to connect physical hardware to a live software system in a public space. The Arduino brain needed to respond to user input within milliseconds or the experience would feel broken. Getting the Python backend to reliably bridge the web interface to the WLED controller took more debugging than I expected, but once it worked, the brain responded before people had finished choosing. That lag mattered more than I expected.
 
 
-  What surprised me was how quickly strangers opened up when given a space that felt safe. People were not looking for the right answer, they just wanted to be seen. 800 participants in five months, and the data we collected is now being used by local mental health organizations to better understand community wellbeing.
+  What surprised me was how quickly strangers opened up when given a space that felt safe. People were not looking for the right answer, they just wanted to be seen. 800 participants in five months, and the data we collected is now being used by local mental health organizations tracking how communities process stress and emotion.
 next_project:
   title: Broken and Beautiful
   url: /b-plus-b/

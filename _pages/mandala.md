@@ -20,10 +20,13 @@ meta:
   - label: Client
     value: Self Initiated
 reflection: >
-  Some people closed their eyes and let go of the visuals entirely. That told me more about immersion than anything I had designed for.
+  Some people closed their eyes and let go of the visuals entirely. That told me more about immersion than anything I had designed for. The generative system was doing its job, but the room was doing more.
 
 
-  The installation worked best in darker, quieter rooms where conditions invited stillness. I realized that design is not always about what you show, but what you make room for.
+  Building the mandala engine in TouchDesigner was slower than expected. Each parameter change cascaded into three others, and the system had its own logic that took time to understand. By the end I was adjusting less and listening more.
+
+
+  The installation worked best when the space held still. Darker rooms, fewer people, quieter conditions. What surprised me was how much the lighting and acoustic setup shaped the experience before anyone even looked at the screen. Design kept expanding to include things I had not thought of as design.
 refl_bg: "4.mandala/blobs.mp4"
 next_project:
   title: Mind Your Feelings
@@ -53,7 +56,7 @@ next_project:
   .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
   .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid, .cube-cap--above + .cs-grid-3 { margin-top: 12px !important; }
 
-  /* Grid sizing — fixed height like cube-guy */
+  /* Grid sizing: fixed height like cube-guy */
   .cs-grid, .cs-grid-3 {
     height: clamp(320px, 50vh, 560px);
     grid-template-rows: 1fr;
@@ -66,13 +69,13 @@ next_project:
     object-position: center center;
   }
 
-  /* ai-contain — override cover for specific items where natural ratio matters */
+  /* ai-contain: override cover for specific items where natural ratio matters */
   .cs-grid-item.ai-contain img,
   .cs-grid-item.ai-contain video,
   .cs-bleed.ai-contain img,
   .cs-bleed.ai-contain video { object-fit: contain !important; }
 
-  /* g-cover — force cover on grid (with slight zoom for cinematic crop) */
+  /* g-cover: force cover on grid (with slight zoom for cinematic crop) */
   .cs-grid.g-cover .cs-grid-item img,
   .cs-grid.g-cover .cs-grid-item video {
     object-fit: cover !important;
@@ -80,13 +83,13 @@ next_project:
     transform-origin: center center;
   }
 
-  /* ma-cover — explicit cover override on a specific element */
+  /* ma-cover: explicit cover override on a specific element */
   .ma-cover { object-fit: cover !important; }
 
-  /* ma-grid — denser grid for style-explorations section */
+  /* ma-grid: denser grid for style-explorations section */
   .cs-grid.ma-grid { height: clamp(220px, 32vh, 380px); }
 
-  /* f-vid-wrap — natural-ratio video, no cropping */
+  /* f-vid-wrap: natural-ratio video, no cropping */
   .f-vid-wrap {
     margin: 40px 0 0;
     width: 100%;
@@ -99,7 +102,7 @@ next_project:
     display: block;
   }
 
-  /* m-watch-link — link bar matching cube-guy */
+  /* m-watch-link: link bar matching cube-guy */
   .m-watch-link {
     display: flex;
     gap: 0;
@@ -120,7 +123,7 @@ next_project:
   }
   .m-watch-link a:hover { color: rgba(255,255,255,0.88); }
 
-  /* grid-audio-btn — toggle for in-grid audio */
+  /* grid-audio-btn: toggle for in-grid audio */
   .grid-audio-btn {
     position: absolute;
     bottom: 16px; right: 16px;
@@ -148,7 +151,7 @@ next_project:
     50% { transform: scale(1.008) translateY(-3px); }
   }
 
-  /* Thesis docs — two-up bordered link cards at top of body */
+  /* Thesis docs: two-up bordered link cards at top of body */
   .thesis-docs {
     display: flex;
     gap: 12px;
@@ -211,7 +214,7 @@ next_project:
   </a>
 </div>
 
-<!-- KINECT EXPERIENCE — opening clips -->
+<!-- KINECT EXPERIENCE - opening clips -->
 <p class="cube-cap cube-cap--above"><em>The world I was asking people to step away from. Loud, lit, everything at once.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">

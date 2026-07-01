@@ -62,7 +62,7 @@ next_project:
     object-position: center center;
   }
 
-  /* Interview videos — wrapper, name tag, audio toggle */
+  /* Interview videos: wrapper, name tag, audio toggle */
   .interview-wrap { position: relative; }
   .interview-name {
     position: absolute;

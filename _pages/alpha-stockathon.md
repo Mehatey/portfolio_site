@@ -4,7 +4,7 @@ permalink: /alpha-stockathon/
 project_title: Alpha Stockathon
 proj_num: "14"
 tagline: >
-  Alpha Stockathon is a gamified desktop application designed to make learning the stock market more engaging and intuitive for beginners. Set in a pixel art world, the game follows a character on a journey to rescue a wizard, where each level represents a different concept in the stock market. Players learn by making decisions, answering questions, and engaging with simulated market scenarios rather than passively consuming content.
+  Alpha Stockathon is a gamified desktop application that teaches the stock market through a pixel-art world. A character journeys to rescue a wizard, and each level introduces one concept: options, shorting, market cap. Players make decisions and face consequences inside a simulated market rather than reading about one.
 category: UI · Gamification
 year: 2021
 hero_bg: "radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)"
@@ -24,7 +24,7 @@ reflection: >
   This project was completed in just three days, which meant I had to quickly understand how the stock market works while simultaneously figuring out how to translate it into a game. The biggest challenge was not just learning the concepts but simplifying and structuring them in a way that could fit into a pixel art game format.
 
 
-  It pushed me to think fast, make decisions quickly, and focus on how to turn complex systems into something interactive and understandable. Balancing accuracy with clarity and education with engagement was difficult within such a short timeframe.
+  It pushed me to make fast decisions with limited context. The interesting part was discovering that simplification is not dumbing down: every concept had a core mechanic, and finding that mechanic was the actual design problem. Three days was not enough time to be precious about anything.
 refl_bg: "10.alpha/reflection.jpg"
 next_project:
   title: Illustrations
@@ -32,12 +32,12 @@ next_project:
 ---
 
 <style>
-  /* cs-bleed — natural-ratio for sparse photo-essay layout */
+  /* cs-bleed: natural-ratio for sparse photo-essay layout */
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
 
-  /* cs-grid — fixed-height with cover crop, matches cube-guy */
+  /* cs-grid: fixed-height with cover crop, matches cube-guy */
   .cs-grid {
     margin-top: 40px !important;
     gap: 16px !important;

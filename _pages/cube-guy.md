@@ -50,7 +50,7 @@ next_project:
   .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
   .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
 
-  /* Conception grids — fixed height, cover to fill, slow drift */
+  /* Conception grids: fixed height, cover to fill, slow drift */
   .cs-grid, .cs-grid-3 {
     height: clamp(320px, 50vh, 560px);
     grid-template-rows: 1fr;
@@ -78,7 +78,7 @@ next_project:
   .cs-grid-3 .cs-grid-item:nth-child(2) { animation: driftLeft 11s ease-in-out infinite; }
   .cs-grid-3 .cs-grid-item:nth-child(3) { animation: driftRight 7s ease-in-out infinite; }
 
-  /* Film grids — tight stacking, no drift */
+  /* Film grids: tight stacking, no drift */
   .film-grid .cs-grid-item img, .film-grid .cs-grid-item video { object-fit: contain !important; object-position: center center !important; }
   .film-grid .cs-grid-item:nth-child(1), .film-grid .cs-grid-item:nth-child(2) { animation: none; }
   .film-grid--no-top { margin-top: 0 !important; }

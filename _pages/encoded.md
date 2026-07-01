@@ -43,21 +43,12 @@ next_project:
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
   .cs-grid { gap: 16px !important; align-items: stretch !important; }
-  .cs-bleed { margin-top: 56px !important; }
-  .cs-grid { margin-top: 56px !important; }
-  .enc-cap {
-    font-family: var(--font-mono);
-    font-size: 13px;
-    font-style: italic;
-    color: rgba(255,255,255,0.42);
-    padding: 0 var(--gutter) 8px;
-    margin: 48px 0 0;
-    line-height: 1.5;
-  }
-  .enc-cap + .cs-bleed,
-  .enc-cap + .cs-grid {
-    margin-top: 8px !important;
-  }
+  .cs-bleed { margin-top: 40px !important; }
+  .cs-bleed + .cs-bleed { margin-top: 40px !important; }
+  .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
+  .cube-cap { margin: 40px 0 0; }
+  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 8px !important; }
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.008) translateY(-3px); }
@@ -90,14 +81,14 @@ next_project:
   <img src="{{ site.baseurl }}/1.met/1.png" alt="Encoded" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
-<p class="enc-cap">Scanning in the American Wing</p>
+<p class="cube-cap cube-cap--above"><em>Scanning in the American Wing.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
     <source src="{{ site.baseurl }}/1.met/2.mp4" type="video/mp4" />
   </video>
 </div>
 
-<p class="enc-cap">Pipeline and spatial alignment</p>
+<p class="cube-cap cube-cap--above"><em>Pipeline and spatial alignment.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
     <source src="{{ site.baseurl }}/1.met/3.mp4" type="video/mp4" />
@@ -116,7 +107,7 @@ next_project:
   </video>
 </div>
 
-<p class="enc-cap">AR activation over physical artworks</p>
+<p class="cube-cap cube-cap--above"><em>AR activation over physical artworks.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
     <source src="{{ site.baseurl }}/1.met/6.mp4" type="video/mp4" />
@@ -152,7 +143,7 @@ next_project:
 </div>
 <p style="font-family:var(--font-mono);font-size:13px;color:rgba(255,255,255,0.50);line-height:2;padding:0 var(--gutter);max-width:620px;margin-bottom:16px;letter-spacing:0.02em;">Amelia Winger-Bearskin · Bear Fox · Bird x Bird · Cannupa Hanska Luger · Cass Gardiner · Demian DinéYazhi´ · Lite Brite Neon · Flechas · Jarrette Werk · Jeremy Dennis · Josué Rivas · Katsitsionni Fox · Lokotah Sanborn · Mali Obomsawin · Mer Young · Nicholas Galanin · Priscilla Dobler Dzul · Skawennati</p>
 
-<p class="enc-cap">Exhibition promo</p>
+<p class="cube-cap cube-cap--above"><em>Exhibition promo.</em></p>
 <div class="cs-bleed">
   <video controls playsinline preload="none" style="width:100%">
     <source src="{{ site.baseurl }}/1.met/11.mp4" type="video/mp4" />

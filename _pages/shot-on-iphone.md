@@ -4,7 +4,7 @@ permalink: /shot-on-iphone/
 project_title: Shot on iPhone
 proj_num: "08"
 tagline: >
-  This project began as a response to the Shot on iPhone format, questioning the idea of photography as a one way broadcast. While campaigns like these highlight the capability of the camera, they often stop at the image itself. The project reimagines these images as entry points into conversations around themes like self, nature, family, and everyday life. Through a simple interaction like scanning a QR code, the viewer can access the story behind the image. The photograph shifts from being a static display to something that evolves through participation.
+  This project began as a response to the Shot on iPhone format, questioning the idea of photography as a one-way broadcast. While campaigns like these highlight what the camera can do, they often stop at the image itself. The project reimagines these images as entry points into conversations around self, nature, family, and everyday life. Scanning a QR code opens the story behind the frame. The photograph becomes a question rather than a statement.
 category: Photography · Interactive
 year: 2024
 hero_bg: "radial-gradient(ellipse at 30% 50%, #1a1a0d 0%, #0d0d05 50%, #050501 100%)"
@@ -22,7 +22,7 @@ reflection: >
   This project made me question what most campaigns stop at. Shot on iPhone proves capability, it shows that the camera is good. But after a point it becomes one way. You see something beautiful and move on. What interested me was what happens after that moment, why someone chose that frame, what they felt, and whether a photograph could carry that with it.
 
 
-  The challenge was figuring out how far to push interaction without losing simplicity. The strength of the original idea is how effortless it feels. Adding a layer risks overcomplicating it. Balancing that made me think more carefully about what actually adds value and what just adds noise.
+  The challenge was figuring out how far to push interaction without losing simplicity. The strength of the original idea is how effortless it feels. Adding a layer risks overcomplicating it. Knowing when to stop became the actual design decision.
 refl_bg: "8.shotoniphone/5.png"
 next_project:
   title: Naavo
