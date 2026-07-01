@@ -25,8 +25,8 @@ reflection: >
 
   What stayed with me was how much the work depended on staying faithful to the source. Every type choice, color, and compositional pattern had to feel earned rather than borrowed. Design here was interpretation, not just production.
 next_project:
-  title: Alpha Stockathon
-  url: /alpha-stockathon/
+  title: "Naavo"
+  url: /naavo/
 ---
 
 <style>

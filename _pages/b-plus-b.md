@@ -22,13 +22,13 @@ meta:
     value: "YouTube ↗"
     url: "https://www.youtube.com/watch?v=zUG-hui0tkw"
 reflection: >
-  What stayed with me was how quickly strangers opened up when given a space that felt safe and shared. People weren't looking for perfect words, they just wanted to be heard. Reading others' responses seemed to matter as much as writing their own, almost like realizing their thoughts weren't isolated.
+  I built the interface in two days and spent the rest of the project reading what people submitted. The responses were more specific than I expected. Not "my grandmother" but "my grandmother at 3am." That specificity kept appearing across hundreds of entries: people writing for themselves but somehow writing for each other.
 
-  The design didn't need to do much. The simplest structure worked best, and anything more would have gotten in the way.
+  Running public research taught me that the artifact matters less than the opening you create. The prompt did most of the work.
 refl_bg: "5.bb/board2.2.mp4"
 next_project:
-  title: Mool
-  url: /mool/
+  title: "Shot on iPhone"
+  url: /shot-on-iphone/
 ---
 
 <style>

@@ -23,8 +23,8 @@ reflection: >
   The game was harder. Building interactivity from scratch meant learning by breaking things. I lost versions, rebuilt sections, and came out understanding the work in a way I could not have otherwise. What surprised me most was how little the idea needed to change through all of it. The medium kept shifting. The character did not.
 refl_bg: "2.cube/5.mp4"
 next_project:
-  title: AI Self
-  url: /ai-self/
+  title: "Alpha Stockathon"
+  url: /alpha-stockathon/
 ---
 
 <style>

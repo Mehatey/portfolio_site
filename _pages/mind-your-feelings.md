@@ -29,8 +29,8 @@ reflection: >
 
   What surprised me was how quickly strangers opened up when given a space that felt safe. People were not looking for the right answer, they just wanted to be seen. 800 participants in five months, and the data we collected is now being used by local mental health organizations tracking how communities process stress and emotion.
 next_project:
-  title: Broken and Beautiful
-  url: /b-plus-b/
+  title: "AI Self"
+  url: /ai-self/
 ---
 
 <style>

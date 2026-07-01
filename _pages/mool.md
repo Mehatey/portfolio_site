@@ -32,8 +32,8 @@ reflection: >
 
   Every visual decision was tested against one question: does this make someone from a small town feel like this was built for them. Clarity is emotional, not just functional. A user who feels seen will trust you with their money.
 next_project:
-  title: Shot on iPhone
-  url: /shot-on-iphone/
+  title: "Cube of Creations"
+  url: /cube-guy/
 ---
 
 <style>

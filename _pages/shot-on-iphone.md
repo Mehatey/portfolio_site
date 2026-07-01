@@ -25,8 +25,9 @@ reflection: >
   The challenge was figuring out how far to push interaction without losing simplicity. The strength of the original idea is how effortless it feels. Adding a layer risks overcomplicating it. Knowing when to stop became the actual design decision.
 refl_bg: "8.shotoniphone/5.png"
 next_project:
-  title: Naavo
-  url: /naavo/
+  title: "Encoded"
+  url: /encoded/
+  desc: Where it all starts.
 ---
 
 <style>

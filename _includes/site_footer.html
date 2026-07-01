@@ -25,13 +25,12 @@
     gap: 24px;
   }
 
-  /* Left — buddha */
+  /* Left — buddha + quote */
   .site-footer-buddha {
     display: flex;
     align-items: center;
-    width: 64px;
-    height: 64px;
-    flex-shrink: 0;
+    gap: 0;
+    position: relative;
   }
   .site-footer-buddha model-viewer {
     width: 64px;
@@ -39,10 +38,50 @@
     background: transparent;
     --poster-color: transparent;
     overflow: hidden;
-    opacity: 0.5;
-    transition: opacity 0.4s ease;
+    opacity: 0.42;
+    transition: opacity 0.45s ease;
+    flex-shrink: 0;
+    cursor: default;
   }
-  .site-footer-buddha model-viewer:hover { opacity: 0.88; }
+  .site-footer-buddha:hover model-viewer {
+    opacity: 1;
+  }
+
+  .buddha-quote {
+    font-family: "DM Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    line-height: 1.65;
+    color: rgba(255, 255, 255, 0);
+    max-width: 280px;
+    padding-left: 18px;
+    white-space: normal;
+    pointer-events: none;
+    transition: color 0.3s ease;
+    overflow: hidden;
+  }
+  .site-footer-buddha:hover .buddha-quote {
+    color: rgba(255, 255, 255, 0.52);
+  }
+  .buddha-quote::after {
+    content: "|";
+    display: inline;
+    opacity: 0;
+    animation: none;
+  }
+  .buddha-quote.is-typing::after {
+    opacity: 1;
+    animation: buddhaCaretBlink 0.7s step-end infinite;
+  }
+  @keyframes buddhaCaretBlink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
 
   /* Center — last updated */
   .site-footer-updated {
@@ -74,7 +113,8 @@
     gap: 7px;
   }
   .site-footer-time-dot {
-    width: 5px; height: 5px;
+    width: 5px;
+    height: 5px;
     background: rgba(180, 220, 255, 0.55);
     box-shadow: 0 0 5px rgba(180, 220, 255, 0.35);
     image-rendering: pixelated;
@@ -82,11 +122,20 @@
     flex-shrink: 0;
   }
   @keyframes footerTimeBlink {
-    0%, 100% { opacity: 0.35; transform: scale(1); }
-    50%       { opacity: 1;    transform: scale(1.3); }
+    0%,
+    100% {
+      opacity: 0.35;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.3);
+    }
   }
   @media (prefers-reduced-motion: reduce) {
-    .site-footer-time-dot { animation: none; }
+    .site-footer-time-dot {
+      animation: none;
+    }
   }
 
   /* ── CUBE GUY ── cursor-reactive 3D model sitting in the footer */
@@ -122,19 +171,37 @@
     filter: blur(6px);
   }
   @media (max-width: 700px) {
-    .site-footer-cube { width: 140px; height: 140px; }
+    .site-footer-cube {
+      width: 140px;
+      height: 140px;
+    }
   }
 
   /* Light mode */
-  html[data-theme="light"] .site-footer::before { background: rgba(0,0,0,0.07); }
-  html[data-theme="light"] .site-footer-meta    { color: rgba(7,9,15,0.42); }
-  html[data-theme="light"] .site-footer-updated { color: rgba(7,9,15,0.22); }
+  html[data-theme="light"] .site-footer::before {
+    background: rgba(0, 0, 0, 0.07);
+  }
+  html[data-theme="light"] .site-footer-meta {
+    color: rgba(7, 9, 15, 0.42);
+  }
+  html[data-theme="light"] .site-footer-updated {
+    color: rgba(7, 9, 15, 0.22);
+  }
 
   @media (max-width: 600px) {
-    .site-footer { padding: 80px 22px 28px; }
-    .site-footer-inner { grid-template-columns: 1fr; gap: 10px; }
-    .site-footer-meta { justify-content: flex-start; }
-    .site-footer-updated { text-align: left; }
+    .site-footer {
+      padding: 80px 22px 28px;
+    }
+    .site-footer-inner {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    .site-footer-meta {
+      justify-content: flex-start;
+    }
+    .site-footer-updated {
+      text-align: left;
+    }
   }
 </style>
 
@@ -158,7 +225,7 @@
   </div>
 
   <div class="site-footer-inner">
-    <div class="site-footer-buddha" aria-label="Siddharth Mehta">
+    <div class="site-footer-buddha" id="footer-buddha" aria-label="Siddharth Mehta">
       <model-viewer
         src="{{ site.baseurl }}/assets/models/buddha.glb"
         camera-orbit="0deg 80deg 105%"
@@ -172,6 +239,7 @@
         exposure="1.2"
         shadow-intensity="0"
       ></model-viewer>
+      <span class="buddha-quote" id="buddha-quote" aria-live="polite"></span>
     </div>
     <span class="site-footer-updated" aria-label="Last updated">Updated Jun 2026</span>
     <div class="site-footer-meta" aria-label="Site metadata">
@@ -185,6 +253,71 @@
 </footer>
 
 <script>
+  // ── BUDDHA QUOTE TYPEWRITER ──
+  (function () {
+    var buddha = document.getElementById("footer-buddha");
+    var quoteEl = document.getElementById("buddha-quote");
+    if (!buddha || !quoteEl) return;
+
+    var quotes = [
+      "The mind is everything. What you think, you become.",
+      "Peace comes from within. Do not seek it without.",
+      "In the end, only three things matter: how much you loved, how gently you lived, and how gracefully you let go.",
+      "Do not dwell in the past, do not dream of the future — concentrate on the present moment.",
+      "If you light a lamp for someone else, it will also brighten your path.",
+      "Three things cannot be long hidden: the sun, the moon, and the truth.",
+      "A jug fills drop by drop.",
+      "The tongue is like a sharp knife — it kills without drawing blood.",
+      "You yourself, as much as anybody in the entire universe, deserve your love and affection.",
+      "Every morning we are born again. What we do today is what matters most.",
+      "To understand everything is to forgive everything.",
+      "Holding on to anger is like drinking poison and expecting the other person to die.",
+      "Better than a thousand hollow words is one word that brings peace.",
+      "The root of suffering is attachment.",
+      "If you find no one to support you on the spiritual path, walk alone.",
+    ];
+
+    var lastIdx = -1;
+    var typeTimer = null;
+    var caretTimer = null;
+
+    function pickQuote() {
+      var idx;
+      do {
+        idx = Math.floor(Math.random() * quotes.length);
+      } while (idx === lastIdx);
+      lastIdx = idx;
+      return quotes[idx];
+    }
+
+    function typewrite(text) {
+      clearTimeout(typeTimer);
+      quoteEl.textContent = "";
+      quoteEl.classList.add("is-typing");
+      var i = 0;
+      var speed = Math.max(22, Math.min(36, Math.floor(1200 / text.length)));
+      function tick() {
+        if (i < text.length) {
+          quoteEl.textContent = text.slice(0, ++i);
+          typeTimer = setTimeout(tick, speed);
+        } else {
+          quoteEl.classList.remove("is-typing");
+        }
+      }
+      typeTimer = setTimeout(tick, 80);
+    }
+
+    buddha.addEventListener("mouseenter", function () {
+      typewrite(pickQuote());
+    });
+
+    buddha.addEventListener("mouseleave", function () {
+      clearTimeout(typeTimer);
+      quoteEl.classList.remove("is-typing");
+      quoteEl.textContent = "";
+    });
+  })();
+
   // ── CURSOR-REACTIVE CUBE GUY ──
   // Tracks cursor across the whole page and tilts the camera orbit to face it.
   // Smoothly interpolates so the model follows with inertia, not instant snap.
@@ -194,22 +327,30 @@
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     // Target + current orbit values
-    var targetYaw = 0, targetPitch = 78;
-    var currentYaw = 0, currentPitch = 78;
+    var targetYaw = 0,
+      targetPitch = 78;
+    var currentYaw = 0,
+      currentPitch = 78;
     var baseRotPerSec = 14;
     var rafId = 0;
     var isHovering = false;
 
-    function lerp(a, b, t) { return a + (b - a) * t; }
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
 
     // Convert page cursor position to orbit angles.
     // Yaw swings ±35° horizontally; pitch swings 65°–90° vertically.
-    document.addEventListener("mousemove", function (e) {
-      var nx = e.clientX / window.innerWidth;  // 0..1
-      var ny = e.clientY / window.innerHeight; // 0..1
-      targetYaw   = (nx - 0.5) * 70;           // -35..+35
-      targetPitch = 78 + (ny - 0.5) * 24;      // 66..90
-    }, { passive: true });
+    document.addEventListener(
+      "mousemove",
+      function (e) {
+        var nx = e.clientX / window.innerWidth; // 0..1
+        var ny = e.clientY / window.innerHeight; // 0..1
+        targetYaw = (nx - 0.5) * 70; // -35..+35
+        targetPitch = 78 + (ny - 0.5) * 24; // 66..90
+      },
+      { passive: true }
+    );
 
     // Speed up on hover over the stage
     var stage = document.getElementById("footer-cube-stage");
@@ -226,16 +367,24 @@
 
     function tick() {
       var speed = isHovering ? 0.12 : 0.06;
-      currentYaw   = lerp(currentYaw,   targetYaw,   speed);
+      currentYaw = lerp(currentYaw, targetYaw, speed);
       currentPitch = lerp(currentPitch, targetPitch, speed);
       mv.setAttribute("camera-orbit", currentYaw.toFixed(1) + "deg " + currentPitch.toFixed(1) + "deg 105%");
       rafId = requestAnimationFrame(tick);
     }
 
     // Start once the model is visible
-    mv.addEventListener("load", function () { tick(); }, { once: true });
+    mv.addEventListener(
+      "load",
+      function () {
+        tick();
+      },
+      { once: true }
+    );
     // Fallback: start after 2s regardless
-    setTimeout(function () { if (!rafId) tick(); }, 2000);
+    setTimeout(function () {
+      if (!rafId) tick();
+    }, 2000);
   })();
 
   // ── LIVE NYC TIME ──
@@ -244,10 +393,16 @@
     if (!el) return;
     function tick() {
       try {
-        el.textContent = new Intl.DateTimeFormat("en-US", {
-          hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "America/New_York"
-        }).format(new Date()) + " NYC";
-      } catch (_) { el.style.display = "none"; }
+        el.textContent =
+          new Intl.DateTimeFormat("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+            timeZone: "America/New_York",
+          }).format(new Date()) + " NYC";
+      } catch (_) {
+        el.style.display = "none";
+      }
     }
     tick();
     setInterval(tick, 30000);
@@ -260,14 +415,24 @@
     function compute() {
       try {
         var total = 0;
-        performance.getEntriesByType("resource").forEach(function (r) { total += r.transferSize || r.encodedBodySize || 0; });
+        performance.getEntriesByType("resource").forEach(function (r) {
+          total += r.transferSize || r.encodedBodySize || 0;
+        });
         var nav = performance.getEntriesByType("navigation")[0];
         if (nav) total += nav.transferSize || nav.encodedBodySize || 0;
-        if (!total) { el.style.display = "none"; return; }
+        if (!total) {
+          el.style.display = "none";
+          return;
+        }
         el.textContent = "~" + ((total * 0.5) / (1024 * 1024)).toFixed(2) + "g CO₂";
-      } catch (_) { el.style.display = "none"; }
+      } catch (_) {
+        el.style.display = "none";
+      }
     }
     if (document.readyState === "complete") setTimeout(compute, 800);
-    else window.addEventListener("load", function () { setTimeout(compute, 800); });
+    else
+      window.addEventListener("load", function () {
+        setTimeout(compute, 800);
+      });
   })();
 </script>

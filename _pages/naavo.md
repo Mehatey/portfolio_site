@@ -27,8 +27,8 @@ reflection: >
   I started thinking more carefully about packaging as a physical encounter. How it sits in someone's hand, how it reads from three feet away on a shelf, and what it says before anyone reads the label.
 refl_bg: "7.naavo/19.png"
 next_project:
-  title: Aananda
-  url: /aananda/
+  title: "Mool"
+  url: /mool/
 ---
 
 <style>
