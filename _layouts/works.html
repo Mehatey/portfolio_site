@@ -522,7 +522,23 @@
         color: inherit;
         cursor: none;
         position: relative;
-        transition: padding-left 0.22s var(--ease-out);
+        opacity: 0;
+        transform: translateX(-10px);
+        transition:
+          opacity 0.5s var(--ease-out),
+          transform 0.5s var(--ease-out),
+          padding-left 0.22s var(--ease-out);
+      }
+      .works-list-item.wli--in {
+        opacity: 1;
+        transform: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .works-list-item {
+          opacity: 1 !important;
+          transform: none !important;
+          transition: padding-left 0.22s var(--ease-out) !important;
+        }
       }
       .works-list-item:first-child {
         border-top: 1px solid rgba(255, 255, 255, 0.05);
@@ -1804,6 +1820,67 @@
 
         // Default: first item
         setPreview(items[0], false);
+      })();
+
+      // ── LIST STAGGER REVEAL ──
+      (function () {
+        var rm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.querySelectorAll(".works-list-item").forEach(function (item, i) {
+          if (rm) {
+            item.classList.add("wli--in");
+          } else {
+            setTimeout(
+              function () {
+                item.classList.add("wli--in");
+              },
+              60 + i * 42
+            );
+          }
+        });
+      })();
+
+      // ── LIST SCROLL → PREVIEW PARALLAX ──
+      (function () {
+        var list = document.getElementById("works-list");
+        var preview = document.getElementById("works-preview");
+        if (!list || !preview) return;
+        list.addEventListener(
+          "scroll",
+          function () {
+            var max = Math.max(1, list.scrollHeight - list.clientHeight);
+            var progress = list.scrollTop / max;
+            preview.style.transform = "translateY(" + progress * -24 + "px)";
+          },
+          { passive: true }
+        );
+      })();
+
+      // ── VIDEO REVERSE SCRUB ON LIST LEAVE ──
+      (function () {
+        var list = document.getElementById("works-list");
+        var vid = document.getElementById("wp-video");
+        if (!list || !vid) return;
+        var req = null;
+        list.addEventListener("mouseleave", function () {
+          if (!vid.src || !vid.classList.contains("is-active")) return;
+          vid.pause();
+          if (req) cancelAnimationFrame(req);
+          (function step() {
+            if (vid.currentTime <= 0.06) {
+              vid.currentTime = 0;
+              req = null;
+              return;
+            }
+            vid.currentTime = Math.max(0, vid.currentTime - 0.05);
+            req = requestAnimationFrame(step);
+          })();
+        });
+        list.addEventListener("mouseenter", function () {
+          if (req) {
+            cancelAnimationFrame(req);
+            req = null;
+          }
+        });
       })();
 
       // ── REEL MODAL ──

@@ -378,19 +378,33 @@
         opacity: 1;
       }
 
-      /* accent glow on hover */
+      /* accent glow — follows cursor via --mx / --my */
       .reel-card::after {
         content: "";
         position: absolute;
         inset: 0;
-        background: radial-gradient(ellipse 80% 60% at 50% 40%, var(--reel-accent-dim, rgba(120, 255, 200, 0.06)) 0%, transparent 70%);
+        background: radial-gradient(
+          ellipse 65% 55% at calc(var(--mx, 0.5) * 100%) calc(var(--my, 0.38) * 100%),
+          var(--reel-accent-dim, rgba(120, 255, 200, 0.12)) 0%,
+          transparent 70%
+        );
         opacity: 0;
         pointer-events: none;
-        transition: opacity 0.5s;
+        transition: opacity 0.4s;
         z-index: 0;
       }
       .reel-card:hover::after {
         opacity: 1;
+      }
+
+      @keyframes type-blink {
+        0%,
+        100% {
+          opacity: 0.55;
+        }
+        50% {
+          opacity: 0;
+        }
       }
 
       /* ── REDUCED MOTION ── */
@@ -625,6 +639,49 @@
             vid.currentTime = 0;
           });
         });
+
+        // ── CURSOR SPOTLIGHT ──
+        var rm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!rm) {
+          cards.forEach(function (card) {
+            card.addEventListener("mousemove", function (e) {
+              var r = card.getBoundingClientRect();
+              card.style.setProperty("--mx", ((e.clientX - r.left) / r.width).toFixed(3));
+              card.style.setProperty("--my", ((e.clientY - r.top) / r.height).toFixed(3));
+            });
+          });
+        }
+      })();
+
+      // ── TYPED TAGLINE ──
+      (function () {
+        var el = document.querySelector(".ai-hero-tagline");
+        if (!el) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var text = el.textContent.trim();
+        el.textContent = "";
+        var cursor = document.createElement("span");
+        cursor.setAttribute("aria-hidden", "true");
+        cursor.style.cssText =
+          "display:inline-block;width:1.5px;height:0.85em;background:currentColor;opacity:0.55;vertical-align:text-bottom;margin-left:1px;animation:type-blink 0.65s step-end infinite";
+        el.appendChild(cursor);
+        var chars = text.split("");
+        var i = 0;
+        function typeNext() {
+          if (i >= chars.length) {
+            setTimeout(function () {
+              cursor.style.animation = "none";
+              cursor.style.opacity = "0";
+            }, 1400);
+            return;
+          }
+          el.insertBefore(document.createTextNode(chars[i]), cursor);
+          i++;
+          var ch = chars[i - 1];
+          var speed = ch === " " ? 16 : ".,;:!?".indexOf(ch) > -1 ? 200 : 32;
+          setTimeout(typeNext, speed);
+        }
+        setTimeout(typeNext, 900);
       })();
     </script>
     {% include site_footer.html %} {% include cursor_fluid.html %}
