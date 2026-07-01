@@ -48,6 +48,7 @@ next_project:
   .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
   .cube-cap { margin: 40px 0 0; }
+  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 16px !important; }
   .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 8px !important; }
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
@@ -71,9 +72,9 @@ next_project:
 
 <!-- Press -->
 <div style="display:flex;gap:0;margin:24px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
-  <a href="https://news.artnet.com/art-world/unsanctioned-augmented-reality-indigenous-art-met-museum-2699689" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Artnet ↗</a>
-  <a href="https://agog.org/reframing-the-american-wing-encoded-at-the-metropolitan-museum-of-art/" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Agog ↗</a>
-  <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Webby Awards ↗</a>
+  <a href="https://news.artnet.com/art-world/unsanctioned-augmented-reality-indigenous-art-met-museum-2699689" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Artnet ↗</a>
+  <a href="https://agog.org/reframing-the-american-wing-encoded-at-the-metropolitan-museum-of-art/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Agog ↗</a>
+  <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Webby Awards ↗</a>
   <a href="https://www.encodedatthemet.com/" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">View Exhibition ↗</a>
 </div>
 

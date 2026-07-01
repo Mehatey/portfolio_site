@@ -128,7 +128,7 @@ next_project:
 
 <!-- AR LINK -->
 <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
-  <a href="https://www.youtube.com/watch?v=aj6NS5bwz6I" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.42)'">Watch Chaise Walkthrough ↗</a>
+  <a href="https://www.youtube.com/watch?v=aj6NS5bwz6I" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Chaise Walkthrough ↗</a>
 </div>
 
 <!-- SECTION: VR EXPERIENCE -->
@@ -176,7 +176,7 @@ next_project:
 
 <!-- AI SELF VR LINK -->
 <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
-  <a href="https://www.youtube.com/watch?v=AVle15KS3gU" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.42)'">Watch AI Self Experience ↗</a>
+  <a href="https://www.youtube.com/watch?v=AVle15KS3gU" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch AI Self Experience ↗</a>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>A different entry point. An AI assembling a sense of self from fragments of what it has learned.</em></p>
@@ -228,7 +228,7 @@ next_project:
 
 <!-- FULL EXPERIENCE LINK -->
 <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
-  <a href="https://www.youtube.com/watch?v=7lWs56AOUaI" target="_blank" rel="noopener" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;" onmouseover="this.style.color='rgba(255,255,255,0.88)'" onmouseout="this.style.color='rgba(255,255,255,0.42)'">Watch Full Experience ↗</a>
+  <a href="https://www.youtube.com/watch?v=7lWs56AOUaI" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Full Experience ↗</a>
 </div>
 
 <script>
