@@ -21,10 +21,9 @@ meta:
   - label: Client
     value: Self Initiated
 reflection: >
-  This project was completed in just three days, which meant I had to quickly understand how the stock market works while simultaneously figuring out how to translate it into a game. The biggest challenge was not just learning the concepts but simplifying and structuring them in a way that could fit into a pixel art game format.
+  Three days to understand the stock market and turn it into a game. I had to start teaching it before I'd finished learning it myself.
 
-
-  It pushed me to make fast decisions with limited context. The interesting part was discovering that simplification is not dumbing down: every concept had a core mechanic, and finding that mechanic was the actual design problem. Three days was not enough time to be precious about anything.
+  Simplification is not dumbing down: every financial concept has a core mechanic, and finding that mechanic was the real design problem. Pixel art made commitment unavoidable. Each shape landed and stayed.
 refl_bg: "10.alpha/reflection.jpg"
 next_project:
   title: Illustrations

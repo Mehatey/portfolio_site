@@ -20,10 +20,9 @@ meta:
   - label: Client
     value: Self Initiated
 reflection: >
-  These illustrations track how my thinking and visual instincts have evolved over time. There was not always a clear brief or direction, which made it easier to take risks, try different styles, and move between structure and intuition freely.
+  These illustrations track how my visual instincts developed over the years. Without a brief, it was easier to take risks, try things that contradicted each other, and move between structure and intuition without needing to justify the shift.
 
-
-  Looking back, the value of this work is not in any single piece, but in the accumulation. It helped me understand how I approach form, color, composition, and storytelling, and gave me the space to experiment without needing everything to resolve perfectly.
+  The value is not in any single piece but in the accumulation. Looking back at all of it together is where patterns appear.
 next_project:
   title: "Broken and Beautiful"
   url: /b-plus-b/
