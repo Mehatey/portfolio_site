@@ -376,7 +376,7 @@
       .reel-pill {
         padding: 3px 8px;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 999px;
+        border-radius: 3px;
         font-family: var(--font-mono);
         font-size: 9px;
         letter-spacing: 0.1em;
@@ -430,6 +430,39 @@
       .reel-link:hover {
         color: var(--reel-accent, rgba(120, 255, 200, 1));
         opacity: 1;
+      }
+      /* Walkthrough link — sits beside "Open full screen", dimmer since the full-screen
+         demo is the primary action. Lives inside the card's big <a> but is a <span>
+         (not a nested <a>) so JS can stop propagation and open it separately. */
+      .reel-links-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-top: 2px;
+      }
+      .reel-links-row .reel-link {
+        margin-top: 0;
+      }
+      .reel-walkthrough {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+        transition: color 0.2s;
+        cursor: pointer;
+      }
+      .reel-walkthrough:hover {
+        color: rgba(255, 255, 255, 0.75);
+      }
+      html[data-theme="light"] .reel-walkthrough {
+        color: rgba(7, 9, 15, 0.4);
+      }
+      html[data-theme="light"] .reel-walkthrough:hover {
+        color: rgba(7, 9, 15, 0.75);
       }
 
       /* accent glow — follows cursor via --mx / --my */
@@ -639,7 +672,12 @@
           {% if proto.tools %}
           <div class="reel-tools">{% for tool in proto.tools limit:3 %}<span class="reel-tool">{{ tool }}</span>{% endfor %}</div>
           {% endif %}
-          <span class="reel-link">Open full screen ↗</span>
+          <div class="reel-links-row">
+            <span class="reel-link">Open full screen ↗</span>
+            {% if proto.walkthrough %}
+            <span class="reel-walkthrough" data-href="{{ proto.walkthrough }}">Watch walkthrough ↗</span>
+            {% endif %}
+          </div>
         </div>
       </a>
       {% endfor %}
@@ -648,6 +686,17 @@
     <script>
       (function () {
         var cards = document.querySelectorAll(".reel-card");
+
+        // ── walkthrough link ── opens in a new tab without triggering the card's own
+        // full-screen navigation (it's a <span>, not a nested <a>, precisely so this works).
+        document.querySelectorAll(".reel-walkthrough").forEach(function (el) {
+          el.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var href = el.getAttribute("data-href");
+            if (href) window.open(href, "_blank", "noopener");
+          });
+        });
 
         // ── scroll-reveal ──
         var revealIO = new IntersectionObserver(

@@ -192,6 +192,12 @@
         opacity: 0.92;
         transition: opacity 1.2s ease;
         view-transition-name: project-hero;
+        filter: url(#hero-liq-filter);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-video {
+          filter: none;
+        }
       }
       ::view-transition-old(project-hero),
       ::view-transition-new(project-hero) {
@@ -1787,6 +1793,60 @@
         { passive: true }
       );
 
+      // Hero liquify — echoes the works-list liquify warp, but much subtler and only
+      // while the hero is still in view. Scroll velocity drives SVG displacement scale.
+      // #hero-liq-displace lives in the SVG defs near the end of <body>, which this
+      // script runs well before — so the lookup is deferred to DOMContentLoaded to
+      // guarantee the element actually exists (a plain getElementById here silently
+      // found nothing and no-op'd the whole feature).
+      function initHeroLiquify() {
+        const heroEl = document.querySelector(".proj-hero");
+        const displace = document.getElementById("hero-liq-displace");
+        if (!heroEl || !displace) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        let lastY = window.scrollY;
+        let cur = 0;
+        let target = 0;
+        let rafId = null;
+        function tick() {
+          cur += (target - cur) * 0.16;
+          target *= 0.75;
+          const s = Math.abs(cur);
+          displace.setAttribute("scale", s.toFixed(2));
+          if (s > 0.1 || Math.abs(target) > 0.1) {
+            rafId = requestAnimationFrame(tick);
+          } else {
+            displace.setAttribute("scale", "0");
+            cur = 0;
+            target = 0;
+            rafId = null;
+          }
+        }
+
+        // Entrance settle — hero arrives slightly rippled and resolves to still, the
+        // same "arriving somewhere" cue as the Buddha threshold ripple on the homepage.
+        cur = 34;
+        rafId = requestAnimationFrame(tick);
+
+        window.addEventListener(
+          "scroll",
+          () => {
+            const r = heroEl.getBoundingClientRect();
+            if (r.bottom < 0) return; // hero long scrolled past, skip entirely
+            const delta = Math.abs(window.scrollY - lastY);
+            lastY = window.scrollY;
+            target = Math.min(6, target + delta * 0.4);
+            if (!rafId) rafId = requestAnimationFrame(tick);
+          },
+          { passive: true }
+        );
+      }
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initHeroLiquify);
+      } else {
+        initHeroLiquify();
+      }
+
       // Scroll reveal
       const observer = new IntersectionObserver(
         (entries) => {
@@ -2196,6 +2256,10 @@
         <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.007 0.048" numOctaves="1" seed="9" result="noise" />
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="hero-liq-filter" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+          <feTurbulence type="turbulence" baseFrequency="0.012 0.02" numOctaves="2" seed="7" result="noise" />
+          <feDisplacementMap id="hero-liq-displace" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </defs>
     </svg>

@@ -10,6 +10,12 @@
     font-family: "Inter", sans-serif;
     overflow: hidden;
   }
+  /* Exit warp — applied only for the final dissolve (see onLoadingEnd), not for the
+     loader's whole lifespan, so the SVG filter never costs a frame during the heavier
+     video/shader phases. Echoes the Buddha collapse: reality ripples as it lets go. */
+  #site-loader.is-exiting {
+    filter: url(#loader-exit-filter);
+  }
   /* Solid backdrop — hides homepage content (desk WebGL, marquee, bottom-bar) during entry + loader scenes.
      The work-collage shader paints above this; cube video + typewriter paint above the shader. */
   #enter-backdrop {
@@ -267,11 +273,26 @@
       </feTurbulence>
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="32" xChannelSelector="R" yChannelSelector="G" />
     </filter>
+    <!-- Buddha liquify — idles at 0, ramps up on hover (a ripple at the threshold),
+         then spikes hard on Enter click as he collapses into the portal flash below. -->
+    <filter id="buddha-liq-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="turbulence" baseFrequency="0.025 0.04" numOctaves="2" seed="11" result="buddha-noise" />
+      <feDisplacementMap id="buddha-liq-displace" in="SourceGraphic" in2="buddha-noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+    <!-- Loader exit liquify — same "warp on threshold" signature as the Buddha collapse,
+         echoed here as the loader dissolves into the homepage desk. -->
+    <filter id="loader-exit-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feTurbulence type="turbulence" baseFrequency="0.018 0.03" numOctaves="2" seed="23" result="exit-noise" />
+      <feDisplacementMap id="loader-exit-displace" in="SourceGraphic" in2="exit-noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
   </defs>
 </svg>
 
 <!-- Solid dark backdrop — hides homepage content during entry + loader phases -->
 <div id="enter-backdrop"></div>
+
+<!-- Portal flash — the payoff beat when Buddha collapses into the loader on Enter click -->
+<div id="enter-flash" aria-hidden="true"></div>
 
 <!-- WebGL smoke shader — same blue-noise field as home #smoke-bg, mounted at loader z-index so it backs the Enter scene -->
 <canvas id="loader-smoke-bg" aria-hidden="true"></canvas>
@@ -326,7 +347,7 @@
     transition:
       opacity 0.4s ease,
       filter 0.5s ease;
-    filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15));
+    filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15)) url(#buddha-liq-filter);
     animation: buddhaBreathe 6s ease-in-out infinite;
   }
   #enter-3d-stage.is-on {
@@ -342,7 +363,19 @@
     }
   }
   #enter-3d-stage:hover {
-    filter: drop-shadow(0 0 40px rgba(160, 210, 255, 0.45));
+    filter: drop-shadow(0 0 40px rgba(160, 210, 255, 0.45)) url(#buddha-liq-filter);
+  }
+  /* Collapse — plays on Enter click. Overrides the idle breathe animation and pulls
+     Buddha down to a point while the liquify filter (driven in JS) spikes hard. */
+  #enter-3d-stage.is-collapsing {
+    animation: none;
+    transition:
+      transform 0.5s cubic-bezier(0.6, 0, 0.9, 0.4),
+      opacity 0.4s ease 0.15s,
+      filter 0.5s ease;
+    transform: scale(0.04);
+    opacity: 0;
+    filter: drop-shadow(0 0 60px rgba(180, 220, 255, 0.6)) url(#buddha-liq-filter);
   }
   #enter-3d-mount {
     width: 100%;
@@ -476,6 +509,35 @@
   @media (prefers-reduced-motion: reduce) {
     #enter-3d-stage {
       display: none;
+    }
+  }
+
+  /* Portal flash — a soft bloom that blooms outward the instant Buddha collapses,
+     the "hole opening" beat before the loader takes over. */
+  #enter-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 9060;
+    background: radial-gradient(circle at 50% 50%, rgba(210, 230, 255, 0.9) 0%, rgba(140, 190, 255, 0.28) 32%, transparent 68%);
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  #enter-flash.is-flashing {
+    animation: enterFlash 0.6s ease-out forwards;
+  }
+  @keyframes enterFlash {
+    0% {
+      opacity: 0;
+      transform: scale(0.25);
+    }
+    38% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.7);
     }
   }
 </style>
@@ -637,6 +699,70 @@
       }
     }
     window.addEventListener("keydown", speechKeyHandler);
+  })();
+</script>
+
+<script>
+  // Buddha liquify — idles flat, ripples on hover (reality wobbling at the threshold),
+  // then spikes hard into window.__buddhaCollapse() on Enter click: Buddha warps down
+  // to a point while #enter-flash blooms outward, then the loader takes over.
+  (function () {
+    var wrap = document.getElementById("enter-buddha-wrap");
+    var stage = document.getElementById("enter-3d-stage");
+    var displace = document.getElementById("buddha-liq-displace");
+    var flash = document.getElementById("enter-flash");
+    if (!wrap || !stage || !displace) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var cur = 0,
+      target = 0,
+      collapsing = false,
+      rafId = null;
+    function tick() {
+      var rate = collapsing ? 0.2 : 0.14;
+      cur += (target - cur) * rate;
+      displace.setAttribute("scale", cur.toFixed(2));
+      if (collapsing || Math.abs(target - cur) > 0.15) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        cur = target;
+        displace.setAttribute("scale", cur.toFixed(2));
+        rafId = null;
+      }
+    }
+    function ensureLoop() {
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    }
+
+    wrap.addEventListener("mouseenter", function () {
+      if (collapsing) return;
+      target = 9;
+      ensureLoop();
+    });
+    wrap.addEventListener("mouseleave", function () {
+      if (collapsing) return;
+      target = 0;
+      ensureLoop();
+    });
+
+    // Exposed so onEnter() can play the collapse before swapping in the loader.
+    window.__buddhaCollapse = function (done) {
+      if (collapsing || stage.offsetWidth === 0) {
+        done();
+        return;
+      }
+      collapsing = true;
+      target = 85;
+      ensureLoop();
+      stage.classList.add("is-collapsing");
+      if (flash) {
+        flash.classList.remove("is-flashing");
+        // Force reflow so re-adding the class restarts the animation if it ever fires twice.
+        void flash.offsetWidth;
+        flash.classList.add("is-flashing");
+      }
+      setTimeout(done, 520);
+    };
   })();
 </script>
 
@@ -993,25 +1119,37 @@
         // this tab the loader doesn't replay between page nav (the original behavior).
         sessionStorage.setItem("sid_loaded", "1");
       }
-      if (enterGate) enterGate.remove();
-      loader.style.display = "flex";
 
-      // Start nature sounds immediately on Enter
-      window.__natureSnd = new Audio("{{ site.baseurl }}/assets/audio/nature.mp3");
-      window.__natureSnd.volume = 0;
-      window.__natureSnd.loop = true;
-      window.__natureSnd.currentTime = 5;
-      window.__natureSnd.play().catch(function () {});
-      // Fade in nature gently — very low volume
-      var nFade = setInterval(function () {
-        if (window.__natureSnd.volume < 0.03) {
-          window.__natureSnd.volume = Math.min(window.__natureSnd.volume + 0.002, 0.03);
-        } else {
-          clearInterval(nFade);
-        }
-      }, 100);
+      function proceed() {
+        if (enterGate) enterGate.remove();
+        loader.style.display = "flex";
 
-      startLoader();
+        // Start nature sounds immediately on Enter
+        window.__natureSnd = new Audio("{{ site.baseurl }}/assets/audio/nature.mp3");
+        window.__natureSnd.volume = 0;
+        window.__natureSnd.loop = true;
+        window.__natureSnd.currentTime = 5;
+        window.__natureSnd.play().catch(function () {});
+        // Fade in nature gently — very low volume
+        var nFade = setInterval(function () {
+          if (window.__natureSnd.volume < 0.03) {
+            window.__natureSnd.volume = Math.min(window.__natureSnd.volume + 0.002, 0.03);
+          } else {
+            clearInterval(nFade);
+          }
+        }, 100);
+
+        startLoader();
+      }
+
+      // Play the Buddha collapse (liquify spike + portal flash) before handing off to
+      // the loader, when available (desktop, motion allowed). Falls straight through
+      // on mobile / reduced-motion, where __buddhaCollapse is never defined.
+      if (typeof window.__buddhaCollapse === "function") {
+        window.__buddhaCollapse(proceed);
+      } else {
+        proceed();
+      }
     }
     // Wire mobile enter button
     var mobileBtn = document.getElementById("enter-btn-mobile");
@@ -1198,6 +1336,22 @@
         setTimeout(function () {
           loader.style.transition = "opacity 0.8s ease";
           loader.style.opacity = "0";
+
+          // Warp-on-exit — same signature as the Buddha collapse, echoed here as the
+          // loader lets go of the desk. Skipped under reduced motion (fade alone still plays).
+          var exitDisplace = document.getElementById("loader-exit-displace");
+          if (exitDisplace && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+            loader.classList.add("is-exiting");
+            var exitStart = null;
+            function exitTick(ts) {
+              if (!exitStart) exitStart = ts;
+              var p = Math.min((ts - exitStart) / 800, 1);
+              exitDisplace.setAttribute("scale", (p * 55).toFixed(2));
+              if (p < 1) requestAnimationFrame(exitTick);
+            }
+            requestAnimationFrame(exitTick);
+          }
+
           setTimeout(function () {
             if (loader.parentNode) loader.remove();
             window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: false } }));

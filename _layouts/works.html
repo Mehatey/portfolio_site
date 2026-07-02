@@ -702,6 +702,40 @@
         z-index: 0;
         opacity: 1;
       }
+      /* Exit warp — applied only for the click-to-navigate beat (see JS), not left on
+         permanently, so the SVG filter never costs a frame during normal browsing. */
+      .wp-media.is-exiting .wp-img,
+      .wp-media.is-exiting .wp-video {
+        filter: url(#wp-exit-filter);
+      }
+      /* Same "warp on threshold, flash on commit" signature as the homepage Buddha
+         collapse and the project-hero entrance — played once, right on click. */
+      .wp-exit-flash {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        background: radial-gradient(circle at 50% 50%, rgba(210, 230, 255, 0.9) 0%, rgba(140, 190, 255, 0.28) 32%, transparent 68%);
+        opacity: 0;
+        pointer-events: none;
+        mix-blend-mode: screen;
+      }
+      .wp-exit-flash.is-flashing {
+        animation: wpExitFlash 0.5s ease-out forwards;
+      }
+      @keyframes wpExitFlash {
+        0% {
+          opacity: 0;
+          transform: scale(0.4);
+        }
+        40% {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(1.5);
+        }
+      }
       .wp-video {
         z-index: 1;
         opacity: 0;
@@ -1643,6 +1677,7 @@
             </svg>
             <span class="wp-nda-label">NDA · Available on request</span>
           </div>
+          <div class="wp-exit-flash" id="wp-exit-flash" aria-hidden="true"></div>
         </div>
         <div class="wp-body">
           <div class="wp-pills" id="wp-pills"><span class="wp-pill">WebGPU</span><span class="wp-pill">In-browser AI</span></div>
@@ -1686,6 +1721,11 @@
           { passive: true }
         );
       })();
+
+      // Cursor label — list items get a "View" tag next to the custom cursor on hover
+      document.querySelectorAll(".works-list-item").forEach(function (i) {
+        i.setAttribute("data-cursor-text", "View");
+      });
 
       // Preview panel — hover a list item to update the right panel
       var _currentItem = null;
@@ -1803,7 +1843,9 @@
           });
         }
 
-        // Click ripple + view transition
+        var reduceMotionNav = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        // Click ripple + view transition + exit warp
         items.forEach(function (item) {
           item.addEventListener(
             "click",
@@ -1821,6 +1863,37 @@
                 var wpImg = document.getElementById("wp-img");
                 if (wpImg && wpImg.src && wpImg.style.opacity !== "0") {
                   wpImg.style.viewTransitionName = "project-hero";
+                }
+
+                // Warp-on-commit — same signature as the Buddha collapse and the project
+                // hero's entrance ripple. Only for plain left-clicks (let ctrl/cmd/middle
+                // click open-in-new-tab behave exactly as a normal link).
+                var isPlainClick = e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+                if (isPlainClick && !reduceMotionNav && !isTouch) {
+                  e.preventDefault();
+                  var href = item.href;
+                  var wpMedia = document.getElementById("wp-media");
+                  var wpExitDisplace = document.getElementById("wp-exit-displace");
+                  var wpFlash = document.getElementById("wp-exit-flash");
+                  if (wpMedia) wpMedia.classList.add("is-exiting");
+                  if (wpExitDisplace) {
+                    var start = null;
+                    function tick(ts) {
+                      if (!start) start = ts;
+                      var p = Math.min((ts - start) / 220, 1);
+                      wpExitDisplace.setAttribute("scale", (p * 40).toFixed(2));
+                      if (p < 1) requestAnimationFrame(tick);
+                    }
+                    requestAnimationFrame(tick);
+                  }
+                  if (wpFlash) {
+                    wpFlash.classList.remove("is-flashing");
+                    void wpFlash.offsetWidth;
+                    wpFlash.classList.add("is-flashing");
+                  }
+                  setTimeout(function () {
+                    window.location.href = href;
+                  }, 220);
                 }
               }
             },
@@ -1969,6 +2042,13 @@
         <filter id="liq-filter" x="-10%" y="-2%" width="120%" height="104%" color-interpolation-filters="sRGB">
           <feTurbulence type="turbulence" baseFrequency="0.014 0.007" numOctaves="2" seed="42" result="noise" />
           <feDisplacementMap id="liq-displace" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <!-- Preview-panel exit warp — same "warp on threshold, flash on commit" signature
+             as the homepage Buddha collapse and the project-hero entrance, played the
+             instant a list item is clicked, right before the view-transition hands off. -->
+        <filter id="wp-exit-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+          <feTurbulence type="turbulence" baseFrequency="0.02 0.03" numOctaves="2" seed="31" result="wp-noise" />
+          <feDisplacementMap id="wp-exit-displace" in="SourceGraphic" in2="wp-noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </defs>
     </svg>

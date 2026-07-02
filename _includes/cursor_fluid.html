@@ -87,6 +87,35 @@
       0 0 10px 2px rgba(140, 200, 255, 0.18),
       0 0 22px 4px rgba(100, 160, 240, 0.08);
   }
+  /* Contextual cursor label — small mono pill that appears next to the dot over
+     elements tagged [data-cursor-text] (e.g. "View", "Play"). Same visual language
+     as the pixel-art nav icons: mono type, tight tracking, no color. */
+  #cur-label {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 99998;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(8, 8, 12, 0.92);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 5px 10px;
+    white-space: nowrap;
+    opacity: 0;
+    will-change: left, top, transform, opacity;
+    transition: opacity 0.22s ease;
+  }
+  #cur-label.is-visible {
+    opacity: 1;
+  }
+  html[data-theme="light"] #cur-label {
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(7, 9, 15, 0.9);
+  }
   /* Global click feedback — interactive elements briefly scale-down on press */
   a:active,
   button:active,
@@ -127,6 +156,48 @@
   ::view-transition-new(sid-cube) {
     animation-duration: 0.45s;
     animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  /* Nav stays a stable named transition (simple crossfade, no motion) so the fixed
+     chrome doesn't get caught in the page's scale/blur below — it should read as
+     "always there," not part of the page content that's changing. */
+  .nav {
+    view-transition-name: site-nav;
+  }
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation-duration: 0.2s;
+    animation-timing-function: ease;
+  }
+  /* Branded page transition — replaces the browser default crossfade with a soft
+     scale + blur that matches the site's ease-out rhythm, for same-origin
+     navigations between pages (see <meta name="view-transition"> in every layout). */
+  @keyframes sid-page-out {
+    to {
+      opacity: 0;
+      transform: scale(0.984);
+      filter: blur(5px);
+    }
+  }
+  @keyframes sid-page-in {
+    from {
+      opacity: 0;
+      transform: scale(1.016);
+      filter: blur(5px);
+    }
+  }
+  ::view-transition-old(root) {
+    animation: sid-page-out 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  ::view-transition-new(root) {
+    animation: sid-page-in 0.46s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root),
+    ::view-transition-old(site-nav),
+    ::view-transition-new(site-nav) {
+      animation: none !important;
+    }
   }
   /* Cube logo eyes track cursor — sets translate via CSS var */
   .logo-eye {
@@ -2730,6 +2801,7 @@
 <div id="global-vignette" aria-hidden="true"></div>
 <div id="cursor-spotlight" aria-hidden="true"></div>
 <div id="cur-dot"></div>
+<div id="cur-label" aria-hidden="true"></div>
 
 <!-- Cube chat — Sid's cube as a small conversational companion -->
 <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube">
@@ -3047,6 +3119,7 @@
   (function () {
     const dot = document.getElementById("cur-dot");
     if (!dot) return;
+    const label = document.getElementById("cur-label");
 
     let mx = -100,
       my = -100,
@@ -3135,6 +3208,11 @@
       dot.style.top = ry + "px";
       dot.style.transform = "translate(-50%, -50%) rotate(" + ang + "deg) scale(" + sx * hoverScale + ", " + sy * hoverScale + ")";
 
+      if (label) {
+        label.style.left = rx + "px";
+        label.style.top = ry + 28 + "px";
+      }
+
       if (spotlight) {
         spotlight.style.left = mx + "px";
         spotlight.style.top = my + "px";
@@ -3150,10 +3228,18 @@
     if (!isTouchDevice) {
       const HOVER_SELECTOR =
         'a, button, [role="button"], .work-card, .nav-icon, .card, video, .filter-btn, .footer-cta, .site-footer-cta, .about-resume-link, .desk-play-reel, .meta-item';
+      const LABEL_SELECTOR = "[data-cursor-text]";
       document.addEventListener(
         "mouseover",
         (e) => {
           if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
+          if (label) {
+            const labeled = e.target.closest && e.target.closest(LABEL_SELECTOR);
+            if (labeled) {
+              label.textContent = labeled.getAttribute("data-cursor-text");
+              label.classList.add("is-visible");
+            }
+          }
         },
         { passive: true }
       );
@@ -3164,6 +3250,13 @@
             // Only remove if we're really leaving the hover surface (not just moving to a child)
             const to = e.relatedTarget;
             if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
+          }
+          if (label) {
+            const leaving = e.target.closest && e.target.closest(LABEL_SELECTOR);
+            if (leaving) {
+              const to = e.relatedTarget;
+              if (!to || !(to.closest && to.closest(LABEL_SELECTOR))) label.classList.remove("is-visible");
+            }
           }
         },
         { passive: true }
