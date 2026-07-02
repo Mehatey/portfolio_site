@@ -764,7 +764,7 @@
   }
 
   .buddha-quote {
-    font-family: "DM Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 11px;
     letter-spacing: 0.04em;
     line-height: 1.65;
@@ -801,7 +801,7 @@
 
   /* Center — last updated */
   .site-footer-updated {
-    font-family: "DM Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -816,7 +816,7 @@
     align-items: center;
     justify-content: flex-end;
     gap: 18px;
-    font-family: "DM Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -932,7 +932,7 @@
       <model-viewer src="/assets/models/buddha.glb" camera-orbit="0deg 80deg 105%" auto-rotate rotation-per-second="18deg" interaction-prompt="none" disable-zoom disable-pan disable-tap environment-image="neutral" exposure="1.2" shadow-intensity="0"></model-viewer>
       <span class="buddha-quote" id="buddha-quote" aria-live="polite"></span>
     </div>
-    <span class="site-footer-updated" aria-label="Last updated">Updated Jun 2026</span>
+    <span class="site-footer-updated" aria-label="Last updated">Updated Jul 2026</span>
     <div class="site-footer-meta" aria-label="Site metadata">
       <span class="site-footer-meta-item">
         <span class="site-footer-time-dot" aria-hidden="true"></span>
@@ -1216,6 +1216,35 @@
       0 0 10px 2px rgba(140, 200, 255, 0.18),
       0 0 22px 4px rgba(100, 160, 240, 0.08);
   }
+  /* Contextual cursor label — small mono pill that appears next to the dot over
+     elements tagged [data-cursor-text] (e.g. "View", "Play"). Same visual language
+     as the pixel-art nav icons: mono type, tight tracking, no color. */
+  #cur-label {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 99998;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(8, 8, 12, 0.92);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 5px 10px;
+    white-space: nowrap;
+    opacity: 0;
+    will-change: left, top, transform, opacity;
+    transition: opacity 0.22s ease;
+  }
+  #cur-label.is-visible {
+    opacity: 1;
+  }
+  html[data-theme="light"] #cur-label {
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(7, 9, 15, 0.9);
+  }
   /* Global click feedback — interactive elements briefly scale-down on press */
   a:active,
   button:active,
@@ -1231,7 +1260,7 @@
   /* Magnetic nav icons — subtle pull + scale on hover */
   .nav-icon {
     transition:
-      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.35s var(--ease-out),
       opacity 0.25s ease !important;
   }
   .nav-icon:hover {
@@ -1255,7 +1284,49 @@
   ::view-transition-old(sid-cube),
   ::view-transition-new(sid-cube) {
     animation-duration: 0.45s;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-timing-function: var(--ease-out);
+  }
+  /* Nav stays a stable named transition (simple crossfade, no motion) so the fixed
+     chrome doesn't get caught in the page's scale/blur below — it should read as
+     "always there," not part of the page content that's changing. */
+  .nav {
+    view-transition-name: site-nav;
+  }
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation-duration: 0.2s;
+    animation-timing-function: ease;
+  }
+  /* Branded page transition — replaces the browser default crossfade with a soft
+     scale + blur that matches the site's ease-out rhythm, for same-origin
+     navigations between pages (see <meta name="view-transition"> in every layout). */
+  @keyframes sid-page-out {
+    to {
+      opacity: 0;
+      transform: scale(0.984);
+      filter: blur(5px);
+    }
+  }
+  @keyframes sid-page-in {
+    from {
+      opacity: 0;
+      transform: scale(1.016);
+      filter: blur(5px);
+    }
+  }
+  ::view-transition-old(root) {
+    animation: sid-page-out 0.38s var(--ease-out) both;
+  }
+  ::view-transition-new(root) {
+    animation: sid-page-in 0.46s var(--ease-out) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root),
+    ::view-transition-old(site-nav),
+    ::view-transition-new(site-nav) {
+      animation: none !important;
+    }
   }
   /* Cube logo eyes track cursor — sets translate via CSS var */
   .logo-eye {
@@ -1286,7 +1357,7 @@
     }
   }
   .logo-cube.logo-wave {
-    animation: logoWave 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: logoWave 1.4s var(--ease-out);
   }
 
   /* Logo + nav-icon size override — site-wide. Beats per-layout defaults. */
@@ -1305,7 +1376,7 @@
   /* 2D BY DEFAULT, 3D ON HOVER — top + right faces are hidden by default; nav-hover reveals them while the cube spins. */
   .logo-cube .cube-face {
     opacity: 0;
-    transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 0.45s var(--ease-out);
   }
   .nav > a:hover .logo-cube .cube-face {
     opacity: 1;
@@ -1353,7 +1424,7 @@
 
   /* Nav auto-hide on scroll down (returns on scroll up) */
   .nav {
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.35s var(--ease-out);
   }
   .nav--hidden {
     /* Auto-hide disabled — nav stays pinned on scroll so the navbar and reading
@@ -1398,8 +1469,8 @@
     pointer-events: none;
     opacity: 0;
     transition:
-      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
   }
   #scroll-hint.is-visible {
     opacity: 1;
@@ -2213,7 +2284,7 @@
   }
   /* Magnetic CTAs — smooth return to origin when cursor leaves */
   [data-magnetic] {
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.4s var(--ease-out);
     will-change: transform;
   }
 
@@ -2243,7 +2314,7 @@
       0 0 0 1px rgba(160, 200, 255, 0.06) inset !important;
     color: rgba(245, 250, 255, 0.95) !important;
     transition:
-      opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.22s var(--ease-out),
       transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
   .nav .nav-icon:hover::after,
@@ -2811,7 +2882,7 @@
     justify-content: center;
     cursor: none;
     transition:
-      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.3s var(--ease-out),
       border-color 0.25s ease,
       background 0.25s ease;
     padding: 0;
@@ -3045,7 +3116,7 @@
     font-family: var(--font-head, "Inter", sans-serif);
     font-size: 13.5px;
     line-height: 1.5;
-    animation: ccMsgIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: ccMsgIn 0.35s var(--ease-out);
   }
   @keyframes ccMsgIn {
     from {
@@ -3257,7 +3328,7 @@
   }
   #cmdk.is-open {
     display: flex;
-    animation: cmdkFadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: cmdkFadeIn 0.18s var(--ease-out);
   }
   @keyframes cmdkFadeIn {
     from {
@@ -3859,6 +3930,7 @@
 <div id="global-vignette" aria-hidden="true"></div>
 <div id="cursor-spotlight" aria-hidden="true"></div>
 <div id="cur-dot"></div>
+<div id="cur-label" aria-hidden="true"></div>
 
 <!-- Cube chat — Sid's cube as a small conversational companion -->
 <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube">
@@ -4142,6 +4214,7 @@
   (function () {
     const dot = document.getElementById("cur-dot");
     if (!dot) return;
+    const label = document.getElementById("cur-label");
 
     let mx = -100,
       my = -100,
@@ -4230,6 +4303,11 @@
       dot.style.top = ry + "px";
       dot.style.transform = "translate(-50%, -50%) rotate(" + ang + "deg) scale(" + sx * hoverScale + ", " + sy * hoverScale + ")";
 
+      if (label) {
+        label.style.left = rx + "px";
+        label.style.top = ry + 28 + "px";
+      }
+
       if (spotlight) {
         spotlight.style.left = mx + "px";
         spotlight.style.top = my + "px";
@@ -4245,10 +4323,18 @@
     if (!isTouchDevice) {
       const HOVER_SELECTOR =
         'a, button, [role="button"], .work-card, .nav-icon, .card, video, .filter-btn, .footer-cta, .site-footer-cta, .about-resume-link, .desk-play-reel, .meta-item';
+      const LABEL_SELECTOR = "[data-cursor-text]";
       document.addEventListener(
         "mouseover",
         (e) => {
           if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
+          if (label) {
+            const labeled = e.target.closest && e.target.closest(LABEL_SELECTOR);
+            if (labeled) {
+              label.textContent = labeled.getAttribute("data-cursor-text");
+              label.classList.add("is-visible");
+            }
+          }
         },
         { passive: true }
       );
@@ -4259,6 +4345,13 @@
             // Only remove if we're really leaving the hover surface (not just moving to a child)
             const to = e.relatedTarget;
             if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
+          }
+          if (label) {
+            const leaving = e.target.closest && e.target.closest(LABEL_SELECTOR);
+            if (leaving) {
+              const to = e.relatedTarget;
+              if (!to || !(to.closest && to.closest(LABEL_SELECTOR))) label.classList.remove("is-visible");
+            }
           }
         },
         { passive: true }
@@ -4284,7 +4377,7 @@
     // ── MAGNETIC FOOTER CTAs ── softer pull on Get in Touch / View Resume buttons (desktop only)
     if (!isTouchDevice)
       document.querySelectorAll(".site-footer-cta, .about-resume-link").forEach((cta) => {
-        cta.style.transition = "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s, color 0.3s, background 0.3s";
+        cta.style.transition = "transform 0.4s var(--ease-out), border-color 0.3s, color 0.3s, background 0.3s";
         cta.addEventListener("mousemove", (ev) => {
           const r = cta.getBoundingClientRect();
           const cx = r.left + r.width / 2;

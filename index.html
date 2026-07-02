@@ -740,7 +740,7 @@
         pointer-events: auto;
         opacity: 0;
         transition:
-          transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+          transform 0.5s var(--ease-out),
           opacity 0.8s ease,
           filter 0.5s ease;
         filter: drop-shadow(0 8px 60px rgba(0, 0, 0, 0.7)) drop-shadow(0 20px 100px rgba(0, 0, 0, 0.5)) drop-shadow(0 0 80px rgba(60, 100, 200, 0.06));
@@ -1254,7 +1254,7 @@
         z-index: 4;
         pointer-events: none;
         opacity: 0;
-        transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        transition: opacity 0.55s var(--ease-out);
         -webkit-mask-image: radial-gradient(
           circle 240px at var(--cx, 50%) var(--cy, 50%),
           rgba(0, 0, 0, 1) 0%,
@@ -1394,8 +1394,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-family: "Inter", sans-serif;
+    font-family: var(--font-head);
     overflow: hidden;
+  }
+  /* Exit warp — applied only for the final dissolve (see onLoadingEnd), not for the
+     loader's whole lifespan, so the SVG filter never costs a frame during the heavier
+     video/shader phases. Echoes the Buddha collapse: reality ripples as it lets go. */
+  #site-loader.is-exiting {
+    filter: url(#loader-exit-filter);
   }
   /* Solid backdrop — hides homepage content (desk WebGL, marquee, bottom-bar) during entry + loader scenes.
      The work-collage shader paints above this; cube video + typewriter paint above the shader. */
@@ -1463,7 +1469,7 @@
   }
   /* Hello — bigger, more confident, distinct from the mono const() stream so they don't clash */
   #sl-hello {
-    font-family: "Inter", sans-serif;
+    font-family: var(--font-head);
     font-size: clamp(40px, 6vw, 72px);
     font-weight: 200;
     letter-spacing: -0.02em;
@@ -1487,7 +1493,7 @@
     top: 7%;
     left: max(32px, 4.5vw);
     z-index: 12;
-    font-family: "DM Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 14px;
     font-weight: 400;
     letter-spacing: 0.04em;
@@ -1497,7 +1503,7 @@
     max-width: min(480px, 44vw);
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 0.7s var(--ease-out);
     will-change: opacity;
   }
   #loader-stream.is-on {
@@ -1654,11 +1660,26 @@
       </feturbulence>
       <fedisplacementmap in="SourceGraphic" in2="noise" scale="32" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
     </filter>
+    <!-- Buddha liquify — idles at 0, ramps up on hover (a ripple at the threshold),
+         then spikes hard on Enter click as he collapses into the portal flash below. -->
+    <filter id="buddha-liq-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feturbulence type="turbulence" basefrequency="0.025 0.04" numoctaves="2" seed="11" result="buddha-noise"></feturbulence>
+      <fedisplacementmap id="buddha-liq-displace" in="SourceGraphic" in2="buddha-noise" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
+    </filter>
+    <!-- Loader exit liquify — same "warp on threshold" signature as the Buddha collapse,
+         echoed here as the loader dissolves into the homepage desk. -->
+    <filter id="loader-exit-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
+      <feturbulence type="turbulence" basefrequency="0.018 0.03" numoctaves="2" seed="23" result="exit-noise"></feturbulence>
+      <fedisplacementmap id="loader-exit-displace" in="SourceGraphic" in2="exit-noise" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
+    </filter>
   </defs>
 </svg>
 
 <!-- Solid dark backdrop — hides homepage content during entry + loader phases -->
 <div id="enter-backdrop"></div>
+
+<!-- Portal flash — the payoff beat when Buddha collapses into the loader on Enter click -->
+<div id="enter-flash" aria-hidden="true"></div>
 
 <!-- WebGL smoke shader — same blue-noise field as home #smoke-bg, mounted at loader z-index so it backs the Enter scene -->
 <canvas id="loader-smoke-bg" aria-hidden="true"></canvas>
@@ -1709,7 +1730,7 @@
     transition:
       opacity 0.4s ease,
       filter 0.5s ease;
-    filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15));
+    filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15)) url(#buddha-liq-filter);
     animation: buddhaBreathe 6s ease-in-out infinite;
   }
   #enter-3d-stage.is-on {
@@ -1725,7 +1746,19 @@
     }
   }
   #enter-3d-stage:hover {
-    filter: drop-shadow(0 0 40px rgba(160, 210, 255, 0.45));
+    filter: drop-shadow(0 0 40px rgba(160, 210, 255, 0.45)) url(#buddha-liq-filter);
+  }
+  /* Collapse — plays on Enter click. Overrides the idle breathe animation and pulls
+     Buddha down to a point while the liquify filter (driven in JS) spikes hard. */
+  #enter-3d-stage.is-collapsing {
+    animation: none;
+    transition:
+      transform 0.5s cubic-bezier(0.6, 0, 0.9, 0.4),
+      opacity 0.4s ease 0.15s,
+      filter 0.5s ease;
+    transform: scale(0.04);
+    opacity: 0;
+    filter: drop-shadow(0 0 60px rgba(180, 220, 255, 0.6)) url(#buddha-liq-filter);
   }
   #enter-3d-mount {
     width: 100%;
@@ -1741,7 +1774,7 @@
 
   /* ENTER label — floats above Buddha's head, revealed on hover */
   #enter-label {
-    font-family: "DM Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 12px;
     font-weight: 400;
     letter-spacing: 0.32em;
@@ -1779,7 +1812,7 @@
       left: 50%;
       transform: translateX(-50%);
       z-index: 10001;
-      font-family: "DM Mono", monospace;
+      font-family: var(--font-mono);
       font-size: 11px;
       letter-spacing: 0.28em;
       text-transform: uppercase;
@@ -1807,7 +1840,7 @@
     position: fixed;
     z-index: 9060;
     pointer-events: none;
-    font-family: "DM Mono", monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     letter-spacing: 0.04em;
     line-height: 1.35;
@@ -1823,7 +1856,7 @@
     opacity: 0;
     transform: translate(-50%, 0) scale(0.18);
     transition:
-      opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.32s var(--ease-out),
       transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
     will-change: transform, opacity;
     text-shadow: 0 0 14px rgba(140, 200, 255, 0.4);
@@ -1859,6 +1892,35 @@
   @media (prefers-reduced-motion: reduce) {
     #enter-3d-stage {
       display: none;
+    }
+  }
+
+  /* Portal flash — a soft bloom that blooms outward the instant Buddha collapses,
+     the "hole opening" beat before the loader takes over. */
+  #enter-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 9060;
+    background: radial-gradient(circle at 50% 50%, rgba(210, 230, 255, 0.9) 0%, rgba(140, 190, 255, 0.28) 32%, transparent 68%);
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  #enter-flash.is-flashing {
+    animation: enterFlash 0.6s ease-out forwards;
+  }
+  @keyframes enterFlash {
+    0% {
+      opacity: 0;
+      transform: scale(0.25);
+    }
+    38% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.7);
     }
   }
 </style>
@@ -2020,6 +2082,70 @@
       }
     }
     window.addEventListener("keydown", speechKeyHandler);
+  })();
+</script>
+
+<script>
+  // Buddha liquify — idles flat, ripples on hover (reality wobbling at the threshold),
+  // then spikes hard into window.__buddhaCollapse() on Enter click: Buddha warps down
+  // to a point while #enter-flash blooms outward, then the loader takes over.
+  (function () {
+    var wrap = document.getElementById("enter-buddha-wrap");
+    var stage = document.getElementById("enter-3d-stage");
+    var displace = document.getElementById("buddha-liq-displace");
+    var flash = document.getElementById("enter-flash");
+    if (!wrap || !stage || !displace) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var cur = 0,
+      target = 0,
+      collapsing = false,
+      rafId = null;
+    function tick() {
+      var rate = collapsing ? 0.2 : 0.14;
+      cur += (target - cur) * rate;
+      displace.setAttribute("scale", cur.toFixed(2));
+      if (collapsing || Math.abs(target - cur) > 0.15) {
+        rafId = requestAnimationFrame(tick);
+      } else {
+        cur = target;
+        displace.setAttribute("scale", cur.toFixed(2));
+        rafId = null;
+      }
+    }
+    function ensureLoop() {
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    }
+
+    wrap.addEventListener("mouseenter", function () {
+      if (collapsing) return;
+      target = 9;
+      ensureLoop();
+    });
+    wrap.addEventListener("mouseleave", function () {
+      if (collapsing) return;
+      target = 0;
+      ensureLoop();
+    });
+
+    // Exposed so onEnter() can play the collapse before swapping in the loader.
+    window.__buddhaCollapse = function (done) {
+      if (collapsing || stage.offsetWidth === 0) {
+        done();
+        return;
+      }
+      collapsing = true;
+      target = 85;
+      ensureLoop();
+      stage.classList.add("is-collapsing");
+      if (flash) {
+        flash.classList.remove("is-flashing");
+        // Force reflow so re-adding the class restarts the animation if it ever fires twice.
+        void flash.offsetWidth;
+        flash.classList.add("is-flashing");
+      }
+      setTimeout(done, 520);
+    };
   })();
 </script>
 
@@ -2376,25 +2502,37 @@
         // this tab the loader doesn't replay between page nav (the original behavior).
         sessionStorage.setItem("sid_loaded", "1");
       }
-      if (enterGate) enterGate.remove();
-      loader.style.display = "flex";
 
-      // Start nature sounds immediately on Enter
-      window.__natureSnd = new Audio("/assets/audio/nature.mp3");
-      window.__natureSnd.volume = 0;
-      window.__natureSnd.loop = true;
-      window.__natureSnd.currentTime = 5;
-      window.__natureSnd.play().catch(function () {});
-      // Fade in nature gently — very low volume
-      var nFade = setInterval(function () {
-        if (window.__natureSnd.volume < 0.03) {
-          window.__natureSnd.volume = Math.min(window.__natureSnd.volume + 0.002, 0.03);
-        } else {
-          clearInterval(nFade);
-        }
-      }, 100);
+      function proceed() {
+        if (enterGate) enterGate.remove();
+        loader.style.display = "flex";
 
-      startLoader();
+        // Start nature sounds immediately on Enter
+        window.__natureSnd = new Audio("/assets/audio/nature.mp3");
+        window.__natureSnd.volume = 0;
+        window.__natureSnd.loop = true;
+        window.__natureSnd.currentTime = 5;
+        window.__natureSnd.play().catch(function () {});
+        // Fade in nature gently — very low volume
+        var nFade = setInterval(function () {
+          if (window.__natureSnd.volume < 0.03) {
+            window.__natureSnd.volume = Math.min(window.__natureSnd.volume + 0.002, 0.03);
+          } else {
+            clearInterval(nFade);
+          }
+        }, 100);
+
+        startLoader();
+      }
+
+      // Play the Buddha collapse (liquify spike + portal flash) before handing off to
+      // the loader, when available (desktop, motion allowed). Falls straight through
+      // on mobile / reduced-motion, where __buddhaCollapse is never defined.
+      if (typeof window.__buddhaCollapse === "function") {
+        window.__buddhaCollapse(proceed);
+      } else {
+        proceed();
+      }
     }
     // Wire mobile enter button
     var mobileBtn = document.getElementById("enter-btn-mobile");
@@ -2553,7 +2691,7 @@
               duration: 900,
               done: function () {
                 // RESOLVE PHASE: text has fully formed. Smoothly ramp opacity → 1 and unblur.
-                hello.style.transition = "opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), filter 0.7s ease";
+                hello.style.transition = "opacity 0.7s var(--ease-out), filter 0.7s ease";
                 hello.style.opacity = "1";
                 hello.style.filter = "blur(0)";
               },
@@ -2581,6 +2719,22 @@
         setTimeout(function () {
           loader.style.transition = "opacity 0.8s ease";
           loader.style.opacity = "0";
+
+          // Warp-on-exit — same signature as the Buddha collapse, echoed here as the
+          // loader lets go of the desk. Skipped under reduced motion (fade alone still plays).
+          var exitDisplace = document.getElementById("loader-exit-displace");
+          if (exitDisplace && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+            loader.classList.add("is-exiting");
+            var exitStart = null;
+            function exitTick(ts) {
+              if (!exitStart) exitStart = ts;
+              var p = Math.min((ts - exitStart) / 800, 1);
+              exitDisplace.setAttribute("scale", (p * 55).toFixed(2));
+              if (p < 1) requestAnimationFrame(exitTick);
+            }
+            requestAnimationFrame(exitTick);
+          }
+
           setTimeout(function () {
             if (loader.parentNode) loader.remove();
             window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: false } }));
@@ -2827,6 +2981,35 @@
       0 0 10px 2px rgba(140, 200, 255, 0.18),
       0 0 22px 4px rgba(100, 160, 240, 0.08);
   }
+  /* Contextual cursor label — small mono pill that appears next to the dot over
+     elements tagged [data-cursor-text] (e.g. "View", "Play"). Same visual language
+     as the pixel-art nav icons: mono type, tight tracking, no color. */
+  #cur-label {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 99998;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(8, 8, 12, 0.92);
+    background: rgba(255, 255, 255, 0.92);
+    padding: 5px 10px;
+    white-space: nowrap;
+    opacity: 0;
+    will-change: left, top, transform, opacity;
+    transition: opacity 0.22s ease;
+  }
+  #cur-label.is-visible {
+    opacity: 1;
+  }
+  html[data-theme="light"] #cur-label {
+    color: rgba(255, 255, 255, 0.95);
+    background: rgba(7, 9, 15, 0.9);
+  }
   /* Global click feedback — interactive elements briefly scale-down on press */
   a:active,
   button:active,
@@ -2842,7 +3025,7 @@
   /* Magnetic nav icons — subtle pull + scale on hover */
   .nav-icon {
     transition:
-      transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.35s var(--ease-out),
       opacity 0.25s ease !important;
   }
   .nav-icon:hover {
@@ -2866,7 +3049,49 @@
   ::view-transition-old(sid-cube),
   ::view-transition-new(sid-cube) {
     animation-duration: 0.45s;
-    animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+    animation-timing-function: var(--ease-out);
+  }
+  /* Nav stays a stable named transition (simple crossfade, no motion) so the fixed
+     chrome doesn't get caught in the page's scale/blur below — it should read as
+     "always there," not part of the page content that's changing. */
+  .nav {
+    view-transition-name: site-nav;
+  }
+  ::view-transition-old(site-nav),
+  ::view-transition-new(site-nav) {
+    animation-duration: 0.2s;
+    animation-timing-function: ease;
+  }
+  /* Branded page transition — replaces the browser default crossfade with a soft
+     scale + blur that matches the site's ease-out rhythm, for same-origin
+     navigations between pages (see <meta name="view-transition"> in every layout). */
+  @keyframes sid-page-out {
+    to {
+      opacity: 0;
+      transform: scale(0.984);
+      filter: blur(5px);
+    }
+  }
+  @keyframes sid-page-in {
+    from {
+      opacity: 0;
+      transform: scale(1.016);
+      filter: blur(5px);
+    }
+  }
+  ::view-transition-old(root) {
+    animation: sid-page-out 0.38s var(--ease-out) both;
+  }
+  ::view-transition-new(root) {
+    animation: sid-page-in 0.46s var(--ease-out) both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root),
+    ::view-transition-old(site-nav),
+    ::view-transition-new(site-nav) {
+      animation: none !important;
+    }
   }
   /* Cube logo eyes track cursor — sets translate via CSS var */
   .logo-eye {
@@ -2897,7 +3122,7 @@
     }
   }
   .logo-cube.logo-wave {
-    animation: logoWave 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: logoWave 1.4s var(--ease-out);
   }
 
   /* Logo + nav-icon size override — site-wide. Beats per-layout defaults. */
@@ -2916,7 +3141,7 @@
   /* 2D BY DEFAULT, 3D ON HOVER — top + right faces are hidden by default; nav-hover reveals them while the cube spins. */
   .logo-cube .cube-face {
     opacity: 0;
-    transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 0.45s var(--ease-out);
   }
   .nav > a:hover .logo-cube .cube-face {
     opacity: 1;
@@ -2964,7 +3189,7 @@
 
   /* Nav auto-hide on scroll down (returns on scroll up) */
   .nav {
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.35s var(--ease-out);
   }
   .nav--hidden {
     /* Auto-hide disabled — nav stays pinned on scroll so the navbar and reading
@@ -3009,8 +3234,8 @@
     pointer-events: none;
     opacity: 0;
     transition:
-      opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity 0.5s var(--ease-out),
+      transform 0.5s var(--ease-out);
   }
   #scroll-hint.is-visible {
     opacity: 1;
@@ -3824,7 +4049,7 @@
   }
   /* Magnetic CTAs — smooth return to origin when cursor leaves */
   [data-magnetic] {
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: transform 0.4s var(--ease-out);
     will-change: transform;
   }
 
@@ -3854,7 +4079,7 @@
       0 0 0 1px rgba(160, 200, 255, 0.06) inset !important;
     color: rgba(245, 250, 255, 0.95) !important;
     transition:
-      opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.22s var(--ease-out),
       transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
   }
   .nav .nav-icon:hover::after,
@@ -4422,7 +4647,7 @@
     justify-content: center;
     cursor: none;
     transition:
-      transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.3s var(--ease-out),
       border-color 0.25s ease,
       background 0.25s ease;
     padding: 0;
@@ -4656,7 +4881,7 @@
     font-family: var(--font-head, "Inter", sans-serif);
     font-size: 13.5px;
     line-height: 1.5;
-    animation: ccMsgIn 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: ccMsgIn 0.35s var(--ease-out);
   }
   @keyframes ccMsgIn {
     from {
@@ -4868,7 +5093,7 @@
   }
   #cmdk.is-open {
     display: flex;
-    animation: cmdkFadeIn 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: cmdkFadeIn 0.18s var(--ease-out);
   }
   @keyframes cmdkFadeIn {
     from {
@@ -5470,6 +5695,7 @@
 <div id="global-vignette" aria-hidden="true"></div>
 <div id="cursor-spotlight" aria-hidden="true"></div>
 <div id="cur-dot"></div>
+<div id="cur-label" aria-hidden="true"></div>
 
 <!-- Cube chat — Sid's cube as a small conversational companion -->
 <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube">
@@ -5753,6 +5979,7 @@
   (function () {
     const dot = document.getElementById("cur-dot");
     if (!dot) return;
+    const label = document.getElementById("cur-label");
 
     let mx = -100,
       my = -100,
@@ -5841,6 +6068,11 @@
       dot.style.top = ry + "px";
       dot.style.transform = "translate(-50%, -50%) rotate(" + ang + "deg) scale(" + sx * hoverScale + ", " + sy * hoverScale + ")";
 
+      if (label) {
+        label.style.left = rx + "px";
+        label.style.top = ry + 28 + "px";
+      }
+
       if (spotlight) {
         spotlight.style.left = mx + "px";
         spotlight.style.top = my + "px";
@@ -5856,10 +6088,18 @@
     if (!isTouchDevice) {
       const HOVER_SELECTOR =
         'a, button, [role="button"], .work-card, .nav-icon, .card, video, .filter-btn, .footer-cta, .site-footer-cta, .about-resume-link, .desk-play-reel, .meta-item';
+      const LABEL_SELECTOR = "[data-cursor-text]";
       document.addEventListener(
         "mouseover",
         (e) => {
           if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
+          if (label) {
+            const labeled = e.target.closest && e.target.closest(LABEL_SELECTOR);
+            if (labeled) {
+              label.textContent = labeled.getAttribute("data-cursor-text");
+              label.classList.add("is-visible");
+            }
+          }
         },
         { passive: true }
       );
@@ -5870,6 +6110,13 @@
             // Only remove if we're really leaving the hover surface (not just moving to a child)
             const to = e.relatedTarget;
             if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
+          }
+          if (label) {
+            const leaving = e.target.closest && e.target.closest(LABEL_SELECTOR);
+            if (leaving) {
+              const to = e.relatedTarget;
+              if (!to || !(to.closest && to.closest(LABEL_SELECTOR))) label.classList.remove("is-visible");
+            }
           }
         },
         { passive: true }
@@ -5895,7 +6142,7 @@
     // ── MAGNETIC FOOTER CTAs ── softer pull on Get in Touch / View Resume buttons (desktop only)
     if (!isTouchDevice)
       document.querySelectorAll(".site-footer-cta, .about-resume-link").forEach((cta) => {
-        cta.style.transition = "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.3s, color 0.3s, background 0.3s";
+        cta.style.transition = "transform 0.4s var(--ease-out), border-color 0.3s, color 0.3s, background 0.3s";
         cta.addEventListener("mousemove", (ev) => {
           const r = cta.getBoundingClientRect();
           const cx = r.left + r.width / 2;
