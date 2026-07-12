@@ -94,57 +94,57 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Scanning in the American Wing.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/2.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/2.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Pipeline and spatial alignment.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/3.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/3.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/4.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/4.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/5.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/5.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>AR activation over physical artworks.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/6.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/6.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/7.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/7.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/8.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/8.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/9.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/9.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/10.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/10.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -156,6 +156,6 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Exhibition promo.</em></p>
 <div class="cs-bleed">
   <video controls playsinline preload="none" style="width:100%">
-    <source src="{{ site.baseurl }}/1.met/11.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/1.met/11.mp4" type="video/mp4" />
   </video>
 </div>

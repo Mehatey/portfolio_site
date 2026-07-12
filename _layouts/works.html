@@ -1788,6 +1788,7 @@
 
       // Preview panel — hover a list item to update the right panel
       var _currentItem = null;
+      var _previewSwapTimer = null;
 
       function setPreview(item, animate) {
         if (item === _currentItem) return;
@@ -1883,8 +1884,16 @@
 
         if (animate && preview) {
           preview.style.opacity = "0";
-          setTimeout(doSwap, 140);
+          if (_previewSwapTimer) clearTimeout(_previewSwapTimer);
+          _previewSwapTimer = setTimeout(function () {
+            _previewSwapTimer = null;
+            doSwap();
+          }, 140);
         } else {
+          if (_previewSwapTimer) {
+            clearTimeout(_previewSwapTimer);
+            _previewSwapTimer = null;
+          }
           doSwap();
         }
       }
@@ -1893,16 +1902,24 @@
         var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
         var items = document.querySelectorAll(".works-list-item");
         if (!items.length) return;
+        var reduceMotionNav = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
         if (!isTouch) {
           items.forEach(function (item) {
             item.addEventListener("mouseenter", function () {
-              setPreview(item, true);
+              setPreview(item, !reduceMotionNav);
             });
           });
         }
 
-        var reduceMotionNav = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        // Keyboard exploration should get the same live preview as hover. This
+        // is especially useful when a recruiter tabs through the list rather
+        // than using a pointer.
+        items.forEach(function (item) {
+          item.addEventListener("focus", function () {
+            setPreview(item, !reduceMotionNav);
+          });
+        });
 
         // Click ripple + view transition + exit warp
         items.forEach(function (item) {
@@ -1962,6 +1979,47 @@
 
         // Default: first item
         setPreview(items[0], false);
+      })();
+
+      // Keep the desktop preview in step with the row currently passing through
+      // the center of the scrollable list. Previously the right panel could
+      // remain on a project far above the visible list until the visitor moved
+      // their pointer; this makes the existing scroll-liquify feel purposeful.
+      (function () {
+        var list = document.getElementById("works-list");
+        var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!list || isTouch || window.innerWidth <= 900) return;
+
+        var queued = false;
+        function syncPreview() {
+          queued = false;
+          var listRect = list.getBoundingClientRect();
+          var aim = listRect.top + listRect.height * 0.46;
+          var closest = null;
+          var closestDistance = Infinity;
+          list.querySelectorAll(".works-list-item").forEach(function (item) {
+            var rect = item.getBoundingClientRect();
+            var itemCenter = rect.top + rect.height * 0.5;
+            var distance = Math.abs(itemCenter - aim);
+            if (distance < closestDistance) {
+              closest = item;
+              closestDistance = distance;
+            }
+          });
+          if (closest) setPreview(closest, !reduceMotion);
+        }
+
+        list.addEventListener(
+          "scroll",
+          function () {
+            if (!queued) {
+              queued = true;
+              requestAnimationFrame(syncPreview);
+            }
+          },
+          { passive: true }
+        );
       })();
 
       // ── LIQUIFY WARP — scroll velocity drives SVG displacement scale ──

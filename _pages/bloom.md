@@ -116,7 +116,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Bloom. The form the tree settles into when you stay with it long enough.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source src="{{ site.baseurl }}/15.bloom-vp/lotus.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/lotus.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -125,38 +125,38 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/scene-1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/scene-2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source src="{{ site.baseurl }}/15.bloom-vp/scene-18.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-18.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/scene-21.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-21.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/scene-22.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-22.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source src="{{ site.baseurl }}/15.bloom-vp/scene-23.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-23.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -184,7 +184,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree responds to where you look, not where you tap. Gaze at a branch and it stills. Look away and it drifts again.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source src="{{ site.baseurl }}/15.bloom-vp/gaze.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/gaze.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -192,12 +192,12 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/visitor-1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/visitor-1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/visitor-2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/visitor-2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -210,7 +210,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Step outside and the noise returns. A world that sells your attention back to you, one sponsored moment at a time.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source src="{{ site.baseurl }}/15.bloom-vp/outside.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/outside.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -227,7 +227,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim. So an EEG headband read each visitor before the tree, and again after, to see what actually changed.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source src="{{ site.baseurl }}/15.bloom-vp/brainbit.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/brainbit.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -263,7 +263,7 @@ next_project:
 <div class="cs-grid grid-tall">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/plate-silence.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/plate-silence.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item bl-contain">
@@ -275,12 +275,12 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/exhibit-room.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/exhibit-room.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/15.bloom-vp/watching.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/watching.mp4" type="video/mp4" />
     </video>
   </div>
 </div>

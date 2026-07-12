@@ -72,35 +72,35 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>A simple system to feed images through a model and watch what it decides is worth naming.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/3.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/3.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 4 standalone -->
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/4.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/4.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 5 standalone -->
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/5.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/5.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>I asked the model about grief, loneliness, fear. It answered each with the cadence of weather.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/7.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/7.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>The flip side. What if the coldness was solved? What if AI could help someone change?</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/8.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/8.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -122,7 +122,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>AR walkthrough. Idea conception, not a live build.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/14.1.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/14.1.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -139,7 +139,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>I asked Claude if it dreams. This is that conversation.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/16.1.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/16.1.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -149,14 +149,14 @@ next_project:
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/18.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/18.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>AI arrives in the world. Not as a tool, but as a presence trying to understand what it has inherited.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/19.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/19.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -164,12 +164,12 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.ai-self/20.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/2.ai-self/20.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.ai-self/20.2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/2.ai-self/20.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -192,7 +192,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Eva. The AI that wakes up. This is her opening.</em></p>
 <div class="cs-bleed">
   <video id="ai-vid-23" autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/23.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/23.mp4" type="video/mp4" />
   </video>
   <button class="cover-audio-btn muted" id="ai-btn-23" aria-label="Toggle audio">
     <svg class="audio-icon-on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
@@ -202,7 +202,7 @@ next_project:
 
 <div class="cs-bleed-full" data-audio>
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/24.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/24.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -210,19 +210,19 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.ai-self/25.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/2.ai-self/25.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/2.ai-self/25.2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/2.ai-self/25.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/2.ai-self/26.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.ai-self/26.mp4" type="video/mp4" />
   </video>
 </div>
 

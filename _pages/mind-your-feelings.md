@@ -140,7 +140,7 @@ next_project:
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/6.mindu/2.1.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/6.mindu/2.1.mp4" type="video/mp4" />
   </video>
 </div>
 

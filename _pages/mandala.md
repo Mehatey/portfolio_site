@@ -236,14 +236,14 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Spiral concept of evolution interested me.</em></p>
 <div class="f-vid-wrap">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/first.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/first.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>I wanted to combine the spiral shape with the stories of shared human experience.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/people.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/people.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -255,19 +255,19 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>The lit room. Brighter, more reflective. People found it harder to settle.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/8.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/8.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/9.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/9.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/a1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/a1.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -275,7 +275,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/10.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/10.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
@@ -285,14 +285,14 @@ next_project:
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/11.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/11.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/12.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/12.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
@@ -311,7 +311,7 @@ next_project:
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/13.2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/13.2.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
@@ -327,13 +327,13 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>An earlier experiment. A 2D pixel art game asking if play could make you more still.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/g1.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/g1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/g2.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/g2.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -341,19 +341,19 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/g3.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/g3.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/g4.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/g4.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/g5.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/g5.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -376,7 +376,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/bloom1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/bloom1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
@@ -400,7 +400,7 @@ next_project:
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/3.2.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/3.2.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -408,17 +408,17 @@ next_project:
 <div class="cs-grid-3">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/2.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/2.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/2.2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/2.2.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/2.3.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/2.3.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -431,7 +431,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/6.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/6.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
@@ -442,12 +442,12 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/ab.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/ab.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/abc.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/abc.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -464,7 +464,7 @@ next_project:
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/m1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/m1.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -477,7 +477,7 @@ next_project:
 <div class="cs-grid g-cover">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/g.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/g.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
@@ -493,20 +493,20 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>The goal was for people to not use the cursor. The coin is a distraction.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/ma1.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/ma1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>When you shake your hand, the mandala ripples.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/ripple-web.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/ripple-web.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/ma2.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/ma2.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -516,98 +516,98 @@ next_project:
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/4.mandala/ma26.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/4.mandala/ma26.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma3.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma4.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma3.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma4.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma5.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma6.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma5.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma6.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/ma7.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/ma7.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma8.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma9.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma8.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma9.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma10.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma11.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma10.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma11.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma13.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma14.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma13.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma14.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/ma15.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/ma15.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma16.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma17.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma16.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma17.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma18.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma20.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma18.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma20.mp4" type="video/mp4" /></video></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Going beyond mandalas and playing with different eye tracking forms.</em></p>
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma21.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma23.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma21.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma23.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma24.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma25.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma24.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma25.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma28.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma29.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma28.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma29.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma30.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma31.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma30.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma31.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/ma32.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/ma32.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma33.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma34.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma33.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma34.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/ma36.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source src="{{ site.baseurl }}/4.mandala/blobs.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma36.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/blobs.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/ma35.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/ma35.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -627,13 +627,13 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top:40px;"><em>A report of what you stayed with, and what that might say about you.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/ma37.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/ma37.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/4.mandala/5.2.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/4.mandala/5.2.mp4" type="video/mp4" />
   </video>
 </div>
 

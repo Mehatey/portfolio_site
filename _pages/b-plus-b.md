@@ -180,12 +180,12 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/1.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/1.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/1.2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/1.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -194,7 +194,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/board1.2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/board1.2.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
@@ -204,7 +204,7 @@ next_project:
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/board2.1.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/board2.1.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -213,38 +213,38 @@ next_project:
 </p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/board2.2.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/board2.2.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/board3.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/board3.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/board4.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/board4.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/board5.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/board5.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/board6.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/board6.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/board7.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/board7.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -265,13 +265,13 @@ next_project:
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/d1.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/d1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/d2.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/d2.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -291,7 +291,7 @@ next_project:
 </p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/d5.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/d5.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -301,12 +301,12 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/d6.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/d6.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/d6.2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/d6.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -315,12 +315,12 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/d7.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/d7.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/d7.2.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/d7.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -328,7 +328,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>An image of what we carry without knowing others carry it too.</em></p>
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/d8.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/d8.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -340,7 +340,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Fifteen strangers. One question. Here are four of them.</em></p>
 <div class="cs-bleed interview-wrap">
   <video id="int-russell" autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/russell.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/russell.mp4" type="video/mp4" />
   </video>
   <button class="interview-audio is-muted" id="btn-russell" aria-label="Toggle audio">
     <svg class="icon-sound" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"/></svg>
@@ -352,7 +352,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item interview-wrap">
     <video id="int-john" autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/john.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/john.mp4" type="video/mp4" />
     </video>
     <button class="interview-audio is-muted" id="btn-john" aria-label="Toggle audio">
       <svg class="icon-sound" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"/></svg>
@@ -362,7 +362,7 @@ next_project:
   </div>
   <div class="cs-grid-item interview-wrap">
     <video id="int-karis" autoplay muted loop playsinline preload="none">
-      <source src="{{ site.baseurl }}/5.bb/karis.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/5.bb/karis.mp4" type="video/mp4" />
     </video>
     <button class="interview-audio is-muted" id="btn-karis" aria-label="Toggle audio">
       <svg class="icon-sound" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"/></svg>
@@ -374,7 +374,7 @@ next_project:
 
 <div class="cs-bleed interview-wrap">
   <video id="int-tsing" autoplay muted loop playsinline preload="none">
-    <source src="{{ site.baseurl }}/5.bb/tsing.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/tsing.mp4" type="video/mp4" />
   </video>
   <button class="interview-audio is-muted" id="btn-tsing" aria-label="Toggle audio">
     <svg class="icon-sound" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"/></svg>
