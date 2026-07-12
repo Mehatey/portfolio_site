@@ -21,6 +21,13 @@ meta:
   - label: Learn More
     value: Read in Detail
     url: https://www.encodedatthemet.com/
+highlights:
+  - value: "25"
+    label: artworks activated
+  - value: "2,000+"
+    label: visitor activations
+  - value: "2×"
+    label: Webby Awards
 award_badge: "2x Webby Awards 2026"
 award_image: "assets/img/badge_webby.webp"
 refl_type: Testimonial

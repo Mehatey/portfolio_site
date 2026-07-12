@@ -22,6 +22,13 @@ meta:
     value: Juanli Carrión, Rodolfo Kusulas, Siddharth Mehta
   - label: Client
     value: Northern NJ Community Foundation · ArtsBergen
+highlights:
+  - value: "800+"
+    label: community participants
+  - value: "5 months"
+    label: installation in public use
+  - value: "Real-time"
+    label: touchscreen-to-LED response
 refl_bg: "6.mindu/refl_bg.jpg"
 reflection: >
   This was the first project where I had to connect physical hardware to a live software system in a public space. The Arduino brain needed to respond to user input within milliseconds or the experience would feel broken. Getting the Python backend to reliably bridge the web interface to the WLED controller took more debugging than I expected, but once it worked, the brain responded before people had finished choosing. That lag mattered more than I expected.

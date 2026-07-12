@@ -21,6 +21,13 @@ meta:
   - label: Watch Experience
     value: "YouTube ↗"
     url: "https://www.youtube.com/watch?v=zUG-hui0tkw"
+highlights:
+  - value: "285+"
+    label: public responses
+  - value: "2 days"
+    label: interface build
+  - value: NYC
+    label: public interaction
 reflection: >
   I built the interface in two days and spent the rest of the project reading what people submitted. The responses were more specific than I expected. Not "my grandmother" but "my grandmother at 3am." That specificity kept appearing across hundreds of entries: people writing for themselves but somehow writing for each other.
 
