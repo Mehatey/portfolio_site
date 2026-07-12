@@ -271,6 +271,124 @@
     display: block;
   }
 
+  /* Portfolio memory tiles — a few real pieces of work orbit the cube during
+     onboarding. They are deliberately small and use dedicated 480px WebPs
+     (72KB total) so the opening stays quick rather than becoming a gallery
+     preload. The existing nav icons still explain the site's destinations. */
+  #sl-memory-field {
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    pointer-events: none;
+    perspective: 1200px;
+  }
+  .sl-memory-tile {
+    --twist: 0deg;
+    position: absolute;
+    width: clamp(86px, 10vw, 142px);
+    margin: 0;
+    opacity: 0;
+    transform: translateY(22px) rotateZ(var(--twist)) rotateY(82deg) scale(0.42);
+    transform-style: preserve-3d;
+    will-change: opacity, transform, filter;
+  }
+  .sl-memory-tile:nth-child(1) {
+    top: 35%;
+    left: clamp(28px, 9vw, 152px);
+    --twist: -7deg;
+  }
+  .sl-memory-tile:nth-child(2) {
+    top: 55%;
+    left: clamp(88px, 18vw, 290px);
+    --twist: 6deg;
+  }
+  .sl-memory-tile:nth-child(3) {
+    top: 34%;
+    right: clamp(28px, 9vw, 152px);
+    --twist: 7deg;
+  }
+  .sl-memory-tile:nth-child(4) {
+    top: 55%;
+    right: clamp(88px, 18vw, 290px);
+    --twist: -6deg;
+  }
+  .sl-memory-face {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 3 / 2;
+    border: 1px solid rgba(200, 230, 255, 0.28);
+    background: rgba(35, 55, 80, 0.36);
+    box-shadow:
+      0 14px 30px rgba(0, 0, 0, 0.48),
+      0 0 22px rgba(125, 190, 255, 0.12),
+      inset 0 0 20px rgba(190, 230, 255, 0.08);
+  }
+  .sl-memory-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 4px rgba(4, 8, 16, 0.22);
+    pointer-events: none;
+  }
+  .sl-memory-face img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.82) contrast(1.08) brightness(0.78);
+  }
+  .sl-memory-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-top: 7px;
+    color: rgba(222, 238, 252, 0.78);
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .sl-memory-label::before {
+    content: attr(data-kind);
+    color: rgba(138, 205, 255, 0.54);
+    font-size: 6px;
+    letter-spacing: 0.1em;
+  }
+  .sl-memory-tile.is-visible {
+    animation: slMemoryArrive 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .sl-memory-tile.is-visible .sl-memory-face,
+  .sl-memory-tile.is-visible .sl-memory-label {
+    animation: slMemoryDrift 7s ease-in-out 1s infinite alternate;
+  }
+  @keyframes slMemoryArrive {
+    0% {
+      opacity: 0;
+      filter: blur(8px);
+      transform: translateY(22px) rotateZ(var(--twist)) rotateY(82deg) scale(0.42);
+    }
+    65% {
+      opacity: 0.94;
+      filter: blur(0);
+      transform: translateY(-4px) rotateZ(var(--twist)) rotateY(-8deg) scale(1.04);
+    }
+    100% {
+      opacity: 0.88;
+      filter: blur(0);
+      transform: translateY(0) rotateZ(var(--twist)) rotateY(0) scale(1);
+    }
+  }
+  @keyframes slMemoryDrift {
+    from {
+      transform: translateY(0) rotateZ(0.001deg);
+    }
+    to {
+      transform: translateY(-7px) rotateZ(0.001deg);
+    }
+  }
+
   /* Onboarding icon row — names the four parts of the site as they appear. */
   #sl-onboard-icons {
     position: absolute;
@@ -325,6 +443,9 @@
     transform: translateY(0);
   }
   @media (max-width: 700px) {
+    #sl-memory-field {
+      display: none;
+    }
     #loader-skip {
       top: max(16px, env(safe-area-inset-top));
       right: 16px;
@@ -345,6 +466,17 @@
     .sl-onboard-label {
       font-size: 7px;
       letter-spacing: 0.1em;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #sl-memory-field {
+      display: none;
+    }
+    .sl-memory-tile,
+    .sl-memory-tile.is-visible,
+    .sl-memory-tile.is-visible .sl-memory-face,
+    .sl-memory-tile.is-visible .sl-memory-label {
+      animation: none;
     }
   }
 </style>
@@ -1006,6 +1138,27 @@
   <!-- Hello text — persists across phases. Top: 22% (was 14%) so it sits below cube head, not above it. -->
   <span id="sl-hello" style="position: absolute; top: 22%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
 
+  <!-- A lightweight constellation of real work. Images load only once the visitor
+       chooses Enter, then arrive around the cube one at a time. -->
+  <div id="sl-memory-field" aria-hidden="true">
+    <figure class="sl-memory-tile">
+      <div class="sl-memory-face"><img data-src="{{ site.baseurl }}/assets/img/entry/encoded.webp" alt="" decoding="async" /></div>
+      <figcaption class="sl-memory-label" data-kind="work">Encoded</figcaption>
+    </figure>
+    <figure class="sl-memory-tile">
+      <div class="sl-memory-face"><img data-src="{{ site.baseurl }}/assets/img/entry/cube-of-creations.webp" alt="" decoding="async" /></div>
+      <figcaption class="sl-memory-label" data-kind="play">Cube of Creations</figcaption>
+    </figure>
+    <figure class="sl-memory-tile">
+      <div class="sl-memory-face"><img data-src="{{ site.baseurl }}/assets/img/entry/mandala.webp" alt="" decoding="async" /></div>
+      <figcaption class="sl-memory-label" data-kind="work">Mandala</figcaption>
+    </figure>
+    <figure class="sl-memory-tile">
+      <div class="sl-memory-face"><img data-src="{{ site.baseurl }}/assets/img/entry/illustrations.webp" alt="" decoding="async" /></div>
+      <figcaption class="sl-memory-label" data-kind="play">Illustrations</figcaption>
+    </figure>
+  </div>
+
   <!-- Onboarding icons — a small map of the four destinations -->
   <div id="sl-onboard-icons">
     <div class="sl-onboard-item" id="sl-item-1">
@@ -1417,6 +1570,30 @@
       var hello = document.getElementById("sl-hello");
       var loadingPhase = document.getElementById("sl-loading-phase");
       var loadingVideo = document.getElementById("sl-loading-video");
+      var memoryTiles = Array.prototype.slice.call(document.querySelectorAll(".sl-memory-tile"));
+
+      // The cards are intentionally deferred until someone chooses Enter. Each
+      // optimized image is only a few kilobytes, but waiting preserves the
+      // first-frame calm of the entry gate and avoids requests on mobile.
+      if (window.matchMedia && !window.matchMedia("(max-width: 700px), (prefers-reduced-motion: reduce)").matches) {
+        memoryTiles.forEach(function (tile, index) {
+          setTimeout(
+            function () {
+              var image = tile.querySelector("img[data-src]");
+              if (!image) return;
+              function reveal() {
+                tile.classList.add("is-visible");
+              }
+              image.addEventListener("load", reveal, { once: true });
+              image.addEventListener("error", reveal, { once: true });
+              image.src = image.dataset.src;
+              image.removeAttribute("data-src");
+              if (image.complete) reveal();
+            },
+            400 + index * 600
+          );
+        });
+      }
 
       // (typing.mp3 sound removed — Hello/scramble effect doesn't need it)
 
@@ -1474,8 +1651,9 @@
       // Onboarding icons reveal — all 4 icons stagger in across the cube animation,
       // even though we only have 2 typewriter lines. Was: only first 2 icons appeared.
       var iconIds = ["sl-icon-1", "sl-icon-2", "sl-icon-3", "sl-icon-4"];
-      // Spread across ~7s of the cube scene so icons reveal in pairs of two
-      var iconDelays = [550, 1700, 2900, 4200];
+      // Reveal the complete site map before the handoff, even on connections
+      // where the source video finishes faster than its nominal duration.
+      var iconDelays = [600, 1050, 1500, 1950];
       iconIds.forEach(function (id, idx) {
         setTimeout(function () {
           var ic = document.getElementById(id);
