@@ -99,6 +99,45 @@
     pointer-events: none;
     z-index: 1;
   }
+  /* The intro remains part of the experience, but never traps a visitor who
+     already knows where they want to go. */
+  #loader-skip {
+    position: absolute;
+    top: max(24px, 4vh);
+    right: max(24px, 4vw);
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    border: 1px solid rgba(170, 215, 250, 0.18);
+    border-radius: 999px;
+    background: rgba(8, 14, 26, 0.28);
+    color: rgba(215, 235, 250, 0.68);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    opacity: 0;
+    pointer-events: none;
+    text-transform: uppercase;
+    transition:
+      opacity 0.35s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+  #site-loader.is-running #loader-skip {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #loader-skip:hover,
+  #loader-skip:focus-visible {
+    border-color: rgba(180, 225, 255, 0.56);
+    background: rgba(100, 155, 215, 0.14);
+    color: rgba(245, 251, 255, 0.96);
+    outline: none;
+  }
 
   /* ── LOADER INTRO STREAM ── 6-line cube's-POV typewriter, top-left during cube entry */
   #loader-stream {
@@ -232,7 +271,7 @@
     display: block;
   }
 
-  /* Onboarding icon row — appears below typewriter text, syncs with phases */
+  /* Onboarding icon row — names the four parts of the site as they appear. */
   #sl-onboard-icons {
     position: absolute;
     bottom: 9%;
@@ -240,8 +279,15 @@
     transform: translateX(-50%);
     display: flex;
     align-items: center;
-    gap: 40px;
+    gap: 32px;
     z-index: 11;
+  }
+  .sl-onboard-item {
+    display: flex;
+    min-width: 50px;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
   }
   #sl-onboard-icons img {
     width: 40px;
@@ -261,6 +307,45 @@
     opacity: 0.9;
     transform: scale(1);
     filter: blur(0);
+  }
+  .sl-onboard-label {
+    color: rgba(210, 230, 245, 0.56);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    opacity: 0;
+    text-transform: uppercase;
+    transform: translateY(4px);
+    transition:
+      opacity 0.5s ease 0.18s,
+      transform 0.5s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 0.18s;
+  }
+  .sl-onboard-item.is-visible .sl-onboard-label {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (max-width: 700px) {
+    #loader-skip {
+      top: max(16px, env(safe-area-inset-top));
+      right: 16px;
+      font-size: 8.5px;
+    }
+    #sl-onboard-icons {
+      bottom: 7%;
+      gap: 14px;
+    }
+    .sl-onboard-item {
+      min-width: 42px;
+      gap: 6px;
+    }
+    #sl-onboard-icons img {
+      width: 32px;
+      height: 32px;
+    }
+    .sl-onboard-label {
+      font-size: 7px;
+      letter-spacing: 0.1em;
+    }
   }
 </style>
 
@@ -913,17 +998,26 @@
 
 <div id="site-loader" style="display: none">
   <canvas id="loader-dust"></canvas>
+  <button id="loader-skip" type="button">Skip intro <span aria-hidden="true">→</span></button>
 
   <!-- (Top-left const() terminal stream removed per design call — was visually noisy on the loader scene.) -->
   <!-- Hello text — persists across phases. Top: 22% (was 14%) so it sits below cube head, not above it. -->
   <span id="sl-hello" style="position: absolute; top: 22%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
 
-  <!-- Onboarding icons — preview the nav, appear with each typewriter line -->
+  <!-- Onboarding icons — a small map of the four destinations -->
   <div id="sl-onboard-icons">
-    <img id="sl-icon-1" src="{{ site.baseurl }}/assets/img/nav/cube.png" alt="" />
-    <img id="sl-icon-2" src="{{ site.baseurl }}/assets/img/nav/flower.png" alt="" />
-    <img id="sl-icon-3" src="{{ site.baseurl }}/assets/img/nav/sparkle.png" alt="" />
-    <img id="sl-icon-4" src="{{ site.baseurl }}/assets/img/nav/cross.png" alt="" />
+    <div class="sl-onboard-item" id="sl-item-1">
+      <img id="sl-icon-1" src="{{ site.baseurl }}/assets/img/nav/cube.png" alt="" /><span class="sl-onboard-label">Work</span>
+    </div>
+    <div class="sl-onboard-item" id="sl-item-2">
+      <img id="sl-icon-2" src="{{ site.baseurl }}/assets/img/nav/flower.png" alt="" /><span class="sl-onboard-label">Play</span>
+    </div>
+    <div class="sl-onboard-item" id="sl-item-3">
+      <img id="sl-icon-3" src="{{ site.baseurl }}/assets/img/nav/sparkle.png" alt="" /><span class="sl-onboard-label">Contact</span>
+    </div>
+    <div class="sl-onboard-item" id="sl-item-4">
+      <img id="sl-icon-4" src="{{ site.baseurl }}/assets/img/nav/cross.png" alt="" /><span class="sl-onboard-label">About</span>
+    </div>
   </div>
 
   <div class="sl-phase" id="sl-video-phase">
@@ -1254,6 +1348,7 @@
       function proceed() {
         if (enterGate) enterGate.remove();
         loader.style.display = "flex";
+        loader.classList.add("is-running");
 
         // Start nature sounds immediately on Enter
         window.__natureSnd = new Audio("{{ site.baseurl }}/assets/audio/nature.mp3");
@@ -1368,9 +1463,9 @@
       // Intro stream is now top-level (runs from page load, visible during Enter scene + cube animation)
 
       var lines = [
-        { text: "Hello, most people call me Sid.", startAt: 800 },
-        { text: "You can call me any time ;)", startAt: 3500 },
-        { text: "Welcome to my portfolio", startAt: 6200 },
+        { text: "Hello — I'm Sid.", startAt: 800 },
+        { text: "Designer × Creative Technologist", startAt: 3500 },
+        { text: "Start with the work.", startAt: 6200 },
       ];
 
       // Onboarding icons reveal — all 4 icons stagger in across the cube animation,
@@ -1381,7 +1476,11 @@
       iconIds.forEach(function (id, idx) {
         setTimeout(function () {
           var ic = document.getElementById(id);
-          if (ic) ic.classList.add("show");
+          if (ic) {
+            ic.classList.add("show");
+            var item = document.getElementById("sl-item-" + (idx + 1));
+            if (item) item.classList.add("is-visible");
+          }
         }, iconDelays[idx]);
       });
 
@@ -1462,6 +1561,8 @@
       function onLoadingEnd() {
         if (loadingEnded) return;
         loadingEnded = true;
+        loader.classList.remove("is-running");
+        video.pause();
         loadingVideo.pause();
         // Brief hold, then dissolve
         setTimeout(function () {
@@ -1489,6 +1590,9 @@
           }, 800);
         }, 200);
       }
+
+      var skipButton = document.getElementById("loader-skip");
+      if (skipButton) skipButton.addEventListener("click", onLoadingEnd, { once: true });
 
       function onVideoEnd() {
         if (videoEnded) return;
