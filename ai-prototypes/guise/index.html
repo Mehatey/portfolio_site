@@ -571,6 +571,18 @@
         color: var(--dim);
         text-transform: lowercase;
       }
+      #service-note {
+        max-width: 32em;
+        margin: -10px 0 0;
+        color: var(--dim);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+      #service-note a {
+        color: var(--ink);
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
       .hide {
         position: absolute;
         width: 1px;
@@ -617,15 +629,16 @@
       </div>
     </div>
 
-    <div id="stack">florence-2 + flux, live</div>
+    <div id="stack">florence-2 + flux · guided demo</div>
 
     <div id="begin">
       <h1>guise</h1>
-      <p>
-        a live machine looks at you, then becomes whatever you ask. type a world, a character, a material. it keeps your pose and remakes the rest.
-      </p>
+      <p>a camera-led AI transformation study. type a world, a character, a material. it keeps your pose and remakes the rest.</p>
       <button id="beginbtn">begin</button>
-      <div id="beginstatus"></div>
+      <div id="beginstatus" aria-live="polite"></div>
+      <p id="service-note" hidden>
+        this private model service is currently offline. explore another live prototype or <a href="/contact/">contact sid for a guided demo</a>.
+      </p>
     </div>
 
     <script>
@@ -806,6 +819,7 @@
       const beginEl = document.getElementById("begin");
       const beginBtn = document.getElementById("beginbtn");
       const beginStatus = document.getElementById("beginstatus");
+      const serviceNote = document.getElementById("service-note");
       const flashEl = document.getElementById("flash");
       const sweepEl = document.getElementById("sweep");
 
@@ -1117,6 +1131,17 @@
 
       async function begin() {
         beginBtn.disabled = true;
+        serviceNote.hidden = true;
+        beginStatus.textContent = "checking live service";
+        try {
+          const h = await fetch(PROXY + "/health").then((r) => r.json());
+          if (!h.ok) throw new Error("service unavailable");
+        } catch (e) {
+          beginStatus.textContent = "guided demo currently unavailable";
+          serviceNote.hidden = false;
+          beginBtn.disabled = false;
+          return;
+        }
         try {
           beginStatus.textContent = "opening the camera";
           const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
@@ -1125,14 +1150,6 @@
           await you.play();
         } catch (e) {
           beginStatus.textContent = "camera not available";
-          beginBtn.disabled = false;
-          return;
-        }
-        try {
-          const h = await fetch(PROXY + "/health").then((r) => r.json());
-          if (!h.ok) throw 0;
-        } catch (e) {
-          beginStatus.textContent = "start the proxy first";
           beginBtn.disabled = false;
           return;
         }
