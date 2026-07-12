@@ -6539,15 +6539,31 @@
           observer.observe(el);
         });
 
-      // Lazy-load videos: load + play only when approaching viewport
+      // Lazy-load videos: long-form case studies can contain dozens of looping
+      // clips. A preload hint alone is not enough for autoplay media in every
+      // browser, so clips may hold their source in data-src until they are near
+      // the viewport. This keeps the opening hero responsive without changing
+      // the visual sequence as someone scrolls through it.
+      function activateProjectVideo(v) {
+        var deferredSource = v.querySelector("source[data-src]");
+        if (deferredSource) {
+          deferredSource.src = deferredSource.dataset.src;
+          deferredSource.removeAttribute("data-src");
+        }
+        if (v.preload === "none" || deferredSource) {
+          v.preload = "auto";
+          v.load();
+        }
+      }
+
+      // Load + play only when approaching viewport.
       const videoLazyObserver = new IntersectionObserver(
         (entries) => {
           entries.forEach((e) => {
             if (e.isIntersecting) {
               const v = e.target;
               if (v.preload === "none") {
-                v.preload = "auto";
-                v.load();
+                activateProjectVideo(v);
                 v.play().catch(() => {});
               }
               videoLazyObserver.unobserve(v);
@@ -6891,7 +6907,7 @@
             entries.forEach((e) => {
               if (e.isIntersecting) {
                 const v = e.target;
-                if (v.readyState === 0) v.load();
+                if (v.readyState === 0) activateProjectVideo(v);
                 v.play().catch(() => {});
               }
             });
