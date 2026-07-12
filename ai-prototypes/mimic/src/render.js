@@ -7,7 +7,9 @@
 
 import * as THREE from "three/webgpu";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { attribute, uv, texture, vec2, float, mix, smoothstep, uniform, pass } from "three/tsl";
+import {
+  attribute, uv, texture, vec2, float, mix, smoothstep, uniform, pass,
+} from "three/tsl";
 
 const MAX_EDGES = 3200;
 
@@ -52,11 +54,13 @@ export class Stage {
     this._tmpDir = new THREE.Vector3();
     this._tmpTarget = new THREE.Vector3();
     this._tmpPos = new THREE.Vector3();
-    this.controls.addEventListener("start", () => {
-      this._tween = null;
-    }); // manual drag cancels a tween
+    this.controls.addEventListener("start", () => { this._tween = null; }); // manual drag cancels a tween
 
     addEventListener("resize", () => this.onResize());
+  }
+
+  setMotion(enabled) {
+    this.controls.autoRotate = enabled;
   }
 
   // Ease the camera to frame a world point at a chosen distance. A null point
@@ -73,12 +77,9 @@ export class Stage {
     const tgt = new THREE.Vector3(targetArr[0], targetArr[1], targetArr[2]);
     const camEnd = tgt.clone().add(this._tmpDir.multiplyScalar(dist));
     this._tween = {
-      fromT: this.controls.target.clone(),
-      toT: tgt,
-      fromP: this.camera.position.clone(),
-      toP: camEnd,
-      t: 0,
-      dur: 1100,
+      fromT: this.controls.target.clone(), toT: tgt,
+      fromP: this.camera.position.clone(), toP: camEnd,
+      t: 0, dur: 1100,
     };
   }
 
@@ -131,18 +132,15 @@ export class Stage {
     const d = buv.sub(0.5).length();
     // hollow luminous ring for imagined forms
     const inner = smoothstep(0.28, 0.375, d);
-    const outer = float(1.0).sub(smoothstep(0.4, 0.49, d));
+    const outer = float(1.0).sub(smoothstep(0.40, 0.49, d));
     const ring = inner.mul(outer);
-    const core = float(1.0)
-      .sub(smoothstep(0.0, 0.1, d))
-      .mul(0.6); // faint nucleus
+    const core = float(1.0).sub(smoothstep(0.0, 0.10, d)).mul(0.6); // faint nucleus
     const ghostShape = ring.add(core);
     const ghostCol = tint.mul(ghostShape).mul(2.3);
 
-    // Normal photos sit below the bloom threshold so they stay legible; a hovered
-    // or selected form is brightened by `glow` until it crosses the threshold and
-    // is the only thing that actually blooms. Ghost rings carry their own glow.
-    const litPhoto = photo.rgb.mul(float(1.0).add(glow.mul(1.6)));
+    // Photos keep their native exposure. A restrained hover lift makes the chosen
+    // animal easier to find without washing out its features.
+    const litPhoto = photo.rgb.mul(float(1.0).add(glow.mul(0.35)));
     const litGhost = ghostCol.mul(float(1.0).add(glow.mul(1.0)));
     mat.colorNode = mix(litPhoto, litGhost, ghost);
 
@@ -187,10 +185,10 @@ export class Stage {
     try {
       const { bloom } = await import("three/addons/tsl/display/BloomNode.js");
       const scenePass = pass(this.scene, this.camera);
-      // High threshold + modest strength: ordinary photos stay legible and only
-      // the brightest things (ghost rings, the brightened hovered/selected form)
-      // actually bloom. This is the "glow only on what's lit" behaviour.
-      const bloomPass = bloom(scenePass, 0.62, 0.7, 0.82);
+      // A very high threshold and low strength keep the field photographic.
+      // Bloom is now reserved for the faint imagined rings, never a veil over
+      // the observed animals.
+      const bloomPass = bloom(scenePass, 0.90, 0.18, 0.55);
       this.post = new THREE.PostProcessing(this.renderer);
       this.post.outputNode = scenePass.add(bloomPass);
     } catch (e) {
@@ -208,23 +206,13 @@ export class Stage {
   // segs: [{ a:[x,y,z], b:[x,y,z], c:[r,g,b] }]
   updateWeb(segs) {
     const n = Math.min(segs.length, MAX_EDGES);
-    const P = this.webPos,
-      C = this.webCol;
+    const P = this.webPos, C = this.webCol;
     for (let i = 0; i < n; i++) {
-      const s = segs[i],
-        o = i * 6;
-      P[o] = s.a[0];
-      P[o + 1] = s.a[1];
-      P[o + 2] = s.a[2];
-      P[o + 3] = s.b[0];
-      P[o + 4] = s.b[1];
-      P[o + 5] = s.b[2];
-      C[o] = s.c[0];
-      C[o + 1] = s.c[1];
-      C[o + 2] = s.c[2];
-      C[o + 3] = s.c[0];
-      C[o + 4] = s.c[1];
-      C[o + 5] = s.c[2];
+      const s = segs[i], o = i * 6;
+      P[o] = s.a[0]; P[o + 1] = s.a[1]; P[o + 2] = s.a[2];
+      P[o + 3] = s.b[0]; P[o + 4] = s.b[1]; P[o + 5] = s.b[2];
+      C[o] = s.c[0]; C[o + 1] = s.c[1]; C[o + 2] = s.c[2];
+      C[o + 3] = s.c[0]; C[o + 4] = s.c[1]; C[o + 5] = s.c[2];
     }
     this.webGeo.setDrawRange(0, n * 2);
     this.webPosAttr.needsUpdate = true;
@@ -241,17 +229,12 @@ export class Stage {
 
     const n = Math.min(nodes.length, this.cap);
     const im = this.mesh.instanceMatrix.array;
-    const tl = this.aTile.array,
-      tn = this.aTint.array,
-      gh = this.aGhost.array,
-      al = this.aAlpha.array,
-      gw = this.aGlow.array;
+    const tl = this.aTile.array, tn = this.aTint.array,
+          gh = this.aGhost.array, al = this.aAlpha.array, gw = this.aGlow.array;
 
     for (let i = 0; i < n; i++) {
       const nd = nodes[i];
-      const px = nd.pos[0],
-        py = nd.pos[1],
-        pz = nd.pos[2];
+      const px = nd.pos[0], py = nd.pos[1], pz = nd.pos[2];
       this._p.set(px, py, pz);
       const sc = nd.scale;
       this._s.set(sc, sc, sc);
@@ -259,19 +242,12 @@ export class Stage {
       this._m.toArray(im, i * 16);
 
       const r = nd.tile;
-      tl[i * 4] = r[0];
-      tl[i * 4 + 1] = r[1];
-      tl[i * 4 + 2] = r[2];
-      tl[i * 4 + 3] = r[3];
-      tn[i * 3] = nd.tint[0];
-      tn[i * 3 + 1] = nd.tint[1];
-      tn[i * 3 + 2] = nd.tint[2];
+      tl[i * 4] = r[0]; tl[i * 4 + 1] = r[1]; tl[i * 4 + 2] = r[2]; tl[i * 4 + 3] = r[3];
+      tn[i * 3] = nd.tint[0]; tn[i * 3 + 1] = nd.tint[1]; tn[i * 3 + 2] = nd.tint[2];
       gh[i] = nd.kind === "ghost" ? 1 : 0;
 
       // depth haze: forms far from the camera dissolve, giving the field volume
-      const dx = px - cam.x,
-        dy = py - cam.y,
-        dz = pz - cam.z;
+      const dx = px - cam.x, dy = py - cam.y, dz = pz - cam.z;
       const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
       let fog = 1 - (dist - 62) / 200;
       fog = fog < 0.18 ? 0.18 : fog > 1 ? 1 : fog;

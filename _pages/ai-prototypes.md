@@ -8,5 +8,5 @@ tagline: >
 intro: >
   These are authorship studies in what AI feels like when it lives on your machine: memory that rots, voices
   that drift, interfaces that show the symptom. More prototypes ship here as they are ready.
-target_count: 11
+target_count: 12
 ---

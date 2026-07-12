@@ -14,113 +14,105 @@ import { Stage } from "./render.js";
 import { nearest, seedPosition, blendVec, relax } from "./layout.js";
 import { Ambient } from "./audio.js";
 
-const REAL_CAP = 260; // how many living forms the eye can hold at once
-const GHOST_RATIO = 0.6; // imagined forms as a fraction of observed
+const REAL_CAP = 260;       // how many living forms the eye can hold at once
+const GHOST_RATIO = 0.28;   // keep observed animals visually dominant
 const TOTAL_CAP = 820;
 
-const FADE_IN = 3600; // ms — forms bloom in slowly
-const FADE_OUT = 9500; // ms — and dissolve gently
+const FADE_IN = 3600;       // ms — forms bloom in slowly
+const FADE_OUT = 9500;      // ms — and dissolve gently
 const LIFE_REAL = [240000, 360000];
 const LIFE_GHOST = [60000, 96000];
 const SCALE_REAL = 3.3;
 const SCALE_GHOST = 2.8;
-const CONFIRM_SIM = 0.82; // an imagined form this close to an arriving real is confirmed
-const COOL_MS = 15000; // how long a new form keeps moving before it settles to rest
-const REST_NEAR = 5.0; // spring length for the most-alike pair (spaced so each is hoverable)
-const REST_FAR = 14.0; // spring length for the least-alike pair kept as an edge
+const CONFIRM_SIM = 0.82;   // an imagined form this close to an arriving real is confirmed
+const COOL_MS = 15000;      // how long a new form keeps moving before it settles to rest
+const REST_NEAR = 5.0;      // spring length for the most-alike pair (spaced so each is hoverable)
+const REST_FAR = 14.0;      // spring length for the least-alike pair kept as an edge
 
 // ---------- state ----------
 const realNodes = [];
 const ghostNodes = [];
-const allNodes = []; // render set = real + ghost (kept in sync)
-const pending = new Map(); // id -> {org, _vec, _tile, _tint, _slot}
-const confirmArcs = []; // transient bright links: a guess meeting its reality
+const allNodes = [];          // render set = real + ghost (kept in sync)
+const pending = new Map();    // id -> {org, _vec, _tile, _tint, _slot}
+const confirmArcs = [];       // transient bright links: a guess meeting its reality
 
 const $ = (id) => document.getElementById(id);
 const els = {
-  intro: $("intro"),
-  introBar: $("intro-bar"),
-  introErr: $("intro-err"),
-  readout: $("readout"),
-  detail: $("detail"),
-  sound: $("sound"),
+  intro: $("intro"), introBar: $("intro-bar"), introErr: $("intro-err"),
+  introStatus: $("intro-status"), retry: $("retry"),
+  readout: $("readout"), detail: $("detail"), sound: $("sound"), motion: $("motion"),
+  recenter: $("recenter"), pulse: $("pulse"), guide: $("guide"),
 };
 
-let hoverNode = null; // the form under the cursor; lights its cluster, dims the rest
-let pickedNode = null; // the form clicked into focus (the enlarge card)
+let hoverNode = null;   // the form under the cursor; lights its cluster, dims the rest
+let pickedNode = null;  // the form clicked into focus (the enlarge card)
+let readoutNode = null; // avoids rebuilding the same tooltip every animation frame
 const audio = new Ambient();
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)");
+let motionOn = !reduceMotion.matches;
 
 // DEV-only verification hook (localhost): lets a headless check read internal
 // state without any on-screen debug chrome. Inert in production.
 const DEV = /^(localhost|127\.0\.0\.1)$/.test(location.hostname)
   ? (window.__mimic = {
-      misses: 0,
-      lastMiss: "",
-      get real() {
-        return realNodes.length;
-      },
-      get ghost() {
-        return ghostNodes.length;
-      },
-      get pending() {
-        return pending.size;
-      },
-      get hover() {
-        return hoverNode ? shortName(hoverNode.meta || {}) : null;
-      },
-      get minHl() {
-        let m = 1;
-        for (const n of allNodes) if ((n.hl ?? 1) < m) m = n.hl ?? 1;
-        return m;
-      },
-      get maxDrift() {
-        return _drift;
-      },
-      get topSim() {
-        let m = 0;
-        for (const n of realNodes) {
-          const s = n.meta?.similarity || 0;
-          if (s > m) m = s;
-        }
-        return m;
-      },
+      misses: 0, lastMiss: "",
+      get real() { return realNodes.length; },
+      get ghost() { return ghostNodes.length; },
+      get pending() { return pending.size; },
+      get hover() { return hoverNode ? shortName(hoverNode.meta || {}) : null; },
+      get minHl() { let m = 1; for (const n of allNodes) if ((n.hl ?? 1) < m) m = n.hl ?? 1; return m; },
+      get maxDrift() { return _drift; },
+      get topSim() { let m = 0; for (const n of realNodes) { const s = n.meta?.similarity || 0; if (s > m) m = s; } return m; },
     })
   : null;
 
 // ---------- boot guards ----------
 if (!navigator.gpu) {
-  els.introErr.textContent = "This piece needs WebGPU. Open it in Chrome or Edge on desktop, or Safari 18+.";
-  throw new Error("no webgpu");
-}
+  els.introErr.textContent =
+    "This live version needs WebGPU. Open it in a current desktop Chrome, Edge, or Safari 18+ browser.";
+  els.introStatus.textContent = "Showing a lightweight live field preview instead.";
+  els.retry.hidden = false;
+  startFallback();
+} else {
 
 const atlas = new Atlas({ size: 2560, tile: 128 }); // 20x20 = 400 photo slots
 const stage = new Stage(document.getElementById("app"), atlas, TOTAL_CAP);
+setMotion(motionOn);
 
 // ---------- the eye (CLIP in a worker) ----------
 const worker = new Worker(new URL("./clip.worker.js", import.meta.url), { type: "module" });
+const bootTimeout = setTimeout(() => {
+  if (els.intro.classList.contains("ready")) return;
+  els.introStatus.textContent = "This is taking longer than usual.";
+  els.introErr.textContent = "The vision model is still loading. Check your connection or try again.";
+  els.retry.hidden = false;
+}, 60000);
 
 worker.onmessage = (ev) => {
   const m = ev.data;
   if (m.type === "boot") {
-    if (typeof m.pct === "number") els.introBar.style.width = `${Math.round(m.pct)}%`;
+    if (typeof m.pct === "number") {
+      const pct = Math.round(m.pct);
+      els.introBar.style.width = `${pct}%`;
+      els.introStatus.textContent = `loading the machine's eye · ${pct}%`;
+    }
   } else if (m.type === "ready") {
+    clearTimeout(bootTimeout);
     els.introBar.style.width = "100%";
     els.intro.classList.add("ready");
+    els.introStatus.textContent = "the field is ready";
     feed.start();
   } else if (m.type === "embedding") {
     const p = pending.get(m.id);
-    if (p) {
-      p._vec = m.vec;
-      tryPromote(m.id);
-    }
+    if (p) { p._vec = m.vec; tryPromote(m.id); }
   } else if (m.type === "miss") {
-    if (DEV) {
-      DEV.misses++;
-      DEV.lastMiss = m.error || "(no error)";
-    }
+    if (DEV) { DEV.misses++; DEV.lastMiss = m.error || "(no error)"; }
     dropPending(m.id);
   } else if (m.type === "fatal") {
+    clearTimeout(bootTimeout);
     els.introErr.textContent = "Could not load the vision model: " + m.error;
+    els.introStatus.textContent = "Check your connection, then try again.";
+    els.retry.hidden = false;
   }
 };
 
@@ -154,10 +146,7 @@ async function onOrganism(org) {
     // the embed may have been dropped (eye fell behind) while the image loaded —
     // its slot is gone, so don't draw into a slot now owned by someone else.
     const live = pending.get(org.id);
-    if (!live || live._slot !== slot) {
-      bmp.close && bmp.close();
-      return;
-    }
+    if (!live || live._slot !== slot) { bmp.close && bmp.close(); return; }
     const tint = atlas.draw(slot, bmp);
     bmp.close && bmp.close();
     p._tile = atlas.rect(slot);
@@ -185,30 +174,13 @@ function tryPromote(id) {
   const pos = seedPosition(neigh);
 
   const node = {
-    id,
-    kind: "real",
-    vec: p._vec,
-    pos,
-    vel: [0, 0, 0],
-    edges: [],
-    tile: p._tile,
-    slot: p._slot,
-    tint: p._tint,
-    scale: 0.001,
-    targetScale: SCALE_REAL,
-    alpha: 0,
-    born: now(),
-    life: rangeRand(LIFE_REAL, id),
-    fading: false,
-    dead: false,
+    id, kind: "real", vec: p._vec, pos, vel: [0, 0, 0], edges: [],
+    tile: p._tile, slot: p._slot, tint: p._tint,
+    scale: 0.001, targetScale: SCALE_REAL, alpha: 0,
+    born: now(), life: rangeRand(LIFE_REAL, id), fading: false, dead: false,
     meta: {
-      sci: o.sci,
-      common: o.common,
-      place: o.place,
-      when: o.when,
-      iconic: o.iconic,
-      photo: o.photo,
-      taxonId: o.taxonId,
+      sci: o.sci, common: o.common, place: o.place, when: o.when, iconic: o.iconic,
+      photo: o.photo, sound: o.sound, taxonId: o.taxonId, observationId: o.id,
       nearest: neigh[0]?.node ? shortName(neigh[0].node.meta) : "",
       similarity: neigh[0]?.s || 0,
     },
@@ -250,28 +222,17 @@ function maybeSpawnGhost(node, neigh) {
   // imagined forms get a cool, luminous palette so the machine's guesses read
   // as distinct from the full natural colour of real life.
   const h = frac(node.id * 0.6180339);
-  const tint = [0.48 + 0.24 * h, 0.4 + 0.16 * (1 - h), 0.96];
+  const tint = [0.48 + 0.24 * h, 0.40 + 0.16 * (1 - h), 0.96];
 
   const ghost = {
-    id: "g" + node.id,
-    kind: "ghost",
-    vec,
-    pos,
-    vel: [0, 0, 0],
+    id: "g" + node.id, kind: "ghost", vec, pos, vel: [0, 0, 0],
     edges: [
       { to: node, rest: 6.0, k: 0.02 },
       { to: partner, rest: 6.0, k: 0.02 },
     ],
-    tile: [0, 0, 0, 0],
-    slot: null,
-    tint,
-    scale: 0.001,
-    targetScale: SCALE_GHOST,
-    alpha: 0,
-    born: now(),
-    life: rangeRand(LIFE_GHOST, node.id),
-    fading: false,
-    dead: false,
+    tile: [0, 0, 0, 0], slot: null, tint,
+    scale: 0.001, targetScale: SCALE_GHOST, alpha: 0,
+    born: now(), life: rangeRand(LIFE_GHOST, node.id), fading: false, dead: false,
     confirmed: false,
     meta: { between: [shortName(node.meta), shortName(partner.meta)] },
   };
@@ -340,10 +301,7 @@ function step(dt) {
         n.confirmFlash = Math.max(0, n.confirmFlash - dt / 350);
         n.scale = n.targetScale * (1 + n.confirmFlash * 1.6);
       }
-      if (n.alpha <= 0.001) {
-        removeNode(n);
-        continue;
-      }
+      if (n.alpha <= 0.001) { removeNode(n); continue; }
     } else {
       const age = t - n.born;
       const inK = Math.min(1, age / FADE_IN);
@@ -362,7 +320,7 @@ function step(dt) {
     repel: 88,
     repelRadius: 9.0,
     damping: 0.93,
-    maxSpeed: 0.1,
+    maxSpeed: 0.10,
   });
 
   // verification: how fast is the fastest *settled* form still drifting? Should be
@@ -399,7 +357,7 @@ function buildWeb() {
       // the cluster under the cursor lights up; everything else recedes
       const touch = hoverNode && (nd === hoverNode || t === hoverNode);
       const boost = hoverNode ? (touch ? 3.4 : 0.25) : 1;
-      const I = (0.045 + sim * 0.2) * a * boost;
+      const I = (0.045 + sim * 0.20) * a * boost;
       segs.push({ a: nd.pos, b: t.pos, c: [0.26 * I, 0.95 * I, 0.55 * I] });
     }
   }
@@ -409,51 +367,35 @@ function buildWeb() {
       const t = e.to;
       if (t.dead || t.alpha < 0.06) continue;
       const I = 0.13 * Math.min(g.alpha, t.alpha);
-      segs.push({ a: g.pos, b: t.pos, c: [0.58 * I, 0.4 * I, 0.98 * I] });
+      segs.push({ a: g.pos, b: t.pos, c: [0.58 * I, 0.40 * I, 0.98 * I] });
     }
   }
   const t = now();
   for (let i = confirmArcs.length - 1; i >= 0; i--) {
     const arc = confirmArcs[i];
     const age = t - arc.t0;
-    if (age > 900 || arc.real.dead) {
-      confirmArcs.splice(i, 1);
-      continue;
-    }
+    if (age > 900 || arc.real.dead) { confirmArcs.splice(i, 1); continue; }
     const I = (1 - age / 900) * 0.95;
-    segs.push({ a: arc.a, b: arc.real.pos, c: [0.85 * I, 0.8 * I, 1.0 * I] });
+    segs.push({ a: arc.a, b: arc.real.pos, c: [0.85 * I, 0.80 * I, 1.0 * I] });
   }
   return segs;
 }
 
 // ---------- pointer: hover readout + click to focus ----------
 let mouse = { x: -1, y: -1, on: false };
-addEventListener("pointermove", (e) => {
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-  mouse.on = true;
-});
-addEventListener("pointerleave", () => {
-  mouse.on = false;
-});
+addEventListener("pointermove", (e) => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.on = true; });
+addEventListener("pointerleave", () => { mouse.on = false; });
 
 // nearest live form to a screen point, within a forgiving radius
 function pickNode(x, y, radius = 40) {
-  let best = null,
-    bestScreen = null,
-    bestD = radius * radius;
+  let best = null, bestScreen = null, bestD = radius * radius;
   for (const n of allNodes) {
     if (n.alpha < 0.25) continue;
     const sc = stage.project(n.pos);
     if (!sc) continue;
-    const dx = sc.x - x,
-      dy = sc.y - y;
+    const dx = sc.x - x, dy = sc.y - y;
     const d2 = dx * dx + dy * dy;
-    if (d2 < bestD) {
-      bestD = d2;
-      best = n;
-      bestScreen = sc;
-    }
+    if (d2 < bestD) { bestD = d2; best = n; bestScreen = sc; }
   }
   return { node: best, screen: bestScreen };
 }
@@ -495,23 +437,24 @@ function updateReadout() {
   document.body.classList.toggle("pickable", !!best);
 
   // hover tooltip is suppressed while a detail card is open (less clutter)
-  if (!best || pickedNode) {
-    els.readout.style.opacity = "0";
-    return;
-  }
+  if (!best || pickedNode) { els.readout.style.opacity = "0"; readoutNode = null; return; }
   const r = els.readout;
-  if (best.kind === "ghost") {
-    r.classList.add("imagined");
-    const [a, b] = best.meta.between || ["?", "?"];
-    r.innerHTML = `<div class="name">imagined form</div>` + `<div class="meta">expected between <i>${esc(a)}</i> and <i>${esc(b)}</i></div>`;
-  } else {
-    r.classList.remove("imagined");
-    const m = best.meta;
-    r.innerHTML =
-      `<div class="name">${esc(m.sci)}` +
-      (m.common ? ` <span class="common">· ${esc(m.common)}</span>` : "") +
-      `</div>` +
-      `<div class="meta">${esc(m.place || "somewhere on Earth")}</div>`;
+  if (best !== readoutNode) {
+    if (best.kind === "ghost") {
+      r.classList.add("imagined");
+      const [a, b] = best.meta.between || ["?", "?"];
+      r.innerHTML =
+        `<div class="name">imagined form</div>` +
+        `<div class="meta">expected between <i>${esc(a)}</i> and <i>${esc(b)}</i></div>`;
+    } else {
+      r.classList.remove("imagined");
+      const m = best.meta;
+      r.innerHTML =
+        `<div class="name">${esc(m.sci)}` +
+        (m.common ? ` <span class="common">· ${esc(m.common)}</span>` : "") + `</div>` +
+        `<div class="meta">${esc(m.place || "somewhere on Earth")}</div>`;
+    }
+    readoutNode = best;
   }
   r.style.left = screen.x + "px";
   r.style.top = screen.y + "px";
@@ -520,7 +463,8 @@ function updateReadout() {
 
 // ---------- click to enlarge ----------
 addEventListener("pointerdown", (e) => {
-  if (e.target.closest("#sound") || e.target.closest("#detail") || e.target.closest("#intro")) return;
+  if (e.target.closest("#sound") || e.target.closest("#motion") || e.target.closest("#recenter") || e.target.closest("#detail") || e.target.closest("#intro")) return;
+  hideGuide();
   enableAudioOnce();
   // a drag to orbit should not also pick; remember where the press began
   press = { x: e.clientX, y: e.clientY, moved: false };
@@ -547,13 +491,13 @@ function focusPick(node) {
   audio.stopClip();
   // the actual voice of this organism, if it has one on record
   const tok = ++soundToken;
-  if (node.kind === "real" && node.meta.taxonId) {
-    fetchTaxonSound(node.meta.taxonId).then((url) => {
+  if (node.kind === "real" && (node.meta.sound || node.meta.taxonId)) {
+    const sound = node.meta.sound
+      ? Promise.resolve(node.meta.sound)
+      : fetchTaxonSound(node.meta.taxonId);
+    sound.then((url) => {
       if (tok !== soundToken || pickedNode !== node) return; // moved on
-      if (url && audio.on) {
-        audio.playClip(url);
-        markListening();
-      }
+      if (url && audio.on) { audio.playClip(url); markListening(); }
     });
   }
 }
@@ -594,13 +538,13 @@ function showDetail(node) {
       ? `Placed beside <b>${esc(m.nearest)}</b> — the machine reads them as <b>${sim}%</b> alike by sight, though they may be nothing alike by name.`
       : `Held open a new visual region; nothing seen so far looks like it.`;
     d.innerHTML =
-      (m.photo ? `<img class="photo" src="${esc(m.photo)}" alt="" referrerpolicy="no-referrer" />` : "") +
+      (m.photo ? `<img class="photo" src="${esc(m.photo)}" alt="${esc(m.common || m.sci || "animal observation")}" referrerpolicy="no-referrer" />` : "") +
       `<div class="body">` +
       `<div class="sci">${esc(m.sci || "unknown form")}` +
-      (m.common ? `<span class="common">${esc(m.common)}</span>` : "") +
-      `</div>` +
+      (m.common ? `<span class="common">${esc(m.common)}</span>` : "") + `</div>` +
       `<div class="row">${near}</div>` +
       (m.place ? `<div class="place">${esc(m.place)}${m.when ? " · " + esc(formatWhen(m.when)) : ""}</div>` : "") +
+      (m.observationId ? `<a class="source" href="https://www.inaturalist.org/observations/${encodeURIComponent(m.observationId)}" target="_blank" rel="noopener noreferrer">view source on iNaturalist ↗</a>` : "") +
       `<div class="listen"><i></i>listening</div>` +
       `<div class="close">click anywhere to release</div>` +
       `</div>`;
@@ -608,9 +552,7 @@ function showDetail(node) {
   d.classList.add("show");
 }
 
-function hideDetail() {
-  els.detail.classList.remove("show");
-}
+function hideDetail() { els.detail.classList.remove("show"); }
 
 // ---------- sound ----------
 let audioTouched = false;
@@ -625,73 +567,115 @@ els.sound.addEventListener("click", (e) => {
   audio.toggle();
   syncSoundUI();
 });
+els.motion.addEventListener("click", (e) => {
+  e.stopPropagation();
+  setMotion(!motionOn);
+});
+els.recenter.addEventListener("click", (e) => {
+  e.stopPropagation();
+  releasePick();
+  stage.focusOn(null);
+  hideGuide();
+});
+reduceMotion.addEventListener("change", (e) => setMotion(!e.matches));
+function setMotion(on) {
+  motionOn = on;
+  stage.setMotion(on);
+  els.motion.classList.toggle("on", on);
+  els.motion.setAttribute("aria-pressed", String(on));
+  els.motion.querySelector(".lbl").textContent = on ? "motion on" : "motion off";
+}
 function syncSoundUI() {
   els.sound.classList.toggle("on", audio.on);
+  els.sound.setAttribute("aria-pressed", String(audio.on));
   els.sound.querySelector(".lbl").textContent = audio.on ? "sound on" : "sound off";
 }
 
 // ---------- intro: click to enter (also the gesture that wakes the sound) ----------
 let entered = false;
 function enter() {
-  if (entered) return;
+  if (entered || !els.intro.classList.contains("ready")) return;
   entered = true;
   els.intro.classList.add("gone");
   enableAudioOnce();
+  els.guide.classList.add("show");
+  setTimeout(hideGuide, 10000);
 }
 els.intro.addEventListener("click", enter);
+els.retry.addEventListener("click", (e) => { e.stopPropagation(); location.reload(); });
 // safety net: if the model is slow but forms are already arriving, let it open
-setInterval(() => {
-  if (!entered && realNodes.length >= 8) enter();
-}, 1500);
+setInterval(() => { if (!entered && realNodes.length >= 8) enter(); }, 1500);
+
+// Keyboard access mirrors pointer selection: arrows browse live forms, Enter
+// opens the current form, and Escape returns to the full field.
+let keyboardIndex = -1;
+addEventListener("keydown", (e) => {
+  if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+    const nodes = allNodes.filter((n) => n.alpha >= 0.25 && !n.dead);
+    if (!nodes.length) return;
+    e.preventDefault();
+    const dir = e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 1;
+    keyboardIndex = (keyboardIndex + dir + nodes.length) % nodes.length;
+    focusPick(nodes[keyboardIndex]);
+  } else if (e.key === "Enter" && hoverNode && !pickedNode) {
+    e.preventDefault();
+    focusPick(hoverNode);
+  } else if (e.key === "Escape") {
+    releasePick();
+  }
+});
+
+function hideGuide() { els.guide.classList.remove("show"); }
+
+// Do not consume GPU/battery while the portfolio tab is out of view.
+let pageVisible = !document.hidden;
+addEventListener("visibilitychange", () => {
+  pageVisible = !document.hidden;
+  if (pageVisible) requestAnimationFrame(loop);
+});
 
 // ---------- main loop ----------
 let prevT = 0;
+let lastPulse = 0;
 function loop() {
+  if (!pageVisible) return;
   const t = now();
   const dt = Math.min(50, t - prevT || 16);
   prevT = t;
 
   step(dt);
   stage.updateWeb(buildWeb());
-  const flick = 0.62 + 0.38 * Math.sin(t * 0.0022); // slow ghost shimmer
+  const flick = motionOn ? 0.62 + 0.38 * Math.sin(t * 0.0022) : 0.85;
   stage.frame(allNodes, flick, dt);
   updateReadout();
+  updatePulse(t);
 
   requestAnimationFrame(loop);
 }
 
+function updatePulse(t) {
+  if (t - lastPulse < 1000) return;
+  lastPulse = t;
+  els.pulse.textContent = `${realNodes.length} observed · ${ghostNodes.length} imagined · live`;
+}
+
 // ---------- helpers ----------
-function now() {
-  return performance.now();
-}
-function frac(x) {
-  const v = Math.sin(x * 12.9898) * 43758.5453;
-  return v - Math.floor(v);
-}
-function rangeRand(range, salt) {
-  return range[0] + frac(salt + 0.123) * (range[1] - range[0]);
-}
-function clamp01(v) {
-  return v < 0 ? 0 : v > 1 ? 1 : v;
-}
+function now() { return performance.now(); }
+function frac(x) { const v = Math.sin(x * 12.9898) * 43758.5453; return v - Math.floor(v); }
+function rangeRand(range, salt) { return range[0] + frac(salt + 0.123) * (range[1] - range[0]); }
+function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
 function mapRange(v, a, b, c, d) {
   const t = Math.max(0, Math.min(1, (v - a) / (b - a)));
   return c + (d - c) * t;
 }
-function shortName(meta) {
-  return meta.common || meta.sci || "a form";
-}
-function esc(s) {
-  return String(s).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" })[c]);
-}
+function shortName(meta) { return meta.common || meta.sci || "a form"; }
+function esc(s) { return String(s).replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])); }
 function formatWhen(w) {
   try {
     const d = new Date(w);
     if (isNaN(d)) return w;
     return d.toUTCString().replace(":00 GMT", " UTC").replace(" GMT", " UTC");
-  } catch {
-    return w;
-  }
+  } catch { return w; }
 }
 
 // ---------- go ----------
@@ -699,3 +683,41 @@ function formatWhen(w) {
   await stage.init();
   requestAnimationFrame(loop);
 })();
+}
+
+// A real, lightweight fallback for browsers that cannot render WebGPU. It keeps
+// the work viewable on a portfolio review device rather than ending at an error.
+async function startFallback() {
+  const app = document.getElementById("app");
+  app.classList.add("fallback");
+  try {
+    const q = new URLSearchParams({
+      order: "desc", order_by: "created_at", per_page: "12", photos: "true",
+      sounds: "true", quality_grade: "research", iconic_taxa: "Aves,Amphibia,Mammalia,Reptilia",
+      fields: "taxon,photos",
+    });
+    const res = await fetch(`https://api.inaturalist.org/v1/observations?${q}`);
+    if (!res.ok) throw new Error(`iNat ${res.status}`);
+    const data = await res.json();
+    let count = 0;
+    for (const observation of data.results || []) {
+      const photo = observation.photos?.[0]?.url;
+      if (!photo) continue;
+      const item = document.createElement("figure");
+      item.className = "fallback-form";
+      const image = document.createElement("img");
+      image.src = photo.replace("/square.", "/medium.");
+      image.alt = observation.taxon?.preferred_common_name || observation.taxon?.name || "animal observation";
+      const label = document.createElement("figcaption");
+      label.textContent = image.alt;
+      item.append(image, label);
+      app.append(item);
+      count++;
+    }
+    els.pulse.textContent = `${count} observed · lightweight preview`;
+    els.introStatus.textContent = "live field preview ready";
+    els.intro.classList.add("ready");
+  } catch (e) {
+    els.introStatus.textContent = "The preview could not connect. Try again when you are online.";
+  }
+}
