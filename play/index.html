@@ -230,6 +230,17 @@
         opacity: 0;
         animation: playFadeUp 0.7s var(--ease-out) 0.1s forwards;
       }
+      .play-intro {
+        max-width: 460px;
+        margin: 14px 0 0;
+        color: rgba(255, 255, 255, 0.48);
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        line-height: 1.7;
+        opacity: 0;
+        animation: playFadeUp 0.7s var(--ease-out) 0.18s forwards;
+      }
       .play-count {
         font-family: var(--font-mono);
         font-size: 10px;
@@ -398,9 +409,14 @@
       }
       .card {
         border-radius: 10px;
+        border: 0;
         overflow: hidden;
+        padding: 0;
         background: rgba(255, 255, 255, 0.03);
+        color: inherit;
         cursor: none;
+        font: inherit;
+        text-align: inherit;
         /* Larger default placeholder span so masonry doesn't reflow as dramatically when
            images load (was span 14 → forced massive layout shift on every load) */
         grid-row-end: span 20;
@@ -445,6 +461,11 @@
       .card.reveal-in {
         opacity: 1;
         transform: translateY(0);
+      }
+      .card:focus-visible {
+        outline: 2px solid rgba(150, 210, 255, 0.9);
+        outline-offset: 4px;
+        z-index: 3;
       }
       .card img,
       .card video {
@@ -549,7 +570,8 @@
            was invisible but still rasterizing the entire viewport behind it on
            every frame the lightbox was open. Pure perf waste. */
       }
-      .lb img {
+      .lb img,
+      .lb video {
         position: relative;
         z-index: 1;
         max-width: 92vw;
@@ -559,7 +581,8 @@
         transform: scale(0.96);
         transition: transform 0.4s var(--ease-out);
       }
-      .lb.open img {
+      .lb.open img,
+      .lb.open video {
         transform: scale(1);
       }
       .lb-x {
@@ -668,6 +691,10 @@
         .play-header {
           padding-top: calc(var(--nav-h) + 72px + env(safe-area-inset-top, 0px));
         }
+        .play-intro {
+          max-width: 34rem;
+          font-size: 10px;
+        }
       }
       @media (max-width: 480px) {
         :root {
@@ -749,7 +776,7 @@
         color: rgba(7, 9, 15, 0.5);
       }
       /* Lightbox stays dark in both modes (full-screen media viewer reads better on black) */
-    </style> </head> <body> <nav class="nav"> <a href="/"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 28 28" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path> <rect x="5" y="9" width="14" height="14" fill="#000" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></rect> <rect class="logo-eye" x="8.7" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect> <rect class="logo-eye" x="14.3" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect> </svg> </a> <div class="nav-links"> <a href="/works/" class="nav-icon" aria-label="Work" data-label="Work"><img src="/assets/img/nav/cube.png" alt="Work"></a> <a href="/play/" class="nav-icon is-active" aria-label="Play" data-label="Play" aria-current="page"><img src="/assets/img/nav/flower.png" alt="Play"></a> <a href="/contact/" class="nav-icon" aria-label="Contact" data-label="Contact"><img src="/assets/img/nav/sparkle.png" alt="Contact"></a> <a href="/about/" class="nav-icon" aria-label="About" data-label="About"><img src="/assets/img/nav/cross.png" alt="About"></a> </div> </nav> <main id="main"> <div class="play-header"> <h1 class="play-title">Play</h1> <span class="play-count" id="play-count"></span> </div> <div class="play-filter" id="play-filter"> <button type="button" class="pf-btn active" data-pf="all">All</button> <button type="button" class="pf-btn" data-pf="img">Photos<span class="pf-btn-count" data-pf-count="img"></span></button> <button type="button" class="pf-btn" data-pf="vid">Videos<span class="pf-btn-count" data-pf-count="vid"></span></button> <button type="button" class="pf-btn" data-pf="gif">GIFs<span class="pf-btn-count" data-pf-count="gif"></span></button> </div> <div class="masonry" id="masonry"></div> </main> <div class="scroll-edge scroll-edge--top" aria-hidden="true"></div> <div class="scroll-edge scroll-edge--bottom" aria-hidden="true"></div> <div class="wall-reveal" id="wall-reveal"> <canvas id="wall-canvas"></canvas> <div class="wall-hint" id="wall-hint">Play with your cursor</div> </div> <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image viewer" aria-hidden="true"> <div class="lb-bg"></div> <img id="lb-img" alt=""> <video id="lb-video" controls playsinline preload="metadata" style="display: none"></video> <button class="lb-x" aria-label="Close" type="button">✕</button> <button class="lb-prev" id="lb-prev" aria-label="Previous" type="button">‹</button> <button class="lb-next" id="lb-next" aria-label="Next" type="button">›</button> <div class="lb-counter" id="lb-counter"></div> </div> <svg style="position:absolute;width:0;height:0;" aria-hidden="true"> <filter id="play-mosaic"> <femorphology operator="dilate" radius="4"></femorphology> <fecolormatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"></fecolormatrix> </filter> <filter id="play-pixelate"> <femorphology operator="dilate" radius="7"></femorphology> </filter> <filter id="play-wave"> <feturbulence type="turbulence" basefrequency="0.04 0.02" numoctaves="1" seed="9"></feturbulence> <fedisplacementmap in="SourceGraphic" scale="8"></fedisplacementmap> </filter> </svg> <footer class="play-footer"> <span class="pf-text">© 2026 · Siddharth Mehta</span> <div class="pf-social"> <a href="mailto:sidmehtadesign@gmail.com">Email</a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener">LinkedIn</a> <a href="https://www.instagram.com/cubeofcreation/" target="_blank" rel="noopener">Instagram</a> </div> <a href="/contact/" class="pf-cta">Get in Touch →</a> </footer> <script>
+    </style> </head> <body> <nav class="nav"> <a href="/"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 28 28" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path> <rect x="5" y="9" width="14" height="14" fill="#000" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></rect> <rect class="logo-eye" x="8.7" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect> <rect class="logo-eye" x="14.3" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect> </svg> </a> <div class="nav-links"> <a href="/works/" class="nav-icon" aria-label="Work" data-label="Work"><img src="/assets/img/nav/cube.png" alt="Work"></a> <a href="/play/" class="nav-icon is-active" aria-label="Play" data-label="Play" aria-current="page"><img src="/assets/img/nav/flower.png" alt="Play"></a> <a href="/contact/" class="nav-icon" aria-label="Contact" data-label="Contact"><img src="/assets/img/nav/sparkle.png" alt="Contact"></a> <a href="/about/" class="nav-icon" aria-label="About" data-label="About"><img src="/assets/img/nav/cross.png" alt="About"></a> </div> </nav> <main id="main"> <div class="play-header"> <div> <h1 class="play-title">Play</h1> <p class="play-intro">Experiments, camera rolls, motion tests, and loose ends.</p> </div> <span class="play-count" id="play-count"></span> </div> <div class="play-filter" id="play-filter" role="group" aria-label="Filter Play media"> <button type="button" class="pf-btn active" data-pf="all" aria-pressed="true">All</button> <button type="button" class="pf-btn" data-pf="img" aria-pressed="false">Photos<span class="pf-btn-count" data-pf-count="img"></span></button> <button type="button" class="pf-btn" data-pf="vid" aria-pressed="false">Videos<span class="pf-btn-count" data-pf-count="vid"></span></button> <button type="button" class="pf-btn" data-pf="gif" aria-pressed="false">GIFs<span class="pf-btn-count" data-pf-count="gif"></span></button> </div> <div class="masonry" id="masonry"></div> </main> <div class="scroll-edge scroll-edge--top" aria-hidden="true"></div> <div class="scroll-edge scroll-edge--bottom" aria-hidden="true"></div> <div class="wall-reveal" id="wall-reveal"> <canvas id="wall-canvas"></canvas> <div class="wall-hint" id="wall-hint">Play with your cursor</div> </div> <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image viewer" aria-hidden="true"> <div class="lb-bg"></div> <img id="lb-img" alt=""> <video id="lb-video" controls playsinline preload="metadata" style="display: none"></video> <button class="lb-x" aria-label="Close" type="button">✕</button> <button class="lb-prev" id="lb-prev" aria-label="Previous" type="button">‹</button> <button class="lb-next" id="lb-next" aria-label="Next" type="button">›</button> <div class="lb-counter" id="lb-counter"></div> </div> <svg style="position:absolute;width:0;height:0;" aria-hidden="true"> <filter id="play-mosaic"> <femorphology operator="dilate" radius="4"></femorphology> <fecolormatrix values="1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 1 0"></fecolormatrix> </filter> <filter id="play-pixelate"> <femorphology operator="dilate" radius="7"></femorphology> </filter> <filter id="play-wave"> <feturbulence type="turbulence" basefrequency="0.04 0.02" numoctaves="1" seed="9"></feturbulence> <fedisplacementmap in="SourceGraphic" scale="8"></fedisplacementmap> </filter> </svg> <footer class="play-footer"> <span class="pf-text">© 2026 · Siddharth Mehta</span> <div class="pf-social"> <a href="mailto:sidmehtadesign@gmail.com">Email</a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener">LinkedIn</a> <a href="https://www.instagram.com/cubeofcreation/" target="_blank" rel="noopener">Instagram</a> </div> <a href="/contact/" class="pf-cta">Get in Touch →</a> </footer> <script>
   // Theme bootstrap — applies saved theme only. Default is dark (the site's identity).
   // Runs synchronously before any layout paints so there's no flash-of-wrong-theme.
   // We deliberately do NOT honor prefers-color-scheme here.
@@ -5140,10 +5167,13 @@
           media.style.transform = "";
         }
         items.forEach(function (item, idx) {
-          var card = document.createElement("div");
+          var card = document.createElement("button");
+          card.type = "button";
           card.className = "card" + (item.featured ? " card--featured" : "");
           card.setAttribute("data-float", floats[idx % 3]);
           card.setAttribute("data-cursor-text", item.type === "vid" ? "Play" : "View");
+          var mediaLabel = item.type === "vid" ? "video" : item.pf === "gif" ? "animated image" : "image";
+          card.setAttribute("aria-label", "Open " + mediaLabel + " " + (idx + 1) + " of " + items.length);
           card.dataset.pf = item.pf;
           card.dataset.idx = idx;
           // Reserve a default placeholder height so IntersectionObserver can detect the card
@@ -5163,17 +5193,19 @@
             video.loop = true;
             video.playsInline = true;
             video.preload = "none"; // don't fetch metadata for 45+ videos on page load
+            video.setAttribute("aria-hidden", "true");
             video.dataset.src = item.src; // src set lazily when card scrolls near viewport
             video.addEventListener("loadeddata", function () {
               video.classList.add("loaded");
             });
             card.appendChild(video);
             card.addEventListener("click", function (e) {
-              openLbByIdx(parseInt(e.currentTarget.dataset.idx, 10));
+              openLbByIdx(parseInt(e.currentTarget.dataset.idx, 10), e.currentTarget);
             });
           } else {
             var img = document.createElement("img");
-            img.alt = "Play";
+            img.alt = "";
+            img.setAttribute("aria-hidden", "true");
             img.decoding = "async";
             // Only first 8 (above-fold) eagerly load src; rest get data-src + native lazy + IO swap
             if (idx < 8) {
@@ -5187,7 +5219,7 @@
             }
             card.appendChild(img);
             card.addEventListener("click", function (e) {
-              openLbByIdx(parseInt(e.currentTarget.dataset.idx, 10));
+              openLbByIdx(parseInt(e.currentTarget.dataset.idx, 10), e.currentTarget);
             });
           }
 
@@ -5281,55 +5313,18 @@
           if (c.querySelector("img[data-src], video[data-src]")) lazyObs.observe(c);
         });
 
-        // ── IDLE AUTO-SCROLL ── slow continuous drift if user hasn't interacted in 2.2s (desktop only).
-        // Refactored to scrollBy with sub-pixel accumulation + no scroll-event listener so the auto-drift
-        // doesn't fight the user's wheel and stutter. setTimeout pattern removed (was racing rAF).
-        (function () {
-          var lastInteraction = Date.now();
-          var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
-          if (prefersReduced || isTouch) return;
-          ["mousemove", "touchstart", "wheel", "keydown", "click", "pointerdown"].forEach(function (ev) {
-            window.addEventListener(ev, function () {
-              lastInteraction = Date.now();
-            }, { passive: true });
-          });
-          var indicator = document.createElement("div");
-          indicator.id = "play-autoscroll-indicator";
-          indicator.textContent = "AUTO · MOVE TO PAUSE";
-          document.body.appendChild(indicator);
-          var indicatorVisible = false;
-          var lastT = performance.now();
-          function tick(now) {
-            requestAnimationFrame(tick);
-            var dt = Math.min((now - lastT) / 1000, 0.05); // cap at 50ms to avoid tab-switch jump
-            lastT = now;
-            var idle = Date.now() - lastInteraction > 2200;
-            var atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 8;
-            if (idle && !atBottom) {
-              window.scrollBy(0, 80 * dt); // fractional scroll — browser handles sub-pixel smoothly
-              if (!indicatorVisible) {
-                indicator.classList.add("is-visible");
-                indicatorVisible = true;
-              }
-            } else {
-              if (indicatorVisible) {
-                indicator.classList.remove("is-visible");
-                indicatorVisible = false;
-              }
-            }
-          }
-          requestAnimationFrame(tick);
-        })();
+        // The gallery is intentionally visitor-led: movement stays within the media,
+        // while scrolling remains predictable for browsing, keyboard use, and reading.
 
         // Lightbox
         var lb = document.getElementById("lb");
         var lbImg = document.getElementById("lb-img");
-
         var lbVid = document.getElementById("lb-video");
+        var lbClose = lb.querySelector(".lb-x");
         // Lightbox — index-aware so ←/→ traverse the currently-visible (filtered) items
         var lbCounter = document.getElementById("lb-counter");
         var lbCurrent = -1;
+        var lbOpener = null;
         function visibleItemIdxs() {
           // Returns array of original-list indices for cards currently displayed (respecting filter)
           var out = [];
@@ -5338,16 +5333,18 @@
           });
           return out;
         }
-        function openLbByIdx(idx) {
+        function openLbByIdx(idx, opener) {
           var visible = visibleItemIdxs();
           var pos = visible.indexOf(idx);
           if (pos < 0) return;
+          if (opener) lbOpener = opener;
           lbCurrent = idx;
           var item = items[idx];
           if (item.type === "vid" && lbVid) {
             lbImg.style.display = "none";
             lbVid.style.display = "block";
             lbVid.src = item.src;
+            lbVid.setAttribute("aria-label", "Video " + (pos + 1) + " of " + visible.length);
             lbVid.play().catch(function () {});
           } else {
             if (lbVid) {
@@ -5357,6 +5354,7 @@
             }
             lbImg.style.display = "";
             lbImg.src = item.src;
+            lbImg.alt = "Image " + (pos + 1) + " of " + visible.length;
           }
           if (lbCounter) lbCounter.textContent = pos + 1 + " / " + visible.length;
           lb.style.display = "flex";
@@ -5364,6 +5362,7 @@
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
               lb.classList.add("open");
+              if (lbClose) lbClose.focus();
             });
           });
         }
@@ -5376,6 +5375,7 @@
           openLbByIdx(visible[nextPos]);
         }
         function closeLb() {
+          var opener = lbOpener;
           lb.classList.remove("open");
           lb.setAttribute("aria-hidden", "true");
           setTimeout(function () {
@@ -5387,19 +5387,40 @@
               lbVid.style.display = "none";
             }
             lbCurrent = -1;
+            lbOpener = null;
+            if (opener && document.body.contains(opener)) opener.focus();
           }, 300);
         }
         lb.querySelector(".lb-bg").addEventListener("click", closeLb);
-        lb.querySelector(".lb-x").addEventListener("click", closeLb);
+        lbClose.addEventListener("click", closeLb);
         var lbPrev = document.getElementById("lb-prev");
         var lbNext = document.getElementById("lb-next");
         if (lbPrev) lbPrev.addEventListener("click", function () { lbStep(-1); });
         if (lbNext) lbNext.addEventListener("click", function () { lbStep(1); });
         document.addEventListener("keydown", function (e) {
           if (!lb.classList.contains("open")) return;
-          if (e.key === "Escape") closeLb();
-          else if (e.key === "ArrowLeft") lbStep(-1);
-          else if (e.key === "ArrowRight") lbStep(1);
+          if (e.key === "Escape") {
+            e.preventDefault();
+            closeLb();
+          } else if (e.key === "ArrowLeft") {
+            e.preventDefault();
+            lbStep(-1);
+          } else if (e.key === "ArrowRight") {
+            e.preventDefault();
+            lbStep(1);
+          }
+        });
+        lb.addEventListener("keydown", function (e) {
+          if (e.key !== "Tab") return;
+          var focusable = [lbClose, lbPrev, lbNext].filter(Boolean);
+          if (!focusable.length) return;
+          var current = focusable.indexOf(document.activeElement);
+          var next = e.shiftKey ? current - 1 : current + 1;
+          if (current === -1) next = e.shiftKey ? focusable.length - 1 : 0;
+          if (next < 0) next = focusable.length - 1;
+          if (next >= focusable.length) next = 0;
+          e.preventDefault();
+          focusable[next].focus();
         });
         // Touch swipe — left/right anywhere on the lightbox steps prev/next
         var tStartX = 0, tStartY = 0, tStartT = 0;
@@ -5454,14 +5475,20 @@
               var f = btn.dataset.pf;
               document.querySelectorAll(".pf-btn").forEach(function (b) {
                 b.classList.toggle("active", b === btn);
+                b.setAttribute("aria-pressed", b === btn ? "true" : "false");
               });
+              var visibleCount = 0;
               masonry.querySelectorAll(".card").forEach(function (c) {
                 if (f === "all" || c.dataset.pf === f) {
                   c.style.display = "";
+                  visibleCount++;
                 } else {
                   c.style.display = "none";
                 }
               });
+              if (countEl) {
+                countEl.textContent = f === "all" ? items.length + " pieces" : visibleCount + " of " + items.length + " pieces";
+              }
               // Recompute row spans after filter change
               setTimeout(recomputeAll, 50);
             });
