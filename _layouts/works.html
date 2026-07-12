@@ -717,7 +717,7 @@
       .wp-media {
         position: relative;
         width: 100%;
-        aspect-ratio: 4 / 3;
+        aspect-ratio: 16 / 9;
         border-radius: 8px;
         overflow: hidden;
         background: #08090e;
@@ -730,23 +730,37 @@
         pointer-events: none;
         z-index: 2;
       }
-      .wp-img,
-      .wp-video {
+      .wp-slides {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+      }
+      .wp-slide {
         position: absolute;
         inset: 0;
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        transition: opacity 0.35s var(--ease-out);
+        opacity: 0;
+        transform: scale(1.025);
+        transition:
+          opacity 0.52s var(--ease-out),
+          transform 1.1s var(--ease-out);
       }
-      .wp-img {
-        z-index: 0;
+      .wp-slide.is-active {
         opacity: 1;
+        transform: scale(1);
+        z-index: 1;
+      }
+      .wp-slide img,
+      .wp-slide video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
       }
       /* Exit warp — applied only for the click-to-navigate beat (see JS), not left on
          permanently, so the SVG filter never costs a frame during normal browsing. */
-      .wp-media.is-exiting .wp-img,
-      .wp-media.is-exiting .wp-video {
+      .wp-media.is-exiting .wp-slide img,
+      .wp-media.is-exiting .wp-slide video {
         filter: url(#wp-exit-filter);
       }
       /* Same "warp on threshold, flash on commit" signature as the homepage Buddha
@@ -777,12 +791,50 @@
           transform: scale(1.5);
         }
       }
-      .wp-video {
-        z-index: 1;
-        opacity: 0;
+      .wp-media-rail {
+        position: absolute;
+        right: 14px;
+        bottom: 12px;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 6px 8px;
+        border-radius: 999px;
+        background: rgba(6, 8, 14, 0.46);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
-      .wp-video.is-active {
-        opacity: 1;
+      .wp-media-count {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.1em;
+        color: rgba(255, 255, 255, 0.72);
+        font-variant-numeric: tabular-nums;
+      }
+      .wp-media-dots {
+        display: flex;
+        gap: 4px;
+      }
+      .wp-media-dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.34);
+        transition:
+          width 0.3s var(--ease-out),
+          background 0.3s var(--ease-out);
+      }
+      .wp-media-dot.is-active {
+        width: 14px;
+        background: rgba(205, 226, 255, 0.94);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .wp-slide,
+        .wp-media-dot {
+          transition: none !important;
+        }
       }
 
       .wp-award-badge {
@@ -863,7 +915,34 @@
       }
 
       .wp-body {
-        margin-top: 28px;
+        margin-top: 16px;
+      }
+      .wp-facts {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 12px 18px;
+        margin: 0 0 14px;
+        padding: 10px 0 11px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .wp-fact {
+        display: grid;
+        gap: 4px;
+        min-width: 0;
+      }
+      .wp-fact-label {
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.32);
+      }
+      .wp-fact-value {
+        font-family: var(--font-head);
+        font-size: 11px;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.72);
       }
 
       .wp-pills {
@@ -1309,6 +1388,16 @@
       html[data-theme="light"] .wp-pill {
         color: rgba(7, 9, 15, 0.45);
       }
+      html[data-theme="light"] .wp-facts {
+        border-top-color: rgba(7, 9, 15, 0.12);
+        border-bottom-color: rgba(7, 9, 15, 0.1);
+      }
+      html[data-theme="light"] .wp-fact-label {
+        color: rgba(7, 9, 15, 0.4);
+      }
+      html[data-theme="light"] .wp-fact-value {
+        color: rgba(7, 9, 15, 0.7);
+      }
       html[data-theme="light"] .wp-cta {
         color: rgba(40, 90, 180, 0.75);
       }
@@ -1439,6 +1528,9 @@
             data-year="2025"
             data-bg="radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
             data-img="{{ site.baseurl }}/1.met/0.png"
+            data-preview="image:{{ site.baseurl }}/1.met/0.png|video:{{ site.baseurl }}/1.met/4.mp4|image:{{ site.baseurl }}/1.met/12.png"
+            data-role="Creative Technologist"
+            data-proof="25 artworks · 2,000+ activations"
             data-badge-img="{{ site.baseurl }}/assets/img/badge_webby.webp"
             data-badge-label="Webby × 2 · 2026"
           >
@@ -1459,6 +1551,9 @@
             data-year="2025–26"
             data-bg="radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)"
             data-video="{{ site.baseurl }}/15.bloom-vp/tree.mp4"
+            data-preview="video:{{ site.baseurl }}/15.bloom-vp/tree.mp4|video:{{ site.baseurl }}/15.bloom-vp/scene-18.mp4|image:{{ site.baseurl }}/15.bloom-vp/poster.jpg"
+            data-role="Designer · Developer · Researcher"
+            data-proof="Solo MFA thesis · visionOS"
           >
             <span class="wli-num">02</span>
             <div class="wli-content">
@@ -1477,6 +1572,9 @@
             data-year="2025"
             data-bg="radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)"
             data-img="{{ site.baseurl }}/assets/img/ai-proto-cover.jpg"
+            data-preview="image:{{ site.baseurl }}/assets/img/ai-proto-cover.jpg|image:{{ site.baseurl }}/ai-prototypes/latent-atlas/assets/cover-iHsdcUBA.png"
+            data-role="Designer · Developer · Researcher"
+            data-proof="11 live in-browser AI experiments"
           >
             <span class="wli-num">03</span>
             <div class="wli-content">
@@ -1495,6 +1593,9 @@
             data-year="2026"
             data-bg="radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)"
             data-img="{{ site.baseurl }}/6.mindu/cover2.webp"
+            data-preview="image:{{ site.baseurl }}/6.mindu/cover2.webp|video:{{ site.baseurl }}/6.mindu/kiosk2.mp4|image:{{ site.baseurl }}/6.mindu/7.2.png"
+            data-role="Developer"
+            data-proof="800+ community participants"
           >
             <span class="wli-num">04</span>
             <div class="wli-content">
@@ -1513,6 +1614,9 @@
             data-year="2021"
             data-bg="radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
             data-img="{{ site.baseurl }}/5.mool/cover.png"
+            data-preview="image:{{ site.baseurl }}/5.mool/cover.png|image:{{ site.baseurl }}/5.mool/2.1.png|image:{{ site.baseurl }}/5.mool/13.jpg"
+            data-role="Visual Designer"
+            data-proof="100k+ downloads · Kyoorius winner"
             data-badge-img="{{ site.baseurl }}/assets/img/badge_kyoorius.png"
             data-badge-label="Kyoorius · 2021"
           >
@@ -1533,6 +1637,9 @@
             data-year="2018–25"
             data-bg="radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)"
             data-video="{{ site.baseurl }}/2.cube/cover.mp4"
+            data-preview="video:{{ site.baseurl }}/2.cube/cover.mp4|image:{{ site.baseurl }}/2.cube/cover.png|video:{{ site.baseurl }}/2.cube/3.2.mp4"
+            data-role="Director · Designer · Developer"
+            data-proof="7-year character world across film & game"
           >
             <span class="wli-num">06</span>
             <div class="wli-content">
@@ -1551,6 +1658,9 @@
             data-year="2025"
             data-bg="radial-gradient(ellipse at 50% 50%, #1a0d24 0%, #0d0518 50%, #030108 100%)"
             data-video="{{ site.baseurl }}/4.mandala/cover.mp4"
+            data-preview="video:{{ site.baseurl }}/4.mandala/cover.mp4|video:{{ site.baseurl }}/4.mandala/final-walking.mp4|image:{{ site.baseurl }}/4.mandala/j.png"
+            data-role="Solo designer · developer"
+            data-proof="Generative thesis installation"
           >
             <span class="wli-num">07</span>
             <div class="wli-content">
@@ -1569,6 +1679,9 @@
             data-year="2024–25"
             data-bg="radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)"
             data-video="{{ site.baseurl }}/2.ai-self/cover.mp4"
+            data-preview="video:{{ site.baseurl }}/2.ai-self/cover.mp4|image:{{ site.baseurl }}/2.ai-self/12.png|video:{{ site.baseurl }}/2.ai-self/19.mp4"
+            data-role="Solo designer · developer · researcher"
+            data-proof="Three-part AI, AR & VR research arc"
           >
             <span class="wli-num">08</span>
             <div class="wli-content">
@@ -1587,6 +1700,9 @@
             data-year="2020"
             data-bg="radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)"
             data-img="{{ site.baseurl }}/9.aananda/cover.png"
+            data-preview="image:{{ site.baseurl }}/9.aananda/cover.png|image:{{ site.baseurl }}/9.aananda/24.1.png|image:{{ site.baseurl }}/9.aananda/8.png"
+            data-role="Designer"
+            data-proof="App · book · print identity system"
           >
             <span class="wli-num">09</span>
             <div class="wli-content">
@@ -1605,6 +1721,9 @@
             data-year="2020"
             data-bg="radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)"
             data-img="{{ site.baseurl }}/7.naavo/cover.png"
+            data-preview="image:{{ site.baseurl }}/7.naavo/cover.png|video:{{ site.baseurl }}/7.naavo/14.mp4|image:{{ site.baseurl }}/7.naavo/13.3%20solo.png"
+            data-role="Branding · logo · packaging"
+            data-proof="8-week identity & packaging system"
           >
             <span class="wli-num">10</span>
             <div class="wli-content">
@@ -1623,6 +1742,9 @@
             data-year="2018–25"
             data-bg="radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)"
             data-img="{{ site.baseurl }}/11.illu/12.1.png"
+            data-preview="image:{{ site.baseurl }}/11.illu/12.1.png|image:{{ site.baseurl }}/11.illu/7.2.png|video:{{ site.baseurl }}/11.illu/4.mp4"
+            data-role="Illustrator"
+            data-proof="Eight-year visual diary & art practice"
           >
             <span class="wli-num">11</span>
             <div class="wli-content">
@@ -1641,6 +1763,9 @@
             data-year="2021"
             data-bg="radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)"
             data-img="{{ site.baseurl }}/10.alpha/cover.png"
+            data-preview="image:{{ site.baseurl }}/10.alpha/cover.png|image:{{ site.baseurl }}/10.alpha/24.1.png|image:{{ site.baseurl }}/10.alpha/27.1.png"
+            data-role="Designer"
+            data-proof="3-day learning game prototype"
           >
             <span class="wli-num">12</span>
             <div class="wli-content">
@@ -1659,6 +1784,9 @@
             data-year="2024"
             data-bg="radial-gradient(ellipse at 70% 40%, #1a0d0d 0%, #0d0505 50%, #030101 100%)"
             data-img="{{ site.baseurl }}/5.bb/cover.png"
+            data-preview="image:{{ site.baseurl }}/5.bb/cover.png|video:{{ site.baseurl }}/5.bb/d8.mp4|image:{{ site.baseurl }}/5.bb/board1.3.png"
+            data-role="Designer · Developer · Researcher"
+            data-proof="285+ public responses · NYC"
           >
             <span class="wli-num">13</span>
             <div class="wli-content">
@@ -1677,6 +1805,9 @@
             data-year="2024"
             data-bg="radial-gradient(ellipse at 30% 50%, #1a1a0d 0%, #0d0d05 50%, #050501 100%)"
             data-img="{{ site.baseurl }}/8.shotoniphone/cover.png"
+            data-preview="image:{{ site.baseurl }}/8.shotoniphone/cover.png|image:{{ site.baseurl }}/8.shotoniphone/4.png|image:{{ site.baseurl }}/8.shotoniphone/10.png"
+            data-role="Designer · Photographer"
+            data-proof="Photography, print & QR storytelling"
           >
             <span class="wli-num">14</span>
             <div class="wli-content">
@@ -1694,6 +1825,8 @@
             data-year="2024"
             data-bg="radial-gradient(ellipse at 40% 60%, #001e1e 0%, #000f0f 50%, #000505 100%)"
             data-is-nda="true"
+            data-role="Private case study"
+            data-proof="Patient & clinician workflows"
           >
             <span class="wli-num">15</span>
             <div class="wli-content">
@@ -1711,6 +1844,8 @@
             data-year="2023"
             data-bg="radial-gradient(ellipse at 50% 40%, #1a0d06 0%, #0d0602 50%, #030100 100%)"
             data-is-nda="true"
+            data-role="Private case study"
+            data-proof="9,000+ properties · 17% accuracy lift"
           >
             <span class="wli-num">16</span>
             <div class="wli-content">
@@ -1725,8 +1860,11 @@
         <!-- RIGHT: sticky preview panel -->
         <div class="works-preview" id="works-preview">
           <div class="wp-media" id="wp-media" style="background: radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)">
-            <img class="wp-img" id="wp-img" src="{{ site.baseurl }}/assets/img/ai-proto-cover.jpg" alt="AI Prototypes" loading="eager" />
-            <video class="wp-video" id="wp-video" muted loop playsinline preload="none" aria-hidden="true"></video>
+            <div class="wp-slides" id="wp-slides" aria-label="Project preview"></div>
+            <div class="wp-media-rail" aria-hidden="true">
+              <span class="wp-media-count" id="wp-media-count">01 / 02</span>
+              <span class="wp-media-dots" id="wp-media-dots"><i class="wp-media-dot is-active"></i><i class="wp-media-dot"></i></span>
+            </div>
             <div class="wp-award-badge" id="wp-badge"><img id="wp-badge-img" src="" alt="" /></div>
             <div class="wp-nda-overlay" id="wp-nda">
               <svg width="20" height="24" viewBox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -1741,6 +1879,14 @@
             <div class="wp-pills" id="wp-pills"><span class="wp-pill">WebGPU</span><span class="wp-pill">In-browser AI</span></div>
             <h2 class="wp-title" id="wp-title">AI Prototypes</h2>
             <p class="wp-desc" id="wp-desc">11 interactive AI experiments running locally in the browser, no API keys required.</p>
+            <div class="wp-facts" aria-label="Project quick facts">
+              <div class="wp-fact">
+                <span class="wp-fact-label">Role</span><span class="wp-fact-value" id="wp-role">Designer · Developer · Researcher</span>
+              </div>
+              <div class="wp-fact">
+                <span class="wp-fact-label">Proof</span><span class="wp-fact-value" id="wp-proof">11 live in-browser AI experiments</span>
+              </div>
+            </div>
             <a class="wp-cta" id="wp-cta" href="{{ site.baseurl }}/ai-prototypes/">View project →</a>
           </div>
         </div>
@@ -1783,12 +1929,125 @@
 
       // Cursor label — list items get a "View" tag next to the custom cursor on hover
       document.querySelectorAll(".works-list-item").forEach(function (i) {
-        i.setAttribute("data-cursor-text", "View");
+        i.setAttribute("data-cursor-text", i.classList.contains("wli--nda") ? "Private" : "View");
       });
 
       // Preview panel — hover a list item to update the right panel
       var _currentItem = null;
       var _previewSwapTimer = null;
+      var _previewReelTimer = null;
+
+      function getPreviewMedia(item) {
+        var raw = item.dataset.preview || "";
+        var media = raw
+          .split("|")
+          .map(function (entry) {
+            var separator = entry.indexOf(":");
+            if (separator < 1) return null;
+            return { type: entry.slice(0, separator), src: entry.slice(separator + 1) };
+          })
+          .filter(function (entry) {
+            return entry && entry.src && (entry.type === "image" || entry.type === "video");
+          });
+
+        if (!media.length) {
+          var fallback = item.dataset.img || item.dataset.video || "";
+          if (fallback) media.push({ type: item.dataset.img ? "image" : "video", src: fallback });
+        }
+        return media.slice(0, 3);
+      }
+
+      function renderPreviewReel(item, title) {
+        var slides = document.getElementById("wp-slides");
+        var rail = document.querySelector(".wp-media-rail");
+        var count = document.getElementById("wp-media-count");
+        var dots = document.getElementById("wp-media-dots");
+        if (!slides || !rail || !count || !dots) return;
+
+        if (_previewReelTimer) {
+          clearInterval(_previewReelTimer);
+          _previewReelTimer = null;
+        }
+
+        var mediaItems = getPreviewMedia(item);
+        slides.replaceChildren();
+        dots.replaceChildren();
+
+        if (!mediaItems.length) {
+          rail.hidden = true;
+          slides.setAttribute("aria-label", title + " preview unavailable");
+          return;
+        }
+
+        rail.hidden = false;
+        slides.setAttribute("aria-label", title + " project preview, 1 of " + mediaItems.length);
+
+        var slideEls = mediaItems.map(function (media, index) {
+          var slide = document.createElement("span");
+          slide.className = "wp-slide";
+          slide.dataset.type = media.type;
+          slide.dataset.src = media.src;
+          slide.setAttribute("aria-hidden", index === 0 ? "false" : "true");
+          slides.appendChild(slide);
+
+          var dot = document.createElement("i");
+          dot.className = "wp-media-dot";
+          dots.appendChild(dot);
+          return slide;
+        });
+
+        var activeIndex = 0;
+        function activate(index) {
+          activeIndex = index;
+          var slide = slideEls[index];
+          var activeMedia = slide.querySelector("img, video");
+          if (!activeMedia) {
+            if (slide.dataset.type === "video") {
+              activeMedia = document.createElement("video");
+              activeMedia.muted = true;
+              activeMedia.loop = true;
+              activeMedia.playsInline = true;
+              activeMedia.preload = "metadata";
+              activeMedia.src = slide.dataset.src;
+            } else {
+              activeMedia = document.createElement("img");
+              activeMedia.src = slide.dataset.src;
+              activeMedia.alt = "";
+              activeMedia.decoding = "async";
+            }
+            slide.appendChild(activeMedia);
+          }
+
+          slideEls.forEach(function (entry, entryIndex) {
+            var isActive = entryIndex === activeIndex;
+            entry.classList.toggle("is-active", isActive);
+            entry.setAttribute("aria-hidden", isActive ? "false" : "true");
+            var video = entry.querySelector("video");
+            if (video) {
+              if (isActive) {
+                var play = video.play();
+                if (play && play.catch) play.catch(function () {});
+              } else {
+                video.pause();
+              }
+            }
+          });
+
+          Array.from(dots.children).forEach(function (dot, dotIndex) {
+            dot.classList.toggle("is-active", dotIndex === activeIndex);
+          });
+          count.textContent = String(activeIndex + 1).padStart(2, "0") + " / " + String(mediaItems.length).padStart(2, "0");
+          slides.setAttribute("aria-label", title + " project preview, " + (activeIndex + 1) + " of " + mediaItems.length);
+        }
+
+        activate(0);
+        var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (mediaItems.length > 1 && !reduceMotion) {
+          _previewReelTimer = setInterval(function () {
+            activate((activeIndex + 1) % mediaItems.length);
+          }, 2800);
+        }
+      }
 
       function setPreview(item, animate) {
         if (item === _currentItem) return;
@@ -1800,22 +2059,22 @@
         item.classList.add("is-active");
 
         var wpMedia = document.getElementById("wp-media");
-        var wpImg = document.getElementById("wp-img");
-        var wpVideo = document.getElementById("wp-video");
         var wpBadge = document.getElementById("wp-badge");
         var wpBadgeImg = document.getElementById("wp-badge-img");
         var wpNda = document.getElementById("wp-nda");
         var wpPills = document.getElementById("wp-pills");
         var wpTitle = document.getElementById("wp-title");
         var wpDesc = document.getElementById("wp-desc");
+        var wpRole = document.getElementById("wp-role");
+        var wpProof = document.getElementById("wp-proof");
         var wpCta = document.getElementById("wp-cta");
         var preview = document.getElementById("works-preview");
 
         var title = item.dataset.title || "";
         var desc = item.dataset.desc || "";
         var bg = item.dataset.bg || "#08090e";
-        var img = item.dataset.img || "";
-        var video = item.dataset.video || "";
+        var role = item.dataset.role || "Independent project";
+        var proof = item.dataset.proof || item.dataset.year || "Selected work";
         var badgeImg = item.dataset.badgeImg || "";
         var badgeLbl = item.dataset.badgeLabel || "";
         var isNda = !!item.dataset.isNda;
@@ -1824,25 +2083,8 @@
 
         function doSwap() {
           wpMedia.style.background = bg;
-
-          if (img) {
-            wpImg.src = img;
-            wpImg.alt = title;
-            wpImg.style.opacity = "1";
-          } else {
-            wpImg.style.opacity = "0";
-          }
-
-          if (video) {
-            wpVideo.src = video;
-            wpVideo.classList.add("is-active");
-            var p = wpVideo.play();
-            if (p && p.catch) p.catch(function () {});
-          } else {
-            wpVideo.pause();
-            wpVideo.removeAttribute("src");
-            wpVideo.classList.remove("is-active");
-          }
+          wpMedia.classList.remove("is-exiting");
+          renderPreviewReel(item, title);
 
           if (badgeImg) {
             wpBadgeImg.src = badgeImg;
@@ -1866,6 +2108,8 @@
 
           wpTitle.textContent = title;
           wpDesc.textContent = desc;
+          wpRole.textContent = role;
+          wpProof.textContent = proof;
 
           if (isNda) {
             wpCta.href = "{{ site.baseurl }}/contact/";
@@ -1906,9 +2150,11 @@
 
         if (!isTouch) {
           items.forEach(function (item) {
-            item.addEventListener("mouseenter", function () {
+            function previewFromPointer() {
               setPreview(item, !reduceMotionNav);
-            });
+            }
+            item.addEventListener("mouseenter", previewFromPointer);
+            item.addEventListener("pointerenter", previewFromPointer);
           });
         }
 
@@ -1936,9 +2182,9 @@
                 ripple.remove();
               }, 700);
               if (item.tagName === "A") {
-                var wpImg = document.getElementById("wp-img");
-                if (wpImg && wpImg.src && wpImg.style.opacity !== "0") {
-                  wpImg.style.viewTransitionName = "project-hero";
+                var wpActiveMedia = document.querySelector(".wp-slide.is-active img, .wp-slide.is-active video");
+                if (wpActiveMedia) {
+                  wpActiveMedia.style.viewTransitionName = "project-hero";
                 }
 
                 // Warp-on-commit — same signature as the Buddha collapse and the project
