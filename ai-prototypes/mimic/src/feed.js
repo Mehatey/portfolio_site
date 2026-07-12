@@ -12,23 +12,22 @@ const ANIMAL_GROUPS = [
 ];
 const ANIMAL_GROUP_SET = new Set(ANIMAL_GROUPS);
 
-// Newest research-grade animal observations with a photo, globally. Most polls
-// are intentionally broad—so the field contains fish, insects, and other life
-// alongside birds—while every third poll is sound-only to retain a strong supply
-// of recordings for visitors to discover.
-function buildUrl(page, soundOnly = false) {
+// Newest research-grade animal observations with both a photo and recording.
+// The group rotates each poll, which prevents birds from taking over while every
+// circle remains audible when selected.
+function buildUrl(page, group) {
   const q = new URLSearchParams({
     order: "desc",
     order_by: "created_at",
     per_page: "30",
     page: String(page),
     photos: "true",
+    sounds: "true",
     quality_grade: "research",
-    iconic_taxa: ANIMAL_GROUPS.join(","),
+    iconic_taxa: group,
     // keep the payload lean
     fields: "id,taxon,photos,sounds,place_guess,location,observed_on,time_observed_at",
   });
-  if (soundOnly) q.set("sounds", "true");
   return `${API}?${q.toString()}`;
 }
 
@@ -59,6 +58,7 @@ function normalize(r) {
   // This excludes plants and fungi while keeping the full range of animal life.
   if (!ANIMAL_GROUP_SET.has(taxon.iconic_taxon_name)) return null;
   const sound = (r.sounds || []).find((s) => s && s.file_url)?.file_url || null;
+  if (!sound) return null; // every displayed organism must be playable
   let lat = null, lng = null;
   if (typeof r.location === "string" && r.location.includes(",")) {
     const [a, b] = r.location.split(",").map(Number);
@@ -120,16 +120,17 @@ export class Feed {
     this.lastError = null;
     this.page = 1;        // rotate through the newest pages for variety + density
     this.maxPage = 6;
-    this.polls = 0;
+    this.group = 0;
   }
 
   async tick() {
     // grab + advance the page synchronously so overlapping seed ticks differ
     const page = this.page;
     this.page = (this.page % this.maxPage) + 1;
-    const soundOnly = this.polls++ % 3 === 0;
+    const group = ANIMAL_GROUPS[this.group];
+    this.group = (this.group + 1) % ANIMAL_GROUPS.length;
     try {
-      const res = await fetch(buildUrl(page, soundOnly), { headers: { Accept: "application/json" } });
+      const res = await fetch(buildUrl(page, group), { headers: { Accept: "application/json" } });
       if (!res.ok) throw new Error(`iNat ${res.status}`);
       const data = await res.json();
       const results = data.results || [];

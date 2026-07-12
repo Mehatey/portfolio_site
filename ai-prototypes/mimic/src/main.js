@@ -693,7 +693,7 @@ async function startFallback() {
   try {
     const q = new URLSearchParams({
       order: "desc", order_by: "created_at", per_page: "12", photos: "true",
-      quality_grade: "research",
+      sounds: "true", quality_grade: "research",
       iconic_taxa: "Aves,Amphibia,Mammalia,Reptilia,Actinopterygii,Insecta,Arachnida,Mollusca",
       fields: "taxon,photos",
     });
