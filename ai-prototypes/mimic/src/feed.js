@@ -6,23 +6,29 @@
 // That gap is the whole piece — so we never throttle the world, we just sip it.
 
 const API = "https://api.inaturalist.org/v1/observations";
+const ANIMAL_GROUPS = [
+  "Aves", "Amphibia", "Mammalia", "Reptilia",
+  "Actinopterygii", "Insecta", "Arachnida", "Mollusca",
+];
+const ANIMAL_GROUP_SET = new Set(ANIMAL_GROUPS);
 
-// Newest research-grade observations with a photo, globally. Keep the field
-// animal-led: these groups are both visually distinct at thumbnail size and are
-// the ones most likely to have a recording when a visitor selects them.
-function buildUrl(page) {
+// Newest research-grade animal observations with a photo, globally. Most polls
+// are intentionally broad—so the field contains fish, insects, and other life
+// alongside birds—while every third poll is sound-only to retain a strong supply
+// of recordings for visitors to discover.
+function buildUrl(page, soundOnly = false) {
   const q = new URLSearchParams({
     order: "desc",
     order_by: "created_at",
     per_page: "30",
     page: String(page),
     photos: "true",
-    sounds: "true",
     quality_grade: "research",
-    iconic_taxa: "Aves,Amphibia,Mammalia,Reptilia",
+    iconic_taxa: ANIMAL_GROUPS.join(","),
     // keep the payload lean
     fields: "id,taxon,photos,sounds,place_guess,location,observed_on,time_observed_at",
   });
+  if (soundOnly) q.set("sounds", "true");
   return `${API}?${q.toString()}`;
 }
 
@@ -50,8 +56,8 @@ function normalize(r) {
   if (!p || !p.url || !corsSafe(p.url)) return null;
   const taxon = r.taxon || {};
   // Keep the query's intent intact if an upstream result is unexpectedly broad.
-  // This excludes plants, fungi, and the largely silent thumbnail clutter.
-  if (!new Set(["Aves", "Amphibia", "Mammalia", "Reptilia"]).has(taxon.iconic_taxon_name)) return null;
+  // This excludes plants and fungi while keeping the full range of animal life.
+  if (!ANIMAL_GROUP_SET.has(taxon.iconic_taxon_name)) return null;
   const sound = (r.sounds || []).find((s) => s && s.file_url)?.file_url || null;
   let lat = null, lng = null;
   if (typeof r.location === "string" && r.location.includes(",")) {
@@ -114,14 +120,16 @@ export class Feed {
     this.lastError = null;
     this.page = 1;        // rotate through the newest pages for variety + density
     this.maxPage = 6;
+    this.polls = 0;
   }
 
   async tick() {
     // grab + advance the page synchronously so overlapping seed ticks differ
     const page = this.page;
     this.page = (this.page % this.maxPage) + 1;
+    const soundOnly = this.polls++ % 3 === 0;
     try {
-      const res = await fetch(buildUrl(page), { headers: { Accept: "application/json" } });
+      const res = await fetch(buildUrl(page, soundOnly), { headers: { Accept: "application/json" } });
       if (!res.ok) throw new Error(`iNat ${res.status}`);
       const data = await res.json();
       const results = data.results || [];

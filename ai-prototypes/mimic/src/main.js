@@ -693,7 +693,8 @@ async function startFallback() {
   try {
     const q = new URLSearchParams({
       order: "desc", order_by: "created_at", per_page: "12", photos: "true",
-      sounds: "true", quality_grade: "research", iconic_taxa: "Aves,Amphibia,Mammalia,Reptilia",
+      quality_grade: "research",
+      iconic_taxa: "Aves,Amphibia,Mammalia,Reptilia,Actinopterygii,Insecta,Arachnida,Mollusca",
       fields: "taxon,photos",
     });
     const res = await fetch(`https://api.inaturalist.org/v1/observations?${q}`);
