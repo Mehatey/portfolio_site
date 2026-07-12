@@ -523,15 +523,17 @@
   <button
     id="enter-btn"
     aria-label="Enter site"
+    aria-hidden="true"
+    tabindex="-1"
     style="position: absolute; opacity: 0; width: 0; height: 0; overflow: hidden; pointer-events: none; border: none; background: none"
   ></button>
 
   <!-- Buddha wrapper — centered, hover reveals ENTER label. Desktop only; mobile shows simple button. -->
-  <div id="enter-buddha-wrap" aria-hidden="true">
-    <div id="enter-3d-stage">
+  <div id="enter-buddha-wrap">
+    <div id="enter-3d-stage" aria-hidden="true">
       <div id="enter-3d-mount"></div>
     </div>
-    <div id="enter-label">Enter</div>
+    <button id="enter-label" type="button">Enter</button>
   </div>
 
   <!-- Mobile fallback — simple text button, hidden on desktop -->
@@ -581,6 +583,43 @@
     filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15)) url(#buddha-liq-filter);
     animation: buddhaBreathe 6s ease-in-out infinite;
   }
+  /* A quiet portal holds the first paint while the 3D model streams in. */
+  #enter-3d-stage::before {
+    content: "";
+    position: absolute;
+    inset: 23%;
+    z-index: 0;
+    border: 1px solid rgba(185, 220, 255, 0.32);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 36% 30%, rgba(230, 245, 255, 0.4), rgba(128, 186, 255, 0.1) 38%, transparent 68%),
+      radial-gradient(circle at 62% 66%, rgba(108, 150, 255, 0.16), transparent 58%);
+    box-shadow:
+      0 0 26px rgba(115, 178, 255, 0.16),
+      inset 0 0 24px rgba(180, 220, 255, 0.08);
+    opacity: 0.85;
+    pointer-events: none;
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+    animation: enterPortalPulse 2.8s ease-in-out infinite;
+  }
+  #enter-3d-stage.is-model-ready::before {
+    opacity: 0;
+    transform: scale(1.16);
+    animation: none;
+  }
+  @keyframes enterPortalPulse {
+    0%,
+    100% {
+      transform: scale(0.94);
+      opacity: 0.56;
+    }
+    50% {
+      transform: scale(1.04);
+      opacity: 0.9;
+    }
+  }
   #enter-3d-stage.is-on {
     opacity: 1;
   }
@@ -611,6 +650,8 @@
   #enter-3d-mount {
     width: 100%;
     height: 100%;
+    position: relative;
+    z-index: 1;
     pointer-events: none;
   }
   #enter-3d-mount model-viewer {
@@ -622,6 +663,8 @@
 
   /* ENTER label — floats above Buddha's head, revealed on hover */
   #enter-label {
+    border: 0;
+    background: transparent;
     font-family: var(--font-mono);
     font-size: 12px;
     font-weight: 400;
@@ -639,8 +682,18 @@
     transition:
       opacity 0.3s ease,
       transform 0.35s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
-    pointer-events: none;
+    cursor: pointer;
+    pointer-events: auto;
     padding-left: 0.32em;
+  }
+  #enter-label:hover,
+  #enter-label:focus-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  #enter-label:focus-visible {
+    outline: 1px solid rgba(180, 220, 255, 0.7);
+    outline-offset: 7px;
   }
   #enter-buddha-wrap:hover #enter-label {
     opacity: 1;
@@ -892,6 +945,11 @@
   }
 </style>
 
+<!-- Keep the loader compatible with Meshopt-compressed GLB files as well. -->
+<script>
+  self.ModelViewerElement = self.ModelViewerElement || {};
+  self.ModelViewerElement.meshoptDecoderLocation = "https://cdn.jsdelivr.net/npm/meshoptimizer/meshopt_decoder.js";
+</script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js" crossorigin="anonymous"></script>
 
 <script>
@@ -982,6 +1040,13 @@
     // Mount model. Buddha is centered via flexbox — no bounce loop needed.
     var inst = buildViewer();
     stage.classList.add("is-on");
+    inst.addEventListener(
+      "load",
+      function () {
+        stage.classList.add("is-model-ready");
+      },
+      { once: true }
+    );
 
     // Wire click on the Buddha to trigger site entry
     stage.addEventListener("click", function () {
@@ -1472,6 +1537,7 @@
 
     var enterGate = document.getElementById("enter-gate");
     var enterBtn = document.getElementById("enter-btn");
+    var enterLabel = document.getElementById("enter-label");
 
     // Loader gate — once a visitor has gone through Enter + cube once, never replay it.
     // We use localStorage (persists across tabs/sessions) instead of sessionStorage (per-tab),
@@ -1535,13 +1601,14 @@
     // Wire mobile enter button
     var mobileBtn = document.getElementById("enter-btn-mobile");
     if (mobileBtn) mobileBtn.addEventListener("click", onEnter);
+    if (enterLabel) {
+      enterLabel.addEventListener("click", function () {
+        if (enterBtn) enterBtn.click();
+      });
+    }
 
     if (enterBtn) {
       enterBtn.addEventListener("click", onEnter);
-      // Auto-focus so Enter / Space activate without a tab + click
-      try {
-        enterBtn.focus({ preventScroll: true });
-      } catch (_) {}
       // Keyboard: Enter or Space anywhere triggers entry while gate is showing
       var keyHandler = function (e) {
         if (document.activeElement && document.activeElement.id === "skip-intro") return;
