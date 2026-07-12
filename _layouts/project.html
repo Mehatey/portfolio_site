@@ -209,8 +209,31 @@
         view-transition-name: project-hero;
         filter: url(#hero-liq-filter);
       }
+      /* Motion lives on the work itself. The case-study media picks up a brief,
+         velocity-driven deformation while scrolling, then resolves perfectly sharp. */
+      #main.project-is-warping .proj-body .cs-bleed,
+      #main.project-is-warping .proj-body .cs-bleed-full,
+      #main.project-is-warping .proj-body .cs-wide,
+      #main.project-is-warping .proj-body .cs-grid,
+      #main.project-is-warping .proj-body .cs-grid-3,
+      #main.project-is-warping .proj-body .cs-split,
+      #main.project-is-warping .proj-body .cs-pair,
+      #main.project-is-warping .proj-reflection {
+        will-change: filter;
+        filter: url(#case-liq-filter);
+      }
       @media (prefers-reduced-motion: reduce) {
         .hero-video {
+          filter: none;
+        }
+        #main.project-is-warping .proj-body .cs-bleed,
+        #main.project-is-warping .proj-body .cs-bleed-full,
+        #main.project-is-warping .proj-body .cs-wide,
+        #main.project-is-warping .proj-body .cs-grid,
+        #main.project-is-warping .proj-body .cs-grid-3,
+        #main.project-is-warping .proj-body .cs-split,
+        #main.project-is-warping .proj-body .cs-pair,
+        #main.project-is-warping .proj-reflection {
           filter: none;
         }
       }
@@ -1840,8 +1863,8 @@
         { passive: true }
       );
 
-      // Hero liquify — echoes the works-list liquify warp, but much subtler and only
-      // while the hero is still in view. Scroll velocity drives SVG displacement scale.
+      // Hero and case-study liquify — echoes the works-list warp while keeping
+      // motion tied directly to scroll velocity rather than looping on its own.
       // #hero-liq-displace lives in the SVG defs near the end of <body>, which this
       // script runs well before — so the lookup is deferred to DOMContentLoaded to
       // guarantee the element actually exists (a plain getElementById here silently
@@ -1849,7 +1872,9 @@
       function initHeroLiquify() {
         const heroEl = document.querySelector(".proj-hero");
         const displace = document.getElementById("hero-liq-displace");
-        if (!heroEl || !displace) return;
+        const caseDisplace = document.getElementById("case-liq-displace");
+        const main = document.getElementById("main");
+        if (!heroEl || !displace || !caseDisplace || !main) return;
         if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         let lastY = window.scrollY;
         let cur = 0;
@@ -1860,10 +1885,14 @@
           target *= 0.75;
           const s = Math.abs(cur);
           displace.setAttribute("scale", s.toFixed(2));
+          caseDisplace.setAttribute("scale", Math.min(20, s * 0.82).toFixed(2));
+          main.classList.toggle("project-is-warping", s > 0.65);
           if (s > 0.1 || Math.abs(target) > 0.1) {
             rafId = requestAnimationFrame(tick);
           } else {
             displace.setAttribute("scale", "0");
+            caseDisplace.setAttribute("scale", "0");
+            main.classList.remove("project-is-warping");
             cur = 0;
             target = 0;
             rafId = null;
@@ -1872,17 +1901,15 @@
 
         // Entrance settle — hero arrives slightly rippled and resolves to still, the
         // same "arriving somewhere" cue as the Buddha threshold ripple on the homepage.
-        cur = 34;
+        cur = 18;
         rafId = requestAnimationFrame(tick);
 
         window.addEventListener(
           "scroll",
           () => {
-            const r = heroEl.getBoundingClientRect();
-            if (r.bottom < 0) return; // hero long scrolled past, skip entirely
             const delta = Math.abs(window.scrollY - lastY);
             lastY = window.scrollY;
-            target = Math.min(6, target + delta * 0.4);
+            target = Math.min(24, target + delta * 1.1);
             if (!rafId) rafId = requestAnimationFrame(tick);
           },
           { passive: true }
@@ -2321,8 +2348,12 @@
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
         </filter>
         <filter id="hero-liq-filter" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
-          <feTurbulence type="turbulence" baseFrequency="0.012 0.02" numOctaves="2" seed="7" result="noise" />
+          <feTurbulence type="turbulence" baseFrequency="0.006 0.035" numOctaves="2" seed="7" result="noise" />
           <feDisplacementMap id="hero-liq-displace" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="case-liq-filter" x="-8%" y="-10%" width="116%" height="120%" color-interpolation-filters="sRGB">
+          <feTurbulence type="turbulence" baseFrequency="0.005 0.032" numOctaves="2" seed="19" result="case-noise" />
+          <feDisplacementMap id="case-liq-displace" in="SourceGraphic" in2="case-noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </defs>
     </svg>

@@ -99,6 +99,23 @@ next_project:
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.008) translateY(-3px); }
   }
+
+  /* The embedded tree is deliberately opt-in. A live iframe otherwise captures the
+     wheel as soon as a visitor crosses it, which made this one artwork feel like a
+     scroll trap. The preview remains visible; click only when you want to interact. */
+  .bloom-interactive { position: relative; background: #04070c; }
+  .bloom-interactive iframe { pointer-events: none; }
+  .bloom-interactive.is-active iframe { pointer-events: auto; }
+  .bloom-interactive-toggle {
+    position: absolute; right: 16px; bottom: 16px; z-index: 2;
+    border: 0; border-bottom: 1px solid rgba(255,255,255,0.48);
+    padding: 0 0 4px; background: rgba(4,7,12,0.78);
+    color: rgba(255,255,255,0.86); font-family: var(--font-mono);
+    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; transition: color 0.2s, border-color 0.2s;
+  }
+  .bloom-interactive-toggle:hover { color: #fff; border-color: #fff; }
+  @media (max-width: 600px) { .bloom-interactive-toggle { right: 12px; bottom: 12px; } }
 </style>
 
 <!-- OPENING: the tree appears, and speaks -->
@@ -166,14 +183,17 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree, alive in the browser. An AI sits inside it. Talk to it.</em></p>
-<div class="cs-bleed" style="margin-top: 12px;">
+<div class="cs-bleed bloom-interactive" id="bloom-interactive" style="margin-top: 12px;">
   <iframe
+    id="bloom-tree-frame"
     src="{{ site.baseurl }}/bloom-tree/"
     title="Bloom: sit with the tree"
     loading="lazy"
     allow="autoplay"
+    tabindex="-1"
     style="width: 100%; height: clamp(560px, 84vh, 860px); border: 0; display: block; background: #04070c; border-radius: 2px;"
   ></iframe>
+  <button class="bloom-interactive-toggle" id="bloom-interactive-toggle" type="button" aria-pressed="false">Explore the live tree ↗</button>
 </div>
 
 <!-- SECTION: ATTENTION IS THE INTERFACE -->
@@ -300,6 +320,19 @@ next_project:
       vid.muted = !vid.muted;
       btn.classList.toggle("muted", vid.muted);
       if (!vid.muted) vid.play().catch(function () {});
+    });
+  })();
+  (function () {
+    var stage = document.getElementById("bloom-interactive");
+    var frame = document.getElementById("bloom-tree-frame");
+    var toggle = document.getElementById("bloom-interactive-toggle");
+    if (!stage || !frame || !toggle) return;
+    toggle.addEventListener("click", function () {
+      var active = !stage.classList.contains("is-active");
+      stage.classList.toggle("is-active", active);
+      frame.tabIndex = active ? 0 : -1;
+      toggle.setAttribute("aria-pressed", String(active));
+      toggle.textContent = active ? "Resume page scroll ↑" : "Explore the live tree ↗";
     });
   })();
 </script>
