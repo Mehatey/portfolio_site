@@ -100,6 +100,16 @@ export class Ambient {
     this._bell(f * 1.5, 0.08, 2.4, 0, 0.14);
   }
 
+  // Imagined forms have no field recording yet, so give them a short, quiet
+  // synthetic response. Every selectable circle is therefore audible, while
+  // keeping recorded animal voices clearly distinct from machine expectations.
+  expected(seed = 0.5) {
+    if (!this.on || !this.ctx) return;
+    const f = SCALE[(Math.floor(Math.abs(seed) * SCALE.length) + 4) % SCALE.length];
+    this._bell(f * 0.75, 0.055, 1.35, (seed % 1) * 2 - 1);
+    this._bell(f * 1.25, 0.032, 1.1, 0, 0.08);
+  }
+
   // play a real field recording of an organism, ducking the ambient bed under it.
   // Uses a plain media element (no Web Audio routing) so no CORS is required.
   async playClip(url) {

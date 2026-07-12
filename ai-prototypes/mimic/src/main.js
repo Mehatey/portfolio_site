@@ -491,7 +491,9 @@ function focusPick(node) {
   audio.stopClip();
   // the actual voice of this organism, if it has one on record
   const tok = ++soundToken;
-  if (node.kind === "real" && (node.meta.sound || node.meta.taxonId)) {
+  if (node.kind === "ghost") {
+    audio.expected(frac(typeof node.id === "string" ? node.id.length : node.id));
+  } else if (node.meta.sound || node.meta.taxonId) {
     const sound = node.meta.sound
       ? Promise.resolve(node.meta.sound)
       : fetchTaxonSound(node.meta.taxonId);
@@ -529,6 +531,7 @@ function showDetail(node) {
       `<div class="sci">an imagined form</div>` +
       `<div class="row">A resemblance the machine <b>expects</b> to exist, placed at the midpoint between ` +
       `<b>${esc(a)}</b> and <b>${esc(b)}</b>. No one has logged it. If a real sighting lands here, the guess is confirmed and dissolves into it.</div>` +
+      `<div class="listen on"><i></i>imagined resonance</div>` +
       `<div class="close">click anywhere to release</div>` +
       `</div>`;
   } else {
