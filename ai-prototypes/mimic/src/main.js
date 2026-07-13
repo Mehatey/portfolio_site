@@ -9,7 +9,7 @@
 //        ->  imagined forms (predicted between neighbours, confirmed by reality)
 
 import { Feed, fetchTaxonSound } from "./feed.js";
-import { Atlas, loadBitmap } from "./atlas.js";
+import { Atlas, loadBitmap } from "./atlas.js?v=20260712";
 import { Stage } from "./render.js";
 import { nearest, seedPosition, blendVec, relax } from "./layout.js";
 import { Ambient } from "./audio.js";

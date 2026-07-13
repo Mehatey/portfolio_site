@@ -30,8 +30,10 @@ export class Atlas {
     for (let i = this.count - 1; i >= 0; i--) this.free.push(i);
 
     this.texture = new THREE.CanvasTexture(this.canvas);
-    // Keep the top of a photograph at the top of the billboard.
-    this.texture.flipY = true;
+    // WebGPU's CanvasTexture upload path already matches the canvas coordinate
+    // system. Flipping it here makes the atlas sample as black on this renderer;
+    // EXIF orientation is handled explicitly when each ImageBitmap is decoded.
+    this.texture.flipY = false;
     this.texture.colorSpace = THREE.SRGBColorSpace;
     this.texture.minFilter = THREE.LinearMipmapLinearFilter;
     this.texture.magFilter = THREE.LinearFilter;
