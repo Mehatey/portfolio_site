@@ -512,6 +512,8 @@
 
       /* ── LIST (left column, internally scrollable) ── */
       .works-list {
+        display: flex;
+        flex-direction: column;
         height: 100%;
         overflow-y: auto;
         overflow-x: hidden;
@@ -523,6 +525,7 @@
         will-change: filter;
       }
       .works-list-head {
+        order: 0;
         display: flex;
         align-items: baseline;
         justify-content: space-between;
@@ -548,6 +551,7 @@
       /* A deliberately small recruiter shortcut: it prioritizes product work without
          turning the page into a second card grid or burying the wider practice. */
       .works-product-path {
+        order: 1;
         padding: 16px 12px 18px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
@@ -605,6 +609,8 @@
       }
 
       .works-list-item {
+        order: 5;
+        flex: 0 0 auto;
         display: grid;
         grid-template-columns: 38px 1fr auto;
         align-items: center;
@@ -625,6 +631,15 @@
       .works-list-item.wli--in {
         opacity: 1;
         transform: none;
+      }
+      .works-list-item.wli--priority-1 {
+        order: 2;
+      }
+      .works-list-item.wli--priority-2 {
+        order: 3;
+      }
+      .works-list-item.wli--priority-3 {
+        order: 4;
       }
       @media (prefers-reduced-motion: reduce) {
         .works-list-item {
@@ -1929,7 +1944,7 @@
             <p class="works-product-path__note">Fintech product UX · AI interaction systems · real-world deployment</p>
           </div>
           <a
-            class="works-list-item"
+            class="works-list-item wli--priority-3"
             href="{{ site.baseurl }}/encoded/"
             data-cat="xr"
             data-title="Encoded"
@@ -1943,7 +1958,7 @@
             data-badge-img="{{ site.baseurl }}/assets/img/badge_webby.webp"
             data-badge-label="Webby × 2 · 2026"
           >
-            <span class="wli-num">01</span>
+            <span class="wli-num">03</span>
             <div class="wli-content">
               <span class="wli-name">Encoded</span>
               <div class="wli-pills"><span class="wli-pill">AR</span><span class="wli-pill">Exhibition</span></div>
@@ -1963,7 +1978,7 @@
             data-role="Designer · Developer · Researcher"
             data-proof="Solo MFA thesis · visionOS"
           >
-            <span class="wli-num">02</span>
+            <span class="wli-num">04</span>
             <div class="wli-content">
               <span class="wli-name">Bloom</span>
               <div class="wli-pills"><span class="wli-pill">visionOS</span><span class="wli-pill">Spatial AI</span></div>
@@ -1972,7 +1987,7 @@
           </a>
 
           <a
-            class="works-list-item"
+            class="works-list-item wli--priority-2"
             href="{{ site.baseurl }}/ai-prototypes/"
             data-cat="research xr ui"
             data-title="AI Prototypes"
@@ -1984,7 +1999,7 @@
             data-role="Designer · Developer · Researcher"
             data-proof="11 live in-browser AI experiments"
           >
-            <span class="wli-num">03</span>
+            <span class="wli-num">02</span>
             <div class="wli-content">
               <span class="wli-name">AI Prototypes</span>
               <div class="wli-pills"><span class="wli-pill">WebGPU</span><span class="wli-pill">In-browser AI</span></div>
@@ -2005,7 +2020,7 @@
             data-role="Developer"
             data-proof="800+ community participants"
           >
-            <span class="wli-num">04</span>
+            <span class="wli-num">05</span>
             <div class="wli-content">
               <span class="wli-name">Mind Your Feelings</span>
               <div class="wli-pills"><span class="wli-pill">Installation</span><span class="wli-pill">Creative Tech</span></div>
@@ -2014,7 +2029,7 @@
           </a>
 
           <a
-            class="works-list-item"
+            class="works-list-item wli--priority-1"
             href="{{ site.baseurl }}/mool/"
             data-cat="ui"
             data-title="Mool"
@@ -2028,7 +2043,7 @@
             data-badge-img="{{ site.baseurl }}/assets/img/badge_kyoorius.png"
             data-badge-label="Kyoorius · 2021"
           >
-            <span class="wli-num">05</span>
+            <span class="wli-num">01</span>
             <div class="wli-content">
               <span class="wli-name">Mool</span>
               <div class="wli-pills"><span class="wli-pill">UI</span><span class="wli-pill">Fintech</span></div>
@@ -2325,20 +2340,22 @@
         );
       })();
 
-      // Recruiter-first ordering: product judgment first, then technical depth,
-      // then the distinctive spatial work. The wider practice follows intact.
+      // The priority sequence is encoded in CSS so it is visible before scripts
+      // run. This only normalizes the item labels for the enhanced experience.
       (function () {
         var list = document.getElementById("works-list");
         if (!list) return;
-        var firstItem = list.querySelector(".works-list-item");
-        if (!firstItem) return;
-        ["/encoded/", "/mool/", "/ai-prototypes/"].forEach(function (path) {
-          var item = Array.from(list.querySelectorAll(".works-list-item")).find(function (candidate) {
-            return candidate.getAttribute("href") === "{{ site.baseurl }}" + path;
-          });
-          if (item) list.insertBefore(item, firstItem);
+        var priority = ["wli--priority-1", "wli--priority-2", "wli--priority-3"]
+          .map(function (className) {
+            return list.querySelector("." + className);
+          })
+          .filter(Boolean);
+        var remaining = Array.from(list.querySelectorAll(".works-list-item")).filter(function (item) {
+          return (
+            !item.classList.contains("wli--priority-1") && !item.classList.contains("wli--priority-2") && !item.classList.contains("wli--priority-3")
+          );
         });
-        Array.from(list.querySelectorAll(".works-list-item")).forEach(function (item, index) {
+        priority.concat(remaining).forEach(function (item, index) {
           var number = item.querySelector(".wli-num");
           if (number) number.textContent = String(index + 1).padStart(2, "0");
         });
