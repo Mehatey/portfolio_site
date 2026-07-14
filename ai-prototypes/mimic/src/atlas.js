@@ -87,7 +87,9 @@ export class Atlas {
       this._miniCtx.drawImage(bmp, 0, 0, 1, 1);
       const d = this._miniCtx.getImageData(0, 0, 1, 1).data;
       tint = [d[0] / 255, d[1] / 255, d[2] / 255];
-    } catch (e) { /* tainted-canvas guard; CORS is open so this should not fire */ }
+    } catch (e) {
+      /* tainted-canvas guard; CORS is open so this should not fire */
+    }
 
     this.texture.needsUpdate = true;
     return tint;

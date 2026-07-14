@@ -22,6 +22,13 @@ meta:
     value: Designer · Developer · Researcher
   - label: Tools
     value: visionOS · SwiftUI · RealityKit · ARKit · ElevenLabs
+highlights:
+  - value: 5 months
+    label: research, design & build
+  - value: Solo
+    label: designer · developer · researcher
+  - value: visionOS
+    label: spatial AI experience
 reflection: >
   Building for Vision Pro meant learning a new spatial design language from scratch. There are no flat screens to fall back on. Every UI decision is a room decision. Where the tree sits, how large it reads at arm's length, whether the voice feels near or distant. All of it had to be felt in space, not sketched on a canvas.
 
@@ -104,8 +111,6 @@ next_project:
      wheel as soon as a visitor crosses it, which made this one artwork feel like a
      scroll trap. The preview remains visible; click only when you want to interact. */
   .bloom-interactive { position: relative; background: #04070c; }
-  .bloom-interactive iframe { pointer-events: none; }
-  .bloom-interactive.is-active iframe { pointer-events: auto; }
   .bloom-interactive-toggle {
     position: absolute; right: 16px; bottom: 16px; z-index: 2;
     border: 0; border-bottom: 1px solid rgba(255,255,255,0.48);
@@ -183,7 +188,7 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree, alive in the browser. An AI sits inside it. Talk to it.</em></p>
-<div class="cs-bleed bloom-interactive" id="bloom-interactive" style="margin-top: 12px;">
+<div class="cs-bleed bloom-interactive" id="bloom-interactive" data-project-interactive style="margin-top: 12px;">
   <iframe
     id="bloom-tree-frame"
     src="{{ site.baseurl }}/bloom-tree/"
@@ -327,12 +332,21 @@ next_project:
     var frame = document.getElementById("bloom-tree-frame");
     var toggle = document.getElementById("bloom-interactive-toggle");
     if (!stage || !frame || !toggle) return;
-    toggle.addEventListener("click", function () {
-      var active = !stage.classList.contains("is-active");
+    function setInteractive(active) {
       stage.classList.toggle("is-active", active);
       frame.tabIndex = active ? 0 : -1;
       toggle.setAttribute("aria-pressed", String(active));
       toggle.textContent = active ? "Resume page scroll ↑" : "Explore the live tree ↗";
+    }
+    toggle.addEventListener("click", function () {
+      setInteractive(!stage.classList.contains("is-active"));
+    });
+    // The page always has an immediate way back from the live experience.
+    window.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && stage.classList.contains("is-active")) {
+        setInteractive(false);
+        toggle.focus();
+      }
     });
   })();
 </script>

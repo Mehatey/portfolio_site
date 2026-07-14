@@ -7,10 +7,7 @@
 // owns the GPU, and the eye only has to roughly keep pace with the feed (~17/min),
 // not race it.
 
-import {
-  pipeline,
-  env,
-} from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2";
+import { pipeline, env } from "https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.7.2";
 
 // Pull weights straight from the Hub; cache in the browser after first load.
 env.allowLocalModels = false;
@@ -23,20 +20,16 @@ let working = false;
 
 async function boot() {
   try {
-    extractor = await pipeline(
-      "image-feature-extraction",
-      "Xenova/clip-vit-base-patch16",
-      {
-        dtype: "q8", // ~90MB quantised vision tower instead of the ~350MB fp32
-        progress_callback: (p) => {
-          if (p && p.status === "progress" && p.file && /\.onnx/.test(p.file)) {
-            postMessage({ type: "boot", pct: p.progress || 0, file: p.file });
-          } else if (p && p.status === "ready") {
-            postMessage({ type: "boot", pct: 100 });
-          }
-        },
-      }
-    );
+    extractor = await pipeline("image-feature-extraction", "Xenova/clip-vit-base-patch16", {
+      dtype: "q8", // ~90MB quantised vision tower instead of the ~350MB fp32
+      progress_callback: (p) => {
+        if (p && p.status === "progress" && p.file && /\.onnx/.test(p.file)) {
+          postMessage({ type: "boot", pct: p.progress || 0, file: p.file });
+        } else if (p && p.status === "ready") {
+          postMessage({ type: "boot", pct: 100 });
+        }
+      },
+    });
     ready = true;
     postMessage({ type: "ready" });
     pump();

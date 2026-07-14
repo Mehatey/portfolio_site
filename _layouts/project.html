@@ -49,7 +49,7 @@
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@200;300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
       onload="
         this.onload = null;
         this.rel = 'stylesheet';
@@ -57,7 +57,7 @@
     />
     <noscript
       ><link
-        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@200;300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
         rel="stylesheet"
     /></noscript>
 
@@ -209,6 +209,16 @@
         view-transition-name: project-hero;
         filter: url(#hero-liq-filter);
       }
+      /* Case studies are primarily read by scrolling. Embedded experiences therefore
+         start as visual previews; they may only receive pointer input after their own
+         explicit affordance opts in with data-project-interactive + .is-active. This
+         prevents a single experimental embed from swallowing the page wheel. */
+      .proj-body iframe {
+        pointer-events: none;
+      }
+      .proj-body [data-project-interactive].is-active iframe {
+        pointer-events: auto;
+      }
       /* Motion lives on the work itself. The case-study media picks up a brief,
          velocity-driven deformation while scrolling, then resolves perfectly sharp. */
       #main.project-is-warping .proj-body .cs-bleed,
@@ -300,7 +310,51 @@
       }
       .hero-inner {
         position: relative; z-index: 3;
-        padding: 0 var(--gutter) 48px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+        align-items: end;
+        gap: clamp(24px, 5vw, 84px);
+        padding: 0 var(--gutter) 44px;
+      }
+      .hero-title-stack { min-width: 0; }
+      /* Recruiter brief: enough evidence to decide whether to continue, without
+         enclosing the hero in another card or repeating the entire metadata row. */
+      .hero-recruiter-brief {
+        padding: 4px 0 2px 18px;
+        border-left: 1px solid rgba(225, 240, 255, 0.42);
+        opacity: 0;
+        animation: introFadeUp 0.8s var(--ease-out) 0.55s both;
+      }
+      .hero-brief-label,
+      .hero-brief-key,
+      .hero-brief-jump {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        line-height: 1.4;
+        text-transform: uppercase;
+      }
+      .hero-brief-label { margin: 0 0 13px; color: rgba(206, 226, 247, 0.58); }
+      .hero-brief-fact { margin: 0 0 11px; }
+      .hero-brief-key { display: block; margin-bottom: 3px; color: rgba(255,255,255,0.38); }
+      .hero-brief-value {
+        display: block;
+        font-family: var(--font-head);
+        font-size: 14px;
+        line-height: 1.38;
+        color: rgba(255,255,255,0.84);
+      }
+      .hero-brief-jump {
+        display: inline-block;
+        margin-top: 4px;
+        padding-bottom: 3px;
+        color: rgba(220, 238, 255, 0.78);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(220, 238, 255, 0.4);
+        transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-out);
+      }
+      .hero-brief-jump:hover { color: #fff; border-color: #fff; transform: translateX(3px); }
+      .hero-brief-jump::after { content: " ↓"; }
       }
       .proj-title {
         font-family: var(--font-title);
@@ -487,18 +541,259 @@
       }
 
       /* ─── CONTENT BODY ─── */
-      .proj-body {}
+      .proj-body { scroll-margin-top: calc(var(--nav-h) + 24px); }
+
+      /* ─── CASE PATH ─── A compact horizontal route through long case studies.
+         It makes the recruiter read (summary → proof → process) explicit without
+         turning the whole document into a scroll-jacked horizontal experience. */
+      .case-rail {
+        display: flex;
+        align-items: center;
+        gap: 10px 20px;
+        margin: 28px var(--gutter) 0;
+        padding: 12px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-top: 1px solid rgba(255,255,255,0.09);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        white-space: nowrap;
+        scroll-snap-type: x proximity;
+      }
+      .case-rail::-webkit-scrollbar { display: none; }
+      .case-rail-label,
+      .case-rail a {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .case-rail-label { color: rgba(255,255,255,0.3); }
+      .case-rail a {
+        color: rgba(255,255,255,0.56);
+        text-decoration: none;
+        padding-bottom: 3px;
+        border-bottom: 1px solid transparent;
+        transition: color 0.2s ease, border-color 0.2s ease;
+      }
+      .case-rail a:hover,
+      .case-rail a.is-current {
+        color: #fff;
+        border-color: rgba(255,255,255,0.55);
+      }
+      #case-overview,
+      #case-proof,
+      #case-archive,
+      #project-next-step { scroll-margin-top: calc(var(--nav-h) + 24px); }
+
+      /* ─── CASE RAIL ─── Long case studies need a stable reading anchor, not a
+         parade of full-browser images. The brief stays in view while the visual
+         narrative moves alongside it. This is intentionally ordinary vertical
+         scrolling: no wheel-hijacking, no horizontal scroll theatre. */
+      .case-study-layout {
+        display: grid;
+        grid-template-columns: minmax(190px, 0.34fr) minmax(0, 0.66fr);
+        gap: clamp(36px, 7vw, 112px);
+        max-width: var(--content-max);
+        margin: 0 auto;
+        padding: 46px var(--gutter) 0;
+      }
+      .case-context {
+        position: sticky;
+        top: calc(var(--nav-h) + 28px);
+        align-self: start;
+        padding-bottom: 24px;
+      }
+      .case-context__eyebrow,
+      .case-context__label,
+      .case-context__links a {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        line-height: 1.45;
+        text-transform: uppercase;
+      }
+      .case-context__eyebrow {
+        margin: 0 0 14px;
+        color: rgba(178, 209, 241, 0.6);
+      }
+      .case-context__title {
+        margin: 0 0 16px;
+        font-family: var(--font-head);
+        font-size: clamp(22px, 2.25vw, 32px);
+        font-weight: 400;
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+        color: rgba(255, 255, 255, 0.94);
+      }
+      .case-context__summary {
+        margin: 0;
+        max-width: 27ch;
+        font-family: var(--font-head);
+        font-size: 14px;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .case-context__proof {
+        display: grid;
+        gap: 8px;
+        margin: 24px 0;
+        padding: 14px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .case-progress {
+        margin: 22px 0 24px;
+        padding: 13px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+      }
+      .case-progress__head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 9px;
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.14em;
+        line-height: 1.4;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .case-progress__value { color: rgba(194, 220, 246, 0.78); font-variant-numeric: tabular-nums; }
+      .case-progress__track {
+        position: relative;
+        height: 3px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .case-progress__fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 100%;
+        transform: scaleX(var(--case-progress, 0));
+        transform-origin: left center;
+        background: linear-gradient(90deg, rgba(138, 195, 245, 0.55), rgba(218, 239, 255, 0.95));
+        box-shadow: 0 0 12px rgba(152, 205, 255, 0.5);
+        transition: transform 0.16s linear;
+      }
+      .case-progress__note {
+        margin: 8px 0 0;
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.12em;
+        line-height: 1.4;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.3);
+      }
+      .case-context__label { color: rgba(255, 255, 255, 0.36); }
+      .case-context__value {
+        font-family: var(--font-head);
+        font-size: 14px;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.78);
+      }
+      .case-context__links {
+        display: grid;
+        gap: 9px;
+      }
+      .case-context__links a {
+        width: fit-content;
+        padding-bottom: 3px;
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: color 0.2s ease, border-color 0.2s ease;
+      }
+      .case-context__links a:hover { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
+      .case-story { min-width: 0; }
+      .case-story .case-rail {
+        margin: 0 0 24px;
+      }
+      /* Every visual now belongs to the media rail. The !important rules also
+         normalize older per-page inline margins, which were the source of the
+         inconsistent oversized visual treatment. */
+      .case-story .cs-bleed,
+      .case-story .cs-wide,
+      .case-story .cs-grid,
+      .case-story .cs-grid-3,
+      .case-story .cs-split,
+      .case-story .cs-pair {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      .case-story .cs-bleed,
+      .case-story .cs-wide,
+      .case-story .cs-grid,
+      .case-story .cs-grid-3 { margin-top: 28px !important; }
+      .case-story .cs-bleed {
+        aspect-ratio: 16 / 10;
+        max-height: min(64vh, 640px);
+      }
+      .case-story .cs-bleed img,
+      .case-story .cs-bleed video { object-fit: cover; }
+      .case-story .cs-wide-inner { aspect-ratio: 16 / 10; max-height: min(64vh, 640px); }
+      .case-story .cs-grid { gap: 12px; }
+      .case-story .cs-grid-item { aspect-ratio: 4 / 3; }
+      .case-story .cs-grid-3 { gap: 8px; }
+      .case-story .cs-grid-3 .cs-grid-item { aspect-ratio: 3 / 4; }
+      .case-story .cs-row {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .case-story .cube-cap { padding-left: 0 !important; padding-right: 0 !important; }
+      .case-story .cs-bleed-full {
+        width: 100%;
+        margin: 28px 0 0;
+        aspect-ratio: 16 / 10;
+      }
+
+      @media (max-width: 900px) {
+        .case-study-layout {
+          display: block;
+          padding-top: 30px;
+        }
+        .case-context {
+          position: static;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(180px, 0.65fr);
+          gap: 12px 28px;
+          margin-bottom: 28px;
+          padding-bottom: 22px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .case-context__eyebrow,
+        .case-context__title,
+        .case-context__summary { grid-column: 1; }
+        .case-context__proof,
+        .case-progress,
+        .case-context__links { grid-column: 2; }
+        .case-context__proof { margin: 0; padding-top: 0; border-top: 0; }
+        .case-progress { margin: 0; padding-top: 0; border-top: 0; }
+        .case-story .cs-bleed,
+        .case-story .cs-wide-inner,
+        .case-story .cs-bleed-full { max-height: none; }
+      }
+      @media (max-width: 600px) {
+        .case-study-layout { padding-top: 22px; }
+        .case-context { display: block; }
+        .case-context__proof { margin: 20px 0; padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .case-progress { margin: 20px 0; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .case-context__links { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+        .case-story .cs-grid { gap: 10px; }
+      }
 
       /* ─── SECTION ROW ─── */
       .cs-row {
-        padding: 48px var(--gutter) 0;
+        padding: 40px var(--gutter) 0;
         max-width: var(--content-max);
       }
       .cs-row + .cs-row { padding-top: 40px; }
 
       /* Tight row — intro section connected to media below (e.g. artists + gallery) */
-      .cs-row--tight { padding-top: 72px; }
-      .cs-row--tight + .cs-bleed { margin-top: 40px; }
+      .cs-row--tight { padding-top: 56px; }
+      .cs-row--tight + .cs-bleed { margin-top: 28px; }
 
       /* ─── SECTION DIVIDER ─── */
       .cs-divider {
@@ -590,13 +885,13 @@
       .cs-grid-3 + .cs-grid-3,
       .cs-grid + .cs-grid-3,
       .cs-grid-3 + .cs-grid {
-        margin-top: 32px;
+        margin-top: 24px;
       }
       .film-grid--no-top {
         margin-top: 0 !important;
       }
       .cs-bleed {
-        margin: 48px var(--gutter) 0;
+        margin: 36px var(--gutter) 0;
         width: calc(100% - var(--gutter) * 2);
         aspect-ratio: 16 / 9;
         position: relative; overflow: hidden;
@@ -623,7 +918,7 @@
       .cs-bleed-cap { display: none; }
 
       .cs-wide {
-        margin: 48px var(--gutter) 0;
+        margin: 36px var(--gutter) 0;
       }
       .cs-wide-inner {
         width: 100%; aspect-ratio: 16 / 9;
@@ -637,7 +932,7 @@
 
       /* Two-up grid */
       .cs-grid {
-        margin: 48px var(--gutter) 0;
+        margin: 36px var(--gutter) 0;
         display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
         position: relative;
         content-visibility: auto;
@@ -1258,6 +1553,7 @@
       @media (max-width: 900px) {
         :root { --gutter: 28px; }
         .nav-links { gap: 14px; }
+        .hero-inner { grid-template-columns: minmax(0, 1fr) 220px; gap: 28px; }
 
         .cs-pair { gap: 20px; padding-top: 48px; }
         .cs-pair-text { grid-template-columns: 1fr; }
@@ -1282,6 +1578,20 @@
         .nav-icon, .nav-icon img { width: 26px; height: 26px; }
 
         .proj-title { font-size: clamp(40px, 12vw, 72px) !important; }
+        .hero-inner { display: block; padding-bottom: 30px; }
+        .hero-recruiter-brief {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px 18px;
+          margin-top: 22px;
+          padding: 12px 0 0;
+          border-top: 1px solid rgba(225, 240, 255, 0.28);
+          border-left: 0;
+        }
+        .hero-brief-label,
+        .hero-brief-jump { grid-column: 1 / -1; }
+        .hero-brief-label { margin: 0; }
+        .hero-brief-fact { margin: 0; }
         .next-visual { height: 180px; }
         .cs-grid-3 { grid-template-columns: 1fr; }
         .cs-stats-inner { grid-template-columns: 1fr; }
@@ -1355,6 +1665,17 @@
         gap: 14px;
         pointer-events: auto;
       }
+      .toc-dots::before {
+        content: '';
+        width: 11px;
+        height: 11px;
+        align-self: center;
+        margin-bottom: 3px;
+        border: 1px solid rgba(188, 216, 246, 0.54);
+        box-shadow: 4px -4px 0 -1px rgba(188, 216, 246, 0.22);
+        transform: rotate(30deg) skewY(-8deg);
+        opacity: 0.85;
+      }
       .toc-dot {
         width: 14px; height: 1px;
         background: rgba(255, 255, 255, 0.2);
@@ -1367,6 +1688,17 @@
         width: 24px;
         height: 2px;
         background: rgba(255, 255, 255, 0.85);
+      }
+      .toc-dot.is-active::after {
+        content: '';
+        position: absolute;
+        right: -4px;
+        top: 50%;
+        width: 5px;
+        height: 5px;
+        transform: translateY(-50%) rotate(30deg) skewY(-8deg);
+        background: rgba(205, 228, 255, 0.92);
+        box-shadow: 0 0 10px rgba(153, 203, 255, 0.58);
       }
       .toc-dot::before {
         content: attr(data-label);
@@ -1395,7 +1727,7 @@
 
       /* ─── SECTION DIVIDER (global) ─── */
       .cs-section {
-        padding: 80px var(--gutter) 32px;
+        padding: 56px var(--gutter) 24px;
         display: flex;
         align-items: center;
         gap: 12px;
@@ -1544,6 +1876,23 @@
       html[data-theme="light"] .meta-item {
         border-color: rgba(7, 9, 15, 0.1);
       }
+      html[data-theme="light"] .case-rail {
+        border-color: rgba(7, 9, 15, 0.12);
+      }
+      html[data-theme="light"] .case-rail-label {
+        color: rgba(7, 9, 15, 0.42);
+      }
+      html[data-theme="light"] .case-rail a {
+        color: rgba(7, 9, 15, 0.7);
+      }
+      html[data-theme="light"] .case-rail a:hover {
+        color: #07090f;
+        border-color: rgba(7, 9, 15, 0.55);
+      }
+      html[data-theme="light"] .case-rail a.is-current {
+        color: #07090f;
+        border-color: rgba(7, 9, 15, 0.55);
+      }
       html[data-theme="light"] .meta-below-label {
         color: rgba(7, 9, 15, 0.5);
       }
@@ -1678,10 +2027,29 @@
         </div>
         {% endif %}
         <div class="hero-inner">
-          <h1 class="proj-title">{{ page.project_title }}</h1>
-          {% if page.status %}
-          <span class="status-pill"><span class="status-dot"></span>{{ page.status }}</span>
-          {% endif %}
+          <div class="hero-title-stack">
+            <h1 class="proj-title">{{ page.project_title }}</h1>
+            {% if page.status %}
+            <span class="status-pill"><span class="status-dot"></span>{{ page.status }}</span>
+            {% endif %}
+          </div>
+          <aside class="hero-recruiter-brief" aria-label="Project at a glance">
+            <p class="hero-brief-label">At a glance</p>
+            {% if page.category %}
+            <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">{{ page.category }}</span></p>
+            {% endif %} {% if page.meta %}
+            <p class="hero-brief-fact">
+              <span class="hero-brief-key">Role</span
+              ><span class="hero-brief-value">{% for item in page.meta %}{% if item.label == 'Role' %}{{ item.value }}{% endif %}{% endfor %}</span>
+            </p>
+            {% endif %} {% if page.highlights %}
+            <p class="hero-brief-fact">
+              <span class="hero-brief-key">Proof</span
+              ><span class="hero-brief-value">{{ page.highlights[0].value }} · {{ page.highlights[0].label }}</span>
+            </p>
+            {% endif %}
+            <a class="hero-brief-jump" href="#case-archive">Skim visual story</a>
+          </aside>
         </div>
       </header>
 
@@ -1701,14 +2069,14 @@
 
       <!-- INTRO -->
       {% unless page.hide_overview %}
-      <div class="proj-intro">
+      <div class="proj-intro" id="case-overview">
         <div class="intro-inner">
           <span class="intro-label">Overview</span>
           <p class="intro-tagline">{{ page.tagline }}</p>
         </div>
       </div>
       {% endunless %} {% if page.highlights %}
-      <section class="proj-highlights" aria-labelledby="project-highlights">
+      <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights">
         <h2 id="project-highlights" class="sr-only">Project highlights</h2>
         {% for item in page.highlights %}
         <div class="proj-highlight">
@@ -1719,8 +2087,46 @@
       </section>
       {% endif %}
 
-      <!-- BODY -->
-      <div class="proj-body">{{ content }}</div>
+      <div class="case-study-layout">
+        <aside class="case-context" aria-label="Project brief">
+          <p class="case-context__eyebrow">Project brief</p>
+          <h2 class="case-context__title">{{ page.project_title }}</h2>
+          <p class="case-context__summary">{{ page.tagline }}</p>
+          {% if page.meta %}
+          <div class="case-context__proof">
+            <span class="case-context__label">Role</span>
+            <span class="case-context__value">{% for item in page.meta %}{% if item.label == 'Role' %}{{ item.value }}{% endif %}{% endfor %}</span>
+            {% if page.highlights %}
+            <span class="case-context__label">Outcome</span>
+            <span class="case-context__value">{{ page.highlights[0].value }} · {{ page.highlights[0].label }}</span>
+            {% endif %}
+          </div>
+          {% endif %}
+          <div class="case-progress" aria-live="off">
+            <div class="case-progress__head"><span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span></div>
+            <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div>
+            <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p>
+          </div>
+          <nav class="case-context__links" aria-label="Project sections">
+            <a href="#case-overview">Overview</a>
+            {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
+            <a href="#case-archive">Visual story</a>
+            <a href="#project-next-step">Next project</a>
+          </nav>
+        </aside>
+        <div class="case-story">
+          <nav class="case-rail" aria-label="Case study path">
+            <span class="case-rail-label">Visual story</span>
+            <a href="#case-overview">Summary</a>
+            {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
+            <a href="#case-archive">Process</a>
+            <a href="#project-next-step">Next</a>
+          </nav>
+
+          <!-- BODY -->
+          <div class="proj-body" id="case-archive">{{ content }}</div>
+        </div>
+      </div>
 
       <!-- REFLECTION -->
       {% if page.reflection %}
@@ -1881,13 +2287,15 @@
         let target = 0;
         let rafId = null;
         function tick() {
-          cur += (target - cur) * 0.16;
-          target *= 0.75;
+          cur += (target - cur) * 0.18;
+          target *= 0.8;
           const s = Math.abs(cur);
-          displace.setAttribute("scale", s.toFixed(2));
-          caseDisplace.setAttribute("scale", Math.min(20, s * 0.82).toFixed(2));
-          main.classList.toggle("project-is-warping", s > 0.65);
-          if (s > 0.1 || Math.abs(target) > 0.1) {
+          // This needs to be perceptible at normal reading speed, not only during a
+          // trackpad fling. It remains velocity-bound and returns to a sharp still.
+          displace.setAttribute("scale", Math.min(24, s * 1.05).toFixed(2));
+          caseDisplace.setAttribute("scale", Math.min(19, s * 0.82).toFixed(2));
+          main.classList.toggle("project-is-warping", s > 0.4);
+          if (s > 0.08 || Math.abs(target) > 0.08) {
             rafId = requestAnimationFrame(tick);
           } else {
             displace.setAttribute("scale", "0");
@@ -1901,7 +2309,7 @@
 
         // Entrance settle — hero arrives slightly rippled and resolves to still, the
         // same "arriving somewhere" cue as the Buddha threshold ripple on the homepage.
-        cur = 18;
+        cur = 9;
         rafId = requestAnimationFrame(tick);
 
         window.addEventListener(
@@ -1909,7 +2317,7 @@
           () => {
             const delta = Math.abs(window.scrollY - lastY);
             lastY = window.scrollY;
-            target = Math.min(24, target + delta * 1.1);
+            target = Math.min(22, target + delta * 0.5);
             if (!rafId) rafId = requestAnimationFrame(tick);
           },
           { passive: true }
@@ -1992,6 +2400,41 @@
         { threshold: 0.3 }
       );
       document.querySelectorAll(".cs-section").forEach((s) => sectionObserver.observe(s));
+
+      // ── CASE PATH STATE ── The compact rail doubles as a quiet reading-progress
+      // cue: it marks the current beat of a long story without pinning a loud UI
+      // control to the viewport or taking over scroll.
+      (function () {
+        const rail = document.querySelector(".case-rail");
+        if (!rail) return;
+        const links = Array.from(rail.querySelectorAll('a[href^="#"]'));
+        const targets = links.map((link) => ({ link, target: document.querySelector(link.getAttribute("href")) })).filter((item) => item.target);
+        if (!targets.length) return;
+
+        function setCurrent(target) {
+          targets.forEach((item) => {
+            const current = item.target === target;
+            item.link.classList.toggle("is-current", current);
+            if (current) item.link.setAttribute("aria-current", "location");
+            else item.link.removeAttribute("aria-current");
+          });
+        }
+        setCurrent(targets[0].target);
+        links.forEach((link) => {
+          link.addEventListener("click", () => {
+            const item = targets.find((candidate) => candidate.link === link);
+            if (item) setCurrent(item.target);
+          });
+        });
+        const pathObserver = new IntersectionObserver(
+          (entries) => {
+            const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+            if (visible.length) setCurrent(visible[0].target);
+          },
+          { rootMargin: "-20% 0px -68% 0px", threshold: 0 }
+        );
+        targets.forEach((item) => pathObserver.observe(item.target));
+      })();
 
       // ── TOC DOTS ── build sticky right-side nav from cs-section labels (only if 2+ sections)
       (function () {
@@ -2302,6 +2745,31 @@
       })();
 
       // Dust is now in cursor_fluid.html (shared across all pages)
+
+      // ── CASE STORY MAP ── a live, non-interruptive indicator of the visual
+      // archive's remaining length. It uses the actual rendered media count rather
+      // than a guessed reading time, and never changes scrolling behavior.
+      (function () {
+        const story = document.querySelector(".case-story");
+        const fill = document.getElementById("case-progress-fill");
+        const value = document.getElementById("case-progress-value");
+        const note = document.getElementById("case-progress-note");
+        if (!story || !fill || !value || !note) return;
+        const moments = story.querySelectorAll(".cs-bleed, .cs-bleed-full, .cs-wide, .cs-grid, .cs-grid-3").length;
+        note.textContent = moments + " visual moment" + (moments === 1 ? "" : "s");
+        function updateStoryMap() {
+          const rect = story.getBoundingClientRect();
+          const start = Math.min(window.innerHeight * 0.66, rect.height);
+          const travelled = start - rect.top;
+          const range = Math.max(1, rect.height - window.innerHeight * 0.34);
+          const progress = Math.max(0, Math.min(1, travelled / range));
+          fill.style.setProperty("--case-progress", progress.toFixed(4));
+          value.textContent = String(Math.round(progress * 100)).padStart(2, "0") + "%";
+        }
+        updateStoryMap();
+        window.addEventListener("scroll", updateStoryMap, { passive: true });
+        window.addEventListener("resize", updateStoryMap, { passive: true });
+      })();
 
       // Video guardian — keeps all autoplay videos playing through scroll
       (function () {

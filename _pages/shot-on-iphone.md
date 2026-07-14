@@ -18,6 +18,13 @@ meta:
     value: Photography · Print · QR
   - label: Client
     value: Self Initiated
+highlights:
+  - value: Photo × QR
+    label: image-to-story interaction
+  - value: 2024
+    label: photography & print experiment
+  - value: Solo
+    label: concept, capture & design
 reflection: >
   This project made me question what most campaigns stop at. Shot on iPhone proves capability, it shows that the camera is good. But after a point it becomes one way. You see something beautiful and move on. What interested me was what happens after that moment, why someone chose that frame, what they felt, and whether a photograph could carry that with it.
 

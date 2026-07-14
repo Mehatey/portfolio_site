@@ -18,6 +18,13 @@ meta:
     value: Unity · ARKit · Figma · Google Cloud Vision
   - label: Client
     value: Self Initiated
+highlights:
+  - value: "3"
+    label: research arcs
+  - value: AI · AR · VR
+    label: modes of exploration
+  - value: Solo
+    label: research & prototyping
 reflection: >
   The research started as a joke. Feeding images into Cloud Vision just to see how badly it misread them. But the patterns kept surfacing. Not about what AI fails at, but about what it has decided is worth noticing in the first place.
 

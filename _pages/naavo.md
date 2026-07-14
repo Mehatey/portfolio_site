@@ -20,6 +20,13 @@ meta:
     value: Illustrator
   - label: Client
     value: Self Initiated
+highlights:
+  - value: 8 weeks
+    label: identity to packaging
+  - value: "3"
+    label: brand · logo · packaging
+  - value: Solo
+    label: concept & visual system
 reflection: >
   This project taught me how much restraint branding requires. It was easy to lean too heavily into traditional visuals or make it feel too modern and lose its essence. Finding that balance meant being intentional with every element, color, form, and typography.
 

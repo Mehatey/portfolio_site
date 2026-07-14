@@ -26,7 +26,7 @@
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@200;300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
       onload="
         this.onload = null;
         this.rel = 'stylesheet';
@@ -34,7 +34,7 @@
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@200;300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
         rel="stylesheet"
       />
     </noscript>
@@ -345,20 +345,10 @@
         overflow: hidden;
         background: #07060c;
       }
-      .reel-visual video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition:
-          transform 0.7s var(--ease-out),
-          opacity 0.4s;
-      }
-      .reel-card:hover .reel-visual video {
-        transform: scale(1.025);
-      }
 
-      /* gradient placeholder shown when video not yet available */
+      /* Static covers make the experiment itself the first moving surface.
+         They are deliberately generated from each project's accent rather
+         than pretending a stock loop is a project capture. */
       .reel-visual-bg {
         position: absolute;
         inset: 0;
@@ -366,7 +356,83 @@
         transition: opacity 0.4s;
       }
       .reel-card:hover .reel-visual-bg {
-        opacity: 0.6;
+        opacity: 0.78;
+      }
+      .reel-static {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        background:
+          linear-gradient(115deg, transparent 0 42%, rgba(255, 255, 255, 0.055) 42.15% 42.35%, transparent 42.5% 100%),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.055) 0 1px, transparent 1px 46px),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 46px);
+      }
+      .reel-static::before {
+        content: "";
+        position: absolute;
+        width: 52%;
+        aspect-ratio: 1;
+        left: 26%;
+        top: 24%;
+        border: 1px solid var(--reel-accent);
+        border-radius: 50%;
+        box-shadow:
+          0 0 0 28px rgba(255, 255, 255, 0.025),
+          0 0 0 56px rgba(255, 255, 255, 0.018),
+          0 0 56px var(--reel-accent);
+        transition: transform 0.8s var(--ease-out);
+      }
+      .reel-static::after {
+        content: "";
+        position: absolute;
+        width: 9px;
+        height: 9px;
+        left: 51%;
+        top: 23%;
+        border-radius: 50%;
+        background: var(--reel-accent);
+        box-shadow:
+          -108px 132px 0 -2px var(--reel-accent),
+          126px 106px 0 -3px var(--reel-accent),
+          62px 206px 0 -4px var(--reel-accent),
+          -142px 45px 0 -4px var(--reel-accent);
+        transition: transform 0.8s var(--ease-out);
+      }
+      .reel-card:hover .reel-static::before {
+        transform: scale(1.08) rotate(12deg);
+      }
+      .reel-card:hover .reel-static::after {
+        transform: translate(16px, -8px);
+      }
+      .reel-static-label,
+      .reel-static-index {
+        position: absolute;
+        z-index: 1;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+      .reel-static-label {
+        left: 16px;
+        bottom: 14px;
+        color: rgba(255, 255, 255, 0.58);
+      }
+      .reel-static-index {
+        right: 16px;
+        bottom: 14px;
+        color: var(--reel-accent);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .reel-static::before,
+        .reel-static::after {
+          transition: none;
+        }
+        .reel-card:hover .reel-static::before,
+        .reel-card:hover .reel-static::after {
+          transform: none;
+        }
       }
 
       /* open-link overlay */
@@ -745,14 +811,10 @@
               class="reel-visual-bg"
               style="background: radial-gradient(ellipse at 40% 50%, {{ proto.accent | replace: '0.14)', '0.35)' | replace: '0.12)', '0.35)' | replace: '0.10)', '0.35)' }} 0%, #07060c 65%)"
             ></div>
-            <video
-              data-src="{{ site.baseurl }}/assets/video/ai/{{ proto.slug }}.mp4"
-              muted
-              loop
-              playsinline
-              preload="none"
-              aria-hidden="true"
-            ></video>
+            <div class="reel-static" aria-hidden="true">
+              <span class="reel-static-label">{{ proto.tags | first | default: 'AI study' }}</span>
+              <span class="reel-static-index">{{ proto.year }} · signal map</span>
+            </div>
             <span class="reel-open">Open ↗</span>
           </div>
           <div class="reel-body">
@@ -822,53 +884,6 @@
         );
         cards.forEach(function (c) {
           revealIO.observe(c);
-        });
-
-        // ── lazy-load + hover-play videos ──
-        var mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-        function loadVideo(vid) {
-          if (vid.src) return;
-          var s = vid.dataset.src;
-          if (!s) return;
-          vid.src = s;
-        }
-
-        cards.forEach(function (card) {
-          var vid = card.querySelector("video");
-          if (!vid) return;
-
-          // load when card enters viewport (300px early)
-          var loadIO = new IntersectionObserver(
-            function (entries) {
-              entries.forEach(function (e) {
-                if (!e.isIntersecting) return;
-                loadVideo(vid);
-                loadIO.unobserve(e.target);
-              });
-            },
-            { rootMargin: "300px 0px" }
-          );
-          loadIO.observe(card);
-
-          if (mq && mq.matches) return; // skip play/pause if reduced motion
-
-          card.addEventListener("mouseenter", function () {
-            loadVideo(vid);
-            if (vid.readyState >= 2) vid.play().catch(function () {});
-            else
-              vid.addEventListener(
-                "loadeddata",
-                function () {
-                  vid.play().catch(function () {});
-                },
-                { once: true }
-              );
-          });
-          card.addEventListener("mouseleave", function () {
-            vid.pause();
-            vid.currentTime = 0;
-          });
         });
 
         // ── CURSOR SPOTLIGHT ──

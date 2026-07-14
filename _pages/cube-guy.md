@@ -17,6 +17,13 @@ meta:
     value: Director · Designer · Developer
   - label: Tools
     value: Unreal Engine
+highlights:
+  - value: 2018–2025
+    label: seven-year character world
+  - value: "3"
+    label: film · game · character
+  - value: Unreal
+    label: engine & interactive build
 reflection: >
   The film was the first time it felt finished. Years of sketching finally became six minutes of something I could actually share, and that alone made it one of the most fulfilling things I had made.
 

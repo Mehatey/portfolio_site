@@ -19,6 +19,13 @@ meta:
     value: Illustrator · Photoshop · Procreate
   - label: Client
     value: Self Initiated
+highlights:
+  - value: 2018–2025
+    label: seven-year visual archive
+  - value: "3"
+    label: illustration tools in rotation
+  - value: Solo
+    label: independent visual practice
 reflection: >
   These illustrations track how my visual instincts developed over the years. Without a brief, it was easier to take risks, try things that contradicted each other, and move between structure and intuition without needing to justify the shift.
 

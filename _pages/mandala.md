@@ -19,6 +19,13 @@ meta:
     value: TouchDesigner · MediaPipe · MadMapper
   - label: Client
     value: Self Initiated
+highlights:
+  - value: One question
+    label: who are you?
+  - value: Solo
+    label: installation design & build
+  - value: TouchDesigner
+    label: generative visual system
 reflection: >
   Some people closed their eyes and let go of the visuals entirely. That told me more about immersion than anything I had designed for. The generative system was doing its job, but the room was doing more.
 

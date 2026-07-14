@@ -31,14 +31,14 @@ title: Play · Sid Mehta
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@200;300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
       onload="
         this.onload = null;
         this.rel = 'stylesheet';
       "
     />
     <noscript>
-      <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+      <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet" />
     </noscript>
 
     {% include design_tokens.html %}
@@ -72,21 +72,25 @@ title: Play · Sid Mehta
         left: 0;
         right: 0;
         height: var(--nav-h);
-        z-index: 200;
+        z-index: 1000;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0 32px;
         overflow: visible;
+        isolation: isolate;
+        /* Play can be visually dense, but navigation is not part of the collage.
+           A real surface prevents moving imagery and the edge warp from leaking
+           into the controls while scrolling. */
+        background: rgba(7, 6, 12, 0.94);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 28px rgba(0, 0, 0, 0.18);
       }
       .nav::before {
         content: "";
         position: absolute;
         inset: 0;
         z-index: -1;
-        background: rgba(0, 0, 0, 0.16);
-        backdrop-filter: blur(22px) saturate(1.7) brightness(0.84);
-        -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(0.84);
+        background: linear-gradient(180deg, rgba(22, 24, 34, 0.26), transparent);
         border-bottom: 1px solid rgba(255, 255, 255, 0.07);
       }
       .nav > a { display: inline-flex; align-items: center; perspective: 600px; }
@@ -164,10 +168,29 @@ title: Play · Sid Mehta
 
       /* HEADER */
       .play-header {
-        padding: calc(var(--nav-h) + 96px + env(safe-area-inset-top, 0px)) var(--gutter) 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
+        position: relative;
+        isolation: isolate;
+        min-height: clamp(540px, 76svh, 790px);
+        padding: calc(var(--nav-h) + 64px + env(safe-area-inset-top, 0px)) var(--gutter) 32px;
+        display: grid;
+        grid-template-columns: minmax(15rem, 0.68fr) minmax(30rem, 1.32fr);
+        align-items: center;
+        gap: clamp(24px, 5vw, 88px);
+        overflow: clip;
+      }
+      .play-header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          radial-gradient(55% 72% at 76% 48%, rgba(98, 136, 186, 0.08), transparent 74%),
+          radial-gradient(38% 60% at 52% 54%, rgba(255, 255, 255, 0.035), transparent 75%);
+      }
+      .play-copy {
+        position: relative;
+        z-index: 2;
       }
       @keyframes playFadeUp {
         from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
@@ -200,7 +223,120 @@ title: Play · Sid Mehta
         text-transform: uppercase;
         color: rgba(255, 255, 255, 0.38);
         opacity: 0;
+        display: block;
+        margin-top: 28px;
         animation: playFadeUp 0.7s var(--ease-out) 0.25s forwards;
+      }
+      /* An optional camera interaction belongs in Play, where experimentation is
+         expected. It is an abstract motion field rather than a raw webcam feed:
+         playful, private, and never required to browse the archive. */
+      .play-lens-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 22px;
+        padding: 0 0 4px;
+        border: 0;
+        border-bottom: 1px solid rgba(180, 220, 255, 0.36);
+        background: transparent;
+        color: rgba(205, 229, 251, 0.76);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        cursor: pointer;
+        opacity: 0;
+        animation: playFadeUp 0.7s var(--ease-out) 0.32s forwards;
+        transition: color 0.24s ease, border-color 0.24s ease;
+      }
+      .play-lens-trigger:hover,
+      .play-lens-trigger:focus-visible,
+      .play-lens-trigger[aria-pressed="true"] {
+        border-color: rgba(225, 244, 255, 0.86);
+        color: rgba(235, 247, 255, 0.98);
+      }
+      .play-lens-trigger:focus-visible {
+        outline: 1px solid rgba(180, 220, 255, 0.8);
+        outline-offset: 6px;
+      }
+      .play-lens-status {
+        min-height: 1.4em;
+        margin: 10px 0 0;
+        color: rgba(255, 255, 255, 0.35);
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        line-height: 1.45;
+      }
+      .play-stage {
+        position: relative;
+        z-index: 1;
+        align-self: stretch;
+        min-height: 420px;
+        pointer-events: none;
+        perspective: 1400px;
+        perspective-origin: 50% 46%;
+      }
+      .play-motion-canvas {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+      .play-stage.is-lensing .play-motion-canvas {
+        opacity: 1;
+      }
+      .play-lens-video {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .play-orbit {
+        position: absolute;
+        inset: 2% -4% 0;
+        transform-style: preserve-3d;
+        translate: var(--lens-shift-x, 0px) var(--lens-shift-y, 0px);
+        animation: playOrbitDrift 18s cubic-bezier(0.45, 0, 0.25, 1) infinite alternate;
+        transition: translate 160ms ease-out;
+      }
+      .play-memory {
+        position: absolute;
+        top: var(--y);
+        left: var(--x);
+        width: var(--w);
+        transform: translate3d(-50%, -50%, var(--z)) rotate(var(--r));
+        transform-style: preserve-3d;
+        opacity: 0;
+        transition: opacity 0.7s var(--ease-out);
+      }
+      .play-memory.is-loaded {
+        opacity: 1;
+      }
+      .play-memory img {
+        display: block;
+        width: 100%;
+        aspect-ratio: var(--ratio, 1.32);
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 2px;
+        box-shadow: 0 22px 38px rgba(0, 0, 0, 0.3);
+        animation: playMemoryFloat var(--float-duration, 8s) ease-in-out var(--float-delay, 0s) infinite alternate;
+        will-change: transform;
+      }
+      @keyframes playOrbitDrift {
+        0% { transform: rotateX(-5deg) rotateY(-8deg) translate3d(-1%, 1%, 0); }
+        52% { transform: rotateX(3deg) rotateY(7deg) translate3d(1%, -1%, 0); }
+        100% { transform: rotateX(-2deg) rotateY(-4deg) translate3d(0, 1%, 0); }
+      }
+      @keyframes playMemoryFloat {
+        0% { transform: translate3d(0, -5px, 0) rotate(0.001deg); }
+        100% { transform: translate3d(0, 7px, 0) rotate(0.001deg); }
       }
 
       /* PLAY FILTER PILLS — sits naturally below header (was sticky; was following the user awkwardly) */
@@ -242,6 +378,20 @@ title: Play · Sid Mehta
       .pf-btn-count {
         margin-left: 6px;
         opacity: 0.55;
+      }
+      .pf-motion {
+        margin-left: auto;
+        border-color: transparent;
+        color: rgba(255, 255, 255, 0.34);
+      }
+      .pf-motion:hover,
+      .pf-motion[aria-pressed="true"] {
+        border-color: rgba(180, 220, 255, 0.36);
+        color: rgba(220, 240, 255, 0.92);
+      }
+      body.play-motion-paused .play-orbit,
+      body.play-motion-paused .play-memory img {
+        animation-play-state: paused !important;
       }
 
       /* LIGHTBOX ARROWS + COUNTER */
@@ -438,16 +588,32 @@ title: Play · Sid Mehta
       }
 
       /* ── SCROLL EDGE FADE ── content fades at top + bottom of viewport.
-         Used to use backdrop-filter: blur(14px) which re-blurred the whole page on every
-         scroll frame — single biggest cause of jank on this page. Replaced with a solid-color
-         gradient overlay that achieves the same fade without the GPU cost. */
+         The static gradients stay inexpensive. A small SVG displacement is switched on only
+         while the page is moving, so Play shares Works' liquid energy without filtering the
+         whole 256-tile wall. */
       .scroll-edge {
         position: fixed;
         left: 0;
         right: 0;
         height: 110px;
+        overflow: hidden;
+        isolation: isolate;
         pointer-events: none;
         z-index: 50;
+        transform: translateZ(0);
+        transition: filter 180ms ease-out;
+      }
+      .scroll-edge::after {
+        content: "";
+        position: absolute;
+        inset: -20px -8%;
+        opacity: 0;
+        background: radial-gradient(76% 110% at 50% 0%, rgba(207, 222, 240, 0.15), transparent 70%);
+        filter: blur(12px);
+        transform: scale(1.03, 0.84);
+        transition:
+          opacity 220ms ease-out,
+          transform 360ms var(--ease-out);
       }
       .scroll-edge--top {
         top: var(--nav-h);
@@ -457,8 +623,24 @@ title: Play · Sid Mehta
         bottom: 0;
         background: linear-gradient(0deg, #07060c 0%, rgba(10, 10, 10, 0.7) 50%, transparent 100%);
       }
+      .scroll-edge--bottom::after {
+        background: radial-gradient(76% 110% at 50% 100%, rgba(207, 222, 240, 0.15), transparent 70%);
+        transform: scale(1.03, 0.84) rotate(180deg);
+      }
+      .play-is-warping .scroll-edge {
+        filter: url(#play-edge-liquify);
+      }
+      .play-is-warping .scroll-edge::after {
+        opacity: 0.46;
+        transform: scale(1.08, 1.05);
+      }
+      .play-is-warping .scroll-edge--bottom::after {
+        transform: scale(1.08, 1.05) rotate(180deg);
+      }
       @media (max-width: 600px) {
         .scroll-edge { height: 70px; }
+        .play-orbit,
+        .play-memory img { animation: none; }
       }
       @media (hover: none), (pointer: coarse) {
         .wall-hint { display: none; }
@@ -467,6 +649,8 @@ title: Play · Sid Mehta
       @media (prefers-reduced-motion: reduce) {
         .scroll-edge { display: none; }
         .card { opacity: 1; transform: none; transition: none; }
+        .play-orbit,
+        .play-memory img { animation: none; }
       }
 
       /* Featured cards — 2 columns wide, stay in grid flow as landscape highlights */
@@ -475,7 +659,9 @@ title: Play · Sid Mehta
         grid-row-end: span 22;
       }
 
-      /* Breathing — applied after entrance. Now with gentle left-right sway too. */
+      /* The archive is a contact sheet, not a field of independently animated
+         cards. Moving grid items after layout caused real tile collisions. Motion
+         remains in the header constellation and the gentle page drift instead. */
       @keyframes float1 {
         0%, 100% { transform: translate(0, 0); }
         25% { transform: translate(2px, -2px); }
@@ -495,10 +681,10 @@ title: Play · Sid Mehta
         0%, 100% { transform: translate(0, 0); }
         50% { transform: translate(-3px, -3px); }
       }
-      .card.f1 { animation: float1 7s ease-in-out infinite; }
-      .card.f2 { animation: float2 8.5s ease-in-out infinite; }
-      .card.f3 { animation: float3 9s ease-in-out infinite; }
-      .card.f4 { animation: float4 7.8s ease-in-out infinite; }
+      .card.f1,
+      .card.f2,
+      .card.f3,
+      .card.f4 { animation: none; }
 
       /* LIGHTBOX */
       .lb {
@@ -631,9 +817,21 @@ title: Play · Sid Mehta
           --cols: 2;
           --gap: 10px;
         }
+        .play-header {
+          min-height: 700px;
+          grid-template-columns: 1fr;
+          grid-template-rows: auto minmax(360px, 1fr);
+          gap: 12px;
+        }
+        .play-stage {
+          min-height: 360px;
+          width: min(100%, 680px);
+          justify-self: center;
+        }
         .nav-links {
           gap: 12px;
         }
+        .pf-motion { display: none; }
       }
       @media (max-width: 600px) {
         :root { --nav-h: 56px; }
@@ -642,10 +840,15 @@ title: Play · Sid Mehta
         .nav-icon, .nav-icon img { width: 26px; height: 26px; }
         .play-header {
           padding-top: calc(var(--nav-h) + 72px + env(safe-area-inset-top, 0px));
+          min-height: 650px;
         }
         .play-intro {
           max-width: 34rem;
           font-size: 10px;
+        }
+        .play-lens-trigger {
+          margin-top: 18px;
+          font-size: 9px;
         }
       }
       @media (max-width: 480px) {
@@ -654,8 +857,11 @@ title: Play · Sid Mehta
           --gap: 8px;
         }
         .play-header {
-          flex-direction: column;
-          gap: 6px;
+          min-height: 620px;
+          gap: 0;
+        }
+        .play-stage {
+          min-height: 320px;
         }
         .play-footer {
           grid-template-columns: 1fr;
@@ -697,6 +903,13 @@ title: Play · Sid Mehta
       html[data-theme="light"] .play-count {
         color: rgba(7, 9, 15, 0.5);
       }
+      html[data-theme="light"] .play-lens-trigger {
+        border-bottom-color: rgba(35, 76, 116, 0.38);
+        color: rgba(20, 64, 106, 0.78);
+      }
+      html[data-theme="light"] .play-lens-status {
+        color: rgba(7, 9, 15, 0.48);
+      }
       html[data-theme="light"] .pf-btn {
         border-color: rgba(7, 9, 15, 0.18);
         color: rgba(7, 9, 15, 0.62);
@@ -722,6 +935,12 @@ title: Play · Sid Mehta
       }
       html[data-theme="light"] .scroll-edge--bottom {
         background: linear-gradient(to top, #f5f3ee, transparent);
+      }
+      html[data-theme="light"] .scroll-edge::after {
+        background: radial-gradient(76% 110% at 50% 0%, rgba(74, 95, 118, 0.1), transparent 70%);
+      }
+      html[data-theme="light"] .scroll-edge--bottom::after {
+        background: radial-gradient(76% 110% at 50% 100%, rgba(74, 95, 118, 0.1), transparent 70%);
       }
       /* Wall reveal hint — dark text on cream */
       html[data-theme="light"] .wall-hint {
@@ -751,19 +970,29 @@ title: Play · Sid Mehta
     </nav>
 
     <main id="main">
-      <div class="play-header">
-        <div>
+      <section class="play-header" aria-label="Play archive introduction">
+        <div class="play-copy">
           <h1 class="play-title">Play</h1>
           <p class="play-intro">Experiments, camera rolls, motion tests, and loose ends.</p>
+          <span class="play-count" id="play-count"></span>
+          <button type="button" class="play-lens-trigger" id="play-lens-trigger" aria-pressed="false" aria-describedby="play-lens-status">
+            Use camera as a motion lens <span aria-hidden="true">↗</span>
+          </button>
+          <p class="play-lens-status" id="play-lens-status" aria-live="polite">Optional · motion stays on this device</p>
         </div>
-        <span class="play-count" id="play-count"></span>
-      </div>
+        <div class="play-stage" aria-hidden="true">
+          <div class="play-orbit" id="play-orbit"></div>
+          <canvas class="play-motion-canvas" id="play-motion-canvas"></canvas>
+          <video class="play-lens-video" id="play-lens-video" playsinline muted></video>
+        </div>
+      </section>
 
       <div class="play-filter" id="play-filter" role="group" aria-label="Filter Play media">
         <button type="button" class="pf-btn active" data-pf="all" aria-pressed="true">All</button>
         <button type="button" class="pf-btn" data-pf="img" aria-pressed="false">Photos<span class="pf-btn-count" data-pf-count="img"></span></button>
         <button type="button" class="pf-btn" data-pf="vid" aria-pressed="false">Videos<span class="pf-btn-count" data-pf-count="vid"></span></button>
         <button type="button" class="pf-btn" data-pf="gif" aria-pressed="false">GIFs<span class="pf-btn-count" data-pf-count="gif"></span></button>
+        <button type="button" class="pf-btn pf-motion" id="play-motion-toggle" aria-pressed="false">Pause motion</button>
       </div>
 
       <div class="masonry" id="masonry"></div>
@@ -801,6 +1030,19 @@ title: Play · Sid Mehta
 
     {% include cursor_fluid.html %}
 
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
+      <defs>
+        <filter id="play-edge-liquify" x="-12%" y="-32%" width="124%" height="164%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.012 0.058" numOctaves="2" seed="17" result="edge-noise" />
+          <feDisplacementMap id="play-edge-liquify-map" in="SourceGraphic" in2="edge-noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+        <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.007 0.048" numOctaves="1" seed="9" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </defs>
+    </svg>
+
     <script>
       (function () {
         var masonry = document.getElementById("masonry");
@@ -828,6 +1070,228 @@ title: Play · Sid Mehta
         items.splice(60, 0, extraVids[3]);
         items.splice(90, 0, extraVids[4]);
 
+        // ── MOTION LENS ── An intentionally lightweight computer-vision interaction.
+        // It samples movement locally from an opted-in camera stream, then turns that
+        // movement into an abstract, non-recorded field over the Play constellation.
+        // No model is downloaded, no frame is rendered, and no camera data leaves the device.
+        (function () {
+          var trigger = document.getElementById("play-lens-trigger");
+          var status = document.getElementById("play-lens-status");
+          var stage = document.querySelector(".play-stage");
+          var orbit = document.getElementById("play-orbit");
+          var canvas = document.getElementById("play-motion-canvas");
+          var video = document.getElementById("play-lens-video");
+          if (!trigger || !status || !stage || !orbit || !canvas || !video) return;
+
+          var field = canvas.getContext("2d");
+          var sampler = document.createElement("canvas");
+          sampler.width = 96;
+          sampler.height = 72;
+          var samplerCtx = sampler.getContext("2d", { willReadFrequently: true });
+          var stream = null;
+          var active = false;
+          var frameId = 0;
+          var previous = null;
+          var particles = [];
+          var width = 0;
+          var height = 0;
+          var lastSampleAt = 0;
+
+          function setStatus(message) {
+            status.textContent = message;
+          }
+          function resetButton() {
+            trigger.setAttribute("aria-pressed", "false");
+            trigger.textContent = "Use camera as a motion lens ↗";
+          }
+          function resize() {
+            var box = stage.getBoundingClientRect();
+            var dpr = Math.min(window.devicePixelRatio || 1, 2);
+            width = Math.max(1, Math.round(box.width));
+            height = Math.max(1, Math.round(box.height));
+            canvas.width = Math.round(width * dpr);
+            canvas.height = Math.round(height * dpr);
+            field.setTransform(dpr, 0, 0, dpr, 0, 0);
+            particles = Array.from({ length: Math.round(Math.max(48, Math.min(88, width / 11)) ) }, function (_, index) {
+              return {
+                x: (index * 0.61803398875 + Math.random() * 0.09) % 1,
+                y: (index * 0.38196601125 + Math.random() * 0.12) % 1,
+                phase: Math.random() * Math.PI * 2,
+              };
+            });
+          }
+          function draw(energy, focusX, focusY, now) {
+            field.clearRect(0, 0, width, height);
+            if (!particles.length) return;
+            var time = now * 0.00065;
+            var strength = Math.max(0.08, energy);
+            particles.forEach(function (particle, index) {
+              var baseX = particle.x * width;
+              var baseY = particle.y * height;
+              var pullX = (focusX - baseX) * energy * 0.09;
+              var pullY = (focusY - baseY) * energy * 0.09;
+              var swayX = Math.sin(time + particle.phase) * (1.5 + energy * 7);
+              var swayY = Math.cos(time * 0.82 + particle.phase) * (1.5 + energy * 7);
+              var x = baseX + pullX + swayX;
+              var y = baseY + pullY + swayY;
+              var alpha = 0.1 + strength * (index % 5 === 0 ? 0.62 : 0.34);
+              field.fillStyle = "rgba(196, 225, 255, " + alpha.toFixed(3) + ")";
+              field.fillRect(Math.round(x), Math.round(y), index % 5 === 0 ? 3 : 2, index % 5 === 0 ? 3 : 2);
+            });
+          }
+          function sample(now) {
+            if (!active) return;
+            frameId = requestAnimationFrame(sample);
+            if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || now - lastSampleAt < 50) return;
+            lastSampleAt = now;
+
+            samplerCtx.drawImage(video, 0, 0, sampler.width, sampler.height);
+            var pixels = samplerCtx.getImageData(0, 0, sampler.width, sampler.height).data;
+            if (!previous) previous = new Uint8Array(sampler.width * sampler.height);
+
+            var movement = 0;
+            var weightedX = 0;
+            var weightedY = 0;
+            var samples = 0;
+            for (var y = 0; y < sampler.height; y += 3) {
+              for (var x = 0; x < sampler.width; x += 3) {
+                var pixelIndex = y * sampler.width + x;
+                var offset = pixelIndex * 4;
+                var luminance = (pixels[offset] * 54 + pixels[offset + 1] * 183 + pixels[offset + 2] * 19) >> 8;
+                var delta = Math.abs(luminance - previous[pixelIndex]);
+                previous[pixelIndex] = luminance;
+                if (delta > 22) {
+                  var weight = Math.min(delta, 80);
+                  movement += weight;
+                  weightedX += x * weight;
+                  weightedY += y * weight;
+                }
+                samples++;
+              }
+            }
+            var energy = Math.min(1, movement / Math.max(1, samples * 28));
+            var focusX = movement ? (weightedX / movement / sampler.width) * width : width * 0.5;
+            var focusY = movement ? (weightedY / movement / sampler.height) * height : height * 0.5;
+            orbit.style.setProperty("--lens-shift-x", ((focusX / width - 0.5) * energy * 26).toFixed(1) + "px");
+            orbit.style.setProperty("--lens-shift-y", ((focusY / height - 0.5) * energy * 18).toFixed(1) + "px");
+            draw(energy, focusX, focusY, now);
+          }
+          function stopLens(message) {
+            active = false;
+            if (frameId) cancelAnimationFrame(frameId);
+            frameId = 0;
+            if (stream) stream.getTracks().forEach(function (track) { track.stop(); });
+            stream = null;
+            video.srcObject = null;
+            previous = null;
+            field.clearRect(0, 0, width, height);
+            stage.classList.remove("is-lensing");
+            orbit.style.removeProperty("--lens-shift-x");
+            orbit.style.removeProperty("--lens-shift-y");
+            resetButton();
+            setStatus(message || "Optional · motion stays on this device");
+          }
+          async function startLens() {
+            var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (reducedMotion) {
+              setStatus("Motion lens respects your reduced-motion preference");
+              return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+              setStatus("Camera input is not available in this browser");
+              return;
+            }
+            trigger.disabled = true;
+            setStatus("Requesting camera permission…");
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: { facingMode: "user", width: { ideal: 320 }, height: { ideal: 240 } },
+              });
+              video.srcObject = stream;
+              await video.play();
+              resize();
+              active = true;
+              stage.classList.add("is-lensing");
+              trigger.setAttribute("aria-pressed", "true");
+              trigger.textContent = "Stop motion lens ×";
+              setStatus("Motion lens active · camera stays on this device");
+              frameId = requestAnimationFrame(sample);
+            } catch (error) {
+              if (stream) stream.getTracks().forEach(function (track) { track.stop(); });
+              stream = null;
+              setStatus(error && error.name === "NotAllowedError" ? "Camera permission was not granted" : "Couldn’t start the motion lens");
+              resetButton();
+            } finally {
+              trigger.disabled = false;
+            }
+          }
+          trigger.addEventListener("click", function () {
+            if (active) stopLens();
+            else startLens();
+          });
+          window.addEventListener("resize", function () { if (active) resize(); }, { passive: true });
+          document.addEventListener("visibilitychange", function () {
+            if (document.hidden && active) stopLens("Motion lens paused when the page was hidden");
+          });
+          window.addEventListener("pagehide", function () { if (active) stopLens(); });
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && active) stopLens();
+          });
+        })();
+
+        // ── MEMORY FIELD ── a small spatial preview gives Play an active opening without
+        // turning the entire archive into an impractical 3D browser. These are real photos
+        // from the collection; the full, filterable wall remains the primary way to explore.
+        (function () {
+          var orbit = document.getElementById("play-orbit");
+          if (!orbit) return;
+
+          var photos = items.filter(function (item) { return item.pf === "img"; });
+          var layout = [
+            { x: 15, y: 18, z: -90, r: -12, w: 21, delay: -1.4, duration: 8.6 },
+            { x: 49, y: 13, z: 44, r: 5, w: 31, delay: -3.1, duration: 10.2 },
+            { x: 82, y: 22, z: -14, r: 13, w: 19, delay: -0.7, duration: 7.8 },
+            { x: 17, y: 55, z: 4, r: 7, w: 27, delay: -4.4, duration: 9.5 },
+            { x: 52, y: 53, z: 105, r: -8, w: 34, delay: -2.3, duration: 11.4 },
+            { x: 84, y: 59, z: 12, r: 8, w: 24, delay: -5.2, duration: 8.9 },
+            { x: 33, y: 84, z: -58, r: 10, w: 19, delay: -1.8, duration: 10.7 },
+            { x: 68, y: 83, z: 48, r: -11, w: 27, delay: -3.6, duration: 9.8 }
+          ];
+
+          layout.forEach(function (position, index) {
+            var photoIndex = Math.round((photos.length - 1) * (index / (layout.length - 1)));
+            var photo = photos[photoIndex];
+            if (!photo) return;
+
+            var fragment = document.createElement("div");
+            fragment.className = "play-memory";
+            fragment.style.setProperty("--x", position.x + "%");
+            fragment.style.setProperty("--y", position.y + "%");
+            fragment.style.setProperty("--z", position.z + "px");
+            fragment.style.setProperty("--r", position.r + "deg");
+            fragment.style.setProperty("--w", position.w + "%");
+            fragment.style.setProperty("--float-delay", position.delay + "s");
+            fragment.style.setProperty("--float-duration", position.duration + "s");
+
+            var image = document.createElement("img");
+            image.src = photo.src;
+            image.alt = "";
+            image.decoding = "async";
+            image.addEventListener("load", function () {
+              fragment.style.setProperty("--ratio", (image.naturalWidth / image.naturalHeight).toFixed(3));
+              fragment.classList.add("is-loaded");
+            }, { once: true });
+            if (image.complete && image.naturalWidth) {
+              fragment.style.setProperty("--ratio", (image.naturalWidth / image.naturalHeight).toFixed(3));
+              fragment.classList.add("is-loaded");
+            }
+
+            fragment.appendChild(image);
+            orbit.appendChild(fragment);
+          });
+        })();
+
         // Build DOM. Play is a moving, photographic stream: every card preserves
         // its source media rather than changing color, blend mode, or clarity on hover.
         items.forEach(function (item, idx) {
@@ -839,6 +1303,9 @@ title: Play · Sid Mehta
           card.setAttribute("aria-label", "Open " + mediaLabel + " " + (idx + 1) + " of " + items.length);
           card.dataset.pf = item.pf;
           card.dataset.idx = idx;
+          // A 256-item gallery should not create 256 consecutive Tab stops. The
+          // archive uses roving focus below: Tab enters once, then arrows travel it.
+          card.tabIndex = idx === 0 ? 0 : -1;
           // Reserve a default placeholder height so IntersectionObserver can detect the card
           // BEFORE its media has loaded. Without this, lazy cards stay 0-height → never intersect →
           // never load → permanent black gap. setRowSpan() recalculates to actual ratio on load.
@@ -880,6 +1347,43 @@ title: Play · Sid Mehta
           }
 
           masonry.appendChild(card);
+        });
+
+        // ── ROVING GALLERY FOCUS ── keeps the large visual archive practical for
+        // keyboard visitors. Arrow keys move through the currently visible set;
+        // Home/End jump to its edges; Tab stays reserved for broader page navigation.
+        function visibleCards() {
+          return Array.prototype.filter.call(masonry.querySelectorAll(".card"), function (card) {
+            return card.style.display !== "none";
+          });
+        }
+        function setRovingFocus(activeCard) {
+          masonry.querySelectorAll(".card").forEach(function (card) {
+            card.tabIndex = card === activeCard ? 0 : -1;
+          });
+        }
+        masonry.addEventListener("focusin", function (event) {
+          var card = event.target.closest && event.target.closest(".card");
+          if (card) setRovingFocus(card);
+        });
+        masonry.addEventListener("click", function (event) {
+          var card = event.target.closest && event.target.closest(".card");
+          if (card) setRovingFocus(card);
+        });
+        masonry.addEventListener("keydown", function (event) {
+          if (!event.target.classList.contains("card")) return;
+          var cards = visibleCards();
+          var current = cards.indexOf(event.target);
+          if (current < 0) return;
+          var next = current;
+          if (event.key === "ArrowRight" || event.key === "ArrowDown") next = Math.min(cards.length - 1, current + 1);
+          else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = Math.max(0, current - 1);
+          else if (event.key === "Home") next = 0;
+          else if (event.key === "End") next = cards.length - 1;
+          else return;
+          event.preventDefault();
+          setRovingFocus(cards[next]);
+          cards[next].focus();
         });
 
         // Compute grid row span per card so layout becomes proper masonry
@@ -931,8 +1435,6 @@ title: Play · Sid Mehta
                 var delay = (i % 4) * 60;
                 setTimeout(function () {
                   el.classList.add("reveal-in");
-                  var f = el.getAttribute("data-float");
-                  if (f) el.classList.add(f);
                 }, delay);
                 obs.unobserve(el);
               }
@@ -973,24 +1475,100 @@ title: Play · Sid Mehta
         // hijacking input. It pauses while the visitor reads, scrolls, taps, or types.
         (function () {
           var lastInteraction = Date.now();
+          var motionToggle = document.getElementById("play-motion-toggle");
+          var motionPaused = false;
           var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
-          if (prefersReduced || isTouch) return;
+          // A few desktop browsers (including in-app shells with a trackpad) report a
+          // coarse pointer even though they have ample room for the drifting wall. Tie
+          // this to the composition instead: the quiet motion belongs on desktop, while
+          // narrower, touch-first layouts stay completely still for reading and tapping.
+          if (prefersReduced || window.innerWidth < 900) return;
+          if (motionToggle) {
+            motionToggle.addEventListener("click", function () {
+              motionPaused = !motionPaused;
+              document.body.classList.toggle("play-motion-paused", motionPaused);
+              motionToggle.setAttribute("aria-pressed", String(motionPaused));
+              motionToggle.textContent = motionPaused ? "Resume motion" : "Pause motion";
+              lastInteraction = Date.now();
+            });
+          }
           ["mousemove", "wheel", "keydown", "click", "pointerdown"].forEach(function (ev) {
             window.addEventListener(ev, function () {
               lastInteraction = Date.now();
             }, { passive: true });
           });
           var lastT = performance.now();
+          var driftRemainder = 0;
           function tick(now) {
             requestAnimationFrame(tick);
             var dt = Math.min((now - lastT) / 1000, 0.05);
             lastT = now;
-            var idle = Date.now() - lastInteraction > 1500;
+            // Give people time to take in a frame before the archive drifts. This
+            // should feel like a gallery that is alive, never like a page stealing
+            // their scroll position.
+            var idle = Date.now() - lastInteraction > 3200;
             var atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 8;
-            if (idle && !atBottom) window.scrollBy(0, 26 * dt);
+            if (!motionPaused && idle && !atBottom) {
+              // Browser scroll APIs often round a per-frame fraction (≈0.4px) down to
+              // zero. Carry it forward until there is a whole pixel to move so the
+              // drift is genuinely visible instead of silently doing nothing.
+              driftRemainder += 12 * dt;
+              var step = Math.floor(driftRemainder);
+              if (step > 0) {
+                window.scrollBy(0, step);
+                driftRemainder -= step;
+              }
+            } else if (!idle) {
+              driftRemainder = 0;
+            }
           }
           requestAnimationFrame(tick);
+        })();
+
+        // ── EDGE LIQUIFY ── the viewport fades briefly distort with scroll velocity.
+        // It deliberately targets the two lightweight edge overlays—not cards or media—so
+        // the wall stays crisp, readable, and inexpensive on a long page.
+        (function () {
+          var page = document.body;
+          var displacement = document.getElementById("play-edge-liquify-map");
+          var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (!page || !displacement || prefersReduced) return;
+
+          var lastY = window.scrollY;
+          var target = 0;
+          var current = 0;
+          var rafId = 0;
+
+          function settle() {
+            current += (target - current) * 0.14;
+            target *= 0.9;
+
+            var strength = Math.min(16, current);
+            var isWarping = strength > 0.45;
+            displacement.setAttribute("scale", isWarping ? strength.toFixed(2) : "0");
+            page.classList.toggle("play-is-warping", isWarping);
+
+            if (strength > 0.12 || target > 0.12) {
+              rafId = requestAnimationFrame(settle);
+            } else {
+              displacement.setAttribute("scale", "0");
+              page.classList.remove("play-is-warping");
+              rafId = 0;
+            }
+          }
+
+          window.addEventListener(
+            "scroll",
+            function () {
+              var movement = Math.abs(window.scrollY - lastY);
+              lastY = window.scrollY;
+              if (movement < 0.5) return;
+
+              target = Math.min(20, target + movement * 0.28);
+              if (!rafId) rafId = requestAnimationFrame(settle);
+            },
+            { passive: true }
+          );
         })();
 
         // Lightbox
@@ -1166,6 +1744,7 @@ title: Play · Sid Mehta
               if (countEl) {
                 countEl.textContent = f === "all" ? items.length + " pieces" : visibleCount + " of " + items.length + " pieces";
               }
+              setRovingFocus(visibleCards()[0] || null);
               // Recompute row spans after filter change
               setTimeout(recomputeAll, 50);
             });
@@ -1284,13 +1863,5 @@ title: Play · Sid Mehta
       })();
     </script>
 
-    <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
-      <defs>
-        <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency="0.007 0.048" numOctaves="1" seed="9" result="noise" />
-          <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-      </defs>
-    </svg>
   </body>
 </html>

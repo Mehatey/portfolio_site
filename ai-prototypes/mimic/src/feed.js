@@ -6,10 +6,7 @@
 // That gap is the whole piece — so we never throttle the world, we just sip it.
 
 const API = "https://api.inaturalist.org/v1/observations";
-const ANIMAL_GROUPS = [
-  "Aves", "Amphibia", "Mammalia", "Reptilia",
-  "Actinopterygii", "Insecta", "Arachnida", "Mollusca",
-];
+const ANIMAL_GROUPS = ["Aves", "Amphibia", "Mammalia", "Reptilia", "Actinopterygii", "Insecta", "Arachnida", "Mollusca"];
 const ANIMAL_GROUP_SET = new Set(ANIMAL_GROUPS);
 
 // Newest research-grade animal observations with both a photo and recording.
@@ -35,10 +32,7 @@ function buildUrl(page, group) {
 // so CLIP has something to look at and the atlas tile is crisp.
 function mediumUrl(url) {
   if (!url) return null;
-  return url
-    .replace("/square.", "/medium.")
-    .replace("/thumb.", "/medium.")
-    .replace("/small.", "/medium.");
+  return url.replace("/square.", "/medium.").replace("/thumb.", "/medium.").replace("/small.", "/medium.");
 }
 
 // Only the open-data S3 bucket sends Access-Control-Allow-Origin, so only those
@@ -59,10 +53,14 @@ function normalize(r) {
   if (!ANIMAL_GROUP_SET.has(taxon.iconic_taxon_name)) return null;
   const sound = (r.sounds || []).find((s) => s && s.file_url)?.file_url || null;
   if (!sound) return null; // every displayed organism must be playable
-  let lat = null, lng = null;
+  let lat = null,
+    lng = null;
   if (typeof r.location === "string" && r.location.includes(",")) {
     const [a, b] = r.location.split(",").map(Number);
-    if (Number.isFinite(a) && Number.isFinite(b)) { lat = a; lng = b; }
+    if (Number.isFinite(a) && Number.isFinite(b)) {
+      lat = a;
+      lng = b;
+    }
   }
   return {
     id: r.id,
@@ -74,7 +72,8 @@ function normalize(r) {
     iconic: taxon.iconic_taxon_name || "",
     place: r.place_guess || "",
     when: r.time_observed_at || r.observed_on || "",
-    lat, lng,
+    lat,
+    lng,
   };
 }
 
@@ -88,8 +87,12 @@ export async function fetchTaxonSound(taxonId) {
   if (_soundCache.has(taxonId)) return _soundCache.get(taxonId);
   try {
     const q = new URLSearchParams({
-      taxon_id: String(taxonId), sounds: "true", per_page: "12",
-      order: "desc", order_by: "votes", fields: "sounds",
+      taxon_id: String(taxonId),
+      sounds: "true",
+      per_page: "12",
+      order: "desc",
+      order_by: "votes",
+      fields: "sounds",
     });
     const res = await fetch(`${API}?${q.toString()}`, { headers: { Accept: "application/json" } });
     if (!res.ok) throw new Error(`iNat ${res.status}`);
@@ -97,7 +100,10 @@ export async function fetchTaxonSound(taxonId) {
     let url = null;
     for (const o of data.results || []) {
       const s = o.sounds && o.sounds.find((x) => x && x.file_url);
-      if (s) { url = s.file_url; break; }
+      if (s) {
+        url = s.file_url;
+        break;
+      }
     }
     _soundCache.set(taxonId, url);
     return url;
@@ -118,7 +124,7 @@ export class Feed {
     this.alive = false;
     this.totalSighted = 0;
     this.lastError = null;
-    this.page = 1;        // rotate through the newest pages for variety + density
+    this.page = 1; // rotate through the newest pages for variety + density
     this.maxPage = 6;
     this.group = 0;
   }

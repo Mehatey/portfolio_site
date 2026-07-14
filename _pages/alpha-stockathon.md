@@ -20,6 +20,13 @@ meta:
     value: Figma · Pixel Art
   - label: Client
     value: Self Initiated
+highlights:
+  - value: 3 days
+    label: research to prototype
+  - value: Pixel art
+    label: financial learning system
+  - value: Solo
+    label: product concept & UI
 reflection: >
   Three days to understand the stock market and turn it into a game. I had to start teaching it before I'd finished learning it myself.
 

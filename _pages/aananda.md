@@ -19,6 +19,13 @@ meta:
     value: Illustrator · Figma
   - label: Client
     value: Self Initiated
+highlights:
+  - value: Jain philosophy
+    label: translated into brand & app
+  - value: Solo
+    label: identity & product concept
+  - value: 2020
+    label: self-initiated study
 reflection: >
   This project pushed me to work with something deeply personal and culturally layered. Translating Jain philosophy into design meant carrying responsibility alongside the aesthetics. The process was shaped more by conversations than by references: sitting with my father and understanding these ideas from the inside changed how I approached the visual decisions.
 

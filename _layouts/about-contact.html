@@ -69,7 +69,7 @@
     <link
       rel="preload"
       as="style"
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@200;300;400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
       onload="
         this.onload = null;
         this.rel = 'stylesheet';
@@ -77,7 +77,7 @@
     />
     <noscript
       ><link
-        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Inter:wght@200;300;400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
         rel="stylesheet"
     /></noscript>
 
@@ -280,11 +280,11 @@
         transform: translateY(0);
       }
 
-      /* ── HERO: name left, bio right ── */
+      /* ── HERO: concise context left, tactile profile object right ── */
       .about-hero {
         display: grid;
-        grid-template-columns: 38% 1fr;
-        gap: 72px;
+        grid-template-columns: minmax(0, 1fr) minmax(300px, 410px);
+        gap: clamp(48px, 8vw, 128px);
         align-items: start;
         padding: 0 var(--gutter) 64px;
         max-width: 1320px;
@@ -309,16 +309,37 @@
       .hero-ident {
         position: relative;
       }
-      .about-photo-wrap {
+      .about-profile-card {
         position: relative;
         width: 100%;
         aspect-ratio: 4 / 5;
         min-height: 0;
         overflow: hidden;
-        border-radius: 8px;
-        /* photoBreathe animation removed — was causing constant repaint of the photo + its drop
-           shadow on every frame, making the page feel laggy on scroll. */
-        transform: translateZ(0); /* promote to its own GPU layer so scroll doesn't repaint */
+        border-radius: 18px;
+        background: #11131a;
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+        transform: perspective(1000px) rotateX(var(--tilt-y, 0deg)) rotateY(var(--tilt-x, 0deg));
+        transform-style: preserve-3d;
+        transition:
+          transform 0.25s ease-out,
+          box-shadow 0.35s ease;
+        will-change: transform;
+        cursor: pointer;
+      }
+      .about-profile-card:hover {
+        box-shadow:
+          0 32px 90px rgba(0, 0, 0, 0.48),
+          0 0 0 1px rgba(203, 229, 255, 0.2);
+      }
+      .about-profile-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        background: radial-gradient(420px circle at var(--shine-x, 50%) var(--shine-y, 35%), rgba(222, 242, 255, 0.28), transparent 36%);
+        mix-blend-mode: screen;
+        opacity: 0.64;
       }
       .about-photo {
         width: 100%;
@@ -336,12 +357,42 @@
         position: relative;
       }
       /* Subtle fade edges */
-      .about-photo-wrap::after {
+      .about-profile-card::after {
         content: "";
         position: absolute;
         inset: 0;
         background: linear-gradient(to bottom, transparent 70%, #07060c 100%), linear-gradient(to right, transparent 80%, rgba(7, 6, 12, 0.4) 100%);
         pointer-events: none;
+      }
+      .about-card-meta {
+        position: absolute;
+        z-index: 4;
+        right: 18px;
+        bottom: 16px;
+        left: 18px;
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 14px;
+        color: rgba(255, 255, 255, 0.9);
+        pointer-events: none;
+      }
+      .about-card-meta strong,
+      .about-card-meta span {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 8px;
+        font-weight: 400;
+        letter-spacing: 0.14em;
+        line-height: 1.5;
+        text-transform: uppercase;
+      }
+      .about-card-meta strong {
+        color: rgba(255, 255, 255, 0.92);
+      }
+      .about-card-meta span {
+        color: rgba(212, 231, 249, 0.68);
+        text-align: right;
       }
       .about-name {
         font-family: var(--font-title);
@@ -372,7 +423,7 @@
 
       /* Bio column */
       .hero-bio-col {
-        padding-top: 0;
+        padding-top: clamp(12px, 3vw, 42px);
         align-self: start;
       }
       .about-bio {
@@ -879,6 +930,9 @@
           gap: 32px;
           padding-bottom: 60px;
         }
+        .about-profile-card {
+          max-width: min(410px, 100%);
+        }
         .about-bio {
           max-width: 100%;
         }
@@ -1154,12 +1208,6 @@
     <main class="about-page" id="main">
       <!-- HERO -->
       <section class="about-hero">
-        <div class="hero-ident">
-          <div class="about-photo-wrap" id="about-photo-wrap">
-            <img class="about-photo active" src="{{ site.baseurl }}/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta" />
-            <img class="about-photo" src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="" aria-hidden="true" />
-          </div>
-        </div>
         <div class="hero-bio-col">
           <p class="about-eyebrow">New York, NY</p>
           <h1 class="about-name">Sid Mehta</h1>
@@ -1175,6 +1223,21 @@
             <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer" class="about-action about-resume-link"
               >Resume ↗<span class="sr-only"> (opens in a new tab)</span></a
             >
+          </div>
+        </div>
+        <div class="hero-ident">
+          <div
+            class="about-profile-card"
+            id="about-profile-card"
+            tabindex="0"
+            role="button"
+            aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."
+          >
+            <img class="about-photo active" src="{{ site.baseurl }}/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta" />
+            <img class="about-photo" src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta" />
+            <div class="about-card-meta" aria-hidden="true">
+              <strong>Sid Mehta</strong><span>Product design<br />New York</span>
+            </div>
           </div>
         </div>
       </section>
@@ -1425,37 +1488,41 @@
         }, 1600);
       })();
 
-      // Photo hover cycle: crossfade between 3 images
+      // Profile card: a quiet 3D tilt with a deliberate two-photo flip.
       (function () {
-        var wrap = document.getElementById("about-photo-wrap");
+        var wrap = document.getElementById("about-profile-card");
         if (!wrap) return;
         var imgs = wrap.querySelectorAll(".about-photo");
         if (imgs.length < 2) return;
         var current = 0;
-        var timer = null;
-
         function next() {
           imgs[current].classList.remove("active");
           current = (current + 1) % imgs.length;
           imgs[current].classList.add("active");
         }
 
-        wrap.addEventListener("mouseenter", function () {
-          next();
-          timer = setInterval(next, 3500);
+        wrap.addEventListener("pointermove", function (event) {
+          if (event.pointerType === "touch") return;
+          var rect = wrap.getBoundingClientRect();
+          var x = (event.clientX - rect.left) / rect.width - 0.5;
+          var y = (event.clientY - rect.top) / rect.height - 0.5;
+          wrap.style.setProperty("--tilt-x", (x * 8).toFixed(2) + "deg");
+          wrap.style.setProperty("--tilt-y", (-y * 8).toFixed(2) + "deg");
+          wrap.style.setProperty("--shine-x", ((x + 0.5) * 100).toFixed(1) + "%");
+          wrap.style.setProperty("--shine-y", ((y + 0.5) * 100).toFixed(1) + "%");
         });
-        wrap.addEventListener("mouseleave", function () {
-          clearInterval(timer);
-          // Return to first
-          imgs[current].classList.remove("active");
-          current = 0;
-          imgs[0].classList.add("active");
+        wrap.addEventListener("pointerleave", function () {
+          wrap.style.setProperty("--tilt-x", "0deg");
+          wrap.style.setProperty("--tilt-y", "0deg");
         });
-        // Touch: tap cycles to next photo (no hover means the easter egg is otherwise unreachable)
         wrap.addEventListener("click", function (e) {
-          var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
-          if (!isTouch) return;
           next();
+        });
+        wrap.addEventListener("keydown", function (event) {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            next();
+          }
         });
       })();
     </script>

@@ -33,8 +33,10 @@ export function blendVec(a, b, t = 0.5) {
 // deterministic-ish jitter without Math.random (kept reproducible across resumes)
 let _seed = 0x9e3779b9;
 function rand() {
-  _seed ^= _seed << 13; _seed ^= _seed >>> 17; _seed ^= _seed << 5;
-  return ((_seed >>> 0) / 4294967296);
+  _seed ^= _seed << 13;
+  _seed ^= _seed >>> 17;
+  _seed ^= _seed << 5;
+  return (_seed >>> 0) / 4294967296;
 }
 
 // Find the K most visually-similar existing organisms to a new vector.
@@ -60,25 +62,27 @@ export function seedPosition(neighbours) {
     const s = Math.sqrt(1 - u * u);
     return [Math.cos(th) * s * r, u * r, Math.sin(th) * s * r];
   }
-  let x = 0, y = 0, z = 0, w = 0;
+  let x = 0,
+    y = 0,
+    z = 0,
+    w = 0;
   for (const { node, s } of neighbours) {
-    x += node.pos[0] * s; y += node.pos[1] * s; z += node.pos[2] * s; w += s;
+    x += node.pos[0] * s;
+    y += node.pos[1] * s;
+    z += node.pos[2] * s;
+    w += s;
   }
   w = w || 1;
-  return [
-    x / w + (rand() - 0.5) * 3,
-    y / w + (rand() - 0.5) * 3,
-    z / w + (rand() - 0.5) * 3,
-  ];
+  return [x / w + (rand() - 0.5) * 3, y / w + (rand() - 0.5) * 3, z / w + (rand() - 0.5) * 3];
 }
 
 // One relaxation step over the whole atlas.
 // nodes: [{ pos:[x,y,z], vel:[x,y,z], edges:[{to,rest,k}], pinned, scale }]
 export function relax(nodes, dt, opts = {}) {
   const {
-    gravity = 0.0016,      // pull toward origin
-    repel = 70,            // short-range anti-overlap strength
-    repelRadius = 4.2,     // only neighbours within this distance repel
+    gravity = 0.0016, // pull toward origin
+    repel = 70, // short-range anti-overlap strength
+    repelRadius = 4.2, // only neighbours within this distance repel
     damping = 0.86,
     maxSpeed = 1.4,
   } = opts;
@@ -86,8 +90,7 @@ export function relax(nodes, dt, opts = {}) {
   // --- spatial hash for cheap local repulsion ---
   const cell = repelRadius;
   const grid = new Map();
-  const key = (x, y, z) =>
-    `${Math.floor(x / cell)},${Math.floor(y / cell)},${Math.floor(z / cell)}`;
+  const key = (x, y, z) => `${Math.floor(x / cell)},${Math.floor(y / cell)},${Math.floor(z / cell)}`;
   for (const n of nodes) {
     const k = key(n.pos[0], n.pos[1], n.pos[2]);
     let b = grid.get(k);
@@ -95,9 +98,7 @@ export function relax(nodes, dt, opts = {}) {
     b.push(n);
   }
   const neighborOffsets = [];
-  for (let dx = -1; dx <= 1; dx++)
-    for (let dy = -1; dy <= 1; dy++)
-      for (let dz = -1; dz <= 1; dz++) neighborOffsets.push([dx, dy, dz]);
+  for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (let dz = -1; dz <= 1; dz++) neighborOffsets.push([dx, dy, dz]);
 
   for (const n of nodes) {
     if (n.pinned) continue;
@@ -106,7 +107,9 @@ export function relax(nodes, dt, opts = {}) {
     // (mob≈1) yield to settled structure (mob→floor) instead of shoving it around.
     const mob = n.mob === undefined ? 1 : n.mob;
     if (mob <= 0.0001) continue;
-    let fx = 0, fy = 0, fz = 0;
+    let fx = 0,
+      fy = 0,
+      fz = 0;
 
     // gravity toward the centre
     fx -= n.pos[0] * gravity;
@@ -122,7 +125,9 @@ export function relax(nodes, dt, opts = {}) {
       let dz = t.pos[2] - n.pos[2];
       const d = Math.hypot(dx, dy, dz) || 1e-4;
       const f = ((d - e.rest) * e.k) / d;
-      fx += dx * f; fy += dy * f; fz += dz * f;
+      fx += dx * f;
+      fy += dy * f;
+      fz += dz * f;
     }
 
     // local repulsion
@@ -141,7 +146,9 @@ export function relax(nodes, dt, opts = {}) {
         if (d2 > repelRadius * repelRadius) continue;
         const d = Math.sqrt(d2) || 1e-3;
         const f = repel / (d2 + 0.6);
-        fx += (dx / d) * f; fy += (dy / d) * f; fz += (dz / d) * f;
+        fx += (dx / d) * f;
+        fy += (dy / d) * f;
+        fz += (dz / d) * f;
       }
     }
 
@@ -153,9 +160,13 @@ export function relax(nodes, dt, opts = {}) {
     const sp = Math.hypot(n.vel[0], n.vel[1], n.vel[2]);
     if (sp > lim) {
       const k = lim / sp;
-      n.vel[0] *= k; n.vel[1] *= k; n.vel[2] *= k;
+      n.vel[0] *= k;
+      n.vel[1] *= k;
+      n.vel[2] *= k;
     }
 
-    n.pos[0] += n.vel[0]; n.pos[1] += n.vel[1]; n.pos[2] += n.vel[2];
+    n.pos[0] += n.vel[0];
+    n.pos[1] += n.vel[1];
+    n.pos[2] += n.vel[2];
   }
 }
