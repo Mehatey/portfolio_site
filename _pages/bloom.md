@@ -142,20 +142,8 @@ next_project:
   </video>
 </div>
 
-<!-- VP SCENES: after opening, before interactive iframe -->
-<p class="cube-cap cube-cap--above"><em>The six scenes the app moves through. Each one a different quality of stillness.</em></p>
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-2.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
+<!-- VP SCENES: a focused sample before the interactive tree -->
+<p class="cube-cap cube-cap--above"><em>A few of the scenes the app moves through. Each one a different quality of stillness.</em></p>
 
 <div class="cs-bleed">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
@@ -174,12 +162,6 @@ next_project:
       <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-22.mp4" type="video/mp4" />
     </video>
   </div>
-</div>
-
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-23.mp4" type="video/mp4" />
-  </video>
 </div>
 
 <!-- SECTION: SIT WITH IT - live in-browser AI inhabiting a 3D bodhi tree (self-contained, embedded) -->
