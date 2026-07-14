@@ -43,7 +43,7 @@ a guess, the guess is confirmed and collapses into it.
    generative image model.** Your doc's wording ("generates the patterns it
    expects") taken literally means in-browser diffusion — heavy, slow, and it
    would look like AI slop next to real macro photography. Instead the machine
-   predicts *where* a resemblance should cluster: hollow glowing rings at the
+   predicts _where_ a resemblance should cluster: hollow glowing rings at the
    CLIP-midpoint between two real neighbours. Cheaper, faster, and the sharper
    idea. This is the one creative substitution I made vs. your brief — if you
    really want generated imagery in the gaps, that's a bigger, separate build.
@@ -57,7 +57,7 @@ a guess, the guess is confirmed and collapses into it.
 ## Heads-up: overlap with FERAL
 
 A `~/Desktop/feral` appeared in your memory index tonight — also a live iNat feed
-piece, but scored into generative *music*. MIMIC shares the data source but is a
+piece, but scored into generative _music_. MIMIC shares the data source but is a
 different organ entirely (visual CLIP clustering + expected forms, no audio). If
 they were meant to be one piece, say so and I'll merge; otherwise they stand apart
 cleanly.
@@ -69,6 +69,7 @@ builds, OrbitControls, transformers, the CLIP weights), the iNat API returns liv
 data, and the TSL primitives I use match your working latent-atlas imports.
 
 I could **not** run WebGPU headless, so the things to glance at first run:
+
 - per-instance `attribute()` indexing on the InstancedMesh (standard pattern, but
   if billboards render wrong, that's the suspect — `render.js`);
 - ghost ring tuning (band radius / flicker) in `render.js` — purely cosmetic;

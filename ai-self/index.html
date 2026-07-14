@@ -51,7 +51,7 @@
         },
         "genre": "AI · AR · VR"
       }
-    </script> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Inter:wght@200;300;400;500;600;700&amp;display=swap" onload=" this.onload = null; this.rel = 'stylesheet'; "> <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Inter:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet"></noscript> <style>
+    </script> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap" onload=" this.onload = null; this.rel = 'stylesheet'; "> <noscript><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap" rel="stylesheet"></noscript> <style>
   /* ── DESIGN TOKENS ──────────────────────────────────────────────────────────
      Single source of truth for all design tokens. Included in <head> of every
      layout. Page-specific overrides live in each layout's own <style> block.
@@ -80,9 +80,9 @@
     --accent-dim: rgba(160, 200, 255, 0.55);
 
     /* ── Typography ── */
-    --font-head: "Inter", sans-serif;
+    --font-head: "Figtree", sans-serif;
     --font-mono: "DM Mono", monospace;
-    --font-title: "Inter", sans-serif;
+    --font-title: "Figtree", sans-serif;
 
     /* ── Layout ── */
     --nav-h: 64px;
@@ -121,6 +121,54 @@
   a {
     color: inherit;
     text-decoration: none;
+  }
+
+  /* ── Cross-page motion ───────────────────────────────────────────────────
+     A light, progressive enhancement for browsers that support cross-document
+     View Transitions. It makes navigation feel like a change of scene rather
+     than a hard cut; unsupported browsers retain the normal fast navigation.
+     ──────────────────────────────────────────────────────────────────────── */
+  @view-transition {
+    navigation: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+      animation: page-scene-out 260ms var(--ease-out) both;
+      mix-blend-mode: normal;
+    }
+
+    ::view-transition-new(root) {
+      animation: page-scene-in 520ms var(--ease-out) both;
+      mix-blend-mode: normal;
+    }
+  }
+
+  @keyframes page-scene-out {
+    to {
+      opacity: 0;
+      filter: blur(2px);
+      transform: scale(0.992);
+    }
+  }
+
+  @keyframes page-scene-in {
+    from {
+      opacity: 0;
+      filter: blur(5px);
+      transform: scale(1.012);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    @view-transition {
+      navigation: none;
+    }
   }
 </style> <style>
       :root {
@@ -269,6 +317,16 @@
         view-transition-name: project-hero;
         filter: url(#hero-liq-filter);
       }
+      /* Case studies are primarily read by scrolling. Embedded experiences therefore
+         start as visual previews; they may only receive pointer input after their own
+         explicit affordance opts in with data-project-interactive + .is-active. This
+         prevents a single experimental embed from swallowing the page wheel. */
+      .proj-body iframe {
+        pointer-events: none;
+      }
+      .proj-body [data-project-interactive].is-active iframe {
+        pointer-events: auto;
+      }
       /* Motion lives on the work itself. The case-study media picks up a brief,
          velocity-driven deformation while scrolling, then resolves perfectly sharp. */
       #main.project-is-warping .proj-body .cs-bleed,
@@ -360,7 +418,51 @@
       }
       .hero-inner {
         position: relative; z-index: 3;
-        padding: 0 var(--gutter) 48px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+        align-items: end;
+        gap: clamp(24px, 5vw, 84px);
+        padding: 0 var(--gutter) 44px;
+      }
+      .hero-title-stack { min-width: 0; }
+      /* Recruiter brief: enough evidence to decide whether to continue, without
+         enclosing the hero in another card or repeating the entire metadata row. */
+      .hero-recruiter-brief {
+        padding: 4px 0 2px 18px;
+        border-left: 1px solid rgba(225, 240, 255, 0.42);
+        opacity: 0;
+        animation: introFadeUp 0.8s var(--ease-out) 0.55s both;
+      }
+      .hero-brief-label,
+      .hero-brief-key,
+      .hero-brief-jump {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        line-height: 1.4;
+        text-transform: uppercase;
+      }
+      .hero-brief-label { margin: 0 0 13px; color: rgba(206, 226, 247, 0.58); }
+      .hero-brief-fact { margin: 0 0 11px; }
+      .hero-brief-key { display: block; margin-bottom: 3px; color: rgba(255,255,255,0.38); }
+      .hero-brief-value {
+        display: block;
+        font-family: var(--font-head);
+        font-size: 14px;
+        line-height: 1.38;
+        color: rgba(255,255,255,0.84);
+      }
+      .hero-brief-jump {
+        display: inline-block;
+        margin-top: 4px;
+        padding-bottom: 3px;
+        color: rgba(220, 238, 255, 0.78);
+        text-decoration: none;
+        border-bottom: 1px solid rgba(220, 238, 255, 0.4);
+        transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s var(--ease-out);
+      }
+      .hero-brief-jump:hover { color: #fff; border-color: #fff; transform: translateX(3px); }
+      .hero-brief-jump::after { content: " ↓"; }
       }
       .proj-title {
         font-family: var(--font-title);
@@ -547,18 +649,259 @@
       }
 
       /* ─── CONTENT BODY ─── */
-      .proj-body {}
+      .proj-body { scroll-margin-top: calc(var(--nav-h) + 24px); }
+
+      /* ─── CASE PATH ─── A compact horizontal route through long case studies.
+         It makes the recruiter read (summary → proof → process) explicit without
+         turning the whole document into a scroll-jacked horizontal experience. */
+      .case-rail {
+        display: flex;
+        align-items: center;
+        gap: 10px 20px;
+        margin: 28px var(--gutter) 0;
+        padding: 12px 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-top: 1px solid rgba(255,255,255,0.09);
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        white-space: nowrap;
+        scroll-snap-type: x proximity;
+      }
+      .case-rail::-webkit-scrollbar { display: none; }
+      .case-rail-label,
+      .case-rail a {
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .case-rail-label { color: rgba(255,255,255,0.3); }
+      .case-rail a {
+        color: rgba(255,255,255,0.56);
+        text-decoration: none;
+        padding-bottom: 3px;
+        border-bottom: 1px solid transparent;
+        transition: color 0.2s ease, border-color 0.2s ease;
+      }
+      .case-rail a:hover,
+      .case-rail a.is-current {
+        color: #fff;
+        border-color: rgba(255,255,255,0.55);
+      }
+      #case-overview,
+      #case-proof,
+      #case-archive,
+      #project-next-step { scroll-margin-top: calc(var(--nav-h) + 24px); }
+
+      /* ─── CASE RAIL ─── Long case studies need a stable reading anchor, not a
+         parade of full-browser images. The brief stays in view while the visual
+         narrative moves alongside it. This is intentionally ordinary vertical
+         scrolling: no wheel-hijacking, no horizontal scroll theatre. */
+      .case-study-layout {
+        display: grid;
+        grid-template-columns: minmax(190px, 0.34fr) minmax(0, 0.66fr);
+        gap: clamp(36px, 7vw, 112px);
+        max-width: var(--content-max);
+        margin: 0 auto;
+        padding: 46px var(--gutter) 0;
+      }
+      .case-context {
+        position: sticky;
+        top: calc(var(--nav-h) + 28px);
+        align-self: start;
+        padding-bottom: 24px;
+      }
+      .case-context__eyebrow,
+      .case-context__label,
+      .case-context__links a {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        line-height: 1.45;
+        text-transform: uppercase;
+      }
+      .case-context__eyebrow {
+        margin: 0 0 14px;
+        color: rgba(178, 209, 241, 0.6);
+      }
+      .case-context__title {
+        margin: 0 0 16px;
+        font-family: var(--font-head);
+        font-size: clamp(22px, 2.25vw, 32px);
+        font-weight: 400;
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+        color: rgba(255, 255, 255, 0.94);
+      }
+      .case-context__summary {
+        margin: 0;
+        max-width: 27ch;
+        font-family: var(--font-head);
+        font-size: 14px;
+        line-height: 1.55;
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .case-context__proof {
+        display: grid;
+        gap: 8px;
+        margin: 24px 0;
+        padding: 14px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .case-progress {
+        margin: 22px 0 24px;
+        padding: 13px 0 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+      }
+      .case-progress__head {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 9px;
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.14em;
+        line-height: 1.4;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.4);
+      }
+      .case-progress__value { color: rgba(194, 220, 246, 0.78); font-variant-numeric: tabular-nums; }
+      .case-progress__track {
+        position: relative;
+        height: 3px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .case-progress__fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 100%;
+        transform: scaleX(var(--case-progress, 0));
+        transform-origin: left center;
+        background: linear-gradient(90deg, rgba(138, 195, 245, 0.55), rgba(218, 239, 255, 0.95));
+        box-shadow: 0 0 12px rgba(152, 205, 255, 0.5);
+        transition: transform 0.16s linear;
+      }
+      .case-progress__note {
+        margin: 8px 0 0;
+        font-family: var(--font-mono);
+        font-size: 8px;
+        letter-spacing: 0.12em;
+        line-height: 1.4;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.3);
+      }
+      .case-context__label { color: rgba(255, 255, 255, 0.36); }
+      .case-context__value {
+        font-family: var(--font-head);
+        font-size: 14px;
+        line-height: 1.4;
+        color: rgba(255, 255, 255, 0.78);
+      }
+      .case-context__links {
+        display: grid;
+        gap: 9px;
+      }
+      .case-context__links a {
+        width: fit-content;
+        padding-bottom: 3px;
+        color: rgba(255, 255, 255, 0.5);
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition: color 0.2s ease, border-color 0.2s ease;
+      }
+      .case-context__links a:hover { color: #fff; border-color: rgba(255, 255, 255, 0.55); }
+      .case-story { min-width: 0; }
+      .case-story .case-rail {
+        margin: 0 0 24px;
+      }
+      /* Every visual now belongs to the media rail. The !important rules also
+         normalize older per-page inline margins, which were the source of the
+         inconsistent oversized visual treatment. */
+      .case-story .cs-bleed,
+      .case-story .cs-wide,
+      .case-story .cs-grid,
+      .case-story .cs-grid-3,
+      .case-story .cs-split,
+      .case-story .cs-pair {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+      }
+      .case-story .cs-bleed,
+      .case-story .cs-wide,
+      .case-story .cs-grid,
+      .case-story .cs-grid-3 { margin-top: 28px !important; }
+      .case-story .cs-bleed {
+        aspect-ratio: 16 / 10;
+        max-height: min(64vh, 640px);
+      }
+      .case-story .cs-bleed img,
+      .case-story .cs-bleed video { object-fit: cover; }
+      .case-story .cs-wide-inner { aspect-ratio: 16 / 10; max-height: min(64vh, 640px); }
+      .case-story .cs-grid { gap: 12px; }
+      .case-story .cs-grid-item { aspect-ratio: 4 / 3; }
+      .case-story .cs-grid-3 { gap: 8px; }
+      .case-story .cs-grid-3 .cs-grid-item { aspect-ratio: 3 / 4; }
+      .case-story .cs-row {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      .case-story .cube-cap { padding-left: 0 !important; padding-right: 0 !important; }
+      .case-story .cs-bleed-full {
+        width: 100%;
+        margin: 28px 0 0;
+        aspect-ratio: 16 / 10;
+      }
+
+      @media (max-width: 900px) {
+        .case-study-layout {
+          display: block;
+          padding-top: 30px;
+        }
+        .case-context {
+          position: static;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(180px, 0.65fr);
+          gap: 12px 28px;
+          margin-bottom: 28px;
+          padding-bottom: 22px;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .case-context__eyebrow,
+        .case-context__title,
+        .case-context__summary { grid-column: 1; }
+        .case-context__proof,
+        .case-progress,
+        .case-context__links { grid-column: 2; }
+        .case-context__proof { margin: 0; padding-top: 0; border-top: 0; }
+        .case-progress { margin: 0; padding-top: 0; border-top: 0; }
+        .case-story .cs-bleed,
+        .case-story .cs-wide-inner,
+        .case-story .cs-bleed-full { max-height: none; }
+      }
+      @media (max-width: 600px) {
+        .case-study-layout { padding-top: 22px; }
+        .case-context { display: block; }
+        .case-context__proof { margin: 20px 0; padding: 12px 0; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .case-progress { margin: 20px 0; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .case-context__links { display: flex; flex-wrap: wrap; gap: 10px 18px; }
+        .case-story .cs-grid { gap: 10px; }
+      }
 
       /* ─── SECTION ROW ─── */
       .cs-row {
-        padding: 48px var(--gutter) 0;
+        padding: 40px var(--gutter) 0;
         max-width: var(--content-max);
       }
       .cs-row + .cs-row { padding-top: 40px; }
 
       /* Tight row — intro section connected to media below (e.g. artists + gallery) */
-      .cs-row--tight { padding-top: 72px; }
-      .cs-row--tight + .cs-bleed { margin-top: 40px; }
+      .cs-row--tight { padding-top: 56px; }
+      .cs-row--tight + .cs-bleed { margin-top: 28px; }
 
       /* ─── SECTION DIVIDER ─── */
       .cs-divider {
@@ -650,13 +993,13 @@
       .cs-grid-3 + .cs-grid-3,
       .cs-grid + .cs-grid-3,
       .cs-grid-3 + .cs-grid {
-        margin-top: 32px;
+        margin-top: 24px;
       }
       .film-grid--no-top {
         margin-top: 0 !important;
       }
       .cs-bleed {
-        margin: 48px var(--gutter) 0;
+        margin: 36px var(--gutter) 0;
         width: calc(100% - var(--gutter) * 2);
         aspect-ratio: 16 / 9;
         position: relative; overflow: hidden;
@@ -683,7 +1026,7 @@
       .cs-bleed-cap { display: none; }
 
       .cs-wide {
-        margin: 48px var(--gutter) 0;
+        margin: 36px var(--gutter) 0;
       }
       .cs-wide-inner {
         width: 100%; aspect-ratio: 16 / 9;
@@ -697,7 +1040,7 @@
 
       /* Two-up grid */
       .cs-grid {
-        margin: 48px var(--gutter) 0;
+        margin: 36px var(--gutter) 0;
         display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
         position: relative;
         content-visibility: auto;
@@ -1318,6 +1661,7 @@
       @media (max-width: 900px) {
         :root { --gutter: 28px; }
         .nav-links { gap: 14px; }
+        .hero-inner { grid-template-columns: minmax(0, 1fr) 220px; gap: 28px; }
 
         .cs-pair { gap: 20px; padding-top: 48px; }
         .cs-pair-text { grid-template-columns: 1fr; }
@@ -1342,6 +1686,20 @@
         .nav-icon, .nav-icon img { width: 26px; height: 26px; }
 
         .proj-title { font-size: clamp(40px, 12vw, 72px) !important; }
+        .hero-inner { display: block; padding-bottom: 30px; }
+        .hero-recruiter-brief {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px 18px;
+          margin-top: 22px;
+          padding: 12px 0 0;
+          border-top: 1px solid rgba(225, 240, 255, 0.28);
+          border-left: 0;
+        }
+        .hero-brief-label,
+        .hero-brief-jump { grid-column: 1 / -1; }
+        .hero-brief-label { margin: 0; }
+        .hero-brief-fact { margin: 0; }
         .next-visual { height: 180px; }
         .cs-grid-3 { grid-template-columns: 1fr; }
         .cs-stats-inner { grid-template-columns: 1fr; }
@@ -1415,6 +1773,17 @@
         gap: 14px;
         pointer-events: auto;
       }
+      .toc-dots::before {
+        content: '';
+        width: 11px;
+        height: 11px;
+        align-self: center;
+        margin-bottom: 3px;
+        border: 1px solid rgba(188, 216, 246, 0.54);
+        box-shadow: 4px -4px 0 -1px rgba(188, 216, 246, 0.22);
+        transform: rotate(30deg) skewY(-8deg);
+        opacity: 0.85;
+      }
       .toc-dot {
         width: 14px; height: 1px;
         background: rgba(255, 255, 255, 0.2);
@@ -1427,6 +1796,17 @@
         width: 24px;
         height: 2px;
         background: rgba(255, 255, 255, 0.85);
+      }
+      .toc-dot.is-active::after {
+        content: '';
+        position: absolute;
+        right: -4px;
+        top: 50%;
+        width: 5px;
+        height: 5px;
+        transform: translateY(-50%) rotate(30deg) skewY(-8deg);
+        background: rgba(205, 228, 255, 0.92);
+        box-shadow: 0 0 10px rgba(153, 203, 255, 0.58);
       }
       .toc-dot::before {
         content: attr(data-label);
@@ -1455,7 +1835,7 @@
 
       /* ─── SECTION DIVIDER (global) ─── */
       .cs-section {
-        padding: 80px var(--gutter) 32px;
+        padding: 56px var(--gutter) 24px;
         display: flex;
         align-items: center;
         gap: 12px;
@@ -1604,6 +1984,23 @@
       html[data-theme="light"] .meta-item {
         border-color: rgba(7, 9, 15, 0.1);
       }
+      html[data-theme="light"] .case-rail {
+        border-color: rgba(7, 9, 15, 0.12);
+      }
+      html[data-theme="light"] .case-rail-label {
+        color: rgba(7, 9, 15, 0.42);
+      }
+      html[data-theme="light"] .case-rail a {
+        color: rgba(7, 9, 15, 0.7);
+      }
+      html[data-theme="light"] .case-rail a:hover {
+        color: #07090f;
+        border-color: rgba(7, 9, 15, 0.55);
+      }
+      html[data-theme="light"] .case-rail a.is-current {
+        color: #07090f;
+        border-color: rgba(7, 9, 15, 0.55);
+      }
       html[data-theme="light"] .meta-below-label {
         color: rgba(7, 9, 15, 0.5);
       }
@@ -1696,7 +2093,7 @@
           linear-gradient(to bottom, #f5f3ee 0%, transparent 60px),
           linear-gradient(to top, #f5f3ee 0%, transparent 60px);
       }
-    </style> </head> <body> <div class="progress-bar"><div class="progress-fill" id="progress"></div></div> <a class="skip-link" href="#main">Skip to project content</a> <nav class="nav"> <a href="/" aria-label="Home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <path class="cube-face cube-top" d="M4.8 12.4 11.2 6h20l-6.4 6.4Z"></path> <path class="cube-face cube-right" d="m24.8 12.4 6.4-6.4V26l-6.4 6.4Z"></path> <path class="cube-front" d="M4.8 12.4h20v20h-20Z"></path> <g class="logo-gaze"> <rect class="logo-eye" x="11" y="18.4" width="1.45" height="5.5" rx="0.7" fill="#e7f1ff"></rect> <rect class="logo-eye" x="17.15" y="18.4" width="1.45" height="5.5" rx="0.7" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M8.7 26.2h12.2"></path> </svg> </a> <div class="nav-links"> <a href="/works/" class="nav-icon is-active" aria-label="Work" data-label="Work" aria-current="page"><img src="/assets/img/nav/cube.png" alt="Work"></a> <a href="/play/" class="nav-icon" aria-label="Play" data-label="Play"><img src="/assets/img/nav/flower.png" alt="Play"></a> <a href="/contact/" class="nav-icon" aria-label="Contact" data-label="Contact"><img src="/assets/img/nav/sparkle.png" alt="Contact"></a> <a href="/about/" class="nav-icon" aria-label="About" data-label="About"><img src="/assets/img/nav/cross.png" alt="About"></a> </div> </nav> <main id="main"> <header class="proj-hero"> <img class="hero-video" src="/2.ai-self/cover.png" alt="AI Self" loading="eager" fetchpriority="high"> <div class="hero-overlay"></div> <div class="hero-inner"> <h1 class="proj-title">AI Self</h1> </div> </header> <div class="meta-row"> <canvas class="meta-water-canvas" id="meta-water" aria-hidden="true"></canvas> <div class="meta-item"> <p class="meta-k">Role</p> <p class="meta-v"> Solo </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2024–2025 </p> </div> <div class="meta-item"> <p class="meta-k">Tools</p> <p class="meta-v"> Unity · ARKit · Figma · Google Cloud Vision </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> Self Initiated </p> </div> </div> <div class="proj-intro"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">A research arc in three phases. First, experiments asking what AI actually perceives, and what that reveals about the gap between pattern and meaning. Second, a design concept for an AI that lives alongside you in mixed reality. Third, a VR world where an AI wakes up inside everything it has ever learned about humanity.</p> </div> </div> <div class="proj-body"> <style>
+    </style> </head> <body> <div class="progress-bar"><div class="progress-fill" id="progress"></div></div> <a class="skip-link" href="#main">Skip to project content</a> <nav class="nav"> <a href="/" aria-label="Home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <path class="cube-face cube-top" d="M4.8 12.4 11.2 6h20l-6.4 6.4Z"></path> <path class="cube-face cube-right" d="m24.8 12.4 6.4-6.4V26l-6.4 6.4Z"></path> <path class="cube-front" d="M4.8 12.4h20v20h-20Z"></path> <g class="logo-gaze"> <rect class="logo-eye" x="11.55" y="19.55" width="1.2" height="3.1" rx="0.6" fill="#e7f1ff"></rect> <rect class="logo-eye" x="17.05" y="19.55" width="1.2" height="3.1" rx="0.6" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M8.7 26.2h12.2"></path> </svg> </a> <div class="nav-links"> <a href="/works/" class="nav-icon is-active" aria-label="Work" data-label="Work" aria-current="page"><img src="/assets/img/nav/cube.png" alt="Work"></a> <a href="/play/" class="nav-icon" aria-label="Play" data-label="Play"><img src="/assets/img/nav/flower.png" alt="Play"></a> <a href="/contact/" class="nav-icon" aria-label="Contact" data-label="Contact"><img src="/assets/img/nav/sparkle.png" alt="Contact"></a> <a href="/about/" class="nav-icon" aria-label="About" data-label="About"><img src="/assets/img/nav/cross.png" alt="About"></a> </div> </nav> <main id="main"> <header class="proj-hero"> <img class="hero-video" src="/2.ai-self/cover.png" alt="AI Self" loading="eager" fetchpriority="high"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title">AI Self</h1> </div> <aside class="hero-recruiter-brief" aria-label="Project at a glance"> <p class="hero-brief-label">At a glance</p> <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">AI · AR · VR</span></p> <p class="hero-brief-fact"> <span class="hero-brief-key">Role</span><span class="hero-brief-value">Solo</span> </p> <p class="hero-brief-fact"> <span class="hero-brief-key">Proof</span><span class="hero-brief-value">3 · research arcs</span> </p> <a class="hero-brief-jump" href="#case-archive">Skim visual story</a> </aside> </div> </header> <div class="meta-row"> <canvas class="meta-water-canvas" id="meta-water" aria-hidden="true"></canvas> <div class="meta-item"> <p class="meta-k">Role</p> <p class="meta-v"> Solo </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2024–2025 </p> </div> <div class="meta-item"> <p class="meta-k">Tools</p> <p class="meta-v"> Unity · ARKit · Figma · Google Cloud Vision </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> Self Initiated </p> </div> </div> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">A research arc in three phases. First, experiments asking what AI actually perceives, and what that reveals about the gap between pattern and meaning. Second, a design concept for an AI that lives alongside you in mixed reality. Third, a VR world where an AI wakes up inside everything it has ever learned about humanity.</p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">3</p> <p class="proj-highlight-label">research arcs</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">AI · AR · VR</p> <p class="proj-highlight-label">modes of exploration</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Solo</p> <p class="proj-highlight-label">research &amp; prototyping</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Project brief"> <p class="case-context__eyebrow">Project brief</p> <h2 class="case-context__title">AI Self</h2> <p class="case-context__summary">A research arc in three phases. First, experiments asking what AI actually perceives, and what that reveals about the gap between pattern and meaning. Second, a design concept for an AI that lives alongside you in mixed reality. Third, a VR world where an AI wakes up inside everything it has ever learned about humanity.</p> <div class="case-context__proof"> <span class="case-context__label">Role</span> <span class="case-context__value">Solo</span> <span class="case-context__label">Outcome</span> <span class="case-context__value">3 · research arcs</span> </div> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Summary</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Process</a> <a href="#project-next-step">Next</a> </nav> <div class="proj-body" id="case-archive"> <style>
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img, .cs-bleed video { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
@@ -1730,12 +2127,12 @@
       if (!vid.muted) vid.play().catch(function () {});
     });
   })();
-</script> </div> <section class="proj-reflection" id="reflection-section"> <img class="refl-bg-img" id="refl-bg-img" src="/2.ai-self/reflection.png" alt="" loading="lazy"> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>The research started as a joke. Feeding images into Cloud Vision just to see how badly it misread them. But the patterns kept surfacing. Not about what AI fails at, but about what it has decided is worth noticing in the first place.</p> <p>Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference. AI Self was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.</p> </blockquote> </div> </section> <div class="proj-next-row" style="grid-template-columns: 1fr"> <a href="/aananda/" class="proj-next"> <div class="next-visual" style="background: #060608;"></div> <div class="next-info"> <p class="next-label">Next Project</p> <div class="next-title-row"> <div> <p class="next-title">Aananda</p> </div> <span class="next-arrow">→</span> </div> </div> </a> </div> <section class="proj-footer" aria-labelledby="project-next-step"> <h2 id="project-next-step" class="sr-only">Continue exploring Sid Mehta's work</h2> <p class="proj-footer-text">Interested in this kind of design work?</p> <div class="proj-footer-social"> <a href="/works/">More case studies</a> <a href="/about/">About Sid</a> </div> <a href="/contact/" class="proj-footer-cta">Start a conversation →</a> </section> </main> <style>
+</script> </div> </div> </div> <section class="proj-reflection" id="reflection-section"> <img class="refl-bg-img" id="refl-bg-img" src="/2.ai-self/reflection.png" alt="" loading="lazy"> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>The research started as a joke. Feeding images into Cloud Vision just to see how badly it misread them. But the patterns kept surfacing. Not about what AI fails at, but about what it has decided is worth noticing in the first place.</p> <p>Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference. AI Self was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.</p> </blockquote> </div> </section> <div class="proj-next-row" style="grid-template-columns: 1fr"> <a href="/aananda/" class="proj-next"> <div class="next-visual" style="background: #060608;"></div> <div class="next-info"> <p class="next-label">Next Project</p> <div class="next-title-row"> <div> <p class="next-title">Aananda</p> </div> <span class="next-arrow">→</span> </div> </div> </a> </div> <section class="proj-footer" aria-labelledby="project-next-step"> <h2 id="project-next-step" class="sr-only">Continue exploring Sid Mehta's work</h2> <p class="proj-footer-text">Interested in this kind of design work?</p> <div class="proj-footer-social"> <a href="/works/">More case studies</a> <a href="/about/">About Sid</a> </div> <a href="/contact/" class="proj-footer-cta">Start a conversation →</a> </section> </main> <style>
   /* A footer should read as an endpoint, not another interactive scene. */
   .site-footer {
-    max-width: var(--content-max, 1440px);
+    max-width: none;
     margin: 0 auto;
-    padding: 64px max(24px, 5vw) 34px;
+    padding: 56px var(--gutter) 32px;
     position: relative;
     z-index: 5;
   }
@@ -1804,7 +2201,7 @@
   @media (max-width: 600px) {
     .site-footer {
       margin-top: 0;
-      padding: 48px 20px 28px;
+      padding: 44px var(--gutter) 28px;
     }
     .site-footer-inner {
       grid-template-columns: 1fr;
@@ -1982,10 +2379,29 @@
   .logo-cube {
     view-transition-name: sid-cube;
   }
+  @keyframes sid-cube-out {
+    to {
+      opacity: 0;
+      transform: perspective(260px) rotateY(-72deg) rotateX(8deg) scale(0.78);
+      filter: blur(1px);
+    }
+  }
+  @keyframes sid-cube-in {
+    from {
+      opacity: 0;
+      transform: perspective(260px) rotateY(72deg) rotateX(-8deg) scale(0.78);
+      filter: blur(1px);
+    }
+  }
   ::view-transition-old(sid-cube),
   ::view-transition-new(sid-cube) {
-    animation-duration: 0.45s;
     animation-timing-function: var(--ease-out);
+  }
+  ::view-transition-old(sid-cube) {
+    animation: sid-cube-out 0.32s var(--ease-out) both;
+  }
+  ::view-transition-new(sid-cube) {
+    animation: sid-cube-in 0.42s var(--ease-out) both;
   }
   /* Nav stays a stable named transition (simple crossfade, no motion) so the fixed
      chrome doesn't get caught in the page's scale/blur below — it should read as
@@ -2025,7 +2441,9 @@
     ::view-transition-old(root),
     ::view-transition-new(root),
     ::view-transition-old(site-nav),
-    ::view-transition-new(site-nav) {
+    ::view-transition-new(site-nav),
+    ::view-transition-old(sid-cube),
+    ::view-transition-new(sid-cube) {
       animation: none !important;
     }
   }
@@ -2070,10 +2488,13 @@
     overflow: visible;
     color: rgba(186, 211, 244, 0.78);
     transform-origin: center;
+    transform-style: preserve-3d;
     transition:
       transform 0.42s var(--ease-out),
-      color 0.3s ease,
-      filter 0.42s ease !important;
+      color 0.3s ease !important;
+  }
+  .nav > a {
+    perspective: 560px;
   }
   .nav-icon {
     width: 28px !important;
@@ -2180,10 +2601,78 @@
   .logo-cube.logo-pressed {
     animation: sid-logo-press 0.42s var(--ease-out);
   }
+  /* The cube only shows a little life while the page is still. Input immediately
+     clears the state, so it never competes with reading or scrolling. */
+  @keyframes sid-cube-idle {
+    0%,
+    100% {
+      transform: translateY(0) rotateZ(0);
+    }
+    35% {
+      transform: translateY(-1px) rotateZ(-1.5deg);
+    }
+    62% {
+      transform: translateY(0) rotateZ(1deg);
+    }
+  }
+  .logo-cube.is-idle {
+    animation: sid-cube-idle 1.6s var(--ease-out) both;
+  }
+  /* Rare idle fly-by: a clone leaves the mark for a second, then returns the
+     page to stillness. It lives above the nav and never accepts pointer input. */
+  .cube-wanderer {
+    position: fixed;
+    z-index: 205;
+    width: 36px;
+    height: 36px;
+    color: rgba(205, 229, 255, 0.94);
+    pointer-events: none;
+    overflow: visible;
+    view-transition-name: none !important;
+    filter: drop-shadow(0 0 11px rgba(144, 201, 255, 0.42));
+    animation: sid-cube-flight 2.5s var(--ease-out) both;
+  }
+  .cube-wanderer .cube-face {
+    opacity: 0.82;
+    fill-opacity: 0.16;
+  }
+  .cube-wanderer .cube-top {
+    transform: translateY(0);
+  }
+  .cube-wanderer .cube-right {
+    transform: translateX(0);
+  }
+  .cube-wanderer .logo-scan {
+    opacity: 0.7;
+    stroke-dashoffset: 0;
+  }
+  @keyframes sid-cube-flight {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg) scale(0.82);
+    }
+    12% {
+      opacity: 0.94;
+    }
+    46% {
+      opacity: 0.96;
+      transform: translate3d(var(--cube-flight-x1), var(--cube-flight-y1), 0) rotateY(220deg) rotateZ(12deg) scale(1.02);
+    }
+    78% {
+      opacity: 0.84;
+      transform: translate3d(var(--cube-flight-x2), var(--cube-flight-y2), 0) rotateY(480deg) rotateZ(-8deg) scale(0.9);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(var(--cube-flight-x3), var(--cube-flight-y3), 0) rotateY(640deg) rotateZ(0deg) scale(0.72);
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .logo-cube,
     .logo-cube .cube-face,
     .logo-cube .logo-eye,
+    .logo-cube.is-idle,
+    .cube-wanderer,
     .logo-cube .logo-scan,
     .logo-gaze {
       animation: none;
@@ -3648,6 +4137,21 @@
       background 0.25s ease;
     padding: 0;
   }
+  /* Keep utility controls available at rest, then clear them out while the
+     page is in motion so the work—not floating chrome—owns the scroll. */
+  #theme-toggle,
+  #cube-chat-fab {
+    will-change: opacity, transform;
+  }
+  body.is-scrolling #theme-toggle,
+  body.is-scrolling #cube-chat-fab:not(.is-open) {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.88) !important;
+  }
+  body.is-scrolling #cube-chat-fab .fab-pulse {
+    animation-play-state: paused;
+  }
   #theme-toggle:hover {
     transform: scale(1.08);
     border-color: rgba(255, 255, 255, 0.3);
@@ -3817,7 +4321,7 @@
     gap: 2px;
   }
   .cc-name {
-    font-family: var(--font-head, "Inter", sans-serif);
+    font-family: var(--font-head, "Figtree", sans-serif);
     font-size: 14px;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.95);
@@ -3874,7 +4378,7 @@
     max-width: 84%;
     padding: 10px 14px;
     border-radius: 14px;
-    font-family: var(--font-head, "Inter", sans-serif);
+    font-family: var(--font-head, "Figtree", sans-serif);
     font-size: 13.5px;
     line-height: 1.5;
     animation: ccMsgIn 0.35s var(--ease-out);
@@ -4149,7 +4653,7 @@
     border: none;
     outline: none;
     color: rgba(255, 255, 255, 0.95);
-    font-family: var(--font-head, "Inter", sans-serif);
+    font-family: var(--font-head, "Figtree", sans-serif);
     font-size: 15px;
     letter-spacing: -0.005em;
     cursor: text;
@@ -4190,7 +4694,7 @@
     border-radius: 8px;
     cursor: none;
     color: rgba(255, 255, 255, 0.85);
-    font-family: var(--font-head, "Inter", sans-serif);
+    font-family: var(--font-head, "Figtree", sans-serif);
     font-size: 14px;
     transition: background 0.12s ease;
   }
@@ -4344,6 +4848,9 @@
   .nav .nav-icon {
     opacity: 1;
   }
+  html:not([data-theme="light"]) .nav .nav-icon img {
+    filter: brightness(1.16) saturate(1.18) drop-shadow(0 0 2px rgba(170, 215, 255, 0.18));
+  }
   .nav .nav-icon:hover,
   .nav .nav-icon.is-active {
     opacity: 1;
@@ -4351,7 +4858,7 @@
   /* The Work icon art is a dark cube, so it reads dimmer than the colour icons even at full
      opacity. Lift it in dark mode so the whole row sits at the same brightness. */
   html:not([data-theme="light"]) .nav .nav-icon[aria-label="Work"] img {
-    filter: brightness(1.75) contrast(1.05);
+    filter: brightness(1.75) contrast(1.05) drop-shadow(0 0 2px rgba(170, 215, 255, 0.2));
   }
   /* Light mode — on the cream nav strip the pale pixel-art (especially the yellow sparkle)
      washes out. Darken + deepen colour and add a hairline shade so every pixel reads. */
@@ -4661,6 +5168,42 @@
     box-shadow: 0 0 18px rgba(40, 90, 180, 0.18);
   }
 
+  /* A brief, contained liquid response on the navigation glass. It affects only
+     the backdrop surface while the visitor is moving—not icon hit targets or page content. */
+  .nav {
+    --nav-liquid-x: 50%;
+    --nav-liquid-y: 0px;
+  }
+  .nav::before {
+    transform: translateY(0) scaleY(1);
+    transform-origin: center top;
+    will-change: transform, backdrop-filter;
+  }
+  .nav.is-liquid::before {
+    transform: translateY(var(--nav-liquid-y)) scaleY(1.055);
+    border-radius: 0 0 22px 22px / 0 0 8px 8px;
+    background-image: radial-gradient(220px 42px at var(--nav-liquid-x) 100%, rgba(154, 204, 255, 0.18), transparent 72%);
+    backdrop-filter: blur(23px) saturate(1.8) brightness(0.92);
+    -webkit-backdrop-filter: blur(23px) saturate(1.8) brightness(0.92);
+    animation: nav-liquid-ripple 360ms var(--ease-out) both;
+  }
+  @keyframes nav-liquid-ripple {
+    0% {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 72% 100%, 50% 100%, 28% 100%, 0 100%);
+    }
+    44% {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 72% 100%, 50% 94%, 28% 100%, 0 100%);
+    }
+    100% {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 72% 100%, 50% 100%, 28% 100%, 0 100%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav.is-liquid::before {
+      transform: none;
+    }
+  }
+
   /* ── SKIP LINK ── keyboard users can jump past nav */
   .skip-to-content {
     position: fixed;
@@ -4683,7 +5226,66 @@
     top: 16px;
     outline: 2px solid rgba(160, 200, 255, 0.6);
   }
-</style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <div id="cur-dot"></div> <div id="cur-label" aria-hidden="true"></div> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" title="Close">✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
+</style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <div id="cur-dot"></div> <div id="cur-label" aria-hidden="true"></div> <script src="/assets/js/gsap.min.js"></script> <script>
+  // ── GSAP NAV PHYSICS ── a short physical cue for the pixel wayfinding marks.
+  // No continuous animation, no hover blur, and no movement on touch/reduced motion.
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var touch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    if (reduce || touch || !window.gsap) return;
+    var icons = document.querySelectorAll(".nav-icon");
+    icons.forEach(function (icon, index) {
+      icon.addEventListener("pointerenter", function () {
+        window.gsap.killTweensOf(icon);
+        window.gsap.to(icon, {
+          y: -2,
+          scale: 1.14,
+          rotation: index % 2 ? 5 : -5,
+          duration: 0.34,
+          ease: "back.out(2.4)",
+          overwrite: true,
+        });
+      });
+      icon.addEventListener("pointerleave", function () {
+        window.gsap.to(icon, {
+          y: 0,
+          scale: 1,
+          rotation: 0,
+          duration: 0.42,
+          ease: "power3.out",
+          overwrite: true,
+        });
+      });
+    });
+  })();
+</script> <script>
+  // ── NAV LIQUID GLASS ── velocity-driven and restricted to the glass layer.
+  (function () {
+    var nav = document.querySelector(".nav");
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!nav || reduce) return;
+    var lastY = window.scrollY;
+    var clearTimer = null;
+    window.addEventListener(
+      "scroll",
+      function () {
+        var y = window.scrollY;
+        var delta = y - lastY;
+        lastY = y;
+        if (Math.abs(delta) < 1) return;
+        nav.style.setProperty("--nav-liquid-x", Math.max(12, Math.min(88, 50 + delta * 2.8)) + "%");
+        nav.style.setProperty("--nav-liquid-y", Math.max(-2, Math.min(2, delta * 0.08)).toFixed(2) + "px");
+        nav.classList.add("is-liquid");
+        if (clearTimer) window.clearTimeout(clearTimer);
+        clearTimer = window.setTimeout(function () {
+          nav.classList.remove("is-liquid");
+          nav.style.setProperty("--nav-liquid-y", "0px");
+        }, 150);
+      },
+      { passive: true }
+    );
+  })();
+</script> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" title="Close">✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
   // ── CUBE CHAT ── canned conversational agent (Sid's cube as host)
   (function () {
     var fab = document.getElementById("cube-chat-fab");
@@ -4881,7 +5483,7 @@
       window.__sidToggleTheme && window.__sidToggleTheme();
     });
   })();
-</script> <div id="cmdk" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Command palette"> <div class="cmdk-bg" data-cmdk-close></div> <div class="cmdk-panel"> <div class="cmdk-search"> <svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <circle cx="11" cy="11" r="7"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> </svg> <input id="cmdk-input" type="text" aria-label="Search projects, pages, and social links" placeholder="Jump to a project, page, or social…" autocomplete="off" spellcheck="false"> <kbd>esc</kbd> </div> <div class="cmdk-list" id="cmdk-list"></div> <div class="cmdk-footer"> <span><kbd>↑</kbd><kbd>↓</kbd>navigate</span> <span><kbd>↵</kbd>open</span> <span><kbd>esc</kbd>close</span> </div> </div> </div> <div class="cmdk-hint" id="cmdk-hint" aria-hidden="true"> <kbd>⌘</kbd><kbd>K</kbd> to navigate</div> <script>
+</script> <div id="cmdk" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Command palette"> <div class="cmdk-bg" data-cmdk-close></div> <div class="cmdk-panel"> <div class="cmdk-search"> <svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <circle cx="11" cy="11" r="7"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> </svg> <input id="cmdk-input" type="text" aria-label="Search projects, pages, and social links" placeholder="Jump to a project, page, or social…" autocomplete="off" spellcheck="false"> <kbd>esc</kbd> </div> <div class="cmdk-list" id="cmdk-list"></div> <div class="cmdk-footer"> <span><kbd>↑</kbd><kbd>↓</kbd>navigate</span> <span><kbd>↵</kbd>open</span> <span><kbd>esc</kbd>close</span> </div> </div> </div> <script>
   (function () {
     const dot = document.getElementById("cur-dot");
     if (!dot) return;
@@ -5823,6 +6425,20 @@
     })();
   })();
 
+  // ── QUIET UTILITY CHROME ── keep the cube chat + theme controls out of the
+  // reader's peripheral vision until scrolling has fully settled.
+  (function () {
+    var settleTimer = null;
+    function setScrolling() {
+      document.body.classList.add("is-scrolling");
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(function () {
+        document.body.classList.remove("is-scrolling");
+      }, 320);
+    }
+    window.addEventListener("scroll", setScrolling, { passive: true });
+  })();
+
   // ── COUNT-UP ── animate any [data-count-up] number from 0 → target on viewport entry
   (function () {
     var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -5861,47 +6477,6 @@
       n.textContent = "0";
       obs.observe(n);
     });
-  })();
-
-  // ── LETTER SCRAMBLE ── on .proj-title and .about-name (load-in + hover)
-  (function () {
-    const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-    const SCRAMBLE_CHARS = "!<>-_\\/[]{}=+*^?#·×∆◇◆";
-    function scrambleEffect(el) {
-      const original = el.textContent.trim();
-      if (!original) return;
-      let scrambling = false;
-      function run(duration) {
-        if (scrambling) return;
-        scrambling = true;
-        const start = performance.now();
-        function frame() {
-          const t = (performance.now() - start) / duration;
-          if (t >= 1) {
-            el.textContent = original;
-            scrambling = false;
-            return;
-          }
-          const reveal = Math.floor(t * original.length);
-          let out = "";
-          for (let i = 0; i < original.length; i++) {
-            const c = original[i];
-            if (i < reveal || c === " " || c === "·" || c === "—") out += c;
-            else out += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
-          }
-          el.textContent = out;
-          requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-      }
-      el.style.cursor = "none";
-      el.addEventListener("mouseenter", () => run(550));
-      // Initial decryption on page load
-      setTimeout(() => run(750), 250);
-    }
-    // Targeted selectors — only single-line plain-text headings (skip .proj-title, has its own typewriter on project pages)
-    document.querySelectorAll(".about-name, .play-title").forEach(scrambleEffect);
   })();
 
   // ── CMD+K RECENT HISTORY ── track last 5 visited URLs in localStorage
@@ -6207,6 +6782,91 @@
     });
   })();
 
+  // ── CUBE IDLE BEAT ── a small life cue after the visitor stops interacting
+  (function () {
+    const logos = Array.from(document.querySelectorAll(".logo-cube"));
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!logos.length || reduce) return;
+    let timer = null;
+    let clearTimer = null;
+    function clearIdle() {
+      logos.forEach((logo) => logo.classList.remove("is-idle"));
+      if (clearTimer) window.clearTimeout(clearTimer);
+    }
+    function scheduleIdle() {
+      clearIdle();
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        logos.forEach((logo) => logo.classList.add("is-idle"));
+        clearTimer = window.setTimeout(clearIdle, 1700);
+      }, 6200);
+    }
+    ["scroll", "pointermove", "pointerdown", "keydown", "touchstart"].forEach((eventName) => {
+      window.addEventListener(eventName, scheduleIdle, { passive: true });
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) clearIdle();
+      else scheduleIdle();
+    });
+    scheduleIdle();
+  })();
+
+  // ── CUBE FLY-BY ── one quiet, idle-only pass through the top of the page.
+  (function () {
+    const source = document.querySelector(".nav .logo-cube");
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const touch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    if (!source || reduce || touch) return;
+    let timer = null;
+    let flyer = null;
+    function clearFlyer() {
+      if (timer) window.clearTimeout(timer);
+      timer = null;
+      if (flyer) flyer.remove();
+      flyer = null;
+    }
+    function schedule() {
+      clearFlyer();
+      const delay = 21000 + Math.round(Math.random() * 15000);
+      timer = window.setTimeout(launch, delay);
+    }
+    function launch() {
+      if (document.hidden) return schedule();
+      const box = source.getBoundingClientRect();
+      const maxTravel = Math.max(220, Math.min(window.innerWidth - box.left - 72, window.innerWidth * 0.7));
+      flyer = source.cloneNode(true);
+      flyer.classList.add("cube-wanderer");
+      flyer.removeAttribute("style");
+      flyer.setAttribute("aria-hidden", "true");
+      flyer.style.left = box.left + "px";
+      flyer.style.top = box.top + "px";
+      flyer.style.setProperty("--cube-flight-x1", Math.round(maxTravel * 0.38) + "px");
+      flyer.style.setProperty("--cube-flight-y1", "38px");
+      flyer.style.setProperty("--cube-flight-x2", Math.round(maxTravel * 0.72) + "px");
+      flyer.style.setProperty("--cube-flight-y2", "8px");
+      flyer.style.setProperty("--cube-flight-x3", Math.round(maxTravel) + "px");
+      flyer.style.setProperty("--cube-flight-y3", "28px");
+      document.body.appendChild(flyer);
+      flyer.addEventListener(
+        "animationend",
+        () => {
+          if (flyer) flyer.remove();
+          flyer = null;
+          window.setTimeout(schedule, 26000);
+        },
+        { once: true }
+      );
+    }
+    ["scroll", "pointermove", "pointerdown", "keydown", "touchstart"].forEach((eventName) => {
+      window.addEventListener(eventName, schedule, { passive: true });
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) clearFlyer();
+      else schedule();
+    });
+    schedule();
+  })();
+
   // ── READING TIME ESTIMATE ── injects "~N min read" badge on project pages
   (function () {
     const main = document.querySelector(".proj-hero ~ .meta-row, .meta-row");
@@ -6288,13 +6948,15 @@
         let target = 0;
         let rafId = null;
         function tick() {
-          cur += (target - cur) * 0.16;
-          target *= 0.75;
+          cur += (target - cur) * 0.18;
+          target *= 0.8;
           const s = Math.abs(cur);
-          displace.setAttribute("scale", s.toFixed(2));
-          caseDisplace.setAttribute("scale", Math.min(20, s * 0.82).toFixed(2));
-          main.classList.toggle("project-is-warping", s > 0.65);
-          if (s > 0.1 || Math.abs(target) > 0.1) {
+          // This needs to be perceptible at normal reading speed, not only during a
+          // trackpad fling. It remains velocity-bound and returns to a sharp still.
+          displace.setAttribute("scale", Math.min(24, s * 1.05).toFixed(2));
+          caseDisplace.setAttribute("scale", Math.min(19, s * 0.82).toFixed(2));
+          main.classList.toggle("project-is-warping", s > 0.4);
+          if (s > 0.08 || Math.abs(target) > 0.08) {
             rafId = requestAnimationFrame(tick);
           } else {
             displace.setAttribute("scale", "0");
@@ -6308,7 +6970,7 @@
 
         // Entrance settle — hero arrives slightly rippled and resolves to still, the
         // same "arriving somewhere" cue as the Buddha threshold ripple on the homepage.
-        cur = 18;
+        cur = 9;
         rafId = requestAnimationFrame(tick);
 
         window.addEventListener(
@@ -6316,7 +6978,7 @@
           () => {
             const delta = Math.abs(window.scrollY - lastY);
             lastY = window.scrollY;
-            target = Math.min(24, target + delta * 1.1);
+            target = Math.min(22, target + delta * 0.5);
             if (!rafId) rafId = requestAnimationFrame(tick);
           },
           { passive: true }
@@ -6399,6 +7061,41 @@
         { threshold: 0.3 }
       );
       document.querySelectorAll(".cs-section").forEach((s) => sectionObserver.observe(s));
+
+      // ── CASE PATH STATE ── The compact rail doubles as a quiet reading-progress
+      // cue: it marks the current beat of a long story without pinning a loud UI
+      // control to the viewport or taking over scroll.
+      (function () {
+        const rail = document.querySelector(".case-rail");
+        if (!rail) return;
+        const links = Array.from(rail.querySelectorAll('a[href^="#"]'));
+        const targets = links.map((link) => ({ link, target: document.querySelector(link.getAttribute("href")) })).filter((item) => item.target);
+        if (!targets.length) return;
+
+        function setCurrent(target) {
+          targets.forEach((item) => {
+            const current = item.target === target;
+            item.link.classList.toggle("is-current", current);
+            if (current) item.link.setAttribute("aria-current", "location");
+            else item.link.removeAttribute("aria-current");
+          });
+        }
+        setCurrent(targets[0].target);
+        links.forEach((link) => {
+          link.addEventListener("click", () => {
+            const item = targets.find((candidate) => candidate.link === link);
+            if (item) setCurrent(item.target);
+          });
+        });
+        const pathObserver = new IntersectionObserver(
+          (entries) => {
+            const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+            if (visible.length) setCurrent(visible[0].target);
+          },
+          { rootMargin: "-20% 0px -68% 0px", threshold: 0 }
+        );
+        targets.forEach((item) => pathObserver.observe(item.target));
+      })();
 
       // ── TOC DOTS ── build sticky right-side nav from cs-section labels (only if 2+ sections)
       (function () {
@@ -6709,6 +7406,31 @@
       })();
 
       // Dust is now in cursor_fluid.html (shared across all pages)
+
+      // ── CASE STORY MAP ── a live, non-interruptive indicator of the visual
+      // archive's remaining length. It uses the actual rendered media count rather
+      // than a guessed reading time, and never changes scrolling behavior.
+      (function () {
+        const story = document.querySelector(".case-story");
+        const fill = document.getElementById("case-progress-fill");
+        const value = document.getElementById("case-progress-value");
+        const note = document.getElementById("case-progress-note");
+        if (!story || !fill || !value || !note) return;
+        const moments = story.querySelectorAll(".cs-bleed, .cs-bleed-full, .cs-wide, .cs-grid, .cs-grid-3").length;
+        note.textContent = moments + " visual moment" + (moments === 1 ? "" : "s");
+        function updateStoryMap() {
+          const rect = story.getBoundingClientRect();
+          const start = Math.min(window.innerHeight * 0.66, rect.height);
+          const travelled = start - rect.top;
+          const range = Math.max(1, rect.height - window.innerHeight * 0.34);
+          const progress = Math.max(0, Math.min(1, travelled / range));
+          fill.style.setProperty("--case-progress", progress.toFixed(4));
+          value.textContent = String(Math.round(progress * 100)).padStart(2, "0") + "%";
+        }
+        updateStoryMap();
+        window.addEventListener("scroll", updateStoryMap, { passive: true });
+        window.addEventListener("resize", updateStoryMap, { passive: true });
+      })();
 
       // Video guardian — keeps all autoplay videos playing through scroll
       (function () {

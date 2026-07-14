@@ -35,7 +35,7 @@
     var mo = new MutationObserver(syncThemeColor);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   })();
-</script> <title>Play · Sid Mehta</title> <meta name="description" content="Playground: experimental works, sketches, and creative explorations by Sid Mehta."> <link rel="canonical" href="https://siddharthmehta.design/play/"> <meta property="og:title" content="Play · Sid Mehta"> <meta property="og:description" content="Playground: experimental works, sketches, and creative explorations."> <meta property="og:type" content="website"> <meta property="og:url" content="https://siddharthmehta.design/play/"> <meta property="og:image" content="https://siddharthmehta.design/assets/img/sid_about.jpg"> <meta property="og:image:alt" content="Playground experiments by Sid Mehta"> <meta property="og:site_name" content="Sid Mehta"> <meta name="twitter:card" content="summary_large_image"> <meta name="twitter:title" content="Play · Sid Mehta"> <meta name="twitter:description" content="Experimental works, sketches, and creative explorations by Sid Mehta."> <meta name="twitter:image" content="https://siddharthmehta.design/assets/img/sid_about.jpg"> <meta name="twitter:image:alt" content="Playground experiments by Sid Mehta"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Inter:wght@200;300;400;500;600;700&amp;display=swap" onload=" this.onload = null; this.rel = 'stylesheet'; "> <noscript> <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Inter:wght@200;300;400;500;600;700&amp;display=swap" rel="stylesheet"> </noscript> <style>
+</script> <title>Play · Sid Mehta</title> <meta name="description" content="Playground: experimental works, sketches, and creative explorations by Sid Mehta."> <link rel="canonical" href="https://siddharthmehta.design/play/"> <meta property="og:title" content="Play · Sid Mehta"> <meta property="og:description" content="Playground: experimental works, sketches, and creative explorations."> <meta property="og:type" content="website"> <meta property="og:url" content="https://siddharthmehta.design/play/"> <meta property="og:image" content="https://siddharthmehta.design/assets/img/sid_about.jpg"> <meta property="og:image:alt" content="Playground experiments by Sid Mehta"> <meta property="og:site_name" content="Sid Mehta"> <meta name="twitter:card" content="summary_large_image"> <meta name="twitter:title" content="Play · Sid Mehta"> <meta name="twitter:description" content="Experimental works, sketches, and creative explorations by Sid Mehta."> <meta name="twitter:image" content="https://siddharthmehta.design/assets/img/sid_about.jpg"> <meta name="twitter:image:alt" content="Playground experiments by Sid Mehta"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap" onload=" this.onload = null; this.rel = 'stylesheet'; "> <noscript> <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap" rel="stylesheet"> </noscript> <style>
   /* ── DESIGN TOKENS ──────────────────────────────────────────────────────────
      Single source of truth for all design tokens. Included in <head> of every
      layout. Page-specific overrides live in each layout's own <style> block.
@@ -64,9 +64,9 @@
     --accent-dim: rgba(160, 200, 255, 0.55);
 
     /* ── Typography ── */
-    --font-head: "Inter", sans-serif;
+    --font-head: "Figtree", sans-serif;
     --font-mono: "DM Mono", monospace;
-    --font-title: "Inter", sans-serif;
+    --font-title: "Figtree", sans-serif;
 
     /* ── Layout ── */
     --nav-h: 64px;
@@ -106,6 +106,54 @@
     color: inherit;
     text-decoration: none;
   }
+
+  /* ── Cross-page motion ───────────────────────────────────────────────────
+     A light, progressive enhancement for browsers that support cross-document
+     View Transitions. It makes navigation feel like a change of scene rather
+     than a hard cut; unsupported browsers retain the normal fast navigation.
+     ──────────────────────────────────────────────────────────────────────── */
+  @view-transition {
+    navigation: auto;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    ::view-transition-old(root) {
+      animation: page-scene-out 260ms var(--ease-out) both;
+      mix-blend-mode: normal;
+    }
+
+    ::view-transition-new(root) {
+      animation: page-scene-in 520ms var(--ease-out) both;
+      mix-blend-mode: normal;
+    }
+  }
+
+  @keyframes page-scene-out {
+    to {
+      opacity: 0;
+      filter: blur(2px);
+      transform: scale(0.992);
+    }
+  }
+
+  @keyframes page-scene-in {
+    from {
+      opacity: 0;
+      filter: blur(5px);
+      transform: scale(1.012);
+    }
+    to {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    @view-transition {
+      navigation: none;
+    }
+  }
 </style> <style>
       :root { --cols: 4; --gap: 12px; }
       body {
@@ -136,21 +184,25 @@
         left: 0;
         right: 0;
         height: var(--nav-h);
-        z-index: 200;
+        z-index: 1000;
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0 32px;
         overflow: visible;
+        isolation: isolate;
+        /* Play can be visually dense, but navigation is not part of the collage.
+           A real surface prevents moving imagery and the edge warp from leaking
+           into the controls while scrolling. */
+        background: rgba(7, 6, 12, 0.94);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08), 0 10px 28px rgba(0, 0, 0, 0.18);
       }
       .nav::before {
         content: "";
         position: absolute;
         inset: 0;
         z-index: -1;
-        background: rgba(0, 0, 0, 0.16);
-        backdrop-filter: blur(22px) saturate(1.7) brightness(0.84);
-        -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(0.84);
+        background: linear-gradient(180deg, rgba(22, 24, 34, 0.26), transparent);
         border-bottom: 1px solid rgba(255, 255, 255, 0.07);
       }
       .nav > a { display: inline-flex; align-items: center; perspective: 600px; }
@@ -228,10 +280,29 @@
 
       /* HEADER */
       .play-header {
-        padding: calc(var(--nav-h) + 96px + env(safe-area-inset-top, 0px)) var(--gutter) 24px;
-        display: flex;
-        justify-content: space-between;
-        align-items: baseline;
+        position: relative;
+        isolation: isolate;
+        min-height: clamp(540px, 76svh, 790px);
+        padding: calc(var(--nav-h) + 64px + env(safe-area-inset-top, 0px)) var(--gutter) 32px;
+        display: grid;
+        grid-template-columns: minmax(15rem, 0.68fr) minmax(30rem, 1.32fr);
+        align-items: center;
+        gap: clamp(24px, 5vw, 88px);
+        overflow: clip;
+      }
+      .play-header::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background:
+          radial-gradient(55% 72% at 76% 48%, rgba(98, 136, 186, 0.08), transparent 74%),
+          radial-gradient(38% 60% at 52% 54%, rgba(255, 255, 255, 0.035), transparent 75%);
+      }
+      .play-copy {
+        position: relative;
+        z-index: 2;
       }
       @keyframes playFadeUp {
         from { opacity: 0; transform: translateY(16px); filter: blur(4px); }
@@ -264,7 +335,120 @@
         text-transform: uppercase;
         color: rgba(255, 255, 255, 0.38);
         opacity: 0;
+        display: block;
+        margin-top: 28px;
         animation: playFadeUp 0.7s var(--ease-out) 0.25s forwards;
+      }
+      /* An optional camera interaction belongs in Play, where experimentation is
+         expected. It is an abstract motion field rather than a raw webcam feed:
+         playful, private, and never required to browse the archive. */
+      .play-lens-trigger {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 22px;
+        padding: 0 0 4px;
+        border: 0;
+        border-bottom: 1px solid rgba(180, 220, 255, 0.36);
+        background: transparent;
+        color: rgba(205, 229, 251, 0.76);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        cursor: pointer;
+        opacity: 0;
+        animation: playFadeUp 0.7s var(--ease-out) 0.32s forwards;
+        transition: color 0.24s ease, border-color 0.24s ease;
+      }
+      .play-lens-trigger:hover,
+      .play-lens-trigger:focus-visible,
+      .play-lens-trigger[aria-pressed="true"] {
+        border-color: rgba(225, 244, 255, 0.86);
+        color: rgba(235, 247, 255, 0.98);
+      }
+      .play-lens-trigger:focus-visible {
+        outline: 1px solid rgba(180, 220, 255, 0.8);
+        outline-offset: 6px;
+      }
+      .play-lens-status {
+        min-height: 1.4em;
+        margin: 10px 0 0;
+        color: rgba(255, 255, 255, 0.35);
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        line-height: 1.45;
+      }
+      .play-stage {
+        position: relative;
+        z-index: 1;
+        align-self: stretch;
+        min-height: 420px;
+        pointer-events: none;
+        perspective: 1400px;
+        perspective-origin: 50% 46%;
+      }
+      .play-motion-canvas {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.5s ease;
+      }
+      .play-stage.is-lensing .play-motion-canvas {
+        opacity: 1;
+      }
+      .play-lens-video {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .play-orbit {
+        position: absolute;
+        inset: 2% -4% 0;
+        transform-style: preserve-3d;
+        translate: var(--lens-shift-x, 0px) var(--lens-shift-y, 0px);
+        animation: playOrbitDrift 18s cubic-bezier(0.45, 0, 0.25, 1) infinite alternate;
+        transition: translate 160ms ease-out;
+      }
+      .play-memory {
+        position: absolute;
+        top: var(--y);
+        left: var(--x);
+        width: var(--w);
+        transform: translate3d(-50%, -50%, var(--z)) rotate(var(--r));
+        transform-style: preserve-3d;
+        opacity: 0;
+        transition: opacity 0.7s var(--ease-out);
+      }
+      .play-memory.is-loaded {
+        opacity: 1;
+      }
+      .play-memory img {
+        display: block;
+        width: 100%;
+        aspect-ratio: var(--ratio, 1.32);
+        object-fit: cover;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 2px;
+        box-shadow: 0 22px 38px rgba(0, 0, 0, 0.3);
+        animation: playMemoryFloat var(--float-duration, 8s) ease-in-out var(--float-delay, 0s) infinite alternate;
+        will-change: transform;
+      }
+      @keyframes playOrbitDrift {
+        0% { transform: rotateX(-5deg) rotateY(-8deg) translate3d(-1%, 1%, 0); }
+        52% { transform: rotateX(3deg) rotateY(7deg) translate3d(1%, -1%, 0); }
+        100% { transform: rotateX(-2deg) rotateY(-4deg) translate3d(0, 1%, 0); }
+      }
+      @keyframes playMemoryFloat {
+        0% { transform: translate3d(0, -5px, 0) rotate(0.001deg); }
+        100% { transform: translate3d(0, 7px, 0) rotate(0.001deg); }
       }
 
       /* PLAY FILTER PILLS — sits naturally below header (was sticky; was following the user awkwardly) */
@@ -306,6 +490,20 @@
       .pf-btn-count {
         margin-left: 6px;
         opacity: 0.55;
+      }
+      .pf-motion {
+        margin-left: auto;
+        border-color: transparent;
+        color: rgba(255, 255, 255, 0.34);
+      }
+      .pf-motion:hover,
+      .pf-motion[aria-pressed="true"] {
+        border-color: rgba(180, 220, 255, 0.36);
+        color: rgba(220, 240, 255, 0.92);
+      }
+      body.play-motion-paused .play-orbit,
+      body.play-motion-paused .play-memory img {
+        animation-play-state: paused !important;
       }
 
       /* LIGHTBOX ARROWS + COUNTER */
@@ -502,16 +700,32 @@
       }
 
       /* ── SCROLL EDGE FADE ── content fades at top + bottom of viewport.
-         Used to use backdrop-filter: blur(14px) which re-blurred the whole page on every
-         scroll frame — single biggest cause of jank on this page. Replaced with a solid-color
-         gradient overlay that achieves the same fade without the GPU cost. */
+         The static gradients stay inexpensive. A small SVG displacement is switched on only
+         while the page is moving, so Play shares Works' liquid energy without filtering the
+         whole 256-tile wall. */
       .scroll-edge {
         position: fixed;
         left: 0;
         right: 0;
         height: 110px;
+        overflow: hidden;
+        isolation: isolate;
         pointer-events: none;
         z-index: 50;
+        transform: translateZ(0);
+        transition: filter 180ms ease-out;
+      }
+      .scroll-edge::after {
+        content: "";
+        position: absolute;
+        inset: -20px -8%;
+        opacity: 0;
+        background: radial-gradient(76% 110% at 50% 0%, rgba(207, 222, 240, 0.15), transparent 70%);
+        filter: blur(12px);
+        transform: scale(1.03, 0.84);
+        transition:
+          opacity 220ms ease-out,
+          transform 360ms var(--ease-out);
       }
       .scroll-edge--top {
         top: var(--nav-h);
@@ -521,8 +735,24 @@
         bottom: 0;
         background: linear-gradient(0deg, #07060c 0%, rgba(10, 10, 10, 0.7) 50%, transparent 100%);
       }
+      .scroll-edge--bottom::after {
+        background: radial-gradient(76% 110% at 50% 100%, rgba(207, 222, 240, 0.15), transparent 70%);
+        transform: scale(1.03, 0.84) rotate(180deg);
+      }
+      .play-is-warping .scroll-edge {
+        filter: url(#play-edge-liquify);
+      }
+      .play-is-warping .scroll-edge::after {
+        opacity: 0.46;
+        transform: scale(1.08, 1.05);
+      }
+      .play-is-warping .scroll-edge--bottom::after {
+        transform: scale(1.08, 1.05) rotate(180deg);
+      }
       @media (max-width: 600px) {
         .scroll-edge { height: 70px; }
+        .play-orbit,
+        .play-memory img { animation: none; }
       }
       @media (hover: none), (pointer: coarse) {
         .wall-hint { display: none; }
@@ -531,6 +761,8 @@
       @media (prefers-reduced-motion: reduce) {
         .scroll-edge { display: none; }
         .card { opacity: 1; transform: none; transition: none; }
+        .play-orbit,
+        .play-memory img { animation: none; }
       }
 
       /* Featured cards — 2 columns wide, stay in grid flow as landscape highlights */
@@ -539,7 +771,9 @@
         grid-row-end: span 22;
       }
 
-      /* Breathing — applied after entrance. Now with gentle left-right sway too. */
+      /* The archive is a contact sheet, not a field of independently animated
+         cards. Moving grid items after layout caused real tile collisions. Motion
+         remains in the header constellation and the gentle page drift instead. */
       @keyframes float1 {
         0%, 100% { transform: translate(0, 0); }
         25% { transform: translate(2px, -2px); }
@@ -559,10 +793,10 @@
         0%, 100% { transform: translate(0, 0); }
         50% { transform: translate(-3px, -3px); }
       }
-      .card.f1 { animation: float1 7s ease-in-out infinite; }
-      .card.f2 { animation: float2 8.5s ease-in-out infinite; }
-      .card.f3 { animation: float3 9s ease-in-out infinite; }
-      .card.f4 { animation: float4 7.8s ease-in-out infinite; }
+      .card.f1,
+      .card.f2,
+      .card.f3,
+      .card.f4 { animation: none; }
 
       /* LIGHTBOX */
       .lb {
@@ -695,9 +929,21 @@
           --cols: 2;
           --gap: 10px;
         }
+        .play-header {
+          min-height: 700px;
+          grid-template-columns: 1fr;
+          grid-template-rows: auto minmax(360px, 1fr);
+          gap: 12px;
+        }
+        .play-stage {
+          min-height: 360px;
+          width: min(100%, 680px);
+          justify-self: center;
+        }
         .nav-links {
           gap: 12px;
         }
+        .pf-motion { display: none; }
       }
       @media (max-width: 600px) {
         :root { --nav-h: 56px; }
@@ -706,10 +952,15 @@
         .nav-icon, .nav-icon img { width: 26px; height: 26px; }
         .play-header {
           padding-top: calc(var(--nav-h) + 72px + env(safe-area-inset-top, 0px));
+          min-height: 650px;
         }
         .play-intro {
           max-width: 34rem;
           font-size: 10px;
+        }
+        .play-lens-trigger {
+          margin-top: 18px;
+          font-size: 9px;
         }
       }
       @media (max-width: 480px) {
@@ -718,8 +969,11 @@
           --gap: 8px;
         }
         .play-header {
-          flex-direction: column;
-          gap: 6px;
+          min-height: 620px;
+          gap: 0;
+        }
+        .play-stage {
+          min-height: 320px;
         }
         .play-footer {
           grid-template-columns: 1fr;
@@ -761,6 +1015,13 @@
       html[data-theme="light"] .play-count {
         color: rgba(7, 9, 15, 0.5);
       }
+      html[data-theme="light"] .play-lens-trigger {
+        border-bottom-color: rgba(35, 76, 116, 0.38);
+        color: rgba(20, 64, 106, 0.78);
+      }
+      html[data-theme="light"] .play-lens-status {
+        color: rgba(7, 9, 15, 0.48);
+      }
       html[data-theme="light"] .pf-btn {
         border-color: rgba(7, 9, 15, 0.18);
         color: rgba(7, 9, 15, 0.62);
@@ -787,12 +1048,18 @@
       html[data-theme="light"] .scroll-edge--bottom {
         background: linear-gradient(to top, #f5f3ee, transparent);
       }
+      html[data-theme="light"] .scroll-edge::after {
+        background: radial-gradient(76% 110% at 50% 0%, rgba(74, 95, 118, 0.1), transparent 70%);
+      }
+      html[data-theme="light"] .scroll-edge--bottom::after {
+        background: radial-gradient(76% 110% at 50% 100%, rgba(74, 95, 118, 0.1), transparent 70%);
+      }
       /* Wall reveal hint — dark text on cream */
       html[data-theme="light"] .wall-hint {
         color: rgba(7, 9, 15, 0.5);
       }
       /* Lightbox stays dark in both modes (full-screen media viewer reads better on black) */
-    </style> </head> <body> <a class="skip-link" href="#main">Skip to Play content</a> <nav class="nav"> <a href="/" aria-label="Home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 28 28" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path> <rect x="5" y="9" width="14" height="14" fill="#000" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></rect> <rect class="logo-eye" x="8.7" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect> <rect class="logo-eye" x="14.3" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect> </svg> </a> <div class="nav-links"> <a href="/works/" class="nav-icon" aria-label="Work" data-label="Work"><img src="/assets/img/nav/cube.png" alt="Work"></a> <a href="/play/" class="nav-icon is-active" aria-label="Play" data-label="Play" aria-current="page"><img src="/assets/img/nav/flower.png" alt="Play"></a> <a href="/contact/" class="nav-icon" aria-label="Contact" data-label="Contact"><img src="/assets/img/nav/sparkle.png" alt="Contact"></a> <a href="/about/" class="nav-icon" aria-label="About" data-label="About"><img src="/assets/img/nav/cross.png" alt="About"></a> </div> </nav> <main id="main"> <div class="play-header"> <div> <h1 class="play-title">Play</h1> <p class="play-intro">Experiments, camera rolls, motion tests, and loose ends.</p> </div> <span class="play-count" id="play-count"></span> </div> <div class="play-filter" id="play-filter" role="group" aria-label="Filter Play media"> <button type="button" class="pf-btn active" data-pf="all" aria-pressed="true">All</button> <button type="button" class="pf-btn" data-pf="img" aria-pressed="false">Photos<span class="pf-btn-count" data-pf-count="img"></span></button> <button type="button" class="pf-btn" data-pf="vid" aria-pressed="false">Videos<span class="pf-btn-count" data-pf-count="vid"></span></button> <button type="button" class="pf-btn" data-pf="gif" aria-pressed="false">GIFs<span class="pf-btn-count" data-pf-count="gif"></span></button> </div> <div class="masonry" id="masonry"></div> </main> <div class="scroll-edge scroll-edge--top" aria-hidden="true"></div> <div class="scroll-edge scroll-edge--bottom" aria-hidden="true"></div> <div class="wall-reveal" id="wall-reveal"> <canvas id="wall-canvas"></canvas> <div class="wall-hint" id="wall-hint">Play with your cursor</div> </div> <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image viewer" aria-hidden="true"> <div class="lb-bg"></div> <img id="lb-img" alt=""> <video id="lb-video" controls playsinline preload="metadata" style="display: none"></video> <button class="lb-x" aria-label="Close" type="button">✕</button> <button class="lb-prev" id="lb-prev" aria-label="Previous" type="button">‹</button> <button class="lb-next" id="lb-next" aria-label="Next" type="button">›</button> <div class="lb-counter" id="lb-counter"></div> </div> <footer class="play-footer"> <span class="pf-text">© 2026 · Siddharth Mehta</span> <div class="pf-social"> <a href="mailto:sidmehtadesign@gmail.com">Email</a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener">LinkedIn</a> <a href="https://www.instagram.com/cubeofcreation/" target="_blank" rel="noopener">Instagram</a> </div> <a href="/contact/" class="pf-cta">Get in Touch →</a> </footer> <script>
+    </style> </head> <body> <a class="skip-link" href="#main">Skip to Play content</a> <nav class="nav"> <a href="/" aria-label="Home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 28 28" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></path> <rect x="5" y="9" width="14" height="14" fill="#000" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"></rect> <rect class="logo-eye" x="8.7" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect> <rect class="logo-eye" x="14.3" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect> </svg> </a> <div class="nav-links"> <a href="/works/" class="nav-icon" aria-label="Work" data-label="Work"><img src="/assets/img/nav/cube.png" alt="Work"></a> <a href="/play/" class="nav-icon is-active" aria-label="Play" data-label="Play" aria-current="page"><img src="/assets/img/nav/flower.png" alt="Play"></a> <a href="/contact/" class="nav-icon" aria-label="Contact" data-label="Contact"><img src="/assets/img/nav/sparkle.png" alt="Contact"></a> <a href="/about/" class="nav-icon" aria-label="About" data-label="About"><img src="/assets/img/nav/cross.png" alt="About"></a> </div> </nav> <main id="main"> <section class="play-header" aria-label="Play archive introduction"> <div class="play-copy"> <h1 class="play-title">Play</h1> <p class="play-intro">Experiments, camera rolls, motion tests, and loose ends.</p> <span class="play-count" id="play-count"></span> <button type="button" class="play-lens-trigger" id="play-lens-trigger" aria-pressed="false" aria-describedby="play-lens-status"> Use camera as a motion lens <span aria-hidden="true">↗</span> </button> <p class="play-lens-status" id="play-lens-status" aria-live="polite">Optional · motion stays on this device</p> </div> <div class="play-stage" aria-hidden="true"> <div class="play-orbit" id="play-orbit"></div> <canvas class="play-motion-canvas" id="play-motion-canvas"></canvas> <video class="play-lens-video" id="play-lens-video" playsinline muted></video> </div> </section> <div class="play-filter" id="play-filter" role="group" aria-label="Filter Play media"> <button type="button" class="pf-btn active" data-pf="all" aria-pressed="true">All</button> <button type="button" class="pf-btn" data-pf="img" aria-pressed="false">Photos<span class="pf-btn-count" data-pf-count="img"></span></button> <button type="button" class="pf-btn" data-pf="vid" aria-pressed="false">Videos<span class="pf-btn-count" data-pf-count="vid"></span></button> <button type="button" class="pf-btn" data-pf="gif" aria-pressed="false">GIFs<span class="pf-btn-count" data-pf-count="gif"></span></button> <button type="button" class="pf-btn pf-motion" id="play-motion-toggle" aria-pressed="false">Pause motion</button> </div> <div class="masonry" id="masonry"></div> </main> <div class="scroll-edge scroll-edge--top" aria-hidden="true"></div> <div class="scroll-edge scroll-edge--bottom" aria-hidden="true"></div> <div class="wall-reveal" id="wall-reveal"> <canvas id="wall-canvas"></canvas> <div class="wall-hint" id="wall-hint">Play with your cursor</div> </div> <div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Image viewer" aria-hidden="true"> <div class="lb-bg"></div> <img id="lb-img" alt=""> <video id="lb-video" controls playsinline preload="metadata" style="display: none"></video> <button class="lb-x" aria-label="Close" type="button">✕</button> <button class="lb-prev" id="lb-prev" aria-label="Previous" type="button">‹</button> <button class="lb-next" id="lb-next" aria-label="Next" type="button">›</button> <div class="lb-counter" id="lb-counter"></div> </div> <footer class="play-footer"> <span class="pf-text">© 2026 · Siddharth Mehta</span> <div class="pf-social"> <a href="mailto:sidmehtadesign@gmail.com">Email</a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener">LinkedIn</a> <a href="https://www.instagram.com/cubeofcreation/" target="_blank" rel="noopener">Instagram</a> </div> <a href="/contact/" class="pf-cta">Get in Touch →</a> </footer> <script>
   // Theme bootstrap — applies saved theme only. Default is dark (the site's identity).
   // Runs synchronously before any layout paints so there's no flash-of-wrong-theme.
   // We deliberately do NOT honor prefers-color-scheme here.
@@ -938,10 +1205,29 @@
   .logo-cube {
     view-transition-name: sid-cube;
   }
+  @keyframes sid-cube-out {
+    to {
+      opacity: 0;
+      transform: perspective(260px) rotateY(-72deg) rotateX(8deg) scale(0.78);
+      filter: blur(1px);
+    }
+  }
+  @keyframes sid-cube-in {
+    from {
+      opacity: 0;
+      transform: perspective(260px) rotateY(72deg) rotateX(-8deg) scale(0.78);
+      filter: blur(1px);
+    }
+  }
   ::view-transition-old(sid-cube),
   ::view-transition-new(sid-cube) {
-    animation-duration: 0.45s;
     animation-timing-function: var(--ease-out);
+  }
+  ::view-transition-old(sid-cube) {
+    animation: sid-cube-out 0.32s var(--ease-out) both;
+  }
+  ::view-transition-new(sid-cube) {
+    animation: sid-cube-in 0.42s var(--ease-out) both;
   }
   /* Nav stays a stable named transition (simple crossfade, no motion) so the fixed
      chrome doesn't get caught in the page's scale/blur below — it should read as
@@ -981,7 +1267,9 @@
     ::view-transition-old(root),
     ::view-transition-new(root),
     ::view-transition-old(site-nav),
-    ::view-transition-new(site-nav) {
+    ::view-transition-new(site-nav),
+    ::view-transition-old(sid-cube),
+    ::view-transition-new(sid-cube) {
       animation: none !important;
     }
   }
@@ -1026,10 +1314,13 @@
     overflow: visible;
     color: rgba(186, 211, 244, 0.78);
     transform-origin: center;
+    transform-style: preserve-3d;
     transition:
       transform 0.42s var(--ease-out),
-      color 0.3s ease,
-      filter 0.42s ease !important;
+      color 0.3s ease !important;
+  }
+  .nav > a {
+    perspective: 560px;
   }
   .nav-icon {
     width: 28px !important;
@@ -1136,10 +1427,78 @@
   .logo-cube.logo-pressed {
     animation: sid-logo-press 0.42s var(--ease-out);
   }
+  /* The cube only shows a little life while the page is still. Input immediately
+     clears the state, so it never competes with reading or scrolling. */
+  @keyframes sid-cube-idle {
+    0%,
+    100% {
+      transform: translateY(0) rotateZ(0);
+    }
+    35% {
+      transform: translateY(-1px) rotateZ(-1.5deg);
+    }
+    62% {
+      transform: translateY(0) rotateZ(1deg);
+    }
+  }
+  .logo-cube.is-idle {
+    animation: sid-cube-idle 1.6s var(--ease-out) both;
+  }
+  /* Rare idle fly-by: a clone leaves the mark for a second, then returns the
+     page to stillness. It lives above the nav and never accepts pointer input. */
+  .cube-wanderer {
+    position: fixed;
+    z-index: 205;
+    width: 36px;
+    height: 36px;
+    color: rgba(205, 229, 255, 0.94);
+    pointer-events: none;
+    overflow: visible;
+    view-transition-name: none !important;
+    filter: drop-shadow(0 0 11px rgba(144, 201, 255, 0.42));
+    animation: sid-cube-flight 2.5s var(--ease-out) both;
+  }
+  .cube-wanderer .cube-face {
+    opacity: 0.82;
+    fill-opacity: 0.16;
+  }
+  .cube-wanderer .cube-top {
+    transform: translateY(0);
+  }
+  .cube-wanderer .cube-right {
+    transform: translateX(0);
+  }
+  .cube-wanderer .logo-scan {
+    opacity: 0.7;
+    stroke-dashoffset: 0;
+  }
+  @keyframes sid-cube-flight {
+    0% {
+      opacity: 0;
+      transform: translate3d(0, 0, 0) rotateY(0deg) rotateZ(0deg) scale(0.82);
+    }
+    12% {
+      opacity: 0.94;
+    }
+    46% {
+      opacity: 0.96;
+      transform: translate3d(var(--cube-flight-x1), var(--cube-flight-y1), 0) rotateY(220deg) rotateZ(12deg) scale(1.02);
+    }
+    78% {
+      opacity: 0.84;
+      transform: translate3d(var(--cube-flight-x2), var(--cube-flight-y2), 0) rotateY(480deg) rotateZ(-8deg) scale(0.9);
+    }
+    100% {
+      opacity: 0;
+      transform: translate3d(var(--cube-flight-x3), var(--cube-flight-y3), 0) rotateY(640deg) rotateZ(0deg) scale(0.72);
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
     .logo-cube,
     .logo-cube .cube-face,
     .logo-cube .logo-eye,
+    .logo-cube.is-idle,
+    .cube-wanderer,
     .logo-cube .logo-scan,
     .logo-gaze {
       animation: none;
@@ -2604,6 +2963,21 @@
       background 0.25s ease;
     padding: 0;
   }
+  /* Keep utility controls available at rest, then clear them out while the
+     page is in motion so the work—not floating chrome—owns the scroll. */
+  #theme-toggle,
+  #cube-chat-fab {
+    will-change: opacity, transform;
+  }
+  body.is-scrolling #theme-toggle,
+  body.is-scrolling #cube-chat-fab:not(.is-open) {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transform: scale(0.88) !important;
+  }
+  body.is-scrolling #cube-chat-fab .fab-pulse {
+    animation-play-state: paused;
+  }
   #theme-toggle:hover {
     transform: scale(1.08);
     border-color: rgba(255, 255, 255, 0.3);
@@ -2773,7 +3147,7 @@
     gap: 2px;
   }
   .cc-name {
-    font-family: var(--font-head, "Inter", sans-serif);
+    font-family: var(--font-head, "Figtree", sans-serif);
     font-size: 14px;
     font-weight: 500;
     color: rgba(255, 255, 255, 0.95);
@@ -2830,7 +3204,7 @@
     max-width: 84%;
     padding: 10px 14px;
     border-radius: 14px;
-    font-family: var(--font-head, "Inter", sans-serif);
+    font-family: var(--font-head, "Figtree", sans-serif);
     font-size: 13.5px;
     line-height: 1.5;
     animation: ccMsgIn 0.35s var(--ease-out);
@@ -3105,7 +3479,7 @@
     border: none;
     outline: none;
     color: rgba(255, 255, 255, 0.95);
-    font-family: var(--font-head, "Inter", sans-serif);
+    font-family: var(--font-head, "Figtree", sans-serif);
     font-size: 15px;
     letter-spacing: -0.005em;
     cursor: text;
@@ -3146,7 +3520,7 @@
     border-radius: 8px;
     cursor: none;
     color: rgba(255, 255, 255, 0.85);
-    font-family: var(--font-head, "Inter", sans-serif);
+    font-family: var(--font-head, "Figtree", sans-serif);
     font-size: 14px;
     transition: background 0.12s ease;
   }
@@ -3300,6 +3674,9 @@
   .nav .nav-icon {
     opacity: 1;
   }
+  html:not([data-theme="light"]) .nav .nav-icon img {
+    filter: brightness(1.16) saturate(1.18) drop-shadow(0 0 2px rgba(170, 215, 255, 0.18));
+  }
   .nav .nav-icon:hover,
   .nav .nav-icon.is-active {
     opacity: 1;
@@ -3307,7 +3684,7 @@
   /* The Work icon art is a dark cube, so it reads dimmer than the colour icons even at full
      opacity. Lift it in dark mode so the whole row sits at the same brightness. */
   html:not([data-theme="light"]) .nav .nav-icon[aria-label="Work"] img {
-    filter: brightness(1.75) contrast(1.05);
+    filter: brightness(1.75) contrast(1.05) drop-shadow(0 0 2px rgba(170, 215, 255, 0.2));
   }
   /* Light mode — on the cream nav strip the pale pixel-art (especially the yellow sparkle)
      washes out. Darken + deepen colour and add a hairline shade so every pixel reads. */
@@ -3617,6 +3994,42 @@
     box-shadow: 0 0 18px rgba(40, 90, 180, 0.18);
   }
 
+  /* A brief, contained liquid response on the navigation glass. It affects only
+     the backdrop surface while the visitor is moving—not icon hit targets or page content. */
+  .nav {
+    --nav-liquid-x: 50%;
+    --nav-liquid-y: 0px;
+  }
+  .nav::before {
+    transform: translateY(0) scaleY(1);
+    transform-origin: center top;
+    will-change: transform, backdrop-filter;
+  }
+  .nav.is-liquid::before {
+    transform: translateY(var(--nav-liquid-y)) scaleY(1.055);
+    border-radius: 0 0 22px 22px / 0 0 8px 8px;
+    background-image: radial-gradient(220px 42px at var(--nav-liquid-x) 100%, rgba(154, 204, 255, 0.18), transparent 72%);
+    backdrop-filter: blur(23px) saturate(1.8) brightness(0.92);
+    -webkit-backdrop-filter: blur(23px) saturate(1.8) brightness(0.92);
+    animation: nav-liquid-ripple 360ms var(--ease-out) both;
+  }
+  @keyframes nav-liquid-ripple {
+    0% {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 72% 100%, 50% 100%, 28% 100%, 0 100%);
+    }
+    44% {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 72% 100%, 50% 94%, 28% 100%, 0 100%);
+    }
+    100% {
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 72% 100%, 50% 100%, 28% 100%, 0 100%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav.is-liquid::before {
+      transform: none;
+    }
+  }
+
   /* ── SKIP LINK ── keyboard users can jump past nav */
   .skip-to-content {
     position: fixed;
@@ -3639,7 +4052,66 @@
     top: 16px;
     outline: 2px solid rgba(160, 200, 255, 0.6);
   }
-</style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <div id="cur-dot"></div> <div id="cur-label" aria-hidden="true"></div> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" title="Close">✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
+</style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <div id="cur-dot"></div> <div id="cur-label" aria-hidden="true"></div> <script src="/assets/js/gsap.min.js"></script> <script>
+  // ── GSAP NAV PHYSICS ── a short physical cue for the pixel wayfinding marks.
+  // No continuous animation, no hover blur, and no movement on touch/reduced motion.
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var touch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    if (reduce || touch || !window.gsap) return;
+    var icons = document.querySelectorAll(".nav-icon");
+    icons.forEach(function (icon, index) {
+      icon.addEventListener("pointerenter", function () {
+        window.gsap.killTweensOf(icon);
+        window.gsap.to(icon, {
+          y: -2,
+          scale: 1.14,
+          rotation: index % 2 ? 5 : -5,
+          duration: 0.34,
+          ease: "back.out(2.4)",
+          overwrite: true,
+        });
+      });
+      icon.addEventListener("pointerleave", function () {
+        window.gsap.to(icon, {
+          y: 0,
+          scale: 1,
+          rotation: 0,
+          duration: 0.42,
+          ease: "power3.out",
+          overwrite: true,
+        });
+      });
+    });
+  })();
+</script> <script>
+  // ── NAV LIQUID GLASS ── velocity-driven and restricted to the glass layer.
+  (function () {
+    var nav = document.querySelector(".nav");
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!nav || reduce) return;
+    var lastY = window.scrollY;
+    var clearTimer = null;
+    window.addEventListener(
+      "scroll",
+      function () {
+        var y = window.scrollY;
+        var delta = y - lastY;
+        lastY = y;
+        if (Math.abs(delta) < 1) return;
+        nav.style.setProperty("--nav-liquid-x", Math.max(12, Math.min(88, 50 + delta * 2.8)) + "%");
+        nav.style.setProperty("--nav-liquid-y", Math.max(-2, Math.min(2, delta * 0.08)).toFixed(2) + "px");
+        nav.classList.add("is-liquid");
+        if (clearTimer) window.clearTimeout(clearTimer);
+        clearTimer = window.setTimeout(function () {
+          nav.classList.remove("is-liquid");
+          nav.style.setProperty("--nav-liquid-y", "0px");
+        }, 150);
+      },
+      { passive: true }
+    );
+  })();
+</script> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" title="Close">✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
   // ── CUBE CHAT ── canned conversational agent (Sid's cube as host)
   (function () {
     var fab = document.getElementById("cube-chat-fab");
@@ -3837,7 +4309,7 @@
       window.__sidToggleTheme && window.__sidToggleTheme();
     });
   })();
-</script> <div id="cmdk" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Command palette"> <div class="cmdk-bg" data-cmdk-close></div> <div class="cmdk-panel"> <div class="cmdk-search"> <svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <circle cx="11" cy="11" r="7"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> </svg> <input id="cmdk-input" type="text" aria-label="Search projects, pages, and social links" placeholder="Jump to a project, page, or social…" autocomplete="off" spellcheck="false"> <kbd>esc</kbd> </div> <div class="cmdk-list" id="cmdk-list"></div> <div class="cmdk-footer"> <span><kbd>↑</kbd><kbd>↓</kbd>navigate</span> <span><kbd>↵</kbd>open</span> <span><kbd>esc</kbd>close</span> </div> </div> </div> <div class="cmdk-hint" id="cmdk-hint" aria-hidden="true"> <kbd>⌘</kbd><kbd>K</kbd> to navigate</div> <script>
+</script> <div id="cmdk" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Command palette"> <div class="cmdk-bg" data-cmdk-close></div> <div class="cmdk-panel"> <div class="cmdk-search"> <svg width="16" height="16" viewbox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"> <circle cx="11" cy="11" r="7"></circle> <line x1="21" y1="21" x2="16.65" y2="16.65"></line> </svg> <input id="cmdk-input" type="text" aria-label="Search projects, pages, and social links" placeholder="Jump to a project, page, or social…" autocomplete="off" spellcheck="false"> <kbd>esc</kbd> </div> <div class="cmdk-list" id="cmdk-list"></div> <div class="cmdk-footer"> <span><kbd>↑</kbd><kbd>↓</kbd>navigate</span> <span><kbd>↵</kbd>open</span> <span><kbd>esc</kbd>close</span> </div> </div> </div> <script>
   (function () {
     const dot = document.getElementById("cur-dot");
     if (!dot) return;
@@ -4779,6 +5251,20 @@
     })();
   })();
 
+  // ── QUIET UTILITY CHROME ── keep the cube chat + theme controls out of the
+  // reader's peripheral vision until scrolling has fully settled.
+  (function () {
+    var settleTimer = null;
+    function setScrolling() {
+      document.body.classList.add("is-scrolling");
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(function () {
+        document.body.classList.remove("is-scrolling");
+      }, 320);
+    }
+    window.addEventListener("scroll", setScrolling, { passive: true });
+  })();
+
   // ── COUNT-UP ── animate any [data-count-up] number from 0 → target on viewport entry
   (function () {
     var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -4817,47 +5303,6 @@
       n.textContent = "0";
       obs.observe(n);
     });
-  })();
-
-  // ── LETTER SCRAMBLE ── on .proj-title and .about-name (load-in + hover)
-  (function () {
-    const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced) return;
-    const SCRAMBLE_CHARS = "!<>-_\\/[]{}=+*^?#·×∆◇◆";
-    function scrambleEffect(el) {
-      const original = el.textContent.trim();
-      if (!original) return;
-      let scrambling = false;
-      function run(duration) {
-        if (scrambling) return;
-        scrambling = true;
-        const start = performance.now();
-        function frame() {
-          const t = (performance.now() - start) / duration;
-          if (t >= 1) {
-            el.textContent = original;
-            scrambling = false;
-            return;
-          }
-          const reveal = Math.floor(t * original.length);
-          let out = "";
-          for (let i = 0; i < original.length; i++) {
-            const c = original[i];
-            if (i < reveal || c === " " || c === "·" || c === "—") out += c;
-            else out += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
-          }
-          el.textContent = out;
-          requestAnimationFrame(frame);
-        }
-        requestAnimationFrame(frame);
-      }
-      el.style.cursor = "none";
-      el.addEventListener("mouseenter", () => run(550));
-      // Initial decryption on page load
-      setTimeout(() => run(750), 250);
-    }
-    // Targeted selectors — only single-line plain-text headings (skip .proj-title, has its own typewriter on project pages)
-    document.querySelectorAll(".about-name, .play-title").forEach(scrambleEffect);
   })();
 
   // ── CMD+K RECENT HISTORY ── track last 5 visited URLs in localStorage
@@ -5163,6 +5608,91 @@
     });
   })();
 
+  // ── CUBE IDLE BEAT ── a small life cue after the visitor stops interacting
+  (function () {
+    const logos = Array.from(document.querySelectorAll(".logo-cube"));
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!logos.length || reduce) return;
+    let timer = null;
+    let clearTimer = null;
+    function clearIdle() {
+      logos.forEach((logo) => logo.classList.remove("is-idle"));
+      if (clearTimer) window.clearTimeout(clearTimer);
+    }
+    function scheduleIdle() {
+      clearIdle();
+      if (timer) window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        logos.forEach((logo) => logo.classList.add("is-idle"));
+        clearTimer = window.setTimeout(clearIdle, 1700);
+      }, 6200);
+    }
+    ["scroll", "pointermove", "pointerdown", "keydown", "touchstart"].forEach((eventName) => {
+      window.addEventListener(eventName, scheduleIdle, { passive: true });
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) clearIdle();
+      else scheduleIdle();
+    });
+    scheduleIdle();
+  })();
+
+  // ── CUBE FLY-BY ── one quiet, idle-only pass through the top of the page.
+  (function () {
+    const source = document.querySelector(".nav .logo-cube");
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const touch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    if (!source || reduce || touch) return;
+    let timer = null;
+    let flyer = null;
+    function clearFlyer() {
+      if (timer) window.clearTimeout(timer);
+      timer = null;
+      if (flyer) flyer.remove();
+      flyer = null;
+    }
+    function schedule() {
+      clearFlyer();
+      const delay = 21000 + Math.round(Math.random() * 15000);
+      timer = window.setTimeout(launch, delay);
+    }
+    function launch() {
+      if (document.hidden) return schedule();
+      const box = source.getBoundingClientRect();
+      const maxTravel = Math.max(220, Math.min(window.innerWidth - box.left - 72, window.innerWidth * 0.7));
+      flyer = source.cloneNode(true);
+      flyer.classList.add("cube-wanderer");
+      flyer.removeAttribute("style");
+      flyer.setAttribute("aria-hidden", "true");
+      flyer.style.left = box.left + "px";
+      flyer.style.top = box.top + "px";
+      flyer.style.setProperty("--cube-flight-x1", Math.round(maxTravel * 0.38) + "px");
+      flyer.style.setProperty("--cube-flight-y1", "38px");
+      flyer.style.setProperty("--cube-flight-x2", Math.round(maxTravel * 0.72) + "px");
+      flyer.style.setProperty("--cube-flight-y2", "8px");
+      flyer.style.setProperty("--cube-flight-x3", Math.round(maxTravel) + "px");
+      flyer.style.setProperty("--cube-flight-y3", "28px");
+      document.body.appendChild(flyer);
+      flyer.addEventListener(
+        "animationend",
+        () => {
+          if (flyer) flyer.remove();
+          flyer = null;
+          window.setTimeout(schedule, 26000);
+        },
+        { once: true }
+      );
+    }
+    ["scroll", "pointermove", "pointerdown", "keydown", "touchstart"].forEach((eventName) => {
+      window.addEventListener(eventName, schedule, { passive: true });
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) clearFlyer();
+      else schedule();
+    });
+    schedule();
+  })();
+
   // ── READING TIME ESTIMATE ── injects "~N min read" badge on project pages
   (function () {
     const main = document.querySelector(".proj-hero ~ .meta-row, .meta-row");
@@ -5180,7 +5710,7 @@
     badge.innerHTML = '<p class="meta-k">Read</p><p class="meta-v">~' + minutes + " min</p>";
     main.appendChild(badge);
   })();
-</script> <script>
+</script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="play-edge-liquify" x="-12%" y="-32%" width="124%" height="164%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.012 0.058" numoctaves="2" seed="17" result="edge-noise"></feturbulence> <fedisplacementmap id="play-edge-liquify-map" in="SourceGraphic" in2="edge-noise" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> <script>
       (function () {
         var masonry = document.getElementById("masonry");
         var floats = ["f1", "f2", "f3", "f4"];
@@ -5207,6 +5737,228 @@
         items.splice(60, 0, extraVids[3]);
         items.splice(90, 0, extraVids[4]);
 
+        // ── MOTION LENS ── An intentionally lightweight computer-vision interaction.
+        // It samples movement locally from an opted-in camera stream, then turns that
+        // movement into an abstract, non-recorded field over the Play constellation.
+        // No model is downloaded, no frame is rendered, and no camera data leaves the device.
+        (function () {
+          var trigger = document.getElementById("play-lens-trigger");
+          var status = document.getElementById("play-lens-status");
+          var stage = document.querySelector(".play-stage");
+          var orbit = document.getElementById("play-orbit");
+          var canvas = document.getElementById("play-motion-canvas");
+          var video = document.getElementById("play-lens-video");
+          if (!trigger || !status || !stage || !orbit || !canvas || !video) return;
+
+          var field = canvas.getContext("2d");
+          var sampler = document.createElement("canvas");
+          sampler.width = 96;
+          sampler.height = 72;
+          var samplerCtx = sampler.getContext("2d", { willReadFrequently: true });
+          var stream = null;
+          var active = false;
+          var frameId = 0;
+          var previous = null;
+          var particles = [];
+          var width = 0;
+          var height = 0;
+          var lastSampleAt = 0;
+
+          function setStatus(message) {
+            status.textContent = message;
+          }
+          function resetButton() {
+            trigger.setAttribute("aria-pressed", "false");
+            trigger.textContent = "Use camera as a motion lens ↗";
+          }
+          function resize() {
+            var box = stage.getBoundingClientRect();
+            var dpr = Math.min(window.devicePixelRatio || 1, 2);
+            width = Math.max(1, Math.round(box.width));
+            height = Math.max(1, Math.round(box.height));
+            canvas.width = Math.round(width * dpr);
+            canvas.height = Math.round(height * dpr);
+            field.setTransform(dpr, 0, 0, dpr, 0, 0);
+            particles = Array.from({ length: Math.round(Math.max(48, Math.min(88, width / 11)) ) }, function (_, index) {
+              return {
+                x: (index * 0.61803398875 + Math.random() * 0.09) % 1,
+                y: (index * 0.38196601125 + Math.random() * 0.12) % 1,
+                phase: Math.random() * Math.PI * 2,
+              };
+            });
+          }
+          function draw(energy, focusX, focusY, now) {
+            field.clearRect(0, 0, width, height);
+            if (!particles.length) return;
+            var time = now * 0.00065;
+            var strength = Math.max(0.08, energy);
+            particles.forEach(function (particle, index) {
+              var baseX = particle.x * width;
+              var baseY = particle.y * height;
+              var pullX = (focusX - baseX) * energy * 0.09;
+              var pullY = (focusY - baseY) * energy * 0.09;
+              var swayX = Math.sin(time + particle.phase) * (1.5 + energy * 7);
+              var swayY = Math.cos(time * 0.82 + particle.phase) * (1.5 + energy * 7);
+              var x = baseX + pullX + swayX;
+              var y = baseY + pullY + swayY;
+              var alpha = 0.1 + strength * (index % 5 === 0 ? 0.62 : 0.34);
+              field.fillStyle = "rgba(196, 225, 255, " + alpha.toFixed(3) + ")";
+              field.fillRect(Math.round(x), Math.round(y), index % 5 === 0 ? 3 : 2, index % 5 === 0 ? 3 : 2);
+            });
+          }
+          function sample(now) {
+            if (!active) return;
+            frameId = requestAnimationFrame(sample);
+            if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || now - lastSampleAt < 50) return;
+            lastSampleAt = now;
+
+            samplerCtx.drawImage(video, 0, 0, sampler.width, sampler.height);
+            var pixels = samplerCtx.getImageData(0, 0, sampler.width, sampler.height).data;
+            if (!previous) previous = new Uint8Array(sampler.width * sampler.height);
+
+            var movement = 0;
+            var weightedX = 0;
+            var weightedY = 0;
+            var samples = 0;
+            for (var y = 0; y < sampler.height; y += 3) {
+              for (var x = 0; x < sampler.width; x += 3) {
+                var pixelIndex = y * sampler.width + x;
+                var offset = pixelIndex * 4;
+                var luminance = (pixels[offset] * 54 + pixels[offset + 1] * 183 + pixels[offset + 2] * 19) >> 8;
+                var delta = Math.abs(luminance - previous[pixelIndex]);
+                previous[pixelIndex] = luminance;
+                if (delta > 22) {
+                  var weight = Math.min(delta, 80);
+                  movement += weight;
+                  weightedX += x * weight;
+                  weightedY += y * weight;
+                }
+                samples++;
+              }
+            }
+            var energy = Math.min(1, movement / Math.max(1, samples * 28));
+            var focusX = movement ? (weightedX / movement / sampler.width) * width : width * 0.5;
+            var focusY = movement ? (weightedY / movement / sampler.height) * height : height * 0.5;
+            orbit.style.setProperty("--lens-shift-x", ((focusX / width - 0.5) * energy * 26).toFixed(1) + "px");
+            orbit.style.setProperty("--lens-shift-y", ((focusY / height - 0.5) * energy * 18).toFixed(1) + "px");
+            draw(energy, focusX, focusY, now);
+          }
+          function stopLens(message) {
+            active = false;
+            if (frameId) cancelAnimationFrame(frameId);
+            frameId = 0;
+            if (stream) stream.getTracks().forEach(function (track) { track.stop(); });
+            stream = null;
+            video.srcObject = null;
+            previous = null;
+            field.clearRect(0, 0, width, height);
+            stage.classList.remove("is-lensing");
+            orbit.style.removeProperty("--lens-shift-x");
+            orbit.style.removeProperty("--lens-shift-y");
+            resetButton();
+            setStatus(message || "Optional · motion stays on this device");
+          }
+          async function startLens() {
+            var reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (reducedMotion) {
+              setStatus("Motion lens respects your reduced-motion preference");
+              return;
+            }
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+              setStatus("Camera input is not available in this browser");
+              return;
+            }
+            trigger.disabled = true;
+            setStatus("Requesting camera permission…");
+            try {
+              stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: { facingMode: "user", width: { ideal: 320 }, height: { ideal: 240 } },
+              });
+              video.srcObject = stream;
+              await video.play();
+              resize();
+              active = true;
+              stage.classList.add("is-lensing");
+              trigger.setAttribute("aria-pressed", "true");
+              trigger.textContent = "Stop motion lens ×";
+              setStatus("Motion lens active · camera stays on this device");
+              frameId = requestAnimationFrame(sample);
+            } catch (error) {
+              if (stream) stream.getTracks().forEach(function (track) { track.stop(); });
+              stream = null;
+              setStatus(error && error.name === "NotAllowedError" ? "Camera permission was not granted" : "Couldn’t start the motion lens");
+              resetButton();
+            } finally {
+              trigger.disabled = false;
+            }
+          }
+          trigger.addEventListener("click", function () {
+            if (active) stopLens();
+            else startLens();
+          });
+          window.addEventListener("resize", function () { if (active) resize(); }, { passive: true });
+          document.addEventListener("visibilitychange", function () {
+            if (document.hidden && active) stopLens("Motion lens paused when the page was hidden");
+          });
+          window.addEventListener("pagehide", function () { if (active) stopLens(); });
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && active) stopLens();
+          });
+        })();
+
+        // ── MEMORY FIELD ── a small spatial preview gives Play an active opening without
+        // turning the entire archive into an impractical 3D browser. These are real photos
+        // from the collection; the full, filterable wall remains the primary way to explore.
+        (function () {
+          var orbit = document.getElementById("play-orbit");
+          if (!orbit) return;
+
+          var photos = items.filter(function (item) { return item.pf === "img"; });
+          var layout = [
+            { x: 15, y: 18, z: -90, r: -12, w: 21, delay: -1.4, duration: 8.6 },
+            { x: 49, y: 13, z: 44, r: 5, w: 31, delay: -3.1, duration: 10.2 },
+            { x: 82, y: 22, z: -14, r: 13, w: 19, delay: -0.7, duration: 7.8 },
+            { x: 17, y: 55, z: 4, r: 7, w: 27, delay: -4.4, duration: 9.5 },
+            { x: 52, y: 53, z: 105, r: -8, w: 34, delay: -2.3, duration: 11.4 },
+            { x: 84, y: 59, z: 12, r: 8, w: 24, delay: -5.2, duration: 8.9 },
+            { x: 33, y: 84, z: -58, r: 10, w: 19, delay: -1.8, duration: 10.7 },
+            { x: 68, y: 83, z: 48, r: -11, w: 27, delay: -3.6, duration: 9.8 }
+          ];
+
+          layout.forEach(function (position, index) {
+            var photoIndex = Math.round((photos.length - 1) * (index / (layout.length - 1)));
+            var photo = photos[photoIndex];
+            if (!photo) return;
+
+            var fragment = document.createElement("div");
+            fragment.className = "play-memory";
+            fragment.style.setProperty("--x", position.x + "%");
+            fragment.style.setProperty("--y", position.y + "%");
+            fragment.style.setProperty("--z", position.z + "px");
+            fragment.style.setProperty("--r", position.r + "deg");
+            fragment.style.setProperty("--w", position.w + "%");
+            fragment.style.setProperty("--float-delay", position.delay + "s");
+            fragment.style.setProperty("--float-duration", position.duration + "s");
+
+            var image = document.createElement("img");
+            image.src = photo.src;
+            image.alt = "";
+            image.decoding = "async";
+            image.addEventListener("load", function () {
+              fragment.style.setProperty("--ratio", (image.naturalWidth / image.naturalHeight).toFixed(3));
+              fragment.classList.add("is-loaded");
+            }, { once: true });
+            if (image.complete && image.naturalWidth) {
+              fragment.style.setProperty("--ratio", (image.naturalWidth / image.naturalHeight).toFixed(3));
+              fragment.classList.add("is-loaded");
+            }
+
+            fragment.appendChild(image);
+            orbit.appendChild(fragment);
+          });
+        })();
+
         // Build DOM. Play is a moving, photographic stream: every card preserves
         // its source media rather than changing color, blend mode, or clarity on hover.
         items.forEach(function (item, idx) {
@@ -5218,6 +5970,9 @@
           card.setAttribute("aria-label", "Open " + mediaLabel + " " + (idx + 1) + " of " + items.length);
           card.dataset.pf = item.pf;
           card.dataset.idx = idx;
+          // A 256-item gallery should not create 256 consecutive Tab stops. The
+          // archive uses roving focus below: Tab enters once, then arrows travel it.
+          card.tabIndex = idx === 0 ? 0 : -1;
           // Reserve a default placeholder height so IntersectionObserver can detect the card
           // BEFORE its media has loaded. Without this, lazy cards stay 0-height → never intersect →
           // never load → permanent black gap. setRowSpan() recalculates to actual ratio on load.
@@ -5259,6 +6014,43 @@
           }
 
           masonry.appendChild(card);
+        });
+
+        // ── ROVING GALLERY FOCUS ── keeps the large visual archive practical for
+        // keyboard visitors. Arrow keys move through the currently visible set;
+        // Home/End jump to its edges; Tab stays reserved for broader page navigation.
+        function visibleCards() {
+          return Array.prototype.filter.call(masonry.querySelectorAll(".card"), function (card) {
+            return card.style.display !== "none";
+          });
+        }
+        function setRovingFocus(activeCard) {
+          masonry.querySelectorAll(".card").forEach(function (card) {
+            card.tabIndex = card === activeCard ? 0 : -1;
+          });
+        }
+        masonry.addEventListener("focusin", function (event) {
+          var card = event.target.closest && event.target.closest(".card");
+          if (card) setRovingFocus(card);
+        });
+        masonry.addEventListener("click", function (event) {
+          var card = event.target.closest && event.target.closest(".card");
+          if (card) setRovingFocus(card);
+        });
+        masonry.addEventListener("keydown", function (event) {
+          if (!event.target.classList.contains("card")) return;
+          var cards = visibleCards();
+          var current = cards.indexOf(event.target);
+          if (current < 0) return;
+          var next = current;
+          if (event.key === "ArrowRight" || event.key === "ArrowDown") next = Math.min(cards.length - 1, current + 1);
+          else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = Math.max(0, current - 1);
+          else if (event.key === "Home") next = 0;
+          else if (event.key === "End") next = cards.length - 1;
+          else return;
+          event.preventDefault();
+          setRovingFocus(cards[next]);
+          cards[next].focus();
         });
 
         // Compute grid row span per card so layout becomes proper masonry
@@ -5310,8 +6102,6 @@
                 var delay = (i % 4) * 60;
                 setTimeout(function () {
                   el.classList.add("reveal-in");
-                  var f = el.getAttribute("data-float");
-                  if (f) el.classList.add(f);
                 }, delay);
                 obs.unobserve(el);
               }
@@ -5352,24 +6142,100 @@
         // hijacking input. It pauses while the visitor reads, scrolls, taps, or types.
         (function () {
           var lastInteraction = Date.now();
+          var motionToggle = document.getElementById("play-motion-toggle");
+          var motionPaused = false;
           var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
-          if (prefersReduced || isTouch) return;
+          // A few desktop browsers (including in-app shells with a trackpad) report a
+          // coarse pointer even though they have ample room for the drifting wall. Tie
+          // this to the composition instead: the quiet motion belongs on desktop, while
+          // narrower, touch-first layouts stay completely still for reading and tapping.
+          if (prefersReduced || window.innerWidth < 900) return;
+          if (motionToggle) {
+            motionToggle.addEventListener("click", function () {
+              motionPaused = !motionPaused;
+              document.body.classList.toggle("play-motion-paused", motionPaused);
+              motionToggle.setAttribute("aria-pressed", String(motionPaused));
+              motionToggle.textContent = motionPaused ? "Resume motion" : "Pause motion";
+              lastInteraction = Date.now();
+            });
+          }
           ["mousemove", "wheel", "keydown", "click", "pointerdown"].forEach(function (ev) {
             window.addEventListener(ev, function () {
               lastInteraction = Date.now();
             }, { passive: true });
           });
           var lastT = performance.now();
+          var driftRemainder = 0;
           function tick(now) {
             requestAnimationFrame(tick);
             var dt = Math.min((now - lastT) / 1000, 0.05);
             lastT = now;
-            var idle = Date.now() - lastInteraction > 1500;
+            // Give people time to take in a frame before the archive drifts. This
+            // should feel like a gallery that is alive, never like a page stealing
+            // their scroll position.
+            var idle = Date.now() - lastInteraction > 3200;
             var atBottom = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 8;
-            if (idle && !atBottom) window.scrollBy(0, 26 * dt);
+            if (!motionPaused && idle && !atBottom) {
+              // Browser scroll APIs often round a per-frame fraction (≈0.4px) down to
+              // zero. Carry it forward until there is a whole pixel to move so the
+              // drift is genuinely visible instead of silently doing nothing.
+              driftRemainder += 12 * dt;
+              var step = Math.floor(driftRemainder);
+              if (step > 0) {
+                window.scrollBy(0, step);
+                driftRemainder -= step;
+              }
+            } else if (!idle) {
+              driftRemainder = 0;
+            }
           }
           requestAnimationFrame(tick);
+        })();
+
+        // ── EDGE LIQUIFY ── the viewport fades briefly distort with scroll velocity.
+        // It deliberately targets the two lightweight edge overlays—not cards or media—so
+        // the wall stays crisp, readable, and inexpensive on a long page.
+        (function () {
+          var page = document.body;
+          var displacement = document.getElementById("play-edge-liquify-map");
+          var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (!page || !displacement || prefersReduced) return;
+
+          var lastY = window.scrollY;
+          var target = 0;
+          var current = 0;
+          var rafId = 0;
+
+          function settle() {
+            current += (target - current) * 0.14;
+            target *= 0.9;
+
+            var strength = Math.min(16, current);
+            var isWarping = strength > 0.45;
+            displacement.setAttribute("scale", isWarping ? strength.toFixed(2) : "0");
+            page.classList.toggle("play-is-warping", isWarping);
+
+            if (strength > 0.12 || target > 0.12) {
+              rafId = requestAnimationFrame(settle);
+            } else {
+              displacement.setAttribute("scale", "0");
+              page.classList.remove("play-is-warping");
+              rafId = 0;
+            }
+          }
+
+          window.addEventListener(
+            "scroll",
+            function () {
+              var movement = Math.abs(window.scrollY - lastY);
+              lastY = window.scrollY;
+              if (movement < 0.5) return;
+
+              target = Math.min(20, target + movement * 0.28);
+              if (!rafId) rafId = requestAnimationFrame(settle);
+            },
+            { passive: true }
+          );
         })();
 
         // Lightbox
@@ -5545,6 +6411,7 @@
               if (countEl) {
                 countEl.textContent = f === "all" ? items.length + " pieces" : visibleCount + " of " + items.length + " pieces";
               }
+              setRovingFocus(visibleCards()[0] || null);
               // Recompute row spans after filter change
               setTimeout(recomputeAll, 50);
             });
@@ -5661,4 +6528,4 @@
           // only when the wall section actually scrolls into view.
         })();
       })();
-    </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> </body> </html>
+    </script> </body> </html>
