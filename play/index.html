@@ -587,10 +587,7 @@ title: Play · Sid Mehta
         opacity: 1;
       }
 
-      /* ── SCROLL EDGE FADE ── content fades at top + bottom of viewport.
-         The static gradients stay inexpensive. A small SVG displacement is switched on only
-         while the page is moving, so Play shares Works' liquid energy without filtering the
-         whole 256-tile wall. */
+      /* ── SCROLL EDGE FADE ── a quiet depth cue that never alters the artwork itself. */
       .scroll-edge {
         position: fixed;
         left: 0;
@@ -601,7 +598,6 @@ title: Play · Sid Mehta
         pointer-events: none;
         z-index: 50;
         transform: translateZ(0);
-        transition: filter 180ms ease-out;
       }
       .scroll-edge::after {
         content: "";
@@ -626,16 +622,6 @@ title: Play · Sid Mehta
       .scroll-edge--bottom::after {
         background: radial-gradient(76% 110% at 50% 100%, rgba(207, 222, 240, 0.15), transparent 70%);
         transform: scale(1.03, 0.84) rotate(180deg);
-      }
-      .play-is-warping .scroll-edge {
-        filter: url(#play-edge-liquify);
-      }
-      .play-is-warping .scroll-edge::after {
-        opacity: 0.46;
-        transform: scale(1.08, 1.05);
-      }
-      .play-is-warping .scroll-edge--bottom::after {
-        transform: scale(1.08, 1.05) rotate(180deg);
       }
       @media (max-width: 600px) {
         .scroll-edge { height: 70px; }
@@ -1032,10 +1018,6 @@ title: Play · Sid Mehta
 
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
       <defs>
-        <filter id="play-edge-liquify" x="-12%" y="-32%" width="124%" height="164%" color-interpolation-filters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency="0.012 0.058" numOctaves="2" seed="17" result="edge-noise" />
-          <feDisplacementMap id="play-edge-liquify-map" in="SourceGraphic" in2="edge-noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
         <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.007 0.048" numOctaves="1" seed="9" result="noise" />
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
@@ -1537,52 +1519,6 @@ title: Play · Sid Mehta
             }
           });
           rafId = requestAnimationFrame(tick);
-        })();
-
-        // ── EDGE LIQUIFY ── the viewport fades briefly distort with scroll velocity.
-        // It deliberately targets the two lightweight edge overlays—not cards or media—so
-        // the wall stays crisp, readable, and inexpensive on a long page.
-        (function () {
-          var page = document.body;
-          var displacement = document.getElementById("play-edge-liquify-map");
-          var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          if (!page || !displacement || prefersReduced) return;
-
-          var lastY = window.scrollY;
-          var target = 0;
-          var current = 0;
-          var rafId = 0;
-
-          function settle() {
-            current += (target - current) * 0.14;
-            target *= 0.9;
-
-            var strength = Math.min(16, current);
-            var isWarping = strength > 0.45;
-            displacement.setAttribute("scale", isWarping ? strength.toFixed(2) : "0");
-            page.classList.toggle("play-is-warping", isWarping);
-
-            if (strength > 0.12 || target > 0.12) {
-              rafId = requestAnimationFrame(settle);
-            } else {
-              displacement.setAttribute("scale", "0");
-              page.classList.remove("play-is-warping");
-              rafId = 0;
-            }
-          }
-
-          window.addEventListener(
-            "scroll",
-            function () {
-              var movement = Math.abs(window.scrollY - lastY);
-              lastY = window.scrollY;
-              if (movement < 0.5) return;
-
-              target = Math.min(20, target + movement * 0.28);
-              if (!rafId) rafId = requestAnimationFrame(settle);
-            },
-            { passive: true }
-          );
         })();
 
         // Lightbox
