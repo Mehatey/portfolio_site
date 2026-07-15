@@ -4,6 +4,8 @@ permalink: /cube-guy/
 project_title: Cube of Creations
 proj_num: "01"
 tagline: A character built since 2018. A square in an unfamiliar world, collecting insights, adding sides, becoming a cube.
+quick_read: >
+  Cube of Creations is a character world developed over seven years through a short film, game, and interactive build. I created the character, visual language, and technical world across each format.
 category: Film · Game · Character
 year: 2018–2025
 hero_bg: "radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)"

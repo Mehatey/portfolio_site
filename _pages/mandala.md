@@ -5,6 +5,8 @@ project_title: "Bloom; who are you"
 proj_num: "04"
 status: "Thesis · Ongoing"
 tagline: An interactive installation built around one question. This was my thesis but it was really a personal question, sitting with the idea that most of us move through life without ever stopping to ask who we actually are. Generative mandalas, layered audio, and a darkened space designed to make room for reflection.
+quick_read: >
+  A self-initiated thesis installation where visitors meet generative mandalas, responsive sound, and a single question: who are you?
 category: Installation · TouchDesigner
 year: 2025
 hero_bg: "radial-gradient(ellipse at 40% 60%, #160d24 0%, #080408 55%, #020102 100%)"
