@@ -952,6 +952,90 @@
         transform-origin: 50% 50%;
         transition: filter 0.16s ease-out;
       }
+      /* The selected work is shown as one object rather than a flat slideshow card.
+         Its three stills occupy the cube's visible faces, while a restrained blurred
+         version of the lead image gives the surrounding panel depth. */
+      .wp-slides.is-cube {
+        display: grid;
+        place-items: center;
+        overflow: visible;
+        perspective: 1200px;
+      }
+      .wp-slides.is-cube::before {
+        content: "";
+        position: absolute;
+        inset: 8% 12%;
+        background-image: var(--wp-cube-image);
+        background-position: center;
+        background-size: cover;
+        filter: blur(34px) saturate(1.2);
+        opacity: 0.28;
+        transform: scale(1.12);
+      }
+      .wp-slides.is-cube::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 50% 48%, transparent 18%, rgba(4, 6, 12, 0.2) 68%, rgba(4, 6, 12, 0.62) 100%);
+        pointer-events: none;
+      }
+      .wp-cube {
+        --wp-cube-size: clamp(190px, 18vw, 250px);
+        --wp-cube-depth: calc(var(--wp-cube-size) / 2);
+        position: relative;
+        z-index: 1;
+        width: var(--wp-cube-size);
+        height: var(--wp-cube-size);
+        transform-style: preserve-3d;
+        animation: wpCubeOrbit 22s cubic-bezier(0.42, 0, 0.58, 1) infinite alternate;
+        will-change: transform;
+      }
+      .wp-cube-face {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        background: #0b101a;
+        border: 1px solid rgba(210, 235, 255, 0.44);
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+          inset 0 0 42px rgba(105, 180, 255, 0.14),
+          0 20px 54px rgba(0, 0, 0, 0.36);
+        backface-visibility: hidden;
+      }
+      .wp-cube-face::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(238, 249, 255, 0.22), transparent 34%, transparent 67%, rgba(5, 8, 15, 0.28));
+        pointer-events: none;
+      }
+      .wp-cube-face img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: saturate(0.94) contrast(1.08) brightness(0.94);
+      }
+      .wp-cube-face--front {
+        transform: translateZ(var(--wp-cube-depth));
+      }
+      .wp-cube-face--right {
+        transform: rotateY(90deg) translateZ(var(--wp-cube-depth));
+      }
+      .wp-cube-face--top {
+        transform: rotateX(90deg) translateZ(var(--wp-cube-depth));
+      }
+      @keyframes wpCubeOrbit {
+        from {
+          transform: rotateX(-9deg) rotateY(-24deg) rotateZ(1deg);
+        }
+        55% {
+          transform: rotateX(-5deg) rotateY(6deg) rotateZ(-0.5deg);
+        }
+        to {
+          transform: rotateX(-10deg) rotateY(28deg) rotateZ(1deg);
+        }
+      }
       /* The preview is alive even at rest, but only just: an almost imperceptible
          camera drift keeps the selected work from reading as a static UI card. */
       .wp-slide.is-active img {
@@ -966,13 +1050,7 @@
           transform: scale(1.018);
         }
       }
-      /* Exit warp — applied only for the click-to-navigate beat (see JS), not left on
-         permanently, so the SVG filter never costs a frame during normal browsing. */
-      .wp-media.is-exiting .wp-slide img {
-        filter: url(#wp-exit-filter);
-      }
-      /* Same "warp on threshold, flash on commit" signature as the homepage Buddha
-         collapse and the project-hero entrance — played once, right on click. */
+      /* A brief light flash acknowledges navigation without distorting the work. */
       .wp-exit-flash {
         position: absolute;
         inset: 0;
@@ -1042,6 +1120,10 @@
         .wp-slide,
         .wp-media-dot {
           transition: none !important;
+        }
+        .wp-cube {
+          animation: none;
+          transform: rotateX(-9deg) rotateY(18deg);
         }
       }
 
@@ -2185,6 +2267,32 @@
     padding-top: 20px;
     border-top: 1px solid rgba(255, 255, 255, 0.12);
   }
+  .site-footer-identity {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+  .site-footer-buddha {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    opacity: 0.7;
+    transition:
+      opacity 0.24s ease,
+      transform 0.32s var(--ease-out);
+  }
+  .site-footer-buddha:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  .site-footer-buddha model-viewer {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    --poster-color: transparent;
+  }
   .site-footer-mark {
     margin: 0;
     font-family: var(--font-mono);
@@ -2239,6 +2347,9 @@
     color: rgba(7, 9, 15, 0.9);
     border-color: rgba(7, 9, 15, 0.6);
   }
+  html[data-theme="light"] .site-footer-buddha {
+    opacity: 0.82;
+  }
   @media (max-width: 600px) {
     .site-footer {
       margin-top: 0;
@@ -2254,7 +2365,7 @@
       white-space: normal;
     }
   }
-</style> <footer class="site-footer" aria-label="Site footer"> <div class="site-footer-inner"> <p class="site-footer-mark">Siddharth Mehta <span>· New York</span></p> <div class="site-footer-meta"> <span>© 2026</span> <span id="site-footer-time">--:-- NYC</span> <a href="mailto:sidmehtadesign@gmail.com">Email</a> </div> </div> </footer> <script>
+</style> <footer class="site-footer" aria-label="Site footer"> <div class="site-footer-inner"> <div class="site-footer-identity"> <div class="site-footer-buddha" aria-hidden="true"> <model-viewer src="/assets/models/buddha.glb" auto-rotate rotation-per-second="14deg" camera-orbit="0deg 80deg 105%" interaction-prompt="none" disable-zoom disable-pan disable-tap environment-image="neutral" exposure="1.08" shadow-intensity="0"></model-viewer> </div> <p class="site-footer-mark">Siddharth Mehta <span>· New York</span></p> </div> <div class="site-footer-meta"> <span>© 2026</span> <span id="site-footer-time">--:-- NYC</span> <a href="mailto:sidmehtadesign@gmail.com">Email</a> </div> </div> </footer> <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js" crossorigin="anonymous"></script> <script>
   (function () {
     var el = document.getElementById("site-footer-time");
     if (!el) return;
@@ -7027,10 +7138,36 @@
         slides.replaceChildren();
         dots.replaceChildren();
         slides.classList.remove("is-prism");
+        slides.classList.remove("is-cube");
+        slides.style.removeProperty("--wp-cube-image");
 
         if (!mediaItems.length) {
           rail.hidden = true;
           slides.setAttribute("aria-label", title + " preview unavailable");
+          return;
+        }
+
+        if (mediaItems.length > 1) {
+          rail.hidden = true;
+          slides.classList.add("is-cube");
+          slides.style.setProperty("--wp-cube-image", 'url("' + mediaItems[0].src.replace(/"/g, '\\"') + '")');
+          slides.setAttribute("aria-label", title + " project preview cube with " + Math.min(mediaItems.length, 3) + " visual moments");
+
+          var cube = document.createElement("span");
+          cube.className = "wp-cube";
+          cube.setAttribute("aria-hidden", "true");
+          ["front", "right", "top"].forEach(function (face, index) {
+            var image = mediaItems[index] || mediaItems[0];
+            var side = document.createElement("span");
+            side.className = "wp-cube-face wp-cube-face--" + face;
+            var img = document.createElement("img");
+            img.src = image.src;
+            img.alt = "";
+            img.decoding = "async";
+            side.appendChild(img);
+            cube.appendChild(side);
+          });
+          slides.appendChild(cube);
           return;
         }
 
@@ -7235,32 +7372,20 @@
                 ripple.remove();
               }, 700);
               if (item.tagName === "A") {
-                var wpActiveMedia = document.querySelector(".wp-slide.is-active img, .wp-slide.is-active video");
+                var wpActiveMedia = document.querySelector(".wp-cube-face img, .wp-slide.is-active img, .wp-slide.is-active video");
                 if (wpActiveMedia) {
                   wpActiveMedia.style.viewTransitionName = "project-hero";
                 }
 
-                // Warp-on-commit — same signature as the Buddha collapse and the project
-                // hero's entrance ripple. Only for plain left-clicks (let ctrl/cmd/middle
-                // click open-in-new-tab behave exactly as a normal link).
+                // Keep the route change tactile without warping the preview. Only intercept
+                // plain left-clicks so modifier clicks retain native browser behavior.
                 var isPlainClick = e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
                 if (isPlainClick && !reduceMotionNav && !isTouch) {
                   e.preventDefault();
                   var href = item.href;
                   var wpMedia = document.getElementById("wp-media");
-                  var wpExitDisplace = document.getElementById("wp-exit-displace");
                   var wpFlash = document.getElementById("wp-exit-flash");
                   if (wpMedia) wpMedia.classList.add("is-exiting");
-                  if (wpExitDisplace) {
-                    var start = null;
-                    function tick(ts) {
-                      if (!start) start = ts;
-                      var p = Math.min((ts - start) / 220, 1);
-                      wpExitDisplace.setAttribute("scale", (p * 40).toFixed(2));
-                      if (p < 1) requestAnimationFrame(tick);
-                    }
-                    requestAnimationFrame(tick);
-                  }
                   if (wpFlash) {
                     wpFlash.classList.remove("is-flashing");
                     void wpFlash.offsetWidth;
@@ -7367,4 +7492,4 @@
           }
         });
       })();
-    </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> <filter id="wp-exit-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB"> <feturbulence type="turbulence" basefrequency="0.02 0.03" numoctaves="2" seed="31" result="wp-noise"></feturbulence> <fedisplacementmap id="wp-exit-displace" in="SourceGraphic" in2="wp-noise" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> </body> </html>
+    </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> </body> </html>

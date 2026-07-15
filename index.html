@@ -1566,12 +1566,6 @@
     font-family: var(--font-head);
     overflow: hidden;
   }
-  /* Exit warp — applied only for the final dissolve (see onLoadingEnd), not for the
-     loader's whole lifespan, so the SVG filter never costs a frame during the heavier
-     video/shader phases. Echoes the Buddha collapse: reality ripples as it lets go. */
-  #site-loader.is-exiting {
-    filter: url(#loader-exit-filter);
-  }
   /* Solid backdrop — hides homepage content (desk WebGL, marquee, bottom-bar) during entry + loader scenes.
      The work-collage shader paints above this; cube video + typewriter paint above the shader. */
   #enter-backdrop {
@@ -2046,18 +2040,6 @@
       </feturbulence>
       <fedisplacementmap in="SourceGraphic" in2="noise" scale="32" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
     </filter>
-    <!-- Buddha liquify — idles at 0, ramps up on hover (a ripple at the threshold),
-         then spikes hard on Enter click as he collapses into the portal flash below. -->
-    <filter id="buddha-liq-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
-      <feturbulence type="turbulence" basefrequency="0.025 0.04" numoctaves="2" seed="11" result="buddha-noise"></feturbulence>
-      <fedisplacementmap id="buddha-liq-displace" in="SourceGraphic" in2="buddha-noise" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
-    </filter>
-    <!-- Loader exit liquify — same "warp on threshold" signature as the Buddha collapse,
-         echoed here as the loader dissolves into the homepage desk. -->
-    <filter id="loader-exit-filter" x="-60%" y="-60%" width="220%" height="220%" color-interpolation-filters="sRGB">
-      <feturbulence type="turbulence" basefrequency="0.018 0.03" numoctaves="2" seed="23" result="exit-noise"></feturbulence>
-      <fedisplacementmap id="loader-exit-displace" in="SourceGraphic" in2="exit-noise" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
-    </filter>
   </defs>
 </svg>
 
@@ -2078,24 +2060,13 @@
   <!-- Hidden trigger preserves all existing JS event wiring (keyboard, speech, etc.) -->
   <button id="enter-btn" aria-label="Enter site" aria-hidden="true" tabindex="-1" style="position: absolute; opacity: 0; width: 0; height: 0; overflow: hidden; pointer-events: none; border: none; background: none"></button>
 
-  <!-- One object, not a floating-card collage: three project stills mapped to a
-       continuously rotating prism. It gives the opening depth without asking a
-       recruiter to decode four tiny thumbnails. -->
+  <!-- One clear threshold object. The Buddha is the entry companion; project
+       imagery belongs in the Works index, where it has context and room to read. -->
   <div id="enter-buddha-wrap">
-    <div id="entry-project-prism" aria-hidden="true">
-      <div class="entry-prism-rotor">
-        <figure class="entry-prism-face entry-prism-face--front">
-          <img src="/assets/img/entry/encoded.webp" alt="" decoding="async" fetchpriority="high">
-        </figure>
-        <figure class="entry-prism-face entry-prism-face--right">
-          <img src="/assets/img/entry/cube-of-creations.webp" alt="" decoding="async" fetchpriority="high">
-        </figure>
-        <figure class="entry-prism-face entry-prism-face--top">
-          <img src="/assets/img/entry/mandala.webp" alt="" decoding="async" fetchpriority="high">
-        </figure>
-      </div>
+    <div id="enter-3d-stage" aria-hidden="true">
+      <div id="enter-3d-mount"></div>
     </div>
-    <button id="enter-label" type="button">Explore portfolio <span aria-hidden="true">→</span></button>
+    <button id="enter-label" type="button">Enter portfolio <span aria-hidden="true">→</span></button>
   </div>
 
   <!-- Mobile fallback — simple text button, hidden on desktop -->
@@ -2130,18 +2101,18 @@
     z-index: 9050;
   }
 
-  /* Buddha stage — static, centered. Hover reveals ENTER label and lifts glow. */
+  /* Buddha stage — the one focal object at the entry threshold. */
   #enter-3d-stage {
     position: relative;
-    width: 360px;
-    height: 360px;
+    width: clamp(220px, 23vw, 320px);
+    height: clamp(220px, 23vw, 320px);
     pointer-events: auto;
     opacity: 0;
     cursor: none;
     transition:
       opacity 0.4s ease,
       filter 0.5s ease;
-    filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15)) url(#buddha-liq-filter);
+    filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15));
     animation: buddhaBreathe 6s ease-in-out infinite;
   }
   /* A quiet portal holds the first paint while the 3D model streams in. */
@@ -2194,10 +2165,9 @@
     }
   }
   #enter-3d-stage:hover {
-    filter: drop-shadow(0 0 40px rgba(160, 210, 255, 0.45)) url(#buddha-liq-filter);
+    filter: drop-shadow(0 0 32px rgba(160, 210, 255, 0.34));
   }
-  /* Collapse — plays on Enter click. Overrides the idle breathe animation and pulls
-     Buddha down to a point while the liquify filter (driven in JS) spikes hard. */
+  /* Collapse — a contained transition cue that preserves the model's clean silhouette. */
   #enter-3d-stage.is-collapsing {
     animation: none;
     transition:
@@ -2206,7 +2176,7 @@
       filter 0.5s ease;
     transform: scale(0.04);
     opacity: 0;
-    filter: drop-shadow(0 0 60px rgba(180, 220, 255, 0.6)) url(#buddha-liq-filter);
+    filter: drop-shadow(0 0 60px rgba(180, 220, 255, 0.6));
   }
   #enter-3d-mount {
     width: 100%;
@@ -2222,7 +2192,7 @@
     --poster-color: transparent;
   }
 
-  /* ENTER label — floats above Buddha's head, revealed on hover */
+  /* The entry label sits below the object with deliberate breathing room. */
   #enter-label {
     border: 0;
     background: transparent;
@@ -2235,7 +2205,7 @@
     text-shadow:
       0 0 12px rgba(140, 200, 255, 0.55),
       0 0 28px rgba(100, 160, 255, 0.3);
-    margin-top: -16px;
+    margin-top: 22px;
     /* The entry affordance is present before hover, so first-time visitors do
        not have to infer that the sculpture is interactive. */
     opacity: 0.62;
@@ -2411,91 +2381,6 @@
     }
   }
 
-  /* ── PROJECT PRISM ── The opening gets one legible three-dimensional object
-     instead of four disconnected image cards. The stills are faces of the same
-     cube, so the motion explains the relationship rather than decorating it. */
-  #entry-project-prism {
-    --prism-half: clamp(82px, 10vw, 142px);
-    position: relative;
-    width: calc(var(--prism-half) * 2);
-    height: calc(var(--prism-half) * 2);
-    perspective: 1200px;
-    pointer-events: none;
-  }
-  .entry-prism-rotor {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    animation: entryPrismOrbit 19s cubic-bezier(0.45, 0.03, 0.55, 0.97) infinite alternate;
-    will-change: transform;
-  }
-  .entry-prism-face {
-    position: absolute;
-    inset: 0;
-    margin: 0;
-    overflow: hidden;
-    background: #0b101a;
-    border: 1px solid rgba(202, 230, 255, 0.48);
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-      inset 0 0 42px rgba(97, 164, 255, 0.12),
-      0 18px 52px rgba(0, 0, 0, 0.52);
-    backface-visibility: hidden;
-  }
-  .entry-prism-face::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(135deg, rgba(225, 245, 255, 0.2), transparent 32%, transparent 68%, rgba(9, 16, 30, 0.34));
-  }
-  .entry-prism-face img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: saturate(0.9) contrast(1.08) brightness(0.9);
-  }
-  .entry-prism-face--front {
-    transform: translateZ(var(--prism-half));
-  }
-  .entry-prism-face--right {
-    transform: rotateY(90deg) translateZ(var(--prism-half));
-  }
-  .entry-prism-face--top {
-    transform: rotateX(90deg) translateZ(var(--prism-half));
-  }
-  @keyframes entryPrismOrbit {
-    0% {
-      transform: rotateX(-18deg) rotateY(-32deg) rotateZ(1deg);
-    }
-    50% {
-      transform: rotateX(-8deg) rotateY(36deg) rotateZ(-1deg);
-    }
-    100% {
-      transform: rotateX(-20deg) rotateY(128deg) rotateZ(1deg);
-    }
-  }
-  #enter-buddha-wrap:hover .entry-prism-rotor {
-    animation-duration: 8s;
-  }
-  #entry-project-prism.is-collapsing {
-    animation: entryPrismCollapse 0.42s cubic-bezier(0.64, 0, 0.86, 0.28) forwards;
-  }
-  @keyframes entryPrismCollapse {
-    to {
-      opacity: 0;
-      transform: scale(0.08) rotateY(160deg);
-      filter: blur(8px);
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .entry-prism-rotor {
-      animation: none;
-      transform: rotateX(-18deg) rotateY(28deg);
-    }
-  }
-
   /* Mobile fallback — simple minimal button, hidden on desktop */
   .enter-btn-mobile {
     display: none;
@@ -2506,9 +2391,6 @@
     }
     .enter-btn-mobile {
       display: none;
-    }
-    #entry-project-prism {
-      --prism-half: clamp(70px, 21vw, 108px);
     }
     .entry-identity {
       top: max(72px, 10vh);
@@ -2814,57 +2696,19 @@
 </script>
 
 <script>
-  // Buddha liquify — idles flat, ripples on hover (reality wobbling at the threshold),
-  // then spikes hard into window.__buddhaCollapse() on Enter click: Buddha warps down
-  // to a point while #enter-flash blooms outward, then the loader takes over.
+  // The entry model receives one clean exit beat. It deliberately avoids a displacement
+  // effect so the opening has a stable silhouette instead of a visual glitch.
   (function () {
-    var wrap = document.getElementById("enter-buddha-wrap");
     var stage = document.getElementById("enter-3d-stage");
-    var displace = document.getElementById("buddha-liq-displace");
     var flash = document.getElementById("enter-flash");
-    if (!wrap || !stage || !displace) return;
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    var cur = 0,
-      target = 0,
-      collapsing = false,
-      rafId = null;
-    function tick() {
-      var rate = collapsing ? 0.2 : 0.14;
-      cur += (target - cur) * rate;
-      displace.setAttribute("scale", cur.toFixed(2));
-      if (collapsing || Math.abs(target - cur) > 0.15) {
-        rafId = requestAnimationFrame(tick);
-      } else {
-        cur = target;
-        displace.setAttribute("scale", cur.toFixed(2));
-        rafId = null;
-      }
-    }
-    function ensureLoop() {
-      if (!rafId) rafId = requestAnimationFrame(tick);
-    }
-
-    wrap.addEventListener("mouseenter", function () {
-      if (collapsing) return;
-      target = 9;
-      ensureLoop();
-    });
-    wrap.addEventListener("mouseleave", function () {
-      if (collapsing) return;
-      target = 0;
-      ensureLoop();
-    });
-
-    // Exposed so onEnter() can play the collapse before swapping in the loader.
+    if (!stage) return;
+    var collapsing = false;
     window.__buddhaCollapse = function (done) {
       if (collapsing || stage.offsetWidth === 0) {
         done();
         return;
       }
       collapsing = true;
-      target = 85;
-      ensureLoop();
       stage.classList.add("is-collapsing");
       if (flash) {
         flash.classList.remove("is-flashing");
@@ -3273,12 +3117,10 @@
         window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: true } }));
       }
 
-      // A short prism collapse keeps the click tactile without reintroducing a
-      // long post-click animation or an opaque video rectangle.
-      var prism = document.getElementById("entry-project-prism");
-      if (prism && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
-        prism.classList.add("is-collapsing");
-        setTimeout(proceed, 420);
+      // The Buddha resolves into the portfolio with one brief, contained motion.
+      // It is a transition cue, not a second loading sequence.
+      if (window.__buddhaCollapse && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+        window.__buddhaCollapse(proceed);
       } else {
         proceed();
       }
@@ -3501,21 +3343,6 @@
         setTimeout(function () {
           loader.style.transition = "opacity 0.8s ease";
           loader.style.opacity = "0";
-
-          // Warp-on-exit — same signature as the Buddha collapse, echoed here as the
-          // loader lets go of the desk. Skipped under reduced motion (fade alone still plays).
-          var exitDisplace = document.getElementById("loader-exit-displace");
-          if (exitDisplace && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
-            loader.classList.add("is-exiting");
-            var exitStart = null;
-            function exitTick(ts) {
-              if (!exitStart) exitStart = ts;
-              var p = Math.min((ts - exitStart) / 800, 1);
-              exitDisplace.setAttribute("scale", (p * 55).toFixed(2));
-              if (p < 1) requestAnimationFrame(exitTick);
-            }
-            requestAnimationFrame(exitTick);
-          }
 
           setTimeout(function () {
             if (loader.parentNode) loader.remove();
