@@ -178,7 +178,7 @@ next_project:
     loading="lazy"
     allow="autoplay"
     tabindex="-1"
-    style="width: 100%; height: clamp(560px, 84vh, 860px); border: 0; display: block; background: #04070c; border-radius: 2px;"
+    style="width: 100%; height: clamp(440px, 64vh, 640px); border: 0; display: block; background: #04070c; border-radius: 2px;"
   ></iframe>
   <button class="bloom-interactive-toggle" id="bloom-interactive-toggle" type="button" aria-pressed="false">Explore the live tree ↗</button>
 </div>
