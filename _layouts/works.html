@@ -521,8 +521,6 @@
         padding-bottom: 48px;
         scrollbar-width: thin;
         scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
-        filter: url(#liq-filter);
-        will-change: filter;
       }
       .works-list-head {
         order: 0;
@@ -1546,44 +1544,12 @@
         border-color: rgba(255, 255, 255, 0.7);
       }
 
-      /* The distortion is only active while scrolling: a clear tactile response,
-         never a permanent blur or a performance tax when the page is at rest. */
-      .works-split.is-warping .works-list,
-      .works-split.is-warping .works-preview {
-        filter: url(#liq-filter);
-      }
-      .works-split.is-warping .wp-slide.is-active img {
-        filter: blur(0.45px) saturate(1.05) contrast(1.02);
-      }
-      .works-split.is-warping .wp-media::before {
-        opacity: 0.72;
-        animation: previewGlassSweep 0.42s linear infinite alternate;
-      }
-      @keyframes previewGlassSweep {
-        from {
-          background-position:
-            center,
-            120% 0;
-        }
-        to {
-          background-position:
-            center,
-            -20% 0;
-        }
-      }
       .wp-media.is-exiting .wp-slide img {
         animation: none;
       }
       @media (prefers-reduced-motion: reduce) {
         .wp-slide.is-active img {
           animation: none;
-        }
-        .works-split.is-warping .wp-slide.is-active img {
-          filter: none;
-        }
-        .works-split.is-warping .wp-media::before {
-          animation: none;
-          opacity: 0.28;
         }
       }
 
@@ -1634,10 +1600,6 @@
           padding: 13px 0 0;
           border-left: 0;
           border-top: 1px solid rgba(255, 255, 255, 0.12);
-        }
-        .works-split.is-warping .works-list,
-        .works-split.is-warping .works-preview {
-          filter: none;
         }
       }
 
@@ -2779,54 +2741,6 @@
         );
       })();
 
-      // ── LIQUIFY WARP — body scroll velocity drives the SVG displacement. ──
-      // The SVG definitions are parsed after this script, so initialize only once
-      // the document is complete; otherwise the effect silently never attaches.
-      function initWorksLiquify() {
-        var split = document.getElementById("works-split");
-        var displace = document.getElementById("liq-displace");
-        if (!split || !displace) return;
-        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        var lastTop = window.scrollY;
-        var cur = 0;
-        var target = 0;
-        var rafId = null;
-        function tick() {
-          cur += (target - cur) * 0.18;
-          target *= 0.82;
-          var s = Math.abs(cur);
-          // The earlier 0–16 range was technically animated but nearly invisible
-          // against full-bleed project imagery. Make the edge displacement readable
-          // on an ordinary wheel flick, then let it settle immediately at rest.
-          displace.setAttribute("scale", Math.min(30, s * 1.65).toFixed(2));
-          split.classList.toggle("is-warping", s > 0.4);
-          if (s > 0.1 || Math.abs(target) > 0.1) {
-            rafId = requestAnimationFrame(tick);
-          } else {
-            displace.setAttribute("scale", "0");
-            split.classList.remove("is-warping");
-            cur = 0;
-            target = 0;
-            rafId = null;
-          }
-        }
-        window.addEventListener(
-          "scroll",
-          function () {
-            var delta = Math.abs(window.scrollY - lastTop);
-            lastTop = window.scrollY;
-            target = Math.min(22, target + delta * 0.52);
-            if (!rafId) rafId = requestAnimationFrame(tick);
-          },
-          { passive: true }
-        );
-      }
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initWorksLiquify);
-      } else {
-        initWorksLiquify();
-      }
-
       // ── LIST STAGGER REVEAL ──
       (function () {
         var rm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -2879,10 +2793,6 @@
         <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.007 0.048" numOctaves="1" seed="9" result="noise" />
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-        <filter id="liq-filter" x="-10%" y="-2%" width="120%" height="104%" color-interpolation-filters="sRGB">
-          <feTurbulence type="turbulence" baseFrequency="0.014 0.007" numOctaves="2" seed="42" result="noise" />
-          <feDisplacementMap id="liq-displace" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
         </filter>
         <!-- Preview-panel exit warp — same "warp on threshold, flash on commit" signature
              as the homepage Buddha collapse and the project-hero entrance, played the

@@ -211,7 +211,6 @@
         opacity: 0.92;
         transition: opacity 1.2s ease;
         view-transition-name: project-hero;
-        filter: url(#hero-liq-filter);
       }
       /* Case studies are primarily read by scrolling. Embedded experiences therefore
          start as visual previews; they may only receive pointer input after their own
@@ -222,34 +221,6 @@
       }
       .proj-body [data-project-interactive].is-active iframe {
         pointer-events: auto;
-      }
-      /* Motion lives on the work itself. The case-study media picks up a brief,
-         velocity-driven deformation while scrolling, then resolves perfectly sharp. */
-      #main.project-is-warping .proj-body .cs-bleed,
-      #main.project-is-warping .proj-body .cs-bleed-full,
-      #main.project-is-warping .proj-body .cs-wide,
-      #main.project-is-warping .proj-body .cs-grid,
-      #main.project-is-warping .proj-body .cs-grid-3,
-      #main.project-is-warping .proj-body .cs-split,
-      #main.project-is-warping .proj-body .cs-pair,
-      #main.project-is-warping .proj-reflection {
-        will-change: filter;
-        filter: url(#case-liq-filter);
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .hero-video {
-          filter: none;
-        }
-        #main.project-is-warping .proj-body .cs-bleed,
-        #main.project-is-warping .proj-body .cs-bleed-full,
-        #main.project-is-warping .proj-body .cs-wide,
-        #main.project-is-warping .proj-body .cs-grid,
-        #main.project-is-warping .proj-body .cs-grid-3,
-        #main.project-is-warping .proj-body .cs-split,
-        #main.project-is-warping .proj-body .cs-pair,
-        #main.project-is-warping .proj-reflection {
-          filter: none;
-        }
       }
       ::view-transition-old(project-hero),
       ::view-transition-new(project-hero) {
@@ -648,8 +619,8 @@
          Scrolling remains ordinary vertical scrolling—no wheel hijacking. */
       .case-study-layout {
         display: grid;
-        grid-template-columns: minmax(190px, 0.34fr) minmax(0, 0.66fr);
-        gap: clamp(36px, 7vw, 112px);
+        grid-template-columns: minmax(156px, 190px) minmax(0, 1fr);
+        gap: clamp(32px, 4vw, 64px);
         max-width: var(--content-max);
         margin: 0 auto;
         padding: 46px var(--gutter) 0;
@@ -670,7 +641,7 @@
       }
       .case-context__eyebrow {
         margin: 0 0 18px;
-        color: rgba(178, 209, 241, 0.6);
+        color: rgba(178, 209, 241, 0.82);
       }
       .case-progress {
         margin: 0 0 24px;
@@ -687,7 +658,7 @@
         letter-spacing: 0.14em;
         line-height: 1.4;
         text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.4);
+        color: rgba(255, 255, 255, 0.58);
       }
       .case-progress__value { color: rgba(194, 220, 246, 0.78); font-variant-numeric: tabular-nums; }
       .case-progress__track {
@@ -713,7 +684,7 @@
         letter-spacing: 0.12em;
         line-height: 1.4;
         text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 0.5);
       }
       .case-context__links {
         display: grid;
@@ -722,7 +693,7 @@
       .case-context__links a {
         width: fit-content;
         padding-bottom: 3px;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.68);
         text-decoration: none;
         border-bottom: 1px solid transparent;
         transition: color 0.2s ease, border-color 0.2s ease;
@@ -2238,66 +2209,6 @@
         { passive: true }
       );
 
-      // Hero and case-study liquify — echoes the works-list warp while keeping
-      // motion tied directly to scroll velocity rather than looping on its own.
-      // #hero-liq-displace lives in the SVG defs near the end of <body>, which this
-      // script runs well before — so the lookup is deferred to DOMContentLoaded to
-      // guarantee the element actually exists (a plain getElementById here silently
-      // found nothing and no-op'd the whole feature).
-      function initHeroLiquify() {
-        const heroEl = document.querySelector(".proj-hero");
-        const displace = document.getElementById("hero-liq-displace");
-        const caseDisplace = document.getElementById("case-liq-displace");
-        const main = document.getElementById("main");
-        if (!heroEl || !displace || !caseDisplace || !main) return;
-        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        let lastY = window.scrollY;
-        let cur = 0;
-        let target = 0;
-        let rafId = null;
-        function tick() {
-          cur += (target - cur) * 0.18;
-          target *= 0.8;
-          const s = Math.abs(cur);
-          // This needs to be perceptible at normal reading speed, not only during a
-          // trackpad fling. It remains velocity-bound and returns to a sharp still.
-          displace.setAttribute("scale", Math.min(24, s * 1.05).toFixed(2));
-          caseDisplace.setAttribute("scale", Math.min(19, s * 0.82).toFixed(2));
-          main.classList.toggle("project-is-warping", s > 0.4);
-          if (s > 0.08 || Math.abs(target) > 0.08) {
-            rafId = requestAnimationFrame(tick);
-          } else {
-            displace.setAttribute("scale", "0");
-            caseDisplace.setAttribute("scale", "0");
-            main.classList.remove("project-is-warping");
-            cur = 0;
-            target = 0;
-            rafId = null;
-          }
-        }
-
-        // Entrance settle — hero arrives slightly rippled and resolves to still, the
-        // same "arriving somewhere" cue as the Buddha threshold ripple on the homepage.
-        cur = 9;
-        rafId = requestAnimationFrame(tick);
-
-        window.addEventListener(
-          "scroll",
-          () => {
-            const delta = Math.abs(window.scrollY - lastY);
-            lastY = window.scrollY;
-            target = Math.min(22, target + delta * 0.5);
-            if (!rafId) rafId = requestAnimationFrame(tick);
-          },
-          { passive: true }
-        );
-      }
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", initHeroLiquify);
-      } else {
-        initHeroLiquify();
-      }
-
       // Scroll reveal
       const observer = new IntersectionObserver(
         (entries) => {
@@ -2783,14 +2694,6 @@
         <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.007 0.048" numOctaves="1" seed="9" result="noise" />
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-        <filter id="hero-liq-filter" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
-          <feTurbulence type="turbulence" baseFrequency="0.006 0.035" numOctaves="2" seed="7" result="noise" />
-          <feDisplacementMap id="hero-liq-displace" in="SourceGraphic" in2="noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
-        </filter>
-        <filter id="case-liq-filter" x="-8%" y="-10%" width="116%" height="120%" color-interpolation-filters="sRGB">
-          <feTurbulence type="turbulence" baseFrequency="0.005 0.032" numOctaves="2" seed="19" result="case-noise" />
-          <feDisplacementMap id="case-liq-displace" in="SourceGraphic" in2="case-noise" scale="0" xChannelSelector="R" yChannelSelector="G" />
         </filter>
       </defs>
     </svg>
