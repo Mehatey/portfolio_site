@@ -6209,7 +6209,10 @@
           // coarse pointer even though they have ample room for the drifting wall. Tie
           // this to the composition instead: the quiet motion belongs on desktop, while
           // narrower, touch-first layouts stay completely still for reading and tapping.
-          if (prefersReduced || window.innerWidth < 900) return;
+          if (prefersReduced || window.innerWidth < 900) {
+            if (motionToggle) motionToggle.hidden = true;
+            return;
+          }
           if (motionToggle) {
             motionToggle.addEventListener("click", function () {
               motionPaused = !motionPaused;
@@ -6226,8 +6229,13 @@
           });
           var lastT = performance.now();
           var driftRemainder = 0;
+          var rafId = 0;
           function tick(now) {
-            requestAnimationFrame(tick);
+            if (document.hidden) {
+              rafId = 0;
+              return;
+            }
+            rafId = requestAnimationFrame(tick);
             var dt = Math.min((now - lastT) / 1000, 0.05);
             lastT = now;
             // Give people time to take in a frame before the archive drifts. This
@@ -6249,7 +6257,13 @@
               driftRemainder = 0;
             }
           }
-          requestAnimationFrame(tick);
+          document.addEventListener("visibilitychange", function () {
+            if (!document.hidden && !rafId) {
+              lastT = performance.now();
+              rafId = requestAnimationFrame(tick);
+            }
+          });
+          rafId = requestAnimationFrame(tick);
         })();
 
         // ── EDGE LIQUIFY ── the viewport fades briefly distort with scroll velocity.
