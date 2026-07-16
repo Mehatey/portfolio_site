@@ -28,6 +28,8 @@ highlights:
     label: visitor activations
   - value: "2×"
     label: Webby Awards
+quick_read: >
+  Built the on-site capture and location-based AR pipeline that activated 25 American Wing artworks through contemporary Indigenous perspectives and reached more than 2,000 visitors.
 award_badge: "2x Webby Awards 2026"
 award_image: "assets/img/badge_webby.webp"
 refl_type: Testimonial

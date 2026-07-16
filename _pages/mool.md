@@ -32,6 +32,8 @@ highlights:
     label: design timeline
   - value: Kyoorius
     label: Design Award · 2021
+quick_read: >
+  Led visual design for a neo-banking product that made everyday financial tools feel familiar and trustworthy for underserved communities across India.
 refl_bg: "5.mool/reflection.png"
 reflection: >
   Before Mool I thought accessible meant simpler. This project taught me it really means resonant. People trust an app not because it looks clean but because it feels like it was made by someone who understands their world. We studied Indian folk art, regional patterns, and traditional color palettes not as decoration but as signals of belonging.

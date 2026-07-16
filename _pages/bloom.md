@@ -29,6 +29,8 @@ highlights:
     label: designer · developer · researcher
   - value: visionOS
     label: spatial AI experience
+quick_read: >
+  Designed and built a Vision Pro thesis experience where a spatial AI tree uses gaze, voice, and deliberate pacing to make attention the interface.
 reflection: >
   Building for Vision Pro meant learning a new spatial design language from scratch. There are no flat screens to fall back on. Every UI decision is a room decision. Where the tree sits, how large it reads at arm's length, whether the voice feels near or distant. All of it had to be felt in space, not sketched on a canvas.
 
