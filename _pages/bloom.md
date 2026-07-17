@@ -8,7 +8,7 @@ tagline: A Vision Pro application that places an AI inhabited bodhi tree in your
 category: Spatial Computing · visionOS
 year: 2025-2026
 hero_bg: "radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)"
-hero_image: "15.bloom-vp/cover.jpg"
+hero_image: "15.bloom-vp/plate-bloom.jpg"
 meta:
   - label: Year
     value: "2025-2026"
