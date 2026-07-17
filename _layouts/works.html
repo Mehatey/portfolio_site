@@ -795,7 +795,7 @@
       .wp-media::before {
         content: "";
         position: absolute;
-        inset: 0;
+        inset: -8%;
         z-index: 2;
         pointer-events: none;
         opacity: 0.28;
@@ -808,7 +808,16 @@
         background-position:
           center,
           120% 0;
+        transform: translate3d(var(--wp-lens-x, 0px), var(--wp-lens-y, 0px), 0);
+        transition: transform 0.7s var(--ease-out);
         box-shadow: inset 0 1px 0 rgba(238, 248, 255, 0.22);
+      }
+      /* The work preview behaves like a calm lens, not a distorted card. Pointer
+         movement only shifts the reflected highlight; the project image itself
+         remains perfectly legible and motion stops the moment a visitor leaves. */
+      .wp-media.is-lensing::before {
+        transition-duration: 90ms;
+        transition-timing-function: linear;
       }
       .wp-slides {
         position: absolute;
@@ -1004,6 +1013,10 @@
         background: rgba(205, 226, 255, 0.94);
       }
       @media (prefers-reduced-motion: reduce) {
+        .wp-media::before {
+          transform: none;
+          transition: none;
+        }
         .wp-slide,
         .wp-media-dot {
           transition: none !important;
@@ -2746,6 +2759,31 @@
       document.querySelectorAll(".works-list-item").forEach(function (i) {
         i.setAttribute("data-cursor-text", i.classList.contains("wli--nda") ? "Private" : "View");
       });
+
+      // A small reflected highlight gives the selected still some depth without
+      // turning the entire work index into a shader demo. It is pointer-only,
+      // composited, and disabled for reduced-motion visitors.
+      (function () {
+        var surface = document.getElementById("wp-media");
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        if (!surface || reduce || !fine) return;
+        surface.addEventListener("pointerenter", function () {
+          surface.classList.add("is-lensing");
+        });
+        surface.addEventListener("pointermove", function (event) {
+          var rect = surface.getBoundingClientRect();
+          var x = (event.clientX - rect.left) / rect.width - 0.5;
+          var y = (event.clientY - rect.top) / rect.height - 0.5;
+          surface.style.setProperty("--wp-lens-x", (x * 12).toFixed(2) + "px");
+          surface.style.setProperty("--wp-lens-y", (y * 8).toFixed(2) + "px");
+        });
+        surface.addEventListener("pointerleave", function () {
+          surface.classList.remove("is-lensing");
+          surface.style.removeProperty("--wp-lens-x");
+          surface.style.removeProperty("--wp-lens-y");
+        });
+      })();
 
       // Preview panel — hover a list item to update the right panel
       var _currentItem = null;
