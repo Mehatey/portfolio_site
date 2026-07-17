@@ -2041,7 +2041,11 @@
         line-height: 1.5;
         text-decoration: none;
         text-transform: uppercase;
-        transition: color 0.2s ease;
+        transform: translateY(0);
+        transition:
+          color 0.2s var(--ease-out),
+          transform 0.26s var(--ease-out),
+          text-shadow 0.26s var(--ease-out);
       }
       .case-chapter-map__link::before {
         content: attr(data-step);
@@ -2050,7 +2054,11 @@
       }
       .case-chapter-map__link:hover,
       .case-chapter-map__link:focus-visible,
-      .case-chapter-map__link.is-current { color: rgba(255, 255, 255, 0.9); }
+      .case-chapter-map__link.is-current {
+        color: rgba(255, 255, 255, 0.9);
+        transform: translateY(-1px);
+        text-shadow: 0 0 14px rgba(182, 220, 255, 0.22);
+      }
       .case-chapter-map__link.is-current::before { color: rgba(210, 234, 255, 0.95); }
       .case-rail { display: none; }
       .case-story .cs-bleed,
@@ -5706,6 +5714,15 @@
     place-items: center;
     opacity: 1 !important;
   }
+  /* A shared press response for actions that change a state or move a visitor
+     forward. It deliberately excludes the navigation marks: their magnetic
+     response is spatial, while these controls should feel tactile. */
+  .motion-press {
+    transition: scale 130ms var(--ease-out) !important;
+  }
+  .motion-press:active {
+    scale: 0.96;
+  }
   .nav .nav-pixel {
     width: 26px;
     height: 26px;
@@ -5778,11 +5795,17 @@
     .nav .nav-pixel { width: 24px; height: 24px; }
   }
   @media (prefers-reduced-motion: reduce) {
+    .motion-press {
+      transition: none !important;
+    }
+    .motion-press:active {
+      scale: 1;
+    }
     .nav-pixel,
     .nav-pixel * { transition: none !important; transform: none !important; }
   }
 </style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <div id="cur-dot"></div> <div id="cur-label" aria-hidden="true"></div> <script src="/assets/js/gsap.min.js"></script> <script>
-  // ── GSAP NAV PHYSICS ── a short physical cue for the pixel wayfinding marks.
+  // ── GSAP NAV PHYSICS ── a short, unbounced cue for the pixel wayfinding marks.
   // No continuous animation, no hover blur, and no movement on touch/reduced motion.
   (function () {
     var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -5790,27 +5813,54 @@
     if (reduce || touch || !window.gsap) return;
     var icons = document.querySelectorAll(".nav-icon");
     icons.forEach(function (icon, index) {
+      var mark = icon.querySelector(".nav-pixel");
+      if (!mark) return;
       icon.addEventListener("pointerenter", function () {
-        window.gsap.killTweensOf(icon);
-        window.gsap.to(icon, {
-          y: -2,
-          scale: 1.14,
-          rotation: index % 2 ? 5 : -5,
-          duration: 0.34,
-          ease: "back.out(2.4)",
+        window.gsap.killTweensOf(mark);
+        window.gsap.to(mark, {
+          y: -1,
+          scale: 1.07,
+          rotation: index % 2 ? 3 : -3,
+          duration: 0.28,
+          ease: "power4.out",
           overwrite: true,
         });
       });
       icon.addEventListener("pointerleave", function () {
-        window.gsap.to(icon, {
+        window.gsap.to(mark, {
           y: 0,
           scale: 1,
           rotation: 0,
-          duration: 0.42,
-          ease: "power3.out",
+          duration: 0.34,
+          ease: "power4.out",
           overwrite: true,
         });
       });
+    });
+  })();
+</script> <script>
+  // Small press acknowledgement for stateful controls and calls-to-action. The
+  // selector intentionally avoids body copy and media tiles: a portfolio should
+  // feel responsive, never restless.
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    var selector = [
+      ".filter-btn",
+      ".pf-btn",
+      ".wp-cta",
+      ".hero-brief-jump",
+      ".case-chapter-map__link",
+      ".case-context__links a",
+      ".proj-next",
+      ".site-footer-meta a",
+      ".site-footer-buddha",
+      ".about-resume-link",
+      ".play-lens-trigger",
+      ".pf-cta"
+    ].join(",");
+    document.querySelectorAll(selector).forEach(function (el) {
+      el.classList.add("motion-press");
     });
   })();
 </script> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" title="Close">✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>

@@ -4215,6 +4215,15 @@
     place-items: center;
     opacity: 1 !important;
   }
+  /* A shared press response for actions that change a state or move a visitor
+     forward. It deliberately excludes the navigation marks: their magnetic
+     response is spatial, while these controls should feel tactile. */
+  .motion-press {
+    transition: scale 130ms var(--ease-out) !important;
+  }
+  .motion-press:active {
+    scale: 0.96;
+  }
   .nav .nav-pixel {
     width: 26px;
     height: 26px;
@@ -4287,6 +4296,12 @@
     .nav .nav-pixel { width: 24px; height: 24px; }
   }
   @media (prefers-reduced-motion: reduce) {
+    .motion-press {
+      transition: none !important;
+    }
+    .motion-press:active {
+      scale: 1;
+    }
     .nav-pixel,
     .nav-pixel * { transition: none !important; transform: none !important; }
   }
@@ -4306,7 +4321,7 @@
 <script src="/assets/js/gsap.min.js"></script>
 
 <script>
-  // ── GSAP NAV PHYSICS ── a short physical cue for the pixel wayfinding marks.
+  // ── GSAP NAV PHYSICS ── a short, unbounced cue for the pixel wayfinding marks.
   // No continuous animation, no hover blur, and no movement on touch/reduced motion.
   (function () {
     var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -4314,27 +4329,56 @@
     if (reduce || touch || !window.gsap) return;
     var icons = document.querySelectorAll(".nav-icon");
     icons.forEach(function (icon, index) {
+      var mark = icon.querySelector(".nav-pixel");
+      if (!mark) return;
       icon.addEventListener("pointerenter", function () {
-        window.gsap.killTweensOf(icon);
-        window.gsap.to(icon, {
-          y: -2,
-          scale: 1.14,
-          rotation: index % 2 ? 5 : -5,
-          duration: 0.34,
-          ease: "back.out(2.4)",
+        window.gsap.killTweensOf(mark);
+        window.gsap.to(mark, {
+          y: -1,
+          scale: 1.07,
+          rotation: index % 2 ? 3 : -3,
+          duration: 0.28,
+          ease: "power4.out",
           overwrite: true,
         });
       });
       icon.addEventListener("pointerleave", function () {
-        window.gsap.to(icon, {
+        window.gsap.to(mark, {
           y: 0,
           scale: 1,
           rotation: 0,
-          duration: 0.42,
-          ease: "power3.out",
+          duration: 0.34,
+          ease: "power4.out",
           overwrite: true,
         });
       });
+    });
+  })();
+</script>
+
+<script>
+  // Small press acknowledgement for stateful controls and calls-to-action. The
+  // selector intentionally avoids body copy and media tiles: a portfolio should
+  // feel responsive, never restless.
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
+    var selector = [
+      ".filter-btn",
+      ".pf-btn",
+      ".wp-cta",
+      ".hero-brief-jump",
+      ".case-chapter-map__link",
+      ".case-context__links a",
+      ".proj-next",
+      ".site-footer-meta a",
+      ".site-footer-buddha",
+      ".about-resume-link",
+      ".play-lens-trigger",
+      ".pf-cta"
+    ].join(",");
+    document.querySelectorAll(selector).forEach(function (el) {
+      el.classList.add("motion-press");
     });
   })();
 </script>
