@@ -731,6 +731,7 @@
         transform: translate(-50%, -50%);
         z-index: 5;
         width: clamp(486px, 54.8vw, 928px);
+        aspect-ratio: 1200 / 669;
         pointer-events: auto;
         opacity: 0;
         transition:
@@ -759,15 +760,30 @@
         /* scale handled by JS warp, not CSS hover on stage */
       }
       #desk-gl {
+        position: absolute;
+        inset: 0;
         width: 100%;
+        height: 100%;
         display: block;
         background: transparent;
+        opacity: 0;
+        transition: opacity 0.36s var(--ease-out);
       }
-      /* Static desk fallback — same dimensions as WebGL canvas. Toggled by JS. */
+      /* The still is the first paint; WebGL crossfades over it only after every
+         texture is ready. This prevents a blank desk during the opening handoff. */
       #desk-static {
+        position: absolute;
+        inset: 0;
         width: 100%;
+        height: 100%;
+        object-fit: contain;
         display: block;
+        opacity: 1;
+        pointer-events: none;
+        transition: opacity 0.36s var(--ease-out);
       }
+      #desk-stage.is-webgl-ready #desk-gl { opacity: 1; }
+      #desk-stage.is-webgl-ready #desk-static { opacity: 0; }
       #desk-stage {
         background: transparent !important;
       }
@@ -1539,7 +1555,7 @@
     <div id="desk-stage" class="scene-hidden">
       <canvas id="desk-gl" width="1200" height="669" aria-hidden="true"></canvas>
       <!-- Static fallback — paints when WebGL fails OR on touch devices (warp shader needs hover) -->
-      <img id="desk-static" src="{{ site.baseurl }}/assets/img/tnew2.png" alt="Sid's desk" style="display: none" />
+      <img id="desk-static" src="{{ site.baseurl }}/assets/img/tnew2.png" alt="Sid's desk" />
       <button type="button" class="desk-play-reel" id="desk-play-reel" aria-label="Watch the intro reel">▶ Watch Reel</button>
     </div>
 
@@ -1910,6 +1926,7 @@
 
         function start() {
           gl.viewport(0, 0, canvas.width, canvas.height);
+          stage.classList.add("is-webgl-ready");
           tick();
         }
 
