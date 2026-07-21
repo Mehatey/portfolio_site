@@ -274,6 +274,12 @@ async function run() {
       deviceScaleFactor: viewport.isMobile ? 2 : 1,
       colorScheme: "dark",
     });
+    await context.addInitScript(() => {
+      try {
+        localStorage.setItem("sid_loaded", "1");
+        sessionStorage.setItem("sid_loaded", "1");
+      } catch (_) {}
+    });
 
     for (const route of routes) {
       const page = await context.newPage();
