@@ -21,6 +21,15 @@
     <meta name="twitter:image" content="{{ site.url }}{{ site.baseurl }}/assets/img/sid_about.jpg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
 
     <link
       rel="preload"
@@ -3683,6 +3692,12 @@
         color: rgba(12, 17, 25, 0.9) !important;
       }
 
+      html[data-theme="light"] .works-list-item.is-active .wli-name,
+      html[data-theme="light"] .works-list-item:not(.wli--nda):hover .wli-name,
+      html[data-theme="light"] .works-list-item:focus-visible .wli-name {
+        color: rgba(7, 10, 16, 0.96) !important;
+      }
+
       html[data-theme="light"] .wli--nda .wli-name {
         color: rgba(20, 28, 40, 0.68) !important;
       }
@@ -3690,6 +3705,144 @@
       html[data-theme="light"] .wp-pill,
       html[data-theme="light"] .wp-fact-label {
         color: rgba(21, 30, 44, 0.7) !important;
+      }
+
+      /* WORK INDEX 6.0 — a spatial object, not another media card. The list is
+         still the recruiter index; the cube is the living visual proof. Each
+         selected project maps its three curated stills onto the object. */
+      .works-cube-stage {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        opacity: 0;
+        overflow: visible;
+        transition: opacity 420ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      .works-cube-stage::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 7%;
+        width: min(70%, 620px);
+        height: 16%;
+        border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(112, 176, 232, 0.2), rgba(77, 128, 196, 0.06) 46%, transparent 73%);
+        filter: blur(22px);
+        transform: translateX(-50%);
+        pointer-events: none;
+      }
+
+      .works-cube-stage canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        outline: none;
+      }
+
+      .wp-media.has-webgl-cube .works-cube-stage {
+        opacity: 1;
+      }
+
+      .wp-media.has-webgl-cube .wp-slides,
+      .wp-media.has-webgl-cube .wp-media-rail {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .wp-media.has-webgl-cube .wp-nda-overlay {
+        z-index: 6;
+      }
+
+      .wp-media.has-webgl-cube::before,
+      .wp-media.has-webgl-cube::after {
+        display: none !important;
+      }
+
+      .works-cube-stage.is-changing {
+        opacity: 0.28 !important;
+      }
+
+      /* If the viewport crosses the desktop breakpoint after Three.js has
+         initialized, keep the curated still visible instead of leaving the
+         mobile preview in the WebGL loading state. */
+      @media (max-width: 900px) {
+        .wp-media.has-webgl-cube .wp-slides,
+        .wp-media.has-webgl-cube .wp-media-rail {
+          opacity: 1 !important;
+          pointer-events: auto;
+        }
+
+        .wp-media.has-webgl-cube .works-cube-stage {
+          display: none !important;
+        }
+      }
+
+      @media (min-width: 901px) {
+        .works-product-path {
+          display: none !important;
+        }
+
+        .works-list-head {
+          border-bottom-color: rgba(151, 176, 204, 0.16) !important;
+        }
+
+        .works-list-item {
+          border-bottom-color: rgba(151, 176, 204, 0.12) !important;
+          transition:
+            color 240ms ease,
+            opacity 240ms ease,
+            transform 360ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+        }
+
+        .works-list-item:hover,
+        .works-list-item:focus-visible,
+        .works-list-item.is-active {
+          transform: translateX(10px) !important;
+        }
+
+        .works-preview {
+          grid-template-columns: minmax(460px, 1.58fr) minmax(270px, 0.52fr) !important;
+        }
+
+        .wp-media {
+          position: relative !important;
+          height: min(70svh, 780px) !important;
+          overflow: visible !important;
+          border: 0 !important;
+          border-radius: 0 !important;
+          background: transparent !important;
+          box-shadow: none !important;
+          transform: none !important;
+          isolation: isolate;
+        }
+
+        .wp-media::selection {
+          background: transparent;
+        }
+
+        .wp-copy {
+          align-self: center;
+        }
+
+        .wp-title {
+          max-width: 9ch !important;
+          text-wrap: balance;
+        }
+
+        .wp-desc {
+          max-width: 30ch !important;
+        }
+      }
+
+      html[data-theme="light"] .works-cube-stage::before {
+        background: radial-gradient(ellipse, rgba(65, 132, 207, 0.2), rgba(91, 154, 220, 0.07) 46%, transparent 73%);
+      }
+
+      @media (max-width: 900px), (prefers-reduced-data: reduce) {
+        .works-cube-stage {
+          display: none;
+        }
       }
     </style>
   </head>
@@ -4055,6 +4208,7 @@
         <!-- RIGHT: sticky preview panel -->
         <div class="works-preview" id="works-preview">
           <div class="wp-media" id="wp-media" style="background: radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)">
+            <div class="works-cube-stage" id="works-cube-stage" aria-hidden="true"></div>
             <div class="wp-slides" id="wp-slides" role="group" aria-label="Mool project preview, 1 of 3">
               <span
                 class="wp-slide is-active"
@@ -4221,6 +4375,17 @@
         }
 
         var mediaItems = getPreviewMedia(item);
+        document.dispatchEvent(
+          new CustomEvent("works:preview-change", {
+            detail: {
+              title: title,
+              images: mediaItems.map(function (media) {
+                return media.src;
+              }),
+              url: item.getAttribute("href") || "",
+            },
+          })
+        );
         slides.replaceChildren();
         dots.replaceChildren();
         slides.classList.remove("is-prism");
@@ -4574,6 +4739,214 @@
           }
         });
       })();
+    </script>
+
+    <script type="module">
+      import * as THREE from "three";
+      import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+
+      const stage = document.getElementById("works-cube-stage");
+      const mediaSurface = document.getElementById("wp-media");
+      const desktop = window.matchMedia("(min-width: 901px)");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      if (stage && mediaSurface && desktop.matches) {
+        try {
+          const scene = new THREE.Scene();
+          const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+          camera.position.set(0, 0.08, 5.9);
+
+          const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+          renderer.outputColorSpace = THREE.SRGBColorSpace;
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.12;
+          renderer.setClearColor(0x000000, 0);
+          renderer.domElement.setAttribute("tabindex", "-1");
+          renderer.domElement.style.cursor = "pointer";
+          stage.appendChild(renderer.domElement);
+
+          scene.add(new THREE.HemisphereLight(0xd9efff, 0x15101f, 2.2));
+          const key = new THREE.DirectionalLight(0xffffff, 3.4);
+          key.position.set(4, 5, 6);
+          scene.add(key);
+          const rim = new THREE.PointLight(0x73baff, 16, 10, 2);
+          rim.position.set(-3.2, 1.4, 2.4);
+          scene.add(rim);
+          const warm = new THREE.PointLight(0xffb36a, 9, 9, 2);
+          warm.position.set(3, -1.6, 1.5);
+          scene.add(warm);
+
+          const cubeGroup = new THREE.Group();
+          cubeGroup.rotation.set(-0.2, 0.62, 0.04);
+          scene.add(cubeGroup);
+
+          const fallbackColors = [0x233348, 0x191a26, 0x2f2634, 0x172638, 0x2b1e28, 0x142434];
+          const faceMaterials = fallbackColors.map(
+            (color) =>
+              new THREE.MeshPhysicalMaterial({
+                color,
+                roughness: 0.28,
+                metalness: 0.08,
+                clearcoat: 0.75,
+                clearcoatRoughness: 0.16,
+              })
+          );
+          const cube = new THREE.Mesh(new RoundedBoxGeometry(2.65, 2.65, 2.65, 7, 0.16), faceMaterials);
+          cubeGroup.add(cube);
+
+          const glassShell = new THREE.Mesh(
+            new RoundedBoxGeometry(2.76, 2.76, 2.76, 7, 0.2),
+            new THREE.MeshPhysicalMaterial({
+              color: 0xc7e7ff,
+              transparent: true,
+              opacity: 0.12,
+              transmission: 0.2,
+              roughness: 0.08,
+              metalness: 0.18,
+              clearcoat: 1,
+              clearcoatRoughness: 0.06,
+              side: THREE.FrontSide,
+              depthWrite: false,
+            })
+          );
+          cubeGroup.add(glassShell);
+
+          const edgeGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(2.72, 2.72, 2.72));
+          const edges = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({ color: 0xc6e8ff, transparent: true, opacity: 0.2 }));
+          cubeGroup.add(edges);
+
+          const shadow = new THREE.Mesh(
+            new THREE.CircleGeometry(1.7, 64),
+            new THREE.MeshBasicMaterial({ color: 0x5f9cc8, transparent: true, opacity: 0.11, depthWrite: false })
+          );
+          shadow.scale.set(1.45, 0.26, 1);
+          shadow.rotation.x = -Math.PI / 2;
+          shadow.position.set(0, -1.7, -0.15);
+          scene.add(shadow);
+
+          const loader = new THREE.TextureLoader();
+          let textures = [];
+          let requestVersion = 0;
+          let currentUrl = "";
+          let visible = true;
+          const pointerTarget = new THREE.Vector2(0, 0);
+          const pointerNow = new THREE.Vector2(0, 0);
+
+          function cropTexture(texture) {
+            const image = texture.image;
+            if (!image || !image.width || !image.height) return;
+            const aspect = image.width / image.height;
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.repeat.set(1, 1);
+            texture.offset.set(0, 0);
+            if (aspect > 1) {
+              texture.repeat.x = 1 / aspect;
+              texture.offset.x = (1 - texture.repeat.x) / 2;
+            } else if (aspect < 1) {
+              texture.repeat.y = aspect;
+              texture.offset.y = (1 - texture.repeat.y) / 2;
+            }
+            texture.needsUpdate = true;
+          }
+
+          async function setProject(detail) {
+            const images = (detail.images || []).filter(Boolean).slice(0, 3);
+            if (!images.length) return;
+            const version = ++requestVersion;
+            currentUrl = detail.url || currentUrl;
+            stage.classList.add("is-changing");
+
+            try {
+              const loaded = await Promise.all(
+                images.map(async (src) => {
+                  const texture = await loader.loadAsync(new URL(src, document.baseURI).href);
+                  texture.colorSpace = THREE.SRGBColorSpace;
+                  texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+                  cropTexture(texture);
+                  return texture;
+                })
+              );
+              if (version !== requestVersion) {
+                loaded.forEach((texture) => texture.dispose());
+                return;
+              }
+
+              const previousTextures = textures;
+              textures = loaded;
+              faceMaterials.forEach((material, index) => {
+                material.map = loaded[index % loaded.length];
+                material.color.set(0xffffff);
+                material.needsUpdate = true;
+              });
+              previousTextures.forEach((texture) => texture.dispose());
+              cubeGroup.rotation.y += 0.28;
+              mediaSurface.classList.add("has-webgl-cube");
+            } catch (error) {
+              console.warn("Work cube preview could not load", error);
+            } finally {
+              if (version === requestVersion) requestAnimationFrame(() => stage.classList.remove("is-changing"));
+            }
+          }
+
+          document.addEventListener("works:preview-change", (event) => setProject(event.detail));
+
+          const activeItem = document.querySelector(".works-list-item.is-active") || document.querySelector(".works-list-item");
+          if (activeItem) {
+            const raw = (activeItem.dataset.preview || "")
+              .split("|")
+              .map((entry) => entry.slice(entry.indexOf(":") + 1))
+              .filter(Boolean)
+              .slice(0, 3);
+            setProject({ title: activeItem.dataset.title || "Selected work", images: raw, url: activeItem.getAttribute("href") || "" });
+          }
+
+          function resize() {
+            const rect = stage.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            renderer.setSize(rect.width, rect.height, false);
+            camera.aspect = rect.width / rect.height;
+            camera.updateProjectionMatrix();
+          }
+          const resizeObserver = new ResizeObserver(resize);
+          resizeObserver.observe(stage);
+          resize();
+
+          stage.addEventListener("pointermove", (event) => {
+            const rect = stage.getBoundingClientRect();
+            pointerTarget.x = ((event.clientX - rect.left) / rect.width - 0.5) * 0.62;
+            pointerTarget.y = ((event.clientY - rect.top) / rect.height - 0.5) * 0.42;
+          });
+          stage.addEventListener("pointerleave", () => pointerTarget.set(0, 0));
+          stage.addEventListener("click", () => {
+            if (currentUrl) window.location.href = currentUrl;
+          });
+
+          const visibilityObserver = new IntersectionObserver(([entry]) => {
+            visible = entry.isIntersecting;
+          });
+          visibilityObserver.observe(stage);
+
+          let last = performance.now();
+          function animate(now) {
+            requestAnimationFrame(animate);
+            if (!visible || document.hidden) return;
+            const delta = Math.min((now - last) / 1000, 0.05);
+            last = now;
+            pointerNow.lerp(pointerTarget, 0.055);
+            if (!reduceMotion.matches) cubeGroup.rotation.y += delta * 0.18;
+            cubeGroup.rotation.x += (pointerNow.y - cubeGroup.rotation.x - 0.18) * 0.035;
+            cubeGroup.rotation.z += (-pointerNow.x * 0.12 - cubeGroup.rotation.z) * 0.04;
+            cubeGroup.position.y = reduceMotion.matches ? 0 : Math.sin(now * 0.00072) * 0.08;
+            cubeGroup.rotation.y += pointerNow.x * 0.0022;
+            renderer.render(scene, camera);
+          }
+          requestAnimationFrame(animate);
+        } catch (error) {
+          console.warn("WebGL work cube unavailable; retaining editorial stills", error);
+        }
+      }
     </script>
 
     <!-- (Works smoke shader now lives in _includes/smoke_bg.html — included at top of body.) -->

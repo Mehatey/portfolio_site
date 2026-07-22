@@ -187,35 +187,27 @@ async function checkWorkIndex(results, viewport, route, page) {
 
 async function checkPlay(results, viewport, route, page) {
   const playHealth = await page.evaluate(() => {
-    const buttons = Array.from(document.querySelectorAll("[data-play-mode-btn]"));
-    const labels = buttons.map((button) => button.textContent.trim().replace(/\s+/g, " "));
+    const canvas = document.getElementById("play-canvas");
+    const stage = document.querySelector(".play-stage");
+    const fallback = document.querySelector(".play-fallback");
     return {
-      buttons: buttons.length,
-      labels,
-      experimentsVisible: !document.getElementById("play-experiments")?.matches("[hidden]"),
-      cameraVisible: !document.getElementById("play-camera")?.matches("[hidden]"),
+      canvasVisible: Boolean(canvas && canvas.getBoundingClientRect().width > 0 && canvas.getBoundingClientRect().height > 0),
+      rendererReady: Boolean(canvas && (stage?.classList.contains("is-ready") || stage?.classList.contains("has-fallback"))),
+      fallbackImages: fallback?.querySelectorAll("img").length || 0,
+      viewportLocked: document.documentElement.scrollHeight <= window.innerHeight + 2,
     };
   });
 
-  record(results, viewport, route, playHealth.buttons >= 2, "play has separate mode controls", playHealth.labels.join(" | "));
-
-  const cameraButton = page.locator('[data-play-mode-btn="camera"]');
-  if ((await cameraButton.count()) > 0) {
-    await cameraButton.first().click();
-    await page.waitForTimeout(250);
-    const mode = await page.evaluate(() => document.body.getAttribute("data-play-mode"));
-    const cameraExpanded = await page.evaluate(() => document.getElementById("play-camera")?.offsetHeight > 40);
-    record(results, viewport, route, mode === "camera" && cameraExpanded, "camera roll mode opens", `mode=${mode}`);
-  }
-
-  const experimentsButton = page.locator('[data-play-mode-btn="experiments"]');
-  if ((await experimentsButton.count()) > 0) {
-    await experimentsButton.first().click();
-    await page.waitForTimeout(250);
-    const mode = await page.evaluate(() => document.body.getAttribute("data-play-mode"));
-    const experimentsExpanded = await page.evaluate(() => document.getElementById("play-experiments")?.offsetHeight > 40);
-    record(results, viewport, route, mode === "experiments" && experimentsExpanded, "experiments mode reopens", `mode=${mode}`);
-  }
+  record(results, viewport, route, playHealth.canvasVisible, "play exposes a full-viewport spatial canvas");
+  record(
+    results,
+    viewport,
+    route,
+    playHealth.rendererReady || playHealth.fallbackImages >= 3,
+    "play initializes its spatial gallery or accessible fallback",
+    `rendererReady=${playHealth.rendererReady}; fallbackImages=${playHealth.fallbackImages}`
+  );
+  record(results, viewport, route, playHealth.viewportLocked, "play remains a single-viewport experience");
 }
 
 async function checkProject(results, viewport, route, page) {
