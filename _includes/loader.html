@@ -16,7 +16,7 @@
     position: fixed;
     inset: 0;
     z-index: 8000;
-    background: #08080c;
+    background: #000;
     pointer-events: none;
   }
   .sl-phase {
@@ -36,18 +36,18 @@
     opacity: 0;
   }
 
-  /* Phase 1: Video + typewriter
-     The cube video has its own opaque black background. We previously used mix-blend-mode:
-     screen to hide that against the smoke shader, but it always left a visible dark
-     rectangle around the cube. Per design call: during the cube/Hello phase, hide the
-     shader stays visible (blue smoke) — mix-blend-mode: screen on the video makes black transparent. */
+  /* Phase 1: Video + typewriter. The source footage carries a black matte, so
+     this scene uses the same exact black instead of compositing it over smoke. */
+  #sl-video-phase {
+    background: #000;
+  }
   #sl-video-phase video {
     max-width: 1322px;
     width: min(100vw, 1322px);
     border-radius: 0;
     margin-top: 4vh;
     filter: contrast(1.1) brightness(1.08);
-    mix-blend-mode: screen;
+    mix-blend-mode: normal;
   }
   /* Mobile: fill the viewport edge-to-edge using object-fit cover so the cube
      character sits centered and any visible "black box" framing the video is
@@ -527,7 +527,7 @@
        jump to the two most useful destinations. -->
   <p class="entry-identity">
     <span class="entry-name">Sid Mehta</span>
-    <span class="entry-role">Building coded AI, fintech, and spatial systems with care for how people use them.</span>
+    <span class="entry-role">Product designer building AI tools, fintech products, and spatial systems people can actually use.</span>
     <span class="entry-scope">Webby Awards · Deloitte Digital · EyeJack · Philips</span>
   </p>
   <nav class="enter-quick-links" aria-label="Recruiter shortcuts">
@@ -891,7 +891,23 @@
      mobile button here so a click path always exists regardless of viewport. */
   @media (prefers-reduced-motion: reduce) {
     .enter-btn-mobile {
-      display: none;
+      display: inline-flex;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 10004;
+      align-items: center;
+      justify-content: center;
+      min-width: 132px;
+      min-height: 48px;
+      border: 1px solid rgba(220, 238, 255, 0.28);
+      border-radius: 999px;
+      background: rgba(8, 12, 18, 0.72);
+      color: rgba(245, 250, 255, 0.94);
+      font: 500 12px/1 var(--font-mono);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transform: translate(-50%, -50%);
     }
   }
 
@@ -988,7 +1004,7 @@
     // Buddha now runs on touch too — user wants it visible on mobile. CSS already
     // shrinks the stage on small screens, and the rAF loop is light (<1ms/frame).
 
-    var BUDDHA_SRC = "{{ site.baseurl }}/assets/models/buddha.glb";
+    var BUDDHA_SRC = "{{ site.baseurl }}/assets/models/buddha-web.glb";
     var mv;
     function buildViewer() {
       mount.innerHTML = "";
@@ -1189,25 +1205,6 @@
 
   <!-- A lightweight constellation of real work. Images load only once the visitor
        chooses Enter, then arrive around the cube one at a time. -->
-  <div id="sl-memory-field" aria-hidden="true">
-    <figure class="sl-memory-tile">
-      <div class="sl-memory-face"><img data-src="{{ site.baseurl }}/assets/img/entry/encoded.webp" alt="" decoding="async" /></div>
-      <figcaption class="sl-memory-label" data-kind="work">Encoded</figcaption>
-    </figure>
-    <figure class="sl-memory-tile">
-      <div class="sl-memory-face"><img data-src="{{ site.baseurl }}/assets/img/entry/cube-of-creations.webp" alt="" decoding="async" /></div>
-      <figcaption class="sl-memory-label" data-kind="play">Cube of Creations</figcaption>
-    </figure>
-    <figure class="sl-memory-tile">
-      <div class="sl-memory-face"><img data-src="{{ site.baseurl }}/assets/img/entry/mandala.webp" alt="" decoding="async" /></div>
-      <figcaption class="sl-memory-label" data-kind="work">Mandala</figcaption>
-    </figure>
-    <figure class="sl-memory-tile">
-      <div class="sl-memory-face"><img data-src="{{ site.baseurl }}/assets/img/entry/illustrations.webp" alt="" decoding="async" /></div>
-      <figcaption class="sl-memory-label" data-kind="play">Illustrations</figcaption>
-    </figure>
-  </div>
-
   <!-- Onboarding icons — a small map of the four destinations -->
   <div id="sl-onboard-icons">
     <div class="sl-onboard-item" id="sl-item-1">
@@ -1225,11 +1222,11 @@
   </div>
 
   <div class="sl-phase" id="sl-video-phase">
-    <video id="sl-video" playsinline muted preload="auto" src="{{ site.baseurl }}/assets/video/cube_gettingup.mp4"></video>
+    <video id="sl-video" playsinline muted preload="none" data-src="{{ site.baseurl }}/assets/video/cube_gettingup-web.mp4"></video>
   </div>
 
   <div class="sl-phase" id="sl-loading-phase">
-    <video id="sl-loading-video" playsinline muted preload="auto" src="{{ site.baseurl }}/assets/video/loading-ani.mp4"></video>
+    <video id="sl-loading-video" playsinline muted preload="none" data-src="{{ site.baseurl }}/assets/video/loading-ani-web.mp4"></video>
   </div>
 </div>
 
@@ -1610,6 +1607,18 @@
       var loadingVideo = document.getElementById("sl-loading-video");
       var memoryTiles = Array.prototype.slice.call(document.querySelectorAll(".sl-memory-tile"));
 
+      function hydrateVideo(media) {
+        if (!media || media.getAttribute("src") || !media.dataset.src) return;
+        media.src = media.dataset.src;
+        media.removeAttribute("data-src");
+        media.load();
+      }
+
+      // The first cinematic request begins only after the explicit Enter gesture.
+      // The handoff animation waits until phase two, so neither video competes
+      // with the initial Buddha/model render or a return visitor's first paint.
+      hydrateVideo(video);
+
       // The cards are intentionally deferred until someone chooses Enter. Each
       // optimized image is only a few kilobytes, but waiting preserves the
       // first-frame calm of the entry gate and avoids requests on mobile.
@@ -1809,6 +1818,7 @@
         var stream = document.getElementById("loader-stream");
         if (stream) stream.classList.add("is-fade");
         video.pause();
+        hydrateVideo(loadingVideo);
         loadingPhase.classList.add("active");
         loadingVideo.play().catch(function () {});
 
