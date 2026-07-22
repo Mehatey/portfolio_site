@@ -1417,6 +1417,454 @@ title: Play · Sid Mehta
         color: rgba(7, 9, 15, 0.5);
       }
       /* Lightbox stays dark in both modes (full-screen media viewer reads better on black) */
+      /* ──────────────────────────────────────────────────────────────
+         PLAY 3.0 — a proper spatial room, not a slow flat scroll.
+         The first view now behaves like the 3D tube references: a calm
+         glass cube in the centre, media arranged around it, and simple
+         recruiter-readable entry points. The archive remains below.
+         ────────────────────────────────────────────────────────────── */
+      .play-header {
+        min-height: calc(100svh - var(--nav-h, 74px));
+        padding: calc(var(--nav-h, 74px) + clamp(28px, 4vw, 56px)) var(--gutter) clamp(58px, 8vw, 100px);
+        display: grid;
+        grid-template-columns: minmax(280px, 0.34fr) minmax(0, 1fr);
+        align-items: center;
+        gap: clamp(28px, 5vw, 86px);
+        overflow: clip;
+      }
+      .play-header::before {
+        opacity: 0.58;
+        background:
+          radial-gradient(44% 60% at 72% 46%, rgba(92, 142, 207, 0.2), transparent 70%),
+          radial-gradient(34% 46% at 48% 52%, rgba(236, 210, 135, 0.09), transparent 68%),
+          linear-gradient(180deg, rgba(5, 7, 12, 0), rgba(5, 7, 12, 0.68));
+      }
+      .play-copy {
+        position: relative;
+        z-index: 6;
+        max-width: 430px;
+      }
+      .play-title {
+        margin: 0 0 clamp(12px, 2vw, 22px);
+        font-size: clamp(72px, 9.5vw, 138px);
+        letter-spacing: -0.036em;
+        line-height: 0.9;
+        text-wrap: balance;
+      }
+      .play-subtitle {
+        max-width: 34ch;
+        color: rgba(238, 243, 250, 0.76);
+        font-size: clamp(15px, 1.18vw, 20px);
+        letter-spacing: 0;
+        line-height: 1.55;
+        text-wrap: pretty;
+      }
+      .play-count {
+        margin-top: clamp(16px, 2.2vw, 28px);
+        color: rgba(238, 243, 250, 0.48);
+        letter-spacing: 0.08em;
+      }
+      .play-mode-switch {
+        margin-top: clamp(28px, 4vw, 46px);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 22px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+      }
+      .play-mode-btn {
+        min-height: 40px;
+        padding: 0 0 5px;
+        border: 0;
+        border-bottom: 1px solid rgba(210, 229, 255, 0.34);
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        color: rgba(238, 243, 250, 0.74);
+        transform: none;
+        transition:
+          color 220ms var(--ease-out),
+          border-color 220ms var(--ease-out),
+          transform 220ms var(--ease-out);
+      }
+      .play-mode-btn:hover,
+      .play-mode-btn:focus-visible,
+      .play-mode-btn[aria-selected="true"] {
+        border-color: rgba(169, 206, 255, 0.9);
+        color: #f8fbff;
+        transform: translateY(-2px);
+      }
+      .play-mode-btn__label {
+        font-size: 12px;
+        letter-spacing: 0.12em;
+      }
+      .play-mode-btn__meta {
+        display: none;
+      }
+      .play-camera-link {
+        margin-top: 16px;
+        color: rgba(176, 209, 255, 0.82);
+      }
+      .play-lens-trigger,
+      .play-lens-status {
+        display: none !important;
+      }
+      .play-stage {
+        position: relative;
+        z-index: 3;
+        min-height: min(78svh, 820px);
+        border: 0;
+        border-radius: 0;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(122, 174, 243, 0.13), transparent 28%),
+          linear-gradient(rgba(160, 190, 235, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(160, 190, 235, 0.05) 1px, transparent 1px);
+        background-size: auto, 48px 48px, 48px 48px;
+        box-shadow: none;
+        perspective: 1600px;
+        overflow: visible;
+      }
+      .play-stage::before {
+        content: "";
+        position: absolute;
+        inset: 3% 2%;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 50% 50%, rgba(205, 225, 255, 0.1), transparent 36%),
+          conic-gradient(from 210deg, transparent, rgba(107, 155, 223, 0.1), transparent, rgba(232, 213, 144, 0.08), transparent);
+        filter: blur(24px);
+        opacity: 0.9;
+        pointer-events: none;
+      }
+      .play-orbit {
+        inset: 0;
+        z-index: 3;
+        transform-origin: 50% 50%;
+        transform-style: preserve-3d;
+        translate: var(--lens-shift-x, 0px) var(--lens-shift-y, 0px);
+        animation: playTubeOrbit 34s linear infinite;
+        transition: translate 160ms ease-out;
+      }
+      .play-memory {
+        top: 50%;
+        left: 50%;
+        width: clamp(112px, 11vw, 220px);
+        transform:
+          translate(-50%, -50%)
+          rotateY(var(--angle, 0deg))
+          translateZ(var(--radius, 460px))
+          translateY(var(--lift, 0px))
+          rotateY(calc(var(--angle, 0deg) * -1))
+          rotateZ(var(--r, 0deg));
+      }
+      .play-memory img {
+        aspect-ratio: var(--ratio, 1.36);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        box-shadow:
+          0 24px 70px rgba(0, 0, 0, 0.48),
+          0 0 0 1px rgba(255, 255, 255, 0.055),
+          inset 0 1px 0 rgba(255, 255, 255, 0.16);
+        transform: rotateX(var(--tilt, 0deg));
+        filter: saturate(0.95) contrast(1.04);
+      }
+      .play-memory:nth-child(3n + 1) {
+        opacity: 0.82;
+      }
+      .play-memory:nth-child(4n + 2) {
+        width: clamp(150px, 15vw, 280px);
+      }
+      .play-glass-head {
+        width: clamp(128px, 14vw, 228px);
+        height: clamp(128px, 14vw, 228px);
+        z-index: 5;
+        border-radius: 30%;
+        background:
+          radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.12) 24%, transparent 54%),
+          linear-gradient(135deg, rgba(210, 229, 255, 0.26), rgba(38, 51, 68, 0.34));
+        border-color: rgba(218, 236, 255, 0.32);
+        box-shadow:
+          inset 0 1px 22px rgba(255, 255, 255, 0.26),
+          inset -18px -22px 36px rgba(0, 0, 0, 0.24),
+          0 26px 90px rgba(90, 144, 218, 0.22);
+        backdrop-filter: blur(22px) saturate(1.6);
+      }
+      .play-glass-head::before,
+      .play-glass-head::after {
+        content: "";
+        position: absolute;
+        top: 48%;
+        width: 11px;
+        height: 33px;
+        border-radius: 999px;
+        background: rgba(224, 242, 255, 0.92);
+        box-shadow: 0 0 20px rgba(176, 220, 255, 0.62);
+      }
+      .play-glass-head::before {
+        left: 38%;
+      }
+      .play-glass-head::after {
+        right: 38%;
+      }
+      .play-glass-head__shine {
+        opacity: 0.65;
+      }
+      @keyframes playTubeOrbit {
+        from {
+          transform: rotateX(-8deg) rotateY(0deg) rotateZ(-1deg);
+        }
+        to {
+          transform: rotateX(-8deg) rotateY(-360deg) rotateZ(-1deg);
+        }
+      }
+      .depth-kicker__eyebrow,
+      .depth-card__index {
+        text-transform: none;
+        letter-spacing: 0.02em;
+      }
+      .play-camera-note p {
+        max-width: 60ch;
+        text-wrap: pretty;
+      }
+      html[data-theme="light"] .play-header::before {
+        opacity: 0.34;
+      }
+      html[data-theme="light"] .play-subtitle,
+      html[data-theme="light"] .play-count,
+      html[data-theme="light"] .play-camera-note p {
+        color: rgba(14, 23, 35, 0.68);
+      }
+      html[data-theme="light"] .play-mode-btn {
+        border-color: rgba(26, 62, 110, 0.28);
+        color: rgba(12, 24, 42, 0.72);
+      }
+      html[data-theme="light"] .play-mode-btn:hover,
+      html[data-theme="light"] .play-mode-btn:focus-visible,
+      html[data-theme="light"] .play-mode-btn[aria-selected="true"] {
+        border-color: rgba(22, 78, 150, 0.72);
+        color: rgba(8, 16, 28, 0.94);
+      }
+      html[data-theme="light"] .play-stage {
+        background:
+          radial-gradient(circle at 50% 50%, rgba(53, 114, 205, 0.11), transparent 28%),
+          linear-gradient(rgba(31, 67, 116, 0.045) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(31, 67, 116, 0.045) 1px, transparent 1px);
+        background-size: auto, 48px 48px, 48px 48px;
+      }
+      html[data-theme="light"] .play-memory img {
+        border-color: rgba(10, 28, 56, 0.1);
+        box-shadow:
+          0 26px 64px rgba(20, 32, 50, 0.18),
+          0 0 0 1px rgba(255, 255, 255, 0.7);
+      }
+      @media (max-width: 900px) {
+        .play-header {
+          display: block;
+          min-height: auto;
+          padding-top: calc(var(--nav-h, 74px) + 44px);
+        }
+        .play-stage {
+          min-height: 520px;
+          margin-top: 28px;
+          perspective: 900px;
+          overflow: hidden;
+        }
+        .play-memory {
+          width: clamp(92px, 28vw, 150px);
+          transform:
+            translate(-50%, -50%)
+            rotateY(var(--angle, 0deg))
+            translateZ(calc(var(--radius, 360px) * 0.6))
+            translateY(calc(var(--lift, 0px) * 0.75))
+            rotateY(calc(var(--angle, 0deg) * -1))
+            rotateZ(var(--r, 0deg));
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .play-orbit {
+          animation: none;
+          transform: rotateX(-8deg) rotateY(-18deg);
+        }
+        .play-memory img {
+          animation: none;
+        }
+      }
+
+      /* PLAY 3.1 — remove toggle UI, make the spatial tube the hero. */
+      .play-header {
+        position: relative !important;
+        display: block !important;
+        min-height: calc(100svh - 18px) !important;
+        padding: 0 !important;
+        overflow: hidden !important;
+      }
+
+      .play-copy {
+        position: absolute !important;
+        z-index: 8 !important;
+        left: clamp(42px, 6vw, 96px) !important;
+        top: 50% !important;
+        width: min(420px, 34vw) !important;
+        max-width: 420px !important;
+        transform: translateY(-42%) !important;
+      }
+
+      .play-title {
+        font-size: clamp(84px, 10.5vw, 174px) !important;
+        line-height: 0.82 !important;
+        letter-spacing: -0.078em !important;
+        color: rgba(245, 248, 255, 0.96) !important;
+      }
+
+      .play-intro {
+        max-width: 34ch !important;
+        margin-top: clamp(22px, 3vw, 38px) !important;
+        font-size: clamp(18px, 1.35vw, 23px) !important;
+        line-height: 1.5 !important;
+        letter-spacing: -0.01em !important;
+        color: rgba(231, 238, 248, 0.7) !important;
+      }
+
+      .play-count {
+        margin-top: 26px !important;
+        letter-spacing: 0.06em !important;
+      }
+
+      .play-mode-switch {
+        display: none !important;
+      }
+
+      .play-camera-link {
+        margin-top: clamp(30px, 4vw, 52px) !important;
+        display: inline-flex !important;
+        font-size: 13px !important;
+        letter-spacing: 0.07em !important;
+        color: rgba(196, 220, 255, 0.82) !important;
+        border-bottom-color: rgba(196, 220, 255, 0.34) !important;
+      }
+
+      .play-lens-trigger,
+      .play-lens-status {
+        display: none !important;
+      }
+
+      .play-stage {
+        position: absolute !important;
+        z-index: 2 !important;
+        top: calc(var(--nav-h, 80px) + clamp(22px, 3vw, 48px)) !important;
+        right: clamp(34px, 4.4vw, 78px) !important;
+        bottom: clamp(28px, 4vw, 64px) !important;
+        left: clamp(430px, 35vw, 590px) !important;
+        min-height: 0 !important;
+        height: auto !important;
+        border-radius: clamp(28px, 4vw, 54px) !important;
+        background:
+          radial-gradient(circle at 50% 52%, rgba(122, 180, 255, 0.14), transparent 26%),
+          radial-gradient(circle at 50% 52%, rgba(5, 8, 14, 0.02), rgba(3, 6, 10, 0.78) 66%),
+          linear-gradient(rgba(126, 173, 230, 0.055) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(126, 173, 230, 0.055) 1px, transparent 1px) !important;
+        background-size: auto, auto, 54px 54px, 54px 54px !important;
+        box-shadow:
+          inset 0 0 0 1px rgba(213, 233, 255, 0.06),
+          inset 0 -60px 120px rgba(0, 0, 0, 0.36),
+          0 46px 140px rgba(0, 0, 0, 0.38) !important;
+        overflow: hidden !important;
+      }
+
+      .play-stage::before {
+        content: "";
+        position: absolute;
+        inset: -18%;
+        pointer-events: none;
+        background:
+          radial-gradient(circle at 50% 50%, transparent 0 24%, rgba(0, 0, 0, 0.18) 42%, rgba(0, 0, 0, 0.72) 82%),
+          conic-gradient(from 120deg at 50% 50%, rgba(122, 180, 255, 0.12), transparent 18%, rgba(255, 226, 142, 0.09), transparent 42%, rgba(131, 239, 214, 0.1), transparent 70%, rgba(122, 180, 255, 0.12));
+        filter: blur(18px);
+        opacity: 0.62;
+      }
+
+      .play-stage::after {
+        content: "";
+        position: absolute;
+        inset: 9% -10% 6% -8%;
+        border-radius: 50%;
+        pointer-events: none;
+        background:
+          radial-gradient(closest-side at 50% 50%, transparent 55%, rgba(170, 210, 255, 0.18) 57%, transparent 60%),
+          conic-gradient(from 20deg at 50% 50%, transparent 0 8%, rgba(122, 180, 255, 0.22) 11%, transparent 17%, transparent 34%, rgba(255, 226, 142, 0.16) 38%, transparent 44%, transparent 62%, rgba(110, 235, 218, 0.18) 67%, transparent 73%, transparent 100%);
+        filter: blur(10px);
+        opacity: 0.58;
+        transform: rotateX(64deg) rotateZ(-12deg);
+        mix-blend-mode: screen;
+      }
+
+      .play-orbit {
+        animation-duration: 22s !important;
+      }
+
+      .play-memory {
+        width: clamp(145px, 13.5vw, 270px) !important;
+      }
+
+      .play-memory:nth-child(4n + 2) {
+        width: clamp(190px, 18vw, 350px) !important;
+      }
+
+      .play-memory img {
+        border-radius: clamp(16px, 1.6vw, 28px) !important;
+        border-color: rgba(232, 242, 255, 0.16) !important;
+      }
+
+      .play-glass-head {
+        z-index: 6 !important;
+        width: clamp(150px, 15vw, 250px) !important;
+        height: clamp(150px, 15vw, 250px) !important;
+        border-radius: 34% !important;
+        transform: translateZ(60px) !important;
+      }
+
+      .depth-kicker {
+        margin-top: 0 !important;
+      }
+
+      body[data-play-mode="experiments"] .play-camera-zone {
+        display: block !important;
+      }
+
+      html[data-theme="light"] .play-intro {
+        color: rgba(14, 23, 35, 0.68) !important;
+      }
+
+      html[data-theme="light"] .play-stage {
+        background:
+          radial-gradient(circle at 50% 52%, rgba(64, 120, 205, 0.12), transparent 28%),
+          radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.18), rgba(232, 239, 247, 0.72) 70%),
+          linear-gradient(rgba(31, 67, 116, 0.05) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(31, 67, 116, 0.05) 1px, transparent 1px) !important;
+      }
+
+      @media (max-width: 900px) {
+        .play-header {
+          display: block !important;
+          min-height: auto !important;
+          padding: calc(var(--nav-h, 80px) + 46px) 22px 60px !important;
+        }
+        .play-copy {
+          position: relative !important;
+          left: auto !important;
+          top: auto !important;
+          width: auto !important;
+          max-width: none !important;
+          transform: none !important;
+          margin-bottom: 28px !important;
+        }
+        .play-stage {
+          position: relative !important;
+          inset: auto !important;
+          min-height: 68svh !important;
+        }
+      }
     </style>
   </head>
   <body data-play-mode="experiments">
@@ -1924,6 +2372,10 @@ title: Play · Sid Mehta
             fragment.style.setProperty("--w", position.w + "%");
             fragment.style.setProperty("--float-delay", position.delay + "s");
             fragment.style.setProperty("--float-duration", position.duration + "s");
+            fragment.style.setProperty("--angle", (index / layout.length) * 360 + "deg");
+            fragment.style.setProperty("--radius", 430 + (index % 3) * 58 + "px");
+            fragment.style.setProperty("--lift", ((index % 5) - 2) * 46 + "px");
+            fragment.style.setProperty("--tilt", (index % 2 === 0 ? -1 : 1) * (4 + (index % 4)) + "deg");
 
             var image = document.createElement("img");
             image.src = photo.src;
