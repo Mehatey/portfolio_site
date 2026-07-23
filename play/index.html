@@ -41,7 +41,7 @@ title: Play · Sid Mehta
       .skip-link:focus { transform: translate(-50%, 0); }
 
       .play-stage { position: fixed; inset: 0; isolation: isolate; background: radial-gradient(circle at 50% 48%, #101c2d 0%, #050811 34%, #020409 74%); }
-      .play-stage::after { content: ""; position: absolute; z-index: 4; top: 68px; left: 0; width: min(390px, 34vw); height: 330px; background: radial-gradient(ellipse at 0 0, rgba(2, 4, 9, 0.94), rgba(2, 4, 9, 0.62) 48%, transparent 78%); pointer-events: none; }
+      .play-stage::after { content: ""; position: absolute; z-index: 4; top: 68px; left: 0; width: min(360px, 30vw); height: 300px; background: radial-gradient(ellipse at 0 0, rgba(2, 4, 9, 0.94), rgba(2, 4, 9, 0.54) 48%, transparent 78%); pointer-events: none; }
       #play-canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
       #play-canvas:active { cursor: grabbing; }
       .play-header {
@@ -163,13 +163,13 @@ title: Play · Sid Mehta
       <canvas id="play-canvas" aria-label="Interactive spatial gallery. Drag or scroll to move through ninety eight pieces."></canvas>
       <header class="play-header">
         <h1>Play</h1>
-        <p>Interfaces, installations, and prototypes from an ongoing design practice.</p>
+        <p>A moving selection of experiments, installations, and prototypes.</p>
         <nav class="play-modes" aria-label="Play collections">
           <a href="{{ site.baseurl }}/play/" aria-current="page">Experiments</a>
           <a href="{{ site.baseurl }}/shot-on-iphone/">Camera roll ↗</a>
         </nav>
       </header>
-      <p class="play-instruction">Drag, scroll, or use arrow keys. Select a piece to open it.</p>
+      <p class="play-instruction">Scroll, drag, or use arrow keys. Select any piece to open it.</p>
       <div class="play-index" aria-hidden="true"><span id="play-count">01 / 98</span><span class="play-index__bar" id="play-progress"></span></div>
       <div class="play-caption is-visible" id="play-caption" aria-live="polite"><span>In focus</span><strong id="play-caption-title">Loading archive</strong></div>
       <div class="play-fallback" aria-label="Play gallery fallback"></div>
@@ -310,7 +310,7 @@ title: Play · Sid Mehta
               texture.colorSpace = THREE.SRGBColorSpace;
               texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
               const aspect = texture.image.width / texture.image.height;
-              const longSide = 2.25;
+              const longSide = 6.2;
               const width = aspect >= 1 ? longSide : longSide * aspect;
               const height = aspect >= 1 ? longSide / aspect : longSide;
               card.geometry.dispose();
@@ -330,6 +330,7 @@ title: Play · Sid Mehta
 
         const headGroup = new THREE.Group();
         scene.add(headGroup);
+        headGroup.visible = false;
         const glassMaterial = new THREE.MeshPhysicalMaterial({
           color: 0xbfe6ff,
           transmission: 0.86,
@@ -426,8 +427,8 @@ title: Play · Sid Mehta
 
         function layoutCards() {
           const compact = innerWidth < 760;
-          const radiusX = compact ? 3.1 : 4.45;
-          const radiusY = compact ? 2.35 : 2.95;
+          const radiusX = compact ? 2.7 : 4.05;
+          const radiusY = compact ? 2.05 : 2.62;
           const travel = phase / (Math.PI * 2);
           let leadCard = null;
           let leadPath = Infinity;
@@ -435,8 +436,8 @@ title: Play · Sid Mehta
             const index = card.userData.index;
             const path = ((index / sources.length + travel) % 1 + 1) % 1;
             const angle = path * Math.PI * 8 + 0.5;
-            const z = 4.15 - path * 15.5;
-            if (path < 0.23) loadCardTexture(card);
+            const z = 4.45 - path * 16.5;
+            if (path < 0.19) loadCardTexture(card);
             if (path < leadPath) {
               leadPath = path;
               leadCard = card;
@@ -447,20 +448,20 @@ title: Play · Sid Mehta
               z
             );
             card.lookAt(camera.position.x * 0.08, card.position.y * 0.06, camera.position.z);
-            const depthScale = THREE.MathUtils.clamp((z + 11.35) / 15.5, 0.26, 1);
-            const inViewingWindow = path < (compact ? 0.1 : 0.145);
-            const targetScale = card === hovered ? 1.22 : depthScale * (compact ? 0.8 : 0.94);
+            const depthScale = THREE.MathUtils.clamp((z + 12.05) / 16.5, 0.2, 1);
+            const inViewingWindow = path < (compact ? 0.08 : 0.105);
+            const targetScale = card === hovered ? 1.14 : depthScale * (compact ? 0.72 : 0.82);
             card.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
             const targetOpacity = !card.userData.loaded || !inViewingWindow ? 0 : card === hovered ? 1 : THREE.MathUtils.clamp(depthScale, 0.18, 0.9);
             card.material.opacity += (targetOpacity - card.material.opacity) * 0.08;
             card.visible = card.material.opacity > 0.012 || inViewingWindow;
           });
           if (leadCard && leadCard.userData.loaded) {
-            const leadScale = compact ? 1.02 : 1.18;
+            const leadScale = compact ? 0.98 : 1.08;
             leadCard.scale.lerp(new THREE.Vector3(leadScale, leadScale, leadScale), 0.12);
             leadCard.material.opacity += (1 - leadCard.material.opacity) * 0.12;
-            leadCard.position.x += compact ? 0 : 0.28;
-            leadCard.position.y *= 0.72;
+            leadCard.position.set(0, compact ? 0.1 : 0.18, 4.72);
+            leadCard.lookAt(camera.position.x * 0.08, leadCard.position.y * 0.06, camera.position.z);
             const position = leadCard.userData.index + 1;
             countEl.textContent = `${String(position).padStart(2, "0")} / ${sources.length}`;
             captionTitle.textContent = leadCard.userData.title;
