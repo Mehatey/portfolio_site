@@ -60,10 +60,10 @@ async function evaluateBaseHealth(page) {
   return await page.evaluate(() => {
     const root = document.documentElement;
     const body = document.body;
-    const navItems = Array.from(document.querySelectorAll(".nav-icon"));
+    const navItems = Array.from(document.querySelectorAll(".studio-link"));
     const navLabels = navItems.map((item) => ({
       label: item.getAttribute("aria-label") || "",
-      tooltip: item.getAttribute("data-label") || "",
+      visibleLabel: item.querySelector("span")?.textContent.trim() || "",
       width: Math.round(item.getBoundingClientRect().width),
       height: Math.round(item.getBoundingClientRect().height),
       href: item.href || "",
@@ -106,13 +106,13 @@ async function checkNav(results, viewport, route, health) {
   const missing = expected.filter((label) => !labels.includes(label));
   record(results, viewport, route, missing.length === 0, "nav labels present", missing.length ? `Missing: ${missing.join(", ")}` : "");
 
-  const missingTooltips = health.navLabels.filter((item) => expected.includes(item.label) && item.tooltip !== item.label);
+  const missingTooltips = health.navLabels.filter((item) => expected.includes(item.label) && item.visibleLabel !== item.label);
   record(
     results,
     viewport,
     route,
     missingTooltips.length === 0,
-    "nav tooltip data present",
+    "nav visible labels and accessible names agree",
     missingTooltips.map((item) => item.label || item.href).join(", ")
   );
 
