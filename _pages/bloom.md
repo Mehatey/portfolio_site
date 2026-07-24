@@ -64,13 +64,15 @@ next_project:
   .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid, .cube-cap--above + .cs-grid-3 { margin-top: 12px !important; }
 
   /* Grid sizing: fixed height, cover to fill (cube-guy pattern) */
-  .cs-grid, .cs-grid-3 {
+  main .case-story .cs-grid,
+  main .case-story .cs-grid-3 {
     height: clamp(320px, 50vh, 560px);
     grid-template-rows: 1fr;
   }
-  .cs-grid-3 { grid-template-columns: 1fr 1fr 1fr !important; }
-  .cs-grid-item { height: 100% !important; min-height: 0; overflow: hidden !important; }
-  .cs-grid-item img, .cs-grid-item video {
+  main .case-story .cs-grid-3 { grid-template-columns: 1fr 1fr 1fr !important; }
+  main .case-story .cs-grid-item { height: 100% !important; min-height: 0; overflow: hidden !important; }
+  main .case-story .cs-grid-item img,
+  main .case-story .cs-grid-item video {
     width: 100%; height: 100%;
     object-fit: cover !important;
     object-position: center center;
@@ -86,7 +88,41 @@ next_project:
   .plate-hero img { max-height: 88vh !important; width: auto !important; max-width: 100% !important; margin: 0 auto !important; }
   .plate-big img { max-height: 74vh !important; width: auto !important; max-width: 100% !important; margin: 0 auto !important; }
   /* Taller grid for the silence + disc pair */
-  .cs-grid.grid-tall { height: clamp(420px, 64vh, 720px) !important; }
+  main .case-story .cs-grid.grid-tall { height: clamp(420px, 64vh, 720px) !important; }
+  main .case-story .cs-grid.grid-compact,
+  main .case-story .cs-grid-3.grid-compact { height: clamp(260px, 34vh, 420px) !important; }
+  .bl-story-open {
+    margin-top: 40px !important;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+    gap: clamp(16px, 3vw, 40px);
+    align-items: end;
+  }
+  .bl-story-open .cs-bleed { margin-top: 0 !important; }
+  .bl-story-open-copy {
+    padding: clamp(18px, 3vw, 32px) 0 0;
+    max-width: 52ch;
+  }
+  .bl-story-open-copy h2 {
+    margin: 0 0 14px;
+    font-size: clamp(30px, 4vw, 62px);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+  .bl-story-open-copy p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.62);
+    font-size: clamp(16px, 1.35vw, 22px);
+    line-height: 1.45;
+    text-wrap: pretty;
+  }
+  .bl-focus-video video {
+    aspect-ratio: 16 / 9;
+    max-height: 86vh;
+    object-fit: contain !important;
+    background: #03070d;
+  }
 
   /* Link bar matching cube-guy */
   .bl-watch-link {
@@ -103,6 +139,11 @@ next_project:
     text-decoration: none; transition: color 0.2s;
   }
   .bl-watch-link a:hover { color: rgba(255, 255, 255, 0.88); }
+
+  @media (max-width: 760px) {
+    .bl-story-open { grid-template-columns: 1fr; }
+    .bl-story-open-copy { padding-top: 0; }
+  }
 
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
@@ -125,8 +166,18 @@ next_project:
   @media (max-width: 600px) { .bloom-interactive-toggle { right: 12px; bottom: 12px; } }
 </style>
 
-<!-- OPENING: the tree appears, and speaks -->
-<p class="cube-cap cube-cap--above"><em>A bodhi tree appears in your room. Its branches breathe. A voice, low and unhurried, begins to ask you things.</em></p>
+<!-- OPENING: start with the identity question, then move into spatial AI -->
+<div class="bl-story-open">
+  <div class="cs-bleed bl-contain">
+    <img src="{{ site.baseurl }}/15.bloom-vp/poster.jpg" alt="Bloom: who are you, to you" loading="eager" decoding="async" />
+  </div>
+  <div class="bl-story-open-copy">
+    <h2>Who are you, to you?</h2>
+    <p>Bloom turns that question into a Vision Pro room: an AI inhabited bodhi tree, a slow voice, and a drawing space where the visitor answers in 3D instead of typing into a box.</p>
+  </div>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>The first encounter is not a menu. A bodhi tree appears in the room, breathes, and begins a patient conversation.</em></p>
 <div class="cs-bleed" style="position: relative;">
   <video id="tree-vid" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
     <source src="{{ site.baseurl }}/15.bloom-vp/tree.mp4" type="video/mp4" />
@@ -137,33 +188,32 @@ next_project:
   </button>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Bloom. The form the tree settles into when you stay with it long enough.</em></p>
-<div class="cs-bleed">
+<!-- VP SCENES: show the headset experience before the physical archive -->
+<p class="cube-cap cube-cap--above"><em>Inside Vision Pro, the project is about presence: the tree, the voice, the room, and the marks you leave in space.</em></p>
+<div class="cs-bleed bl-focus-video">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source data-src="{{ site.baseurl }}/15.bloom-vp/lotus.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- VP SCENES: a focused sample before the interactive tree -->
-<p class="cube-cap cube-cap--above"><em>A few of the scenes the app moves through. Each one a different quality of stillness.</em></p>
-
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-18.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-21.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-21.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-22.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-22.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-scene-23.mp4" type="video/mp4" />
     </video>
   </div>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>The tree settles into Bloom when the visitor stays with it long enough.</em></p>
+<div class="cs-bleed bl-focus-video">
+  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-scene-4.mp4" type="video/mp4" />
+  </video>
 </div>
 
 <!-- SECTION: SIT WITH IT - live in-browser AI inhabiting a 3D bodhi tree (self-contained, embedded) -->
@@ -211,21 +261,35 @@ next_project:
   </div>
 </div>
 
-<!-- SECTION: AGAINST THE NOISE -->
+<!-- SECTION: DRAW IN SPACE -->
 <div class="cs-section">
-  <h2 class="cs-section-label">Against the noise</h2>
+  <h2 class="cs-section-label">Draw in space</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Step outside and the noise returns. A world that sells your attention back to you, one sponsored moment at a time.</em></p>
-<div class="cs-bleed">
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The answer is not only spoken. Visitors can assemble and draw objects in 3D space, turning thought into a small spatial ritual.</em></p>
+<div class="cs-bleed bl-focus-video">
   <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source data-src="{{ site.baseurl }}/15.bloom-vp/outside.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/wall-objects-assemble.mp4" type="video/mp4" />
   </video>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Fragments of that noise, burned into wood. The messages that view you without ever respecting you.</em></p>
-<div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/notifications.jpg" alt="Bloom exhibition: engraved wood panel of notification fragments" loading="lazy" decoding="async" />
+<p class="cube-cap cube-cap--above"><em>A few earlier scene studies stayed in the archive, but the story now points back to the conversational spatial experience.</em></p>
+<div class="cs-grid-3 grid-compact">
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-18.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-21.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-22.mp4" type="video/mp4" />
+    </video>
+  </div>
 </div>
 
 <!-- SECTION: MEASURING THE CALM -->
@@ -247,41 +311,26 @@ next_project:
 
 <!-- SECTION: IN THE ROOM -->
 <div class="cs-section">
-  <h2 class="cs-section-label">In the room</h2>
+  <h2 class="cs-section-label">Made physical</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree made physical. A small altar where the digital stillness met the room.</em></p>
-<div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/altar.jpg" alt="Bloom exhibition: physical bodhi altar with holographic sheet and lotus" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
-</div>
-
-<p class="cube-cap cube-cap--above"><em>It started with me asking people what is beautiful and broken about the world.</em></p>
-<div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/poem-panel.jpg" alt="Bloom exhibition: laser engraved wooden panel with the project text" loading="lazy" decoding="async" />
-</div>
-
-<p class="cube-cap cube-cap--above"><em>Engraved acrylic plates, each one a fragment of the thesis, holograms caught in clear sheets.</em></p>
-<div class="cs-bleed bl-contain plate-hero">
-  <img src="{{ site.baseurl }}/15.bloom-vp/plate-bloom.jpg" alt="Bloom exhibition: acrylic plate, No. 09 bloom" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed bl-contain plate-big">
-  <img src="{{ site.baseurl }}/15.bloom-vp/plate-knot.jpg" alt="Bloom exhibition: acrylic plate, No. 05 knot" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-grid grid-tall">
-  <div class="cs-grid-item">
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The exhibition objects remain as proof of the thesis environment, but they now support the main interaction instead of taking over the scroll.</em></p>
+<div class="cs-grid-3 grid-compact">
+  <div class="cs-grid-item bl-contain">
+    <img src="{{ site.baseurl }}/15.bloom-vp/altar.jpg" alt="Bloom exhibition: physical bodhi altar with holographic sheet and lotus" loading="lazy" decoding="async" />
+  </div>
+  <div class="cs-grid-item bl-contain">
+    <img src="{{ site.baseurl }}/15.bloom-vp/plate-bloom.jpg" alt="Bloom exhibition: acrylic plate, No. 09 bloom" loading="lazy" decoding="async" />
+  </div>
+  <div class="cs-grid-item bl-contain">
     <video autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/plate-silence.mp4" type="video/mp4" />
     </video>
   </div>
-  <div class="cs-grid-item bl-contain">
-    <img src="{{ site.baseurl }}/15.bloom-vp/disc.jpg" alt="Bloom exhibition: clear acrylic disc with engraved text" loading="lazy" decoding="async" />
-  </div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>People sitting with it. The screen mirrored what the headset saw, so the room could watch too.</em></p>
-<div class="cs-grid">
+<div class="cs-grid grid-compact">
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/exhibit-room.mp4" type="video/mp4" />
@@ -292,12 +341,6 @@ next_project:
       <source data-src="{{ site.baseurl }}/15.bloom-vp/watching.mp4" type="video/mp4" />
     </video>
   </div>
-</div>
-
-<!-- CLOSE: poster -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Who are you, to you.</em></p>
-<div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/poster.jpg" alt="Bloom: who are you, to you" loading="lazy" decoding="async" />
 </div>
 
 <script>
