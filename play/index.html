@@ -175,7 +175,7 @@
       .skip-link:focus { transform: translate(-50%, 0); }
 
       .play-stage { position: fixed; inset: 0; isolation: isolate; background: radial-gradient(circle at 50% 48%, #101c2d 0%, #050811 34%, #020409 74%); }
-      .play-stage::after { content: ""; position: absolute; z-index: 4; top: 68px; left: 0; width: min(360px, 30vw); height: 300px; background: radial-gradient(ellipse at 0 0, rgba(2, 4, 9, 0.94), rgba(2, 4, 9, 0.54) 48%, transparent 78%); pointer-events: none; }
+      .play-stage::after { display: none; }
       #play-canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
       #play-canvas:active { cursor: grabbing; }
       .play-header {
@@ -588,6 +588,9 @@
       const sources = designSources.concat(
         files.map((file) => ({
           src: `/play/assets/spatial/p${file}.webp`,
+          // Keep the curated spatial thumbnail for the archive, but decode the
+          // original still in the WebGL scene so large cards stay crisp.
+          hi: `/play/assets/p${file}.jpg`,
           title: `${titleFor(file)} ${String(file).padStart(3, "0")}`,
         }))
       );
@@ -625,7 +628,7 @@
 
       if (renderer) {
         stage.classList.add("is-ready");
-        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.65));
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
         renderer.setSize(innerWidth, innerHeight, false);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -654,7 +657,7 @@
         sources.forEach((item, index) => {
           const material = new THREE.MeshBasicMaterial({ color: 0x101822, transparent: true, opacity: 0, side: THREE.DoubleSide });
           const card = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), material);
-          card.userData = { index, src: item.src, title: item.title, loading: false, loaded: false };
+          card.userData = { index, src: item.src, hi: item.hi || item.src, title: item.title, loading: false, loaded: false };
           gallery.add(card);
           cards.push(card);
         });
@@ -663,7 +666,7 @@
           if (card.userData.loaded || card.userData.loading) return;
           card.userData.loading = true;
           loader.load(
-            card.userData.src,
+            card.userData.hi,
             (texture) => {
               texture.colorSpace = THREE.SRGBColorSpace;
               texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
@@ -707,17 +710,17 @@
 
         function layoutCards() {
           const compact = innerWidth < 760;
-          const radiusX = compact ? 2.7 : 4.05;
-          const radiusY = compact ? 2.05 : 2.62;
+          const radiusX = compact ? 3 : 4.8;
+          const radiusY = compact ? 2.35 : 3.15;
           const travel = phase / (Math.PI * 2);
           let leadCard = null;
           let leadPath = Infinity;
           cards.forEach((card) => {
             const index = card.userData.index;
             const path = ((index / sources.length + travel) % 1 + 1) % 1;
-            const angle = path * Math.PI * 8 + 0.5;
-            const z = 4.45 - path * 16.5;
-            if (path < 0.19) loadCardTexture(card);
+            const angle = path * Math.PI * 6.4 + 0.5;
+            const z = 5.1 - path * 18.5;
+            if (path < 0.24) loadCardTexture(card);
             if (path < leadPath) {
               leadPath = path;
               leadCard = card;
@@ -728,8 +731,8 @@
               z
             );
             card.lookAt(camera.position.x * 0.08, card.position.y * 0.06, camera.position.z);
-            const depthScale = THREE.MathUtils.clamp((z + 12.05) / 16.5, 0.2, 1);
-            const inViewingWindow = path < (compact ? 0.08 : 0.105);
+            const depthScale = THREE.MathUtils.clamp((z + 13.4) / 18.5, 0.2, 1);
+            const inViewingWindow = path < (compact ? 0.08 : 0.11);
             const targetScale = card === hovered ? 1.14 : depthScale * (compact ? 0.72 : 0.82);
             card.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
             const targetOpacity = !card.userData.loaded || !inViewingWindow ? 0 : card === hovered ? 1 : THREE.MathUtils.clamp(depthScale, 0.18, 0.9);
@@ -799,7 +802,7 @@
         canvas.addEventListener("wheel", (event) => { event.preventDefault(); targetPhase += (event.deltaY + event.deltaX) * 0.0012; }, { passive: false });
 
         function openLightbox(card) {
-          lightboxImage.src = card.userData.src;
+          lightboxImage.src = card.userData.hi || card.userData.src;
           lightboxImage.alt = card.userData.title;
           lightboxTitle.textContent = card.userData.title;
           lightbox.classList.add("is-open");
@@ -816,7 +819,7 @@
         addEventListener("resize", () => {
           camera.aspect = innerWidth / innerHeight;
           camera.updateProjectionMatrix();
-          renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.65));
+          renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
           renderer.setSize(innerWidth, innerHeight, false);
         });
         requestAnimationFrame(animate);
