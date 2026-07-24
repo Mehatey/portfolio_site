@@ -130,6 +130,10 @@
         will-change: mask-image;
       }
 
+      .home-film__real.is-liquifying {
+        filter: url("#home-liquify") saturate(1.04) contrast(1.05) brightness(0.92);
+      }
+
       .home-stage.is-revealing .home-film__pixel {
         opacity: 0.48;
       }
@@ -296,6 +300,39 @@
         line-height: 1.02;
         letter-spacing: -0.03em;
         text-wrap: balance;
+      }
+
+      .home-typewriter {
+        display: inline-block;
+        min-width: 12ch;
+        white-space: nowrap;
+      }
+
+      .home-typewriter::after {
+        content: "";
+        display: inline-block;
+        width: 0.055em;
+        height: 0.82em;
+        margin-left: 0.08em;
+        vertical-align: -0.08em;
+        background: currentColor;
+        animation: home-caret 900ms steps(1, end) infinite;
+      }
+
+      .home-proof {
+        min-height: 1.4em;
+        margin: -2px 0 0;
+        color: rgba(236, 244, 251, 0.64);
+        font:
+          400 10px/1.4 "DM Mono",
+          monospace;
+        letter-spacing: 0.045em;
+      }
+
+      @keyframes home-caret {
+        50% {
+          opacity: 0;
+        }
       }
 
       .home-actions {
@@ -543,7 +580,8 @@
 
       <section class="home-copy" aria-labelledby="home-title">
         <p class="home-name">Sid Mehta · Product designer · New York</p>
-        <h1 id="home-title">I turn complex technology into clear, useful experiences.</h1>
+        <h1 id="home-title">I turn <span class="home-typewriter" id="home-typewriter">complex technology</span> into clear, useful experiences.</h1>
+        <p class="home-proof" id="home-proof" aria-live="polite">11 local AI experiments · 25 artworks activated at The Met</p>
         <div class="home-actions">
           <a href="{{ site.baseurl }}/works/">See selected work</a>
           <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume PDF</a>
@@ -585,6 +623,13 @@
           <span>Encoded</span>
         </a>
       </nav>
+
+      <svg width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="home-liquify" x="-18%" y="-18%" width="136%" height="136%">
+          <feTurbulence type="fractalNoise" baseFrequency="0.012 0.028" numOctaves="2" seed="17" result="noise" />
+          <feDisplacementMap in="SourceGraphic" in2="noise" scale="22" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </svg>
     </main>
 
     <script>
@@ -598,50 +643,119 @@
         const focusMeta = document.getElementById("home-focus-meta");
         const focusDescription = document.getElementById("home-focus-description");
         const focusLink = document.getElementById("home-focus-link");
+        const typewriter = document.getElementById("home-typewriter");
+        const proof = document.getElementById("home-proof");
         const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
         let held = false;
+        let holdStarted = 0;
+        let pointer = { x: innerWidth * 0.5, y: innerHeight * 0.5 };
         const brush = [];
 
         function paint(event) {
-          const x = (event.clientX / innerWidth) * 100;
-          const y = (event.clientY / innerHeight) * 100;
+          pointer = { x: event.clientX, y: event.clientY };
+          paintAt(pointer.x, pointer.y);
+        }
+
+        function paintAt(clientX, clientY) {
+          const x = (clientX / innerWidth) * 100;
+          const y = (clientY / innerHeight) * 100;
           const previous = brush[brush.length - 1];
           const angle = previous ? Math.atan2(y - previous.y, x - previous.x) : 0;
-          brush.push({ x, y, angle, seed: Math.random() });
-          if (brush.length > 16) brush.shift();
+          const holdAge = held ? Math.min(1, (performance.now() - holdStarted) / 2200) : 0;
+          brush.push({ x, y, angle, seed: Math.random(), holdAge });
+          if (brush.length > 22) brush.shift();
           const masks = brush
             .map((point, index) => {
               const age = index / Math.max(1, brush.length - 1);
-              const width = 3.4 + age * 3.8 + point.seed * 1.1;
-              const height = 0.7 + age * 1.15 + point.seed * 0.45;
-              return `radial-gradient(ellipse ${width}vw ${height}vw at ${point.x}% ${point.y}%, #000 0 52%, rgba(0,0,0,.92) 66%, transparent 88%)`;
+              const radius = 4.8 + age * 5.8 + point.holdAge * 10.5;
+              const width = radius * (1.05 + point.seed * 0.55);
+              const height = radius * (0.42 + point.seed * 0.35);
+              const offset = radius * 0.28;
+              const satelliteX = point.x + Math.cos(point.angle + 0.9) * offset;
+              const satelliteY = point.y + Math.sin(point.angle + 0.9) * offset;
+              return [
+                `radial-gradient(ellipse ${width}vw ${height}vw at ${point.x}% ${point.y}%, #000 0 46%, rgba(0,0,0,.9) 63%, transparent 88%)`,
+                `radial-gradient(ellipse ${width * 0.42}vw ${height * 1.18}vw at ${satelliteX}% ${satelliteY}%, #000 0 40%, transparent 82%)`,
+              ].join(",");
             })
             .join(",");
           realFilm.style.webkitMaskImage = masks;
           realFilm.style.maskImage = masks;
           stage.classList.add("is-revealing");
+          realFilm.classList.toggle("is-liquifying", held);
         }
 
         function clearBrush() {
           brush.length = 0;
           realFilm.style.webkitMaskImage = "linear-gradient(transparent, transparent)";
           realFilm.style.maskImage = "linear-gradient(transparent, transparent)";
+          realFilm.classList.remove("is-liquifying");
           stage.classList.remove("is-revealing");
+        }
+
+        function beginHold(event) {
+          if (event.pointerType === "mouse" && event.button !== 0) return;
+          held = true;
+          holdStarted = performance.now();
+          pointer = { x: event.clientX, y: event.clientY };
+          film.setPointerCapture?.(event.pointerId);
+          paintAt(pointer.x, pointer.y);
+        }
+
+        function endHold(event) {
+          held = false;
+          if (event?.pointerId != null && film.hasPointerCapture?.(event.pointerId)) film.releasePointerCapture(event.pointerId);
+          clearBrush();
         }
 
         if (finePointer) {
           film.addEventListener("pointermove", paint);
+          film.addEventListener("pointerdown", beginHold);
+          film.addEventListener("pointerup", endHold);
+          film.addEventListener("pointercancel", endHold);
           film.addEventListener("pointerleave", () => {
             if (!held) clearBrush();
           });
-          film.addEventListener("click", () => {
-            held = !held;
-          });
+          const animateHold = () => {
+            if (held) paintAt(pointer.x, pointer.y);
+            requestAnimationFrame(animateHold);
+          };
+          requestAnimationFrame(animateHold);
         } else {
           stage.classList.add("is-revealing");
           realFilm.style.webkitMaskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)";
           realFilm.style.maskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)";
         }
+
+        const typeLines = ["complex technology", "local AI prototypes", "products with feeling", "systems for social change"];
+        const proofLines = [
+          "11 local AI experiments · 25 artworks activated at The Met",
+          "100k+ Mool downloads · Kyoorius winner",
+          "Designing for emotion, culture, and useful change",
+          "Deloitte Digital · EyeJack · Philips · The Met",
+        ];
+        let lineIndex = 0;
+        let charIndex = typeLines[0].length;
+        let deleting = true;
+        let pauseUntil = performance.now() + 1800;
+        function typeTick(now) {
+          if (now >= pauseUntil) {
+            const target = typeLines[lineIndex];
+            if (deleting) charIndex -= 1;
+            else charIndex += 1;
+            typewriter.textContent = target.slice(0, charIndex);
+            if (deleting && charIndex <= 0) {
+              deleting = false;
+              lineIndex = (lineIndex + 1) % typeLines.length;
+              proof.textContent = proofLines[lineIndex];
+            } else if (!deleting && charIndex >= target.length) {
+              deleting = true;
+              pauseUntil = now + 1700;
+            }
+          }
+          requestAnimationFrame(typeTick);
+        }
+        requestAnimationFrame(typeTick);
 
         function showProject(project) {
           focusImage.src = project.dataset.image;
