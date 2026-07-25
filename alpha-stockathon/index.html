@@ -81,6 +81,16 @@
     --accent: rgba(160, 200, 255, 1);
     --accent-dim: rgba(160, 200, 255, 0.55);
 
+    /* ── Pillar colours ──
+       One colour language for Sid's three bodies of work, lifted straight from
+       the Orbit scene's three rings so the site reads as one system: cool blue
+       for product & systems, warm amber for AI & creative technology, violet for
+       culture, space & image. Stored as bare "r, g, b" triplets so any element
+       can dial its own alpha via rgb(var(--pillar-x) / <a>) or rgba(). */
+    --pillar-product: 156, 208, 255;
+    --pillar-ai: 255, 179, 122;
+    --pillar-culture: 201, 162, 255;
+
     /* ── Typography ── */
     --font-head: "Figtree", sans-serif;
     --font-mono: "DM Mono", monospace;
@@ -288,10 +298,27 @@
       .progress-fill {
         height: 100%;
         width: 100%;
-        background: linear-gradient(90deg, rgba(160, 200, 255, 0.7) 0%, rgba(180, 230, 220, 0.6) 50%, rgba(255, 200, 160, 0.6) 100%);
+        background: linear-gradient(90deg, rgba(var(--page-pillar, 160 200 255), 0.85) 0%, rgba(var(--page-pillar, 160 200 255), 0.45) 100%);
         transform: scaleX(var(--page-progress, 0));
         transform-origin: left center;
         will-change: transform;
+      }
+
+      /* ─── PILLAR ACCENT ───
+         Each case study carries the colour of the body of work it belongs to,
+         taken from the same three-pillar system as the Works lanes, Orbit rings
+         and homepage portals (product blue / AI amber / culture violet). It tints
+         the scroll-progress bar and the current chapter in the reading rail, so a
+         reader always knows which discipline they're inside. Falls back to blue
+         if a page has no pillar set. */
+      body[data-pillar="product"] {
+        --page-pillar: var(--pillar-product);
+      }
+      body[data-pillar="ai"] {
+        --page-pillar: var(--pillar-ai);
+      }
+      body[data-pillar="culture"] {
+        --page-pillar: var(--pillar-culture);
       }
 
       /* ─── HERO ─── */
@@ -673,6 +700,7 @@
       #case-overview,
       #case-proof,
       #case-archive,
+      #case-decisions,
       #project-next-step { scroll-margin-top: calc(var(--nav-h) + 24px); }
 
       /* ─── CASE MAP ─── Long case studies need a stable reading anchor, not a
@@ -1412,6 +1440,203 @@
       .stat-desc {
         font-family: var(--font-mono); font-size: 12px;
         color: var(--muted); line-height: 1.5; letter-spacing: 0.04em;
+      }
+
+      /* ─── DESIGN DECISIONS ───
+         The visual story shows what got built. It does not show what got
+         *chosen*, and the thing a recruiter is actually hiring is the judgement,
+         not the screenshots. Every project page was ending on imagery and then
+         jumping straight to a testimonial, so the one question a design lead
+         asks in a portfolio review — "why this and not the obvious alternative?"
+         — had no answer anywhere on the page.
+
+         Each entry is a triplet: the decision, the reason, and the thing it
+         cost. The cost line is the load-bearing one. Anyone can list choices;
+         naming what each choice gave up is the part that cannot be faked, and
+         it is the difference between a case study and a slideshow.
+
+         Front-matter driven (`decisions:` / `next_steps:` in the page's md), so
+         a project with nothing honest to say here renders nothing at all rather
+         than padding the page with three generic bullets.
+
+         Geometry note: this deliberately matches the *effective* case-study
+         width, not the one declared at .case-study-layout further up. That rule
+         is overridden later in the cascade to `display: block; max-width:
+         1180px`, so 1180 + var(--gutter) is what actually lines up on screen. */
+      .proj-decisions {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 var(--gutter);
+      }
+      /* The header, every decision row and the closing block share one column
+         split, so the section has a single vertical rule running down it. An
+         earlier pass gave the header the narrower .case-context ratio, which
+         put the lede 230px left of every "why" beneath it — the kind of
+         near-alignment that reads as a mistake rather than as a distinction. */
+      .proj-decisions__head,
+      .decision,
+      .proj-next-steps {
+        display: grid;
+        grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
+        gap: 0 clamp(24px, 3vw, 52px);
+        align-items: start;
+      }
+      .proj-decisions__head {
+        padding: 0 0 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .proj-decisions__eyebrow {
+        margin: 3px 0 0;
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        line-height: 1.4;
+        color: rgba(223, 238, 255, 0.7);
+      }
+      .proj-decisions__lede {
+        margin: 0;
+        max-width: 56ch;
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 300;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .decision-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .decision {
+        padding: 30px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .decision__choice {
+        margin: 0;
+        font-family: var(--font-head);
+        font-size: clamp(16px, 1.35vw, 19px);
+        font-weight: 400;
+        line-height: 1.4;
+        letter-spacing: -0.012em;
+        color: rgba(255, 255, 255, 0.9);
+        text-wrap: pretty;
+      }
+      /* The index is a reading aid, not a ranking — kept small and above the
+         line so the choice text still starts on the section's left edge. */
+      /* 0.6 rather than the 0.5 this started at: composited against the near-
+         black page, 0.5 lands at ~3.9:1, which is under the 4.5:1 floor for
+         10px type. 0.6 clears it at ~5.1:1 and still reads as an index rather
+         than as part of the heading. */
+      .decision__n {
+        display: block;
+        margin-bottom: 10px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        color: rgba(192, 213, 236, 0.6);
+        font-variant-numeric: tabular-nums;
+      }
+      .decision__body {
+        min-width: 0;
+      }
+      .decision__why {
+        margin: 0;
+        /* Capped at 62ch. The 0.62fr column runs 633px at 1440, which is ~90
+           characters of 14px prose — past the point where the eye reliably
+           finds the next line. The trailing space at wide viewports is the
+           cheaper cost. */
+        max-width: 62ch;
+        font-family: var(--font-head);
+        font-size: 14px;
+        font-weight: 300;
+        line-height: 1.72;
+        color: rgba(255, 255, 255, 0.64);
+        text-wrap: pretty;
+      }
+      /* Set apart, not styled down. The tradeoff is the most credible sentence
+         in the section, so it gets its own rule above it rather than being
+         demoted to fine print at the end of the paragraph. */
+      .decision__tradeoff {
+        display: flex;
+        gap: 14px;
+        margin: 15px 0 0;
+        padding: 13px 0 0;
+        max-width: 66ch;
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 300;
+        line-height: 1.65;
+        color: rgba(255, 255, 255, 0.58);
+      }
+      .decision__tradeoff-label {
+        flex: none;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.09em;
+        line-height: 2.4;
+        text-transform: uppercase;
+        color: rgba(192, 213, 236, 0.62);
+      }
+
+      /* ─── WHAT I'D DO NEXT ───
+         Sits inside the decisions section rather than after it: "here is what I
+         chose" and "here is what I would change" are one thought. A portfolio
+         that never says the second half reads as either finished or incurious,
+         and neither is true of live work. */
+      .proj-next-steps {
+        padding: 30px 0 0;
+      }
+      .proj-next-steps__label {
+        margin: 3px 0 0;
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        line-height: 1.4;
+        color: rgba(223, 238, 255, 0.7);
+      }
+      .proj-next-steps__body {
+        min-width: 0;
+        max-width: 62ch;
+        font-family: var(--font-head);
+        font-size: 14px;
+        font-weight: 300;
+        line-height: 1.72;
+        color: rgba(255, 255, 255, 0.64);
+        text-wrap: pretty;
+      }
+      .proj-next-steps__body p {
+        margin: 0 0 1.05em;
+      }
+      .proj-next-steps__body p:last-child {
+        margin-bottom: 0;
+      }
+
+      @media (max-width: 900px) {
+        .proj-decisions__head,
+        .decision,
+        .proj-next-steps {
+          display: block;
+        }
+        .proj-decisions__lede { margin-top: 11px; }
+        .decision { padding: 26px 0; }
+        .decision__body { margin-top: 13px; }
+        .proj-next-steps__body { margin-top: 13px; }
+      }
+      @media (max-width: 600px) {
+        .decision { padding: 22px 0; }
+        /* The label sits on its own line below 600px — at this width a 9px
+           flex-none label plus a 13px sentence leaves the sentence about 22
+           characters wide, which is unreadable. */
+        .decision__tradeoff { display: block; }
+        .decision__tradeoff-label {
+          display: block;
+          margin-bottom: 5px;
+          line-height: 1.4;
+        }
       }
 
       /* ─── REFLECTION ─── */
@@ -2233,6 +2458,28 @@
         color: rgba(7, 9, 15, 0.54);
       }
       html[data-theme="light"] .case-story .cs-grid-item { background: rgba(7, 9, 15, 0.03) !important; }
+      /* Decisions section, light theme. The dark alphas do not invert to
+         anything legible, so every tier is restated against the light page.
+         The blue-grey accents need much higher alpha here than they do on
+         black: measured against rgb(245,243,238), the 10px index at 0.7 came
+         out at 3.79:1 and the 9px tradeoff label at 0.75 came out at 4.26:1,
+         both under the 4.5:1 floor. At 0.92 they land near 6.4:1. Hairlines
+         drop to 0.11/0.12/0.14 because a white hairline at 0.08 disappears
+         entirely on a light background. */
+      html[data-theme="light"] .proj-decisions__head { border-bottom-color: rgba(7, 9, 15, 0.14); }
+      html[data-theme="light"] .proj-decisions__eyebrow,
+      html[data-theme="light"] .proj-next-steps__label { color: rgba(30, 77, 123, 0.9); }
+      html[data-theme="light"] .proj-decisions__lede { color: rgba(7, 9, 15, 0.62); }
+      html[data-theme="light"] .decision { border-bottom-color: rgba(7, 9, 15, 0.11); }
+      html[data-theme="light"] .decision__choice { color: rgba(7, 9, 15, 0.86); }
+      html[data-theme="light"] .decision__n { color: rgba(30, 77, 123, 0.92); }
+      html[data-theme="light"] .decision__why,
+      html[data-theme="light"] .proj-next-steps__body { color: rgba(7, 9, 15, 0.62); }
+      html[data-theme="light"] .decision__tradeoff {
+        border-top-color: rgba(7, 9, 15, 0.12);
+        color: rgba(7, 9, 15, 0.6);
+      }
+      html[data-theme="light"] .decision__tradeoff-label { color: rgba(30, 77, 123, 0.92); }
       html[data-theme="light"] .project-details { border-color: rgba(7, 9, 15, 0.12); }
       html[data-theme="light"] .project-details > summary { color: rgba(7, 9, 15, 0.62); }
       html[data-theme="light"] .project-details > summary::after { color: rgba(30, 77, 123, 0.76); }
@@ -2446,7 +2693,7 @@
         opacity: 1;
         box-shadow:
           0 12px 34px rgba(10, 12, 18, 0.28),
-          inset 0 0 0 1px rgba(234, 246, 255, 0.3);
+          inset 0 0 0 1px rgba(var(--page-pillar, 234 246 255), 0.85);
       }
       .case-chapter-map__link:hover .case-chapter-map__thumb img,
       .case-chapter-map__link:focus-visible .case-chapter-map__thumb img,
@@ -3377,7 +3624,85 @@
           gap: 28px !important;
         }
       }
-    </style> </head> <body> <div class="progress-bar"><div class="progress-fill" id="progress"></div></div> <a class="skip-link" href="#main">Skip to project content</a> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link is-active" href="/works/" aria-label="Work"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> <span>Work</span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> <span>Play</span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="11" y="2" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="11" y="16" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="2" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__core" x="9" y="9" width="6" height="6" rx="2"></rect> </svg> <span>Contact</span> </a> <a class="studio-link" href="/about/" aria-label="About"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> <span>About</span> </a> </nav> </header> <style>
+
+      /* ─────────────────────────────────────────────────────────────────
+         ACCESSIBILITY FLOOR — deliberately the last block in this file.
+         Everything above is free to style these labels however it likes;
+         this block only guarantees two things the rest of the sheet kept
+         missing:
+
+         1. Contrast. The mono micro-labels were sitting at 0.32–0.48 alpha,
+            which measures 2.0–4.4:1 against the page background. At 9–12px
+            that is under the 4.5:1 WCAG AA floor and genuinely hard to read.
+            0.62 measures ~7.5:1 and still reads as clearly secondary next to
+            body copy at 0.75–0.86.
+         2. Touch targets. Coarse-pointer hit areas are grown to the WCAG 2.2
+            AA 24x24 minimum with a transparent ::after overlay, so the visual
+            size, type scale and layout are all unchanged.
+
+         Scoped with :not([data-theme="light"]) so the light-theme overrides
+         above keep their own values untouched.
+         ───────────────────────────────────────────────────────────────── */
+
+      /* opacity is reset to 1 here because a rule above dims this whole label
+         family to 0.72 (and 0.54 in places). That multiplied against an
+         already-low colour alpha, taking .meta-k down to 1.96:1. The muting
+         now lives entirely in the colour, where it can be measured. */
+      html:not([data-theme="light"]) .meta-k,
+      html:not([data-theme="light"]) .proj-highlight-label {
+        color: rgba(255, 255, 255, 0.62) !important;
+        opacity: 1 !important;
+      }
+
+      html:not([data-theme="light"]) .intro-label {
+        color: rgba(163, 196, 233, 0.78) !important;
+        opacity: 1 !important;
+      }
+
+      html:not([data-theme="light"]) .case-progress__head {
+        color: rgba(222, 236, 250, 0.62) !important;
+        opacity: 1 !important;
+      }
+
+      html:not([data-theme="light"]) .case-chapter-map__label {
+        color: rgba(235, 245, 255, 0.62) !important;
+        opacity: 1 !important;
+      }
+
+      /* The press links carry their colour in an inline style attribute on the
+         page, so !important is the only way to reach them from here. 0.72
+         matches .hero-brief-jump, the other outbound affordance on this page. */
+      html:not([data-theme="light"]) .cs-watch-link {
+        color: rgba(232, 244, 255, 0.72) !important;
+      }
+
+      @media (pointer: coarse) {
+        /* .hero-brief-jump uses ::before because its ::after already renders
+           the arrow glyph. .bloom-interactive-toggle is position: absolute, so
+           it is left alone — it is already its own containing block. */
+        .hero-brief-jump {
+          position: relative;
+        }
+
+        /* Chapter-map rows on the first line already measure 24px tall; the
+           wrapped rows collapsed to 12px, so they get the floor explicitly. */
+        .case-chapter-map__link {
+          min-height: 24px;
+          align-items: center;
+        }
+
+        .hero-brief-jump::before,
+        .bloom-interactive-toggle::after {
+          content: "";
+          position: absolute;
+          top: 50%;
+          right: -6px;
+          left: -6px;
+          height: 44px;
+          transform: translateY(-50%);
+        }
+      }
+    </style> </head> <body data-pillar="product"> <div class="progress-bar"><div class="progress-fill" id="progress"></div></div> <a class="skip-link" href="#main">Skip to project content</a> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link is-active" href="/works/" aria-label="Work"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> <span>Work</span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> <span>Play</span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="11" y="2" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="11" y="16" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="2" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__core" x="9" y="9" width="6" height="6" rx="2"></rect> </svg> <span>Contact</span> </a> <a class="studio-link" href="/about/" aria-label="About"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> <span>About</span> </a> </nav> </header> <style>
   .studio-nav {
     --nav-ink: #f5f7fb;
     position: fixed;
@@ -3632,7 +3957,7 @@
       transition-duration: 1ms !important;
     }
   }
-</style> <main id="main"> <header class="proj-hero"> <img class="hero-video" src="/10.alpha/cover.png" alt="Alpha Stockathon" loading="eager" fetchpriority="high"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title">Alpha Stockathon</h1> </div> <aside class="hero-recruiter-brief" aria-label="Project at a glance"> <p class="hero-brief-label">At a glance</p> <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">UI · Gamification</span></p> <p class="hero-brief-fact"> <span class="hero-brief-key">Role</span><span class="hero-brief-value">Solo</span> </p> <p class="hero-brief-fact"> <span class="hero-brief-key">Proof</span><span class="hero-brief-value">3 days · research to prototype</span> </p> <a class="hero-brief-jump" href="#case-archive">Skim visual story</a> </aside> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Duration</p> <p class="meta-v"> 3 days </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2021 </p> </div> <div class="meta-item"> <p class="meta-k">Tools</p> <p class="meta-v"> Figma · Pixel Art </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> Self Initiated </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Alpha Stockathon is a gamified desktop application that teaches the stock market through a pixel-art world. A character journeys to rescue a wizard, and each level introduces one concept: options, shorting, market cap. Players make decisions and face consequences inside a simulated market rather than reading about one. </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">3 days</p> <p class="proj-highlight-label">research to prototype</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Pixel art</p> <p class="proj-highlight-label">financial learning system</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Solo</p> <p class="proj-highlight-label">product concept &amp; UI</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <nav class="case-chapter-map" id="case-chapter-map" aria-label="Visual story chapters" hidden></nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Summary</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Process</a> <a href="#project-next-step">Next</a> </nav> <div class="proj-body" id="case-archive"> <style>
+</style> <main id="main"> <header class="proj-hero"> <img class="hero-video" src="/10.alpha/cover.png" alt="Alpha Stockathon" loading="eager" fetchpriority="high"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title">Alpha Stockathon</h1> </div> <aside class="hero-recruiter-brief" aria-label="Project at a glance"> <p class="hero-brief-label">At a glance</p> <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">UI · Gamification</span></p> <p class="hero-brief-fact"> <span class="hero-brief-key">Role</span><span class="hero-brief-value">Solo</span> </p> <p class="hero-brief-fact"> <span class="hero-brief-key">Proof</span><span class="hero-brief-value">3 days · research to prototype</span> </p> <a class="hero-brief-jump" href="#case-archive">Skim visual story</a> </aside> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Duration</p> <p class="meta-v"> 3 days </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2021 </p> </div> <div class="meta-item"> <p class="meta-k">Tools</p> <p class="meta-v"> Figma · Pixel Art </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> Self Initiated </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Alpha Stockathon is a gamified desktop application that teaches the stock market through a pixel-art world. A character journeys to rescue a wizard, and each level introduces one concept: options, shorting, market cap. Players make decisions and face consequences inside a simulated market rather than reading about one. </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">3 days</p> <p class="proj-highlight-label">research to prototype</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Pixel art</p> <p class="proj-highlight-label">financial learning system</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Solo</p> <p class="proj-highlight-label">product concept &amp; UI</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#case-decisions">Decisions</a> <a href="#project-next-step">Next project</a> </nav> <nav class="case-chapter-map" id="case-chapter-map" aria-label="Visual story chapters" hidden></nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Summary</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Process</a> <a href="#case-decisions">Decisions</a> <a href="#project-next-step">Next</a> </nav> <div class="proj-body" id="case-archive"> <style>
   /* cs-bleed: natural-ratio for sparse photo-essay layout */
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
@@ -3679,7 +4004,7 @@
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.02) translateY(-6px); }
   }
-</style> <div class="cs-bleed"> <img src="/10.alpha/0.png" alt="Alpha Stockathon" loading="eager" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Brand positioning.</em></p> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/3.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/3.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <p class="cube-cap cube-cap--above"><em>Ideation for gamification.</em></p> <div class="cs-bleed"> <img src="/10.alpha/4.png" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/5.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/6.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Characters.</em></p> <div class="cs-bleed"> <img src="/10.alpha/7.png" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/8.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/9.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/10.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/11.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/11.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/12.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/12.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/13.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/17.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/17.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/18.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/19.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/19.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/21.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/22.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/23.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/24.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/24.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/25.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/26.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/27.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/27.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/27.3.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/28.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/29.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/29.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <p class="cube-cap cube-cap--above"><em>Advertisement idea.</em></p> <div class="cs-bleed"> <img src="/10.alpha/30.png" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async"> </div> </div> </div> </div> <section class="proj-reflection" id="reflection-section"> <img class="refl-bg-img" id="refl-bg-img" src="/10.alpha/reflection.jpg" alt="" loading="lazy"> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>Three days to understand the stock market and turn it into a game. I had to start teaching it before I’d finished learning it myself. Simplification is not dumbing down: every financial concept has a core mechanic, and finding that mechanic was the real design problem. Pixel art made commitment unavoidable. Each shape landed and stayed.</p> </blockquote> </div> </section> <div class="proj-next-row" style="grid-template-columns: 1fr"> <a href="/illustrations/" class="proj-next"> <div class="next-visual" style="background: #060608;"></div> <div class="next-info"> <p class="next-label">Next Project</p> <div class="next-title-row"> <div> <p class="next-title">Illustrations</p> </div> <span class="next-arrow">→</span> </div> </div> </a> </div> </main> <style>
+</style> <div class="cs-bleed"> <img src="/10.alpha/0.png" alt="Alpha Stockathon" loading="eager" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Brand positioning.</em></p> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/3.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/3.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <p class="cube-cap cube-cap--above"><em>Ideation for gamification.</em></p> <div class="cs-bleed"> <img src="/10.alpha/4.png" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/5.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/6.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Characters.</em></p> <div class="cs-bleed"> <img src="/10.alpha/7.png" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/8.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/9.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/10.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/11.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/11.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/12.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/12.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/13.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/17.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/17.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/18.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/19.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/19.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/21.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/22.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/23.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/24.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/24.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/25.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/26.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/27.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/27.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <div class="cs-bleed"> <img src="/10.alpha/27.3.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/10.alpha/28.png" alt="Alpha Stockathon" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"><img src="/10.alpha/29.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/10.alpha/29.2.png" alt="Alpha Stockathon" loading="lazy" decoding="async"></div> </div> <p class="cube-cap cube-cap--above"><em>Advertisement idea.</em></p> <div class="cs-bleed"> <img src="/10.alpha/30.png" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async"> </div> </div> </div> </div> <section class="proj-decisions" id="case-decisions" aria-labelledby="case-decisions-title"> <div class="proj-decisions__head"> <h2 class="proj-decisions__eyebrow" id="case-decisions-title">Design decisions</h2> <p class="proj-decisions__lede"> The calls that shaped this project — what I chose, why, and what each choice cost. </p> </div> <ol class="decision-list"> <li class="decision"> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">01</span>Taught one concept per level and let the level be short </h3> <div class="decision__body"> <p class="decision__why">Financial education fails by front-loading vocabulary. Each level isolates a single mechanic — a short, a call option, market cap — and ends as soon as the player has felt the consequence of using it, so the concept is learned as an outcome rather than memorised as a definition. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>The concepts stay isolated. Real markets are these mechanics interacting, and nothing in the structure teaches how they compound, which is exactly where most people actually lose money. </span></p> </div> </li> <li class="decision"> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">02</span>Chose pixel art, and chose it partly because of the deadline </h3> <div class="decision__body"> <p class="decision__why">A fixed grid and a fixed palette remove almost every open question: no illustration style to develop, no spacing debates, no fidelity creep. Inside three days that bought the time to actually design the game logic. The retro register also lowers the stakes of a subject most people find intimidating. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>It caps the product. The aesthetic is charming at concept stage and would read as unserious to anyone deciding whether to trust it with a real portfolio, so this is not the visual direction it would ship with. </span></p> </div> </li> <li class="decision"> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">03</span>Simulated the market instead of wiring in real data </h3> <div class="decision__body"> <p class="decision__why">Live feeds bring latency, licensing, and the risk of a lesson being contradicted by that day's actual movement. A simulated market can be authored — a level about shorting can guarantee the downturn it needs — and authorship is what teaching requires. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>It teaches a market more legible than the real one. Everything in it is causal, and the most important thing about real markets is that a great deal of them is not. </span></p> </div> </li> </ol> <div class="proj-next-steps"> <h3 class="proj-next-steps__label">What I’d do next</h3> <div class="proj-next-steps__body"> <p>Three days got this to a coherent prototype and no further. The honest next step is to put it in front of people who do not already know the concepts and find out how much survives, because I designed it while learning the material myself and I have no evidence that the mechanics teach what I believe they teach. After that, the compounding problem: the levels are correct in isolation, and it needs at least one that makes them interact.</p> </div> </div> </section> <section class="proj-reflection" id="reflection-section"> <img class="refl-bg-img" id="refl-bg-img" src="/10.alpha/reflection.jpg" alt="" loading="lazy"> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>Three days to understand the stock market and turn it into a game. I had to start teaching it before I’d finished learning it myself. Simplification is not dumbing down: every financial concept has a core mechanic, and finding that mechanic was the real design problem. Pixel art made commitment unavoidable. Each shape landed and stayed.</p> </blockquote> </div> </section> <div class="proj-next-row" style="grid-template-columns: 1fr"> <a href="/illustrations/" class="proj-next"> <div class="next-visual" style="background: #060608;"></div> <div class="next-info"> <p class="next-label">Next Project</p> <div class="next-title-row"> <div> <p class="next-title">Illustrations</p> </div> <span class="next-arrow">→</span> </div> </div> </a> </div> </main> <style>
   .site-footer {
     position: relative;
     z-index: 5;
@@ -3706,8 +4031,7 @@
   }
 
   .site-footer-identity > span,
-  .site-footer-updated,
-  .site-footer-meta {
+  .site-footer-updated {
     color: var(--muted, rgba(230, 236, 244, 0.6));
     font: 400 10px/1.5 var(--font-mono, "DM Mono", monospace);
     letter-spacing: 0.035em;
@@ -3830,28 +4154,64 @@
     transform: translate(-4px, 4px);
   }
 
-  .site-footer-meta {
-    display: grid;
-    justify-items: end;
-    gap: 7px;
-    text-align: right;
+  /* ── Colophon baseline ───────────────────────────────────────────────
+     A quiet full-width strip under the three-column row. It carries the two
+     live details a creative technologist's site earns the right to show: the
+     studio's local clock, and the measured page weight of *this* view rendered
+     as grams of CO₂. Both are driven by the scripts already at the bottom of
+     this file — the markup they target had been removed in an earlier pass,
+     leaving the code dead; this restores their home. Everything degrades to
+     static text if the scripts don't run. */
+  .site-footer-base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 28px;
+    margin-top: clamp(30px, 4vw, 54px);
+    padding-top: 15px;
+    border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  }
+
+  .site-footer-live,
+  .site-footer-colophon {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    color: var(--muted, rgba(230, 236, 244, 0.6));
+    font: 400 10px/1.5 var(--font-mono, "DM Mono", monospace);
+    letter-spacing: 0.05em;
     font-variant-numeric: tabular-nums;
   }
 
-  .site-footer-meta-row:first-child::before {
-    content: "";
-    display: inline-block;
+  .site-footer-live .sep,
+  .site-footer-colophon .sep {
+    opacity: 0.45;
+  }
+
+  /* The live dot is the one moment of colour down here: it says the studio is
+     a running thing, not an archived page. */
+  .site-footer-dot {
     width: 5px;
     height: 5px;
-    margin-right: 8px;
+    flex: none;
     border-radius: 50%;
     background: #78dd89;
     box-shadow: 0 0 8px rgba(120, 221, 137, 0.55);
   }
 
   html[data-theme="light"] .site-footer-identity > span,
-  html[data-theme="light"] .site-footer-meta {
+  html[data-theme="light"] .site-footer-updated,
+  html[data-theme="light"] .site-footer-live,
+  html[data-theme="light"] .site-footer-colophon {
     color: rgba(15, 25, 38, 0.66);
+  }
+
+  @media (max-width: 760px) {
+    .site-footer-base {
+      gap: 8px 20px;
+    }
   }
 
   @media (max-width: 760px) {
@@ -3875,13 +4235,8 @@
       max-width: 16ch;
       text-align: left;
     }
-
-    .site-footer-meta {
-      justify-items: start;
-      text-align: left;
-    }
   }
-</style> <footer class="site-footer" aria-label="Site footer"> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Jul 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> </footer> <script>
+</style> <footer class="site-footer" aria-label="Site footer"> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Jul 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> <div class="site-footer-base"> <p class="site-footer-live"> <span class="site-footer-dot" aria-hidden="true"></span> <span id="site-footer-time">New York</span> <span class="sep" aria-hidden="true">·</span> <span id="site-footer-carbon">low-carbon by design</span> </p> <p class="site-footer-colophon"> © 2026 Siddharth Mehta<span class="sep" aria-hidden="true">·</span>Designed &amp; built by hand </p> </div> </footer> <script>
   (function () {
     var mark = document.querySelector(".site-footer-mark");
     var fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -4511,7 +4866,9 @@
     font-size: 9px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.45);
+    /* 0.62, not 0.45: at 9px the old value measured 4.48:1 against the page
+       background, just under the 4.5:1 WCAG AA floor for small text. */
+    color: rgba(255, 255, 255, 0.62);
   }
   @media (max-width: 600px) {
     #scroll-hint {
@@ -9962,15 +10319,11 @@
       // names each chapter where the archive begins instead of following the reader
       // as a set of anonymous dashes.
       (function () {
-        const sections = document.querySelectorAll(".cs-section");
-        if (sections.length < 2) return;
         const chapterMap = document.getElementById("case-chapter-map");
         if (!chapterMap) return;
-        chapterMap.hidden = false;
-        sections.forEach((sec, i) => {
-          const labelEl = sec.querySelector(".cs-section-label");
-          const rawLabel = labelEl ? labelEl.textContent.trim() : `Section ${i + 1}`;
-          const label = rawLabel
+
+        const norm = (s) =>
+          s
             .toLocaleLowerCase()
             .replace(/^([a-z])/, function (_, char) {
               return char.toLocaleUpperCase();
@@ -9983,19 +10336,68 @@
             .replace(/\bapi\b/gi, "API")
             .replace(/\bwebgpu\b/gi, "WebGPU")
             .replace(/\bvisionos\b/gi, "visionOS");
-          const media = sec.querySelector("img, video");
+
+        // Preferred source is explicit .cs-section blocks. The markdown-authored
+        // case studies have none, so fall back to the fixed landmark sections
+        // every case page shares — previously the rail stayed empty and hidden on
+        // every one of them, which is the "no reading map on work detail" gap.
+        let items = [];
+        const csSections = document.querySelectorAll(".cs-section");
+        if (csSections.length >= 2) {
+          items = [...csSections].map((sec, i) => {
+            const labelEl = sec.querySelector(".cs-section-label");
+            return {
+              el: sec,
+              label: norm(labelEl ? labelEl.textContent.trim() : "Section " + (i + 1)),
+              media: sec.querySelector("img, video"),
+            };
+          });
+        } else {
+          const landmarks = [
+            ["case-overview", "Overview"],
+            ["case-proof", "Proof"],
+            ["case-archive", "Visual story"],
+            ["case-decisions", "Decisions"],
+            ["reflection-section", "Reflection"],
+            ["project-next-step", "Next project"],
+          ];
+          items = landmarks
+            .map(function (pair) {
+              const el = document.getElementById(pair[0]);
+              if (!el) return null;
+              let media = el.querySelector("img, video");
+              if (!media) {
+                // landmark anchors are often empty markers; look just after them
+                let sib = el.nextElementSibling;
+                let hops = 0;
+                while (sib && !media && hops < 4) {
+                  media = sib.querySelector ? sib.querySelector("img, video") : null;
+                  sib = sib.nextElementSibling;
+                  hops += 1;
+                }
+              }
+              return { el: el, label: pair[1], media: media };
+            })
+            .filter(Boolean);
+        }
+        if (items.length < 2) return;
+
+        chapterMap.hidden = false;
+        items.forEach(function (item, i) {
+          const sec = item.el;
+          if (!sec.id) sec.id = "section-" + i;
           let previewSrc = "";
+          const media = item.media;
           if (media) {
             if (media.tagName === "IMG") previewSrc = media.currentSrc || media.getAttribute("src") || "";
             else previewSrc = media.getAttribute("poster") || "";
           }
-          if (!sec.id) sec.id = "section-" + i;
           const link = document.createElement("a");
           link.href = "#" + sec.id;
           link.className = "case-chapter-map__link";
           link.setAttribute("data-section", sec.id);
           link.setAttribute("data-step", String(i + 1).padStart(2, "0"));
-          link.setAttribute("aria-label", String(i + 1).padStart(2, "0") + ": " + label);
+          link.setAttribute("aria-label", String(i + 1).padStart(2, "0") + ": " + item.label);
           const thumb = document.createElement("span");
           thumb.className = "case-chapter-map__thumb";
           thumb.setAttribute("aria-hidden", "true");
@@ -10008,7 +10410,7 @@
           }
           const text = document.createElement("span");
           text.className = "case-chapter-map__label";
-          text.textContent = label;
+          text.textContent = item.label;
           link.append(thumb, text);
           chapterMap.appendChild(link);
         });
@@ -10028,7 +10430,9 @@
           },
           { rootMargin: "-30% 0px -50% 0px", threshold: 0 }
         );
-        sections.forEach((s) => tocObs.observe(s));
+        items.forEach(function (it) {
+          tocObs.observe(it.el);
+        });
       })();
 
       // Lazy-load images below the fold

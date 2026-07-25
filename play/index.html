@@ -72,6 +72,16 @@
     --accent: rgba(160, 200, 255, 1);
     --accent-dim: rgba(160, 200, 255, 0.55);
 
+    /* ── Pillar colours ──
+       One colour language for Sid's three bodies of work, lifted straight from
+       the Orbit scene's three rings so the site reads as one system: cool blue
+       for product & systems, warm amber for AI & creative technology, violet for
+       culture, space & image. Stored as bare "r, g, b" triplets so any element
+       can dial its own alpha via rgb(var(--pillar-x) / <a>) or rgba(). */
+    --pillar-product: 156, 208, 255;
+    --pillar-ai: 255, 179, 122;
+    --pillar-culture: 201, 162, 255;
+
     /* ── Typography ── */
     --font-head: "Figtree", sans-serif;
     --font-mono: "DM Mono", monospace;
@@ -549,7 +559,7 @@
         ["Mool · Product interface", 3],
         ["AI Prototypes · Local AI", 2],
         ["Encoded · Spatial AR", 3],
-        ["Bloom · Spatial AI", 3],
+        ["Bodhi · Spatial AI", 3],
         ["Mind Your Feelings · Installation", 3],
         ["Cube of Creations · Character system", 3],
         ["Bloom; who are you · Interactive installation", 3],
@@ -588,9 +598,13 @@
       const sources = designSources.concat(
         files.map((file) => ({
           src: `/play/assets/spatial/p${file}.webp`,
-          // Keep the curated spatial thumbnail for the archive, but decode the
-          // original still in the WebGL scene so large cards stay crisp.
-          hi: `/play/assets/p${file}.jpg`,
+          // The WebGL scene renders a mid-size webp (≈1600px, ~150KB) instead of
+          // the multi-megabyte original — visually identical at card size, but it
+          // takes this page's scroll-loaded weight from ~39MB down to ~8MB. The
+          // full-resolution jpg stays as an automatic fallback (hiFallback), so a
+          // missing derivative degrades to the original rather than a blank card.
+          hi: `/play/assets/hi/p${file}.webp`,
+          hiFallback: `/play/assets/p${file}.jpg`,
           title: `${titleFor(file)} ${String(file).padStart(3, "0")}`,
         }))
       );
@@ -657,7 +671,15 @@
         sources.forEach((item, index) => {
           const material = new THREE.MeshBasicMaterial({ color: 0x101822, transparent: true, opacity: 0, side: THREE.DoubleSide });
           const card = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), material);
-          card.userData = { index, src: item.src, hi: item.hi || item.src, title: item.title, loading: false, loaded: false };
+          card.userData = {
+            index,
+            src: item.src,
+            hi: item.hi || item.src,
+            hiFallback: item.hiFallback || item.src,
+            title: item.title,
+            loading: false,
+            loaded: false,
+          };
           gallery.add(card);
           cards.push(card);
         });
@@ -665,26 +687,35 @@
         function loadCardTexture(card) {
           if (card.userData.loaded || card.userData.loading) return;
           card.userData.loading = true;
+          const apply = (texture) => {
+            texture.colorSpace = THREE.SRGBColorSpace;
+            texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+            const aspect = texture.image.width / texture.image.height;
+            const longSide = 6.2;
+            const width = aspect >= 1 ? longSide : longSide * aspect;
+            const height = aspect >= 1 ? longSide / aspect : longSide;
+            card.geometry.dispose();
+            card.geometry = new THREE.PlaneGeometry(width, height);
+            card.material.map = texture;
+            card.material.color.setHex(0xffffff);
+            card.material.needsUpdate = true;
+            card.userData.loading = false;
+            card.userData.loaded = true;
+          };
           loader.load(
             card.userData.hi,
-            (texture) => {
-              texture.colorSpace = THREE.SRGBColorSpace;
-              texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-              const aspect = texture.image.width / texture.image.height;
-              const longSide = 6.2;
-              const width = aspect >= 1 ? longSide : longSide * aspect;
-              const height = aspect >= 1 ? longSide / aspect : longSide;
-              card.geometry.dispose();
-              card.geometry = new THREE.PlaneGeometry(width, height);
-              card.material.map = texture;
-              card.material.color.setHex(0xffffff);
-              card.material.needsUpdate = true;
-              card.userData.loading = false;
-              card.userData.loaded = true;
-            },
+            apply,
             undefined,
+            // If the optimized derivative is missing, fall back to the original
+            // full-resolution image once, then to the thumbnail, before giving up.
             () => {
-              card.userData.loading = false;
+              if (card.userData.hiFallback && card.userData.hiFallback !== card.userData.hi) {
+                loader.load(card.userData.hiFallback, apply, undefined, () => {
+                  card.userData.loading = false;
+                });
+              } else {
+                card.userData.loading = false;
+              }
             }
           );
         }

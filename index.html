@@ -97,6 +97,16 @@
     --accent: rgba(160, 200, 255, 1);
     --accent-dim: rgba(160, 200, 255, 0.55);
 
+    /* ── Pillar colours ──
+       One colour language for Sid's three bodies of work, lifted straight from
+       the Orbit scene's three rings so the site reads as one system: cool blue
+       for product & systems, warm amber for AI & creative technology, violet for
+       culture, space & image. Stored as bare "r, g, b" triplets so any element
+       can dial its own alpha via rgb(var(--pillar-x) / <a>) or rgba(). */
+    --pillar-product: 156, 208, 255;
+    --pillar-ai: 255, 179, 122;
+    --pillar-culture: 201, 162, 255;
+
     /* ── Typography ── */
     --font-head: "Figtree", sans-serif;
     --font-mono: "DM Mono", monospace;
@@ -279,10 +289,14 @@
         transition: opacity 320ms ease;
       }
 
+      /* The always-on base layer. Raised from a near-invisible 0.28/0.52 so the
+         hero reads as a dim, alive space at rest — "there is something here,
+         come find it" — rather than a black void before the cursor paints Sid
+         in. Still quiet enough that the painted reveal remains the payoff. */
       .home-film__ambient {
         z-index: 0;
-        opacity: 0.28;
-        filter: saturate(0.72) contrast(1.08) brightness(0.52) blur(1px);
+        opacity: 0.44;
+        filter: saturate(0.78) contrast(1.06) brightness(0.72) blur(1px);
       }
 
       .home-film__real {
@@ -291,12 +305,16 @@
         mask-image: linear-gradient(transparent, transparent);
         -webkit-mask-repeat: no-repeat;
         mask-repeat: no-repeat;
-        filter: saturate(0.92) contrast(1.03) brightness(0.88);
+        /* Brightened from 0.88 → 1.16. The source footage is low-key, so at the
+           old value the painted reveal emerged as dark-on-dark and the whole
+           mechanic read as dead. Now Sid resolves as a bright figure lifting out
+           of the black exactly where the cursor paints — which is the point. */
+        filter: saturate(1) contrast(1.09) brightness(1.16);
         will-change: mask-image;
       }
 
       .home-film__real.is-liquifying {
-        filter: url("#home-liquify") saturate(1.04) contrast(1.05) brightness(0.92);
+        filter: url("#home-liquify") saturate(1.06) contrast(1.08) brightness(1.18);
       }
 
       .home-stage.is-revealing .home-film__pixel {
@@ -308,9 +326,53 @@
         position: absolute;
         inset: 0;
         background:
-          linear-gradient(90deg, rgba(1, 3, 6, 0.94) 0%, rgba(1, 3, 6, 0.74) 35%, rgba(1, 3, 6, 0.2) 72%, rgba(1, 3, 6, 0.34) 100%),
-          linear-gradient(0deg, rgba(1, 3, 6, 0.86), transparent 54%, rgba(1, 3, 6, 0.2));
+          linear-gradient(90deg, rgba(1, 3, 6, 0.88) 0%, rgba(1, 3, 6, 0.6) 34%, rgba(1, 3, 6, 0.12) 70%, rgba(1, 3, 6, 0.28) 100%),
+          linear-gradient(0deg, rgba(1, 3, 6, 0.88), transparent 56%, rgba(1, 3, 6, 0.18));
         pointer-events: none;
+      }
+
+      /* Quiet affordance so the reveal is discoverable. Sits upper-centre over
+         the film, fades the moment the visitor starts painting. */
+      .home-hint {
+        position: absolute;
+        z-index: 3;
+        top: clamp(88px, 15vh, 150px);
+        left: 50%;
+        transform: translateX(-50%);
+        margin: 0;
+        color: rgba(233, 240, 249, 0.5);
+        font:
+          400 10px/1.4 "DM Mono",
+          monospace;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        pointer-events: none;
+        animation: home-hint-breathe 3.4s ease-in-out infinite;
+        transition: opacity 500ms ease;
+      }
+      @keyframes home-hint-breathe {
+        0%,
+        100% {
+          opacity: 0.32;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+      .home-stage.is-revealing .home-hint,
+      .home-stage.has-project .home-hint {
+        opacity: 0;
+        animation: none;
+      }
+      @media (hover: none), (pointer: coarse) {
+        .home-hint {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .home-hint {
+          animation: none;
+        }
       }
 
       .home-project-focus {
@@ -444,16 +506,97 @@
         pointer-events: none;
       }
 
-      .home-name {
+      /* ── IDENTITY BLOCK ──
+         Name, then the awards, then the headline. A recruiter's first pass over
+         a portfolio homepage is "who is this and has anyone else vouched for
+         them" — that used to take a click through to /about/, because the only
+         permanent mention of the Webbys lived there. The rotating proof line
+         under the headline names Kyoorius roughly a quarter of the time, which
+         is not the same as always being on screen.
+
+         Anchored above .home-copy so it sits with the name rather than after
+         the CTAs, where credentials read as a footnote. */
+      .home-ident {
         position: absolute;
-        bottom: calc(100% + clamp(36px, 6vh, 68px));
+        bottom: calc(100% + clamp(30px, 5vh, 58px));
         left: 0;
+      }
+
+      .home-name {
         margin: 0;
         color: rgba(240, 245, 250, 0.7);
         font:
           500 11px/1.3 "DM Mono",
           monospace;
         letter-spacing: 0.05em;
+      }
+
+      /* One tab stop, one accessible name, one click to the dated list. Three
+         hairline-separated items keep it to a single line down to ~360px. */
+      .home-creds {
+        position: relative;
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0 12px;
+        margin-top: 9px;
+        color: rgba(236, 244, 251, 0.7);
+        font:
+          500 10px/1.2 "DM Mono",
+          monospace;
+        letter-spacing: 0.06em;
+        text-decoration: none;
+        text-transform: uppercase;
+        transition: color 200ms ease;
+      }
+
+      .home-creds__item {
+        padding: 7px 0;
+      }
+
+      .home-creds__item + .home-creds__item {
+        padding-left: 12px;
+        border-left: 1px solid rgba(236, 244, 251, 0.24);
+      }
+
+      .home-creds__n {
+        margin-left: 4px;
+        opacity: 0.8;
+        font-style: normal;
+      }
+
+      /* Sits away from the last award so it reads as "this row goes somewhere"
+         rather than as part of the Kyoorius entry. */
+      .home-creds__go {
+        display: inline-block;
+        margin-left: 4px;
+        opacity: 0.55;
+        transition:
+          opacity 200ms ease,
+          transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .home-creds:hover,
+      .home-creds:focus-visible {
+        color: #fff;
+      }
+
+      .home-creds:hover .home-creds__go,
+      .home-creds:focus-visible .home-creds__go {
+        opacity: 1;
+        transform: translate(2px, -2px);
+      }
+
+      /* The row is 10px type inside a 26px box. Grown to the WCAG 2.2 AA 24px
+         minimum in both axes without changing what is drawn. */
+      .home-creds::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        right: 0;
+        left: 0;
+        height: max(100%, 40px);
+        transform: translateY(-50%);
       }
 
       .home-copy h1 {
@@ -545,6 +688,20 @@
         transition:
           border-color 180ms ease,
           transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      /* The three actions are a link, a button and a link, all 40px tall with
+         10px of top padding. The two links sat their label directly under that
+         padding; the button vertically centred its label in the remaining 30px,
+         so "Play showreel" rendered ~9px lower than its neighbours while the
+         underlines stayed level — a small, persistent misalignment in the one
+         row a recruiter is most likely to click. Both are flex now with their
+         content top-aligned, so the three labels share a baseline. */
+      .home-actions a,
+      .home-actions button {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: 5px;
       }
 
       .home-reel-modal {
@@ -667,7 +824,12 @@
         aspect-ratio: 1;
         border-radius: 50%;
         overflow: hidden;
-        outline: 1px solid rgba(255, 255, 255, 0.2);
+        /* Pillar colour, not decoration: cool = product / AI, warm = cultural /
+           human. The same duality lights the Orbit scene, so the accent means
+           the same thing everywhere on the site. */
+        --pj-ring: rgba(255, 255, 255, 0.2);
+        --pj-hi: rgba(255, 255, 255, 0.72);
+        outline: 1px solid var(--pj-ring);
         outline-offset: 4px;
         background: #080b10;
         box-shadow: 0 18px 46px rgba(0, 0, 0, 0.3);
@@ -675,19 +837,32 @@
         transition:
           transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
           outline-color 180ms ease,
+          box-shadow 220ms ease,
           filter 180ms ease;
       }
 
+      /* Each portal wears its pillar colour (see design_tokens): Mool → product
+         blue, AI Prototypes → AI amber, Encoded → culture violet. Same three
+         colours as the Orbit rings, so the identity is consistent site-wide. */
       .home-project:nth-child(1) {
         --portal-y: -18px;
+        --pj-ring: rgba(var(--pillar-product), 0.42);
+        --pj-hi: rgba(var(--pillar-product), 0.95);
       }
 
       .home-project:nth-child(2) {
         --portal-y: 8px;
+        --pj-ring: rgba(var(--pillar-ai), 0.46);
+        --pj-hi: rgba(var(--pillar-ai), 0.95);
       }
 
+      /* Encoded sits in the AI & creative-tech pillar on the Works page, so it
+         wears amber here too — the colour has to mean the same thing on every
+         page or it stops meaning anything. */
       .home-project:nth-child(3) {
         --portal-y: -9px;
+        --pj-ring: rgba(var(--pillar-ai), 0.46);
+        --pj-hi: rgba(var(--pillar-ai), 0.95);
       }
 
       .home-project img {
@@ -700,7 +875,10 @@
 
       .home-project:hover,
       .home-project:focus-visible {
-        outline-color: rgba(255, 255, 255, 0.72);
+        outline-color: var(--pj-hi);
+        box-shadow:
+          0 18px 46px rgba(0, 0, 0, 0.34),
+          0 0 30px -4px var(--pj-hi);
         transform: translateY(calc(var(--portal-y, 0px) - 9px)) scale(1.05);
       }
 
@@ -748,13 +926,34 @@
         }
 
         .home-copy h1 {
-          max-width: 12ch;
-          font-size: clamp(36px, 10.5vw, 50px);
+          max-width: 100%;
+          font-size: clamp(30px, 8.4vw, 42px);
         }
 
-        .home-name {
+        /* Below 820px the longest typed phrase ("systems for social change") is wider
+           than the headline column, so nowrap clipped it off the right edge. Let the
+           phrase wrap here. .home-copy is bottom anchored, so a taller headline grows
+           upward and the proof line and CTAs below it stay put. */
+        .home-typewriter {
+          min-width: 0;
+          white-space: normal;
+        }
+
+        /* Below 820px .home-copy is a block, so the identity block joins the
+           normal flow above the headline instead of hanging off the top edge. */
+        .home-ident {
           position: static;
-          margin-bottom: 12px;
+          margin-bottom: 14px;
+        }
+
+        .home-creds {
+          gap: 0 10px;
+          font-size: 9px;
+          letter-spacing: 0.05em;
+        }
+
+        .home-creds__item + .home-creds__item {
+          padding-left: 10px;
         }
 
         .home-projects {
@@ -814,6 +1013,41 @@
         .home-project-focus,
         .home-project-focus__media img {
           transition-duration: 1ms !important;
+        }
+      }
+
+      /* ─────────────────────────────────────────────────────────────────
+         ACCESSIBILITY FLOOR — deliberately the last block in this file.
+         Everything above is free to style these labels however it likes;
+         this block only guarantees two things the rest of the sheet kept
+         missing:
+
+         1. Contrast. The mono micro-labels were sitting at 0.32–0.48 alpha,
+            which measures 2.0–4.4:1 against the page background. At 9–12px
+            that is under the 4.5:1 WCAG AA floor and genuinely hard to read.
+            0.62 measures ~7.5:1 and still reads as clearly secondary next to
+            body copy at 0.75–0.86.
+         2. Touch targets. Coarse-pointer hit areas are grown to the WCAG 2.2
+            AA 24x24 minimum with a transparent ::after overlay, so the visual
+            size, type scale and layout are all unchanged.
+
+         Scoped with :not([data-theme="light"]) so the light-theme overrides
+         above keep their own values untouched.
+         ───────────────────────────────────────────────────────────────── */
+
+      @media (pointer: coarse) {
+        .home-project-focus__action {
+          position: relative;
+        }
+
+        .home-project-focus__action::after {
+          content: "";
+          position: absolute;
+          top: 50%;
+          right: -6px;
+          left: -6px;
+          height: 44px;
+          transform: translateY(-50%);
         }
       }
     </style>
@@ -1162,6 +1396,7 @@
           <source src="/assets/video/sid_pixelated.mp4" type="video/mp4"></source>
         </video>
       </div>
+      <p class="home-hint" id="home-hint" aria-hidden="true">Move to reveal ✦</p>
 
       <section class="home-project-focus" id="home-project-focus" aria-live="polite">
         <div class="home-project-focus__media"><img id="home-focus-image" src="" alt=""></div>
@@ -1174,7 +1409,15 @@
       </section>
 
       <section class="home-copy" aria-labelledby="home-title">
-        <p class="home-name">Sid Mehta · Product designer · New York</p>
+        <div class="home-ident">
+          <p class="home-name">Sid Mehta · Product designer · New York</p>
+          <a class="home-creds" href="/about/#recognition" aria-label="Recognition: two Webby Awards, MIT Reality Hack, and a Kyoorius Design Award. See the dated list.">
+            <span class="home-creds__item">Webby<span class="home-creds__n">×2</span></span>
+            <span class="home-creds__item">MIT Reality Hack</span>
+            <span class="home-creds__item">Kyoorius</span>
+            <span class="home-creds__go" aria-hidden="true">↗</span>
+          </a>
+        </div>
         <h1 id="home-title">I turn <span class="home-typewriter" id="home-typewriter">complex technology</span> into clear, useful experiences.</h1>
         <p class="home-proof" id="home-proof" aria-live="polite">11 local AI experiments · 25 artworks activated at The Met</p>
         <div class="home-actions">
@@ -1297,6 +1540,7 @@
           clearBrush();
         }
 
+        const hint = document.getElementById("home-hint");
         if (finePointer) {
           film.addEventListener("pointermove", paint);
           film.addEventListener("pointerdown", beginHold);
@@ -1310,6 +1554,44 @@
             requestAnimationFrame(animateHold);
           };
           requestAnimationFrame(animateHold);
+
+          // First impression: paint a gentle sweep so the reveal demonstrates
+          // itself instead of opening on a black void. It cancels the instant
+          // the visitor takes over, handing the brush straight to them.
+          let userTookOver = false;
+          const takeOver = () => {
+            userTookOver = true;
+            if (hint) {
+              hint.style.animation = "none";
+              hint.style.opacity = "0";
+            }
+          };
+          film.addEventListener("pointerdown", takeOver, { once: true });
+          film.addEventListener("pointermove", takeOver, { once: true });
+          if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            const demoPath = [
+              [20, 44],
+              [33, 55],
+              [46, 43],
+              [58, 56],
+              [70, 45],
+              [82, 55],
+              [88, 46],
+            ];
+            let di = 0;
+            const demoStep = () => {
+              if (userTookOver) return;
+              const [px, py] = demoPath[di];
+              paintAt((innerWidth * px) / 100, (innerHeight * py) / 100);
+              di += 1;
+              if (di < demoPath.length) setTimeout(demoStep, 240);
+              else
+                setTimeout(() => {
+                  if (!userTookOver) clearBrush();
+                }, 1100);
+            };
+            setTimeout(demoStep, 750);
+          }
         } else {
           stage.classList.add("is-revealing");
           realFilm.style.webkitMaskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)";

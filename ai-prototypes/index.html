@@ -65,6 +65,16 @@
     --accent: rgba(160, 200, 255, 1);
     --accent-dim: rgba(160, 200, 255, 0.55);
 
+    /* ── Pillar colours ──
+       One colour language for Sid's three bodies of work, lifted straight from
+       the Orbit scene's three rings so the site reads as one system: cool blue
+       for product & systems, warm amber for AI & creative technology, violet for
+       culture, space & image. Stored as bare "r, g, b" triplets so any element
+       can dial its own alpha via rgb(var(--pillar-x) / <a>) or rgba(). */
+    --pillar-product: 156, 208, 255;
+    --pillar-ai: 255, 179, 122;
+    --pillar-culture: 201, 162, 255;
+
     /* ── Typography ── */
     --font-head: "Figtree", sans-serif;
     --font-mono: "DM Mono", monospace;
@@ -1299,6 +1309,47 @@
           inset 0 -1px 0 rgba(28, 60, 96, 0.05),
           0 18px 46px rgba(19, 34, 52, 0.12);
       }
+
+      /* ─────────────────────────────────────────────────────────────────
+         ACCESSIBILITY FLOOR — deliberately the last block in this file.
+         Everything above is free to style these labels however it likes;
+         this block only guarantees two things the rest of the sheet kept
+         missing:
+
+         1. Contrast. The mono micro-labels were sitting at 0.32–0.48 alpha,
+            which measures 2.0–4.4:1 against the page background. At 9–12px
+            that is under the 4.5:1 WCAG AA floor and genuinely hard to read.
+            0.62 measures ~7.5:1 and still reads as clearly secondary next to
+            body copy at 0.75–0.86.
+         2. Touch targets. Coarse-pointer hit areas are grown to the WCAG 2.2
+            AA 24x24 minimum with a transparent ::after overlay, so the visual
+            size, type scale and layout are all unchanged.
+
+         Scoped with :not([data-theme="light"]) so the light-theme overrides
+         above keep their own values untouched.
+         ───────────────────────────────────────────────────────────────── */
+
+      html:not([data-theme="light"]) .ai-featured-map-label,
+      html:not([data-theme="light"]) .prototype-media__note,
+      html:not([data-theme="light"]) .reel-tool {
+        color: rgba(255, 255, 255, 0.62) !important;
+      }
+
+      @media (pointer: coarse) {
+        .ai-featured-action {
+          position: relative;
+        }
+
+        .ai-featured-action::after {
+          content: "";
+          position: absolute;
+          top: 50%;
+          right: -6px;
+          left: -6px;
+          height: 44px;
+          transform: translateY(-50%);
+        }
+      }
     </style> </head> <body> <a class="skip-link" href="#main">Skip to AI prototypes</a> <canvas id="page-smoke-bg" aria-hidden="true"></canvas> <style>
   /* Force body into its own stacking context so canvas at z-index -1 sits behind body's content
      but in front of html bg. Critical: do NOT add position:relative to body's other children — that
@@ -1766,8 +1817,7 @@
   }
 
   .site-footer-identity > span,
-  .site-footer-updated,
-  .site-footer-meta {
+  .site-footer-updated {
     color: var(--muted, rgba(230, 236, 244, 0.6));
     font: 400 10px/1.5 var(--font-mono, "DM Mono", monospace);
     letter-spacing: 0.035em;
@@ -1890,28 +1940,64 @@
     transform: translate(-4px, 4px);
   }
 
-  .site-footer-meta {
-    display: grid;
-    justify-items: end;
-    gap: 7px;
-    text-align: right;
+  /* ── Colophon baseline ───────────────────────────────────────────────
+     A quiet full-width strip under the three-column row. It carries the two
+     live details a creative technologist's site earns the right to show: the
+     studio's local clock, and the measured page weight of *this* view rendered
+     as grams of CO₂. Both are driven by the scripts already at the bottom of
+     this file — the markup they target had been removed in an earlier pass,
+     leaving the code dead; this restores their home. Everything degrades to
+     static text if the scripts don't run. */
+  .site-footer-base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 28px;
+    margin-top: clamp(30px, 4vw, 54px);
+    padding-top: 15px;
+    border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  }
+
+  .site-footer-live,
+  .site-footer-colophon {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    color: var(--muted, rgba(230, 236, 244, 0.6));
+    font: 400 10px/1.5 var(--font-mono, "DM Mono", monospace);
+    letter-spacing: 0.05em;
     font-variant-numeric: tabular-nums;
   }
 
-  .site-footer-meta-row:first-child::before {
-    content: "";
-    display: inline-block;
+  .site-footer-live .sep,
+  .site-footer-colophon .sep {
+    opacity: 0.45;
+  }
+
+  /* The live dot is the one moment of colour down here: it says the studio is
+     a running thing, not an archived page. */
+  .site-footer-dot {
     width: 5px;
     height: 5px;
-    margin-right: 8px;
+    flex: none;
     border-radius: 50%;
     background: #78dd89;
     box-shadow: 0 0 8px rgba(120, 221, 137, 0.55);
   }
 
   html[data-theme="light"] .site-footer-identity > span,
-  html[data-theme="light"] .site-footer-meta {
+  html[data-theme="light"] .site-footer-updated,
+  html[data-theme="light"] .site-footer-live,
+  html[data-theme="light"] .site-footer-colophon {
     color: rgba(15, 25, 38, 0.66);
+  }
+
+  @media (max-width: 760px) {
+    .site-footer-base {
+      gap: 8px 20px;
+    }
   }
 
   @media (max-width: 760px) {
@@ -1935,13 +2021,8 @@
       max-width: 16ch;
       text-align: left;
     }
-
-    .site-footer-meta {
-      justify-items: start;
-      text-align: left;
-    }
   }
-</style> <footer class="site-footer" aria-label="Site footer"> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Jul 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> </footer> <script>
+</style> <footer class="site-footer" aria-label="Site footer"> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Jul 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> <div class="site-footer-base"> <p class="site-footer-live"> <span class="site-footer-dot" aria-hidden="true"></span> <span id="site-footer-time">New York</span> <span class="sep" aria-hidden="true">·</span> <span id="site-footer-carbon">low-carbon by design</span> </p> <p class="site-footer-colophon"> © 2026 Siddharth Mehta<span class="sep" aria-hidden="true">·</span>Designed &amp; built by hand </p> </div> </footer> <script>
   (function () {
     var mark = document.querySelector(".site-footer-mark");
     var fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -2571,7 +2652,9 @@
     font-size: 9px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.45);
+    /* 0.62, not 0.45: at 9px the old value measured 4.48:1 against the page
+       background, just under the 4.5:1 WCAG AA floor for small text. */
+    color: rgba(255, 255, 255, 0.62);
   }
   @media (max-width: 600px) {
     #scroll-hint {

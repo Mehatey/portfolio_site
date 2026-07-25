@@ -72,6 +72,16 @@
     --accent: rgba(160, 200, 255, 1);
     --accent-dim: rgba(160, 200, 255, 0.55);
 
+    /* ── Pillar colours ──
+       One colour language for Sid's three bodies of work, lifted straight from
+       the Orbit scene's three rings so the site reads as one system: cool blue
+       for product & systems, warm amber for AI & creative technology, violet for
+       culture, space & image. Stored as bare "r, g, b" triplets so any element
+       can dial its own alpha via rgb(var(--pillar-x) / <a>) or rgba(). */
+    --pillar-product: 156, 208, 255;
+    --pillar-ai: 255, 179, 122;
+    --pillar-culture: 201, 162, 255;
+
     /* ── Typography ── */
     --font-head: "Figtree", sans-serif;
     --font-mono: "DM Mono", monospace;
@@ -655,7 +665,6 @@
         scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
       }
       .works-list-head {
-        order: 0;
         display: flex;
         align-items: baseline;
         justify-content: space-between;
@@ -681,7 +690,6 @@
       /* A deliberately small recruiter shortcut: it prioritizes product work without
          turning the page into a second card grid or burying the wider practice. */
       .works-product-path {
-        order: 1;
         padding: 16px 12px 18px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
       }
@@ -738,8 +746,83 @@
         border-radius: 2px;
       }
 
+      /* ── LANE HEADERS ──
+         Sixteen rows spanning fintech UI, visionOS, AR at the Met, packaging and
+         photography read as scatter when they are one flat list. Grouped into
+         three named lanes the same range reads as a deliberate hybrid practice,
+         and a recruiter can go straight to the discipline they hire for.
+
+         Ordering now lives in the DOM rather than in `order:`, so tab order and
+         screen-reader order match what is on screen. That is what the old
+         priority-reorder script was patching around; it is gone. */
+      .works-lane {
+        flex: 0 0 auto;
+        padding: 30px 12px 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+      }
+      .works-lane:first-of-type {
+        padding-top: 20px;
+      }
+      .works-lane__row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 4px 14px;
+      }
+      .works-lane__name {
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 450;
+        letter-spacing: -0.005em;
+        text-transform: none;
+        color: rgba(210, 228, 249, 0.88);
+      }
+      /* Pillar tint: each lane carries the colour of its body of work — product
+         blue, AI amber, culture violet — the same three colours as the Orbit
+         rings and the homepage portals, so a recruiter reads one language across
+         the site. A small dot only; the list itself stays quiet. */
+      .works-lane[data-pillar="product"] {
+        --lane: var(--pillar-product);
+      }
+      .works-lane[data-pillar="ai"] {
+        --lane: var(--pillar-ai);
+      }
+      .works-lane[data-pillar="culture"] {
+        --lane: var(--pillar-culture);
+      }
+      .works-lane__name::before {
+        content: "";
+        flex: none;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgb(var(--lane, 210 228 249));
+        box-shadow: 0 0 10px -1px rgba(var(--lane, 210 228 249), 0.7);
+      }
+      .works-lane__count {
+        font-family: var(--font-head);
+        font-size: 11px;
+        letter-spacing: 0;
+        white-space: nowrap;
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .works-lane__note {
+        margin: 7px 0 0;
+        max-width: 46ch;
+        font-family: var(--font-head);
+        font-size: 12px;
+        line-height: 1.5;
+        letter-spacing: 0;
+        text-transform: none;
+        color: rgba(255, 255, 255, 0.62);
+      }
+
       .works-list-item {
-        order: 5;
         flex: 0 0 auto;
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -760,15 +843,6 @@
       .works-list-item.wli--in {
         opacity: 1;
         transform: none;
-      }
-      .works-list-item.wli--priority-1 {
-        order: 2;
-      }
-      .works-list-item.wli--priority-2 {
-        order: 3;
-      }
-      .works-list-item.wli--priority-3 {
-        order: 4;
       }
       @media (prefers-reduced-motion: reduce) {
         .works-list-item {
@@ -2040,6 +2114,16 @@
       html[data-theme="light"] .works-product-path__note {
         color: rgba(7, 9, 15, 0.44);
       }
+      html[data-theme="light"] .works-lane {
+        border-bottom-color: rgba(7, 9, 15, 0.1);
+      }
+      html[data-theme="light"] .works-lane__name {
+        color: rgba(7, 9, 15, 0.82);
+      }
+      html[data-theme="light"] .works-lane__count,
+      html[data-theme="light"] .works-lane__note {
+        color: rgba(7, 9, 15, 0.55);
+      }
       html[data-theme="light"] .works-list-item {
         border-bottom-color: rgba(7, 9, 15, 0.07);
       }
@@ -2176,12 +2260,19 @@
         padding: 18px 0 20px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.12);
       }
+      /* The reset above strips the rail's horizontal padding from the head, the
+         fast lane and the rows. Lane headers follow, otherwise they sit 12px
+         indented from the projects they label. */
+      .works-lane {
+        padding: 28px 0 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
       .works-product-path__links {
         gap: 8px 13px;
         margin: 9px 0 0;
       }
       .works-product-path__note {
-        display: none;
+        margin-top: 9px;
       }
       .works-list-item {
         grid-template-columns: 28px minmax(0, 1fr);
@@ -2294,6 +2385,7 @@
 
       html[data-theme="light"] .works-list-head,
       html[data-theme="light"] .works-product-path,
+      html[data-theme="light"] .works-lane,
       html[data-theme="light"] .works-list-item {
         border-color: rgba(7, 9, 15, 0.12);
       }
@@ -2359,10 +2451,15 @@
          deliberately land together. This keeps the index useful to a recruiter
          without asking them to scroll past a hero-sized image to understand it. */
       @media (min-width: 901px) {
-        .works-list-count,
-        .works-product-path__label,
-        .works-product-path__note {
-          display: none !important;
+        /* These three were hidden here with `display: none !important`, but a
+           later desktop block styles all of them (18px title, 15px count, a
+           13px fast-lane label with its own margin) — the styling was written
+           for elements the cascade was still suppressing. The visible result
+           was three unlabelled links under "Selected work" with nothing saying
+           what they were. They are shown now; the later block's sizing takes
+           over from here. */
+        .works-list-head {
+          display: block !important;
         }
 
         .works-product-path {
@@ -3154,6 +3251,32 @@
           text-transform: none !important;
         }
 
+        /* The desktop rail scales the whole list up, so the lane headers scale
+           with it — otherwise they read as smaller than the rows they label. */
+        .works-lane {
+          padding: clamp(30px, 3.4svh, 44px) 0 14px !important;
+          border-bottom: 1px solid rgba(230, 242, 255, 0.1) !important;
+        }
+
+        .works-lane:first-of-type {
+          padding-top: 4px !important;
+        }
+
+        .works-lane__name {
+          font-size: 17px !important;
+          letter-spacing: -0.01em !important;
+        }
+
+        .works-lane__count {
+          font-size: 13px !important;
+        }
+
+        .works-lane__note {
+          max-width: 34ch !important;
+          font-size: 13px !important;
+          line-height: 1.45 !important;
+        }
+
         .works-list-item {
           display: grid !important;
           grid-template-columns: 32px minmax(0, 1fr) !important;
@@ -3902,9 +4025,13 @@
       }
 
       @media (min-width: 901px) {
+        /* Horizontal padding was 12px here, which pushed the whole fast-lane
+           block 12px right of "Selected work" and of the lane headers — the one
+           thing in the rail that did not share the left edge. Zeroed; the
+           vertical rhythm is unchanged. */
         .works-product-path {
           display: block !important;
-          padding: 12px 12px 14px !important;
+          padding: 12px 0 14px !important;
           border-bottom-color: rgba(151, 176, 204, 0.16) !important;
         }
 
@@ -3917,10 +4044,13 @@
           font-size: 13px !important;
         }
 
+        /* Matched to the lane notes below (34ch, 1.45) so the rail has one
+           supporting-text voice rather than two. 11px/28ch wrapped the longer
+           copy into six cramped lines. */
         .works-product-path__note {
-          max-width: 28ch;
-          font-size: 11px !important;
-          line-height: 1.35 !important;
+          max-width: 34ch;
+          font-size: 12px !important;
+          line-height: 1.45 !important;
         }
 
         .works-list-head {
@@ -4066,6 +4196,60 @@
       @media (min-width: 1600px) {
         .works-preview {
           grid-template-columns: minmax(0, 1fr) minmax(260px, 290px) !important;
+        }
+      }
+
+      /* ─────────────────────────────────────────────────────────────────
+         ACCESSIBILITY FLOOR — deliberately the last block in this file.
+         Everything above is free to style these labels however it likes;
+         this block only guarantees two things the rest of the sheet kept
+         missing:
+
+         1. Contrast. The mono micro-labels were sitting at 0.32–0.48 alpha,
+            which measures 2.0–4.4:1 against the page background. At 9–12px
+            that is under the 4.5:1 WCAG AA floor and genuinely hard to read.
+            0.62 measures ~7.5:1 and still reads as clearly secondary next to
+            body copy at 0.75–0.86.
+         2. Touch targets. Coarse-pointer hit areas are grown to the WCAG 2.2
+            AA 24x24 minimum with a transparent ::after overlay, so the visual
+            size, type scale and layout are all unchanged.
+
+         Scoped with :not([data-theme="light"]) so the light-theme overrides
+         above keep their own values untouched.
+         ───────────────────────────────────────────────────────────────── */
+
+      /* .wp-fact span:first-child is repeated here because a rule higher up
+         targets it at (0,2,1) specificity with !important, which outranks a
+         bare .wp-fact-label and was winning the cascade. */
+      html:not([data-theme="light"]) .wp-fact-label,
+      html:not([data-theme="light"]) .wp-fact span:first-child {
+        color: rgba(235, 242, 251, 0.62) !important;
+      }
+
+      /* The fast-lane note was hidden on every viewport until now, so its colour
+         had never been measured. At 0.46 alpha multiplied by an 0.72 element
+         opacity it lands near 2.9:1 — the same compounding failure the project
+         labels had. Muting moves into the colour where it can be checked. */
+      html:not([data-theme="light"]) .works-product-path__note {
+        color: rgba(255, 255, 255, 0.62) !important;
+        opacity: 1 !important;
+      }
+
+      @media (pointer: coarse) {
+        .wp-cta,
+        .works-product-path__links a {
+          position: relative;
+        }
+
+        .wp-cta::after,
+        .works-product-path__links a::after {
+          content: "";
+          position: absolute;
+          top: 50%;
+          right: -6px;
+          left: -6px;
+          height: 44px;
+          transform: translateY(-50%);
         }
       }
     </style> </head> <body> <a class="skip-link" href="#main">Skip to selected work</a> <canvas id="page-smoke-bg" aria-hidden="true"></canvas> <style>
@@ -4443,7 +4627,7 @@
       transition-duration: 1ms !important;
     }
   }
-</style> <main id="main"> <h1 class="sr-only">Selected work by Siddharth Mehta</h1> <div class="works-split" id="works-split"> <div class="works-list" id="works-list"> <div class="works-list-head"> <p class="works-list-title">Selected work</p> <p class="works-list-count">14 public · 2 confidential</p> </div> <div class="works-product-path" aria-label="Recruiter fast lane"> <p class="works-product-path__label">Recruiter fast lane</p> <div class="works-product-path__links"> <a href="/mool/">Mool</a> <a href="/ai-prototypes/">AI Prototypes</a> <a href="/encoded/">Encoded</a> </div> <p class="works-product-path__note">Fastest route through product thinking, coded interaction, and shipped proof.</p> </div> <a class="works-list-item wli--priority-3" href="/encoded/" data-cat="xr" data-title="Encoded" data-desc="Making 25 works at the Met discoverable through a location-aware AR experience." data-year="2025" data-bg="radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)" data-img="/1.met/0.png" data-preview="image:/1.met/0.png|image:/1.met/12.png|image:/1.met/1.png" data-role="Creative Technologist" data-proof="25 artworks · 2,000+ activations" data-badge-img="/assets/img/badge_webby.webp" data-badge-label="Webby × 2 · 2026"> <div class="wli-content"> <span class="wli-name">Encoded</span> <div class="wli-pills"> <span class="wli-pill">AR</span><span class="wli-pill">Exhibition</span> </div> </div> <div class="wli-right"><span class="wli-year">2025</span></div> </a> <a class="works-list-item" href="/bloom/" data-cat="xr installation" data-title="Bloom" data-desc="A Vision Pro app placing an AI-inhabited bodhi tree in your room, asking who you are." data-year="2025–26" data-bg="radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)" data-preview="image:/15.bloom-vp/poster.jpg|image:/15.bloom-vp/cover.jpg|image:/15.bloom-vp/altar.jpg" data-role="Designer · Developer · Researcher" data-proof="Solo MFA thesis · visionOS"> <div class="wli-content"> <span class="wli-name">Bloom</span> <div class="wli-pills"> <span class="wli-pill">visionOS</span><span class="wli-pill">Spatial AI</span> </div> </div> <div class="wli-right"><span class="wli-year">2025–26</span></div> </a> <a class="works-list-item wli--priority-2" href="/ai-prototypes/" data-cat="research xr ui" data-title="AI Prototypes" data-desc="Prototyping how local AI can feel understandable, controllable, and useful in an interface." data-year="2025" data-bg="radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)" data-img="/assets/img/ai-proto-cover.jpg" data-preview="image:/assets/img/ai-proto-cover.jpg|image:/ai-prototypes/latent-atlas/assets/cover-iHsdcUBA.png" data-role="Designer · Developer · Researcher" data-proof="11 live in-browser AI experiments"> <div class="wli-content"> <span class="wli-name">AI Prototypes</span> <div class="wli-pills"> <span class="wli-pill">WebGPU</span><span class="wli-pill">In-browser AI</span> </div> </div> <div class="wli-right"><span class="wli-year">2025</span></div> </a> <a class="works-list-item" href="/mind-your-feelings/" data-cat="installation" data-title="Mind Your Feelings" data-desc="Touchscreen LED brain installation at Johnson Public Library with 800+ participants externalizing emotion." data-year="2026" data-bg="radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)" data-img="/6.mindu/cover2.webp" data-preview="image:/6.mindu/cover2.webp|image:/6.mindu/7.2.png|image:/6.mindu/7.1.png" data-role="Developer" data-proof="800+ community participants"> <div class="wli-content"> <span class="wli-name">Mind Your Feelings</span> <div class="wli-pills"> <span class="wli-pill">Installation</span><span class="wli-pill">Creative Tech</span> </div> </div> <div class="wli-right"><span class="wli-year">2026</span></div> </a> <a class="works-list-item wli--priority-1" href="/mool/" data-cat="ui" data-title="Mool" data-desc="A more trusted, culturally resonant banking experience for underserved users in India." data-year="2021" data-bg="radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)" data-img="/assets/img/work-previews/mool/cover.webp" data-preview="image:/assets/img/work-previews/mool/cover.webp|image:/assets/img/work-previews/mool/02.webp|image:/assets/img/work-previews/mool/03.webp" data-role="Visual Designer" data-proof="100k+ downloads · Kyoorius winner" data-badge-img="/assets/img/badge_kyoorius.png" data-badge-label="Kyoorius · 2021"> <div class="wli-content"> <span class="wli-name">Mool</span> <div class="wli-pills"> <span class="wli-pill">UI</span><span class="wli-pill">Fintech</span> </div> </div> <div class="wli-right"><span class="wli-year">2021</span></div> </a> <a class="works-list-item" href="/cube-guy/" data-cat="game" data-title="Cube of Creations" data-desc="A seven-year character study across sketchbook, film, game, music, and tattoo." data-year="2018–25" data-bg="radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)" data-preview="image:/2.cube/cover.png|image:/2.cube/3d/3.1.png|image:/2.cube/conception/7.1.png" data-role="Director · Designer · Developer" data-proof="7-year character world across film &amp; game"> <div class="wli-content"> <span class="wli-name">Cube of Creations</span> <div class="wli-pills"> <span class="wli-pill">Game</span><span class="wli-pill">Film</span><span class="wli-pill">Character</span> </div> </div> <div class="wli-right"><span class="wli-year">2018–25</span></div> </a> <a class="works-list-item" href="/mandalas/" data-cat="installation" data-title="Bloom; who are you" data-desc="Generative mandalas, layered audio, and a darkened room designed for stillness." data-year="2025" data-bg="radial-gradient(ellipse at 50% 50%, #1a0d24 0%, #0d0518 50%, #030108 100%)" data-preview="image:/4.mandala/cover.png|image:/4.mandala/j.png|image:/4.mandala/13.1.png" data-role="Solo designer · developer" data-proof="Generative thesis installation"> <div class="wli-content"> <span class="wli-name">Bloom; who are you</span> <div class="wli-pills"> <span class="wli-pill">Installation</span><span class="wli-pill">TouchDesigner</span> </div> </div> <div class="wli-right"><span class="wli-year">2025</span></div> </a> <a class="works-list-item" href="/ai-self/" data-cat="xr research" data-title="AI Self" data-desc="Three ways of asking what AI understands about us: machine perception, AR companion, and VR." data-year="2024–25" data-bg="radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)" data-preview="image:/2.ai-self/cover.png|image:/2.ai-self/12.png|image:/2.ai-self/17.png" data-role="Solo designer · developer · researcher" data-proof="Three-part AI, AR &amp; VR research arc"> <div class="wli-content"> <span class="wli-name">AI Self</span> <div class="wli-pills"> <span class="wli-pill">AI</span><span class="wli-pill">VR</span><span class="wli-pill">AR</span> </div> </div> <div class="wli-right"><span class="wli-year">2024–25</span></div> </a> <a class="works-list-item" href="/aananda/" data-cat="branding" data-title="Aananda" data-desc="Jain philosophy for younger audiences across a mobile app, temple-inspired book, and QR installations." data-year="2020" data-bg="radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)" data-img="/9.aananda/cover.png" data-preview="image:/9.aananda/cover.png|image:/9.aananda/24.1.png|image:/9.aananda/8.png" data-role="Designer" data-proof="App · book · print identity system"> <div class="wli-content"> <span class="wli-name">Aananda</span> <div class="wli-pills"> <span class="wli-pill">Branding</span><span class="wli-pill">App Design</span> </div> </div> <div class="wli-right"><span class="wli-year">2020</span></div> </a> <a class="works-list-item" href="/naavo/" data-cat="branding" data-title="Naavo" data-desc="Ayurveda for a modern audience: rooted but fresh, not clinical, not traditional." data-year="2020" data-bg="radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)" data-img="/7.naavo/cover.png" data-preview="image:/7.naavo/cover.png|image:/7.naavo/13.3%20solo.png|image:/7.naavo/20.1.png" data-role="Branding · logo · packaging" data-proof="8-week identity &amp; packaging system"> <div class="wli-content"> <span class="wli-name">Naavo</span> <div class="wli-pills"> <span class="wli-pill">Branding</span><span class="wli-pill">Packaging</span> </div> </div> <div class="wli-right"><span class="wli-year">2020</span></div> </a> <a class="works-list-item" href="/illustrations/" data-cat="research" data-title="Illustrations" data-desc="Eight years of personal illustrations spanning visual diaries, abstract compositions, and cultural graphics." data-year="2018–25" data-bg="radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)" data-img="/11.illu/12.1.png" data-preview="image:/11.illu/12.1.png|image:/11.illu/24.png|image:/11.illu/8.1.png" data-role="Illustrator" data-proof="Eight-year visual diary &amp; art practice"> <div class="wli-content"> <span class="wli-name">Illustrations</span> <div class="wli-pills"> <span class="wli-pill">Illustration</span><span class="wli-pill">Visual Diary</span> </div> </div> <div class="wli-right"><span class="wli-year">2018–25</span></div> </a> <a class="works-list-item" href="/alpha-stockathon/" data-cat="ui game" data-title="Alpha Stockathon" data-desc="Gamified desktop app teaching the stock market through a pixel-art world, one concept per level." data-year="2021" data-bg="radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)" data-img="/10.alpha/cover.png" data-preview="image:/10.alpha/cover.png|image:/10.alpha/24.1.png|image:/10.alpha/27.1.png" data-role="Designer" data-proof="3-day learning game prototype"> <div class="wli-content"> <span class="wli-name">Alpha Stockathon</span> <div class="wli-pills"> <span class="wli-pill">UI</span><span class="wli-pill">Gamification</span> </div> </div> <div class="wli-right"><span class="wli-year">2021</span></div> </a> <a class="works-list-item" href="/b-plus-b/" data-cat="research" data-title="Broken and Beautiful" data-desc="Public interaction across NYC asking what feels broken and what feels beautiful, with 285+ responses." data-year="2024" data-bg="radial-gradient(ellipse at 70% 40%, #1a0d0d 0%, #0d0505 50%, #030101 100%)" data-img="/5.bb/cover.png" data-preview="image:/5.bb/6.png|image:/5.bb/4.png|image:/5.bb/d4.png" data-role="Designer · Developer · Researcher" data-proof="285+ public responses · NYC"> <div class="wli-content"> <span class="wli-name">Broken and Beautiful</span> <div class="wli-pills"> <span class="wli-pill">Research</span><span class="wli-pill">Public Art</span> </div> </div> <div class="wli-right"><span class="wli-year">2024</span></div> </a> <a class="works-list-item" href="/shot-on-iphone/" data-cat="research" data-title="Shot on iPhone" data-desc="Photographs as conversations, with QR codes turning each image into the story behind it." data-year="2024" data-bg="radial-gradient(ellipse at 30% 50%, #1a1a0d 0%, #0d0d05 50%, #050501 100%)" data-img="/8.shotoniphone/cover.png" data-preview="image:/8.shotoniphone/cover.png|image:/8.shotoniphone/4.png|image:/8.shotoniphone/10.png" data-role="Designer · Photographer" data-proof="Photography, print &amp; QR storytelling"> <div class="wli-content"> <span class="wli-name">Shot on iPhone</span> <div class="wli-pills"> <span class="wli-pill">Photography</span><span class="wli-pill">Interactive</span> </div> </div> <div class="wli-right"><span class="wli-year">2024</span></div> </a> <div class="works-list-item wli--nda" data-cat="ui" data-title="M Health Fairview" data-desc="Patient-facing and clinician workflow redesign with Deloitte Digital for a major regional health system." data-year="2024" data-bg="radial-gradient(ellipse at 40% 60%, #001e1e 0%, #000f0f 50%, #000505 100%)" data-is-nda="true" data-nda-visual="patient &amp; clinician flow" data-role="Private case study" data-proof="Patient &amp; clinician workflows"> <div class="wli-content"> <span class="wli-name">M Health Fairview</span> <div class="wli-pills"> <span class="wli-pill">Healthcare</span><span class="wli-pill">Enterprise UX</span> </div> </div> <div class="wli-right"><span class="wli-lock">NDA</span></div> </div> <div class="works-list-item wli--nda" data-cat="ui" data-title="Marriott" data-desc="Employee app deployed across 9,000+ hotel properties with a 17% lift in inventory accuracy." data-year="2023" data-bg="radial-gradient(ellipse at 50% 40%, #1a0d06 0%, #0d0602 50%, #030100 100%)" data-is-nda="true" data-nda-visual="operations &amp; inventory flow" data-role="Private case study" data-proof="9,000+ properties · 17% accuracy lift"> <div class="wli-content"> <span class="wli-name">Marriott</span> <div class="wli-pills"> <span class="wli-pill">Enterprise UX</span><span class="wli-pill">Hospitality</span> </div> </div> <div class="wli-right"><span class="wli-lock">NDA</span></div> </div> </div> <div class="works-preview" id="works-preview"> <div class="wp-media" id="wp-media" style="background: radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)"> <div class="works-cube-stage" id="works-cube-stage" aria-hidden="true"></div> <div class="wp-slides" id="wp-slides" role="group" aria-label="Mool project preview, 1 of 3"> <span class="wp-slide is-active" data-type="image" data-src="/assets/img/work-previews/mool/cover.webp" aria-hidden="false"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" decoding="async" fetchpriority="high" width="1800" height="1248"> </span> </div> <div class="wp-media-rail"> <span class="wp-media-count" id="wp-media-count">01 / 02</span> <span class="wp-media-dots" id="wp-media-dots"><i class="wp-media-dot is-active"></i><i class="wp-media-dot"></i></span> </div> <div class="wp-nda-overlay" id="wp-nda"> <svg width="20" height="24" viewbox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"> <rect x="1" y="6" width="10" height="8" rx="1.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"></rect> <path d="M3 6V4.5a3 3 0 0 1 6 0V6" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" fill="none"></path> </svg> <span class="wp-nda-kicker">Private work</span> <span class="wp-nda-label" id="wp-nda-label">NDA · Available on request</span> </div> <div class="wp-exit-flash" id="wp-exit-flash" aria-hidden="true"></div> </div> <p class="wp-award-note" id="wp-award-note" aria-live="polite"></p> <div class="wp-body"> <div class="wp-copy"> <div class="wp-pills" id="wp-pills"> <span class="wp-pill">UI</span><span class="wp-pill">Fintech</span> </div> <h2 class="wp-title" id="wp-title">Mool</h2> <p class="wp-desc" id="wp-desc">A more trusted, culturally resonant banking experience for underserved users in India.</p> <a class="wp-cta" id="wp-cta" href="/mool/">View project →</a> </div> <div class="wp-facts" aria-label="Project quick facts"> <div class="wp-fact"> <span class="wp-fact-label">Role</span><span class="wp-fact-value" id="wp-role">Visual Designer</span> </div> <div class="wp-fact"> <span class="wp-fact-label">Proof</span><span class="wp-fact-value" id="wp-proof">100k+ downloads · Kyoorius winner</span> </div> </div> </div> </div> </div> </main> <style>
+</style> <main id="main"> <h1 class="sr-only">Selected work by Siddharth Mehta</h1> <div class="works-split" id="works-split"> <div class="works-list" id="works-list"> <div class="works-list-head"> <p class="works-list-title">Selected work</p> <p class="works-list-count">14 public · 2 confidential</p> </div> <div class="works-product-path" aria-label="Recruiter fast lane"> <p class="works-product-path__label">Recruiter fast lane</p> <div class="works-product-path__links"> <a href="/mool/">Mool</a> <a href="/ai-prototypes/">AI Prototypes</a> <a href="/encoded/">Encoded</a> </div> <p class="works-product-path__note"> If you only read three: product thinking, coded interaction, and shipped proof. The lanes below are the full practice. </p> </div> <div class="works-lane" data-pillar="product"> <div class="works-lane__row"> <h2 class="works-lane__name">Product design</h2> <span class="works-lane__count">5 works</span> </div> <p class="works-lane__note">Interfaces and systems shipped for fintech, healthcare and hospitality teams.</p> </div> <a class="works-list-item" href="/mool/" data-cat="ui" data-title="Mool" data-desc="A more trusted, culturally resonant banking experience for underserved users in India." data-year="2021" data-bg="radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)" data-img="/assets/img/work-previews/mool/cover.webp" data-preview="image:/assets/img/work-previews/mool/cover.webp|image:/assets/img/work-previews/mool/02.webp|image:/assets/img/work-previews/mool/03.webp" data-role="Visual Designer" data-proof="100k+ downloads · Kyoorius winner" data-badge-img="/assets/img/badge_kyoorius.png" data-badge-label="Kyoorius · 2021"> <div class="wli-content"> <span class="wli-name">Mool</span> <div class="wli-pills"> <span class="wli-pill">UI</span><span class="wli-pill">Fintech</span> </div> </div> <div class="wli-right"><span class="wli-year">2021</span></div> </a> <a class="works-list-item" href="/aananda/" data-cat="branding" data-title="Aananda" data-desc="Jain philosophy for younger audiences across a mobile app, temple-inspired book, and QR installations." data-year="2020" data-bg="radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)" data-img="/9.aananda/cover.png" data-preview="image:/9.aananda/cover.png|image:/9.aananda/24.1.png|image:/9.aananda/8.png" data-role="Designer" data-proof="App · book · print identity system"> <div class="wli-content"> <span class="wli-name">Aananda</span> <div class="wli-pills"> <span class="wli-pill">Branding</span><span class="wli-pill">App Design</span> </div> </div> <div class="wli-right"><span class="wli-year">2020</span></div> </a> <a class="works-list-item" href="/alpha-stockathon/" data-cat="ui game" data-title="Alpha Stockathon" data-desc="Gamified desktop app teaching the stock market through a pixel-art world, one concept per level." data-year="2021" data-bg="radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)" data-img="/10.alpha/cover.png" data-preview="image:/10.alpha/cover.png|image:/10.alpha/24.1.png|image:/10.alpha/27.1.png" data-role="Designer" data-proof="3-day learning game prototype"> <div class="wli-content"> <span class="wli-name">Alpha Stockathon</span> <div class="wli-pills"> <span class="wli-pill">UI</span><span class="wli-pill">Gamification</span> </div> </div> <div class="wli-right"><span class="wli-year">2021</span></div> </a> <div class="works-list-item wli--nda" data-cat="ui" data-title="M Health Fairview" data-desc="Patient-facing and clinician workflow redesign with Deloitte Digital for a major regional health system." data-year="2024" data-bg="radial-gradient(ellipse at 40% 60%, #001e1e 0%, #000f0f 50%, #000505 100%)" data-is-nda="true" data-nda-visual="patient &amp; clinician flow" data-role="Private case study" data-proof="Patient &amp; clinician workflows"> <div class="wli-content"> <span class="wli-name">M Health Fairview</span> <div class="wli-pills"> <span class="wli-pill">Healthcare</span><span class="wli-pill">Enterprise UX</span> </div> </div> <div class="wli-right"><span class="wli-lock">NDA</span></div> </div> <div class="works-list-item wli--nda" data-cat="ui" data-title="Marriott" data-desc="Employee app deployed across 9,000+ hotel properties with a 17% lift in inventory accuracy." data-year="2023" data-bg="radial-gradient(ellipse at 50% 40%, #1a0d06 0%, #0d0602 50%, #030100 100%)" data-is-nda="true" data-nda-visual="operations &amp; inventory flow" data-role="Private case study" data-proof="9,000+ properties · 17% accuracy lift"> <div class="wli-content"> <span class="wli-name">Marriott</span> <div class="wli-pills"> <span class="wli-pill">Enterprise UX</span><span class="wli-pill">Hospitality</span> </div> </div> <div class="wli-right"><span class="wli-lock">NDA</span></div> </div> <div class="works-lane" data-pillar="ai"> <div class="works-lane__row"> <h2 class="works-lane__name">AI &amp; creative tech</h2> <span class="works-lane__count">6 works</span> </div> <p class="works-lane__note">Spatial, AR and in-browser AI work — designed and built by the same person.</p> </div> <a class="works-list-item" href="/encoded/" data-cat="xr" data-title="Encoded" data-desc="Making 25 works at the Met discoverable through a location-aware AR experience." data-year="2025" data-bg="radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)" data-img="/1.met/0.png" data-preview="image:/1.met/0.png|image:/1.met/12.png|image:/1.met/1.png" data-role="Creative Technologist" data-proof="25 artworks · 2,000+ activations" data-badge-img="/assets/img/badge_webby.webp" data-badge-label="Webby × 2 · 2026"> <div class="wli-content"> <span class="wli-name">Encoded</span> <div class="wli-pills"> <span class="wli-pill">AR</span><span class="wli-pill">Exhibition</span> </div> </div> <div class="wli-right"><span class="wli-year">2025</span></div> </a> <a class="works-list-item" href="/ai-prototypes/" data-cat="research xr ui" data-title="AI Prototypes" data-desc="Prototyping how local AI can feel understandable, controllable, and useful in an interface." data-year="2025" data-bg="radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)" data-img="/assets/img/ai-proto-cover.jpg" data-preview="image:/assets/img/ai-proto-cover.jpg|image:/ai-prototypes/latent-atlas/assets/cover-iHsdcUBA.png" data-role="Designer · Developer · Researcher" data-proof="11 live in-browser AI experiments"> <div class="wli-content"> <span class="wli-name">AI Prototypes</span> <div class="wli-pills"> <span class="wli-pill">WebGPU</span><span class="wli-pill">In-browser AI</span> </div> </div> <div class="wli-right"><span class="wli-year">2025</span></div> </a> <a class="works-list-item" href="/bloom/" data-cat="xr installation" data-title="Bodhi" data-desc="A Vision Pro app placing an AI-inhabited bodhi tree in your room, asking who you are." data-year="2025–26" data-bg="radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)" data-img="/15.bloom-vp/cover.jpg" data-preview="image:/15.bloom-vp/poster.jpg|image:/15.bloom-vp/cover.jpg|image:/15.bloom-vp/altar.jpg" data-role="Designer · Developer · Researcher" data-proof="Solo MFA thesis · visionOS"> <div class="wli-content"> <span class="wli-name">Bodhi</span> <div class="wli-pills"> <span class="wli-pill">visionOS</span><span class="wli-pill">Spatial AI</span> </div> </div> <div class="wli-right"><span class="wli-year">2025–26</span></div> </a> <a class="works-list-item" href="/mind-your-feelings/" data-cat="installation" data-title="Mind Your Feelings" data-desc="Touchscreen LED brain installation at Johnson Public Library with 800+ participants externalizing emotion." data-year="2026" data-bg="radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)" data-img="/6.mindu/cover2.webp" data-preview="image:/6.mindu/cover2.webp|image:/6.mindu/7.2.png|image:/6.mindu/7.1.png" data-role="Developer" data-proof="800+ community participants"> <div class="wli-content"> <span class="wli-name">Mind Your Feelings</span> <div class="wli-pills"> <span class="wli-pill">Installation</span><span class="wli-pill">Creative Tech</span> </div> </div> <div class="wli-right"><span class="wli-year">2026</span></div> </a> <a class="works-list-item" href="/mandalas/" data-cat="installation" data-title="Bloom; who are you" data-desc="Generative mandalas, layered audio, and a darkened room designed for stillness." data-year="2025" data-bg="radial-gradient(ellipse at 50% 50%, #1a0d24 0%, #0d0518 50%, #030108 100%)" data-preview="image:/4.mandala/cover.png|image:/4.mandala/j.png|image:/4.mandala/13.1.png" data-role="Solo designer · developer" data-proof="Generative thesis installation"> <div class="wli-content"> <span class="wli-name">Bloom; who are you</span> <div class="wli-pills"> <span class="wli-pill">Installation</span><span class="wli-pill">TouchDesigner</span> </div> </div> <div class="wli-right"><span class="wli-year">2025</span></div> </a> <a class="works-list-item" href="/ai-self/" data-cat="xr research" data-title="AI Self" data-desc="Three ways of asking what AI understands about us: machine perception, AR companion, and VR." data-year="2024–25" data-bg="radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)" data-preview="image:/2.ai-self/cover.png|image:/2.ai-self/12.png|image:/2.ai-self/17.png" data-role="Solo designer · developer · researcher" data-proof="Three-part AI, AR &amp; VR research arc"> <div class="wli-content"> <span class="wli-name">AI Self</span> <div class="wli-pills"> <span class="wli-pill">AI</span><span class="wli-pill">VR</span><span class="wli-pill">AR</span> </div> </div> <div class="wli-right"><span class="wli-year">2024–25</span></div> </a> <div class="works-lane" data-pillar="culture"> <div class="works-lane__row"> <h2 class="works-lane__name">Culture, space &amp; image</h2> <span class="works-lane__count">5 works</span> </div> <p class="works-lane__note">Public art, brand and a visual practice that keeps feeding the work above.</p> </div> <a class="works-list-item" href="/b-plus-b/" data-cat="research" data-title="Broken and Beautiful" data-desc="Public interaction across NYC asking what feels broken and what feels beautiful, with 285+ responses." data-year="2024" data-bg="radial-gradient(ellipse at 70% 40%, #1a0d0d 0%, #0d0505 50%, #030101 100%)" data-img="/5.bb/cover.png" data-preview="image:/5.bb/6.png|image:/5.bb/4.png|image:/5.bb/d4.png" data-role="Designer · Developer · Researcher" data-proof="285+ public responses · NYC"> <div class="wli-content"> <span class="wli-name">Broken and Beautiful</span> <div class="wli-pills"> <span class="wli-pill">Research</span><span class="wli-pill">Public Art</span> </div> </div> <div class="wli-right"><span class="wli-year">2024</span></div> </a> <a class="works-list-item" href="/cube-guy/" data-cat="game" data-title="Cube of Creations" data-desc="A seven-year character study across sketchbook, film, game, music, and tattoo." data-year="2018–25" data-bg="radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)" data-preview="image:/2.cube/cover.png|image:/2.cube/3d/3.1.png|image:/2.cube/conception/7.1.png" data-role="Director · Designer · Developer" data-proof="7-year character world across film &amp; game"> <div class="wli-content"> <span class="wli-name">Cube of Creations</span> <div class="wli-pills"> <span class="wli-pill">Game</span><span class="wli-pill">Film</span><span class="wli-pill">Character</span> </div> </div> <div class="wli-right"><span class="wli-year">2018–25</span></div> </a> <a class="works-list-item" href="/naavo/" data-cat="branding" data-title="Naavo" data-desc="Ayurveda for a modern audience: rooted but fresh, not clinical, not traditional." data-year="2020" data-bg="radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)" data-img="/7.naavo/cover.png" data-preview="image:/7.naavo/cover.png|image:/7.naavo/13.3%20solo.png|image:/7.naavo/20.1.png" data-role="Branding · logo · packaging" data-proof="8-week identity &amp; packaging system"> <div class="wli-content"> <span class="wli-name">Naavo</span> <div class="wli-pills"> <span class="wli-pill">Branding</span><span class="wli-pill">Packaging</span> </div> </div> <div class="wli-right"><span class="wli-year">2020</span></div> </a> <a class="works-list-item" href="/shot-on-iphone/" data-cat="research" data-title="Shot on iPhone" data-desc="Photographs as conversations, with QR codes turning each image into the story behind it." data-year="2024" data-bg="radial-gradient(ellipse at 30% 50%, #1a1a0d 0%, #0d0d05 50%, #050501 100%)" data-img="/8.shotoniphone/cover.png" data-preview="image:/8.shotoniphone/cover.png|image:/8.shotoniphone/4.png|image:/8.shotoniphone/10.png" data-role="Designer · Photographer" data-proof="Photography, print &amp; QR storytelling"> <div class="wli-content"> <span class="wli-name">Shot on iPhone</span> <div class="wli-pills"> <span class="wli-pill">Photography</span><span class="wli-pill">Interactive</span> </div> </div> <div class="wli-right"><span class="wli-year">2024</span></div> </a> <a class="works-list-item" href="/illustrations/" data-cat="research" data-title="Illustrations" data-desc="Eight years of personal illustrations spanning visual diaries, abstract compositions, and cultural graphics." data-year="2018–25" data-bg="radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)" data-img="/11.illu/12.1.png" data-preview="image:/11.illu/12.1.png|image:/11.illu/24.png|image:/11.illu/8.1.png" data-role="Illustrator" data-proof="Eight-year visual diary &amp; art practice"> <div class="wli-content"> <span class="wli-name">Illustrations</span> <div class="wli-pills"> <span class="wli-pill">Illustration</span><span class="wli-pill">Visual Diary</span> </div> </div> <div class="wli-right"><span class="wli-year">2018–25</span></div> </a> </div> <div class="works-preview" id="works-preview"> <div class="wp-media" id="wp-media" style="background: radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)"> <div class="works-cube-stage" id="works-cube-stage" aria-hidden="true"></div> <div class="wp-slides" id="wp-slides" role="group" aria-label="Mool project preview, 1 of 3"> <span class="wp-slide is-active" data-type="image" data-src="/assets/img/work-previews/mool/cover.webp" aria-hidden="false"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" decoding="async" fetchpriority="high" width="1800" height="1248"> </span> </div> <div class="wp-media-rail"> <span class="wp-media-count" id="wp-media-count">01 / 02</span> <span class="wp-media-dots" id="wp-media-dots"><i class="wp-media-dot is-active"></i><i class="wp-media-dot"></i></span> </div> <div class="wp-nda-overlay" id="wp-nda"> <svg width="20" height="24" viewbox="0 0 12 14" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"> <rect x="1" y="6" width="10" height="8" rx="1.5" stroke="rgba(255,255,255,0.55)" stroke-width="1.2"></rect> <path d="M3 6V4.5a3 3 0 0 1 6 0V6" stroke="rgba(255,255,255,0.55)" stroke-width="1.2" fill="none"></path> </svg> <span class="wp-nda-kicker">Private work</span> <span class="wp-nda-label" id="wp-nda-label">NDA · Available on request</span> </div> <div class="wp-exit-flash" id="wp-exit-flash" aria-hidden="true"></div> </div> <p class="wp-award-note" id="wp-award-note" aria-live="polite"></p> <div class="wp-body"> <div class="wp-copy"> <div class="wp-pills" id="wp-pills"> <span class="wp-pill">UI</span><span class="wp-pill">Fintech</span> </div> <h2 class="wp-title" id="wp-title">Mool</h2> <p class="wp-desc" id="wp-desc">A more trusted, culturally resonant banking experience for underserved users in India.</p> <a class="wp-cta" id="wp-cta" href="/mool/">View project →</a> </div> <div class="wp-facts" aria-label="Project quick facts"> <div class="wp-fact"> <span class="wp-fact-label">Role</span><span class="wp-fact-value" id="wp-role">Visual Designer</span> </div> <div class="wp-fact"> <span class="wp-fact-label">Proof</span><span class="wp-fact-value" id="wp-proof">100k+ downloads · Kyoorius winner</span> </div> </div> </div> </div> </div> </main> <style>
   .site-footer {
     position: relative;
     z-index: 5;
@@ -4470,8 +4654,7 @@
   }
 
   .site-footer-identity > span,
-  .site-footer-updated,
-  .site-footer-meta {
+  .site-footer-updated {
     color: var(--muted, rgba(230, 236, 244, 0.6));
     font: 400 10px/1.5 var(--font-mono, "DM Mono", monospace);
     letter-spacing: 0.035em;
@@ -4594,28 +4777,64 @@
     transform: translate(-4px, 4px);
   }
 
-  .site-footer-meta {
-    display: grid;
-    justify-items: end;
-    gap: 7px;
-    text-align: right;
+  /* ── Colophon baseline ───────────────────────────────────────────────
+     A quiet full-width strip under the three-column row. It carries the two
+     live details a creative technologist's site earns the right to show: the
+     studio's local clock, and the measured page weight of *this* view rendered
+     as grams of CO₂. Both are driven by the scripts already at the bottom of
+     this file — the markup they target had been removed in an earlier pass,
+     leaving the code dead; this restores their home. Everything degrades to
+     static text if the scripts don't run. */
+  .site-footer-base {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 28px;
+    margin-top: clamp(30px, 4vw, 54px);
+    padding-top: 15px;
+    border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
+  }
+
+  .site-footer-live,
+  .site-footer-colophon {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0;
+    color: var(--muted, rgba(230, 236, 244, 0.6));
+    font: 400 10px/1.5 var(--font-mono, "DM Mono", monospace);
+    letter-spacing: 0.05em;
     font-variant-numeric: tabular-nums;
   }
 
-  .site-footer-meta-row:first-child::before {
-    content: "";
-    display: inline-block;
+  .site-footer-live .sep,
+  .site-footer-colophon .sep {
+    opacity: 0.45;
+  }
+
+  /* The live dot is the one moment of colour down here: it says the studio is
+     a running thing, not an archived page. */
+  .site-footer-dot {
     width: 5px;
     height: 5px;
-    margin-right: 8px;
+    flex: none;
     border-radius: 50%;
     background: #78dd89;
     box-shadow: 0 0 8px rgba(120, 221, 137, 0.55);
   }
 
   html[data-theme="light"] .site-footer-identity > span,
-  html[data-theme="light"] .site-footer-meta {
+  html[data-theme="light"] .site-footer-updated,
+  html[data-theme="light"] .site-footer-live,
+  html[data-theme="light"] .site-footer-colophon {
     color: rgba(15, 25, 38, 0.66);
+  }
+
+  @media (max-width: 760px) {
+    .site-footer-base {
+      gap: 8px 20px;
+    }
   }
 
   @media (max-width: 760px) {
@@ -4639,13 +4858,8 @@
       max-width: 16ch;
       text-align: left;
     }
-
-    .site-footer-meta {
-      justify-items: start;
-      text-align: left;
-    }
   }
-</style> <footer class="site-footer" aria-label="Site footer"> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Jul 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> </footer> <script>
+</style> <footer class="site-footer" aria-label="Site footer"> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Jul 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> <div class="site-footer-base"> <p class="site-footer-live"> <span class="site-footer-dot" aria-hidden="true"></span> <span id="site-footer-time">New York</span> <span class="sep" aria-hidden="true">·</span> <span id="site-footer-carbon">low-carbon by design</span> </p> <p class="site-footer-colophon"> © 2026 Siddharth Mehta<span class="sep" aria-hidden="true">·</span>Designed &amp; built by hand </p> </div> </footer> <script>
   (function () {
     var mark = document.querySelector(".site-footer-mark");
     var fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -5275,7 +5489,9 @@
     font-size: 9px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.45);
+    /* 0.62, not 0.45: at 9px the old value measured 4.48:1 against the page
+       background, just under the 4.5:1 WCAG AA floor for small text. */
+    color: rgba(255, 255, 255, 0.62);
   }
   @media (max-width: 600px) {
     #scroll-hint {
@@ -10581,28 +10797,11 @@
         );
       })();
 
-      // Keep the recruiter path in the real document order too. CSS order made
-      // the visual list right, but keyboard and screen-reader flow still heard
-      // the older archive order.
-      (function () {
-        var list = document.getElementById("works-list");
-        if (!list) return;
-        var priority = ["wli--priority-1", "wli--priority-2", "wli--priority-3"]
-          .map(function (className) {
-            return list.querySelector("." + className);
-          })
-          .filter(Boolean);
-        var remaining = Array.from(list.querySelectorAll(".works-list-item")).filter(function (item) {
-          return (
-            !item.classList.contains("wli--priority-1") && !item.classList.contains("wli--priority-2") && !item.classList.contains("wli--priority-3")
-          );
-        });
-        priority.concat(remaining).forEach(function (item, index) {
-          list.appendChild(item);
-          var number = item.querySelector(".wli-num");
-          if (number) number.textContent = String(index + 1).padStart(2, "0");
-        });
-      })();
+      // The list used to be reordered here at runtime: CSS `order` put the three
+      // priority projects on top, and this script re-appended them so keyboard
+      // and screen-reader flow matched. Both are gone — the lanes carry the
+      // ordering in the DOM now, so what you see, what you tab through and what
+      // a screen reader announces are the same sequence with no JS involved.
 
       // Cursor label — list items get a "View" tag next to the custom cursor on hover
       document.querySelectorAll(".works-list-item").forEach(function (i) {
@@ -10946,13 +11145,12 @@
           );
         });
 
-        // Default to the same top-priority product project shown in the visual
-        // index. Source order is archival (Encoded is first), while the recruiter
-        // path intentionally starts with Mool.
-        var defaultItem = Array.from(items).find(function (item) {
-          return item.classList.contains("wli--priority-1");
-        });
-        setPreview(defaultItem || items[0], false);
+        // Open on the first row. This used to search for `.wli--priority-1`
+        // because source order was archival (Encoded first) while the visual
+        // order was recruiter-first, so "first in the DOM" and "first on screen"
+        // disagreed. The lanes put the list in real DOM order, so they agree now
+        // and the lookup is just items[0].
+        setPreview(items[0], false);
       })();
 
       // Keep the sticky preview in step with the row travelling through the page.
