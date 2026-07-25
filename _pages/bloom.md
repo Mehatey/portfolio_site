@@ -1,14 +1,15 @@
 ---
 layout: project
+pillar: ai
 permalink: /bloom/
-project_title: "Bloom"
+project_title: "Bodhi on Vision Pro"
 proj_num: "07"
 status: "Thesis · visionOS"
 tagline: A Vision Pro application that places an AI inhabited bodhi tree in your space, then asks you who you are. Not helpful, not efficient. Just present. A room you sit inside, where attention is the only interface and the voice has infinite patience.
 category: Spatial Computing · visionOS
 year: 2025-2026
 hero_bg: "radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)"
-hero_image: "15.bloom-vp/plate-bloom.jpg"
+hero_image: "15.bloom-vp/cover.jpg"
 meta:
   - label: Year
     value: "2025-2026"
@@ -37,6 +38,37 @@ reflection: >
 
   What surprised me was how much the voice carried the experience. The visuals set the stage, but the moment the tree spoke, everything changed. The right pacing made it feel alive. The wrong pacing made it feel like a demo. That line was narrower than I expected, and finding it took more iteration than any technical problem.
 refl_bg: "15.bloom-vp/lotus.mp4"
+decisions:
+  - choice: "Made attention the only input and removed the controls"
+    why: >
+      Every spatial demo answers the question of what you can do here. The thesis question was whether presence
+      alone could hold someone, so there is no menu, no pinch-to-open, no settings panel anywhere in the room. Gaze
+      and voice are the entire surface, and the tree responds to being looked at rather than to being operated.
+    tradeoff: >
+      There is no way to recover from a misunderstanding. When the voice mishears, the user has no control to reach
+      for and no obvious way to steer, and more than one tester sat through a stretch they had no idea how to leave.
+  - choice: "Slowed the voice past the point that felt comfortable"
+    why: >
+      Conversational AI defaults to fast turn-taking because latency reads as failure. Here the pauses were the
+      content. Response timing was stretched deliberately and the silence after a question was held rather than
+      filled, so the system reads as patient instead of as waiting for input.
+    tradeoff: >
+      The first ninety seconds feel broken. Several testers assumed the app had hung before they understood that the
+      pacing was the point, and I never found an onboarding line that fixes this without spoiling it.
+  - choice: "Placed the tree at conversational distance instead of filling the room"
+    why: >
+      The instinct on Vision Pro is scale, because scale is what the device does that a screen cannot. But a tree at
+      room scale turns the person wearing the headset into an audience. At roughly two metres, sized to be looked at
+      rather than looked up at, the relationship becomes a conversation.
+    tradeoff: >
+      It gives up the spectacle that makes spatial work legible to anyone who has not worn the headset, and in a
+      small room the placement occasionally lands inside furniture.
+next_steps: >
+  The pacing works and I would not change it, but the recovery problem is unresolved: an interface with no
+  controls still needs a way to say it has lost you without breaking the fiction. That is what I would build
+  next. I would also want to test beyond a single session. Everything I learned came from first encounters, and
+  the claim the thesis actually makes is about sustained attention, which a fifteen-minute demo can neither
+  prove nor disprove.
 next_project:
   title: "Bloom; who are you"
   url: /mandalas/

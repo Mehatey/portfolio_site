@@ -1,5 +1,6 @@
 ---
 layout: project
+pillar: ai
 permalink: /mandalas/
 project_title: "Bloom; who are you"
 proj_num: "04"
@@ -37,6 +38,36 @@ reflection: >
 
   The installation worked best when the space held still. Darker rooms, fewer people, quieter conditions. What surprised me was how much the lighting and acoustic setup shaped the experience before anyone even looked at the screen. Design kept expanding to include things I had not thought of as design.
 refl_bg: "4.mandala/blobs.mp4"
+decisions:
+  - choice: "Asked one question and refused to add a second"
+    why: >
+      Installations drift toward becoming systems with several modes. Holding to a single prompt meant the
+      generative visuals had nothing to explain and the visitor had nothing to complete. The room only had to
+      support one thought, and everything that did not serve that thought could be cut without an argument.
+    tradeoff: >
+      It gave the piece a low ceiling. Visitors who wanted somewhere further to go found the second minute much like
+      the first, and there is nothing waiting to reward them for staying.
+  - choice: "Tuned for a dark, near-empty room rather than for a gallery floor"
+    why: >
+      In testing the piece worked in direct proportion to how still the space was. Rather than harden it against
+      noise and crowds, I tuned the setup for the condition where it was strongest and staged the entry to slow
+      people down before they arrived.
+    tradeoff: >
+      It does not survive a busy opening. In the conditions where most people actually encounter work like this, the
+      piece is at its weakest — that is a real limitation, not a preference.
+  - choice: "Used body tracking as a slow influence rather than as direct control"
+    why: >
+      MediaPipe makes one-to-one mapping easy, and one-to-one mapping turns an installation into a mirror: people
+      start testing what the system does instead of being in the room with it. The tracking feeds the mandala's
+      growth over seconds rather than frames, so movement is felt but cannot be performed.
+    tradeoff: >
+      The connection is deniable. Some visitors never registered that the piece was responding to them at all and
+      read the visuals as a video, which means the responsiveness did no work for them.
+next_steps: >
+  The thing I would fix is that ceiling. The single question is right, but the system needs somewhere to go
+  after the first minute for the people who stay — not more modes, but slower structure that only reveals itself
+  to someone who does not leave. I would also stop treating the room as fixed. The lighting and the acoustics
+  turned out to matter more than the visuals did, and I designed them last instead of first.
 next_project:
   title: Mind Your Feelings
   url: /mind-your-feelings/

@@ -175,10 +175,27 @@
       .progress-fill {
         height: 100%;
         width: 100%;
-        background: linear-gradient(90deg, rgba(160, 200, 255, 0.7) 0%, rgba(180, 230, 220, 0.6) 50%, rgba(255, 200, 160, 0.6) 100%);
+        background: linear-gradient(90deg, rgba(var(--page-pillar, 160 200 255), 0.85) 0%, rgba(var(--page-pillar, 160 200 255), 0.45) 100%);
         transform: scaleX(var(--page-progress, 0));
         transform-origin: left center;
         will-change: transform;
+      }
+
+      /* ─── PILLAR ACCENT ───
+         Each case study carries the colour of the body of work it belongs to,
+         taken from the same three-pillar system as the Works lanes, Orbit rings
+         and homepage portals (product blue / AI amber / culture violet). It tints
+         the scroll-progress bar and the current chapter in the reading rail, so a
+         reader always knows which discipline they're inside. Falls back to blue
+         if a page has no pillar set. */
+      body[data-pillar="product"] {
+        --page-pillar: var(--pillar-product);
+      }
+      body[data-pillar="ai"] {
+        --page-pillar: var(--pillar-ai);
+      }
+      body[data-pillar="culture"] {
+        --page-pillar: var(--pillar-culture);
       }
 
       /* ─── HERO ─── */
@@ -560,6 +577,7 @@
       #case-overview,
       #case-proof,
       #case-archive,
+      #case-decisions,
       #project-next-step { scroll-margin-top: calc(var(--nav-h) + 24px); }
 
       /* ─── CASE MAP ─── Long case studies need a stable reading anchor, not a
@@ -1299,6 +1317,203 @@
       .stat-desc {
         font-family: var(--font-mono); font-size: 12px;
         color: var(--muted); line-height: 1.5; letter-spacing: 0.04em;
+      }
+
+      /* ─── DESIGN DECISIONS ───
+         The visual story shows what got built. It does not show what got
+         *chosen*, and the thing a recruiter is actually hiring is the judgement,
+         not the screenshots. Every project page was ending on imagery and then
+         jumping straight to a testimonial, so the one question a design lead
+         asks in a portfolio review — "why this and not the obvious alternative?"
+         — had no answer anywhere on the page.
+
+         Each entry is a triplet: the decision, the reason, and the thing it
+         cost. The cost line is the load-bearing one. Anyone can list choices;
+         naming what each choice gave up is the part that cannot be faked, and
+         it is the difference between a case study and a slideshow.
+
+         Front-matter driven (`decisions:` / `next_steps:` in the page's md), so
+         a project with nothing honest to say here renders nothing at all rather
+         than padding the page with three generic bullets.
+
+         Geometry note: this deliberately matches the *effective* case-study
+         width, not the one declared at .case-study-layout further up. That rule
+         is overridden later in the cascade to `display: block; max-width:
+         1180px`, so 1180 + var(--gutter) is what actually lines up on screen. */
+      .proj-decisions {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 var(--gutter);
+      }
+      /* The header, every decision row and the closing block share one column
+         split, so the section has a single vertical rule running down it. An
+         earlier pass gave the header the narrower .case-context ratio, which
+         put the lede 230px left of every "why" beneath it — the kind of
+         near-alignment that reads as a mistake rather than as a distinction. */
+      .proj-decisions__head,
+      .decision,
+      .proj-next-steps {
+        display: grid;
+        grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
+        gap: 0 clamp(24px, 3vw, 52px);
+        align-items: start;
+      }
+      .proj-decisions__head {
+        padding: 0 0 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .proj-decisions__eyebrow {
+        margin: 3px 0 0;
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        line-height: 1.4;
+        color: rgba(223, 238, 255, 0.7);
+      }
+      .proj-decisions__lede {
+        margin: 0;
+        max-width: 56ch;
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 300;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .decision-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .decision {
+        padding: 30px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+      .decision__choice {
+        margin: 0;
+        font-family: var(--font-head);
+        font-size: clamp(16px, 1.35vw, 19px);
+        font-weight: 400;
+        line-height: 1.4;
+        letter-spacing: -0.012em;
+        color: rgba(255, 255, 255, 0.9);
+        text-wrap: pretty;
+      }
+      /* The index is a reading aid, not a ranking — kept small and above the
+         line so the choice text still starts on the section's left edge. */
+      /* 0.6 rather than the 0.5 this started at: composited against the near-
+         black page, 0.5 lands at ~3.9:1, which is under the 4.5:1 floor for
+         10px type. 0.6 clears it at ~5.1:1 and still reads as an index rather
+         than as part of the heading. */
+      .decision__n {
+        display: block;
+        margin-bottom: 10px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+        color: rgba(192, 213, 236, 0.6);
+        font-variant-numeric: tabular-nums;
+      }
+      .decision__body {
+        min-width: 0;
+      }
+      .decision__why {
+        margin: 0;
+        /* Capped at 62ch. The 0.62fr column runs 633px at 1440, which is ~90
+           characters of 14px prose — past the point where the eye reliably
+           finds the next line. The trailing space at wide viewports is the
+           cheaper cost. */
+        max-width: 62ch;
+        font-family: var(--font-head);
+        font-size: 14px;
+        font-weight: 300;
+        line-height: 1.72;
+        color: rgba(255, 255, 255, 0.64);
+        text-wrap: pretty;
+      }
+      /* Set apart, not styled down. The tradeoff is the most credible sentence
+         in the section, so it gets its own rule above it rather than being
+         demoted to fine print at the end of the paragraph. */
+      .decision__tradeoff {
+        display: flex;
+        gap: 14px;
+        margin: 15px 0 0;
+        padding: 13px 0 0;
+        max-width: 66ch;
+        border-top: 1px solid rgba(255, 255, 255, 0.09);
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 300;
+        line-height: 1.65;
+        color: rgba(255, 255, 255, 0.58);
+      }
+      .decision__tradeoff-label {
+        flex: none;
+        font-family: var(--font-mono);
+        font-size: 9px;
+        letter-spacing: 0.09em;
+        line-height: 2.4;
+        text-transform: uppercase;
+        color: rgba(192, 213, 236, 0.62);
+      }
+
+      /* ─── WHAT I'D DO NEXT ───
+         Sits inside the decisions section rather than after it: "here is what I
+         chose" and "here is what I would change" are one thought. A portfolio
+         that never says the second half reads as either finished or incurious,
+         and neither is true of live work. */
+      .proj-next-steps {
+        padding: 30px 0 0;
+      }
+      .proj-next-steps__label {
+        margin: 3px 0 0;
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        line-height: 1.4;
+        color: rgba(223, 238, 255, 0.7);
+      }
+      .proj-next-steps__body {
+        min-width: 0;
+        max-width: 62ch;
+        font-family: var(--font-head);
+        font-size: 14px;
+        font-weight: 300;
+        line-height: 1.72;
+        color: rgba(255, 255, 255, 0.64);
+        text-wrap: pretty;
+      }
+      .proj-next-steps__body p {
+        margin: 0 0 1.05em;
+      }
+      .proj-next-steps__body p:last-child {
+        margin-bottom: 0;
+      }
+
+      @media (max-width: 900px) {
+        .proj-decisions__head,
+        .decision,
+        .proj-next-steps {
+          display: block;
+        }
+        .proj-decisions__lede { margin-top: 11px; }
+        .decision { padding: 26px 0; }
+        .decision__body { margin-top: 13px; }
+        .proj-next-steps__body { margin-top: 13px; }
+      }
+      @media (max-width: 600px) {
+        .decision { padding: 22px 0; }
+        /* The label sits on its own line below 600px — at this width a 9px
+           flex-none label plus a 13px sentence leaves the sentence about 22
+           characters wide, which is unreadable. */
+        .decision__tradeoff { display: block; }
+        .decision__tradeoff-label {
+          display: block;
+          margin-bottom: 5px;
+          line-height: 1.4;
+        }
       }
 
       /* ─── REFLECTION ─── */
@@ -2120,6 +2335,28 @@
         color: rgba(7, 9, 15, 0.54);
       }
       html[data-theme="light"] .case-story .cs-grid-item { background: rgba(7, 9, 15, 0.03) !important; }
+      /* Decisions section, light theme. The dark alphas do not invert to
+         anything legible, so every tier is restated against the light page.
+         The blue-grey accents need much higher alpha here than they do on
+         black: measured against rgb(245,243,238), the 10px index at 0.7 came
+         out at 3.79:1 and the 9px tradeoff label at 0.75 came out at 4.26:1,
+         both under the 4.5:1 floor. At 0.92 they land near 6.4:1. Hairlines
+         drop to 0.11/0.12/0.14 because a white hairline at 0.08 disappears
+         entirely on a light background. */
+      html[data-theme="light"] .proj-decisions__head { border-bottom-color: rgba(7, 9, 15, 0.14); }
+      html[data-theme="light"] .proj-decisions__eyebrow,
+      html[data-theme="light"] .proj-next-steps__label { color: rgba(30, 77, 123, 0.9); }
+      html[data-theme="light"] .proj-decisions__lede { color: rgba(7, 9, 15, 0.62); }
+      html[data-theme="light"] .decision { border-bottom-color: rgba(7, 9, 15, 0.11); }
+      html[data-theme="light"] .decision__choice { color: rgba(7, 9, 15, 0.86); }
+      html[data-theme="light"] .decision__n { color: rgba(30, 77, 123, 0.92); }
+      html[data-theme="light"] .decision__why,
+      html[data-theme="light"] .proj-next-steps__body { color: rgba(7, 9, 15, 0.62); }
+      html[data-theme="light"] .decision__tradeoff {
+        border-top-color: rgba(7, 9, 15, 0.12);
+        color: rgba(7, 9, 15, 0.6);
+      }
+      html[data-theme="light"] .decision__tradeoff-label { color: rgba(30, 77, 123, 0.92); }
       html[data-theme="light"] .project-details { border-color: rgba(7, 9, 15, 0.12); }
       html[data-theme="light"] .project-details > summary { color: rgba(7, 9, 15, 0.62); }
       html[data-theme="light"] .project-details > summary::after { color: rgba(30, 77, 123, 0.76); }
@@ -2333,7 +2570,7 @@
         opacity: 1;
         box-shadow:
           0 12px 34px rgba(10, 12, 18, 0.28),
-          inset 0 0 0 1px rgba(234, 246, 255, 0.3);
+          inset 0 0 0 1px rgba(var(--page-pillar, 234 246 255), 0.85);
       }
       .case-chapter-map__link:hover .case-chapter-map__thumb img,
       .case-chapter-map__link:focus-visible .case-chapter-map__thumb img,
@@ -3264,9 +3501,87 @@
           gap: 28px !important;
         }
       }
+
+      /* ─────────────────────────────────────────────────────────────────
+         ACCESSIBILITY FLOOR — deliberately the last block in this file.
+         Everything above is free to style these labels however it likes;
+         this block only guarantees two things the rest of the sheet kept
+         missing:
+
+         1. Contrast. The mono micro-labels were sitting at 0.32–0.48 alpha,
+            which measures 2.0–4.4:1 against the page background. At 9–12px
+            that is under the 4.5:1 WCAG AA floor and genuinely hard to read.
+            0.62 measures ~7.5:1 and still reads as clearly secondary next to
+            body copy at 0.75–0.86.
+         2. Touch targets. Coarse-pointer hit areas are grown to the WCAG 2.2
+            AA 24x24 minimum with a transparent ::after overlay, so the visual
+            size, type scale and layout are all unchanged.
+
+         Scoped with :not([data-theme="light"]) so the light-theme overrides
+         above keep their own values untouched.
+         ───────────────────────────────────────────────────────────────── */
+
+      /* opacity is reset to 1 here because a rule above dims this whole label
+         family to 0.72 (and 0.54 in places). That multiplied against an
+         already-low colour alpha, taking .meta-k down to 1.96:1. The muting
+         now lives entirely in the colour, where it can be measured. */
+      html:not([data-theme="light"]) .meta-k,
+      html:not([data-theme="light"]) .proj-highlight-label {
+        color: rgba(255, 255, 255, 0.62) !important;
+        opacity: 1 !important;
+      }
+
+      html:not([data-theme="light"]) .intro-label {
+        color: rgba(163, 196, 233, 0.78) !important;
+        opacity: 1 !important;
+      }
+
+      html:not([data-theme="light"]) .case-progress__head {
+        color: rgba(222, 236, 250, 0.62) !important;
+        opacity: 1 !important;
+      }
+
+      html:not([data-theme="light"]) .case-chapter-map__label {
+        color: rgba(235, 245, 255, 0.62) !important;
+        opacity: 1 !important;
+      }
+
+      /* The press links carry their colour in an inline style attribute on the
+         page, so !important is the only way to reach them from here. 0.72
+         matches .hero-brief-jump, the other outbound affordance on this page. */
+      html:not([data-theme="light"]) .cs-watch-link {
+        color: rgba(232, 244, 255, 0.72) !important;
+      }
+
+      @media (pointer: coarse) {
+        /* .hero-brief-jump uses ::before because its ::after already renders
+           the arrow glyph. .bloom-interactive-toggle is position: absolute, so
+           it is left alone — it is already its own containing block. */
+        .hero-brief-jump {
+          position: relative;
+        }
+
+        /* Chapter-map rows on the first line already measure 24px tall; the
+           wrapped rows collapsed to 12px, so they get the floor explicitly. */
+        .case-chapter-map__link {
+          min-height: 24px;
+          align-items: center;
+        }
+
+        .hero-brief-jump::before,
+        .bloom-interactive-toggle::after {
+          content: "";
+          position: absolute;
+          top: 50%;
+          right: -6px;
+          left: -6px;
+          height: 44px;
+          transform: translateY(-50%);
+        }
+      }
     </style>
   </head>
-  <body>
+  <body data-pillar="{{ page.pillar }}">
     <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
     <a class="skip-link" href="#main">Skip to project content</a>
 
@@ -3365,6 +3680,7 @@
             <a href="#case-overview">Overview</a>
             {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
             <a href="#case-archive">Visual story</a>
+            {% if page.decisions or page.next_steps %}<a href="#case-decisions">Decisions</a>{% endif %}
             <a href="#project-next-step">Next project</a>
           </nav>
           <nav class="case-chapter-map" id="case-chapter-map" aria-label="Visual story chapters" hidden></nav>
@@ -3375,6 +3691,7 @@
             <a href="#case-overview">Summary</a>
             {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
             <a href="#case-archive">Process</a>
+            {% if page.decisions or page.next_steps %}<a href="#case-decisions">Decisions</a>{% endif %}
             <a href="#project-next-step">Next</a>
           </nav>
 
@@ -3382,6 +3699,44 @@
           <div class="proj-body" id="case-archive">{{ content }}</div>
         </div>
       </div>
+
+      <!-- DESIGN DECISIONS -->
+      {% if page.decisions or page.next_steps %}
+      <section class="proj-decisions" id="case-decisions" aria-labelledby="case-decisions-title">
+        <div class="proj-decisions__head">
+          <h2 class="proj-decisions__eyebrow" id="case-decisions-title">Design decisions</h2>
+          <p class="proj-decisions__lede">
+            {{ page.decisions_lede | default: "The calls that shaped this project — what I chose, why, and what each choice cost." }}
+          </p>
+        </div>
+
+        {% if page.decisions %}
+        <ol class="decision-list">
+          {% for d in page.decisions %}
+          <li class="decision">
+            <!-- The index is aria-hidden on purpose: this is an <ol>, so a
+                 screen reader already announces "2 of 3". Left exposed, it
+                 ran into the heading as "02Kept the numbers plain…". -->
+            <h3 class="decision__choice">
+              <span class="decision__n" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>{{ d.choice }}
+            </h3>
+            <div class="decision__body">
+              <p class="decision__why">{{ d.why }}</p>
+              {% if d.tradeoff %}
+              <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>{{ d.tradeoff }}</span></p>
+              {% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ol>
+        {% endif %} {% if page.next_steps %}
+        <div class="proj-next-steps">
+          <h3 class="proj-next-steps__label">What I&rsquo;d do next</h3>
+          <div class="proj-next-steps__body">{{ page.next_steps | markdownify }}</div>
+        </div>
+        {% endif %}
+      </section>
+      {% endif %}
 
       <!-- REFLECTION -->
       {% if page.reflection %}
@@ -3626,15 +3981,11 @@
       // names each chapter where the archive begins instead of following the reader
       // as a set of anonymous dashes.
       (function () {
-        const sections = document.querySelectorAll(".cs-section");
-        if (sections.length < 2) return;
         const chapterMap = document.getElementById("case-chapter-map");
         if (!chapterMap) return;
-        chapterMap.hidden = false;
-        sections.forEach((sec, i) => {
-          const labelEl = sec.querySelector(".cs-section-label");
-          const rawLabel = labelEl ? labelEl.textContent.trim() : `Section ${i + 1}`;
-          const label = rawLabel
+
+        const norm = (s) =>
+          s
             .toLocaleLowerCase()
             .replace(/^([a-z])/, function (_, char) {
               return char.toLocaleUpperCase();
@@ -3647,19 +3998,68 @@
             .replace(/\bapi\b/gi, "API")
             .replace(/\bwebgpu\b/gi, "WebGPU")
             .replace(/\bvisionos\b/gi, "visionOS");
-          const media = sec.querySelector("img, video");
+
+        // Preferred source is explicit .cs-section blocks. The markdown-authored
+        // case studies have none, so fall back to the fixed landmark sections
+        // every case page shares — previously the rail stayed empty and hidden on
+        // every one of them, which is the "no reading map on work detail" gap.
+        let items = [];
+        const csSections = document.querySelectorAll(".cs-section");
+        if (csSections.length >= 2) {
+          items = [...csSections].map((sec, i) => {
+            const labelEl = sec.querySelector(".cs-section-label");
+            return {
+              el: sec,
+              label: norm(labelEl ? labelEl.textContent.trim() : "Section " + (i + 1)),
+              media: sec.querySelector("img, video"),
+            };
+          });
+        } else {
+          const landmarks = [
+            ["case-overview", "Overview"],
+            ["case-proof", "Proof"],
+            ["case-archive", "Visual story"],
+            ["case-decisions", "Decisions"],
+            ["reflection-section", "Reflection"],
+            ["project-next-step", "Next project"],
+          ];
+          items = landmarks
+            .map(function (pair) {
+              const el = document.getElementById(pair[0]);
+              if (!el) return null;
+              let media = el.querySelector("img, video");
+              if (!media) {
+                // landmark anchors are often empty markers; look just after them
+                let sib = el.nextElementSibling;
+                let hops = 0;
+                while (sib && !media && hops < 4) {
+                  media = sib.querySelector ? sib.querySelector("img, video") : null;
+                  sib = sib.nextElementSibling;
+                  hops += 1;
+                }
+              }
+              return { el: el, label: pair[1], media: media };
+            })
+            .filter(Boolean);
+        }
+        if (items.length < 2) return;
+
+        chapterMap.hidden = false;
+        items.forEach(function (item, i) {
+          const sec = item.el;
+          if (!sec.id) sec.id = "section-" + i;
           let previewSrc = "";
+          const media = item.media;
           if (media) {
             if (media.tagName === "IMG") previewSrc = media.currentSrc || media.getAttribute("src") || "";
             else previewSrc = media.getAttribute("poster") || "";
           }
-          if (!sec.id) sec.id = "section-" + i;
           const link = document.createElement("a");
           link.href = "#" + sec.id;
           link.className = "case-chapter-map__link";
           link.setAttribute("data-section", sec.id);
           link.setAttribute("data-step", String(i + 1).padStart(2, "0"));
-          link.setAttribute("aria-label", String(i + 1).padStart(2, "0") + ": " + label);
+          link.setAttribute("aria-label", String(i + 1).padStart(2, "0") + ": " + item.label);
           const thumb = document.createElement("span");
           thumb.className = "case-chapter-map__thumb";
           thumb.setAttribute("aria-hidden", "true");
@@ -3672,7 +4072,7 @@
           }
           const text = document.createElement("span");
           text.className = "case-chapter-map__label";
-          text.textContent = label;
+          text.textContent = item.label;
           link.append(thumb, text);
           chapterMap.appendChild(link);
         });
@@ -3692,7 +4092,9 @@
           },
           { rootMargin: "-30% 0px -50% 0px", threshold: 0 }
         );
-        sections.forEach((s) => tocObs.observe(s));
+        items.forEach(function (it) {
+          tocObs.observe(it.el);
+        });
       })();
 
       // Lazy-load images below the fold

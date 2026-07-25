@@ -1,5 +1,6 @@
 ---
 layout: project
+pillar: product
 permalink: /mool/
 project_title: Mool
 proj_num: "06"
@@ -40,6 +41,40 @@ reflection: >
 
 
   Every visual decision was tested against one question: does this make someone from a small town feel like this was built for them. Clarity is emotional, not just functional. A user who feels seen will trust you with their money.
+decisions:
+  - choice: "Built the folk-art vocabulary into the system, not onto it"
+    why: >
+      Every fintech product aimed at this audience looked like a Western banking app that had been translated. The
+      visual language itself said the product came from somewhere else. Regional motifs went into the illustration
+      set, the empty states and the transaction confirmations, so the ornament carried meaning about belonging
+      rather than sitting on top of a neutral layout as decoration.
+    tradeoff: >
+      It made the design system slow to extend. A new screen could not be assembled from generic components —
+      someone had to decide which regional vocabulary it belonged to, and that decision needed a person who knew the
+      reference.
+  - choice: "Kept the numbers plain while the rest of the interface stayed rich"
+    why: >
+      Trust in a banking app is won or lost at the balance. Whatever richness the surrounding screen carried,
+      amounts, dates and account numbers stayed in one neutral face at high contrast with tabular figures, so
+      nothing about the styling could be misread as a flourish placed over someone's money.
+    tradeoff: >
+      The two voices share a screen, and on the dense views — statements, full transaction history — the split reads
+      as unresolved rather than deliberate. It is the part of the system I would rebuild first.
+  - choice: "Designed for a first-time smartphone user, not a first-time banking user"
+    why: >
+      The assumption everyone starts with is that the gap is financial literacy. The harder gap was interface
+      literacy: for a meaningful share of this audience, this was among the first apps they had installed. Flows
+      were built around one decision per screen, explicit confirmation, and no gesture that had to be discovered
+      before it could be used.
+    tradeoff: >
+      It costs experienced users taps. Someone moving money between their own accounts for the twentieth time goes
+      through the same paced flow as someone doing it for the first time, and there is no express path for them.
+next_steps: >
+  The app shipped and the visual system held, but I never saw it under the network conditions of the places it
+  was built for. That is where I would start: a low-bandwidth pass on the illustration set, and a usability
+  round with first-time smartphone users in a tier-three town rather than in a studio. The other open thread is
+  the two-voice type system. The ornamental and the numeric never fully reconciled on the dense screens, and I
+  would rather resolve that than keep defending it.
 next_project:
   title: "Cube of Creations"
   url: /cube-guy/

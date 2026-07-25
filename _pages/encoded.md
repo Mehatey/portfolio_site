@@ -1,5 +1,6 @@
 ---
 layout: project
+pillar: ai
 permalink: /encoded/
 project_title: Encoded
 proj_num: "00"
@@ -38,6 +39,39 @@ reflection: >
 refl_source: Stuart Campbell
 refl_role: "Founder: EyeJack"
 refl_bg: "1.met/12.png"
+decisions:
+  - choice: "Captured 25 artworks on a phone instead of bringing production gear into the museum"
+    why: >
+      The exhibition was unsanctioned. Anything that read as a production setup — a rig, lighting, a tripod — would
+      have ended the project on the first day. A phone in a gallery is invisible. The entire capture pipeline was
+      designed around what one person can do while looking like an ordinary visitor.
+    tradeoff: >
+      Scan quality was hostage to gallery lighting and to how long I could circle an object without drawing
+      attention. Several pieces took four or five attempts, and a few in the darker rooms never reached a mesh I was
+      willing to ship.
+  - choice: "Anchored to Niantic Lightship VPS rather than to markers or GPS"
+    why: >
+      The overlays had to sit registered to the actual artwork, inside a building where GPS is useless and where you
+      cannot attach a marker to a wall. Visual positioning localises against the space itself, which was the only
+      method that left no physical trace in a place we had no permission to alter.
+    tradeoff: >
+      It made the work dependent on a third-party localisation service and on visitors carrying a compatible device.
+      Where the VPS map was thin the content drifted, and there is no graceful degradation — it either localises or
+      it does not.
+  - choice: "Let the artists' interpretations lead and kept the AR craft quiet"
+    why: >
+      The reflex in AR is to prove the technology. Here the technology was a delivery mechanism for someone else's
+      reading of a museum object, and any effect that pulled attention toward the rendering pulled it away from the
+      argument. Transitions are slow, there are no particles, and nothing floats that does not need to.
+    tradeoff: >
+      It reads as less impressive in a thirty-second clip. The work is legible in the room and undersells itself in
+      a reel, which is a real cost for a project whose reach depends on travelling as video.
+next_steps: >
+  The obvious next move is durability. The piece is tied to a VPS map of a building I do not control; if the
+  service changes or the American Wing is rearranged, the work degrades silently and nobody finds out. I would
+  want a capture-and-host path that does not rest on one vendor. Beyond that, we measured activations, which
+  counts arrivals rather than attention. I would instrument how long visitors actually stayed with each artwork,
+  because that is the number the curatorial argument really rests on.
 next_project:
   title: "Bloom"
   url: /bloom/
