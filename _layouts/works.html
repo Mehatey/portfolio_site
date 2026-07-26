@@ -5024,217 +5024,264 @@
       })();
     </script>
 
-    <script type="module">
-      import * as THREE from "three";
-      import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+    <script>
+      /* ── Works liquid work-surface ──────────────────────────────────────────
+         Replaces the earlier rotating-cube preview (which rendered blank on many
+         GPUs). The selected project's cover is drawn on a flat plane treated as a
+         liquid sheet: an idle domain-warped flow plus a cursor-driven ripple
+         refract the image with a chromatic split, and switching projects dissolves
+         between covers through a noise wipe. Raw WebGL — no library dependency. */
+      (function () {
+        const stage = document.getElementById("works-cube-stage");
+        const mediaSurface = document.getElementById("wp-media");
+        const desktop = window.matchMedia("(min-width: 901px)");
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        if (!stage || !mediaSurface || !desktop.matches) return;
 
-      const stage = document.getElementById("works-cube-stage");
-      const mediaSurface = document.getElementById("wp-media");
-      const desktop = window.matchMedia("(min-width: 901px)");
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const canvas = document.createElement("canvas");
+        const gl = canvas.getContext("webgl", { alpha: true, premultipliedAlpha: false, antialias: true });
+        if (!gl) return; // no WebGL: leave the editorial still in place
 
-      if (stage && mediaSurface && desktop.matches) {
-        try {
-          const scene = new THREE.Scene();
-          const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
-          camera.position.set(0, 0.08, 9);
+        stage.appendChild(canvas);
+        canvas.style.cursor = "pointer";
 
-          const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
-          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-          renderer.outputColorSpace = THREE.SRGBColorSpace;
-          renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          renderer.toneMappingExposure = 0.98;
-          renderer.setClearColor(0x000000, 0);
-          renderer.domElement.setAttribute("tabindex", "-1");
-          renderer.domElement.style.cursor = "pointer";
-          stage.appendChild(renderer.domElement);
+        const VERT =
+          "attribute vec2 p;varying vec2 uv;void main(){uv=p*0.5+0.5;gl_Position=vec4(p,0.0,1.0);}";
+        const FRAG = [
+          "precision highp float;",
+          "varying vec2 uv;",
+          "uniform sampler2D texA;uniform sampler2D texB;",
+          "uniform vec2 resA;uniform vec2 resB;uniform vec2 res;",
+          "uniform vec2 cursor;uniform float time;uniform float mixT;uniform float hover;",
+          "vec2 coverUV(vec2 u,vec2 imgRes){",
+          "  float ca=res.x/res.y;float ia=imgRes.x/imgRes.y;",
+          "  vec2 s=ca>ia?vec2(1.0,ia/ca):vec2(ca/ia,1.0);",
+          "  return (u-0.5)*s+0.5;",
+          "}",
+          "float hash(vec2 x){return fract(sin(dot(x,vec2(41.3,289.1)))*43758.5453);}",
+          "float noise(vec2 x){vec2 i=floor(x),f=fract(x);",
+          "  float a=hash(i),b=hash(i+vec2(1.0,0.0)),c=hash(i+vec2(0.0,1.0)),d=hash(i+vec2(1.0,1.0));",
+          "  vec2 u=f*f*(3.0-2.0*f);return mix(mix(a,b,u.x),mix(c,d,u.x),u.y);}",
+          "void main(){",
+          "  vec2 u=uv;",
+          "  float flow=noise(u*3.0+vec2(time*0.05,-time*0.04));",
+          "  float flow2=noise(u*6.0-vec2(time*0.03,time*0.06));",
+          "  vec2 warp=vec2(flow-0.5,flow2-0.5)*0.010;",
+          "  vec2 aspC=vec2(res.x/res.y,1.0);",
+          "  float d=distance(u*aspC,cursor*aspC);",
+          "  float ring=sin(d*24.0-time*2.4)*0.012*smoothstep(0.6,0.0,d)*(0.35+hover*0.9);",
+          "  vec2 dir=normalize(u-cursor+1e-4);",
+          "  vec2 disp=warp+dir*ring;",
+          "  float caStr=(abs(ring)*7.0+length(warp)*4.0)*(0.5+hover);",
+          "  vec2 off=dir*caStr*0.006;",
+          "  vec2 uA=coverUV(u+disp,resA);vec2 uB=coverUV(u+disp,resB);",
+          "  vec3 colA,colB;",
+          "  colA.r=texture2D(texA,uA+off).r;colA.g=texture2D(texA,uA).g;colA.b=texture2D(texA,uA-off).b;",
+          "  colB.r=texture2D(texB,uB+off).r;colB.g=texture2D(texB,uB).g;colB.b=texture2D(texB,uB-off).b;",
+          "  float n=noise(u*4.0);",
+          "  float edge=smoothstep(mixT-0.18,mixT+0.18,n*0.5+u.y*0.5);",
+          "  float toB=1.0-edge;",
+          "  vec3 col=mix(colA,colB,toB);",
+          "  col+=vec3(0.5,0.7,1.0)*(1.0-abs(toB-0.5)*2.0)*step(0.001,mixT)*step(mixT,0.999)*0.12;",
+          "  col+=vec3(0.35,0.5,0.85)*smoothstep(0.5,0.0,d)*hover*0.10;",
+          "  float vig=smoothstep(1.15,0.35,length((u-0.5)*vec2(1.0,1.12)));",
+          "  col*=0.82+0.18*vig;",
+          "  gl_FragColor=vec4(col,1.0);",
+          "}",
+        ].join("\n");
 
-          scene.add(new THREE.HemisphereLight(0xd9efff, 0x15101f, 2.2));
-          const key = new THREE.DirectionalLight(0xffffff, 2.15);
-          key.position.set(4, 5, 6);
-          scene.add(key);
-          const rim = new THREE.PointLight(0x73baff, 7, 10, 2);
-          rim.position.set(-3.2, 1.4, 2.4);
-          scene.add(rim);
-          const warm = new THREE.PointLight(0xffb36a, 3.5, 9, 2);
-          warm.position.set(3, -1.6, 1.5);
-          scene.add(warm);
-
-          const cubeGroup = new THREE.Group();
-          cubeGroup.rotation.set(-0.2, 0.62, 0.04);
-          scene.add(cubeGroup);
-
-          const fallbackColors = [0x233348, 0x191a26, 0x2f2634, 0x172638, 0x2b1e28, 0x142434];
-          const faceMaterials = fallbackColors.map(
-            (color) =>
-              new THREE.MeshPhysicalMaterial({
-                color,
-                roughness: 0.28,
-                metalness: 0.08,
-                clearcoat: 0.75,
-                clearcoatRoughness: 0.16,
-              })
-          );
-          const cube = new THREE.Mesh(new RoundedBoxGeometry(3.44, 3.44, 3.44, 7, 0.12), faceMaterials);
-          cubeGroup.add(cube);
-
-          const glassShell = new THREE.Mesh(
-            new RoundedBoxGeometry(3.54, 3.54, 3.54, 7, 0.16),
-            new THREE.MeshPhysicalMaterial({
-              color: 0xc7e7ff,
-              transparent: true,
-              opacity: 0.07,
-              transmission: 0.08,
-              roughness: 0.08,
-              metalness: 0.18,
-              clearcoat: 0.55,
-              clearcoatRoughness: 0.06,
-              side: THREE.FrontSide,
-              depthWrite: false,
-            })
-          );
-          cubeGroup.add(glassShell);
-
-          const edgeGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(3.49, 3.49, 3.49));
-          const edges = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({ color: 0xc6e8ff, transparent: true, opacity: 0.1 }));
-          cubeGroup.add(edges);
-
-          const shadow = new THREE.Mesh(
-            new THREE.CircleGeometry(1.78, 64),
-            new THREE.MeshBasicMaterial({ color: 0x5f9cc8, transparent: true, opacity: 0.11, depthWrite: false })
-          );
-          shadow.scale.set(1.45, 0.26, 1);
-          shadow.rotation.x = -Math.PI / 2;
-          shadow.position.set(0, -2.04, -0.15);
-          scene.add(shadow);
-
-          const loader = new THREE.TextureLoader();
-          const textureCache = new Map();
-          let textures = [];
-          let requestVersion = 0;
-          let currentUrl = "";
-          let visible = true;
-          const pointerTarget = new THREE.Vector2(0, 0);
-          const pointerNow = new THREE.Vector2(0, 0);
-
-          function prepareFaceTexture(texture) {
-            const image = texture.image;
-            if (!image || !image.width || !image.height) return texture;
-            const aspect = image.width / image.height;
-            texture.colorSpace = THREE.SRGBColorSpace;
-            texture.wrapS = THREE.ClampToEdgeWrapping;
-            texture.wrapT = THREE.ClampToEdgeWrapping;
-            texture.repeat.set(1, 1);
-            texture.offset.set(0, 0);
-            if (aspect > 1) {
-              const visibleWidth = 1 / aspect;
-              texture.repeat.x = visibleWidth;
-              texture.offset.x = (1 - visibleWidth) / 2;
-            } else if (aspect < 1) {
-              texture.repeat.y = aspect;
-              texture.offset.y = (1 - aspect) / 2;
-            }
-            texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-            texture.needsUpdate = true;
-            return texture;
+        function compile(type, src) {
+          const s = gl.createShader(type);
+          gl.shaderSource(s, src);
+          gl.compileShader(s);
+          if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+            console.warn("liquid shader:", gl.getShaderInfoLog(s));
+            return null;
           }
-
-          function loadProjectTexture(src) {
-            const absolute = new URL(src, document.baseURI).href;
-            if (!textureCache.has(absolute)) {
-              textureCache.set(
-                absolute,
-                loader.loadAsync(absolute).then((texture) => prepareFaceTexture(texture))
-              );
-            }
-            return textureCache.get(absolute);
-          }
-
-          async function setProject(detail) {
-            const images = (detail.images || []).filter(Boolean).slice(0, 3);
-            if (!images.length) return;
-            const version = ++requestVersion;
-            currentUrl = detail.url || currentUrl;
-            stage.classList.add("is-changing");
-
-            try {
-              const loaded = await Promise.all(images.map((src) => loadProjectTexture(src)));
-              if (version !== requestVersion) {
-                return;
-              }
-
-              textures = loaded;
-              faceMaterials.forEach((material, index) => {
-                material.map = loaded[index % loaded.length];
-                material.color.set(0xffffff);
-                material.needsUpdate = true;
-              });
-              cubeGroup.rotation.y += 0.92;
-              mediaSurface.classList.add("has-webgl-cube");
-            } catch (error) {
-              console.warn("Work cube preview could not load", error);
-            } finally {
-              if (version === requestVersion) requestAnimationFrame(() => stage.classList.remove("is-changing"));
-            }
-          }
-
-          document.addEventListener("works:preview-change", (event) => setProject(event.detail));
-
-          const activeItem = document.querySelector(".works-list-item.is-active") || document.querySelector(".works-list-item");
-          if (activeItem) {
-            const raw = (activeItem.dataset.preview || "")
-              .split("|")
-              .map((entry) => entry.slice(entry.indexOf(":") + 1))
-              .filter(Boolean)
-              .slice(0, 3);
-            setProject({ title: activeItem.dataset.title || "Selected work", images: raw, url: activeItem.getAttribute("href") || "" });
-          }
-
-          function resize() {
-            const rect = stage.getBoundingClientRect();
-            if (!rect.width || !rect.height) return;
-            renderer.setSize(rect.width, rect.height, false);
-            camera.aspect = rect.width / rect.height;
-            camera.updateProjectionMatrix();
-          }
-          const resizeObserver = new ResizeObserver(resize);
-          resizeObserver.observe(stage);
-          resize();
-
-          stage.addEventListener("pointermove", (event) => {
-            const rect = stage.getBoundingClientRect();
-            pointerTarget.x = ((event.clientX - rect.left) / rect.width - 0.5) * 0.62;
-            pointerTarget.y = ((event.clientY - rect.top) / rect.height - 0.5) * 0.42;
-          });
-          stage.addEventListener("pointerleave", () => pointerTarget.set(0, 0));
-          stage.addEventListener("click", () => {
-            if (currentUrl) window.location.href = currentUrl;
-          });
-
-          const visibilityObserver = new IntersectionObserver(([entry]) => {
-            visible = entry.isIntersecting;
-          });
-          visibilityObserver.observe(stage);
-
-          let last = performance.now();
-          function animate(now) {
-            requestAnimationFrame(animate);
-            if (!visible || document.hidden) return;
-            const delta = Math.min((now - last) / 1000, 0.05);
-            last = now;
-            pointerNow.lerp(pointerTarget, 0.055);
-            if (!reduceMotion.matches) cubeGroup.rotation.y += delta * 0.17;
-            cubeGroup.rotation.x += (pointerNow.y - cubeGroup.rotation.x - 0.18) * 0.035;
-            cubeGroup.rotation.z += (-pointerNow.x * 0.12 - cubeGroup.rotation.z) * 0.04;
-            cubeGroup.position.y = reduceMotion.matches ? 0 : Math.sin(now * 0.00072) * 0.08;
-            cubeGroup.rotation.y += pointerNow.x * 0.0022;
-            renderer.render(scene, camera);
-          }
-          requestAnimationFrame(animate);
-        } catch (error) {
-          console.warn("WebGL work cube unavailable; retaining editorial stills", error);
+          return s;
         }
-      }
+        const vs = compile(gl.VERTEX_SHADER, VERT);
+        const fs = compile(gl.FRAGMENT_SHADER, FRAG);
+        if (!vs || !fs) return;
+        const prog = gl.createProgram();
+        gl.attachShader(prog, vs);
+        gl.attachShader(prog, fs);
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+
+        const quad = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, quad);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+        const pLoc = gl.getAttribLocation(prog, "p");
+        gl.enableVertexAttribArray(pLoc);
+        gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
+
+        const U = {};
+        ["texA", "texB", "resA", "resB", "res", "cursor", "time", "mixT", "hover"].forEach((n) => {
+          U[n] = gl.getUniformLocation(prog, n);
+        });
+
+        function makeTex() {
+          const t = gl.createTexture();
+          gl.bindTexture(gl.TEXTURE_2D, t);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([8, 6, 12, 255]));
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          return { tex: t, w: 1, h: 1 };
+        }
+        let texCur = makeTex();
+        let texNext = makeTex();
+
+        function uploadImage(target, img) {
+          gl.bindTexture(gl.TEXTURE_2D, target.tex);
+          gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+          gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+          target.w = img.naturalWidth || img.width || 1;
+          target.h = img.naturalHeight || img.height || 1;
+        }
+
+        const cache = new Map();
+        function loadImage(src) {
+          const abs = new URL(src, document.baseURI).href;
+          if (cache.has(abs)) return cache.get(abs);
+          const pr = new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = abs;
+          });
+          cache.set(abs, pr);
+          return pr;
+        }
+
+        let mixT = 0;
+        let transitioning = false;
+        let currentUrl = "";
+        let requestVersion = 0;
+        const pointer = { x: 0.5, y: 0.5 };
+        const pointerTarget = { x: 0.5, y: 0.5 };
+        let hover = 0;
+        let hoverTarget = 0;
+
+        async function setProject(detail) {
+          const images = (detail.images || []).filter(Boolean);
+          if (!images.length) return;
+          currentUrl = detail.url || currentUrl;
+          const version = ++requestVersion;
+          let img;
+          try {
+            img = await loadImage(images[0]);
+          } catch (e) {
+            return;
+          }
+          if (version !== requestVersion) return;
+          mediaSurface.classList.add("has-webgl-cube");
+          // first project: pop straight onto the current surface
+          if (texCur.w === 1 && texCur.h === 1) {
+            uploadImage(texCur, img);
+            mixT = 0;
+            transitioning = false;
+            return;
+          }
+          uploadImage(texNext, img);
+          mixT = 0;
+          transitioning = true; // animation loop drives mixT 0 -> 1, then swaps
+        }
+
+        document.addEventListener("works:preview-change", (e) => setProject(e.detail));
+
+        const activeItem =
+          document.querySelector(".works-list-item.is-active") || document.querySelector(".works-list-item");
+        if (activeItem) {
+          const raw = (activeItem.dataset.preview || "")
+            .split("|")
+            .map((entry) => entry.slice(entry.indexOf(":") + 1))
+            .filter(Boolean)
+            .slice(0, 3);
+          setProject({
+            title: activeItem.dataset.title || "Selected work",
+            images: raw,
+            url: activeItem.getAttribute("href") || "",
+          });
+        }
+
+        function resize() {
+          const rect = stage.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+          canvas.width = Math.round(rect.width * dpr);
+          canvas.height = Math.round(rect.height * dpr);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        new ResizeObserver(resize).observe(stage);
+        resize();
+
+        mediaSurface.addEventListener("pointermove", (e) => {
+          const rect = stage.getBoundingClientRect();
+          pointerTarget.x = (e.clientX - rect.left) / rect.width;
+          pointerTarget.y = 1 - (e.clientY - rect.top) / rect.height;
+          hoverTarget = 1;
+        });
+        mediaSurface.addEventListener("pointerleave", () => {
+          hoverTarget = 0;
+        });
+        canvas.addEventListener("click", () => {
+          if (currentUrl) window.location.href = currentUrl;
+        });
+
+        let visible = true;
+        new IntersectionObserver(([entry]) => {
+          visible = entry.isIntersecting;
+        }).observe(stage);
+
+        const start = performance.now();
+        let lastSwap = 0;
+        function frame(now) {
+          requestAnimationFrame(frame);
+          if (!visible || document.hidden) return;
+          const t = (now - start) / 1000;
+          pointer.x += (pointerTarget.x - pointer.x) * 0.08;
+          pointer.y += (pointerTarget.y - pointer.y) * 0.08;
+          hover += (hoverTarget - hover) * 0.06;
+
+          if (transitioning) {
+            const speed = reduceMotion.matches ? 0.06 : 0.022;
+            mixT = Math.min(1, mixT + speed);
+            if (mixT >= 1) {
+              const tmp = texCur;
+              texCur = texNext;
+              texNext = tmp;
+              mixT = 0;
+              transitioning = false;
+            }
+          }
+
+          gl.useProgram(prog);
+          gl.activeTexture(gl.TEXTURE0);
+          gl.bindTexture(gl.TEXTURE_2D, texCur.tex);
+          gl.uniform1i(U.texA, 0);
+          gl.uniform2f(U.resA, texCur.w, texCur.h);
+          gl.activeTexture(gl.TEXTURE1);
+          gl.bindTexture(gl.TEXTURE_2D, transitioning ? texNext.tex : texCur.tex);
+          gl.uniform1i(U.texB, 1);
+          gl.uniform2f(U.resB, transitioning ? texNext.w : texCur.w, transitioning ? texNext.h : texCur.h);
+          gl.uniform2f(U.res, canvas.width, canvas.height);
+          gl.uniform2f(U.cursor, pointer.x, pointer.y);
+          gl.uniform1f(U.time, reduceMotion.matches ? 0.0 : t);
+          gl.uniform1f(U.mixT, transitioning ? mixT : 0.0);
+          gl.uniform1f(U.hover, hover);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        }
+        requestAnimationFrame(frame);
+      })();
     </script>
 
     <!-- (Works smoke shader now lives in _includes/smoke_bg.html — included at top of body.) -->
