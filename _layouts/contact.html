@@ -55,16 +55,128 @@
 
       .contact-shell {
         position: relative;
-        display: grid;
-        grid-template-columns: minmax(330px, 0.72fr) minmax(520px, 1.28fr);
-        align-items: center;
-        gap: clamp(24px, 4vw, 70px);
         width: 100%;
         height: 100svh;
-        padding: clamp(110px, 14vh, 152px) clamp(28px, 6vw, 104px) clamp(44px, 6vh, 70px);
+        padding: clamp(88px, 12vh, 124px) clamp(26px, 5vw, 72px) clamp(36px, 5.5vh, 60px);
         overflow: hidden;
         isolation: isolate;
-        background: radial-gradient(circle at 75% 45%, #111d29 0%, #05080d 37%, #020407 76%);
+        background: radial-gradient(circle at 50% 47%, #111d29 0%, #05080d 43%, #020407 80%);
+      }
+
+      /* Ambient WebGL field — same generative shader as the home hero, so the
+         site speaks one visual language. Sits behind the desk and corners. */
+      .contact-gl {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        mix-blend-mode: screen;
+        opacity: 0.8;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .contact-gl { display: none; }
+      }
+
+      /* ── Constellation corners ── info orbits the centred desk instead of
+         sitting in a left/right split. */
+      .c-corner {
+        position: absolute;
+        z-index: 3;
+        display: flex;
+        flex-direction: column;
+        max-width: 38vw;
+        animation: c-corner-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes c-corner-in {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+      }
+      .c-corner--tl {
+        top: clamp(84px, 11vh, 118px);
+        left: clamp(26px, 5vw, 72px);
+        gap: 16px;
+        max-width: min(42vw, 460px);
+      }
+      .c-corner--tr {
+        top: clamp(84px, 11vh, 118px);
+        right: clamp(26px, 5vw, 72px);
+        align-items: flex-end;
+        gap: 6px;
+        text-align: right;
+        animation-delay: 80ms;
+      }
+      .c-corner--bl {
+        bottom: clamp(40px, 6vh, 62px);
+        left: clamp(26px, 5vw, 72px);
+        gap: 12px;
+        animation-delay: 160ms;
+      }
+      .c-corner--br {
+        bottom: clamp(40px, 6vh, 62px);
+        right: clamp(26px, 5vw, 72px);
+        align-items: flex-end;
+        gap: 8px;
+        animation-delay: 240ms;
+      }
+      .c-corner--tl h1 {
+        max-width: 11ch;
+      }
+      .c-label {
+        color: rgba(230, 238, 247, 0.5);
+        font:
+          400 9px/1.2 "DM Mono",
+          monospace;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+      .c-corner--tr span {
+        color: rgba(230, 238, 247, 0.62);
+        font:
+          400 11px/1.5 "DM Mono",
+          monospace;
+        letter-spacing: 0.05em;
+        font-variant-numeric: tabular-nums;
+      }
+      .c-corner--tr .c-dim {
+        opacity: 0.6;
+        font-size: 9px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .contact-hint {
+        position: absolute;
+        z-index: 3;
+        left: 50%;
+        bottom: clamp(40px, 6vh, 62px);
+        transform: translateX(-50%);
+        margin: 0;
+        color: rgba(226, 236, 246, 0.42);
+        font:
+          400 9.5px/1.4 "DM Mono",
+          monospace;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        pointer-events: none;
+        animation: c-hint-breathe 3.4s ease-in-out infinite;
+      }
+      @keyframes c-hint-breathe {
+        0%,
+        100% {
+          opacity: 0.3;
+        }
+        50% {
+          opacity: 0.66;
+        }
+      }
+      .contact-desk.is-real ~ .contact-hint {
+        opacity: 0;
+        animation: none;
+        transition: opacity 0.4s ease;
       }
 
       .contact-copy {
@@ -135,6 +247,39 @@
           transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
       }
 
+      /* Email is click-to-copy — most people just want the address, not a mail
+         client that may not be configured. A green "Copied" pill confirms it. */
+      .contact-email {
+        position: relative;
+      }
+      .contact-email__flash {
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        margin-left: 12px;
+        transform: translateY(-50%) translateX(-6px);
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(120, 221, 137, 0.16);
+        border: 1px solid rgba(120, 221, 137, 0.45);
+        color: #8fe6a0;
+        font:
+          500 10px/1 "DM Mono",
+          monospace;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          opacity 0.25s ease,
+          transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .contact-email.is-copied .contact-email__flash {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+      }
+
       .contact-primary a:hover,
       .contact-primary a:focus-visible {
         border-color: #fff;
@@ -146,6 +291,18 @@
         flex-wrap: wrap;
         gap: 10px 20px;
         margin-top: 27px;
+      }
+      /* In the constellation corner the links stack vertically, right-aligned. */
+      .c-corner--br.contact-links {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        gap: 6px;
+        margin-top: 0;
+      }
+      .c-corner--br.contact-links a {
+        min-height: 26px;
+        padding-top: 4px;
+        width: max-content;
       }
 
       .contact-links a {
@@ -172,18 +329,18 @@
       }
 
       .contact-desk {
-        position: relative;
+        position: absolute;
         z-index: 2;
-        align-self: end;
-        justify-self: end;
-        width: min(67vw, 1180px);
+        top: 50%;
+        left: 50%;
+        transform: translate(calc(-50% + var(--float-x, 0px)), calc(-50% + var(--float-y, 0px)));
+        width: min(50vw, 720px);
         aspect-ratio: 1200 / 669;
-        margin-right: clamp(-84px, -4vw, -28px);
-        margin-bottom: clamp(-48px, -3vh, -14px);
         cursor: crosshair;
         outline: none;
         --reveal-x: 52%;
         --reveal-y: 48%;
+        transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .contact-desk::before {
@@ -206,7 +363,7 @@
         width: 100%;
         height: 100%;
         object-fit: contain;
-        object-position: right bottom;
+        object-position: center;
       }
 
       .contact-desk__pixel {
@@ -271,29 +428,23 @@
         }
 
         .contact-shell {
-          grid-template-columns: 1fr;
-          align-content: end;
-          min-height: 820px;
-          height: 100svh;
-          padding: 100px 22px 86px;
+          display: flex;
+          flex-direction: column;
+          justify-content: flex-end;
+          gap: 22px;
+          min-height: 100svh;
+          padding: 100px 22px 44px;
         }
 
-        .contact-copy {
-          z-index: 4;
-          align-self: end;
-        }
-
-        .contact-copy h1 {
-          font-size: clamp(36px, 10.5vw, 48px);
-        }
-
+        /* Desk becomes a faded backdrop; the corners collapse into a single
+           bottom-anchored stack in reading order. */
         .contact-desk {
           position: absolute;
-          right: -38vw;
-          bottom: 1vh;
-          width: 142vw;
-          margin: 0;
-          opacity: 0.58;
+          top: 42%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 152vw;
+          opacity: 0.5;
         }
 
         .contact-shell::after {
@@ -301,16 +452,37 @@
           position: absolute;
           inset: 0;
           z-index: 2;
-          background: linear-gradient(0deg, rgba(2, 4, 7, 0.98) 0%, rgba(2, 4, 7, 0.68) 54%, rgba(2, 4, 7, 0.12) 100%);
+          background: linear-gradient(0deg, rgba(2, 4, 7, 0.98) 0%, rgba(2, 4, 7, 0.7) 52%, rgba(2, 4, 7, 0.18) 100%);
           pointer-events: none;
         }
 
-        .contact-meta {
-          right: 22px;
-          left: 22px;
+        .c-corner {
+          position: static;
+          max-width: none;
+          align-items: flex-start;
+          text-align: left;
+          animation: none;
         }
-
-        .contact-meta span:nth-child(2) {
+        .c-corner--tl {
+          order: 1;
+        }
+        .c-corner--bl {
+          order: 2;
+        }
+        .c-corner--br {
+          order: 3;
+        }
+        .c-corner--tr {
+          order: 4;
+          flex-direction: row;
+          flex-wrap: wrap;
+          gap: 6px 14px;
+        }
+        .c-corner--tl h1 {
+          max-width: none;
+          font-size: clamp(34px, 9.5vw, 46px);
+        }
+        .contact-hint {
           display: none;
         }
       }
@@ -345,30 +517,111 @@
       html:not([data-theme="light"]) .contact-meta {
         color: rgba(230, 238, 247, 0.62) !important;
       }
+
+      /* ── Watch-reel button on the desk + reel modal (restored) ── */
+      .contact-reel-btn {
+        position: absolute;
+        left: 50%;
+        bottom: 9%;
+        z-index: 4;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        background: rgba(10, 14, 20, 0.55);
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        color: #f4f8fd;
+        font: 500 11px/1 "DM Mono", monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        cursor: pointer;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, 10px);
+        transition:
+          opacity 280ms ease,
+          transform 360ms cubic-bezier(0.16, 1, 0.3, 1),
+          background 200ms ease,
+          border-color 200ms ease;
+      }
+      .contact-desk:hover .contact-reel-btn,
+      .contact-desk:focus-within .contact-reel-btn,
+      .contact-reel-btn:focus-visible {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, 0);
+      }
+      .contact-reel-btn:hover {
+        background: rgba(20, 26, 36, 0.82);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
+      .contact-reel-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9000;
+        display: grid;
+        place-items: center;
+        padding: clamp(56px, 8vh, 92px) clamp(20px, 5vw, 80px);
+        background: rgba(3, 5, 10, 0.92);
+        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(18px);
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 300ms ease,
+          visibility 0s linear 300ms;
+      }
+      .contact-reel-modal.is-open {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0s;
+      }
+      .contact-reel-modal__frame {
+        position: relative;
+        width: min(1180px, 100%);
+        aspect-ratio: 16 / 9;
+        max-height: calc(100svh - 120px);
+        background: #000;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 28px 100px rgba(0, 0, 0, 0.5);
+      }
+      .contact-reel-modal__video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+      .contact-reel-modal__close {
+        position: fixed;
+        top: clamp(18px, 3vh, 30px);
+        right: clamp(18px, 3vw, 34px);
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        background: rgba(8, 12, 20, 0.6);
+        color: #fff;
+        font-size: 22px;
+        cursor: pointer;
+        transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .contact-reel-modal__close:hover {
+        transform: rotate(90deg);
+      }
     </style>
   </head>
 
   <body class="contact-page">
     {% include studio_nav.html active="contact" %}
     <main class="contact-shell" id="main">
-      <section class="contact-copy" aria-labelledby="contact-title">
-        <p class="contact-status">Open to product design roles</p>
-        <h1 id="contact-title">Start a conversation.</h1>
-        <p class="contact-intro">
-          Based in New York. Best reached by email for product design roles, creative technology teams, and thoughtful collaborations.
-        </p>
-        <div class="contact-primary">
-          <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a>
-          <a href="tel:+16462877550">+1 646 287 7550</a>
-        </div>
-        <nav class="contact-links" aria-label="Contact links">
-          <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
-          <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume ↗</a>
-          <a href="https://www.instagram.com/cubeofcreation/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
-          <a href="https://www.behance.net/mehatey" target="_blank" rel="noopener noreferrer">Behance ↗</a>
-        </nav>
-      </section>
-
+      <canvas class="contact-gl" id="contact-gl" aria-hidden="true"></canvas>
       <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk">
         <img
           class="contact-desk__pixel"
@@ -376,11 +629,54 @@
           alt="Sid’s pixelated desk filled with sketches, devices, and experiments"
         />
         <img class="contact-desk__real" src="{{ site.baseurl }}/assets/img/table_new.png" alt="" aria-hidden="true" />
+        <button type="button" class="contact-reel-btn" id="contact-reel-btn" aria-haspopup="dialog" aria-controls="contact-reel-modal">
+          <span aria-hidden="true">▶</span> Watch the reel
+        </button>
       </div>
 
-      <footer class="contact-meta" aria-label="Contact footer">
-        <span>New York, NY</span><span>Updated Jul 2026</span><span id="contact-time">--:-- NYC</span>
-      </footer>
+      <section class="c-corner c-corner--tl" aria-labelledby="contact-title">
+        <p class="contact-status">Open to product design roles</p>
+        <h1 id="contact-title">Start a conversation.</h1>
+      </section>
+
+      <div class="c-corner c-corner--tr" aria-label="Studio">
+        <span>New York, NY</span>
+        <span id="contact-time">--:-- NYC</span>
+        <span class="c-dim">Updated Jul 2026</span>
+      </div>
+
+      <div class="c-corner c-corner--bl">
+        <span class="c-label">Say hello</span>
+        <div class="contact-primary">
+          <a href="mailto:sidmehtadesign@gmail.com" class="contact-email" id="contact-email" data-email="sidmehtadesign@gmail.com"
+            >sidmehtadesign@gmail.com<span class="contact-email__flash" aria-hidden="true">Copied &#10003;</span></a
+          >
+          <a href="tel:+16462877550">+1 646 287 7550</a>
+        </div>
+      </div>
+
+      <nav class="c-corner c-corner--br contact-links" aria-label="Elsewhere">
+        <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+        <a href="https://www.instagram.com/cubeofcreation/" target="_blank" rel="noopener noreferrer">Instagram ↗</a>
+        <a href="https://www.behance.net/mehatey" target="_blank" rel="noopener noreferrer">Behance ↗</a>
+        <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Résumé ↗</a>
+      </nav>
+
+      <p class="contact-hint" aria-hidden="true">Move across the desk to reveal &#10022;</p>
+
+      <div class="contact-reel-modal" id="contact-reel-modal" role="dialog" aria-modal="true" aria-label="Sid Mehta showreel" aria-hidden="true">
+        <button class="contact-reel-modal__close" id="contact-reel-close" type="button" aria-label="Close reel">×</button>
+        <div class="contact-reel-modal__frame">
+          <iframe
+            class="contact-reel-modal__video"
+            id="contact-reel-iframe"
+            data-src="https://player.vimeo.com/video/1185323166?autoplay=1&amp;badge=0&amp;autopause=0&amp;title=0&amp;byline=0&amp;portrait=0&amp;dnt=1"
+            title="Sid Mehta · showreel"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen
+          ></iframe>
+        </div>
+      </div>
     </main>
 
     <script>
@@ -402,6 +698,55 @@
           }
         });
 
+        // Watch-reel button → Vimeo modal (loads on open only). stopPropagation
+        // so clicking it doesn't also toggle the desk reveal.
+        const reelBtn = document.getElementById("contact-reel-btn");
+        const reelModal = document.getElementById("contact-reel-modal");
+        const reelIframe = document.getElementById("contact-reel-iframe");
+        const reelClose = document.getElementById("contact-reel-close");
+        let reelLastFocus = null;
+        function openReel(event) {
+          if (event) event.stopPropagation();
+          reelLastFocus = document.activeElement;
+          reelModal.classList.add("is-open");
+          reelModal.setAttribute("aria-hidden", "false");
+          if (reelIframe && !reelIframe.src) reelIframe.src = reelIframe.dataset.src;
+          reelClose.focus();
+        }
+        function closeReel() {
+          if (reelIframe) reelIframe.src = "";
+          reelModal.classList.remove("is-open");
+          reelModal.setAttribute("aria-hidden", "true");
+          reelLastFocus && reelLastFocus.focus && reelLastFocus.focus();
+        }
+        reelBtn && reelBtn.addEventListener("click", openReel);
+        reelClose && reelClose.addEventListener("click", closeReel);
+        reelModal &&
+          reelModal.addEventListener("click", (event) => {
+            if (event.target === reelModal) closeReel();
+          });
+        document.addEventListener("keydown", (event) => {
+          if (event.key === "Escape" && reelModal && reelModal.classList.contains("is-open")) closeReel();
+        });
+
+        // Gentle parallax: the centred desk drifts a little toward the cursor,
+        // so it floats in space rather than sitting flat.
+        const shell = document.getElementById("main");
+        const fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (shell && fine && !reduce) {
+          shell.addEventListener("pointermove", (event) => {
+            const x = (event.clientX / window.innerWidth - 0.5) * 26;
+            const y = (event.clientY / window.innerHeight - 0.5) * 20;
+            desk.style.setProperty("--float-x", x.toFixed(1) + "px");
+            desk.style.setProperty("--float-y", y.toFixed(1) + "px");
+          });
+          shell.addEventListener("pointerleave", () => {
+            desk.style.setProperty("--float-x", "0px");
+            desk.style.setProperty("--float-y", "0px");
+          });
+        }
+
         function tick() {
           try {
             time.textContent =
@@ -418,6 +763,109 @@
 
         tick();
         setInterval(tick, 30000);
+      })();
+
+      // Click-to-copy email. Copies to clipboard and flashes "Copied"; only
+      // falls back to the mailto: link if the clipboard API is unavailable.
+      (function () {
+        var el = document.getElementById("contact-email");
+        if (!el) return;
+        el.addEventListener("click", function (e) {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            e.preventDefault();
+            navigator.clipboard.writeText(el.getAttribute("data-email")).then(
+              function () {
+                el.classList.add("is-copied");
+                clearTimeout(el._t);
+                el._t = setTimeout(function () {
+                  el.classList.remove("is-copied");
+                }, 1600);
+              },
+              function () {
+                window.location.href = el.getAttribute("href");
+              }
+            );
+          }
+        });
+      })();
+    </script>
+    <script>
+      // ── Generative WebGL field ──
+      // A real-time fragment shader: domain-warped fbm noise flowing through the
+      // hero in the three pillar colours, brightening around the cursor. Additive
+      // (screen-blended) over the dark film — it only ever adds light. Skipped for
+      // reduced-motion or if WebGL is unavailable.
+      (function () {
+        var canvas = document.getElementById("contact-gl");
+        if (!canvas) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: true, antialias: true });
+        if (!gl) return;
+
+        var vsrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
+        var fsrc = [
+          "precision highp float;",
+          "uniform vec2 u_res; uniform float u_time; uniform vec2 u_mouse; uniform float u_mdown;",
+          "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }",
+          "float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);",
+          "  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x), u.y); }",
+          "float fbm(vec2 p){ float v=0.0, a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=p*2.0+vec2(37.0,17.0); a*=0.5; } return v; }",
+          "void main(){",
+          "  vec2 uv = gl_FragCoord.xy/u_res.xy;",
+          "  vec2 asp = vec2(u_res.x/u_res.y, 1.0);",
+          "  vec2 q = uv*asp;",
+          "  float t = u_time*0.05;",
+          "  vec2 w = vec2(fbm(q*2.2 + vec2(0.0,t)), fbm(q*2.2 + vec2(5.2,-t)));",
+          "  float f = fbm(q*2.6 + w*1.8 + vec2(t*0.6, -t*0.4));",
+          "  vec2 m = u_mouse*asp;",
+          "  float md = distance(q, m);",
+          "  float glow = smoothstep(0.5, 0.0, md) * (0.35 + u_mdown*0.5);",
+          "  f += glow*0.6;",
+          "  vec3 blue = vec3(0.30,0.52,1.0);",
+          "  vec3 violet = vec3(0.66,0.44,1.0);",
+          "  vec3 amber = vec3(1.0,0.55,0.30);",
+          "  vec3 col = mix(blue, violet, smoothstep(0.35,0.62,f));",
+          "  col = mix(col, amber, smoothstep(0.62,0.86,f));",
+          "  float intensity = pow(smoothstep(0.32,0.9,f), 1.6) + glow*0.5;",
+          "  col *= intensity;",
+          "  float a = clamp(intensity*0.4, 0.0, 0.7);",
+          "  gl_FragColor = vec4(col*a, a);",
+          "}"
+        ].join("\n");
+
+        function compile(type, src){ var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
+        var prog = gl.createProgram();
+        gl.attachShader(prog, compile(gl.VERTEX_SHADER, vsrc));
+        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsrc));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+        var buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+        var loc = gl.getAttribLocation(prog, "p");
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+        var uRes = gl.getUniformLocation(prog,"u_res"), uTime = gl.getUniformLocation(prog,"u_time"),
+            uMouse = gl.getUniformLocation(prog,"u_mouse"), uMdown = gl.getUniformLocation(prog,"u_mdown");
+        gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+        var DPR = Math.min(window.devicePixelRatio||1, 2);
+        function resize(){ var w=canvas.clientWidth||window.innerWidth, h=canvas.clientHeight||window.innerHeight; canvas.width=Math.round(w*DPR); canvas.height=Math.round(h*DPR); gl.viewport(0,0,canvas.width,canvas.height); }
+        resize(); window.addEventListener("resize", resize);
+        var mouse=[0.5,0.55], tmouse=[0.5,0.55], mdown=0;
+        window.addEventListener("pointermove", function(e){ tmouse=[e.clientX/window.innerWidth, 1.0-e.clientY/window.innerHeight]; });
+        window.addEventListener("pointerdown", function(){ mdown=1; });
+        window.addEventListener("pointerup", function(){ mdown=0; });
+        var start=null;
+        function render(now){ if(start===null) start=now; var t=(now-start)/1000;
+          mouse[0]+=(tmouse[0]-mouse[0])*0.06; mouse[1]+=(tmouse[1]-mouse[1])*0.06;
+          gl.uniform2f(uRes, canvas.width, canvas.height); gl.uniform1f(uTime, t);
+          gl.uniform2f(uMouse, mouse[0], mouse[1]); gl.uniform1f(uMdown, mdown);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+          requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
       })();
     </script>
   </body>

@@ -255,12 +255,33 @@
 
       /* ── PAGE ── */
       .about-page {
+        position: relative;
         min-height: 100vh; /* fallback */
         min-height: 100dvh;
         padding-top: calc(var(--nav-h) + 48px + env(safe-area-inset-top, 0px));
         display: flex;
         flex-direction: column;
       }
+
+      /* Ambient WebGL field behind the hero — same generative shader as home
+         and contact. Masked to fade out below the fold so it stays a hero note. */
+      .about-gl {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 118vh;
+        z-index: 0;
+        pointer-events: none;
+        mix-blend-mode: screen;
+        opacity: 0.72;
+        -webkit-mask-image: linear-gradient(#000 58%, transparent 92%);
+        mask-image: linear-gradient(#000 58%, transparent 92%);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-gl { display: none; }
+      }
+      .about-hero { position: relative; z-index: 1; }
 
       .skip-link {
         position: fixed;
@@ -358,11 +379,124 @@
         position: absolute;
         inset: 0;
         opacity: 0;
-        transition: opacity 0.6s ease;
+        transform: scale(1.06);
+        transition:
+          opacity 0.5s ease,
+          transform 0.85s cubic-bezier(0.16, 1, 0.3, 1);
       }
       .about-photo.active {
         opacity: 1;
+        transform: scale(1);
         position: relative;
+      }
+
+      /* ── Flip interaction ──
+         Clicking the card was already a two-photo swap, but it was a silent
+         cross-fade with no cue and only one alternate. Now: three portraits, a
+         "tap to flip" pulse that retires after first use, a dot indicator, and a
+         burst of the site's pillar colour on each flip (blue → amber → violet),
+         so the card feels like something to play with rather than a static hero
+         image. --flip-accent is cycled by the script. */
+      .about-flip-flash {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        pointer-events: none;
+        opacity: 0;
+        background: radial-gradient(circle at 50% 42%, rgba(var(--flip-accent, 156 208 255), 0.42), transparent 62%);
+        mix-blend-mode: screen;
+      }
+      .about-profile-card.is-flipping .about-flip-flash {
+        animation: about-flip-flash 560ms ease;
+      }
+      @keyframes about-flip-flash {
+        0%,
+        100% {
+          opacity: 0;
+        }
+        32% {
+          opacity: 1;
+        }
+      }
+      .about-flip-dots {
+        position: absolute;
+        z-index: 5;
+        top: 16px;
+        right: 16px;
+        display: flex;
+        gap: 6px;
+      }
+      .about-flip-dots i {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.3);
+        transition:
+          background 0.3s ease,
+          transform 0.3s ease;
+      }
+      .about-flip-dots i.is-on {
+        background: rgb(var(--flip-accent, 156 208 255));
+        transform: scale(1.3);
+        box-shadow: 0 0 10px -1px rgba(var(--flip-accent, 156 208 255), 0.8);
+      }
+      .about-flip-hint {
+        position: absolute;
+        z-index: 5;
+        left: 50%;
+        bottom: 16px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: rgba(8, 11, 18, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border: 1px solid rgba(var(--flip-accent, 156 208 255), 0.5);
+        color: rgba(236, 244, 251, 0.94);
+        font:
+          500 10px/1 "DM Mono",
+          monospace;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        animation: about-hint-breathe 2.6s ease-in-out infinite;
+      }
+      .about-flip-hint__i {
+        display: inline-block;
+        font-size: 12px;
+        animation: about-hint-spin 3.6s linear infinite;
+      }
+      .about-profile-card.touched .about-flip-hint {
+        opacity: 0;
+      }
+      @keyframes about-hint-breathe {
+        0%,
+        100% {
+          transform: translate(-50%, 0);
+        }
+        50% {
+          transform: translate(-50%, -3px);
+        }
+      }
+      @keyframes about-hint-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-photo,
+        .about-flip-hint,
+        .about-flip-hint__i {
+          animation: none !important;
+          transition: opacity 0.3s ease;
+          transform: none;
+        }
+        .about-profile-card.is-flipping .about-flip-flash {
+          animation: none;
+        }
       }
       /* Subtle fade edges */
       .about-profile-card::after {
@@ -462,7 +596,8 @@
         display: inline-flex;
         align-items: center;
         min-height: 0;
-        padding: 0 0 4px;
+        margin-top: -7px;
+        padding: 7px 0 4px;
         font-family: var(--font-mono);
         font-size: 10px;
         letter-spacing: 0.15em;
@@ -1275,6 +1410,7 @@
     {% include smoke_bg.html %} {% include studio_nav.html active="about" %}
 
     <main class="about-page" id="main">
+      <canvas class="about-gl" id="about-gl" aria-hidden="true"></canvas>
       <!-- HERO -->
       <section class="about-hero">
         <div class="hero-bio-col">
@@ -1302,9 +1438,13 @@
           >
             <img class="about-photo active" src="{{ site.baseurl }}/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta" />
             <img class="about-photo" src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta" />
+            <img class="about-photo" src="{{ site.baseurl }}/assets/img/sid_about_pf.webp" alt="A third portrait of Sid Mehta" />
+            <div class="about-flip-flash" aria-hidden="true"></div>
             <div class="about-card-meta" aria-hidden="true">
               <strong>Sid Mehta</strong><span>New York<br />Open to roles</span>
             </div>
+            <div class="about-flip-dots" aria-hidden="true"><i class="is-on"></i><i></i><i></i></div>
+            <span class="about-flip-hint" aria-hidden="true">Tap to flip<span class="about-flip-hint__i">&#8635;</span></span>
           </div>
         </div>
       </section>
@@ -1562,11 +1702,24 @@
         if (!wrap) return;
         var imgs = wrap.querySelectorAll(".about-photo");
         if (imgs.length < 2) return;
+        var dots = wrap.querySelectorAll(".about-flip-dots i");
+        // Product blue → AI amber → culture violet, the site's pillar colours.
+        var accents = ["156, 208, 255", "255, 179, 122", "201, 162, 255"];
         var current = 0;
+        wrap.style.setProperty("--flip-accent", accents[0]);
         function next() {
           imgs[current].classList.remove("active");
           current = (current + 1) % imgs.length;
           imgs[current].classList.add("active");
+          wrap.style.setProperty("--flip-accent", accents[current % accents.length]);
+          dots.forEach(function (d, i) {
+            d.classList.toggle("is-on", i === current);
+          });
+          // restart the colour-flash animation
+          wrap.classList.remove("is-flipping");
+          void wrap.offsetWidth;
+          wrap.classList.add("is-flipping");
+          wrap.classList.add("touched");
         }
 
         wrap.addEventListener("pointermove", function (event) {
@@ -1602,5 +1755,84 @@
         </filter>
       </defs>
     </svg>
+    <script>
+      // ── Generative WebGL field ──
+      // A real-time fragment shader: domain-warped fbm noise flowing through the
+      // hero in the three pillar colours, brightening around the cursor. Additive
+      // (screen-blended) over the dark film — it only ever adds light. Skipped for
+      // reduced-motion or if WebGL is unavailable.
+      (function () {
+        var canvas = document.getElementById("about-gl");
+        if (!canvas) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: true, antialias: true });
+        if (!gl) return;
+
+        var vsrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
+        var fsrc = [
+          "precision highp float;",
+          "uniform vec2 u_res; uniform float u_time; uniform vec2 u_mouse; uniform float u_mdown;",
+          "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }",
+          "float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);",
+          "  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x), u.y); }",
+          "float fbm(vec2 p){ float v=0.0, a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=p*2.0+vec2(37.0,17.0); a*=0.5; } return v; }",
+          "void main(){",
+          "  vec2 uv = gl_FragCoord.xy/u_res.xy;",
+          "  vec2 asp = vec2(u_res.x/u_res.y, 1.0);",
+          "  vec2 q = uv*asp;",
+          "  float t = u_time*0.05;",
+          "  vec2 w = vec2(fbm(q*2.2 + vec2(0.0,t)), fbm(q*2.2 + vec2(5.2,-t)));",
+          "  float f = fbm(q*2.6 + w*1.8 + vec2(t*0.6, -t*0.4));",
+          "  vec2 m = u_mouse*asp;",
+          "  float md = distance(q, m);",
+          "  float glow = smoothstep(0.5, 0.0, md) * (0.35 + u_mdown*0.5);",
+          "  f += glow*0.6;",
+          "  vec3 blue = vec3(0.30,0.52,1.0);",
+          "  vec3 violet = vec3(0.66,0.44,1.0);",
+          "  vec3 amber = vec3(1.0,0.55,0.30);",
+          "  vec3 col = mix(blue, violet, smoothstep(0.35,0.62,f));",
+          "  col = mix(col, amber, smoothstep(0.62,0.86,f));",
+          "  float intensity = pow(smoothstep(0.32,0.9,f), 1.6) + glow*0.5;",
+          "  col *= intensity;",
+          "  float a = clamp(intensity*0.38, 0.0, 0.66);",
+          "  gl_FragColor = vec4(col*a, a);",
+          "}"
+        ].join("\n");
+
+        function compile(type, src){ var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
+        var prog = gl.createProgram();
+        gl.attachShader(prog, compile(gl.VERTEX_SHADER, vsrc));
+        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsrc));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+        var buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+        var loc = gl.getAttribLocation(prog, "p");
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+        var uRes = gl.getUniformLocation(prog,"u_res"), uTime = gl.getUniformLocation(prog,"u_time"),
+            uMouse = gl.getUniformLocation(prog,"u_mouse"), uMdown = gl.getUniformLocation(prog,"u_mdown");
+        gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+        var DPR = Math.min(window.devicePixelRatio||1, 2);
+        function resize(){ var w=canvas.clientWidth||window.innerWidth, h=canvas.clientHeight||window.innerHeight; canvas.width=Math.round(w*DPR); canvas.height=Math.round(h*DPR); gl.viewport(0,0,canvas.width,canvas.height); }
+        resize(); window.addEventListener("resize", resize);
+        var mouse=[0.5,0.55], tmouse=[0.5,0.55], mdown=0;
+        window.addEventListener("pointermove", function(e){ tmouse=[e.clientX/window.innerWidth, 1.0-e.clientY/window.innerHeight]; });
+        window.addEventListener("pointerdown", function(){ mdown=1; });
+        window.addEventListener("pointerup", function(){ mdown=0; });
+        var start=null;
+        function render(now){ if(start===null) start=now; var t=(now-start)/1000;
+          mouse[0]+=(tmouse[0]-mouse[0])*0.06; mouse[1]+=(tmouse[1]-mouse[1])*0.06;
+          gl.uniform2f(uRes, canvas.width, canvas.height); gl.uniform1f(uTime, t);
+          gl.uniform2f(uMouse, mouse[0], mouse[1]); gl.uniform1f(uMdown, mdown);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+          requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+      })();
+    </script>
   </body>
 </html>
