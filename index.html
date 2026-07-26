@@ -295,8 +295,8 @@
          in. Still quiet enough that the painted reveal remains the payoff. */
       .home-film__ambient {
         z-index: 0;
-        opacity: 0.44;
-        filter: saturate(0.78) contrast(1.06) brightness(0.72) blur(1px);
+        opacity: 0.56;
+        filter: saturate(0.82) contrast(1.08) brightness(0.82) blur(1px);
       }
 
       .home-film__real {
@@ -318,7 +318,29 @@
       }
 
       .home-stage.is-revealing .home-film__pixel {
-        opacity: 0.48;
+        opacity: 0.66;
+      }
+
+      /* ── GENERATIVE WEBGL FIELD ──
+         A real-time fragment shader: domain-warped fbm noise flowing through the
+         hero in the three pillar colours, bending and brightening around the
+         cursor — a nod to Sid's generative / TouchDesigner practice. Additive
+         (screen-blended) over the dark film so it only ever adds light. Removed
+         for reduced-motion; falls back to nothing if WebGL is unavailable. */
+      .home-gl {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        mix-blend-mode: screen;
+        opacity: 0.92;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .home-gl {
+          display: none;
+        }
       }
 
       .home-film::after {
@@ -326,8 +348,8 @@
         position: absolute;
         inset: 0;
         background:
-          linear-gradient(90deg, rgba(1, 3, 6, 0.88) 0%, rgba(1, 3, 6, 0.6) 34%, rgba(1, 3, 6, 0.12) 70%, rgba(1, 3, 6, 0.28) 100%),
-          linear-gradient(0deg, rgba(1, 3, 6, 0.88), transparent 56%, rgba(1, 3, 6, 0.18));
+          linear-gradient(90deg, rgba(1, 3, 6, 0.82) 0%, rgba(1, 3, 6, 0.48) 34%, rgba(1, 3, 6, 0.05) 68%, rgba(1, 3, 6, 0.2) 100%),
+          linear-gradient(0deg, rgba(1, 3, 6, 0.9), transparent 58%, rgba(1, 3, 6, 0.14));
         pointer-events: none;
       }
 
@@ -475,7 +497,8 @@
         grid-column: 2;
         display: inline-block;
         width: max-content;
-        margin-top: 0;
+        margin-top: -6px;
+        padding-top: 6px;
         padding-bottom: 5px;
         border-bottom: 1px solid rgba(240, 246, 252, 0.55);
         font:
@@ -601,35 +624,48 @@
 
       .home-copy h1 {
         grid-column: 1;
-        max-width: 21ch;
+        max-width: 17ch;
         margin: 0;
-        font-size: clamp(34px, 3.5vw, 48px);
-        font-weight: 390;
-        line-height: 1.02;
-        letter-spacing: -0.03em;
+        font-size: clamp(40px, 4.4vw, 62px);
+        font-weight: 440;
+        line-height: 1.0;
+        letter-spacing: -0.035em;
         text-wrap: balance;
       }
-
-      .home-typewriter {
-        display: inline-block;
-        min-width: 12ch;
-        white-space: nowrap;
+      /* No multicolour gradient — that reads as generic "AI". The emphasis is
+         a quiet warm-white tonal shift; the real character comes from the
+         cursor-physics letters below. */
+      .home-title__accent {
+        color: rgba(255, 250, 242, 0.98);
       }
 
-      .home-typewriter::after {
-        content: "";
+      /* Per-letter kinetic type: each glyph is an inline-block that springs
+         away from the cursor and back, flung in proportion to how fast the
+         pointer is moving. */
+      .home-copy h1 .ht-w {
         display: inline-block;
-        width: 0.055em;
-        height: 0.82em;
-        margin-left: 0.08em;
-        vertical-align: -0.08em;
-        background: currentColor;
-        animation: home-caret 900ms steps(1, end) infinite;
+        white-space: nowrap;
+      }
+      .home-copy h1 .ht-l {
+        display: inline-block;
+        will-change: transform;
+        transform: translate3d(0, 0, 0);
+      }
+
+      .home-proof__line {
+        display: inline-block;
+        transition:
+          opacity 520ms ease,
+          transform 640ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .home-proof__line.is-swapping {
+        opacity: 0;
+        transform: translateY(6px);
       }
 
       .home-proof {
         min-height: 1.4em;
-        margin: -2px 0 0;
+        margin: 20px 0 0;
         color: rgba(236, 244, 251, 0.64);
         font:
           400 10px/1.4 "DM Mono",
@@ -637,18 +673,45 @@
         letter-spacing: 0.045em;
       }
 
-      @keyframes home-caret {
-        50% {
-          opacity: 0;
-        }
-      }
-
       .home-actions {
         grid-column: 1;
         display: flex;
         flex-wrap: wrap;
-        gap: 12px 24px;
-        margin-top: 19px;
+        align-items: center;
+        gap: 12px 22px;
+        margin-top: 22px;
+      }
+
+      /* One clear primary action for the hero — a bright pill that reads as
+         *the* thing to click, with the two secondary links kept as quiet
+         underlines beside it. */
+      .home-actions__primary {
+        min-height: 40px;
+        align-items: center !important;
+        padding: 11px 20px 11px 22px !important;
+        border: 0 !important;
+        border-radius: 999px;
+        color: #05070c !important;
+        background: linear-gradient(180deg, #f4f8fd, #d7e6f7);
+        box-shadow: 0 10px 30px -12px rgba(180, 214, 255, 0.7);
+        transition:
+          transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 260ms ease,
+          background 260ms ease !important;
+      }
+      .home-actions__primary span {
+        transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .home-actions__primary:hover,
+      .home-actions__primary:focus-visible {
+        transform: translateY(-2px);
+        border: 0 !important;
+        box-shadow: 0 16px 38px -12px rgba(180, 214, 255, 0.9);
+        background: linear-gradient(180deg, #ffffff, #e4effb);
+      }
+      .home-actions__primary:hover span,
+      .home-actions__primary:focus-visible span {
+        transform: translateX(3px);
       }
 
       .home-actions a {
@@ -727,12 +790,23 @@
         transition-delay: 0s;
       }
 
-      .home-reel-modal__video {
-        display: block;
+      .home-reel-modal__frame {
+        position: relative;
         width: min(1180px, 100%);
+        aspect-ratio: 16 / 9;
         max-height: calc(100svh - 120px);
-        object-fit: contain;
         box-shadow: 0 28px 100px rgba(0, 0, 0, 0.48);
+        background: #000;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .home-reel-modal__video {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
       }
 
       .home-reel-modal__close {
@@ -811,34 +885,74 @@
         position: absolute;
         z-index: 5;
         right: clamp(24px, 4vw, 64px);
-        bottom: clamp(40px, 6vh, 68px);
+        bottom: clamp(46px, 6.5vh, 76px);
         display: flex;
         align-items: flex-end;
-        gap: clamp(12px, 1.5vw, 22px);
+        gap: clamp(18px, 2vw, 34px);
       }
 
       .home-project {
         position: relative;
         display: block;
-        width: clamp(72px, 7.5vw, 112px);
+        width: clamp(86px, 8.4vw, 124px);
         aspect-ratio: 1;
-        border-radius: 50%;
-        overflow: hidden;
         /* Pillar colour, not decoration: cool = product / AI, warm = cultural /
            human. The same duality lights the Orbit scene, so the accent means
            the same thing everywhere on the site. */
         --pj-ring: rgba(255, 255, 255, 0.2);
         --pj-hi: rgba(255, 255, 255, 0.72);
-        outline: 1px solid var(--pj-ring);
-        outline-offset: 4px;
-        background: #080b10;
-        box-shadow: 0 18px 46px rgba(0, 0, 0, 0.3);
         transform: translateY(var(--portal-y, 0));
+        transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      /* Rotating conic halo in the portal's pillar colour — the circles read as
+         alive, curated objects rather than plain thumbnails. */
+      .home-project::before {
+        content: "";
+        position: absolute;
+        inset: -7px;
+        border-radius: 50%;
+        background: conic-gradient(
+          from 0deg,
+          transparent 0deg,
+          var(--pj-hi) 70deg,
+          transparent 150deg,
+          transparent 250deg,
+          var(--pj-hi) 320deg,
+          transparent 360deg
+        );
+        -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+        mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
+        opacity: 0.5;
+        animation: home-portal-spin 14s linear infinite;
+        transition: opacity 220ms ease;
+      }
+      @keyframes home-portal-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .home-project::before {
+          animation: none;
+        }
+      }
+
+      .home-project__disc {
+        position: absolute;
+        inset: 0;
+        display: block;
+        border-radius: 50%;
+        overflow: hidden;
+        outline: 1px solid var(--pj-ring);
+        outline-offset: 3px;
+        background: #080b10;
+        box-shadow:
+          0 18px 46px rgba(0, 0, 0, 0.34),
+          inset 0 0 24px rgba(0, 0, 0, 0.5);
         transition:
-          transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
           outline-color 180ms ease,
-          box-shadow 220ms ease,
-          filter 180ms ease;
+          box-shadow 220ms ease;
       }
 
       /* Each portal wears its pillar colour (see design_tokens): Mool → product
@@ -865,7 +979,7 @@
         --pj-hi: rgba(var(--pillar-ai), 0.95);
       }
 
-      .home-project img {
+      .home-project__disc img {
         display: block;
         width: 100%;
         height: 100%;
@@ -875,39 +989,58 @@
 
       .home-project:hover,
       .home-project:focus-visible {
-        outline-color: var(--pj-hi);
-        box-shadow:
-          0 18px 46px rgba(0, 0, 0, 0.34),
-          0 0 30px -4px var(--pj-hi);
         transform: translateY(calc(var(--portal-y, 0px) - 9px)) scale(1.05);
       }
 
-      .home-project:hover img,
-      .home-project:focus-visible img {
-        transform: scale(1.08) rotate(1.5deg);
+      .home-project:hover .home-project__disc,
+      .home-project:focus-visible .home-project__disc {
+        outline-color: var(--pj-hi);
+        box-shadow:
+          0 22px 52px rgba(0, 0, 0, 0.4),
+          0 0 34px -4px var(--pj-hi),
+          inset 0 0 24px rgba(0, 0, 0, 0.4);
       }
 
-      .home-project span {
-        position: fixed;
-        right: clamp(24px, 4vw, 64px);
-        bottom: 22px;
-        color: rgba(238, 244, 250, 0.72);
+      .home-project:hover::before,
+      .home-project:focus-visible::before {
+        opacity: 1;
+        animation-duration: 5s;
+      }
+
+      .home-project:hover .home-project__disc img,
+      .home-project:focus-visible .home-project__disc img {
+        transform: scale(1.09) rotate(1.5deg);
+      }
+
+      /* Persistent caption so the portals read as named, curated work — not
+         mystery dots. Index in the pillar colour, project name below. */
+      .home-project__label {
+        position: absolute;
+        top: calc(100% + 12px);
+        left: 50%;
+        /* Counter the portal's stagger so all three captions share one baseline
+           even though the circles sit at different heights. */
+        transform: translate(-50%, calc(-1 * var(--portal-y, 0px)));
+        display: flex;
+        align-items: baseline;
+        gap: 5px;
+        white-space: nowrap;
+        color: rgba(238, 244, 250, 0.82);
         font:
-          400 9px/1.2 "DM Mono",
+          400 9.5px/1.2 "DM Mono",
           monospace;
         letter-spacing: 0.05em;
-        opacity: 0;
-        transform: translateY(4px);
         pointer-events: none;
-        transition:
-          opacity 180ms ease,
-          transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition: color 200ms ease;
       }
-
-      .home-project:hover span,
-      .home-project:focus-visible span {
-        opacity: 1;
-        transform: translateY(0);
+      .home-project__label i {
+        font-style: normal;
+        color: var(--pj-hi);
+        opacity: 0.9;
+      }
+      .home-project:hover .home-project__label,
+      .home-project:focus-visible .home-project__label {
+        color: #fff;
       }
 
       @media (max-width: 820px) {
@@ -928,15 +1061,6 @@
         .home-copy h1 {
           max-width: 100%;
           font-size: clamp(30px, 8.4vw, 42px);
-        }
-
-        /* Below 820px the longest typed phrase ("systems for social change") is wider
-           than the headline column, so nowrap clipped it off the right edge. Let the
-           phrase wrap here. .home-copy is bottom anchored, so a taller headline grows
-           upward and the proof line and CTAs below it stay put. */
-        .home-typewriter {
-          min-width: 0;
-          white-space: normal;
         }
 
         /* Below 820px .home-copy is a block, so the identity block joins the
@@ -964,7 +1088,15 @@
         }
 
         .home-project {
-          width: 64px;
+          width: 66px;
+        }
+
+        .home-project__label {
+          display: none;
+        }
+
+        .home-project::before {
+          inset: -5px;
         }
 
         .home-project-focus {
@@ -1008,7 +1140,7 @@
         }
 
         .home-project,
-        .home-project img,
+        .home-project__disc img,
         .home-copy,
         .home-project-focus,
         .home-project-focus__media img {
@@ -1055,16 +1187,1851 @@
 
   <body class="home-page">
     <a class="skip-link" href="#home-title">Skip to introduction</a>
+    <style>
+  #site-loader {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-head);
+    overflow: hidden;
+  }
+  /* Solid backdrop — hides homepage content (desk WebGL, marquee, bottom-bar) during entry + loader scenes.
+     The work-collage shader paints above this; cube video + typewriter paint above the shader. */
+  #enter-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 8000;
+    background: #000;
+    pointer-events: none;
+  }
+  .sl-phase {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .sl-phase.active {
+    opacity: 1;
+  }
+  .sl-phase.exit {
+    opacity: 0;
+  }
+
+  /* Phase 1: Video + typewriter. The source footage carries a black matte, so
+     this scene uses the same exact black instead of compositing it over smoke. */
+  #sl-video-phase {
+    background: #000;
+  }
+  #sl-video-phase video {
+    max-width: 1322px;
+    width: min(100vw, 1322px);
+    border-radius: 0;
+    margin-top: 4vh;
+    filter: contrast(1.1) brightness(1.08);
+    mix-blend-mode: normal;
+  }
+  /* Mobile: fill the viewport edge-to-edge using object-fit cover so the cube
+     character sits centered and any visible "black box" framing the video is
+     cropped out of frame. mix-blend-mode kept for the screens that honor it
+     (most do); on the ones that don't, the cover-crop hides the black bars. */
+  @media (max-width: 700px) {
+    #sl-video-phase {
+      /* Override default flex layout so video can fill */
+      padding: 0;
+    }
+    #sl-video-phase video {
+      width: 100vw;
+      max-width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      object-fit: cover;
+      margin-top: 0;
+    }
+  }
+  /* Phase 2 loading-ani video — bigger on mobile so the brain/eyes read clearly */
+  @media (max-width: 700px) {
+    #sl-loading-phase video {
+      width: 90vw;
+      max-width: 90vw;
+    }
+  }
+  /* Hello — bigger, more confident, distinct from the mono const() stream so they don't clash */
+  #sl-hello {
+    font-family: var(--font-head);
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 200;
+    letter-spacing: -0.02em;
+    color: rgba(245, 250, 255, 0.96);
+    text-shadow: 0 0 28px rgba(140, 200, 255, 0.55);
+    min-height: 1.2em;
+    text-align: center;
+    white-space: nowrap;
+  }
+  /* Loader dust */
+  #loader-dust {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* The intro remains part of the experience, but never traps a visitor who
+     already knows where they want to go. */
+  #loader-skip {
+    position: absolute;
+    top: max(24px, 4vh);
+    right: max(24px, 4vw);
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 12px;
+    border: 1px solid rgba(170, 215, 250, 0.18);
+    border-radius: 999px;
+    background: rgba(8, 14, 26, 0.28);
+    color: rgba(215, 235, 250, 0.68);
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    opacity: 0;
+    pointer-events: none;
+    text-transform: uppercase;
+    transition:
+      opacity 0.35s ease,
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background 0.2s ease;
+  }
+  #site-loader.is-running #loader-skip {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #loader-skip:hover,
+  #loader-skip:focus-visible {
+    border-color: rgba(180, 225, 255, 0.56);
+    background: rgba(100, 155, 215, 0.14);
+    color: rgba(245, 251, 255, 0.96);
+    outline: none;
+  }
+
+  /* ── LOADER INTRO STREAM ── 6-line cube's-POV typewriter, top-left during cube entry */
+  #loader-stream {
+    position: absolute;
+    top: 7%;
+    left: max(32px, 4.5vw);
+    z-index: 12;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    line-height: 2;
+    color: rgba(180, 230, 255, 0.78);
+    text-shadow: 0 0 14px rgba(140, 200, 255, 0.35);
+    max-width: min(480px, 44vw);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.7s var(--ease-out);
+    will-change: opacity;
+  }
+  #loader-stream.is-on {
+    opacity: 1;
+  }
+  #loader-stream.is-fade {
+    opacity: 0;
+    transition-duration: 0.4s;
+  }
+  #loader-stream .ls-line {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    position: relative;
+  }
+  #loader-stream .ls-line.ls-active::after {
+    content: "";
+    display: inline-block;
+    width: 9px;
+    height: 14px;
+    background: rgba(160, 220, 255, 0.85);
+    margin-left: 4px;
+    vertical-align: text-bottom;
+    animation: lsCursor 0.55s steps(2) infinite;
+    box-shadow: 0 0 8px rgba(160, 220, 255, 0.7);
+  }
+  @keyframes lsCursor {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  #loader-stream .ls-prompt {
+    color: rgba(180, 230, 255, 0.9);
+    margin-right: 6px;
+  }
+  @media (max-width: 900px) {
+    #loader-stream {
+      font-size: 12px;
+      max-width: 75vw;
+      top: 6%;
+      left: 18px;
+    }
+  }
+  @media (max-width: 600px) {
+    #loader-stream {
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      line-height: 1.85;
+      top: 5%;
+      left: 14px;
+      max-width: 92vw;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #loader-stream .ls-line.ls-active::after {
+      animation: none;
+    }
+  }
+
+  /* Loader work-collage — top-level fixed so it backs both the Enter gate and the cube animation.
+     z-index: 8500 sits above the solid #enter-backdrop (8000) and below the cube + Enter button (9999+).
+     Opacity 1 from start (instant, no fade-in) — was 1.4s transition that read as "shader takes 2s". */
+  #loader-collage {
+    position: fixed;
+    inset: 0;
+    z-index: 8500;
+    pointer-events: none;
+    opacity: 1;
+    overflow: hidden;
+  }
+  #loader-smoke-bg {
+    position: fixed;
+    inset: 0;
+    width: 100%; /* override the canvas's width attribute (set to W*0.5 for perf) so it stretches to fill viewport */
+    height: 100%;
+    z-index: 8450;
+    pointer-events: none;
+    opacity: 0.65;
+  }
+  /* Imagery removed per design call — collage is now pure shader (gradient layers only) */
+  .lc-grid {
+    display: none;
+  }
+  /* Static fallback gradient — hidden by default; JS adds .no-shader to <html> if WebGL init fails / reduced-motion.
+     Keeps the WebGL smoke shader as the SOLE background when it works (no double-paint). */
+  html.no-shader #loader-collage::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 30% 30%, rgba(40, 70, 130, 0.4) 0%, transparent 55%),
+      radial-gradient(ellipse at 70% 70%, rgba(60, 40, 100, 0.28) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(15, 25, 55, 0.55) 0%, rgba(5, 10, 22, 0.92) 75%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* (Cursor halo from old design removed — the WebGL smoke shader now handles cursor reveal natively) */
+  @media (prefers-reduced-motion: reduce) {
+    #loader-collage {
+      display: none;
+    }
+  }
+
+  /* Phase 2: Loading animation (replaces eye + brain) */
+  #sl-loading-phase video {
+    width: 380px;
+    max-width: 70vw;
+    height: auto;
+    display: block;
+  }
+
+  /* Portfolio memory tiles — a few real pieces of work orbit the cube during
+     onboarding. They are deliberately small and use dedicated 480px WebPs
+     (72KB total) so the opening stays quick rather than becoming a gallery
+     preload. The existing nav icons still explain the site's destinations. */
+  #sl-memory-field {
+    position: absolute;
+    inset: 0;
+    z-index: 9;
+    pointer-events: none;
+    perspective: 1200px;
+  }
+  .sl-memory-tile {
+    --twist: 0deg;
+    position: absolute;
+    width: clamp(86px, 10vw, 142px);
+    margin: 0;
+    opacity: 0;
+    transform: translateY(22px) rotateZ(var(--twist)) rotateY(82deg) scale(0.42);
+    transform-style: preserve-3d;
+    will-change: opacity, transform, filter;
+  }
+  .sl-memory-tile:nth-child(1) {
+    top: 35%;
+    left: clamp(28px, 9vw, 152px);
+    --twist: -7deg;
+  }
+  .sl-memory-tile:nth-child(2) {
+    top: 55%;
+    left: clamp(88px, 18vw, 290px);
+    --twist: 6deg;
+  }
+  .sl-memory-tile:nth-child(3) {
+    top: 34%;
+    right: clamp(28px, 9vw, 152px);
+    --twist: 7deg;
+  }
+  .sl-memory-tile:nth-child(4) {
+    top: 55%;
+    right: clamp(88px, 18vw, 290px);
+    --twist: -6deg;
+  }
+  .sl-memory-face {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 3 / 2;
+    border: 1px solid rgba(200, 230, 255, 0.28);
+    background: rgba(35, 55, 80, 0.36);
+    box-shadow:
+      0 14px 30px rgba(0, 0, 0, 0.48),
+      0 0 22px rgba(125, 190, 255, 0.12),
+      inset 0 0 20px rgba(190, 230, 255, 0.08);
+  }
+  .sl-memory-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 0 0 4px rgba(4, 8, 16, 0.22);
+    pointer-events: none;
+  }
+  .sl-memory-face img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.82) contrast(1.08) brightness(0.78);
+  }
+  .sl-memory-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-top: 7px;
+    color: rgba(222, 238, 252, 0.78);
+    font-family: var(--font-mono);
+    font-size: 7px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .sl-memory-label::before {
+    content: attr(data-kind);
+    color: rgba(138, 205, 255, 0.54);
+    font-size: 6px;
+    letter-spacing: 0.1em;
+  }
+  .sl-memory-tile.is-visible {
+    animation: slMemoryArrive 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .sl-memory-tile.is-visible .sl-memory-face,
+  .sl-memory-tile.is-visible .sl-memory-label {
+    animation: slMemoryDrift 7s ease-in-out 1s infinite alternate;
+  }
+  @keyframes slMemoryArrive {
+    0% {
+      opacity: 0;
+      filter: blur(8px);
+      transform: translateY(22px) rotateZ(var(--twist)) rotateY(82deg) scale(0.42);
+    }
+    65% {
+      opacity: 0.94;
+      filter: blur(0);
+      transform: translateY(-4px) rotateZ(var(--twist)) rotateY(-8deg) scale(1.04);
+    }
+    100% {
+      opacity: 0.88;
+      filter: blur(0);
+      transform: translateY(0) rotateZ(var(--twist)) rotateY(0) scale(1);
+    }
+  }
+  @keyframes slMemoryDrift {
+    from {
+      transform: translateY(0) rotateZ(0.001deg);
+    }
+    to {
+      transform: translateY(-7px) rotateZ(0.001deg);
+    }
+  }
+
+  /* Onboarding icon row — names the four parts of the site as they appear. */
+  #sl-onboard-icons {
+    position: absolute;
+    bottom: 9%;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    z-index: 11;
+  }
+  .sl-onboard-item {
+    display: flex;
+    min-width: 50px;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  #sl-onboard-icons img {
+    width: 40px;
+    height: 40px;
+    image-rendering: pixelated;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: crisp-edges;
+    opacity: 0;
+    transform: scale(0.55);
+    filter: blur(4px);
+    transition:
+      opacity 0.7s ease,
+      transform 0.7s cubic-bezier(0.2, 1.2, 0.3, 1),
+      filter 0.6s ease;
+  }
+  #sl-onboard-icons img.show {
+    opacity: 0.9;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  .sl-onboard-label {
+    color: rgba(210, 230, 245, 0.56);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.15em;
+    opacity: 0;
+    text-transform: uppercase;
+    transform: translateY(4px);
+    transition:
+      opacity 0.5s ease 0.18s,
+      transform 0.5s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 0.18s;
+  }
+  .sl-onboard-item.is-visible .sl-onboard-label {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  @media (max-width: 700px) {
+    #sl-memory-field {
+      display: none;
+    }
+    #loader-skip {
+      top: max(16px, env(safe-area-inset-top));
+      right: 16px;
+      font-size: 8.5px;
+    }
+    #sl-onboard-icons {
+      bottom: 7%;
+      gap: 14px;
+    }
+    .sl-onboard-item {
+      min-width: 42px;
+      gap: 6px;
+    }
+    #sl-onboard-icons img {
+      width: 32px;
+      height: 32px;
+    }
+    .sl-onboard-label {
+      font-size: 7px;
+      letter-spacing: 0.1em;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #sl-memory-field {
+      display: none;
+    }
+    .sl-memory-tile,
+    .sl-memory-tile.is-visible,
+    .sl-memory-tile.is-visible .sl-memory-face,
+    .sl-memory-tile.is-visible .sl-memory-label {
+      animation: none;
+    }
+  }
+</style>
+
+<!-- Underwater turbulence filter — used by the work-collage during enter + loader scenes -->
+<svg style="position: fixed; width: 0; height: 0; overflow: hidden" aria-hidden="true">
+  <defs>
+    <filter id="lc-water" x="-10%" y="-10%" width="120%" height="120%">
+      <feturbulence type="fractalNoise" basefrequency="0.014 0.020" numoctaves="2" seed="7" result="noise">
+        <animate attributename="baseFrequency" values="0.014 0.020;0.020 0.014;0.014 0.020" dur="18s" repeatcount="indefinite"></animate>
+      </feturbulence>
+      <fedisplacementmap in="SourceGraphic" in2="noise" scale="32" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
+    </filter>
+  </defs>
+</svg>
+
+<!-- Solid dark backdrop — hides homepage content during entry + loader phases -->
+<div id="enter-backdrop"></div>
+
+<!-- Portal flash — the payoff beat when Buddha collapses into the loader on Enter click -->
+<div id="enter-flash" aria-hidden="true"></div>
+
+<!-- WebGL smoke shader — same blue-noise field as home #smoke-bg, mounted at loader z-index so it backs the Enter scene -->
+<canvas id="loader-smoke-bg" aria-hidden="true"></canvas>
+
+<!-- Loader shader fallback gradient (paints if WebGL fails) + cursor halo -->
+<div id="loader-collage" class="is-on" aria-hidden="true"></div>
+
+<!-- Enter gate — Buddha IS the enter button; hover reveals ENTER label -->
+<div id="enter-gate" style="position: fixed; inset: 0; z-index: 10000; background: transparent; cursor: none">
+  <!-- Hidden trigger preserves all existing JS event wiring (keyboard, speech, etc.) -->
+  <button id="enter-btn" aria-label="Enter site" aria-hidden="true" tabindex="-1" style="position: absolute; opacity: 0; width: 0; height: 0; overflow: hidden; pointer-events: none; border: none; background: none"></button>
+
+  <!-- One clear threshold object. The Buddha is the entry companion; project
+       imagery belongs in the Works index, where it has context and room to read. -->
+  <div id="enter-buddha-wrap">
+    <div id="enter-3d-stage" aria-hidden="true">
+      <div id="enter-3d-mount"></div>
+    </div>
+    <button id="enter-label" type="button">Enter portfolio <span aria-hidden="true">→</span></button>
+  </div>
+
+  <!-- Mobile fallback — simple text button, hidden on desktop -->
+  <button id="enter-btn-mobile" class="enter-btn-mobile" aria-label="Enter site">Enter</button>
+
+  <!-- A quiet recruiter path: the opening remains experiential, while visitors who
+       arrive with a specific purpose can immediately understand the practice and
+       jump to the two most useful destinations. -->
+  <p class="entry-identity">
+    <span class="entry-name">Sid Mehta</span>
+    <span class="entry-role">Product designer building AI tools, fintech products, and spatial systems people can actually use.</span>
+    <span class="entry-scope">Webby Awards · Deloitte Digital · EyeJack · Philips</span>
+  </p>
+  <nav class="enter-quick-links" aria-label="Recruiter shortcuts">
+    <a href="/works/">Selected work <span aria-hidden="true">↗</span></a>
+    <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume PDF<span class="sr-only"> (opens in a new tab)</span> <span aria-hidden="true">↗</span></a>
+  </nav>
+
+  <div id="buddha-speech" aria-hidden="true"></div>
+</div>
+
+<style>
+  /* ── BUDDHA WRAPPER — centers the Buddha on screen ── */
+  #enter-buddha-wrap {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 9050;
+  }
+
+  /* Buddha stage — the one focal object at the entry threshold. */
+  #enter-3d-stage {
+    position: relative;
+    width: clamp(220px, 23vw, 320px);
+    height: clamp(220px, 23vw, 320px);
+    pointer-events: auto;
+    opacity: 0;
+    cursor: none;
+    transition:
+      opacity 0.4s ease,
+      filter 0.5s ease;
+    filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15));
+    animation: buddhaBreathe 6s ease-in-out infinite;
+  }
+  /* A quiet portal holds the first paint while the 3D model streams in. */
+  #enter-3d-stage::before {
+    content: "";
+    position: absolute;
+    inset: 23%;
+    z-index: 0;
+    border: 1px solid rgba(185, 220, 255, 0.32);
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 36% 30%, rgba(230, 245, 255, 0.4), rgba(128, 186, 255, 0.1) 38%, transparent 68%),
+      radial-gradient(circle at 62% 66%, rgba(108, 150, 255, 0.16), transparent 58%);
+    box-shadow:
+      0 0 26px rgba(115, 178, 255, 0.16),
+      inset 0 0 24px rgba(180, 220, 255, 0.08);
+    opacity: 0.85;
+    pointer-events: none;
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+    animation: enterPortalPulse 2.8s ease-in-out infinite;
+  }
+  #enter-3d-stage.is-model-ready::before {
+    opacity: 0;
+    transform: scale(1.16);
+    animation: none;
+  }
+  @keyframes enterPortalPulse {
+    0%,
+    100% {
+      transform: scale(0.94);
+      opacity: 0.56;
+    }
+    50% {
+      transform: scale(1.04);
+      opacity: 0.9;
+    }
+  }
+  #enter-3d-stage.is-on {
+    opacity: 1;
+  }
+  @keyframes buddhaBreathe {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-8px);
+    }
+  }
+  #enter-3d-stage:hover {
+    filter: drop-shadow(0 0 32px rgba(160, 210, 255, 0.34));
+  }
+  /* Collapse — a contained transition cue that preserves the model's clean silhouette. */
+  #enter-3d-stage.is-collapsing {
+    animation: none;
+    transition:
+      transform 0.5s cubic-bezier(0.6, 0, 0.9, 0.4),
+      opacity 0.4s ease 0.15s,
+      filter 0.5s ease;
+    transform: scale(0.04);
+    opacity: 0;
+    filter: drop-shadow(0 0 60px rgba(180, 220, 255, 0.6));
+  }
+  #enter-3d-mount {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+  }
+  #enter-3d-mount model-viewer {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    --poster-color: transparent;
+  }
+
+  /* The entry label sits below the object with deliberate breathing room. */
+  #enter-label {
+    border: 0;
+    background: transparent;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(220, 240, 255, 0.92);
+    text-shadow:
+      0 0 12px rgba(140, 200, 255, 0.55),
+      0 0 28px rgba(100, 160, 255, 0.3);
+    margin-top: 22px;
+    /* The entry affordance is present before hover, so first-time visitors do
+       not have to infer that the sculpture is interactive. */
+    opacity: 0.62;
+    transform: translateY(6px);
+    transition:
+      opacity 0.3s ease,
+      transform 0.35s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+    cursor: pointer;
+    pointer-events: auto;
+    padding-left: 0.32em;
+  }
+  #enter-label:hover,
+  #enter-label:focus-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  #enter-label:focus-visible {
+    outline: 1px solid rgba(180, 220, 255, 0.7);
+    outline-offset: 7px;
+  }
+  #enter-buddha-wrap:hover #enter-label {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* First-frame context and a purposeful bypass for recruiter visits. The
+     typography intentionally stays quieter than the sculpture. */
+  .entry-identity {
+    position: fixed;
+    left: max(32px, 4.5vw);
+    bottom: max(28px, 4vh);
+    z-index: 10001;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: min(420px, 34vw);
+    margin: 0;
+    pointer-events: none;
+    font-family: var(--font-head);
+    text-shadow: 0 0 16px rgba(120, 190, 255, 0.22);
+  }
+  .entry-name {
+    font-family: var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(230, 243, 255, 0.82);
+    font-size: 11px;
+  }
+  .entry-role {
+    color: rgba(232, 242, 252, 0.78);
+    font-family: var(--font-title);
+    font-size: clamp(17px, 1.45vw, 22px);
+    letter-spacing: -0.018em;
+    line-height: 1.22;
+    text-wrap: pretty;
+  }
+  .entry-scope {
+    color: rgba(186, 213, 236, 0.48);
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    line-height: 1.35;
+  }
+  .enter-quick-links {
+    position: fixed;
+    right: max(32px, 4.5vw);
+    bottom: max(28px, 4vh);
+    z-index: 10002;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .enter-quick-links a {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 0 3px;
+    border-bottom: 1px solid rgba(208, 231, 250, 0.28);
+    color: rgba(208, 231, 250, 0.68);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.13em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease;
+  }
+  .enter-quick-links a:hover,
+  .enter-quick-links a:focus-visible {
+    border-color: rgba(240, 249, 255, 0.72);
+    color: rgba(240, 249, 255, 0.96);
+    outline: none;
+  }
+
+  /* First-frame portfolio fragments. They establish the material range behind the
+     enter object, then leave with the gate. The images stay crisp and intentionally
+     quiet: atmosphere comes from depth and timing, not hover treatments or blur. */
+  #entry-memory-field {
+    position: fixed;
+    inset: 0;
+    z-index: 9040;
+    pointer-events: none;
+    perspective: 1300px;
+  }
+  .entry-memory-fragment {
+    position: absolute;
+    width: clamp(88px, 12vw, 176px);
+    margin: 0;
+    opacity: 0;
+    transform-style: preserve-3d;
+    animation: entryMemoryArrive 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .entry-memory-fragment:nth-child(1) {
+    top: 20%;
+    left: clamp(28px, 7vw, 132px);
+    animation-delay: 0.18s;
+    --entry-tilt: -11deg;
+    --entry-depth: -42px;
+  }
+  .entry-memory-fragment:nth-child(2) {
+    bottom: 16%;
+    left: clamp(72px, 17vw, 286px);
+    animation-delay: 0.36s;
+    --entry-tilt: 7deg;
+    --entry-depth: 38px;
+  }
+  .entry-memory-fragment:nth-child(3) {
+    top: 24%;
+    right: clamp(28px, 7vw, 132px);
+    animation-delay: 0.54s;
+    --entry-tilt: 10deg;
+    --entry-depth: 12px;
+  }
+  .entry-memory-fragment:nth-child(4) {
+    right: clamp(72px, 17vw, 286px);
+    bottom: 17%;
+    animation-delay: 0.72s;
+    --entry-tilt: -8deg;
+    --entry-depth: -24px;
+  }
+  .entry-memory-fragment img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border: 1px solid rgba(216, 235, 252, 0.24);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.38);
+    animation: entryMemoryDrift 8s ease-in-out 1.2s infinite alternate;
+  }
+  @keyframes entryMemoryArrive {
+    from {
+      opacity: 0;
+      transform: translate3d(0, 26px, var(--entry-depth)) rotateZ(var(--entry-tilt)) rotateY(48deg) scale(0.78);
+    }
+    to {
+      opacity: 0.82;
+      transform: translate3d(0, 0, var(--entry-depth)) rotateZ(var(--entry-tilt)) rotateY(0) scale(1);
+    }
+  }
+  @keyframes entryMemoryDrift {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(0, -8px, 0);
+    }
+  }
+  @media (max-width: 900px) {
+    #entry-memory-field {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .entry-memory-fragment,
+    .entry-memory-fragment img {
+      animation: none;
+    }
+    .entry-memory-fragment {
+      opacity: 0.72;
+      transform: translate3d(0, 0, var(--entry-depth)) rotateZ(var(--entry-tilt));
+    }
+  }
+
+  /* Mobile fallback — simple minimal button, hidden on desktop */
+  .enter-btn-mobile {
+    display: none;
+  }
+  @media (max-width: 700px) {
+    #enter-buddha-wrap {
+      display: flex;
+    }
+    .enter-btn-mobile {
+      display: none;
+    }
+    .entry-identity {
+      top: max(72px, 10vh);
+      bottom: auto;
+      left: 50%;
+      max-width: min(320px, calc(100vw - 40px));
+      align-items: center;
+      text-align: center;
+      transform: translateX(-50%);
+    }
+    .entry-name {
+      font-size: 10px;
+    }
+    .entry-role {
+      font-size: 16px;
+      max-width: 18ch;
+    }
+    .entry-scope {
+      font-size: 10.5px;
+    }
+    .enter-quick-links {
+      right: auto;
+      bottom: max(24px, 4vh);
+      left: 50%;
+      justify-content: center;
+      transform: translateX(-50%);
+      white-space: nowrap;
+    }
+    .enter-quick-links a {
+      font-size: 8.5px;
+      padding: 7px 9px;
+    }
+  }
+
+  /* Reduced-motion desktop fallback — #enter-3d-stage is hidden entirely under
+     prefers-reduced-motion (see below), which left mouse users with no visible
+     way in (only the hidden #enter-btn, reachable by keyboard). Reuse the same
+     mobile button here so a click path always exists regardless of viewport. */
+  @media (prefers-reduced-motion: reduce) {
+    .enter-btn-mobile {
+      display: inline-flex;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      z-index: 10004;
+      align-items: center;
+      justify-content: center;
+      min-width: 132px;
+      min-height: 48px;
+      border: 1px solid rgba(220, 238, 255, 0.28);
+      border-radius: 999px;
+      background: rgba(8, 12, 18, 0.72);
+      color: rgba(245, 250, 255, 0.94);
+      font: 500 12px/1 var(--font-mono);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  /* Idle thought — an occasional fragment rather than a UI speech bubble. It sits
+     near the sculpture, then dissolves again without asking for attention. */
+  #buddha-speech {
+    position: fixed;
+    z-index: 9060;
+    pointer-events: none;
+    max-width: min(34ch, 72vw);
+    font-family: var(--font-mono);
+    font-size: clamp(10px, 0.82vw, 12px);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    line-height: 1.6;
+    text-transform: uppercase;
+    color: rgba(232, 243, 255, 0.5);
+    text-align: center;
+    opacity: 0;
+    filter: blur(7px);
+    transform: translate(-50%, 10px);
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.75s var(--ease-out),
+      filter 0.75s var(--ease-out);
+    will-change: transform, opacity, filter;
+    text-shadow: 0 0 26px rgba(140, 200, 255, 0.22);
+  }
+  #buddha-speech.show {
+    opacity: 0.82;
+    filter: blur(0);
+    transform: translate(-50%, 0);
+  }
+  @media (max-width: 700px) {
+    #buddha-speech {
+      font-size: 12px;
+      padding: 8px 14px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #enter-3d-stage {
+      display: none;
+    }
+    #buddha-speech {
+      transition: none;
+    }
+  }
+
+  /* Portal flash — a soft bloom that blooms outward the instant Buddha collapses,
+     the "hole opening" beat before the loader takes over. */
+  #enter-flash {
+    position: fixed;
+    inset: 0;
+    z-index: 9060;
+    background: radial-gradient(circle at 50% 50%, rgba(210, 230, 255, 0.9) 0%, rgba(140, 190, 255, 0.28) 32%, transparent 68%);
+    opacity: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+  #enter-flash.is-flashing {
+    animation: enterFlash 0.6s ease-out forwards;
+  }
+  @keyframes enterFlash {
+    0% {
+      opacity: 0;
+      transform: scale(0.25);
+    }
+    38% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.7);
+    }
+  }
+</style>
+
+<!-- Keep the loader compatible with Meshopt-compressed GLB files as well. -->
+<script>
+  self.ModelViewerElement = self.ModelViewerElement || {};
+  self.ModelViewerElement.meshoptDecoderLocation = "https://cdn.jsdelivr.net/npm/meshoptimizer/meshopt_decoder.js";
+</script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js" crossorigin="anonymous"></script>
+
+<script>
+  // Floating buddha head — single model that DVD-bounces around. Slowly grows in size and rotation
+  // speed over time. Hover triggers a playful wiggle + soft glow.
+  (function () {
+    var stage = document.getElementById("enter-3d-stage");
+    var mount = document.getElementById("enter-3d-mount");
+    if (!stage || !mount) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    // Buddha now runs on touch too — user wants it visible on mobile. CSS already
+    // shrinks the stage on small screens, and the rAF loop is light (<1ms/frame).
+
+    var BUDDHA_SRC = "/assets/models/buddha-web.glb";
+    var mv;
+    function buildViewer() {
+      mount.innerHTML = "";
+      mv = document.createElement("model-viewer");
+      mv.setAttribute("src", BUDDHA_SRC);
+      mv.setAttribute("auto-rotate", "");
+      mv.setAttribute("rotation-per-second", "18deg");
+      mv.setAttribute("camera-orbit", "0deg 75deg 110%");
+      mv.setAttribute("interaction-prompt", "none");
+      mv.setAttribute("disable-zoom", "");
+      mv.setAttribute("disable-pan", "");
+      mv.setAttribute("disable-tap", "");
+      mv.setAttribute("environment-image", "neutral");
+      mv.setAttribute("exposure", "0.95");
+      mv.setAttribute("shadow-intensity", "0");
+      mv.style.pointerEvents = "none";
+      mount.appendChild(mv);
+      return mv;
+    }
+
+    var W, H;
+    function measure() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+    }
+    measure();
+    window.addEventListener("resize", measure, { passive: true });
+
+    var baseSize = stage.offsetWidth || 130; // reference at scale 1 (matches new CSS width)
+
+    // DVD-bounce around the full viewport. On every wall hit the buddha gets slightly bigger
+    // and spins slightly faster — playful payoff for "leaving it alone".
+    var startCx = W / 2,
+      startCy = H / 2;
+    // Spawn somewhere off-center so first bounce is visible
+    var x = Math.random() * (W - baseSize - 200) + 100;
+    var y = Math.random() * (H - baseSize - 200) + 100;
+    var SPEED = 1.4; // px/frame
+    var ang = Math.random() * Math.PI * 2;
+    var vx = Math.cos(ang) * SPEED;
+    var vy = Math.sin(ang) * SPEED;
+    // Per-collision growth + rotation increments — capped so it doesn't take over the scene
+    var growth = 1.0;
+    var GROW_PER_HIT = 0.025; // +2.5% scale each wall hit
+    var GROW_CAP = 1.8; // stop growing at 180% of base
+    var rotPerSec = 14; // starts calm
+    var ROT_PER_HIT = 1.4; // +1.4 deg/s per hit
+    var ROT_CAP = 60;
+
+    function bumpOnHit() {
+      growth = Math.min(growth + GROW_PER_HIT, GROW_CAP);
+      rotPerSec = Math.min(rotPerSec + ROT_PER_HIT, ROT_CAP);
+      if (mv && !stage.classList.contains("is-hovering")) {
+        mv.setAttribute("rotation-per-second", rotPerSec + "deg");
+      }
+    }
+
+    // Speech-bubble tracking state — declared early so tick() can reference safely.
+    // The actual speech wiring lives below (sayings, timers, showSpeech, etc.).
+    var speech,
+      speechVisible = false,
+      placeSpeech = function () {};
+
+    // Hover playfulness — liquify animation. Rotation slows on hover so the warp reads.
+    stage.addEventListener("mouseenter", function () {
+      stage.classList.add("is-hovering");
+      if (mv) mv.setAttribute("rotation-per-second", "8deg");
+    });
+    stage.addEventListener("mouseleave", function () {
+      stage.classList.remove("is-hovering");
+      if (mv) mv.setAttribute("rotation-per-second", rotPerSec + "deg");
+    });
+
+    // Mount model. Buddha is centered via flexbox — no bounce loop needed.
+    var inst = buildViewer();
+    stage.classList.add("is-on");
+    inst.addEventListener(
+      "load",
+      function () {
+        stage.classList.add("is-model-ready");
+      },
+      { once: true }
+    );
+
+    // Wire click on the Buddha to trigger site entry
+    stage.addEventListener("click", function () {
+      var btn = document.getElementById("enter-btn");
+      if (btn) btn.click();
+    });
+
+    // ── IDLE BUDDHA THOUGHT ── a small ambient fragment if someone lingers.
+    // Cancelled the moment Enter is clicked or the gate is removed.
+    speech = document.getElementById("buddha-speech");
+    var sayings = [
+      { at: 6000, text: "take your time." },
+      { at: 15000, text: "notice what stays with you." },
+      { at: 26000, text: "make something useful." },
+    ];
+    var speechTimers = [];
+    placeSpeech = function () {
+      // Position bubble above/below the centered stage using its actual DOM rect.
+      if (!speech || !speechVisible) return;
+      var r = stage.getBoundingClientRect();
+      var bx = r.left + r.width / 2;
+      var topY = r.top - 14;
+      var below = topY < 70;
+      var by = below ? r.bottom + 14 : topY;
+      bx = Math.max(150, Math.min(W - 150, bx));
+      speech.style.left = bx + "px";
+      speech.style.top = by + "px";
+    };
+    function showSpeech(text) {
+      if (!speech || !stage.parentNode) return;
+      speech.textContent = text;
+      speechVisible = true;
+      placeSpeech();
+      speech.classList.add("show");
+      var hideId = setTimeout(function () {
+        speech.classList.remove("show");
+        speechVisible = false;
+      }, 4000);
+      speechTimers.push(hideId);
+    }
+    function cancelSpeech() {
+      speechTimers.forEach(clearTimeout);
+      speechTimers = [];
+      speechVisible = false;
+      if (speech) speech.classList.remove("show");
+    }
+    sayings.forEach(function (s) {
+      var id = setTimeout(function () {
+        showSpeech(s.text);
+      }, s.at);
+      speechTimers.push(id);
+    });
+    // Stop speech the moment user clicks Enter or hits Enter/Space.
+    // (Don't use { once: true } on keydown — would detach on the first stray key
+    // and miss the actual Enter press.)
+    var btn = document.getElementById("enter-btn");
+    if (btn) btn.addEventListener("click", cancelSpeech, { once: true });
+    function speechKeyHandler(e) {
+      if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+        cancelSpeech();
+        window.removeEventListener("keydown", speechKeyHandler);
+      }
+    }
+    window.addEventListener("keydown", speechKeyHandler);
+  })();
+</script>
+
+<script>
+  // The entry model receives one clean exit beat. It deliberately avoids a displacement
+  // effect so the opening has a stable silhouette instead of a visual glitch.
+  (function () {
+    var stage = document.getElementById("enter-3d-stage");
+    var flash = document.getElementById("enter-flash");
+    if (!stage) return;
+    var collapsing = false;
+    window.__buddhaCollapse = function (done) {
+      if (collapsing || stage.offsetWidth === 0) {
+        done();
+        return;
+      }
+      collapsing = true;
+      stage.classList.add("is-collapsing");
+      if (flash) {
+        flash.classList.remove("is-flashing");
+        // Force reflow so re-adding the class restarts the animation if it ever fires twice.
+        void flash.offsetWidth;
+        flash.classList.add("is-flashing");
+      }
+      setTimeout(done, 520);
+    };
+  })();
+</script>
+
+<style>
+  /* Hello — push down on small phones so it doesn't overlap the cube video. */
+  @media (max-width: 700px) {
+    #sl-hello {
+      font-size: clamp(26px, 7.2vw, 40px);
+      top: 8% !important;
+      white-space: normal;
+      max-width: 92vw;
+      margin: 0 auto;
+      line-height: 1.18;
+    }
+  }
+</style>
+
+<div id="site-loader" style="display: none">
+  <canvas id="loader-dust"></canvas>
+  <button id="loader-skip" type="button">Skip intro <span aria-hidden="true">→</span></button>
+
+  <!-- (Top-left const() terminal stream removed per design call — was visually noisy on the loader scene.) -->
+  <!-- Hello text — persists across phases. Top: 22% (was 14%) so it sits below cube head, not above it. -->
+  <span id="sl-hello" style="position: absolute; top: 22%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
+
+  <!-- A lightweight constellation of real work. Images load only once the visitor
+       chooses Enter, then arrive around the cube one at a time. -->
+  <!-- Onboarding icons — a small map of the four destinations -->
+  <div id="sl-onboard-icons">
+    <div class="sl-onboard-item" id="sl-item-1">
+      <img id="sl-icon-1" src="/assets/img/nav/cube.png" alt=""><span class="sl-onboard-label">Work</span>
+    </div>
+    <div class="sl-onboard-item" id="sl-item-2">
+      <img id="sl-icon-2" src="/assets/img/nav/flower.png" alt=""><span class="sl-onboard-label">Play</span>
+    </div>
+    <div class="sl-onboard-item" id="sl-item-3">
+      <img id="sl-icon-3" src="/assets/img/nav/sparkle.png" alt=""><span class="sl-onboard-label">Contact</span>
+    </div>
+    <div class="sl-onboard-item" id="sl-item-4">
+      <img id="sl-icon-4" src="/assets/img/nav/cross.png" alt=""><span class="sl-onboard-label">About</span>
+    </div>
+  </div>
+
+  <div class="sl-phase" id="sl-video-phase">
+    <video id="sl-video" playsinline muted preload="none" data-src="/assets/video/cube_gettingup-web.mp4"></video>
+  </div>
+
+  <div class="sl-phase" id="sl-loading-phase">
+    <video id="sl-loading-video" playsinline muted preload="none" data-src="/assets/video/loading-ani-web.mp4"></video>
+  </div>
+</div>
+
+<script>
+  // ── LOADER SMOKE SHADER ── same WebGL noise field used on home #smoke-bg.
+  // Runs from page load so the Enter scene has a live shader backdrop, not a static gradient.
+  // Cleaned up on loaderDone alongside #loader-collage.
+  // If WebGL fails → set html.no-shader so the static gradient fallback paints instead.
+  (function () {
+    var c = document.getElementById("loader-smoke-bg");
+    if (!c) {
+      document.documentElement.classList.add("no-shader");
+      return;
+    }
+    var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) {
+      document.documentElement.classList.add("no-shader");
+      return;
+    }
+    // Skip the loader fbm shader on touch+small — let the static gradient fallback paint instead.
+    var isTouchSmall =
+      window.matchMedia && (window.matchMedia("(hover: none) and (pointer: coarse)").matches || window.matchMedia("(max-width: 700px)").matches);
+    if (isTouchSmall) {
+      document.documentElement.classList.add("no-shader");
+      return;
+    }
+    var gl = c.getContext("webgl", { alpha: true, premultipliedAlpha: false });
+    if (!gl) {
+      document.documentElement.classList.add("no-shader");
+      return;
+    }
+    function resize() {
+      c.width = window.innerWidth * 0.5;
+      c.height = window.innerHeight * 0.5;
+      gl.viewport(0, 0, c.width, c.height);
+    }
+    resize();
+    window.addEventListener("resize", resize);
+    var VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}";
+    var FS = [
+      "precision mediump float;",
+      "uniform float u_time;",
+      "uniform vec2 u_res;",
+      "uniform vec2 u_mouse;",
+      "vec3 mod289(vec3 x){return x-floor(x/289.0)*289.0;}",
+      "vec2 mod289(vec2 x){return x-floor(x/289.0)*289.0;}",
+      "vec3 permute(vec3 x){return mod289((x*34.0+1.0)*x);}",
+      "float snoise(vec2 v){",
+      "  const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);",
+      "  vec2 i=floor(v+dot(v,C.yy));",
+      "  vec2 x0=v-i+dot(i,C.xx);",
+      "  vec2 i1=x0.x>x0.y?vec2(1,0):vec2(0,1);",
+      "  vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;",
+      "  i=mod289(i);",
+      "  vec3 p=permute(permute(i.y+vec3(0,i1.y,1))+i.x+vec3(0,i1.x,1));",
+      "  vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);",
+      "  m=m*m;m=m*m;",
+      "  vec3 x=2.0*fract(p*C.www)-1.0;",
+      "  vec3 h=abs(x)-0.5;",
+      "  vec3 ox=floor(x+0.5);",
+      "  vec3 a0=x-ox;",
+      "  m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);",
+      "  vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;",
+      "  return 130.0*dot(m,g);",
+      "}",
+      "float fbm(vec2 p){float f=0.0;f+=0.5*snoise(p);p*=2.02;f+=0.25*snoise(p);p*=2.03;f+=0.125*snoise(p);p*=2.01;f+=0.0625*snoise(p);return f;}",
+      "void main(){",
+      "  vec2 uv=gl_FragCoord.xy/u_res;",
+      "  float t=u_time*0.15;",
+      "  // Cursor influence — creates swirl around mouse",
+      "  vec2 mouse=u_mouse;",
+      "  vec2 d=uv-mouse;",
+      "  float dist=length(d);",
+      "  float curl=exp(-dist*3.0)*0.4;",
+      "  vec2 swirl=vec2(-d.y,d.x)*curl;",
+      "  // Multi-layer smoke",
+      "  float n1=fbm(uv*3.0+vec2(t*0.8,t*0.6)+swirl*2.0);",
+      "  float n2=fbm(uv*2.0+vec2(-t*0.5,t*0.7)+swirl*1.5+0.5);",
+      "  float n3=fbm(uv*4.5+vec2(t*0.3,-t*0.4)+swirl*3.0+1.0);",
+      "  float smoke=n1*0.5+n2*0.3+n3*0.2;",
+      "  smoke=smoke*0.5+0.5;",
+      "  smoke=smoothstep(0.25,0.75,smoke);",
+      "  // Exact match to home #smoke-bg — cursor-revealed cyan smoke on near-black, seamless across loader scene + home",
+      "  vec3 deep=vec3(0.01,0.02,0.04);",
+      "  vec3 mid=vec3(0.04,0.12,0.18);",
+      "  vec3 light=vec3(0.15,0.30,0.35);",
+      "  vec3 highlight=vec3(0.35,0.50,0.48);",
+      "  vec3 col=mix(deep,mid,smoothstep(0.2,0.45,smoke));",
+      "  col=mix(col,light,smoothstep(0.45,0.65,smoke));",
+      "  col=mix(col,highlight,smoothstep(0.7,0.9,smoke)*0.3);",
+      "  // Cursor proximity — smoke only visible near cursor, like home",
+      "  float proximity=exp(-dist*12.0);",
+      "  col*=proximity*2.5+0.005;",
+      "  // Cursor glow — tight + bright",
+      "  float glow=exp(-dist*18.0)*0.25;",
+      "  col+=vec3(0.30,0.50,0.55)*glow;",
+      "  // Vignette darken edges",
+      "  float vig=1.0-dot((uv-0.5)*1.6,(uv-0.5)*1.6);",
+      "  col*=vig;",
+      "  gl_FragColor=vec4(col,1.0);",
+      "}",
+    ].join("\n");
+    function mkShader(type, src) {
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src);
+      gl.compileShader(s);
+      return s;
+    }
+    var prog = gl.createProgram();
+    gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, VS));
+    gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, FS));
+    gl.linkProgram(prog);
+    gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+    var a = gl.getAttribLocation(prog, "a");
+    gl.enableVertexAttribArray(a);
+    gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+    var uTime = gl.getUniformLocation(prog, "u_time");
+    var uRes = gl.getUniformLocation(prog, "u_res");
+    var uMouse = gl.getUniformLocation(prog, "u_mouse");
+    var mx = 0.5,
+      my = 0.5,
+      tmx = 0.5,
+      tmy = 0.5,
+      alive = true;
+    document.addEventListener(
+      "mousemove",
+      function (e) {
+        tmx = e.clientX / window.innerWidth;
+        tmy = 1.0 - e.clientY / window.innerHeight;
+      },
+      { passive: true }
+    );
+    var t0 = performance.now();
+    var tOffset = 0; // ms paused while tab hidden — keeps shader time continuous
+    var pauseAt = 0;
+    var hidden = false;
+    var rafId = 0;
+    function tick() {
+      if (!alive || !c.parentNode) return;
+      mx += (tmx - mx) * 0.05;
+      my += (tmy - my) * 0.05;
+      gl.uniform1f(uTime, (performance.now() - t0 - tOffset) / 1000);
+      gl.uniform2f(uRes, c.width, c.height);
+      gl.uniform2f(uMouse, mx, my);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+      if (!hidden) rafId = requestAnimationFrame(tick);
+    }
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        hidden = true;
+        pauseAt = performance.now();
+        if (rafId) cancelAnimationFrame(rafId);
+      } else if (hidden) {
+        hidden = false;
+        tOffset += performance.now() - pauseAt;
+        if (alive && c.parentNode) tick();
+      }
+    });
+    tick();
+    window.addEventListener("loaderDone", function () {
+      setTimeout(function () {
+        alive = false;
+        if (c.parentNode) {
+          c.style.transition = "opacity 0.6s ease";
+          c.style.opacity = "0";
+          setTimeout(function () {
+            if (c.parentNode) c.remove();
+          }, 700);
+        }
+      }, 200);
+    });
+  })();
+
+  // ── INTRO STREAM ── const() typewriter top-left, runs from page load so it's already typing
+  // when the visitor sees the Enter button. Continues through the cube animation phase.
+  (function () {
+    var stream = document.getElementById("loader-stream");
+    if (!stream) return;
+    var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var lines = stream.querySelectorAll(".ls-line");
+    var texts = [];
+    lines.forEach(function (l) {
+      texts.push(l.getAttribute("data-text") || "");
+    });
+    // Reveal immediately (no delay — visitor needs to see the text on the entry scene)
+    requestAnimationFrame(function () {
+      stream.classList.add("is-on");
+    });
+    if (prefersReduced) {
+      lines.forEach(function (l, i) {
+        l.textContent = texts[i];
+      });
+      return;
+    }
+    var lineIdx = 0;
+    var charIdx = 0;
+    function typeNext() {
+      if (lineIdx >= lines.length) return;
+      var line = lines[lineIdx];
+      var target = texts[lineIdx];
+      if (charIdx === 0) line.classList.add("ls-active");
+      if (charIdx <= target.length) {
+        line.textContent = target.substring(0, charIdx);
+        charIdx++;
+        var delay = 28 + Math.random() * 26;
+        if (target.charAt(charIdx - 1) === ">") delay = 90;
+        setTimeout(typeNext, delay);
+      } else {
+        line.classList.remove("ls-active");
+        lineIdx++;
+        charIdx = 0;
+        setTimeout(typeNext, 280);
+      }
+    }
+    // Start typing 600ms after page load (gives the shader a beat to settle in)
+    setTimeout(typeNext, 600);
+    // Fade out when loader is fully done
+    window.addEventListener("loaderDone", function () {
+      setTimeout(function () {
+        stream.classList.add("is-fade");
+      }, 200);
+    });
+  })();
+
+  // ── ENTRY-SCENE WORK-COLLAGE — top-level cursor reveal + auto-pan, runs from page load (backs Enter gate too).
+  // Removed cleanly when the loader sequence completes; home page has its own #work-collage that takes over.
+  (function () {
+    var lc = document.getElementById("loader-collage");
+    if (!lc) return;
+    var prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReduced) return;
+    var t0 = performance.now();
+    var userTook = false;
+    var lastUserMove = 0;
+    function tick(now) {
+      if (!lc.parentNode) return;
+      var elapsed = (now - t0) / 1000;
+      var w = window.innerWidth,
+        h = window.innerHeight;
+      if (userTook && now - lastUserMove < 1200) {
+        // already set by mousemove handler
+      } else {
+        var cx = (0.5 + 0.32 * Math.sin(elapsed * 0.4)) * w;
+        var cy = (0.5 + 0.22 * Math.sin(elapsed * 0.62)) * h;
+        lc.style.setProperty("--lcx", cx + "px");
+        lc.style.setProperty("--lcy", cy + "px");
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+    document.addEventListener(
+      "mousemove",
+      function (e) {
+        userTook = true;
+        lastUserMove = performance.now();
+        lc.style.setProperty("--lcx", e.clientX + "px");
+        lc.style.setProperty("--lcy", e.clientY + "px");
+      },
+      { passive: true }
+    );
+    // When the loader sequence finishes, fade + remove so home page's own work-collage takes over
+    window.addEventListener("loaderDone", function () {
+      setTimeout(function () {
+        // Backdrop fades out first so home reveals smoothly
+        var backdrop = document.getElementById("enter-backdrop");
+        if (backdrop) {
+          backdrop.style.transition = "opacity 0.6s ease";
+          backdrop.style.opacity = "0";
+          setTimeout(function () {
+            if (backdrop.parentNode) backdrop.remove();
+          }, 700);
+        }
+        if (!lc || !lc.parentNode) return;
+        lc.style.transition = "opacity 0.6s ease";
+        lc.style.opacity = "0";
+        setTimeout(function () {
+          if (lc && lc.parentNode) lc.remove();
+        }, 700);
+      }, 200);
+    });
+  })();
+
+  (function () {
+    var loader = document.getElementById("site-loader");
+    if (!loader) return;
+
+    var enterGate = document.getElementById("enter-gate");
+    var enterBtn = document.getElementById("enter-btn");
+    var enterLabel = document.getElementById("enter-label");
+
+    // Loader gate — once a visitor has gone through Enter + cube once, never replay it.
+    // We use localStorage (persists across tabs/sessions) instead of sessionStorage (per-tab),
+    // because the previous behavior re-played the cube every time someone came back to home
+    // from another page in a fresh tab. localStorage means: first visit ever → see the show;
+    // every visit after that (today, tomorrow, next month) → skip straight to the desk.
+    // Legacy sessionStorage flag honored too, in case someone has it from before.
+    if (localStorage.getItem("sid_loaded") || sessionStorage.getItem("sid_loaded")) {
+      if (enterGate) enterGate.remove();
+      loader.remove();
+      // Defer to next tick so listeners attached later in the document still receive it
+      window.__loaderInstantDone = true;
+      setTimeout(function () {
+        window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: true } }));
+      }, 0);
+      return;
+    }
+
+    // Wait for Enter click
+    function onEnter() {
+      try {
+        localStorage.setItem("sid_loaded", "1");
+      } catch (_) {
+        // Private mode or storage full — fall back to sessionStorage so at least within
+        // this tab the loader doesn't replay between page nav (the original behavior).
+        sessionStorage.setItem("sid_loaded", "1");
+      }
+
+      function proceed() {
+        if (enterGate) enterGate.remove();
+        // The threshold is now the whole opening. Do not make a visitor pass
+        // through a second video scene with a black matte and tiny work cards
+        // before they can reach the site. The portal resolves straight into the
+        // portfolio; the main home scene supplies the cinematic continuation.
+        if (loader && loader.parentNode) loader.remove();
+        window.__loaderInstantDone = true;
+        window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: true } }));
+      }
+
+      // The Buddha resolves into the portfolio with one brief, contained motion.
+      // It is a transition cue, not a second loading sequence.
+      if (window.__buddhaCollapse && !(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)) {
+        window.__buddhaCollapse(proceed);
+      } else {
+        proceed();
+      }
+    }
+    // Wire mobile enter button
+    var mobileBtn = document.getElementById("enter-btn-mobile");
+    if (mobileBtn) mobileBtn.addEventListener("click", onEnter);
+    if (enterLabel) {
+      enterLabel.addEventListener("click", function () {
+        if (enterBtn) enterBtn.click();
+      });
+    }
+
+    if (enterBtn) {
+      enterBtn.addEventListener("click", onEnter);
+      // Keyboard: Enter or Space anywhere triggers entry while gate is showing
+      var keyHandler = function (e) {
+        if (document.activeElement && document.activeElement.id === "skip-intro") return;
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+          // Don't fire if user is typing in an input (defensive — no inputs on this scene, but safe)
+          var tag = document.activeElement && document.activeElement.tagName;
+          if (tag === "INPUT" || tag === "TEXTAREA") return;
+          e.preventDefault();
+          onEnter();
+          window.removeEventListener("keydown", keyHandler);
+        }
+      };
+      window.addEventListener("keydown", keyHandler);
+    }
+
+    function startLoader() {
+      setTimeout(function () {
+        if (loader && loader.parentNode) {
+          loader.remove();
+          window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: true } }));
+        }
+      }, 25000);
+
+      var videoPhase = document.getElementById("sl-video-phase");
+      var video = document.getElementById("sl-video");
+      var hello = document.getElementById("sl-hello");
+      var loadingPhase = document.getElementById("sl-loading-phase");
+      var loadingVideo = document.getElementById("sl-loading-video");
+      var memoryTiles = Array.prototype.slice.call(document.querySelectorAll(".sl-memory-tile"));
+
+      function hydrateVideo(media) {
+        if (!media || media.getAttribute("src") || !media.dataset.src) return;
+        media.src = media.dataset.src;
+        media.removeAttribute("data-src");
+        media.load();
+      }
+
+      // The first cinematic request begins only after the explicit Enter gesture.
+      // The handoff animation waits until phase two, so neither video competes
+      // with the initial Buddha/model render or a return visitor's first paint.
+      hydrateVideo(video);
+
+      // The cards are intentionally deferred until someone chooses Enter. Each
+      // optimized image is only a few kilobytes, but waiting preserves the
+      // first-frame calm of the entry gate and avoids requests on mobile.
+      if (window.matchMedia && !window.matchMedia("(max-width: 700px), (prefers-reduced-motion: reduce)").matches) {
+        memoryTiles.forEach(function (tile, index) {
+          setTimeout(
+            function () {
+              var image = tile.querySelector("img[data-src]");
+              if (!image) return;
+              function reveal() {
+                tile.classList.add("is-visible");
+              }
+              image.addEventListener("load", reveal, { once: true });
+              image.addEventListener("error", reveal, { once: true });
+              image.src = image.dataset.src;
+              image.removeAttribute("data-src");
+              if (image.complete) reveal();
+            },
+            400 + index * 600
+          );
+        });
+      }
+
+      // (typing.mp3 sound removed — Hello/scramble effect doesn't need it)
+
+      // Loader dust particles
+      (function () {
+        var dc = document.getElementById("loader-dust");
+        if (!dc) return;
+        var ctx = dc.getContext("2d");
+        dc.width = window.innerWidth;
+        dc.height = window.innerHeight;
+        var dots = [];
+        for (var d = 0; d < 40; d++) {
+          dots.push({
+            x: Math.random() * dc.width,
+            y: Math.random() * dc.height,
+            r: 0.5 + Math.random() * 1.5,
+            vx: (Math.random() - 0.5) * 0.3,
+            vy: -0.1 - Math.random() * 0.2,
+            a: 0.15 + Math.random() * 0.25,
+          });
+        }
+        function drawDust() {
+          ctx.clearRect(0, 0, dc.width, dc.height);
+          dots.forEach(function (p) {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.y < -10) {
+              p.y = dc.height + 10;
+              p.x = Math.random() * dc.width;
+            }
+            if (p.x < -10) p.x = dc.width + 10;
+            if (p.x > dc.width + 10) p.x = -10;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(255,255,255," + p.a + ")";
+            ctx.fill();
+          });
+          if (document.getElementById("loader-dust")) requestAnimationFrame(drawDust);
+        }
+        drawDust();
+      })();
+
+      // Phase 1: Video + typewriter
+      videoPhase.classList.add("active");
+      video.play().catch(function () {});
+
+      // Intro stream is now top-level (runs from page load, visible during Enter scene + cube animation)
+
+      var lines = [
+        { text: "Hello, I'm Sid.", startAt: 800 },
+        { text: "Designer × Creative Technologist", startAt: 3500 },
+        { text: "Start with the work.", startAt: 6200 },
+      ];
+
+      // Onboarding icons reveal — all 4 icons stagger in across the cube animation,
+      // even though we only have 2 typewriter lines. Was: only first 2 icons appeared.
+      var iconIds = ["sl-icon-1", "sl-icon-2", "sl-icon-3", "sl-icon-4"];
+      // Reveal the complete site map before the handoff, even on connections
+      // where the source video finishes faster than its nominal duration.
+      var iconDelays = [600, 1050, 1500, 1950];
+      iconIds.forEach(function (id, idx) {
+        setTimeout(function () {
+          var ic = document.getElementById(id);
+          if (ic) {
+            ic.classList.add("show");
+            var item = document.getElementById("sl-item-" + (idx + 1));
+            if (item) item.classList.add("is-visible");
+          }
+        }, iconDelays[idx]);
+      });
+
+      // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
+      // Replaces the typewriter; reads as a creative-tech / hacker reveal that suits the Inter 200 face.
+      var SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?#@*<>/\\";
+      function scrambleTo(el, target, opts) {
+        opts = opts || {};
+        var duration = opts.duration || 900;
+        var fps = 30;
+        var totalFrames = Math.round((duration / 1000) * fps);
+        var startTime = performance.now();
+        // Per-char: assign a random "settle frame" so chars resolve at staggered times
+        var settleFrames = [];
+        for (var i = 0; i < target.length; i++) {
+          settleFrames.push(Math.floor(totalFrames * (0.3 + 0.65 * (i / Math.max(1, target.length - 1)))));
+        }
+        function frame(now) {
+          var elapsed = now - startTime;
+          var f = Math.floor((elapsed / 1000) * fps);
+          if (f >= totalFrames) {
+            el.textContent = target;
+            if (opts.done) opts.done();
+            return;
+          }
+          var out = "";
+          for (var i = 0; i < target.length; i++) {
+            if (f >= settleFrames[i]) {
+              out += target[i];
+            } else if (target[i] === " ") {
+              out += " ";
+            } else {
+              out += SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)];
+            }
+          }
+          el.textContent = out;
+          requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+
+      lines.forEach(function (line, idx) {
+        setTimeout(function () {
+          // Fade out previous (opacity 0 + heavy blur).
+          hello.style.transition = "opacity 0.35s ease, filter 0.35s ease";
+          hello.style.opacity = "0";
+          hello.style.filter = "blur(8px)";
+          setTimeout(function () {
+            // SCRAMBLE PHASE: low opacity + light blur so the cycling random characters are visible
+            // but quiet — they don't steal attention while the text is still forming.
+            hello.style.transition = "none";
+            hello.style.opacity = "0.32";
+            hello.style.filter = "blur(3px)";
+            scrambleTo(hello, line.text, {
+              duration: 900,
+              done: function () {
+                // RESOLVE PHASE: text has fully formed. Smoothly ramp opacity → 1 and unblur.
+                hello.style.transition = "opacity 0.7s var(--ease-out), filter 0.7s ease";
+                hello.style.opacity = "1";
+                hello.style.filter = "blur(0)";
+              },
+            });
+          }, 350);
+        }, line.startAt);
+      });
+
+      // When the cube video ends, fade the Hello text out so it doesn't linger past the cube exit
+      var fadeHelloOnVideoEnd = function () {
+        hello.style.transition = "opacity 0.5s ease, filter 0.5s ease";
+        hello.style.opacity = "0";
+        hello.style.filter = "blur(6px)";
+      };
+
+      // Video ends → loading animation → dissolve
+      var videoEnded = false;
+      var loadingEnded = false;
+
+      function onLoadingEnd() {
+        if (loadingEnded) return;
+        loadingEnded = true;
+        loader.classList.remove("is-running");
+        video.pause();
+        loadingVideo.pause();
+        // Brief hold, then dissolve
+        setTimeout(function () {
+          loader.style.transition = "opacity 0.8s ease";
+          loader.style.opacity = "0";
+
+          setTimeout(function () {
+            if (loader.parentNode) loader.remove();
+            window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: false } }));
+          }, 800);
+        }, 200);
+      }
+
+      var skipButton = document.getElementById("loader-skip");
+      if (skipButton) skipButton.addEventListener("click", onLoadingEnd, { once: true });
+
+      function onVideoEnd() {
+        if (videoEnded) return;
+        videoEnded = true;
+        videoPhase.classList.remove("active");
+        videoPhase.classList.add("exit");
+        // Fade Hello out — it overstayed its welcome past the cube exit
+        fadeHelloOnVideoEnd();
+        // Fade out the intro stream as we move to phase 2
+        var stream = document.getElementById("loader-stream");
+        if (stream) stream.classList.add("is-fade");
+        video.pause();
+        hydrateVideo(loadingVideo);
+        loadingPhase.classList.add("active");
+        loadingVideo.play().catch(function () {});
+
+        loadingVideo.addEventListener("ended", onLoadingEnd);
+        // Fallback: clamp duration to 5.5s in case 'ended' doesn't fire
+        setTimeout(onLoadingEnd, 5500);
+      }
+
+      video.addEventListener("ended", onVideoEnd);
+      setTimeout(onVideoEnd, 11000);
+    } // end startLoader
+  })();
+</script>
+
     <header class="studio-nav" aria-label="Primary navigation">
   <a class="studio-mark" href="/" aria-label="Sid Mehta, home">
-    <!-- Sid's navigation mark — a quiet two-dimensional face. -->
+    <!-- Sid's navigation mark — rests as a layered cube-of-creation with a quiet
+     two-eye face, then assembles + spins into a full cube on hover. -->
 <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false">
-  <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect>
+  <!-- Persistent depth face: a subtle offset plane behind the front so the mark
+       reads as a dimensional cube even at rest, not a flat square. -->
+  <rect class="logo-depth" x="10" y="10" width="20" height="20" rx="2.4" fill="#0a111c" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.2"></rect>
+  <!-- Faces that fade + slide into alignment on hover (styled in cursor_fluid). -->
+  <rect class="cube-face cube-top" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect>
+  <rect class="cube-face cube-right" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect>
+  <!-- The resting front face. -->
+  <rect class="cube-front" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect>
   <g class="logo-gaze">
-    <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect>
-    <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect>
+    <rect class="logo-eye" x="12.15" y="13.4" width="1.7" height="7.2" rx="0.85" fill="#e7f1ff"></rect>
+    <rect class="logo-eye" x="19.15" y="13.4" width="1.7" height="7.2" rx="0.85" fill="#e7f1ff"></rect>
   </g>
-  <path class="logo-scan" d="M12 25h12"></path>
+  <path class="logo-scan" d="M12.4 24h8.2"></path>
 </svg>
 
     <span class="studio-mark-label">Sid Mehta</span>
@@ -1396,6 +3363,7 @@
           <source src="/assets/video/sid_pixelated.mp4" type="video/mp4"></source>
         </video>
       </div>
+      <canvas class="home-gl" id="home-gl" aria-hidden="true"></canvas>
       <p class="home-hint" id="home-hint" aria-hidden="true">Move to reveal ✦</p>
 
       <section class="home-project-focus" id="home-project-focus" aria-live="polite">
@@ -1418,10 +3386,11 @@
             <span class="home-creds__go" aria-hidden="true">↗</span>
           </a>
         </div>
-        <h1 id="home-title">I turn <span class="home-typewriter" id="home-typewriter">complex technology</span> into clear, useful experiences.</h1>
-        <p class="home-proof" id="home-proof" aria-live="polite">11 local AI experiments · 25 artworks activated at The Met</p>
+        <h1 id="home-title">I turn complex technology into <span class="home-title__accent">clear, useful experiences.</span>
+</h1>
+        <p class="home-proof" id="home-proof" aria-live="polite"><span class="home-proof__line" id="home-proof-line">6 yrs shipping product · 14 projects · 25 artworks activated at The Met</span></p>
         <div class="home-actions">
-          <a href="/works/">See selected work</a>
+          <a class="home-actions__primary" href="/works/">See selected work <span aria-hidden="true">→</span></a>
           <button type="button" id="home-showreel" aria-haspopup="dialog" aria-controls="home-reel-modal">
             Play showreel <span aria-hidden="true">↗</span>
           </button>
@@ -1431,31 +3400,36 @@
 
       <nav class="home-projects" aria-label="Featured projects">
         <a class="home-project" href="/mool/" data-title="Mool" data-meta="Product design · Fintech · Kyoorius winner" data-description="A culturally resonant banking experience that made long term financial decisions understandable for first time investors." data-image="/assets/img/work-previews/mool/cover.webp">
-          <img src="/assets/img/work-previews/mool/cover.webp" alt="">
-          <span>Mool</span>
+          <span class="home-project__disc"><img src="/assets/img/work-previews/mool/cover.webp" alt=""></span>
+          <span class="home-project__label"><i>01</i>Mool</span>
         </a>
         <a class="home-project" href="/ai-prototypes/" data-title="AI Prototypes" data-meta="Local AI · WebGPU · 11 live experiments" data-description="Browser based prototypes exploring how AI can feel visible, controllable, and useful in an interface." data-image="/assets/img/ai-proto-cover.jpg">
-          <img src="/assets/img/ai-proto-cover.jpg" alt="">
-          <span>AI Prototypes</span>
+          <span class="home-project__disc"><img src="/assets/img/ai-proto-cover.jpg" alt=""></span>
+          <span class="home-project__label"><i>02</i>AI Prototypes</span>
         </a>
         <a class="home-project" href="/encoded/" data-title="Encoded" data-meta="Spatial interaction · The Met · 2,000+ activations" data-description="An augmented reality exhibition that activated twenty five artworks at The Metropolitan Museum of Art." data-image="/1.met/0.png">
-          <img src="/1.met/0.png" alt="">
-          <span>Encoded</span>
+          <span class="home-project__disc"><img src="/1.met/0.png" alt=""></span>
+          <span class="home-project__label"><i>03</i>Encoded</span>
         </a>
       </nav>
 
       <div class="home-reel-modal" id="home-reel-modal" role="dialog" aria-modal="true" aria-labelledby="home-reel-label" aria-hidden="true">
         <button class="home-reel-modal__close" id="home-reel-close" type="button" aria-label="Close showreel">×</button>
-        <video class="home-reel-modal__video" id="home-reel-video" controls playsinline preload="metadata">
-          <source src="/assets/video/cube_gettingup-web.mp4" type="video/mp4"></source>
-        </video>
+        <div class="home-reel-modal__frame">
+          <!-- The ~1:20 work compilation, streamed from Vimeo (restored from an
+               earlier version). data-src loads only when the modal opens, so it
+               never downloads on page load. To swap the reel, change the Vimeo
+               id below (or point at the GitHub Release mp4:
+               github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4). -->
+          <iframe class="home-reel-modal__video" id="home-reel-iframe" data-src="https://player.vimeo.com/video/1185323166?autoplay=1&amp;badge=0&amp;autopause=0&amp;title=0&amp;byline=0&amp;portrait=0&amp;dnt=1" title="Sid Mehta · showreel" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+        </div>
         <p class="home-reel-modal__label" id="home-reel-label">Sid Mehta · showreel</p>
       </div>
 
       <svg width="0" height="0" aria-hidden="true" focusable="false">
         <filter id="home-liquify" x="-18%" y="-18%" width="136%" height="136%">
-          <feturbulence type="fractalNoise" basefrequency="0.012 0.028" numoctaves="2" seed="17" result="noise"></feturbulence>
-          <fedisplacementmap in="SourceGraphic" in2="noise" scale="22" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
+          <feturbulence type="fractalNoise" basefrequency="0.014 0.032" numoctaves="2" seed="17" result="noise"></feturbulence>
+          <fedisplacementmap in="SourceGraphic" in2="noise" scale="52" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
         </filter>
       </svg>
     </main>
@@ -1471,11 +3445,10 @@
         const focusMeta = document.getElementById("home-focus-meta");
         const focusDescription = document.getElementById("home-focus-description");
         const focusLink = document.getElementById("home-focus-link");
-        const typewriter = document.getElementById("home-typewriter");
         const proof = document.getElementById("home-proof");
         const showreelButton = document.getElementById("home-showreel");
         const reelModal = document.getElementById("home-reel-modal");
-        const reelVideo = document.getElementById("home-reel-video");
+        const reelIframe = document.getElementById("home-reel-iframe");
         const reelClose = document.getElementById("home-reel-close");
         const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
         let held = false;
@@ -1499,7 +3472,7 @@
           const masks = brush
             .map((point, index) => {
               const age = index / Math.max(1, brush.length - 1);
-              const radius = 4.8 + age * 5.8 + point.holdAge * 10.5;
+              const radius = 6.6 + age * 7.4 + point.holdAge * 15;
               const width = radius * (1.05 + point.seed * 0.55);
               const height = radius * (0.42 + point.seed * 0.35);
               const offset = radius * 0.28;
@@ -1598,35 +3571,28 @@
           realFilm.style.maskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)";
         }
 
-        const typeLines = ["complex technology", "local AI prototypes", "products with feeling", "systems for social change"];
+        // Rotating proof/stat line — a smooth crossfade on its own block, so
+        // nothing in the headline ever reflows. Replaces the old per-character
+        // typewriter that shoved the headline between one and two lines.
+        const proofLine = document.getElementById("home-proof-line");
         const proofLines = [
-          "11 local AI experiments · 25 artworks activated at The Met",
-          "100k+ Mool downloads · Kyoorius winner",
-          "Designing for emotion, culture, and useful change",
+          "6 yrs shipping product · 14 projects · 25 artworks activated at The Met",
+          "100k+ Mool downloads · Kyoorius Design Award winner",
           "Deloitte Digital · EyeJack · Philips · The Met",
+          "Designing for emotion, culture, and useful change",
         ];
-        let lineIndex = 0;
-        let charIndex = typeLines[0].length;
-        let deleting = true;
-        let pauseUntil = performance.now() + 1800;
-        function typeTick(now) {
-          if (now >= pauseUntil) {
-            const target = typeLines[lineIndex];
-            if (deleting) charIndex -= 1;
-            else charIndex += 1;
-            typewriter.textContent = target.slice(0, charIndex);
-            if (deleting && charIndex <= 0) {
-              deleting = false;
-              lineIndex = (lineIndex + 1) % typeLines.length;
-              proof.textContent = proofLines[lineIndex];
-            } else if (!deleting && charIndex >= target.length) {
-              deleting = true;
-              pauseUntil = now + 1700;
-            }
-          }
-          requestAnimationFrame(typeTick);
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (proofLine && !reduceMotion) {
+          let pIndex = 0;
+          setInterval(() => {
+            pIndex = (pIndex + 1) % proofLines.length;
+            proofLine.classList.add("is-swapping");
+            setTimeout(() => {
+              proofLine.textContent = proofLines[pIndex];
+              proofLine.classList.remove("is-swapping");
+            }, 520);
+          }, 4200);
         }
-        requestAnimationFrame(typeTick);
 
         function showProject(project) {
           focusImage.src = project.dataset.image;
@@ -1657,13 +3623,14 @@
           reelModal.setAttribute("aria-hidden", "false");
           document.body.style.overflow = "hidden";
           reelClose.focus();
-          reelVideo.currentTime = 0;
-          reelVideo.play().catch(() => {});
+          // Load (and autoplay) the Vimeo stream only now, so it never costs
+          // bandwidth on page load.
+          if (reelIframe && !reelIframe.src) reelIframe.src = reelIframe.dataset.src;
         }
 
         function closeReel() {
-          reelVideo.pause();
-          reelVideo.currentTime = 0;
+          // Clearing src stops playback and frees the stream.
+          if (reelIframe) reelIframe.src = "";
           reelModal.classList.remove("is-open");
           reelModal.setAttribute("aria-hidden", "true");
           document.body.style.overflow = "";
@@ -1678,6 +3645,197 @@
         document.addEventListener("keydown", (event) => {
           if (event.key === "Escape" && reelModal?.classList.contains("is-open")) closeReel();
         });
+      })();
+    </script>
+
+    <script>
+      // ── Generative WebGL field ──
+      // A real-time fragment shader: domain-warped fbm noise flowing through the
+      // hero in the three pillar colours, brightening around the cursor. Additive
+      // (screen-blended) over the dark film — it only ever adds light. Skipped for
+      // reduced-motion or if WebGL is unavailable.
+      (function () {
+        var canvas = document.getElementById("home-gl");
+        if (!canvas) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: true, antialias: true });
+        if (!gl) return;
+
+        var vsrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
+        var fsrc = [
+          "precision highp float;",
+          "uniform vec2 u_res; uniform float u_time; uniform vec2 u_mouse; uniform float u_mdown;",
+          "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }",
+          "float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);",
+          "  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x), u.y); }",
+          "float fbm(vec2 p){ float v=0.0, a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=p*2.0+vec2(37.0,17.0); a*=0.5; } return v; }",
+          "void main(){",
+          "  vec2 uv = gl_FragCoord.xy/u_res.xy;",
+          "  vec2 asp = vec2(u_res.x/u_res.y, 1.0);",
+          "  vec2 q = uv*asp;",
+          "  float t = u_time*0.05;",
+          "  vec2 w = vec2(fbm(q*2.2 + vec2(0.0,t)), fbm(q*2.2 + vec2(5.2,-t)));",
+          "  float f = fbm(q*2.6 + w*1.8 + vec2(t*0.6, -t*0.4));",
+          "  vec2 m = u_mouse*asp;",
+          "  float md = distance(q, m);",
+          "  float glow = smoothstep(0.5, 0.0, md) * (0.35 + u_mdown*0.5);",
+          "  f += glow*0.6;",
+          "  vec3 blue = vec3(0.30,0.52,1.0);",
+          "  vec3 violet = vec3(0.66,0.44,1.0);",
+          "  vec3 amber = vec3(1.0,0.55,0.30);",
+          "  vec3 col = mix(blue, violet, smoothstep(0.35,0.62,f));",
+          "  col = mix(col, amber, smoothstep(0.62,0.86,f));",
+          "  float intensity = pow(smoothstep(0.32,0.9,f), 1.6) + glow*0.5;",
+          "  col *= intensity;",
+          "  float a = clamp(intensity*0.5, 0.0, 0.85);",
+          "  gl_FragColor = vec4(col*a, a);",
+          "}"
+        ].join("\n");
+
+        function compile(type, src){ var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
+        var prog = gl.createProgram();
+        gl.attachShader(prog, compile(gl.VERTEX_SHADER, vsrc));
+        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsrc));
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+        var buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+        var loc = gl.getAttribLocation(prog, "p");
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+        var uRes = gl.getUniformLocation(prog,"u_res"), uTime = gl.getUniformLocation(prog,"u_time"),
+            uMouse = gl.getUniformLocation(prog,"u_mouse"), uMdown = gl.getUniformLocation(prog,"u_mdown");
+        gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+        var DPR = Math.min(window.devicePixelRatio||1, 2);
+        function resize(){ var w=canvas.clientWidth||window.innerWidth, h=canvas.clientHeight||window.innerHeight; canvas.width=Math.round(w*DPR); canvas.height=Math.round(h*DPR); gl.viewport(0,0,canvas.width,canvas.height); }
+        resize(); window.addEventListener("resize", resize);
+        var mouse=[0.5,0.55], tmouse=[0.5,0.55], mdown=0;
+        window.addEventListener("pointermove", function(e){ tmouse=[e.clientX/window.innerWidth, 1.0-e.clientY/window.innerHeight]; });
+        window.addEventListener("pointerdown", function(){ mdown=1; });
+        window.addEventListener("pointerup", function(){ mdown=0; });
+        var start=null;
+        function render(now){ if(start===null) start=now; var t=(now-start)/1000;
+          mouse[0]+=(tmouse[0]-mouse[0])*0.06; mouse[1]+=(tmouse[1]-mouse[1])*0.06;
+          gl.uniform2f(uRes, canvas.width, canvas.height); gl.uniform1f(uTime, t);
+          gl.uniform2f(uMouse, mouse[0], mouse[1]); gl.uniform1f(uMdown, mdown);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+          requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+      })();
+    </script>
+
+    <!-- ── KINETIC HEADLINE ──────────────────────────────────────────────
+         Each glyph in the headline is an inline-block that springs away from
+         the cursor and settles back. The kick scales with pointer *velocity*,
+         so a slow drift parts the letters gently while a fast flick throws
+         them — physics, not a canned animation. Progressive enhancement:
+         with JS off or reduced-motion on, the headline is plain text. -->
+    <script>
+      (() => {
+        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        const title = document.getElementById("home-title");
+        if (reduce || !fine || !title) return;
+
+        const letters = [];
+        // Rebuild the heading as word spans (kept whole for wrapping) of
+        // per-letter spans, preserving the accent phrase's styling.
+        const segments = [];
+        title.childNodes.forEach((node) => {
+          if (node.nodeType === 3) segments.push({ text: node.textContent, accent: false });
+          else segments.push({ text: node.textContent, accent: node.classList && node.classList.contains("home-title__accent") });
+        });
+        title.textContent = "";
+        segments.forEach((seg) => {
+          seg.text.split(/(\s+)/).forEach((chunk) => {
+            if (chunk === "") return;
+            if (/^\s+$/.test(chunk)) {
+              title.appendChild(document.createTextNode(" "));
+              return;
+            }
+            const word = document.createElement("span");
+            word.className = "ht-w";
+            for (const ch of chunk) {
+              const s = document.createElement("span");
+              s.className = "ht-l" + (seg.accent ? " home-title__accent" : "");
+              s.textContent = ch;
+              s.setAttribute("aria-hidden", "true");
+              word.appendChild(s);
+              letters.push({ el: s, ox: 0, oy: 0, vx: 0, vy: 0, rot: 0, vr: 0, cx: 0, cy: 0 });
+            }
+            title.appendChild(word);
+          });
+        });
+
+        function measure() {
+          for (const L of letters) L.el.style.transform = "";
+          for (const L of letters) {
+            const r = L.el.getBoundingClientRect();
+            L.cx = r.left + r.width / 2;
+            L.cy = r.top + r.height / 2;
+          }
+        }
+        measure();
+        window.addEventListener("resize", measure);
+        window.addEventListener("scroll", measure, { passive: true });
+
+        const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, active: false, t: 0 };
+        window.addEventListener("pointermove", (e) => {
+          pointer.vx = e.clientX - pointer.x;
+          pointer.vy = e.clientY - pointer.y;
+          pointer.x = e.clientX;
+          pointer.y = e.clientY;
+          pointer.active = true;
+        });
+        window.addEventListener("pointerout", () => (pointer.active = false));
+
+        const R = 132,
+          stiffness = 0.055,
+          damping = 0.8,
+          rotStiff = 0.05,
+          rotDamp = 0.82;
+
+        function frame() {
+          const speed = Math.min(70, Math.hypot(pointer.vx, pointer.vy));
+          pointer.vx *= 0.55;
+          pointer.vy *= 0.55;
+          for (const L of letters) {
+            if (pointer.active) {
+              const dx = L.cx + L.ox - pointer.x;
+              const dy = L.cy + L.oy - pointer.y;
+              const d = Math.hypot(dx, dy);
+              if (d < R) {
+                const f = 1 - d / R;
+                const dir = d || 1;
+                const push = f * (0.55 + speed * 0.22);
+                L.vx += (dx / dir) * push;
+                L.vy += (dy / dir) * push;
+                L.vr += (dx * pointer.vy - dy * pointer.vx) * 0.00007 * f;
+              }
+            }
+            L.vx += -stiffness * L.ox;
+            L.vy += -stiffness * L.oy;
+            L.vx *= damping;
+            L.vy *= damping;
+            L.ox += L.vx;
+            L.oy += L.vy;
+            L.vr += -rotStiff * L.rot;
+            L.vr *= rotDamp;
+            L.rot += L.vr;
+            if (Math.abs(L.ox) < 0.02 && Math.abs(L.oy) < 0.02 && Math.abs(L.rot) < 0.02 && Math.abs(L.vx) < 0.02 && Math.abs(L.vy) < 0.02) {
+              if (L.el.style.transform) L.el.style.transform = "";
+            } else {
+              L.el.style.transform = "translate(" + L.ox.toFixed(2) + "px," + L.oy.toFixed(2) + "px) rotate(" + L.rot.toFixed(2) + "deg)";
+            }
+          }
+          requestAnimationFrame(frame);
+        }
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); requestAnimationFrame(frame); });
+        else requestAnimationFrame(frame);
       })();
     </script>
   </body>

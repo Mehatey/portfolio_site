@@ -1,4 +1,4 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <link rel="icon" type="image/svg+xml" href="/favicon.svg"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta name="view-transition" content="same-origin"> <script>
+<!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <link rel="icon" type="image/svg+xml" href="/favicon.svg"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <script>
   // Theme + cursor bootstrap — runs in <head> before any body paint to avoid flash of wrong theme
   // and to gate cursor: none rules. Saved theme wins; otherwise honor OS preference.
   (function () {
@@ -35,11 +35,10 @@
     var mo = new MutationObserver(syncThemeColor);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   })();
-</script> <title>Play · Sid Mehta</title> <meta name="description" content="Ninety eight selected experiments in interface, interaction, installation, image, and creative technology by Sid Mehta."> <link rel="canonical" href="https://siddharthmehta.design/play/"> <meta property="og:title" content="Play · Sid Mehta"> <meta property="og:description" content="A spatial archive of experiments, images, and creative technology."> <meta property="og:type" content="website"> <meta property="og:url" content="https://siddharthmehta.design/play/"> <meta property="og:image" content="https://siddharthmehta.design/play/assets/spatial/p1.webp"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap"> <script type="importmap">
+</script> <title>Play · Sid Mehta</title> <meta name="description" content="A spatial toy box of ninety eight experiments, images, and creative-technology pieces by Sid Mehta — drift through them in 3D."> <link rel="canonical" href="https://siddharthmehta.design/play/"> <meta property="og:title" content="Play · Sid Mehta"> <meta property="og:description" content="Drift through a 3D cloud of experiments and images."> <meta property="og:image" content="https://siddharthmehta.design/play/assets/hi/p1.webp"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap"> <script type="importmap">
       {
         "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js"
         }
       }
     </script> <style>
@@ -177,126 +176,67 @@
     }
   }
 </style> <style>
-      :root { color-scheme: dark; --play-ink: #f4f7fb; --play-muted: rgba(223, 231, 241, 0.62); }
+      :root { color-scheme: dark; --play-ink: #f4f7fb; --play-muted: rgba(223, 231, 241, 0.62); --gutter: clamp(20px, 4vw, 64px); }
       *, *::before, *::after { box-sizing: border-box; }
-      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #020409; color: var(--play-ink); }
+      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #04070d; color: var(--play-ink); }
       body { font-family: "Figtree", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
       .skip-link { position: fixed; z-index: 10000; top: 8px; left: 50%; padding: 10px 14px; background: #fff; color: #05070b; transform: translate(-50%, -180%); }
       .skip-link:focus { transform: translate(-50%, 0); }
 
-      .play-stage { position: fixed; inset: 0; isolation: isolate; background: radial-gradient(circle at 50% 48%, #101c2d 0%, #050811 34%, #020409 74%); }
-      .play-stage::after { display: none; }
+      .play-stage { position: fixed; inset: 0; isolation: isolate; background: radial-gradient(circle at 50% 46%, #0e1a2b 0%, #060a14 40%, #04070d 78%); }
       #play-canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
-      #play-canvas:active { cursor: grabbing; }
-      .play-header {
-        position: fixed;
-        z-index: 20;
-        top: 105px;
-        left: clamp(22px, 4vw, 66px);
-        width: min(270px, 21vw);
-        pointer-events: none;
+      #play-canvas.is-grabbing { cursor: grabbing; }
+      #play-canvas.is-over { cursor: pointer; }
+      /* Soft vignette + film grain feel over the scene */
+      .play-stage::after {
+        content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+        background: radial-gradient(120% 100% at 50% 50%, transparent 52%, rgba(2, 4, 8, 0.55) 100%);
       }
-      .play-header h1 { margin: 0; font-size: clamp(46px, 5vw, 72px); font-weight: 390; line-height: 0.98; letter-spacing: -0.035em; }
-      .play-header p { max-width: 28ch; margin: 13px 0 0; color: rgba(228, 236, 246, 0.72); font-size: 14px; line-height: 1.5; text-wrap: pretty; }
-      .play-modes { display: flex; gap: 18px; margin-top: 21px; pointer-events: auto; }
+
+      .play-header { position: fixed; z-index: 20; top: clamp(96px, 13vh, 150px); left: var(--gutter); width: min(300px, 40vw); pointer-events: none; }
+      .play-header h1 { margin: 0; font-size: clamp(58px, 8vw, 120px); font-weight: 430; line-height: 0.86; letter-spacing: -0.045em; }
+      .play-header h1 .ht-l { display: inline-block; will-change: transform; }
+      .play-header p { max-width: 26ch; margin: 15px 0 0; color: rgba(228, 236, 246, 0.7); font-size: 14px; line-height: 1.5; }
+      .play-modes { display: flex; gap: 8px; margin-top: 20px; pointer-events: auto; }
       .play-modes a {
-        min-height: 36px;
-        padding-top: 8px;
-        color: rgba(242, 246, 251, 0.62);
-        border-bottom: 1px solid transparent;
-        font: 500 10px/1.2 "DM Mono", monospace;
-        letter-spacing: 0.05em;
-        text-decoration: none;
-        transition: color 180ms ease, border-color 180ms ease;
+        padding: 7px 13px; border: 1px solid rgba(226, 236, 246, 0.18); border-radius: 999px;
+        color: rgba(242, 246, 251, 0.72); font: 500 10px/1 "DM Mono", monospace; letter-spacing: 0.06em; text-decoration: none;
+        transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
       }
-      .play-modes a[aria-current="page"], .play-modes a:hover, .play-modes a:focus-visible { color: #fff; border-color: currentColor; }
-      .play-instruction,
-      .play-index {
-        position: fixed;
-        z-index: 20;
-        bottom: clamp(24px, 4vh, 42px);
-        color: rgba(225, 234, 244, 0.55);
-        font: 400 10px/1.4 "DM Mono", monospace;
-        letter-spacing: 0.07em;
-        pointer-events: none;
-      }
-      .play-instruction { left: clamp(22px, 4vw, 66px); }
-      .play-index { right: clamp(22px, 4vw, 66px); display: flex; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; }
-      .play-index__bar { width: 86px; height: 1px; overflow: hidden; background: rgba(218, 232, 246, 0.17); }
-      .play-index__bar::after { content: ""; display: block; width: 100%; height: 100%; background: #e8f3ff; transform: scaleX(var(--progress, 0.03)); transform-origin: left; transition: transform 180ms ease-out; }
+      .play-modes a[aria-current="page"] { color: #05070b; background: #eef4fb; border-color: #eef4fb; }
+      .play-modes a:not([aria-current="page"]):hover { color: #fff; border-color: rgba(226, 236, 246, 0.5); }
+
+      .play-hint { position: fixed; z-index: 20; left: var(--gutter); bottom: clamp(24px, 4vh, 42px); color: rgba(225, 234, 244, 0.5); font: 400 10px/1.4 "DM Mono", monospace; letter-spacing: 0.09em; pointer-events: none; transition: opacity 400ms ease; }
+      .play-counter { position: fixed; z-index: 20; right: var(--gutter); bottom: clamp(24px, 4vh, 42px); display: flex; align-items: center; gap: 12px; color: rgba(225, 234, 244, 0.6); font: 400 10px/1.4 "DM Mono", monospace; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; pointer-events: none; }
+
+      /* Floating caption that tracks the hovered / focused piece */
       .play-caption {
-        position: fixed;
-        z-index: 20;
-        bottom: clamp(24px, 4vh, 42px);
-        left: 50%;
-        display: grid;
-        gap: 3px;
-        min-width: 200px;
-        text-align: center;
-        opacity: 0;
-        transform: translate(-50%, 8px);
-        pointer-events: none;
-        transition: opacity 180ms ease, transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
+        position: fixed; z-index: 20; left: 50%; bottom: clamp(60px, 9vh, 96px); transform: translate(-50%, 8px);
+        display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+        opacity: 0; pointer-events: none; transition: opacity 260ms ease, transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       .play-caption.is-visible { opacity: 1; transform: translate(-50%, 0); }
-      .play-caption span { color: rgba(224, 234, 245, 0.66); font: 400 9px/1.3 "DM Mono", monospace; letter-spacing: 0.06em; }
-      .play-caption strong { font-size: 15px; font-weight: 500; }
+      .play-caption span { color: rgba(224, 234, 245, 0.6); font: 400 9px/1.2 "DM Mono", monospace; letter-spacing: 0.14em; text-transform: uppercase; }
+      .play-caption strong { font-size: clamp(16px, 1.8vw, 22px); font-weight: 500; letter-spacing: -0.01em; }
 
-      .play-lightbox {
-        position: fixed;
-        z-index: 9500;
-        inset: 0;
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(250px, 340px);
-        align-items: center;
-        gap: clamp(28px, 5vw, 72px);
-        padding: clamp(72px, 8vw, 120px);
-        background: rgba(1, 3, 7, 0.94);
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 260ms ease, visibility 0s linear 260ms;
-      }
-      .play-lightbox.is-open { opacity: 1; visibility: visible; transition-delay: 0s; }
-      .play-lightbox__media { display: grid; place-items: center; min-width: 0; min-height: 0; }
-      .play-lightbox img { display: block; width: auto; height: auto; max-width: 100%; max-height: 78vh; object-fit: contain; outline: 1px solid rgba(255, 255, 255, 0.12); }
-      .play-lightbox__copy h2 { margin: 0; font-size: clamp(34px, 4vw, 62px); font-weight: 400; line-height: 0.96; letter-spacing: -0.03em; text-wrap: balance; }
-      .play-lightbox__copy p { margin: 17px 0 0; color: var(--play-muted); font-size: 16px; line-height: 1.5; }
-      .play-lightbox button {
-        position: fixed;
-        top: 22px;
-        right: 24px;
-        width: 44px;
-        height: 44px;
-        border: 0;
-        background: transparent;
-        color: #fff;
-        font-size: 25px;
-        cursor: pointer;
-        transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .play-lightbox button:hover, .play-lightbox button:focus-visible { transform: rotate(90deg); }
-      .play-fallback { position: absolute; inset: 96px 18px 18px; z-index: 0; display: none; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; overflow: auto; }
-      .play-fallback img { display: block; width: 100%; height: 260px; object-fit: contain; background: #080b11; }
-      .play-stage.has-fallback .play-fallback { display: grid; }
-      .play-stage.has-fallback #play-canvas { display: none; }
-      .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+      .play-loading { position: fixed; z-index: 25; inset: 0; display: grid; place-items: center; background: #04070d; transition: opacity 600ms ease; }
+      .play-loading.is-done { opacity: 0; pointer-events: none; }
+      .play-loading__bar { width: 160px; height: 2px; background: rgba(255, 255, 255, 0.12); overflow: hidden; border-radius: 2px; }
+      .play-loading__bar::after { content: ""; display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #65b8ff, #c9a2ff, #ffb37a); transform: scaleX(var(--load, 0.02)); transform-origin: left; transition: transform 200ms ease; }
+
+      /* No-WebGL / reduced-motion fallback: a plain responsive grid */
+      .play-fallback { position: absolute; inset: 0; z-index: 5; display: none; padding: clamp(150px, 20vh, 220px) var(--gutter) 60px; overflow-y: auto; }
+      .play-stage.has-fallback #play-canvas, .play-stage.has-fallback .play-hint, .play-stage.has-fallback .play-counter, .play-stage.has-fallback .play-caption { display: none; }
+      .play-stage.has-fallback .play-fallback { display: block; column-width: clamp(220px, 22vw, 320px); column-gap: 16px; }
+      .play-fallback a { display: block; margin: 0 0 16px; border-radius: 10px; overflow: hidden; outline: 1px solid rgba(255,255,255,0.07); break-inside: avoid; }
+      .play-fallback img { display: block; width: 100%; height: auto; }
 
       @media (max-width: 760px) {
-        .play-header { top: 78px; left: 18px; width: 205px; }
-        .play-header h1 { font-size: 48px; }
+        .play-header { top: 84px; width: 62vw; }
         .play-header p { display: none; }
-        .play-modes { margin-top: 10px; }
-        .play-instruction { display: none; }
-        .play-caption { bottom: 54px; }
-        .play-index__bar { width: 48px; }
-        .play-lightbox { grid-template-columns: 1fr; align-content: center; padding: 72px 20px 28px; }
-        .play-lightbox__copy p { font-size: 14px; }
+        .play-hint { display: none; }
       }
-      @media (prefers-reduced-motion: reduce) {
-        .play-instruction { display: none; }
-        .play-caption, .play-index__bar::after, .play-lightbox, .play-lightbox button { transition-duration: 1ms !important; }
-      }
-    </style> </head> <body class="play-page"> <a class="skip-link" href="#play-stage">Skip to Play gallery</a> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-front" x="7" y="7" width="22" height="22" rx="1"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="13" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> <rect class="logo-eye" x="21.5" y="14.2" width="1.5" height="7.6" rx="0.75" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12 25h12"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link" href="/works/" aria-label="Work"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> <span>Work</span> </a> <a class="studio-link is-active" href="/play/" aria-label="Play"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> <span>Play</span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="11" y="2" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="11" y="16" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="2" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__core" x="9" y="9" width="6" height="6" rx="2"></rect> </svg> <span>Contact</span> </a> <a class="studio-link" href="/about/" aria-label="About"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> <span>About</span> </a> </nav> </header> <style>
+    </style> </head> <body class="play-page"> <a class="skip-link" href="#play-canvas">Skip to Play</a> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="logo-depth" x="10" y="10" width="20" height="20" rx="2.4" fill="#0a111c" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.2"></rect> <rect class="cube-face cube-top" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <rect class="cube-face cube-right" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <rect class="cube-front" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="12.15" y="13.4" width="1.7" height="7.2" rx="0.85" fill="#e7f1ff"></rect> <rect class="logo-eye" x="19.15" y="13.4" width="1.7" height="7.2" rx="0.85" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12.4 24h8.2"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link" href="/works/" aria-label="Work"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> <span>Work</span> </a> <a class="studio-link is-active" href="/play/" aria-label="Play"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> <span>Play</span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="11" y="2" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="11" y="16" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="2" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__core" x="9" y="9" width="6" height="6" rx="2"></rect> </svg> <span>Contact</span> </a> <a class="studio-link" href="/about/" aria-label="About"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> <span>About</span> </a> </nav> </header> <style>
   .studio-nav {
     --nav-ink: #f5f7fb;
     position: fixed;
@@ -551,308 +491,294 @@
       transition-duration: 1ms !important;
     }
   }
-</style> <main class="play-stage" id="play-stage"> <canvas id="play-canvas" aria-label="Interactive spatial gallery. Drag or scroll to move through ninety eight pieces."></canvas> <header class="play-header"> <h1>Play</h1> <p>A moving selection of experiments, installations, and prototypes.</p> <nav class="play-modes" aria-label="Play collections"> <a href="/play/" aria-current="page">Experiments</a> <a href="/shot-on-iphone/">Camera roll ↗</a> </nav> </header> <p class="play-instruction">Scroll, drag, or use arrow keys. Select any piece to open it.</p> <div class="play-index" aria-hidden="true"> <span id="play-count">01 / 98</span><span class="play-index__bar" id="play-progress"></span> </div> <div class="play-caption is-visible" id="play-caption" aria-live="polite"> <span>In focus</span><strong id="play-caption-title">Loading archive</strong> </div> <div class="play-fallback" aria-label="Play gallery fallback"></div> <ul class="sr-only" id="play-access-list" aria-label="Play pieces"></ul> </main> <div class="play-lightbox" id="play-lightbox" role="dialog" aria-modal="true" aria-labelledby="play-lightbox-title"> <button type="button" aria-label="Close selected piece">×</button> <div class="play-lightbox__media"><img src="" alt=""></div> <div class="play-lightbox__copy"> <h2 id="play-lightbox-title">Selected experiment</h2> <p>Part of Sid’s ongoing practice across creative technology, image making, and spatial interaction.</p> </div> </div> <script type="module">
+</style> <main class="play-stage" id="play-stage"> <canvas id="play-canvas" aria-label="A 3D cloud of ninety eight pieces. Drag to orbit, scroll to move, click a piece to focus it."></canvas> <header class="play-header"> <h1 id="play-title">Play</h1> <p>A spatial toy box of experiments, images, and creative technology. Push through it.</p> <nav class="play-modes" aria-label="Play collections"> <a href="/play/" aria-current="page">Experiments</a> <a href="/shot-on-iphone/">Camera roll ↗</a> </nav> </header> <p class="play-hint" id="play-hint">Drag to orbit · scroll to move · click a piece</p> <div class="play-counter"> <span id="play-count">98</span> pieces</div> <div class="play-caption" id="play-caption" aria-live="polite"> <span>In focus</span><strong id="play-caption-title"></strong> </div> <div class="play-fallback" id="play-fallback" aria-label="Play gallery"></div> <div class="play-loading" id="play-loading"><div class="play-loading__bar" id="play-loading-bar"></div></div> </main> <script type="module">
       import * as THREE from "three";
-      import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
+      // ── Piece data ──
+      const BASE = "";
       const designGroups = [
-        ["Mool · Product interface", 3],
-        ["AI Prototypes · Local AI", 2],
-        ["Encoded · Spatial AR", 3],
-        ["Bodhi · Spatial AI", 3],
-        ["Mind Your Feelings · Installation", 3],
-        ["Cube of Creations · Character system", 3],
-        ["Bloom; who are you · Interactive installation", 3],
-        ["AI Self · Emerging interface", 3],
-        ["Aananda · Product and brand", 3],
-        ["Naavo · Brand system", 3],
-        ["Illustrations · Visual language", 3],
-        ["Alpha Stockathon · Product design", 3],
-        ["Broken and Beautiful · Editorial system", 3],
-        ["Shot on iPhone · Image and story", 3],
+        ["Mool · Product interface", 3], ["AI Prototypes · Local AI", 2], ["Encoded · Spatial AR", 3],
+        ["Bodhi · Spatial AI", 3], ["Mind Your Feelings · Installation", 3], ["Cube of Creations · Character system", 3],
+        ["Bloom; who are you · Interactive installation", 3], ["AI Self · Emerging interface", 3], ["Aananda · Product and brand", 3],
+        ["Naavo · Brand system", 3], ["Illustrations · Visual language", 3], ["Alpha Stockathon · Product design", 3],
+        ["Broken and Beautiful · Editorial system", 3], ["Shot on iPhone · Image and story", 3],
       ];
-      const designSources = [];
-      let designFile = 1;
+      const sources = [];
+      let df = 1;
       designGroups.forEach(([title, count]) => {
-        for (let frame = 1; frame <= count; frame += 1) {
-          designSources.push({
-            src: `/play/assets/spatial/d${String(designFile).padStart(2, "0")}.webp`,
-            title: `${title} · ${String(frame).padStart(2, "0")}`,
-          });
-          designFile += 1;
-        }
+        for (let f = 1; f <= count; f += 1) { sources.push({ img: `${BASE}/play/assets/spatial/d${String(df).padStart(2, "0")}.webp`, title: `${title} · ${String(f).padStart(2, "0")}` }); df += 1; }
       });
-      const files = [
-        ...Array.from({ length: 47 }, (_, index) => index + 34).filter((file) => file !== 74),
-        1, 4, 7, 8, 9, 10, 13, 14, 17, 20, 22,
-      ];
-      function titleFor(file) {
-        if (file >= 82) return "Spatial system";
-        if (file >= 66) return "Installation study";
-        if (file >= 56) return "Interaction prototype";
-        if (file >= 44) return "Making process";
-        if (file >= 34) return "Visual system";
-        if (file >= 13) return "Creative technology study";
-        return "Field observation";
-      }
-      const sources = designSources.concat(
-        files.map((file) => ({
-          src: `/play/assets/spatial/p${file}.webp`,
-          // The WebGL scene renders a mid-size webp (≈1600px, ~150KB) instead of
-          // the multi-megabyte original — visually identical at card size, but it
-          // takes this page's scroll-loaded weight from ~39MB down to ~8MB. The
-          // full-resolution jpg stays as an automatic fallback (hiFallback), so a
-          // missing derivative degrades to the original rather than a blank card.
-          hi: `/play/assets/hi/p${file}.webp`,
-          hiFallback: `/play/assets/p${file}.jpg`,
-          title: `${titleFor(file)} ${String(file).padStart(3, "0")}`,
-        }))
-      );
+      const files = [...Array.from({ length: 47 }, (_, i) => i + 34).filter((f) => f !== 74), 1, 4, 7, 8, 9, 10, 13, 14, 17, 20, 22];
+      const titleFor = (f) => f >= 82 ? "Spatial system" : f >= 66 ? "Installation study" : f >= 56 ? "Interaction prototype" : f >= 44 ? "Making process" : f >= 34 ? "Visual system" : f >= 13 ? "Creative technology study" : "Field observation";
+      files.forEach((f) => sources.push({ img: `${BASE}/play/assets/hi/p${f}.webp`, fallback: `${BASE}/play/assets/p${f}.jpg`, title: `${titleFor(f)} · ${String(f).padStart(3, "0")}` }));
+
       const stage = document.getElementById("play-stage");
       const canvas = document.getElementById("play-canvas");
-      const caption = document.getElementById("play-caption");
+      const captionEl = document.getElementById("play-caption");
       const captionTitle = document.getElementById("play-caption-title");
-      const countEl = document.getElementById("play-count");
-      const progressEl = document.getElementById("play-progress");
-      const lightbox = document.getElementById("play-lightbox");
-      const lightboxImage = lightbox.querySelector("img");
-      const lightboxTitle = document.getElementById("play-lightbox-title");
-      const lightboxClose = lightbox.querySelector("button");
-      const fallback = document.querySelector(".play-fallback");
-      const accessList = document.getElementById("play-access-list");
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const hintEl = document.getElementById("play-hint");
+      const loadingEl = document.getElementById("play-loading");
+      const loadingBar = document.getElementById("play-loading-bar");
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      sources.forEach((item, index) => {
-        const image = document.createElement("img");
-        image.src = item.src;
-        image.alt = item.title;
-        image.loading = "lazy";
-        fallback.appendChild(image);
-        const li = document.createElement("li");
-        li.textContent = `${index + 1}. ${item.title}`;
-        accessList.appendChild(li);
-      });
+      function buildFallback() {
+        const fb = document.getElementById("play-fallback");
+        sources.forEach((item) => {
+          const a = document.createElement("a");
+          a.href = item.img;
+          a.target = "_blank";
+          a.rel = "noopener";
+          const img = document.createElement("img");
+          img.src = item.img; img.alt = item.title; img.loading = "lazy";
+          if (item.fallback) img.addEventListener("error", () => (img.src = item.fallback));
+          a.appendChild(img); fb.appendChild(a);
+        });
+        stage.classList.add("has-fallback");
+        loadingEl.classList.add("is-done");
+      }
 
       let renderer;
       try {
         renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
-      } catch (error) {
-        stage.classList.add("has-fallback");
-      }
+      } catch (e) { renderer = null; }
 
-      if (renderer) {
-        stage.classList.add("is-ready");
+      if (!renderer || reduce) {
+        buildFallback();
+      } else {
         renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
         renderer.setSize(innerWidth, innerHeight, false);
         renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.22;
 
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x020409, 0.052);
-        const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 80);
-        camera.position.set(0, 0, 13.2);
-        const pmrem = new THREE.PMREMGenerator(renderer);
-        scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-        pmrem.dispose();
-        scene.add(new THREE.HemisphereLight(0xcce8ff, 0x040611, 2.2));
-        const cool = new THREE.PointLight(0x65b8ff, 44, 24, 1.6);
-        cool.position.set(-5, 4, 5);
-        scene.add(cool);
-        const warm = new THREE.PointLight(0xff9d70, 30, 22, 1.8);
-        warm.position.set(5, -3, 4);
-        scene.add(warm);
+        scene.fog = new THREE.FogExp2(0x04070d, 0.036);
+        const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 120);
 
-        const gallery = new THREE.Group();
-        scene.add(gallery);
+        const group = new THREE.Group();
+        scene.add(group);
         const loader = new THREE.TextureLoader();
         const cards = [];
+        const CARD_H = 2.0;
 
-        sources.forEach((item, index) => {
-          const material = new THREE.MeshBasicMaterial({ color: 0x101822, transparent: true, opacity: 0, side: THREE.DoubleSide });
-          const card = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), material);
-          card.userData = {
-            index,
-            src: item.src,
-            hi: item.hi || item.src,
-            hiFallback: item.hiFallback || item.src,
-            title: item.title,
-            loading: false,
-            loaded: false,
-          };
-          gallery.add(card);
-          cards.push(card);
+        // Distribute pieces through a wide, slightly flattened cloud, spaced out.
+        const N = sources.length;
+        sources.forEach((item, i) => {
+          // Fibonacci-sphere direction for even spread, random radius for depth.
+          const phi = Math.acos(1 - (2 * (i + 0.5)) / N);
+          const theta = Math.PI * (1 + Math.sqrt(5)) * i;
+          const r = 11 + ((i * 0.618) % 1) * 9;
+          const base = new THREE.Vector3(
+            Math.sin(phi) * Math.cos(theta) * r,
+            (Math.cos(phi) * r) * 0.62,
+            Math.sin(phi) * Math.sin(theta) * r
+          );
+          const mat = new THREE.MeshBasicMaterial({ color: 0x0e1622, transparent: true, opacity: 0.0, side: THREE.DoubleSide, depthWrite: true, toneMapped: false });
+          const mesh = new THREE.Mesh(new THREE.PlaneGeometry(CARD_H * 1.3, CARD_H), mat);
+          mesh.position.copy(base);
+          mesh.userData = { i, base: base.clone(), off: new THREE.Vector3(), vel: new THREE.Vector3(), title: item.title, img: item.img, fallback: item.fallback, phase: i * 1.7, loaded: false, loading: false, targetOpacity: 0.0 };
+          group.add(mesh);
+          cards.push(mesh);
         });
 
-        function loadCardTexture(card) {
-          if (card.userData.loaded || card.userData.loading) return;
-          card.userData.loading = true;
-          const apply = (texture) => {
-            texture.colorSpace = THREE.SRGBColorSpace;
-            texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-            const aspect = texture.image.width / texture.image.height;
-            const longSide = 6.2;
-            const width = aspect >= 1 ? longSide : longSide * aspect;
-            const height = aspect >= 1 ? longSide / aspect : longSide;
-            card.geometry.dispose();
-            card.geometry = new THREE.PlaneGeometry(width, height);
-            card.material.map = texture;
-            card.material.color.setHex(0xffffff);
-            card.material.needsUpdate = true;
-            card.userData.loading = false;
-            card.userData.loaded = true;
-          };
+        // ── Lazy texture loading with progress ──
+        let loadedCount = 0;
+        function setTex(mesh, url, isRetry) {
+          mesh.userData.loading = true;
           loader.load(
-            card.userData.hi,
-            apply,
+            url,
+            (tex) => {
+              tex.colorSpace = THREE.SRGBColorSpace;
+              tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+              const iw = tex.image.width || 1300, ih = tex.image.height || 1000;
+              const aspect = iw / ih;
+              mesh.geometry.dispose();
+              mesh.geometry = new THREE.PlaneGeometry(CARD_H * aspect, CARD_H);
+              mesh.material.map = tex;
+              mesh.material.color.set(0xffffff);
+              mesh.material.needsUpdate = true;
+              mesh.userData.loaded = true;
+              mesh.userData.targetOpacity = 1.0;
+              loadedCount += 1;
+              loadingBar.style.setProperty("--load", Math.max(0.03, loadedCount / N).toFixed(3));
+              if (loadedCount >= Math.min(N, 10)) loadingEl.classList.add("is-done");
+            },
             undefined,
-            // If the optimized derivative is missing, fall back to the original
-            // full-resolution image once, then to the thumbnail, before giving up.
             () => {
-              if (card.userData.hiFallback && card.userData.hiFallback !== card.userData.hi) {
-                loader.load(card.userData.hiFallback, apply, undefined, () => {
-                  card.userData.loading = false;
-                });
-              } else {
-                card.userData.loading = false;
-              }
+              if (!isRetry && mesh.userData.fallback) setTex(mesh, mesh.userData.fallback, true);
+              else { mesh.userData.targetOpacity = 0.14; loadedCount += 1; if (loadedCount >= Math.min(N, 10)) loadingEl.classList.add("is-done"); }
             }
           );
         }
+        // Load in waves so nearest-to-camera resolve first-ish; simple: stagger all.
+        cards.forEach((mesh, i) => setTimeout(() => setTex(mesh, mesh.userData.img), i * 26));
+        setTimeout(() => loadingEl.classList.add("is-done"), 2600);
 
-        const starGeometry = new THREE.BufferGeometry();
-        const starPositions = new Float32Array(420 * 3);
-        for (let i = 0; i < 420; i += 1) {
-          starPositions[i * 3] = (Math.random() - 0.5) * 28;
-          starPositions[i * 3 + 1] = (Math.random() - 0.5) * 18;
-          starPositions[i * 3 + 2] = (Math.random() - 0.5) * 26;
-        }
-        starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-        scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xbadfff, size: 0.025, transparent: true, opacity: 0.62 })));
-
+        // ── Camera orbit state ──
+        const orbit = { theta: 0.6, phi: 1.35, radius: 26, tRadius: 26 };
+        const drag = { active: false, moved: false, lastX: 0, lastY: 0, vTheta: 0, vPhi: 0 };
+        const pointer = new THREE.Vector2(-10, -10);
+        const rayPoint = new THREE.Vector3();
         const raycaster = new THREE.Raycaster();
-        const pointer = new THREE.Vector2(10, 10);
         let hovered = null;
-        let phase = 0;
-        let targetPhase = 0;
-        let dragging = false;
-        let dragStart = 0;
-        let dragPhase = 0;
+        let focused = null;
+        const tmp = new THREE.Vector3();
+        const camRight = new THREE.Vector3(), camUp = new THREE.Vector3();
 
-        function layoutCards() {
-          const compact = innerWidth < 760;
-          const radiusX = compact ? 3 : 4.8;
-          const radiusY = compact ? 2.35 : 3.15;
-          const travel = phase / (Math.PI * 2);
-          let leadCard = null;
-          let leadPath = Infinity;
-          cards.forEach((card) => {
-            const index = card.userData.index;
-            const path = ((index / sources.length + travel) % 1 + 1) % 1;
-            const angle = path * Math.PI * 6.4 + 0.5;
-            const z = 5.1 - path * 18.5;
-            if (path < 0.24) loadCardTexture(card);
-            if (path < leadPath) {
-              leadPath = path;
-              leadCard = card;
-            }
-            card.position.set(
-              Math.cos(angle) * radiusX,
-              Math.sin(angle) * radiusY,
-              z
-            );
-            card.lookAt(camera.position.x * 0.08, card.position.y * 0.06, camera.position.z);
-            const depthScale = THREE.MathUtils.clamp((z + 13.4) / 18.5, 0.2, 1);
-            const inViewingWindow = path < (compact ? 0.08 : 0.11);
-            const targetScale = card === hovered ? 1.14 : depthScale * (compact ? 0.72 : 0.82);
-            card.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
-            const targetOpacity = !card.userData.loaded || !inViewingWindow ? 0 : card === hovered ? 1 : THREE.MathUtils.clamp(depthScale, 0.18, 0.9);
-            card.material.opacity += (targetOpacity - card.material.opacity) * 0.08;
-            card.visible = card.material.opacity > 0.012 || inViewingWindow;
-          });
-          if (leadCard && leadCard.userData.loaded) {
-            const leadScale = compact ? 0.98 : 1.08;
-            leadCard.scale.lerp(new THREE.Vector3(leadScale, leadScale, leadScale), 0.12);
-            leadCard.material.opacity += (1 - leadCard.material.opacity) * 0.12;
-            leadCard.position.set(0, compact ? 0.1 : 0.18, 4.72);
-            leadCard.lookAt(camera.position.x * 0.08, leadCard.position.y * 0.06, camera.position.z);
-            const position = leadCard.userData.index + 1;
-            countEl.textContent = `${String(position).padStart(2, "0")} / ${sources.length}`;
-            captionTitle.textContent = leadCard.userData.title;
-          }
-        }
-
-        function updateHover() {
-          raycaster.setFromCamera(pointer, camera);
-          const hits = raycaster.intersectObjects(cards, false);
-          const next = hits.length ? hits[0].object : null;
-          if (next !== hovered) {
-            hovered = next;
-            if (hovered) {
-              const position = hovered.userData.index + 1;
-              captionTitle.textContent = hovered.userData.title;
-              countEl.textContent = `${String(position).padStart(2, "0")} / ${sources.length}`;
-            }
-          }
-        }
-
-        function animate(time) {
-          phase += (targetPhase - phase) * (reducedMotion ? 0.2 : 0.07);
-          if (!dragging && !reducedMotion) targetPhase -= 0.00082;
-          layoutCards();
-          updateHover();
-          camera.position.x += (pointer.x * 0.24 - camera.position.x) * 0.022;
-          camera.position.y += (pointer.y * 0.16 - camera.position.y) * 0.022;
+        function updateCamera() {
+          orbit.radius += (orbit.tRadius - orbit.radius) * 0.08;
+          const sp = orbit.phi;
+          camera.position.set(
+            orbit.radius * Math.sin(sp) * Math.cos(orbit.theta),
+            orbit.radius * Math.cos(sp),
+            orbit.radius * Math.sin(sp) * Math.sin(orbit.theta)
+          );
           camera.lookAt(0, 0, 0);
-          const normalized = ((phase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) / (Math.PI * 2);
-          progressEl.style.setProperty("--progress", String(Math.max(0.03, normalized)));
-          renderer.render(scene, camera);
-          requestAnimationFrame(animate);
         }
 
-        function setPointer(event) {
-          pointer.x = (event.clientX / innerWidth) * 2 - 1;
-          pointer.y = -(event.clientY / innerHeight) * 2 + 1;
-        }
-        canvas.addEventListener("pointermove", (event) => {
-          setPointer(event);
-          if (dragging) targetPhase = dragPhase + (event.clientX - dragStart) * 0.0045;
+        // ── Interaction ──
+        canvas.addEventListener("pointerdown", (e) => {
+          drag.active = true; drag.moved = false; drag.lastX = e.clientX; drag.lastY = e.clientY;
+          canvas.classList.add("is-grabbing"); canvas.setPointerCapture(e.pointerId);
         });
-        canvas.addEventListener("pointerdown", (event) => {
-          dragging = true;
-          dragStart = event.clientX;
-          dragPhase = targetPhase;
-          canvas.setPointerCapture(event.pointerId);
+        canvas.addEventListener("pointermove", (e) => {
+          pointer.x = (e.clientX / innerWidth) * 2 - 1;
+          pointer.y = -(e.clientY / innerHeight) * 2 + 1;
+          if (drag.active) {
+            const dx = e.clientX - drag.lastX, dy = e.clientY - drag.lastY;
+            if (Math.abs(dx) + Math.abs(dy) > 3) drag.moved = true;
+            drag.lastX = e.clientX; drag.lastY = e.clientY;
+            if (!focused) {
+              drag.vTheta = -dx * 0.005;
+              drag.vPhi = -dy * 0.005;
+              orbit.theta += drag.vTheta;
+              orbit.phi = Math.max(0.35, Math.min(Math.PI - 0.35, orbit.phi + drag.vPhi));
+            }
+            hintEl.style.opacity = 0;
+          }
         });
-        canvas.addEventListener("pointerup", (event) => {
-          dragging = false;
-          if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-          if (Math.abs(event.clientX - dragStart) < 5 && hovered) openLightbox(hovered);
-        });
-        canvas.addEventListener("pointerleave", () => { pointer.set(10, 10); dragging = false; });
-        canvas.addEventListener("wheel", (event) => { event.preventDefault(); targetPhase += (event.deltaY + event.deltaX) * 0.0012; }, { passive: false });
+        function endDrag(e) { drag.active = false; canvas.classList.remove("is-grabbing"); if (e && canvas.hasPointerCapture && canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId); }
+        canvas.addEventListener("pointerup", (e) => { endDrag(e); if (!drag.moved) handleClick(); });
+        canvas.addEventListener("pointerleave", () => { pointer.set(-10, -10); endDrag(); });
+        canvas.addEventListener("wheel", (e) => { e.preventDefault(); orbit.tRadius = Math.max(9, Math.min(46, orbit.tRadius + e.deltaY * 0.02)); hintEl.style.opacity = 0; }, { passive: false });
 
-        function openLightbox(card) {
-          lightboxImage.src = card.userData.hi || card.userData.src;
-          lightboxImage.alt = card.userData.title;
-          lightboxTitle.textContent = card.userData.title;
-          lightbox.classList.add("is-open");
-          lightboxClose.focus();
+        function handleClick() {
+          if (focused) { releaseFocus(); return; }
+          if (hovered) focusCard(hovered);
         }
-        function closeLightbox() { lightbox.classList.remove("is-open"); }
-        lightboxClose.addEventListener("click", closeLightbox);
-        lightbox.addEventListener("click", (event) => { if (event.target === lightbox) closeLightbox(); });
-        addEventListener("keydown", (event) => {
-          if (event.key === "ArrowRight" || event.key === "ArrowDown") targetPhase += 0.42;
-          if (event.key === "ArrowLeft" || event.key === "ArrowUp") targetPhase -= 0.42;
-          if (event.key === "Escape") closeLightbox();
-        });
-        addEventListener("resize", () => {
-          camera.aspect = innerWidth / innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+        function focusCard(mesh) {
+          focused = mesh;
+          camera.add(mesh);          // parent to camera so it stays in front while orbiting
+          mesh.userData.fromScene = true;
+          captionTitle.textContent = mesh.userData.title;
+          captionEl.classList.add("is-visible");
+          cards.forEach((c) => { if (c !== mesh) c.userData.dim = true; });
+        }
+        function releaseFocus() {
+          if (!focused) return;
+          const m = focused;
+          const wp = new THREE.Vector3(); m.getWorldPosition(wp);
+          scene.add(m); m.position.copy(wp);
+          m.userData.off.copy(wp).sub(m.userData.base); // let it spring home
+          m.userData.vel.set(0, 0, 0);
+          focused = null;
+          captionEl.classList.remove("is-visible");
+          cards.forEach((c) => (c.userData.dim = false));
+        }
+        window.addEventListener("keydown", (e) => { if (e.key === "Escape" && focused) releaseFocus(); });
+
+        window.addEventListener("resize", () => {
+          camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
           renderer.setSize(innerWidth, innerHeight, false);
         });
-        requestAnimationFrame(animate);
+
+        // ── Loop ──
+        let t = 0;
+        const clock = new THREE.Clock();
+        function frame() {
+          const dt = Math.min(0.05, clock.getDelta());
+          t += dt;
+          if (!drag.active && !focused) { orbit.theta += 0.02 * dt + drag.vTheta * 0.0; orbit.theta += 0.03 * dt; } // gentle auto-drift
+          updateCamera();
+          camera.matrixWorld.extractBasis(camRight, camUp, tmp);
+
+          // hover pick
+          if (!focused) {
+            raycaster.setFromCamera(pointer, camera);
+            const hits = raycaster.intersectObjects(cards, false);
+            const hit = hits.length ? hits[0].object : null;
+            if (hit !== hovered) {
+              hovered = hit;
+              canvas.classList.toggle("is-over", !!hovered);
+              if (hovered) { captionTitle.textContent = hovered.userData.title; captionEl.classList.add("is-visible"); }
+              else captionEl.classList.remove("is-visible");
+            }
+          }
+
+          for (const m of cards) {
+            const u = m.userData;
+            if (m === focused) {
+              // ease to a readable spot in front of the camera
+              m.position.lerp(new THREE.Vector3(0, 0, -6.4), 0.12);
+              m.quaternion.slerp(new THREE.Quaternion(), 0.18);
+              const s = 2.6; m.scale.lerp(new THREE.Vector3(s, s, s), 0.12);
+              m.material.opacity += (1 - m.material.opacity) * 0.2;
+              continue;
+            }
+            // ambient bob
+            const bob = new THREE.Vector3(Math.sin(t * 0.4 + u.phase) * 0.22, Math.cos(t * 0.33 + u.phase) * 0.26, Math.sin(t * 0.29 + u.phase * 1.3) * 0.22);
+            // cursor repulsion in screen space
+            m.getWorldPosition(tmp);
+            const proj = tmp.clone().project(camera);
+            const sx = proj.x, sy = proj.y;
+            let push = new THREE.Vector3();
+            if (proj.z < 1 && pointer.x > -5) {
+              const ddx = sx - pointer.x, ddy = sy - pointer.y;
+              const sd = Math.hypot(ddx, ddy);
+              if (sd < 0.32) {
+                const f = (1 - sd / 0.32) * 3.2;
+                push.addScaledVector(camRight, (ddx / (sd || 1)) * f);
+                push.addScaledVector(camUp, (ddy / (sd || 1)) * f);
+              }
+            }
+            // integrate spring on offset
+            const desired = bob.add(push);
+            u.vel.addScaledVector(desired.sub(u.off), 0.14);
+            u.vel.multiplyScalar(0.82);
+            u.off.add(u.vel.clone().multiplyScalar(dt * 12));
+            m.position.copy(u.base).add(u.off);
+            // billboard
+            m.quaternion.copy(camera.quaternion);
+            m.scale.lerp(new THREE.Vector3(1, 1, 1), 0.12);
+            // fade in + dim when another is focused
+            const target = (u.dim ? 0.14 : u.targetOpacity);
+            m.material.opacity += (target - m.material.opacity) * 0.12;
+          }
+
+          renderer.render(scene, camera);
+          requestAnimationFrame(frame);
+        }
+        updateCamera();
+        requestAnimationFrame(frame);
+
+        // ── Kinetic title (shared with home) ──
+        const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        const title = document.getElementById("play-title");
+        if (fine && title) {
+          const L = []; const text = title.textContent; title.textContent = "";
+          for (const ch of text) { const s = document.createElement("span"); s.className = "ht-l"; s.textContent = ch; s.setAttribute("aria-hidden", "true"); title.appendChild(s); L.push({ el: s, ox: 0, oy: 0, vx: 0, vy: 0, rot: 0, vr: 0, cx: 0, cy: 0 }); }
+          title.setAttribute("aria-label", text);
+          const measure = () => { for (const l of L) l.el.style.transform = ""; for (const l of L) { const r = l.el.getBoundingClientRect(); l.cx = r.left + r.width / 2; l.cy = r.top + r.height / 2; } };
+          measure(); addEventListener("resize", measure);
+          const p = { x: -9999, y: -9999, vx: 0, vy: 0, act: false };
+          addEventListener("pointermove", (e) => { p.vx = e.clientX - p.x; p.vy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; p.act = true; });
+          (function tick() {
+            const sp = Math.min(70, Math.hypot(p.vx, p.vy)); p.vx *= 0.55; p.vy *= 0.55;
+            for (const l of L) {
+              if (p.act) { const dx = l.cx + l.ox - p.x, dy = l.cy + l.oy - p.y, d = Math.hypot(dx, dy); if (d < 150) { const f = 1 - d / 150, dir = d || 1, pu = f * (0.6 + sp * 0.24); l.vx += (dx / dir) * pu; l.vy += (dy / dir) * pu; l.vr += (dx * p.vy - dy * p.vx) * 0.00006 * f; } }
+              l.vx += -0.05 * l.ox; l.vy += -0.05 * l.oy; l.vx *= 0.8; l.vy *= 0.8; l.ox += l.vx; l.oy += l.vy; l.vr += -0.05 * l.rot; l.vr *= 0.82; l.rot += l.vr;
+              l.el.style.transform = Math.abs(l.ox) < 0.02 && Math.abs(l.oy) < 0.02 && Math.abs(l.rot) < 0.02 ? "" : `translate(${l.ox.toFixed(2)}px,${l.oy.toFixed(2)}px) rotate(${l.rot.toFixed(2)}deg)`;
+            }
+            requestAnimationFrame(tick);
+          })();
+        }
       }
     </script> </body> </html>
