@@ -463,21 +463,35 @@
       width: 34px;
       height: 34px;
     }
-    .studio-mark-label,
-    .studio-link > span {
+    .studio-mark-label {
       display: none;
     }
     .studio-links {
-      gap: 8px;
+      gap: 6px;
     }
+    /* Mobile: keep the pixel-icon identity but add a tiny label under each
+       so the icons are legible to first-time visitors. */
     .studio-link {
-      width: 42px;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      width: 52px;
+      justify-content: flex-start;
+      opacity: 0.85;
     }
-    .studio-link::after {
-      left: 9px;
-      right: 9px;
+    .studio-link svg {
+      width: 22px;
+      height: 22px;
     }
+    .studio-link > span {
+      display: block;
+      font: 500 8.5px/1 "DM Mono", monospace;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      opacity: 0.92;
+    }
+    .studio-link.is-active { opacity: 1; }
+    .studio-link::after { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -491,7 +505,7 @@
       transition-duration: 1ms !important;
     }
   }
-</style> <main class="play-stage" id="play-stage"> <canvas id="play-canvas" aria-label="A 3D cloud of ninety eight pieces. Drag to orbit, scroll to move, click a piece to focus it."></canvas> <header class="play-header"> <h1 id="play-title">Play</h1> <p>A spatial toy box of experiments, images, and creative technology. Push through it.</p> <nav class="play-modes" aria-label="Play collections"> <a href="/play/" aria-current="page">Experiments</a> <a href="/shot-on-iphone/">Camera roll ↗</a> </nav> </header> <p class="play-hint" id="play-hint">Drag to orbit · scroll to move · click a piece</p> <div class="play-counter"> <span id="play-count">98</span> pieces</div> <div class="play-caption" id="play-caption" aria-live="polite"> <span>In focus</span><strong id="play-caption-title"></strong> </div> <div class="play-fallback" id="play-fallback" aria-label="Play gallery"></div> <div class="play-loading" id="play-loading"><div class="play-loading__bar" id="play-loading-bar"></div></div> </main> <script type="module">
+</style> <main class="play-stage" id="play-stage"> <canvas id="play-canvas" aria-label="A 3D cloud of ninety eight pieces. Drag to orbit, scroll or pinch to move, tap a piece to focus it."></canvas> <header class="play-header"> <h1 id="play-title">Play</h1> <p>A spatial toy box of experiments, images, and creative technology. Push through it.</p> <nav class="play-modes" aria-label="Play collections"> <a href="/play/" aria-current="page">Experiments</a> <a href="/shot-on-iphone/">Camera roll ↗</a> </nav> </header> <p class="play-hint" id="play-hint">Drag to orbit · scroll or pinch to move · tap a piece</p> <div class="play-counter"> <span id="play-count">98</span> pieces</div> <div class="play-caption" id="play-caption" aria-live="polite"> <span>In focus</span><strong id="play-caption-title"></strong> </div> <div class="play-fallback" id="play-fallback" aria-label="Play gallery"></div> <div class="play-loading" id="play-loading"><div class="play-loading__bar" id="play-loading-bar"></div></div> </main> <script type="module">
       import * as THREE from "three";
 
       // ── Piece data ──
@@ -659,6 +673,13 @@
         canvas.addEventListener("pointerup", (e) => { endDrag(e); if (!drag.moved) handleClick(); });
         canvas.addEventListener("pointerleave", () => { pointer.set(-10, -10); endDrag(); });
         canvas.addEventListener("wheel", (e) => { e.preventDefault(); orbit.tRadius = Math.max(9, Math.min(46, orbit.tRadius + e.deltaY * 0.02)); hintEl.style.opacity = 0; }, { passive: false });
+        // Touch: two-finger pinch moves through the cloud (wheel has no touch equivalent, so
+        // without this a phone user could orbit but never move in or out).
+        var _pinchD = null;
+        function _tdist(t){ return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+        canvas.addEventListener("touchstart", (e) => { if (e.touches.length === 2) { _pinchD = _tdist(e.touches); } }, { passive: true });
+        canvas.addEventListener("touchmove", (e) => { if (e.touches.length === 2 && _pinchD != null) { e.preventDefault(); var d = _tdist(e.touches); orbit.tRadius = Math.max(9, Math.min(46, orbit.tRadius + (_pinchD - d) * 0.035)); _pinchD = d; if (hintEl) hintEl.style.opacity = 0; } }, { passive: false });
+        canvas.addEventListener("touchend", (e) => { if (e.touches.length < 2) _pinchD = null; }, { passive: true });
 
         function handleClick() {
           if (focused) { releaseFocus(); return; }

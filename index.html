@@ -3320,21 +3320,35 @@
       width: 34px;
       height: 34px;
     }
-    .studio-mark-label,
-    .studio-link > span {
+    .studio-mark-label {
       display: none;
     }
     .studio-links {
-      gap: 8px;
+      gap: 6px;
     }
+    /* Mobile: keep the pixel-icon identity but add a tiny label under each
+       so the icons are legible to first-time visitors. */
     .studio-link {
-      width: 42px;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      width: 52px;
+      justify-content: flex-start;
+      opacity: 0.85;
     }
-    .studio-link::after {
-      left: 9px;
-      right: 9px;
+    .studio-link svg {
+      width: 22px;
+      height: 22px;
     }
+    .studio-link > span {
+      display: block;
+      font: 500 8.5px/1 "DM Mono", monospace;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      opacity: 0.92;
+    }
+    .studio-link.is-active { opacity: 1; }
+    .studio-link::after { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -3416,12 +3430,11 @@
       <div class="home-reel-modal" id="home-reel-modal" role="dialog" aria-modal="true" aria-labelledby="home-reel-label" aria-hidden="true">
         <button class="home-reel-modal__close" id="home-reel-close" type="button" aria-label="Close showreel">×</button>
         <div class="home-reel-modal__frame">
-          <!-- The ~1:20 work compilation, streamed from Vimeo (restored from an
-               earlier version). data-src loads only when the modal opens, so it
-               never downloads on page load. To swap the reel, change the Vimeo
-               id below (or point at the GitHub Release mp4:
-               github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4). -->
-          <iframe class="home-reel-modal__video" id="home-reel-iframe" data-src="https://player.vimeo.com/video/1185323166?autoplay=1&amp;badge=0&amp;autopause=0&amp;title=0&amp;byline=0&amp;portrait=0&amp;dnt=1" title="Sid Mehta · showreel" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+          <!-- The ~1:20 work compilation, served clean (no player branding) from
+               the GitHub Release asset. src is set from data-src only when the
+               modal opens, so it never downloads on page load. GitHub's asset
+               host supports range requests, so it streams/seeks. -->
+          <video class="home-reel-modal__video" id="home-reel-video" controls playsinline preload="none" data-src="https://github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4"></video>
         </div>
         <p class="home-reel-modal__label" id="home-reel-label">Sid Mehta · showreel</p>
       </div>
@@ -3448,7 +3461,7 @@
         const proof = document.getElementById("home-proof");
         const showreelButton = document.getElementById("home-showreel");
         const reelModal = document.getElementById("home-reel-modal");
-        const reelIframe = document.getElementById("home-reel-iframe");
+        const reelVideo = document.getElementById("home-reel-video");
         const reelClose = document.getElementById("home-reel-close");
         const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
         let held = false;
@@ -3623,14 +3636,18 @@
           reelModal.setAttribute("aria-hidden", "false");
           document.body.style.overflow = "hidden";
           reelClose.focus();
-          // Load (and autoplay) the Vimeo stream only now, so it never costs
-          // bandwidth on page load.
-          if (reelIframe && !reelIframe.src) reelIframe.src = reelIframe.dataset.src;
+          // Load the reel only now, so it never costs bandwidth on page load.
+          if (reelVideo && !reelVideo.src) reelVideo.src = reelVideo.dataset.src;
+          reelVideo && reelVideo.play && reelVideo.play().catch(() => {});
         }
 
         function closeReel() {
-          // Clearing src stops playback and frees the stream.
-          if (reelIframe) reelIframe.src = "";
+          // Pause + drop the source to stop the download when closed.
+          if (reelVideo) {
+            reelVideo.pause();
+            reelVideo.removeAttribute("src");
+            reelVideo.load();
+          }
           reelModal.classList.remove("is-open");
           reelModal.setAttribute("aria-hidden", "true");
           document.body.style.overflow = "";
