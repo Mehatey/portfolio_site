@@ -97,7 +97,7 @@ title: Play · Sid Mehta
     {% include studio_nav.html active="play" %}
 
     <main class="play-stage" id="play-stage">
-      <canvas id="play-canvas" aria-label="A 3D cloud of ninety eight pieces. Drag to orbit, scroll to move, click a piece to focus it."></canvas>
+      <canvas id="play-canvas" aria-label="A 3D cloud of ninety eight pieces. Drag to orbit, scroll or pinch to move, tap a piece to focus it."></canvas>
 
       <header class="play-header">
         <h1 id="play-title">Play</h1>
@@ -108,7 +108,7 @@ title: Play · Sid Mehta
         </nav>
       </header>
 
-      <p class="play-hint" id="play-hint">Drag to orbit · scroll to move · click a piece</p>
+      <p class="play-hint" id="play-hint">Drag to orbit · scroll or pinch to move · tap a piece</p>
       <div class="play-counter"><span id="play-count">98</span>&nbsp;pieces</div>
       <div class="play-caption" id="play-caption" aria-live="polite"><span>In focus</span><strong id="play-caption-title"></strong></div>
 
@@ -284,6 +284,13 @@ title: Play · Sid Mehta
         canvas.addEventListener("pointerup", (e) => { endDrag(e); if (!drag.moved) handleClick(); });
         canvas.addEventListener("pointerleave", () => { pointer.set(-10, -10); endDrag(); });
         canvas.addEventListener("wheel", (e) => { e.preventDefault(); orbit.tRadius = Math.max(9, Math.min(46, orbit.tRadius + e.deltaY * 0.02)); hintEl.style.opacity = 0; }, { passive: false });
+        // Touch: two-finger pinch moves through the cloud (wheel has no touch equivalent, so
+        // without this a phone user could orbit but never move in or out).
+        var _pinchD = null;
+        function _tdist(t){ return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+        canvas.addEventListener("touchstart", (e) => { if (e.touches.length === 2) { _pinchD = _tdist(e.touches); } }, { passive: true });
+        canvas.addEventListener("touchmove", (e) => { if (e.touches.length === 2 && _pinchD != null) { e.preventDefault(); var d = _tdist(e.touches); orbit.tRadius = Math.max(9, Math.min(46, orbit.tRadius + (_pinchD - d) * 0.035)); _pinchD = d; if (hintEl) hintEl.style.opacity = 0; } }, { passive: false });
+        canvas.addEventListener("touchend", (e) => { if (e.touches.length < 2) _pinchD = null; }, { passive: true });
 
         function handleClick() {
           if (focused) { releaseFocus(); return; }
