@@ -142,6 +142,36 @@
         filter: url("#home-liquify") saturate(1.06) contrast(1.08) brightness(1.18);
       }
 
+      /* Cursor reveal now surfaces the actual work: a full-bleed wall of project
+         covers, masked to the painted brush trail. Sits above the film (z1) and
+         below the hero copy (z4), so the headline stays perfectly legible. */
+      .home-film__work {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-auto-rows: 1fr;
+        gap: 0;
+        opacity: 0;
+        transition: opacity 0.4s var(--ease-out, ease);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        pointer-events: none;
+      }
+      .home-stage.is-revealing .home-film__work { opacity: 1; }
+      /* "Windows" in the work wall: transparent cells that let the at-the-desk
+         film show through, so the reveal surfaces the work AND the person. */
+      .home-film__work-me {
+        position: relative; overflow: hidden; background: transparent;
+        box-shadow: inset 0 0 0 1px rgba(238, 248, 255, 0.10);
+      }
+      .home-film__work span { position: relative; overflow: hidden; }
+      .home-film__work img {
+        width: 100%; height: 100%; object-fit: cover; display: block;
+        filter: saturate(1.04) contrast(1.02);
+      }
+      @media (prefers-reduced-motion: reduce) { .home-film__work { display: none; } }
       .home-stage.is-revealing .home-film__pixel {
         opacity: 0.66;
       }
@@ -1026,6 +1056,24 @@
         <video class="home-film__pixel" autoplay muted loop playsinline preload="auto">
           <source src="{{ site.baseurl }}/assets/video/sid_pixelated.mp4" type="video/mp4" />
         </video>
+        <div class="home-film__work" id="home-film-work" aria-hidden="true">
+          <span><img src="{{ site.baseurl }}/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/10.alpha/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/assets/img/fairview/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span class="home-film__work-me" aria-hidden="true"></span>
+          <span><img src="{{ site.baseurl }}/1.met/0.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/assets/img/marriott/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/7.naavo/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/6.mindu/cover2.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span class="home-film__work-me" aria-hidden="true"></span>
+          <span><img src="{{ site.baseurl }}/9.aananda/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/8.shotoniphone/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/5.bb/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async" /></span>
+          <span class="home-film__work-me" aria-hidden="true"></span>
+          <span><img src="{{ site.baseurl }}/11.illu/12.1.webp" alt="" loading="lazy" decoding="async" /></span>
+          <span><img src="{{ site.baseurl }}/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async" /></span>
+        </div>
       </div>
       <canvas class="home-gl" id="home-gl" aria-hidden="true"></canvas>
       <p class="home-hint" id="home-hint" aria-hidden="true">Move to reveal &#10022;</p>
@@ -1058,6 +1106,7 @@
         <p class="home-proof" id="home-proof" aria-live="polite"><span class="home-proof__line" id="home-proof-line">6 yrs shipping product · 14 projects · 25 artworks activated at The&nbsp;Met</span></p>
         <div class="home-actions">
           <a class="home-actions__primary" href="{{ site.baseurl }}/works/">See selected work <span aria-hidden="true">→</span></a>
+          <a href="{{ site.baseurl }}/arcana/">Draw the portfolio <span aria-hidden="true">✦</span></a>
           <button type="button" id="home-showreel" aria-haspopup="dialog" aria-controls="home-reel-modal">
             Play showreel <span aria-hidden="true">↗</span>
           </button>
@@ -1133,6 +1182,7 @@
         const stage = document.getElementById("home-stage");
         const film = document.getElementById("home-film");
         const realFilm = film.querySelector(".home-film__real");
+        const workFilm = film.querySelector(".home-film__work");
         const projects = [...document.querySelectorAll(".home-project")];
         const focusImage = document.getElementById("home-focus-image");
         const focusTitle = document.getElementById("home-focus-title");
@@ -1151,8 +1201,16 @@
         const brush = [];
 
         function paint(event) {
-          pointer = { x: event.clientX, y: event.clientY };
-          paintAt(pointer.x, pointer.y);
+          // Interpolate between the previous and current pointer so quick moves
+          // lay down a continuous painted stroke instead of dotted stamps.
+          const nx = event.clientX, ny = event.clientY;
+          const px = pointer.x, py = pointer.y;
+          const dist = Math.hypot(nx - px, ny - py);
+          const steps = Math.min(7, Math.max(1, Math.round(dist / 38)));
+          for (let i = 1; i <= steps; i += 1) {
+            paintAt(px + (nx - px) * (i / steps), py + (ny - py) * (i / steps));
+          }
+          pointer = { x: nx, y: ny };
         }
 
         function paintAt(clientX, clientY) {
@@ -1173,13 +1231,14 @@
               const satelliteX = point.x + Math.cos(point.angle + 0.9) * offset;
               const satelliteY = point.y + Math.sin(point.angle + 0.9) * offset;
               return [
-                `radial-gradient(ellipse ${width}vw ${height}vw at ${point.x}% ${point.y}%, #000 0 46%, rgba(0,0,0,.9) 63%, transparent 88%)`,
+                `radial-gradient(ellipse ${width}vw ${height}vw at ${point.x}% ${point.y}%, #000 0 40%, rgba(0,0,0,.85) 58%, rgba(0,0,0,.35) 76%, transparent 92%)`,
                 `radial-gradient(ellipse ${width * 0.42}vw ${height * 1.18}vw at ${satelliteX}% ${satelliteY}%, #000 0 40%, transparent 82%)`,
               ].join(",");
             })
             .join(",");
           realFilm.style.webkitMaskImage = masks;
           realFilm.style.maskImage = masks;
+          if (workFilm) { workFilm.style.webkitMaskImage = masks; workFilm.style.maskImage = masks; }
           stage.classList.add("is-revealing");
           realFilm.classList.toggle("is-liquifying", held);
         }
@@ -1188,6 +1247,7 @@
           brush.length = 0;
           realFilm.style.webkitMaskImage = "linear-gradient(transparent, transparent)";
           realFilm.style.maskImage = "linear-gradient(transparent, transparent)";
+          if (workFilm) { workFilm.style.webkitMaskImage = "linear-gradient(transparent, transparent)"; workFilm.style.maskImage = "linear-gradient(transparent, transparent)"; }
           realFilm.classList.remove("is-liquifying");
           stage.classList.remove("is-revealing");
         }
@@ -1263,6 +1323,7 @@
           stage.classList.add("is-revealing");
           realFilm.style.webkitMaskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)";
           realFilm.style.maskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)";
+          if (workFilm) { workFilm.style.webkitMaskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)"; workFilm.style.maskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)"; }
         }
 
         // Rotating proof/stat line — a smooth crossfade on its own block, so
