@@ -51,6 +51,10 @@ decisions:
       Enrolling a guest into Bonvoy at the desk had to be fast and hard to get wrong. We built a membership card carousel and a guided enrolment with clear tiers and benefits, so an associate can move a guest through it while talking to them.
     tradeoff: >
       A guided flow is less flexible than a raw form. For the rare edge case an associate has fewer shortcuts, but the common path is far faster and less error prone.
+next_project:
+  title: "Cube of Creations"
+  url: /cube-guy/
+  desc: Seven years of a character world, made for play.
 ---
 
 <style>

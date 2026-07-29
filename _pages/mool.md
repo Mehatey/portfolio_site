@@ -76,8 +76,9 @@ next_steps: >
   the two-voice type system. The ornamental and the numeric never fully reconciled on the dense screens, and I
   would rather resolve that than keep defending it.
 next_project:
-  title: "Cube of Creations"
-  url: /cube-guy/
+  title: "M Health Fairview"
+  url: /m-health-fairview/
+  desc: Enterprise UX for a health system serving millions.
 ---
 
 <style>

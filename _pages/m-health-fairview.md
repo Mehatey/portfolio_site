@@ -51,6 +51,10 @@ decisions:
       The brief was not only to help patients, it was to move routine demand off the emergency room and to promote virtual and preventive care. We built entry points for labs, checkups and a promotional banner into the same page, so a patient journey and a business goal could be served by one clear layout.
     tradeoff: >
       More goals on one page risks clutter. We contained it by keeping everything inside the urgency framework, so promotional content never competed with a patient who needed care right now.
+next_project:
+  title: "Marriott Bonvoy SPOG"
+  url: /marriott/
+  desc: A single pane of glass for the world's largest hotel network.
 ---
 
 <style>
