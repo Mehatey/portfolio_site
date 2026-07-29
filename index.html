@@ -355,6 +355,20 @@
 
       /* Quiet affordance so the reveal is discoverable. Sits upper-centre over
          the film, fades the moment the visitor starts painting. */
+      .home-work-scrim {
+        position: absolute; inset: 0; z-index: 2; pointer-events: none;
+        background: radial-gradient(130% 130% at 50% 44%, #0a0f1a 0%, #06070c 72%);
+      }
+      .home-work {
+        position: absolute; inset: 0; z-index: 3; opacity: 0;
+        transition: opacity 0.5s var(--ease-out, ease);
+        pointer-events: none;
+        -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+      }
+      .home-stage.is-working .home-work { opacity: 1; }
+      .home-work img { width: 100%; height: 100%; object-fit: cover; display: block; filter: saturate(1.03); }
+      @media (prefers-reduced-motion: reduce) { .home-work { display: none; } }
+
       .home-hint {
         position: absolute;
         z-index: 3;
@@ -885,17 +899,17 @@
         position: absolute;
         z-index: 5;
         right: clamp(24px, 4vw, 64px);
-        bottom: clamp(46px, 6.5vh, 76px);
+        bottom: clamp(56px, 8vh, 88px);
         display: flex;
         align-items: flex-end;
-        gap: clamp(18px, 2vw, 34px);
+        gap: clamp(14px, 1.6vw, 24px);
       }
 
       .home-project {
         position: relative;
         display: block;
-        width: clamp(86px, 8.4vw, 124px);
-        aspect-ratio: 1;
+        width: clamp(112px, 12vw, 150px);
+        aspect-ratio: 4 / 3;
         /* Pillar colour, not decoration: cool = product / AI, warm = cultural /
            human. The same duality lights the Orbit scene, so the accent means
            the same thing everywhere on the site. */
@@ -923,8 +937,8 @@
         );
         -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
         mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
-        opacity: 0.5;
-        animation: home-portal-spin 14s linear infinite;
+        opacity: 0;
+        animation: none;
         transition: opacity 220ms ease;
       }
       @keyframes home-portal-spin {
@@ -942,10 +956,9 @@
         position: absolute;
         inset: 0;
         display: block;
-        border-radius: 50%;
+        border-radius: 14px;
         overflow: hidden;
-        outline: 1px solid var(--pj-ring);
-        outline-offset: 3px;
+        border: 1px solid var(--pj-ring);
         background: #080b10;
         box-shadow:
           0 18px 46px rgba(0, 0, 0, 0.34),
@@ -959,13 +972,13 @@
          blue, AI Prototypes → AI amber, Encoded → culture violet. Same three
          colours as the Orbit rings, so the identity is consistent site-wide. */
       .home-project:nth-child(1) {
-        --portal-y: -18px;
+        --portal-y: 0px;
         --pj-ring: rgba(var(--pillar-product), 0.42);
         --pj-hi: rgba(var(--pillar-product), 0.95);
       }
 
       .home-project:nth-child(2) {
-        --portal-y: 8px;
+        --portal-y: 0px;
         --pj-ring: rgba(var(--pillar-ai), 0.46);
         --pj-hi: rgba(var(--pillar-ai), 0.95);
       }
@@ -974,7 +987,7 @@
          wears amber here too — the colour has to mean the same thing on every
          page or it stops meaning anything. */
       .home-project:nth-child(3) {
-        --portal-y: -9px;
+        --portal-y: 0px;
         --pj-ring: rgba(var(--pillar-ai), 0.46);
         --pj-hi: rgba(var(--pillar-ai), 0.95);
       }
@@ -994,7 +1007,7 @@
 
       .home-project:hover .home-project__disc,
       .home-project:focus-visible .home-project__disc {
-        outline-color: var(--pj-hi);
+        border-color: var(--pj-hi);
         box-shadow:
           0 22px 52px rgba(0, 0, 0, 0.4),
           0 0 34px -4px var(--pj-hi),
@@ -1003,13 +1016,13 @@
 
       .home-project:hover::before,
       .home-project:focus-visible::before {
-        opacity: 1;
+        opacity: 0;
         animation-duration: 5s;
       }
 
       .home-project:hover .home-project__disc img,
       .home-project:focus-visible .home-project__disc img {
-        transform: scale(1.09) rotate(1.5deg);
+        transform: scale(1.06);
       }
 
       /* Persistent caption so the portals read as named, curated work — not
@@ -1017,10 +1030,10 @@
       .home-project__label {
         position: absolute;
         top: calc(100% + 12px);
-        left: 50%;
+        left: 2px;
         /* Counter the portal's stagger so all three captions share one baseline
            even though the circles sit at different heights. */
-        transform: translate(-50%, calc(-1 * var(--portal-y, 0px)));
+        transform: translateY(calc(-1 * var(--portal-y, 0px)));
         display: flex;
         align-items: baseline;
         gap: 5px;
@@ -3366,7 +3379,7 @@
 
 
     <main class="home-stage" id="home-stage">
-      <div class="home-film" id="home-film" aria-label="Move across the film to reveal Sid at work">
+      <div class="home-film" id="home-film" aria-label="Move across the hero to reveal selected work">
         <video class="home-film__ambient" autoplay muted loop playsinline preload="auto" aria-hidden="true">
           <source src="/assets/video/sid_sitting.mp4" type="video/mp4"></source>
         </video>
@@ -3376,9 +3389,11 @@
         <video class="home-film__pixel" autoplay muted loop playsinline preload="auto">
           <source src="/assets/video/sid_pixelated.mp4" type="video/mp4"></source>
         </video>
+        <div class="home-work-scrim" aria-hidden="true"></div>
+        <div class="home-work" id="home-work" aria-hidden="true"><img id="home-work-img" alt="" decoding="async"></div>
       </div>
       <canvas class="home-gl" id="home-gl" aria-hidden="true"></canvas>
-      <p class="home-hint" id="home-hint" aria-hidden="true">Move to reveal ✦</p>
+      <p class="home-hint" id="home-hint" aria-hidden="true">Move to reveal the work ✦</p>
 
       <section class="home-project-focus" id="home-project-focus" aria-live="polite">
         <div class="home-project-focus__media"><img id="home-focus-image" src="" alt=""></div>
@@ -3419,7 +3434,7 @@
         </a>
         <a class="home-project" href="/ai-prototypes/" data-title="2026 AI Experiments" data-meta="Local AI · WebGPU · 11 live experiments" data-description="Browser based prototypes exploring how AI can feel visible, controllable, and useful in an interface." data-image="/assets/img/ai-proto-cover.jpg">
           <span class="home-project__disc"><img src="/assets/img/ai-proto-cover.jpg" alt=""></span>
-          <span class="home-project__label"><i>02</i>AI Prototypes</span>
+          <span class="home-project__label"><i>02</i>2026 AI Experiments</span>
         </a>
         <a class="home-project" href="/encoded/" data-title="Encoded" data-meta="Spatial interaction · The Met · 2,000+ activations" data-description="An augmented reality exhibition that activated twenty five artworks at The Metropolitan Museum of Art." data-image="/1.met/0.png">
           <span class="home-project__disc"><img src="/1.met/0.png" alt=""></span>
@@ -3853,6 +3868,64 @@
         }
         if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); requestAnimationFrame(frame); });
         else requestAnimationFrame(frame);
+      })();
+    </script>
+    <script>
+      (function () {
+        const stage = document.getElementById("home-stage");
+        const film = document.getElementById("home-film");
+        const layer = document.getElementById("home-work");
+        const img = document.getElementById("home-work-img");
+        if (!stage || !film || !layer || !img) return;
+        const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!fine || reduce) return;
+        const B = "";
+        const ME = B + "/assets/img/sid_about_pf.webp";
+        const shots = [
+          B + "/assets/img/work-previews/mool/cover.webp",
+          B + "/assets/img/fairview/cover.webp",
+          B + "/10.alpha/cover.webp", ME,
+          B + "/assets/img/marriott/cover.webp",
+          B + "/7.naavo/cover.webp",
+          B + "/6.mindu/cover2.webp", ME,
+          B + "/15.bloom-vp/cover.jpg",
+          B + "/1.met/0.webp",
+          B + "/9.aananda/cover.webp", ME,
+          B + "/11.illu/12.1.webp",
+          B + "/8.shotoniphone/cover.webp",
+          B + "/5.bb/cover.webp", ME,
+        ];
+        shots.forEach(function (src) { const i = new Image(); i.src = src; });
+        let idx = 0;
+        let last = { x: -1e4, y: -1e4 };
+        img.src = shots[0];
+        const trail = [];
+        function draw(x, y) {
+          trail.push({ x: x, y: y });
+          if (trail.length > 4) trail.shift();
+          const m = trail.map(function (pt, i) {
+            const a = (i + 1) / trail.length;
+            const r = 120 + a * 70;
+            return "radial-gradient(circle " + r + "px at " + pt.x + "px " + pt.y +
+              "px, rgba(0,0,0," + (0.4 + a * 0.6).toFixed(2) + ") 0 24%, rgba(0,0,0," +
+              (a * 0.35).toFixed(2) + ") 56%, transparent 80%)";
+          }).join(",");
+          layer.style.webkitMaskImage = m;
+          layer.style.maskImage = m;
+          stage.classList.add("is-working");
+        }
+        function clear() { trail.length = 0; stage.classList.remove("is-working"); }
+        film.addEventListener("pointermove", function (e) {
+          if (Math.hypot(e.clientX - last.x, e.clientY - last.y) > 330) {
+            idx = (idx + 1) % shots.length;
+            img.src = shots[idx];
+            last = { x: e.clientX, y: e.clientY };
+            trail.length = 0;
+          }
+          draw(e.clientX, e.clientY);
+        });
+        film.addEventListener("pointerleave", clear);
       })();
     </script>
   </body>
