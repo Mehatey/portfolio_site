@@ -1168,6 +1168,11 @@
       .hs-cap b{display:block;font-weight:500;font-size:15px;color:#fff}
       .hs-cap i{font-style:normal;font-size:10.5px;color:rgba(255,255,255,.72);font-family:"DM Mono",monospace;letter-spacing:.08em}
       .hs-card::after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(3,5,10,.5),transparent 42%)}
+      .hs-card{transition:transform .5s cubic-bezier(.16,1,.3,1),box-shadow .5s ease,border-color .3s ease}
+      .hs-card:hover{transform:translateY(-6px);border-color:rgba(255,255,255,.42);box-shadow:0 30px 72px rgba(0,0,0,.55)}
+      .hs-view{position:absolute;right:14px;bottom:13px;z-index:3;font-family:"DM Mono",monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#fff;opacity:0;transform:translateY(6px);transition:opacity .35s ease,transform .35s ease;pointer-events:none;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+      .hs-card:hover .hs-view{opacity:.92;transform:none}
+      @media (prefers-reduced-motion:reduce){.hs-card,.hs-view{transition:none}}
       .hs-stats{padding:16vh 0;text-align:center}
       .hs-row{display:flex;justify-content:center;gap:clamp(28px,6vw,96px);flex-wrap:wrap}
       .hs-stat b{display:block;font-weight:500;font-size:clamp(44px,7vw,92px);letter-spacing:-.04em;line-height:1;background:linear-gradient(180deg,#fff,rgba(255,255,255,.55));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}
@@ -1669,6 +1674,45 @@
           draw(e.clientX, e.clientY);
         });
         film.addEventListener("pointerleave", clear);
+      })();
+    </script>
+    <script>
+      // Homepage scroll sections: interactive polish (View affordance + count-up stats).
+      (function () {
+        var cards = document.querySelectorAll(".hs-card");
+        for (var i = 0; i < cards.length; i += 1) {
+          if (!cards[i].querySelector(".hs-view")) {
+            var v = document.createElement("span");
+            v.className = "hs-view";
+            v.setAttribute("aria-hidden", "true");
+            v.textContent = "View \u2192";
+            cards[i].appendChild(v);
+          }
+        }
+        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce || !("IntersectionObserver" in window)) return;
+        function countUp(el) {
+          var t = (el.textContent || "").trim();
+          var m = t.match(/^(\d+)(.*)$/);
+          if (!m) return;
+          var target = parseInt(m[1], 10), suffix = m[2] || "", start = null;
+          function step(ts) {
+            if (!start) start = ts;
+            var p = Math.min(1, (ts - start) / 1400);
+            var e = 1 - Math.pow(1 - p, 3);
+            el.textContent = Math.round(target * e) + suffix;
+            if (p < 1) requestAnimationFrame(step);
+            else el.textContent = m[1] + suffix;
+          }
+          requestAnimationFrame(step);
+        }
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (en.isIntersecting) { countUp(en.target); io.unobserve(en.target); }
+          });
+        }, { threshold: 0.6 });
+        var nums = document.querySelectorAll(".hs-stat b");
+        for (var j = 0; j < nums.length; j += 1) io.observe(nums[j]);
       })();
     </script>
   </body>
