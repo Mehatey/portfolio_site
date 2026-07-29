@@ -7,12 +7,12 @@ tagline: A character built since 2018. A square in an unfamiliar world, collecti
 quick_read: >
   Cube of Creations is a character world developed over seven years through a short film, game, and interactive build. I created the character, visual language, and technical world across each format.
 category: Film · Game · Character
-year: 2018–2025
+year: 2018-2025
 hero_bg: "radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)"
 hero_image: "2.cube/cover.png"
 meta:
   - label: Year
-    value: "2018–2025"
+    value: "2018-2025"
   - label: Client
     value: Self Initiated
   - label: Role
@@ -20,7 +20,7 @@ meta:
   - label: Tools
     value: Unreal Engine
 highlights:
-  - value: 2018–2025
+  - value: 2018-2025
     label: seven-year character world
   - value: "3"
     label: film · game · character

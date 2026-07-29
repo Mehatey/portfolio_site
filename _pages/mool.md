@@ -49,8 +49,8 @@ decisions:
       set, the empty states and the transaction confirmations, so the ornament carried meaning about belonging
       rather than sitting on top of a neutral layout as decoration.
     tradeoff: >
-      It made the design system slow to extend. A new screen could not be assembled from generic components —
-      someone had to decide which regional vocabulary it belonged to, and that decision needed a person who knew the
+      It made the design system slow to extend. A new screen could not be assembled from generic components.
+      Someone had to decide which regional vocabulary it belonged to, and that decision needed a person who knew the
       reference.
   - choice: "Kept the numbers plain while the rest of the interface stayed rich"
     why: >
@@ -58,7 +58,7 @@ decisions:
       amounts, dates and account numbers stayed in one neutral face at high contrast with tabular figures, so
       nothing about the styling could be misread as a flourish placed over someone's money.
     tradeoff: >
-      The two voices share a screen, and on the dense views — statements, full transaction history — the split reads
+      The two voices share a screen, and on the dense views (statements, full transaction history) the split reads
       as unresolved rather than deliberate. It is the part of the system I would rebuild first.
   - choice: "Designed for a first-time smartphone user, not a first-time banking user"
     why: >

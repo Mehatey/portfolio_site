@@ -8,7 +8,7 @@ tagline: >
 quick_read: >
   An independent illustration practice developed over seven years that sharpened the visual range behind the product and spatial work. The full archive is here for anyone who wants to see the trail.
 category: Illustration · Visual Diary
-year: 2018–2025
+year: 2018-2025
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)"
 hero_image: "11.illu/1.JPG"
 refl_bg: "11.illu/refl_bg.jpg"
@@ -16,13 +16,13 @@ meta:
   - label: Role
     value: Solo
   - label: Duration
-    value: 2018–2025
+    value: 2018-2025
   - label: Tools
     value: Illustrator · Photoshop · Procreate
   - label: Client
     value: Self Initiated
 highlights:
-  - value: 2018–2025
+  - value: 2018-2025
     label: seven-year visual archive
   - value: "3"
     label: illustration tools in rotation

@@ -43,8 +43,8 @@ decisions:
       the tradition, the restraint can read as unfinished rather than as faithful.
   - choice: "Took the visual language from temple architecture rather than from manuscripts"
     why: >
-      Manuscripts are the easier reference and the more decorative one. Temple geometry — repetition, symmetry, the
-      way a plan resolves toward a centre — is structural, so it could drive grid and layout across the book, the
+      Manuscripts are the easier reference and the more decorative one. Temple geometry (repetition, symmetry, the
+      way a plan resolves toward a centre) is structural, so it could drive grid and layout across the book, the
       app and the print identity instead of supplying ornament to only one of them.
     tradeoff: >
       It is a harder reference to read. The connection is obvious to someone who has stood in one of those spaces
@@ -59,7 +59,7 @@ decisions:
       is faithful to a particular version of it rather than to the whole.
 next_steps: >
   The piece I never resolved is the app. The identity and the book hold, but the app was designed against a
-  category I had rejected and never found its own model for what daily use should feel like — and daily use is
+  category I had rejected and never found its own model for what daily use should feel like, and daily use is
   the entire question with something like this. I would also want the work read by people outside my own family,
   from other regions and sects, because the reference behind it is narrower than the subject is.
 next_project:

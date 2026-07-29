@@ -5,7 +5,7 @@ project_title: AI Self
 proj_num: "02"
 tagline: A research arc in three phases. First, experiments asking what AI actually perceives, and what that reveals about the gap between pattern and meaning. Second, a design concept for an AI that lives alongside you in mixed reality. Third, a VR world where an AI wakes up inside everything it has ever learned about humanity.
 category: AI · AR · VR
-year: 2024–2025
+year: 2024-2025
 hero_bg: "radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)"
 hero_video: "2.ai-self/19.mp4"
 hero_image: "2.ai-self/cover.png"
@@ -13,7 +13,7 @@ meta:
   - label: Role
     value: Solo
   - label: Year
-    value: 2024–2025
+    value: 2024-2025
   - label: Tools
     value: Unity · ARKit · Figma · Google Cloud Vision
   - label: Client

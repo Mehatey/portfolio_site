@@ -42,7 +42,7 @@ refl_bg: "1.met/12.png"
 decisions:
   - choice: "Captured 25 artworks on a phone instead of bringing production gear into the museum"
     why: >
-      The exhibition was unsanctioned. Anything that read as a production setup — a rig, lighting, a tripod — would
+      The exhibition was unsanctioned. Anything that read as a production setup (a rig, lighting, a tripod) would
       have ended the project on the first day. A phone in a gallery is invisible. The entire capture pipeline was
       designed around what one person can do while looking like an ordinary visitor.
     tradeoff: >
@@ -56,7 +56,7 @@ decisions:
       method that left no physical trace in a place we had no permission to alter.
     tradeoff: >
       It made the work dependent on a third-party localisation service and on visitors carrying a compatible device.
-      Where the VPS map was thin the content drifted, and there is no graceful degradation — it either localises or
+      Where the VPS map was thin the content drifted, and there is no graceful degradation: it either localises or
       it does not.
   - choice: "Let the artists' interpretations lead and kept the AR craft quiet"
     why: >

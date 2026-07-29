@@ -36,8 +36,8 @@ refl_bg: "10.alpha/reflection.jpg"
 decisions:
   - choice: "Taught one concept per level and let the level be short"
     why: >
-      Financial education fails by front-loading vocabulary. Each level isolates a single mechanic — a short, a call
-      option, market cap — and ends as soon as the player has felt the consequence of using it, so the concept is
+      Financial education fails by front-loading vocabulary. Each level isolates a single mechanic (a short, a call
+      option, market cap) and ends as soon as the player has felt the consequence of using it, so the concept is
       learned as an outcome rather than memorised as a definition.
     tradeoff: >
       The concepts stay isolated. Real markets are these mechanics interacting, and nothing in the structure teaches
@@ -53,7 +53,7 @@ decisions:
   - choice: "Simulated the market instead of wiring in real data"
     why: >
       Live feeds bring latency, licensing, and the risk of a lesson being contradicted by that day's actual
-      movement. A simulated market can be authored — a level about shorting can guarantee the downturn it needs —
+      movement. A simulated market can be authored (a level about shorting can guarantee the downturn it needs),
       and authorship is what teaching requires.
     tradeoff: >
       It teaches a market more legible than the real one. Everything in it is causal, and the most important thing

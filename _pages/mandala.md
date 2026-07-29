@@ -54,7 +54,7 @@ decisions:
       people down before they arrived.
     tradeoff: >
       It does not survive a busy opening. In the conditions where most people actually encounter work like this, the
-      piece is at its weakest — that is a real limitation, not a preference.
+      piece is at its weakest. That is a real limitation, not a preference.
   - choice: "Used body tracking as a slow influence rather than as direct control"
     why: >
       MediaPipe makes one-to-one mapping easy, and one-to-one mapping turns an installation into a mirror: people
@@ -65,7 +65,7 @@ decisions:
       read the visuals as a video, which means the responsiveness did no work for them.
 next_steps: >
   The thing I would fix is that ceiling. The single question is right, but the system needs somewhere to go
-  after the first minute for the people who stay — not more modes, but slower structure that only reveals itself
+  after the first minute for the people who stay: not more modes, but slower structure that only reveals itself
   to someone who does not leave. I would also stop treating the room as fixed. The lighting and the acoustics
   turned out to matter more than the visuals did, and I designed them last instead of first.
 next_project:
