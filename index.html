@@ -1230,6 +1230,73 @@
           transform: translateY(-50%);
         }
       }
+
+      /* ── Hero film compositor (replaces the abstract smoke shader) ── */
+      #home-gl {
+        display: none !important;
+      }
+      #home-hint {
+        display: none !important;
+      }
+      .home-film::after {
+        display: none !important;
+      }
+      .home-film-gl {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .home-film-src {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        opacity: 0.001;
+        pointer-events: none;
+        left: -10px;
+        top: -10px;
+      }
+      .home-film-fallback {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 40%;
+        opacity: 0;
+      }
+      .home-film.is-fallback .home-film-fallback {
+        opacity: 1;
+      }
+      .home-film-hint {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        margin: 0;
+        font:
+          400 11px/1.4 "DM Mono",
+          ui-monospace,
+          monospace;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(233, 240, 250, 0.72);
+        pointer-events: none;
+        transition: opacity 700ms ease;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+      }
+      .home-film-hint.is-gone {
+        opacity: 0;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .home-film-hint {
+          display: none;
+        }
+      }
     </style>
   </head>
 
@@ -3140,6 +3207,14 @@
   </nav>
 </header>
 
+<svg class="nav-glass-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position: absolute; pointer-events: none">
+  <filter id="nav-glass" x="-20%" y="-20%" width="140%" height="140%" color-interpolation-filters="sRGB">
+    <feturbulence type="fractalNoise" basefrequency="0.009 0.013" numoctaves="2" seed="14" result="turb"></feturbulence>
+    <fegaussianblur in="turb" stddeviation="1.1" result="soft"></fegaussianblur>
+    <fedisplacementmap in="SourceGraphic" in2="soft" scale="16" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
+  </filter>
+</svg>
+
 <style>
   .studio-nav {
     --nav-ink: #f5f7fb;
@@ -3155,16 +3230,54 @@
   /* Legibility scrim: keeps nav readable when it overlaps bright imagery on
      scroll (e.g. the home work grid). Invisible over the site's dark surfaces
      because it fades to transparent and sits within the nav's stacking context. */
+  /* ── Liquid glass ── A real refractive panel: the backdrop is blurred,
+     saturated and DISPLACED by an SVG turbulence map so content scrolling under
+     the nav actually bends through it, with a specular top edge and soft drop
+     shadow. Chromium refracts via url(#nav-glass); other engines keep the blur
+     fallback. Tint adapts to light / dark surfaces for legibility. */
   .studio-nav::before {
     content: "";
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    height: 118px;
+    height: clamp(60px, 8vh, 74px);
     z-index: -1;
     pointer-events: none;
-    background: linear-gradient(180deg, rgba(4, 6, 11, 0.8) 0%, rgba(4, 6, 11, 0.42) 45%, transparent 100%);
+    background: linear-gradient(180deg, rgba(18, 24, 36, 0.32) 0%, rgba(18, 24, 36, 0.12) 55%, transparent 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow:
+      0 8px 26px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(7px) saturate(1.7);
+    backdrop-filter: blur(7px) saturate(1.7);
+    backdrop-filter: blur(7px) saturate(1.7) url(#nav-glass);
+    -webkit-mask-image: linear-gradient(180deg, #000 74%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 74%, transparent 100%);
+  }
+  /* Light, non-dark-hero surfaces: frost to white so dark nav ink stays crisp. */
+  html[data-theme="light"] .studio-nav::before {
+    background: linear-gradient(180deg, rgba(252, 253, 255, 0.5) 0%, rgba(252, 253, 255, 0.22) 55%, transparent 100%);
+    border-bottom-color: rgba(12, 22, 40, 0.08);
+    box-shadow:
+      0 8px 26px rgba(20, 30, 50, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+  /* Home / Contact / Play stay dark-surface glass even in light theme. */
+  html[data-theme="light"] .home-page .studio-nav::before,
+  html[data-theme="light"] .contact-page .studio-nav::before,
+  html[data-theme="light"] .play-page .studio-nav::before {
+    background: linear-gradient(180deg, rgba(18, 24, 36, 0.34) 0%, rgba(18, 24, 36, 0.12) 55%, transparent 100%);
+    border-bottom-color: rgba(255, 255, 255, 0.16);
+    box-shadow:
+      0 8px 26px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .studio-nav::before {
+      backdrop-filter: blur(7px) saturate(1.5);
+    }
   }
   .studio-link span {
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
@@ -3384,6 +3497,32 @@
   .contact-page .studio-nav,
   .play-page .studio-nav {
     --nav-ink: #f5f7fb;
+  }
+  /* These three pages have a permanently dark cinematic hero, so their nav must
+     stay light and the logo face must stay dark even when the site theme is
+     light. Scope by data-theme to outrank the light-theme nav rules above. */
+  html[data-theme="light"] .home-page .studio-nav,
+  html[data-theme="light"] .contact-page .studio-nav,
+  html[data-theme="light"] .play-page .studio-nav {
+    --nav-ink: #f5f7fb;
+  }
+  html[data-theme="light"] .home-page .studio-mark .cube-front,
+  html[data-theme="light"] .contact-page .studio-mark .cube-front,
+  html[data-theme="light"] .play-page .studio-mark .cube-front {
+    fill: rgba(6, 13, 24, 0.92);
+  }
+  html[data-theme="light"] .home-page .studio-mark .logo-eye,
+  html[data-theme="light"] .contact-page .studio-mark .logo-eye,
+  html[data-theme="light"] .play-page .studio-mark .logo-eye {
+    fill: #e7f1ff;
+  }
+  html[data-theme="light"] .home-page .studio-mark-label,
+  html[data-theme="light"] .contact-page .studio-mark-label,
+  html[data-theme="light"] .play-page .studio-mark-label,
+  html[data-theme="light"] .home-page .studio-link > span,
+  html[data-theme="light"] .contact-page .studio-link > span,
+  html[data-theme="light"] .play-page .studio-link > span {
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
   }
 
   @media (max-width: 760px) {
@@ -3649,19 +3788,17 @@
 
 
     <main class="home-stage" id="home-stage">
-      <div class="home-film" id="home-film" aria-label="Move across the hero to reveal selected work">
-        <video class="home-film__ambient" autoplay muted loop playsinline preload="auto" aria-hidden="true">
-          <source src="/assets/video/sid_sitting.mp4" type="video/mp4"></source>
-        </video>
-        <video class="home-film__real" autoplay muted loop playsinline preload="auto">
-          <source src="/assets/video/sid_sitting.mp4" type="video/mp4"></source>
-        </video>
-        <video class="home-film__pixel" autoplay muted loop playsinline preload="auto">
+      <div class="home-film" id="home-film" data-freeze="/assets/img/sid_pixel_freeze.webp" aria-hidden="true">
+        <canvas class="home-film-gl" id="home-film-gl"></canvas>
+        <img class="home-film-fallback" id="home-film-fallback" src="/assets/img/sid_pixel_freeze.webp" alt="" aria-hidden="true">
+        <video class="home-film-src" id="hf-pixel" muted playsinline preload="auto" aria-hidden="true">
           <source src="/assets/video/sid_pixelated.mp4" type="video/mp4"></source>
         </video>
-        <div class="home-work-scrim" aria-hidden="true"></div>
-        <div class="home-work" id="home-work" aria-hidden="true"><img id="home-work-img" alt="" decoding="async"></div>
+        <video class="home-film-src" id="hf-clear" muted loop playsinline preload="auto" aria-hidden="true">
+          <source src="/assets/video/sid_sitting.mp4" type="video/mp4"></source>
+        </video>
       </div>
+      <p class="home-film-hint" id="home-film-hint" aria-hidden="true">Move to reveal • click to shift the look</p>
       <canvas class="home-gl" id="home-gl" aria-hidden="true"></canvas>
       <p class="home-hint" id="home-hint" aria-hidden="true">Move to reveal the work ✦</p>
 
@@ -4250,7 +4387,20 @@
           document.body.style.overflow = "hidden";
           reelClose.focus();
           // Load the reel only now, so it never costs bandwidth on page load.
-          if (reelVideo && !reelVideo.src) reelVideo.src = reelVideo.dataset.src;
+          if (reelVideo && !reelVideo.src) {
+            reelVideo.src = reelVideo.dataset.src;
+            reelVideo.load();
+            // preload was "none", so the source is not ready yet: play as soon as it can,
+            // otherwise the immediate play() below races the load and silently no-ops.
+            reelVideo.addEventListener(
+              "canplay",
+              function onCanPlay() {
+                reelVideo.removeEventListener("canplay", onCanPlay);
+                reelVideo.play().catch(() => {});
+              },
+              { once: true }
+            );
+          }
           reelVideo && reelVideo.play && reelVideo.play().catch(() => {});
         }
 
@@ -4681,5 +4831,6 @@
         });
       })();
     </script>
+    <script src="/assets/js/home-film.js" defer></script>
   </body>
 </html>
