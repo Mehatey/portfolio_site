@@ -369,31 +369,28 @@
   .studio-mark .logo-cube.celebrate .logo-gaze {
     transform: scaleY(0.6);
   }
-  /* Walkabout: a rare, small, graceful loop in the upper-left corner — the mark
-     takes a little flight and settles back. Contained so it never sails across
-     the nav or covers content. Desktop only, reduced-motion disables it. */
-  @keyframes sid-mark-walkabout {
+  /* Walkabout companion: as the flying mark reaches each nav icon, that icon
+     springs and glows in greeting. The flight itself is JS-driven (position-
+     aware, off the icons' live coordinates); this is just the icons' reaction.
+     Reduced-motion disables the spring. */
+  @keyframes sid-nav-poke {
     0% {
-      transform: translate(0, 0) rotate(0);
+      transform: translateY(0) scale(1) rotate(0);
     }
-    15% {
-      transform: translate(30px, -4px) rotate(8deg);
-    }
-    40% {
-      transform: translate(96px, 14px) rotate(-6deg) scale(1.05);
+    35% {
+      transform: translateY(-4px) scale(1.3) rotate(-7deg);
     }
     62% {
-      transform: translate(60px, 40px) rotate(10deg);
-    }
-    82% {
-      transform: translate(14px, 16px) rotate(-4deg);
+      transform: translateY(0) scale(0.95) rotate(4deg);
     }
     100% {
-      transform: translate(0, 0) rotate(0);
+      transform: translateY(0) scale(1) rotate(0);
     }
   }
-  .studio-mark .logo-cube.walkabout {
-    animation: sid-mark-walkabout 4.6s cubic-bezier(0.5, 0, 0.25, 1) !important;
+  .studio-link.nav-poke svg {
+    transform-origin: center;
+    animation: sid-nav-poke 0.62s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: brightness(1.35) drop-shadow(0 0 5px rgba(255, 255, 255, 0.45));
   }
   @media (prefers-reduced-motion: reduce) {
     .studio-mark .logo-cube.look-l .logo-gaze,
@@ -404,7 +401,7 @@
     }
     .studio-mark .logo-cube.celebrate,
     .studio-mark .logo-cube.celebrate .logo-eye,
-    .studio-mark .logo-cube.walkabout {
+    .studio-link.nav-poke svg {
       animation: none !important;
     }
   }
@@ -440,22 +437,69 @@
       schedule();
     }
 
-    // Walkabout — a rare, contained little flight. Desktop only; skips when the
-    // tab is hidden or the mark is mid-celebrate. First one ~1.5-2min in so an
-    // engaged visitor can catch it, then rare (~3.5-6min), always randomized.
+    // Walkabout — a rare, contained flight where the mark drifts across the nav
+    // and boops each icon (which springs in greeting), then returns home.
+    // Position-aware via the Web Animations API so it lands on the real icons at
+    // any width. Pointer-events off mid-flight so it never blocks a click.
+    var walkAnim = null;
+    function poke(link) {
+      link.classList.add("nav-poke");
+      setTimeout(function () {
+        link.classList.remove("nav-poke");
+      }, 640);
+    }
+    function walkabout() {
+      var links = Array.prototype.slice.call(document.querySelectorAll(".studio-links .studio-link"));
+      if (!links.length || typeof cube.animate !== "function") return;
+      var cr = cube.getBoundingClientRect();
+      var cx = cr.left + cr.width / 2;
+      var cy = cr.top + cr.height / 2;
+      var stops = links.map(function (l) {
+        var g = l.querySelector("svg") || l;
+        var r = g.getBoundingClientRect();
+        return {
+          dx: r.left + r.width / 2 - cx,
+          dy: r.top + r.height / 2 - cy,
+          link: l,
+        };
+      });
+      var n = stops.length;
+      var frames = [{ transform: "translate(0,0) rotate(0) scale(1)", offset: 0 }];
+      stops.forEach(function (s, idx) {
+        s.at = +(0.14 + (0.72 * idx) / n).toFixed(3);
+        frames.push({
+          transform: "translate(" + s.dx.toFixed(1) + "px," + s.dy.toFixed(1) + "px) rotate(" + (idx % 2 ? 12 : -12) + "deg) scale(1.05)",
+          offset: s.at,
+        });
+      });
+      frames.push({ transform: "translate(0,0) rotate(0) scale(1)", offset: 1 });
+      var dur = 4200 + n * 560;
+      cube.style.pointerEvents = "none";
+      walkAnim = cube.animate(frames, {
+        duration: dur,
+        easing: "cubic-bezier(0.45,0,0.25,1)",
+      });
+      stops.forEach(function (s) {
+        setTimeout(function () {
+          poke(s.link);
+        }, s.at * dur);
+      });
+      function done() {
+        cube.style.pointerEvents = "";
+        cube.style.transform = "";
+        walkAnim = null;
+      }
+      walkAnim.onfinish = done;
+      walkAnim.oncancel = done;
+    }
     if (!reduce && window.innerWidth >= 700) {
       var firstWalk = true;
       function scheduleWalk() {
         var wait = firstWalk ? 75000 + Math.random() * 55000 : 210000 + Math.random() * 150000;
         firstWalk = false;
         setTimeout(function () {
-          if (!document.hidden && !cube.classList.contains("celebrate")) {
-            cube.classList.remove("walkabout");
-            void cube.offsetWidth;
-            cube.classList.add("walkabout");
-            setTimeout(function () {
-              cube.classList.remove("walkabout");
-            }, 4700);
+          if (!document.hidden && !cube.classList.contains("celebrate") && !walkAnim) {
+            walkabout();
           }
           scheduleWalk();
         }, wait);
@@ -472,7 +516,7 @@
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       if (reduce) return;
-      cube.classList.remove("walkabout");
+      if (walkAnim) walkAnim.cancel();
       cube.classList.remove("celebrate");
       void cube.offsetWidth;
       cube.classList.add("celebrate");
