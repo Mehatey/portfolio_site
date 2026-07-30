@@ -1746,7 +1746,20 @@
           document.body.style.overflow = "hidden";
           reelClose.focus();
           // Load the reel only now, so it never costs bandwidth on page load.
-          if (reelVideo && !reelVideo.src) reelVideo.src = reelVideo.dataset.src;
+          if (reelVideo && !reelVideo.src) {
+            reelVideo.src = reelVideo.dataset.src;
+            reelVideo.load();
+            // preload was "none", so the source is not ready yet: play as soon as it can,
+            // otherwise the immediate play() below races the load and silently no-ops.
+            reelVideo.addEventListener(
+              "canplay",
+              function onCanPlay() {
+                reelVideo.removeEventListener("canplay", onCanPlay);
+                reelVideo.play().catch(() => {});
+              },
+              { once: true }
+            );
+          }
           reelVideo && reelVideo.play && reelVideo.play().catch(() => {});
         }
 
