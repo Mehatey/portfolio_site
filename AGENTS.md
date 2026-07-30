@@ -79,3 +79,7 @@ For troubleshooting, see:
 - [Common Pitfalls & Workarounds](.github/copilot-instructions.md#common-pitfalls--workarounds) in copilot-instructions.md
 - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for detailed solutions
 - [GitHub Issues](https://github.com/alshedivat/al-folio/issues) to search for your specific problem.
+
+## Handoff / working guide
+
+Before starting, read `HANDOFF.md` at the repo root — it captures Sid's design taste, how he likes to work (keep momentum, take creative calls, verify light+dark), repo conventions, known traps, and the current open items.
