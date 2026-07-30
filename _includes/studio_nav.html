@@ -322,4 +322,112 @@
       transition-duration: 1ms !important;
     }
   }
+
+  /* ── Logo life: living gaze + click-to-celebrate (classes toggled by the
+       script below). Scoped to the nav mark; reduced-motion disables it all. ── */
+  .studio-mark .logo-cube.look-l .logo-gaze {
+    transform: translateX(-2px);
+  }
+  .studio-mark .logo-cube.look-r .logo-gaze {
+    transform: translateX(2px);
+  }
+  .studio-mark .logo-cube.look-u .logo-gaze {
+    transform: translateY(-1.5px) scaleY(0.92);
+  }
+  @keyframes sid-mark-celebrate {
+    0% {
+      transform: rotate(0) scale(1);
+    }
+    55% {
+      transform: rotate(210deg) scale(1.12);
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+    }
+  }
+  @keyframes sid-eye-celebrate {
+    0%,
+    100% {
+      fill: #e7f1ff;
+    }
+    25% {
+      fill: #9cd0ff;
+    }
+    55% {
+      fill: #ffc478;
+    }
+    80% {
+      fill: #c9a2ff;
+    }
+  }
+  .studio-mark .logo-cube.celebrate {
+    animation: sid-mark-celebrate 0.9s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .studio-mark .logo-cube.celebrate .logo-eye {
+    animation: sid-eye-celebrate 0.9s ease-in-out !important;
+  }
+  .studio-mark .logo-cube.celebrate .logo-gaze {
+    transform: scaleY(0.6);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .studio-mark .logo-cube.look-l .logo-gaze,
+    .studio-mark .logo-cube.look-r .logo-gaze,
+    .studio-mark .logo-cube.look-u .logo-gaze,
+    .studio-mark .logo-cube.celebrate .logo-gaze {
+      transform: none;
+    }
+    .studio-mark .logo-cube.celebrate,
+    .studio-mark .logo-cube.celebrate .logo-eye {
+      animation: none !important;
+    }
+  }
 </style>
+
+<script>
+  (function () {
+    var mark = document.querySelector(".studio-nav .studio-mark");
+    if (!mark) return;
+    var cube = mark.querySelector(".logo-cube");
+    if (!cube) return;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Living gaze — an occasional glance so the mark feels quietly attentive.
+    if (!reduce) {
+      var dirs = ["look-l", "look-r", "look-u"];
+      var i = 0;
+      function glance() {
+        var d = dirs[i % dirs.length];
+        i += 1;
+        cube.classList.add(d);
+        setTimeout(function () {
+          cube.classList.remove(d);
+        }, 720);
+      }
+      function schedule() {
+        var wait = 24000 + (i % 6) * 2600; // 24-37s, non-metronomic
+        setTimeout(function () {
+          if (!document.hidden) glance();
+          schedule();
+        }, wait);
+      }
+      schedule();
+    }
+
+    // Click to celebrate — only when clicking the logo is already a no-op (we
+    // are on the home page), so it never blocks navigating home from elsewhere.
+    mark.addEventListener("click", function (e) {
+      var here = location.pathname.replace(/\/+$/, "");
+      var dest = (mark.getAttribute("href") || "").replace(/\/+$/, "");
+      if (here !== dest) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      if (reduce) return;
+      cube.classList.remove("celebrate");
+      void cube.offsetWidth;
+      cube.classList.add("celebrate");
+      setTimeout(function () {
+        cube.classList.remove("celebrate");
+      }, 950);
+    });
+  })();
+</script>
