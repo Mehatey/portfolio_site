@@ -220,7 +220,9 @@
         opacity: 0.8;
       }
       @media (prefers-reduced-motion: reduce) {
-        .contact-gl { display: none; }
+        .contact-gl {
+          display: none;
+        }
       }
 
       /* ── Constellation corners ── info orbits the centred desk instead of
@@ -678,7 +680,9 @@
         -webkit-backdrop-filter: blur(8px);
         backdrop-filter: blur(8px);
         color: #f4f8fd;
-        font: 500 11px/1 "DM Mono", monospace;
+        font:
+          500 11px/1 "DM Mono",
+          monospace;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         cursor: pointer;
@@ -1216,10 +1220,15 @@
           "  col *= intensity;",
           "  float a = clamp(intensity*0.4, 0.0, 0.7);",
           "  gl_FragColor = vec4(col*a, a);",
-          "}"
+          "}",
         ].join("\n");
 
-        function compile(type, src){ var s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s); return s; }
+        function compile(type, src) {
+          var s = gl.createShader(type);
+          gl.shaderSource(s, src);
+          gl.compileShader(s);
+          return s;
+        }
         var prog = gl.createProgram();
         gl.attachShader(prog, compile(gl.VERTEX_SHADER, vsrc));
         gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsrc));
@@ -1228,26 +1237,50 @@
         gl.useProgram(prog);
         var buf = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 3,-1, -1,3]), gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
         var loc = gl.getAttribLocation(prog, "p");
         gl.enableVertexAttribArray(loc);
         gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        var uRes = gl.getUniformLocation(prog,"u_res"), uTime = gl.getUniformLocation(prog,"u_time"),
-            uMouse = gl.getUniformLocation(prog,"u_mouse"), uMdown = gl.getUniformLocation(prog,"u_mdown");
-        gl.disable(gl.DEPTH_TEST); gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+        var uRes = gl.getUniformLocation(prog, "u_res"),
+          uTime = gl.getUniformLocation(prog, "u_time"),
+          uMouse = gl.getUniformLocation(prog, "u_mouse"),
+          uMdown = gl.getUniformLocation(prog, "u_mdown");
+        gl.disable(gl.DEPTH_TEST);
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-        var DPR = Math.min(window.devicePixelRatio||1, 2);
-        function resize(){ var w=canvas.clientWidth||window.innerWidth, h=canvas.clientHeight||window.innerHeight; canvas.width=Math.round(w*DPR); canvas.height=Math.round(h*DPR); gl.viewport(0,0,canvas.width,canvas.height); }
-        resize(); window.addEventListener("resize", resize);
-        var mouse=[0.5,0.55], tmouse=[0.5,0.55], mdown=0;
-        window.addEventListener("pointermove", function(e){ tmouse=[e.clientX/window.innerWidth, 1.0-e.clientY/window.innerHeight]; });
-        window.addEventListener("pointerdown", function(){ mdown=1; });
-        window.addEventListener("pointerup", function(){ mdown=0; });
-        var start=null;
-        function render(now){ if(start===null) start=now; var t=(now-start)/1000;
-          mouse[0]+=(tmouse[0]-mouse[0])*0.06; mouse[1]+=(tmouse[1]-mouse[1])*0.06;
-          gl.uniform2f(uRes, canvas.width, canvas.height); gl.uniform1f(uTime, t);
-          gl.uniform2f(uMouse, mouse[0], mouse[1]); gl.uniform1f(uMdown, mdown);
+        var DPR = Math.min(window.devicePixelRatio || 1, 2);
+        function resize() {
+          var w = canvas.clientWidth || window.innerWidth,
+            h = canvas.clientHeight || window.innerHeight;
+          canvas.width = Math.round(w * DPR);
+          canvas.height = Math.round(h * DPR);
+          gl.viewport(0, 0, canvas.width, canvas.height);
+        }
+        resize();
+        window.addEventListener("resize", resize);
+        var mouse = [0.5, 0.55],
+          tmouse = [0.5, 0.55],
+          mdown = 0;
+        window.addEventListener("pointermove", function (e) {
+          tmouse = [e.clientX / window.innerWidth, 1.0 - e.clientY / window.innerHeight];
+        });
+        window.addEventListener("pointerdown", function () {
+          mdown = 1;
+        });
+        window.addEventListener("pointerup", function () {
+          mdown = 0;
+        });
+        var start = null;
+        function render(now) {
+          if (start === null) start = now;
+          var t = (now - start) / 1000;
+          mouse[0] += (tmouse[0] - mouse[0]) * 0.06;
+          mouse[1] += (tmouse[1] - mouse[1]) * 0.06;
+          gl.uniform2f(uRes, canvas.width, canvas.height);
+          gl.uniform1f(uTime, t);
+          gl.uniform2f(uMouse, mouse[0], mouse[1]);
+          gl.uniform1f(uMdown, mdown);
           gl.drawArrays(gl.TRIANGLES, 0, 3);
           requestAnimationFrame(render);
         }
