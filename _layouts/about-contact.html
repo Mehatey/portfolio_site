@@ -1663,7 +1663,10 @@
         });
       })();
 
-      // Generic scroll reveal — staggers siblings within their parent.
+      // Generic scroll reveal — staggers siblings within their parent. Robust:
+      // an observer animates elements in on normal scroll, and a rAF-throttled
+      // scroll sweep reveals anything the observer skips on a fast scroll or an
+      // anchor jump, so content is never stuck hidden.
       (function () {
         var els = document.querySelectorAll("[data-reveal]");
         if (!els.length) return;
@@ -1673,32 +1676,59 @@
           });
           return;
         }
-        var obs = new IntersectionObserver(
-          function (entries) {
-            entries.forEach(function (entry) {
-              if (!entry.isIntersecting) return;
-              var el = entry.target;
-              var parent = el.parentElement;
-              var peers = parent ? parent.querySelectorAll(":scope > [data-reveal]") : [el];
-              var idx = Array.prototype.indexOf.call(peers, el);
-              var stagger = el.matches(".cap-tag") ? 0.045 : 0.09;
-              el.style.setProperty("--d", idx * stagger + "s");
-              el.classList.add("is-visible");
-              obs.unobserve(el);
+        function reveal(el) {
+          if (el.classList.contains("is-visible")) return;
+          var parent = el.parentElement;
+          var peers = parent ? parent.querySelectorAll(":scope > [data-reveal]") : [el];
+          var idx = Array.prototype.indexOf.call(peers, el);
+          var stagger = el.matches(".cap-tag") ? 0.045 : 0.09;
+          el.style.setProperty("--d", idx * stagger + "s");
+          el.classList.add("is-visible");
+        }
+        var obs = null;
+        if ("IntersectionObserver" in window) {
+          try {
+            obs = new IntersectionObserver(
+              function (entries) {
+                entries.forEach(function (entry) {
+                  if (entry.isIntersecting) {
+                    reveal(entry.target);
+                    obs.unobserve(entry.target);
+                  }
+                });
+              },
+              { threshold: 0.05, rootMargin: "0px 0px -6% 0px" }
+            );
+            els.forEach(function (el) {
+              obs.observe(el);
             });
-          },
-          { threshold: 0.05, rootMargin: "0px 0px -6% 0px" }
-        );
-        els.forEach(function (el) {
-          obs.observe(el);
-        });
-        setTimeout(function () {
-          els.forEach(function (el) {
-            if (el.classList.contains("is-visible")) return;
-            var r = el.getBoundingClientRect();
-            if (r.top < window.innerHeight && r.bottom > 0) el.classList.add("is-visible");
-          });
-        }, 1600);
+          } catch (e) {
+            obs = null;
+          }
+        }
+        var queued = false;
+        function sweep() {
+          queued = false;
+          var vh = window.innerHeight;
+          var pending = document.querySelectorAll("[data-reveal]:not(.is-visible)");
+          for (var i = 0; i < pending.length; i += 1) {
+            if (pending[i].getBoundingClientRect().top < vh * 0.92) reveal(pending[i]);
+          }
+          if (!document.querySelectorAll("[data-reveal]:not(.is-visible)").length) {
+            window.removeEventListener("scroll", onScroll);
+            window.removeEventListener("resize", onScroll);
+          }
+        }
+        function onScroll() {
+          if (!queued) {
+            queued = true;
+            requestAnimationFrame(sweep);
+          }
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll, { passive: true });
+        sweep();
+        setTimeout(sweep, 1600);
       })();
 
       // Profile card: a quiet 3D tilt with a deliberate two-photo flip.
