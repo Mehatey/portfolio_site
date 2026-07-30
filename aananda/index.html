@@ -3735,7 +3735,11 @@
   .studio-mark .logo-cube {
     filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.6));
   }
-  @media (prefers-reduced-motion: reduce) { .studio-nav::before { transition: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .studio-nav::before {
+      transition: none;
+    }
+  }
 
   .studio-mark,
   .studio-link {
@@ -3974,13 +3978,19 @@
     }
     .studio-link > span {
       display: block;
-      font: 500 8.5px/1 "DM Mono", monospace;
+      font:
+        500 8.5px/1 "DM Mono",
+        monospace;
       letter-spacing: 0.03em;
       text-transform: uppercase;
       opacity: 0.92;
     }
-    .studio-link.is-active { opacity: 1; }
-    .studio-link::after { display: none; }
+    .studio-link.is-active {
+      opacity: 1;
+    }
+    .studio-link::after {
+      display: none;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -4063,37 +4073,81 @@
   }
 </style> <script>
   (function () {
-    function revealAll(list) {
-      Array.prototype.forEach.call(list, function (el) { el.classList.add("is-visible"); });
+    function showAll(list) {
+      Array.prototype.forEach.call(list, function (el) {
+        el.classList.add("is-visible");
+      });
     }
     function init() {
       var els = document.querySelectorAll("[data-reveal]:not(.is-visible)");
       if (!els.length) return;
       var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduce || !("IntersectionObserver" in window)) { revealAll(els); return; }
-      try {
-        var obs = new IntersectionObserver(function (entries) {
-          entries.forEach(function (entry) {
-            if (!entry.isIntersecting) return;
-            var el = entry.target;
-            var parent = el.parentElement;
-            var peers = parent ? parent.querySelectorAll(":scope > [data-reveal]") : [el];
-            var idx = Array.prototype.indexOf.call(peers, el);
-            var stagger = el.matches(".cap-tag") ? 0.045 : 0.08;
-            el.style.setProperty("--d", (idx * stagger) + "s");
-            el.classList.add("is-visible");
-            obs.unobserve(el);
+      if (reduce) {
+        showAll(els);
+        return;
+      }
+
+      // Reveal one element, staggering it after its direct data-reveal siblings.
+      function reveal(el) {
+        if (el.classList.contains("is-visible")) return;
+        var parent = el.parentElement;
+        var peers = parent ? parent.querySelectorAll(":scope > [data-reveal]") : [el];
+        var idx = Array.prototype.indexOf.call(peers, el);
+        var stagger = el.matches(".cap-tag") ? 0.045 : 0.08;
+        el.style.setProperty("--d", idx * stagger + "s");
+        el.classList.add("is-visible");
+      }
+
+      // Efficient reveal on normal scroll.
+      var io = null;
+      if ("IntersectionObserver" in window) {
+        try {
+          io = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  reveal(entry.target);
+                  io.unobserve(entry.target);
+                }
+              });
+            },
+            { threshold: 0.08, rootMargin: "0px 0px -6% 0px" }
+          );
+          Array.prototype.forEach.call(els, function (el) {
+            io.observe(el);
           });
-        }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
-        Array.prototype.forEach.call(els, function (el) { obs.observe(el); });
-        // Safety net: anything still hidden but on-screen shortly after load gets shown.
-        setTimeout(function () {
-          document.querySelectorAll("[data-reveal]:not(.is-visible)").forEach(function (el) {
-            var r = el.getBoundingClientRect();
-            if (r.top < window.innerHeight && r.bottom > 0) el.classList.add("is-visible");
-          });
-        }, 1600);
-      } catch (e) { revealAll(els); }
+        } catch (e) {
+          io = null;
+        }
+      }
+
+      // Fallback sweep: an observer can miss elements during a fast scroll or an
+      // anchor jump, which would leave content stuck hidden. On every scroll
+      // (rAF-throttled) reveal anything that has reached the viewport, so nothing
+      // is ever skipped. Also covers browsers without IntersectionObserver.
+      var queued = false;
+      function sweep() {
+        queued = false;
+        var vh = window.innerHeight;
+        var pending = document.querySelectorAll("[data-reveal]:not(.is-visible)");
+        for (var i = 0; i < pending.length; i += 1) {
+          if (pending[i].getBoundingClientRect().top < vh * 0.92) reveal(pending[i]);
+        }
+        if (!document.querySelectorAll("[data-reveal]:not(.is-visible)").length) {
+          window.removeEventListener("scroll", onScroll);
+          window.removeEventListener("resize", onScroll);
+        }
+      }
+      function onScroll() {
+        if (!queued) {
+          queued = true;
+          requestAnimationFrame(sweep);
+        }
+      }
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+      sweep();
+      setTimeout(sweep, 1600);
     }
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
     else init();
