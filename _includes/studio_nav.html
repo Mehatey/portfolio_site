@@ -369,6 +369,32 @@
   .studio-mark .logo-cube.celebrate .logo-gaze {
     transform: scaleY(0.6);
   }
+  /* Walkabout: a rare, small, graceful loop in the upper-left corner — the mark
+     takes a little flight and settles back. Contained so it never sails across
+     the nav or covers content. Desktop only, reduced-motion disables it. */
+  @keyframes sid-mark-walkabout {
+    0% {
+      transform: translate(0, 0) rotate(0);
+    }
+    15% {
+      transform: translate(30px, -4px) rotate(8deg);
+    }
+    40% {
+      transform: translate(96px, 14px) rotate(-6deg) scale(1.05);
+    }
+    62% {
+      transform: translate(60px, 40px) rotate(10deg);
+    }
+    82% {
+      transform: translate(14px, 16px) rotate(-4deg);
+    }
+    100% {
+      transform: translate(0, 0) rotate(0);
+    }
+  }
+  .studio-mark .logo-cube.walkabout {
+    animation: sid-mark-walkabout 4.6s cubic-bezier(0.5, 0, 0.25, 1) !important;
+  }
   @media (prefers-reduced-motion: reduce) {
     .studio-mark .logo-cube.look-l .logo-gaze,
     .studio-mark .logo-cube.look-r .logo-gaze,
@@ -377,7 +403,8 @@
       transform: none;
     }
     .studio-mark .logo-cube.celebrate,
-    .studio-mark .logo-cube.celebrate .logo-eye {
+    .studio-mark .logo-cube.celebrate .logo-eye,
+    .studio-mark .logo-cube.walkabout {
       animation: none !important;
     }
   }
@@ -413,6 +440,29 @@
       schedule();
     }
 
+    // Walkabout — a rare, contained little flight. Desktop only; skips when the
+    // tab is hidden or the mark is mid-celebrate. First one ~1.5-2min in so an
+    // engaged visitor can catch it, then rare (~3.5-6min), always randomized.
+    if (!reduce && window.innerWidth >= 700) {
+      var firstWalk = true;
+      function scheduleWalk() {
+        var wait = firstWalk ? 75000 + Math.random() * 55000 : 210000 + Math.random() * 150000;
+        firstWalk = false;
+        setTimeout(function () {
+          if (!document.hidden && !cube.classList.contains("celebrate")) {
+            cube.classList.remove("walkabout");
+            void cube.offsetWidth;
+            cube.classList.add("walkabout");
+            setTimeout(function () {
+              cube.classList.remove("walkabout");
+            }, 4700);
+          }
+          scheduleWalk();
+        }, wait);
+      }
+      scheduleWalk();
+    }
+
     // Click to celebrate — only when clicking the logo is already a no-op (we
     // are on the home page), so it never blocks navigating home from elsewhere.
     mark.addEventListener("click", function (e) {
@@ -422,6 +472,7 @@
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       if (reduce) return;
+      cube.classList.remove("walkabout");
       cube.classList.remove("celebrate");
       void cube.offsetWidth;
       cube.classList.add("celebrate");
