@@ -538,7 +538,208 @@
       transition-duration: 1ms !important;
     }
   }
-</style> <main class="play-stage" id="play-stage"> <canvas id="play-canvas" aria-label="A 3D cloud of ninety eight pieces. Drag to orbit, scroll or pinch to move, tap a piece to focus it."></canvas> <header class="play-header"> <h1 id="play-title">Play</h1> <p>A spatial toy box of experiments, images, and creative technology. Push through it.</p> <nav class="play-modes" aria-label="Play collections"> <a href="/play/" aria-current="page">Experiments</a> <a href="/shot-on-iphone/">Camera roll ↗</a> </nav> </header> <p class="play-hint" id="play-hint">Drag to orbit · scroll or pinch to move · tap a piece</p> <div class="play-counter"> <span id="play-count">98</span> pieces</div> <div class="play-caption" id="play-caption" aria-live="polite"> <span>In focus</span><strong id="play-caption-title"></strong> </div> <div class="play-fallback" id="play-fallback" aria-label="Play gallery"></div> <div class="play-loading" id="play-loading"><div class="play-loading__bar" id="play-loading-bar"></div></div> </main> <script type="module">
+
+  /* ── Logo life: living gaze + click-to-celebrate (classes toggled by the
+       script below). Scoped to the nav mark; reduced-motion disables it all. ── */
+  .studio-mark .logo-cube.look-l .logo-gaze {
+    transform: translateX(-2px);
+  }
+  .studio-mark .logo-cube.look-r .logo-gaze {
+    transform: translateX(2px);
+  }
+  .studio-mark .logo-cube.look-u .logo-gaze {
+    transform: translateY(-1.5px) scaleY(0.92);
+  }
+  @keyframes sid-mark-celebrate {
+    0% {
+      transform: rotate(0) scale(1);
+    }
+    55% {
+      transform: rotate(210deg) scale(1.12);
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+    }
+  }
+  @keyframes sid-eye-celebrate {
+    0%,
+    100% {
+      fill: #e7f1ff;
+    }
+    25% {
+      fill: #9cd0ff;
+    }
+    55% {
+      fill: #ffc478;
+    }
+    80% {
+      fill: #c9a2ff;
+    }
+  }
+  .studio-mark .logo-cube.celebrate {
+    animation: sid-mark-celebrate 0.9s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+  .studio-mark .logo-cube.celebrate .logo-eye {
+    animation: sid-eye-celebrate 0.9s ease-in-out !important;
+  }
+  .studio-mark .logo-cube.celebrate .logo-gaze {
+    transform: scaleY(0.6);
+  }
+  /* Walkabout companion: as the flying mark reaches each nav icon, that icon
+     springs and glows in greeting. The flight itself is JS-driven (position-
+     aware, off the icons' live coordinates); this is just the icons' reaction.
+     Reduced-motion disables the spring. */
+  @keyframes sid-nav-poke {
+    0% {
+      transform: translateY(0) scale(1) rotate(0);
+    }
+    35% {
+      transform: translateY(-4px) scale(1.3) rotate(-7deg);
+    }
+    62% {
+      transform: translateY(0) scale(0.95) rotate(4deg);
+    }
+    100% {
+      transform: translateY(0) scale(1) rotate(0);
+    }
+  }
+  .studio-link.nav-poke svg {
+    transform-origin: center;
+    animation: sid-nav-poke 0.62s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: brightness(1.35) drop-shadow(0 0 5px rgba(255, 255, 255, 0.45));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .studio-mark .logo-cube.look-l .logo-gaze,
+    .studio-mark .logo-cube.look-r .logo-gaze,
+    .studio-mark .logo-cube.look-u .logo-gaze,
+    .studio-mark .logo-cube.celebrate .logo-gaze {
+      transform: none;
+    }
+    .studio-mark .logo-cube.celebrate,
+    .studio-mark .logo-cube.celebrate .logo-eye,
+    .studio-link.nav-poke svg {
+      animation: none !important;
+    }
+  }
+</style> <script>
+  (function () {
+    var mark = document.querySelector(".studio-nav .studio-mark");
+    if (!mark) return;
+    var cube = mark.querySelector(".logo-cube");
+    if (!cube) return;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // Living gaze — an occasional glance so the mark feels quietly attentive.
+    if (!reduce) {
+      var dirs = ["look-l", "look-r", "look-u"];
+      var i = 0;
+      function glance() {
+        var d = dirs[i % dirs.length];
+        i += 1;
+        cube.classList.add(d);
+        setTimeout(function () {
+          cube.classList.remove(d);
+        }, 720);
+      }
+      function schedule() {
+        var wait = 24000 + (i % 6) * 2600; // 24-37s, non-metronomic
+        setTimeout(function () {
+          if (!document.hidden) glance();
+          schedule();
+        }, wait);
+      }
+      schedule();
+    }
+
+    // Walkabout — a rare, contained flight where the mark drifts across the nav
+    // and boops each icon (which springs in greeting), then returns home.
+    // Position-aware via the Web Animations API so it lands on the real icons at
+    // any width. Pointer-events off mid-flight so it never blocks a click.
+    var walkAnim = null;
+    function poke(link) {
+      link.classList.add("nav-poke");
+      setTimeout(function () {
+        link.classList.remove("nav-poke");
+      }, 640);
+    }
+    function walkabout() {
+      var links = Array.prototype.slice.call(document.querySelectorAll(".studio-links .studio-link"));
+      if (!links.length || typeof cube.animate !== "function") return;
+      var cr = cube.getBoundingClientRect();
+      var cx = cr.left + cr.width / 2;
+      var cy = cr.top + cr.height / 2;
+      var stops = links.map(function (l) {
+        var g = l.querySelector("svg") || l;
+        var r = g.getBoundingClientRect();
+        return {
+          dx: r.left + r.width / 2 - cx,
+          dy: r.top + r.height / 2 - cy,
+          link: l,
+        };
+      });
+      var n = stops.length;
+      var frames = [{ transform: "translate(0,0) rotate(0) scale(1)", offset: 0 }];
+      stops.forEach(function (s, idx) {
+        s.at = +(0.14 + (0.72 * idx) / n).toFixed(3);
+        frames.push({
+          transform: "translate(" + s.dx.toFixed(1) + "px," + s.dy.toFixed(1) + "px) rotate(" + (idx % 2 ? 12 : -12) + "deg) scale(1.05)",
+          offset: s.at,
+        });
+      });
+      frames.push({ transform: "translate(0,0) rotate(0) scale(1)", offset: 1 });
+      var dur = 4200 + n * 560;
+      cube.style.pointerEvents = "none";
+      walkAnim = cube.animate(frames, {
+        duration: dur,
+        easing: "cubic-bezier(0.45,0,0.25,1)",
+      });
+      stops.forEach(function (s) {
+        setTimeout(function () {
+          poke(s.link);
+        }, s.at * dur);
+      });
+      function done() {
+        cube.style.pointerEvents = "";
+        cube.style.transform = "";
+        walkAnim = null;
+      }
+      walkAnim.onfinish = done;
+      walkAnim.oncancel = done;
+    }
+    if (!reduce && window.innerWidth >= 700) {
+      var firstWalk = true;
+      function scheduleWalk() {
+        var wait = firstWalk ? 75000 + Math.random() * 55000 : 210000 + Math.random() * 150000;
+        firstWalk = false;
+        setTimeout(function () {
+          if (!document.hidden && !cube.classList.contains("celebrate") && !walkAnim) {
+            walkabout();
+          }
+          scheduleWalk();
+        }, wait);
+      }
+      scheduleWalk();
+    }
+
+    // Click to celebrate — only when clicking the logo is already a no-op (we
+    // are on the home page), so it never blocks navigating home from elsewhere.
+    mark.addEventListener("click", function (e) {
+      var here = location.pathname.replace(/\/+$/, "");
+      var dest = (mark.getAttribute("href") || "").replace(/\/+$/, "");
+      if (here !== dest) return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      if (reduce) return;
+      if (walkAnim) walkAnim.cancel();
+      cube.classList.remove("celebrate");
+      void cube.offsetWidth;
+      cube.classList.add("celebrate");
+      setTimeout(function () {
+        cube.classList.remove("celebrate");
+      }, 950);
+    });
+  })();
+</script> <main class="play-stage" id="play-stage"> <canvas id="play-canvas" aria-label="A 3D cloud of ninety eight pieces. Drag to orbit, scroll or pinch to move, tap a piece to focus it."></canvas> <header class="play-header"> <h1 id="play-title">Play</h1> <p>A spatial toy box of experiments, images, and creative technology. Push through it.</p> <nav class="play-modes" aria-label="Play collections"> <a href="/play/" aria-current="page">Experiments</a> <a href="/shot-on-iphone/">Camera roll ↗</a> </nav> </header> <p class="play-hint" id="play-hint">Drag to orbit · scroll or pinch to move · tap a piece</p> <div class="play-counter"> <span id="play-count">98</span> pieces</div> <div class="play-caption" id="play-caption" aria-live="polite"> <span>In focus</span><strong id="play-caption-title"></strong> </div> <div class="play-fallback" id="play-fallback" aria-label="Play gallery"></div> <div class="play-loading" id="play-loading"><div class="play-loading__bar" id="play-loading-bar"></div></div> </main> <script type="module">
       import * as THREE from "three";
 
       // ── Piece data ──
