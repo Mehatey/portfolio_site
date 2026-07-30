@@ -4180,7 +4180,68 @@
       if (!vid.muted) vid.play().catch(function () {});
     });
   })();
-</script> </div> </div> </div> <section class="proj-decisions" id="case-decisions" aria-labelledby="case-decisions-title"> <div class="proj-decisions__head"> <h2 class="proj-decisions__eyebrow" id="case-decisions-title">Design decisions</h2> <p class="proj-decisions__lede"> The calls that shaped this project: what I chose, why, and what each choice cost. </p> </div> <ol class="decision-list"> <li class="decision"> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">01</span>Asked one question and refused to add a second </h3> <div class="decision__body"> <p class="decision__why">Installations drift toward becoming systems with several modes. Holding to a single prompt meant the generative visuals had nothing to explain and the visitor had nothing to complete. The room only had to support one thought, and everything that did not serve that thought could be cut without an argument. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>It gave the piece a low ceiling. Visitors who wanted somewhere further to go found the second minute much like the first, and there is nothing waiting to reward them for staying. </span></p> </div> </li> <li class="decision"> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">02</span>Tuned for a dark, near-empty room rather than for a gallery floor </h3> <div class="decision__body"> <p class="decision__why">In testing the piece worked in direct proportion to how still the space was. Rather than harden it against noise and crowds, I tuned the setup for the condition where it was strongest and staged the entry to slow people down before they arrived. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>It does not survive a busy opening. In the conditions where most people actually encounter work like this, the piece is at its weakest. That is a real limitation, not a preference. </span></p> </div> </li> <li class="decision"> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">03</span>Used body tracking as a slow influence rather than as direct control </h3> <div class="decision__body"> <p class="decision__why">MediaPipe makes one-to-one mapping easy, and one-to-one mapping turns an installation into a mirror: people start testing what the system does instead of being in the room with it. The tracking feeds the mandala's growth over seconds rather than frames, so movement is felt but cannot be performed. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>The connection is deniable. Some visitors never registered that the piece was responding to them at all and read the visuals as a video, which means the responsiveness did no work for them. </span></p> </div> </li> </ol> <div class="proj-next-steps"> <h3 class="proj-next-steps__label">What I’d do next</h3> <div class="proj-next-steps__body"> <p>The thing I would fix is that ceiling. The single question is right, but the system needs somewhere to go after the first minute for the people who stay: not more modes, but slower structure that only reveals itself to someone who does not leave. I would also stop treating the room as fixed. The lighting and the acoustics turned out to matter more than the visuals did, and I designed them last instead of first.</p> </div> </div> </section> <section class="proj-reflection" id="reflection-section"> <video class="refl-bg-img" id="refl-bg-img" autoplay muted loop playsinline preload="none" style="opacity: 0.4" aria-hidden="true"></video> <script>
+</script> </div> </div> </div> <style>
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: blur(6px);
+    transition:
+      opacity 0.7s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+      transform 0.7s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+      filter 0.7s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+    transition-delay: var(--d, 0s);
+  }
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+      transition: none !important;
+    }
+  }
+</style> <script>
+  (function () {
+    function revealAll(list) {
+      Array.prototype.forEach.call(list, function (el) { el.classList.add("is-visible"); });
+    }
+    function init() {
+      var els = document.querySelectorAll("[data-reveal]:not(.is-visible)");
+      if (!els.length) return;
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduce || !("IntersectionObserver" in window)) { revealAll(els); return; }
+      try {
+        var obs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (!entry.isIntersecting) return;
+            var el = entry.target;
+            var parent = el.parentElement;
+            var peers = parent ? parent.querySelectorAll(":scope > [data-reveal]") : [el];
+            var idx = Array.prototype.indexOf.call(peers, el);
+            var stagger = el.matches(".cap-tag") ? 0.045 : 0.08;
+            el.style.setProperty("--d", (idx * stagger) + "s");
+            el.classList.add("is-visible");
+            obs.unobserve(el);
+          });
+        }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
+        Array.prototype.forEach.call(els, function (el) { obs.observe(el); });
+        // Safety net: anything still hidden but on-screen shortly after load gets shown.
+        setTimeout(function () {
+          document.querySelectorAll("[data-reveal]:not(.is-visible)").forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            if (r.top < window.innerHeight && r.bottom > 0) el.classList.add("is-visible");
+          });
+        }, 1600);
+      } catch (e) { revealAll(els); }
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+    else init();
+  })();
+</script> <section class="proj-decisions" id="case-decisions" aria-labelledby="case-decisions-title"> <div class="proj-decisions__head"> <h2 class="proj-decisions__eyebrow" id="case-decisions-title" data-reveal>Design decisions</h2> <p class="proj-decisions__lede" data-reveal> The calls that shaped this project: what I chose, why, and what each choice cost. </p> </div> <ol class="decision-list"> <li class="decision" data-reveal> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">01</span>Asked one question and refused to add a second </h3> <div class="decision__body"> <p class="decision__why">Installations drift toward becoming systems with several modes. Holding to a single prompt meant the generative visuals had nothing to explain and the visitor had nothing to complete. The room only had to support one thought, and everything that did not serve that thought could be cut without an argument. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>It gave the piece a low ceiling. Visitors who wanted somewhere further to go found the second minute much like the first, and there is nothing waiting to reward them for staying. </span></p> </div> </li> <li class="decision" data-reveal> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">02</span>Tuned for a dark, near-empty room rather than for a gallery floor </h3> <div class="decision__body"> <p class="decision__why">In testing the piece worked in direct proportion to how still the space was. Rather than harden it against noise and crowds, I tuned the setup for the condition where it was strongest and staged the entry to slow people down before they arrived. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>It does not survive a busy opening. In the conditions where most people actually encounter work like this, the piece is at its weakest. That is a real limitation, not a preference. </span></p> </div> </li> <li class="decision" data-reveal> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">03</span>Used body tracking as a slow influence rather than as direct control </h3> <div class="decision__body"> <p class="decision__why">MediaPipe makes one-to-one mapping easy, and one-to-one mapping turns an installation into a mirror: people start testing what the system does instead of being in the room with it. The tracking feeds the mandala's growth over seconds rather than frames, so movement is felt but cannot be performed. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>The connection is deniable. Some visitors never registered that the piece was responding to them at all and read the visuals as a video, which means the responsiveness did no work for them. </span></p> </div> </li> </ol> <div class="proj-next-steps"> <h3 class="proj-next-steps__label" data-reveal>What I’d do next</h3> <div class="proj-next-steps__body" data-reveal> <p>The thing I would fix is that ceiling. The single question is right, but the system needs somewhere to go after the first minute for the people who stay: not more modes, but slower structure that only reveals itself to someone who does not leave. I would also stop treating the room as fixed. The lighting and the acoustics turned out to matter more than the visuals did, and I designed them last instead of first.</p> </div> </div> </section> <section class="proj-reflection" id="reflection-section"> <video class="refl-bg-img" id="refl-bg-img" autoplay muted loop playsinline preload="none" style="opacity: 0.4" aria-hidden="true"></video> <script>
           (function () {
             const v = document.getElementById("refl-bg-img");
             const src = document.createElement("source");
@@ -4190,7 +4251,7 @@
             v.load();
             v.play().catch(() => {});
           })();
-        </script> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>Some people closed their eyes and let go of the visuals entirely. That told me more about immersion than anything I had designed for. The generative system was doing its job, but the room was doing more.</p> <p>Building the mandala engine in TouchDesigner was slower than expected. Each parameter change cascaded into three others, and the system had its own logic that took time to understand. By the end I was adjusting less and listening more.</p> <p>The installation worked best when the space held still. Darker rooms, fewer people, quieter conditions. What surprised me was how much the lighting and acoustic setup shaped the experience before anyone even looked at the screen. Design kept expanding to include things I had not thought of as design.</p> </blockquote> </div> </section> <div class="proj-next-row" style="grid-template-columns: 1fr"> <a href="/mind-your-feelings/" class="proj-next"> <div class="next-visual" style="background: #060608;"></div> <div class="next-info"> <p class="next-label">Next Project</p> <div class="next-title-row"> <div> <p class="next-title">Mind Your Feelings</p> </div> <span class="next-arrow">→</span> </div> </div> </a> </div> </main> <style>
+        </script> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>Some people closed their eyes and let go of the visuals entirely. That told me more about immersion than anything I had designed for. The generative system was doing its job, but the room was doing more.</p> <p>Building the mandala engine in TouchDesigner was slower than expected. Each parameter change cascaded into three others, and the system had its own logic that took time to understand. By the end I was adjusting less and listening more.</p> <p>The installation worked best when the space held still. Darker rooms, fewer people, quieter conditions. What surprised me was how much the lighting and acoustic setup shaped the experience before anyone even looked at the screen. Design kept expanding to include things I had not thought of as design.</p> </blockquote> </div> </section> <div class="proj-next-row" style="grid-template-columns: 1fr"> <a href="/mind-your-feelings/" class="proj-next" data-reveal> <div class="next-visual" style="background: #060608;"></div> <div class="next-info"> <p class="next-label">Next Project</p> <div class="next-title-row"> <div> <p class="next-title">Mind Your Feelings</p> </div> <span class="next-arrow">→</span> </div> </div> </a> </div> </main> <style>
   .site-footer {
     position: relative;
     z-index: 5;
