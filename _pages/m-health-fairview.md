@@ -88,6 +88,9 @@ next_project:
 <p class="cube-cap cube-cap--above">09 · Care types, compared. A specialty finder and a side by side comparison of every care type by cost, wait and what it treats.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/09-compare.webp" alt="Specialty categories and care type comparison" loading="lazy" decoding="async" /></div>
 
+<p class="cube-cap cube-cap--above">The specialty icons themselves, designed and animated by hand. The same set that powers the specialty finder above, each one built to move.</p>
+<div class="cs-bleed"><video src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
+
 <p class="cube-cap cube-cap--above">10 · Choosing a care type. Routine preventive, primary and specialty care surfaced as three clear routes.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/10-caretypes.gif" alt="Care type selection in motion" loading="lazy" decoding="async" /></div>
 
