@@ -388,11 +388,23 @@
     return a + (b - a) * t;
   }
 
+  // Every smoothing constant below is authored as "per 60Hz frame". Applied
+  // raw, the whole feel would be refresh-rate dependent: on a 120Hz ProMotion
+  // display the inertia converges in half the time it was tuned for, and on a
+  // struggling machine the planes lag a viewport behind their DOM rects.
+  // step = how many 60Hz frames this frame actually took.
+  var step = 1;
+  function sm(k) {
+    return 1 - Math.pow(1 - k, step);
+  }
+
   var running = true;
+  var prevT = 0;
   document.addEventListener("visibilitychange", function () {
     running = !document.hidden;
     if (running) {
       lastScroll = window.scrollY;
+      prevT = 0;
       requestAnimationFrame(frame);
     }
   });
@@ -401,14 +413,21 @@
     if (!running) return;
     var t = (now - start) / 1000;
 
+    // clamped so a tab-switch or a long GC pause cannot teleport the sim
+    var dt = prevT ? Math.min(64, Math.max(4, now - prevT)) : 16.667;
+    prevT = now;
+    step = dt / 16.667;
+
     var sy = window.scrollY || 0;
-    var raw = sy - lastScroll;
+    // normalised to px-per-60Hz-frame so scroll velocity reads the same
+    // whatever the refresh rate
+    var raw = (sy - lastScroll) / step;
     lastScroll = sy;
-    vel = lerp(vel, Math.max(-160, Math.min(160, raw)), 0.16);
+    vel = lerp(vel, Math.max(-160, Math.min(160, raw)), sm(0.16));
     velSmooth = vel / 160;
 
-    mouseS[0] = lerp(mouseS[0], mouse[0], 0.06);
-    mouseS[1] = lerp(mouseS[1], mouse[1], 0.06);
+    mouseS[0] = lerp(mouseS[0], mouse[0], sm(0.06));
+    mouseS[1] = lerp(mouseS[1], mouse[1], sm(0.06));
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -457,18 +476,24 @@
       if (!m.rect) m.rect = tgt.slice();
       // inertia: the plane chases its own DOM rect, so it drags on a
       // fast scroll and settles a beat after you stop.
-      for (var k = 0; k < 4; k++) m.rect[k] = lerp(m.rect[k], tgt[k], k < 2 ? 0.18 : 0.3);
+      var kPos = sm(0.18),
+        kSize = sm(0.3);
+      for (var k = 0; k < 4; k++) m.rect[k] = lerp(m.rect[k], tgt[k], k < 2 ? kPos : kSize);
 
-      // enter progress from how far into the viewport the element is
-      var seen = 1 - Math.max(0, Math.min(1, (r.top - H * 0.06) / (H * 0.42)));
-      m.enter = lerp(m.enter, Math.max(0, Math.min(1, seen * 1.25)), 0.16);
+      // Enter progress. u_enter drives the plane's alpha, so this has to reach
+      // a solid 1.0 while the image is still being looked at — an earlier
+      // version ramped against the top of the viewport, which left every
+      // image sitting at ~60% opacity with the page showing through it.
+      // Now: 0 as the top edge appears, 1 once it has risen past ~62% height.
+      var seen = (H * 0.94 - r.top) / (H * 0.32);
+      m.enter = lerp(m.enter, Math.max(0, Math.min(1, seen)), sm(0.16));
 
       m.hoverT = m.holder.__hover ? 1 : 0;
-      m.hover = lerp(m.hover, m.hoverT, 0.09);
+      m.hover = lerp(m.hover, m.hoverT, sm(0.09));
       m.mouseT[0] = m.holder.__mx == null ? 0.5 : m.holder.__mx;
       m.mouseT[1] = m.holder.__my == null ? 0.5 : m.holder.__my;
-      m.mouse[0] = lerp(m.mouse[0], m.mouseT[0], 0.12);
-      m.mouse[1] = lerp(m.mouse[1], m.mouseT[1], 0.12);
+      m.mouse[0] = lerp(m.mouse[0], m.mouseT[0], sm(0.12));
+      m.mouse[1] = lerp(m.mouse[1], m.mouseT[1], sm(0.12));
 
       // object-fit: cover, computed in uv
       var boxRatio = m.rect[2] / m.rect[3];
