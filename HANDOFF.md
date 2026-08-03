@@ -107,7 +107,10 @@ He has a strong, specific sensibility. Match it and he's happy; miss it and he'l
 
 These came straight from Sid. Build to the taste in §2 (real, modern, physically-grounded; verify light+dark; keep momentum).
 
-### P1 — Homepage project thumbnails: hover-to-preview (interaction bug)
+### P1 — Homepage project thumbnails: hover-to-preview  ✅ DONE (commit 708769ce)
+> Re-enabled in `home-enhance.js` (module 4). The logic already existed in-page but was dead code after a retired peephole's early `return;`. Hover/focus now populates + reveals `#home-project-focus` via `.home-stage.has-project`. Verify feel in real Chrome; tune the takeover timing if desired.
+
+### (original spec) Homepage project thumbnails: hover-to-preview (interaction bug)
 The three thumbnails bottom-right of the hero (`01 Mool`, `02 2026 AI Experiments`, `03 Encoded`) currently do **nothing on hover** — you must click to navigate. Sid wants **hovering a thumbnail to open its preview onto the homepage hero cover** (a large preview takeover), so he can skim projects without leaving the page; click still navigates.
 - Likely relevant: the homepage already has a **retired** focus/preview system — see `.home-stage.has-project`, `.home-project-focus`, `.home-project-focus__media`, `#home-work` / `#home-work-img` in `_layouts/sid_home.html`, plus two disabled reveal IIFEs that `return;` early ("Hero cursor-peephole reveal retired", "Work-reveal peephole retired"). **Re-enable / rebuild hover→preview from that scaffolding** rather than starting from zero. Each thumbnail should drive the focus layer on `mouseenter` (with a small intent delay) and clear on `mouseleave`.
 - Must coexist with the hero film (`home-film.js`): the film sits at the hero backdrop; the preview takeover should layer above it. Respect reduced-motion.
