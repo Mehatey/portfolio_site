@@ -1058,6 +1058,13 @@
       }
 
       /* ── Homepage enhancements: typewriter caret + blur-to-sharp reveals ── */
+      #home-title .ht-head,
+      #home-title .ht-tail {
+        white-space: pre-wrap;
+      }
+      #home-title .ht-swap {
+        white-space: nowrap;
+      }
       #home-title .ht-caret {
         display: inline-block;
         width: 3px;
@@ -1966,105 +1973,121 @@
         const title = document.getElementById("home-title");
         if (reduce || !fine || !title) return;
 
-        const letters = [];
-        // Rebuild the heading as word spans (kept whole for wrapping) of
-        // per-letter spans, preserving the accent phrase's styling.
-        const segments = [];
-        title.childNodes.forEach((node) => {
-          if (node.nodeType === 3) segments.push({ text: node.textContent, accent: false });
-          else segments.push({ text: node.textContent, accent: node.classList && node.classList.contains("home-title__accent") });
-        });
-        title.textContent = "";
-        segments.forEach((seg) => {
-          seg.text.split(/(\s+)/).forEach((chunk) => {
-            if (chunk === "") return;
-            if (/^\s+$/.test(chunk)) {
-              title.appendChild(document.createTextNode(" "));
-              return;
-            }
-            const word = document.createElement("span");
-            word.className = "ht-w";
-            for (const ch of chunk) {
-              const s = document.createElement("span");
-              s.className = "ht-l" + (seg.accent ? " home-title__accent" : "");
-              s.textContent = ch;
-              s.setAttribute("aria-hidden", "true");
-              word.appendChild(s);
-              letters.push({ el: s, ox: 0, oy: 0, vx: 0, vy: 0, rot: 0, vr: 0, cx: 0, cy: 0 });
-            }
-            title.appendChild(word);
+        // The typewriter in home-enhance.js owns the <h1> until it has finished
+        // typing (and swapping) the line; it then restores the clean markup and
+        // fires "home-title:typed". Waiting for that hand-off stops the two
+        // effects rebuilding the same heading on top of each other. The timeout
+        // is the safety net for when the typewriter never runs.
+        let started = false;
+        const start = () => {
+          if (started) return;
+          started = true;
+          build();
+        };
+        document.addEventListener("home-title:typed", start, { once: true });
+        setTimeout(start, 9000);
+
+        function build() {
+          const letters = [];
+          // Rebuild the heading as word spans (kept whole for wrapping) of
+          // per-letter spans, preserving the accent phrase's styling.
+          const segments = [];
+          title.childNodes.forEach((node) => {
+            if (node.nodeType === 3) segments.push({ text: node.textContent, accent: false });
+            else segments.push({ text: node.textContent, accent: node.classList && node.classList.contains("home-title__accent") });
           });
-        });
+          title.textContent = "";
+          segments.forEach((seg) => {
+            seg.text.split(/(\s+)/).forEach((chunk) => {
+              if (chunk === "") return;
+              if (/^\s+$/.test(chunk)) {
+                title.appendChild(document.createTextNode(" "));
+                return;
+              }
+              const word = document.createElement("span");
+              word.className = "ht-w";
+              for (const ch of chunk) {
+                const s = document.createElement("span");
+                s.className = "ht-l" + (seg.accent ? " home-title__accent" : "");
+                s.textContent = ch;
+                s.setAttribute("aria-hidden", "true");
+                word.appendChild(s);
+                letters.push({ el: s, ox: 0, oy: 0, vx: 0, vy: 0, rot: 0, vr: 0, cx: 0, cy: 0 });
+              }
+              title.appendChild(word);
+            });
+          });
 
-        function measure() {
-          for (const L of letters) L.el.style.transform = "";
-          for (const L of letters) {
-            const r = L.el.getBoundingClientRect();
-            L.cx = r.left + r.width / 2;
-            L.cy = r.top + r.height / 2;
+          function measure() {
+            for (const L of letters) L.el.style.transform = "";
+            for (const L of letters) {
+              const r = L.el.getBoundingClientRect();
+              L.cx = r.left + r.width / 2;
+              L.cy = r.top + r.height / 2;
+            }
           }
-        }
-        measure();
-        window.addEventListener("resize", measure);
-        window.addEventListener("scroll", measure, { passive: true });
+          measure();
+          window.addEventListener("resize", measure);
+          window.addEventListener("scroll", measure, { passive: true });
 
-        const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, active: false, t: 0 };
-        window.addEventListener("pointermove", (e) => {
-          pointer.vx = e.clientX - pointer.x;
-          pointer.vy = e.clientY - pointer.y;
-          pointer.x = e.clientX;
-          pointer.y = e.clientY;
-          pointer.active = true;
-        });
-        window.addEventListener("pointerout", () => (pointer.active = false));
+          const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, active: false, t: 0 };
+          window.addEventListener("pointermove", (e) => {
+            pointer.vx = e.clientX - pointer.x;
+            pointer.vy = e.clientY - pointer.y;
+            pointer.x = e.clientX;
+            pointer.y = e.clientY;
+            pointer.active = true;
+          });
+          window.addEventListener("pointerout", () => (pointer.active = false));
 
-        const R = 132,
-          stiffness = 0.055,
-          damping = 0.8,
-          rotStiff = 0.05,
-          rotDamp = 0.82;
+          const R = 132,
+            stiffness = 0.055,
+            damping = 0.8,
+            rotStiff = 0.05,
+            rotDamp = 0.82;
 
-        function frame() {
-          const speed = Math.min(70, Math.hypot(pointer.vx, pointer.vy));
-          pointer.vx *= 0.55;
-          pointer.vy *= 0.55;
-          for (const L of letters) {
-            if (pointer.active) {
-              const dx = L.cx + L.ox - pointer.x;
-              const dy = L.cy + L.oy - pointer.y;
-              const d = Math.hypot(dx, dy);
-              if (d < R) {
-                const f = 1 - d / R;
-                const dir = d || 1;
-                const push = f * (0.55 + speed * 0.22);
-                L.vx += (dx / dir) * push;
-                L.vy += (dy / dir) * push;
-                L.vr += (dx * pointer.vy - dy * pointer.vx) * 0.00007 * f;
+          function frame() {
+            const speed = Math.min(70, Math.hypot(pointer.vx, pointer.vy));
+            pointer.vx *= 0.55;
+            pointer.vy *= 0.55;
+            for (const L of letters) {
+              if (pointer.active) {
+                const dx = L.cx + L.ox - pointer.x;
+                const dy = L.cy + L.oy - pointer.y;
+                const d = Math.hypot(dx, dy);
+                if (d < R) {
+                  const f = 1 - d / R;
+                  const dir = d || 1;
+                  const push = f * (0.55 + speed * 0.22);
+                  L.vx += (dx / dir) * push;
+                  L.vy += (dy / dir) * push;
+                  L.vr += (dx * pointer.vy - dy * pointer.vx) * 0.00007 * f;
+                }
+              }
+              L.vx += -stiffness * L.ox;
+              L.vy += -stiffness * L.oy;
+              L.vx *= damping;
+              L.vy *= damping;
+              L.ox += L.vx;
+              L.oy += L.vy;
+              L.vr += -rotStiff * L.rot;
+              L.vr *= rotDamp;
+              L.rot += L.vr;
+              if (Math.abs(L.ox) < 0.02 && Math.abs(L.oy) < 0.02 && Math.abs(L.rot) < 0.02 && Math.abs(L.vx) < 0.02 && Math.abs(L.vy) < 0.02) {
+                if (L.el.style.transform) L.el.style.transform = "";
+              } else {
+                L.el.style.transform = "translate(" + L.ox.toFixed(2) + "px," + L.oy.toFixed(2) + "px) rotate(" + L.rot.toFixed(2) + "deg)";
               }
             }
-            L.vx += -stiffness * L.ox;
-            L.vy += -stiffness * L.oy;
-            L.vx *= damping;
-            L.vy *= damping;
-            L.ox += L.vx;
-            L.oy += L.vy;
-            L.vr += -rotStiff * L.rot;
-            L.vr *= rotDamp;
-            L.rot += L.vr;
-            if (Math.abs(L.ox) < 0.02 && Math.abs(L.oy) < 0.02 && Math.abs(L.rot) < 0.02 && Math.abs(L.vx) < 0.02 && Math.abs(L.vy) < 0.02) {
-              if (L.el.style.transform) L.el.style.transform = "";
-            } else {
-              L.el.style.transform = "translate(" + L.ox.toFixed(2) + "px," + L.oy.toFixed(2) + "px) rotate(" + L.rot.toFixed(2) + "deg)";
-            }
-          }
-          requestAnimationFrame(frame);
-        }
-        if (document.fonts && document.fonts.ready)
-          document.fonts.ready.then(() => {
-            measure();
             requestAnimationFrame(frame);
-          });
-        else requestAnimationFrame(frame);
+          }
+          if (document.fonts && document.fonts.ready)
+            document.fonts.ready.then(() => {
+              measure();
+              requestAnimationFrame(frame);
+            });
+          else requestAnimationFrame(frame);
+        }
       })();
     </script>
     <script>
