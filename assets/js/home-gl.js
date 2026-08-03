@@ -480,6 +480,22 @@
         kSize = sm(0.3);
       for (var k = 0; k < 4; k++) m.rect[k] = lerp(m.rect[k], tgt[k], k < 2 ? kPos : kSize);
 
+      // Leash. Inertia alone let a plane trail so far behind its DOM rect on a
+      // hard flick that it drifted clear of its own section and parked on top
+      // of the NEXT project's headline — white copy over a busy photograph,
+      // unreadable for the half-second it took to settle. The drag should read
+      // as "attached, with give", never as "detached and floating". So the
+      // offset from the true rect is capped: past the limit the plane is
+      // dragged along rigidly, and everything inside it still springs.
+      var maxLagY = H * 0.11;
+      var maxLagX = 90;
+      var dx = m.rect[0] - tgt[0];
+      var dy = m.rect[1] - tgt[1];
+      if (dx > maxLagX) m.rect[0] = tgt[0] + maxLagX;
+      else if (dx < -maxLagX) m.rect[0] = tgt[0] - maxLagX;
+      if (dy > maxLagY) m.rect[1] = tgt[1] + maxLagY;
+      else if (dy < -maxLagY) m.rect[1] = tgt[1] - maxLagY;
+
       // Enter progress. u_enter drives the plane's alpha, so this has to reach
       // a solid 1.0 while the image is still being looked at — an earlier
       // version ramped against the top of the viewport, which left every
