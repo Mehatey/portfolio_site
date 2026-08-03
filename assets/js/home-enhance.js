@@ -97,4 +97,51 @@
       }
     }
   } catch (e) {}
+
+  // 4) Project hover-preview -----------------------------------------------
+  // The thumbnails bottom-right carry data-title/meta/description/image and the
+  // hero has a hidden #home-project-focus takeover layer. Hovering a thumbnail
+  // populates + reveals it (via .home-stage.has-project); leaving hides it; click
+  // still navigates. (This logic existed in-page but was disabled by a stray
+  // early return in a retired peephole IIFE.)
+  try {
+    var stage = document.getElementById("home-stage");
+    var fImg = document.getElementById("home-focus-image");
+    var fTitle = document.getElementById("home-focus-title");
+    var fMeta = document.getElementById("home-focus-meta");
+    var fDesc = document.getElementById("home-focus-description");
+    var fLink = document.getElementById("home-focus-link");
+    var projects = document.querySelectorAll(".home-project");
+    if (stage && fImg && fTitle && projects.length) {
+      var show = function (p) {
+        fImg.src = p.dataset.image || "";
+        fImg.alt = (p.dataset.title || "") + " project preview";
+        fTitle.textContent = p.dataset.title || "";
+        if (fMeta) fMeta.textContent = p.dataset.meta || "";
+        if (fDesc) fDesc.textContent = p.dataset.description || "";
+        if (fLink) {
+          fLink.href = p.href;
+          fLink.textContent = "Open " + (p.dataset.title || "project");
+        }
+        stage.classList.add("has-project");
+      };
+      var hide = function () {
+        stage.classList.remove("has-project");
+      };
+      var fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
+      projects.forEach(function (p) {
+        if (fine) {
+          p.addEventListener("pointerenter", function () {
+            show(p);
+          });
+          p.addEventListener("pointerleave", hide);
+        }
+        // keyboard users still get the preview on focus, on any device
+        p.addEventListener("focus", function () {
+          show(p);
+        });
+        p.addEventListener("blur", hide);
+      });
+    }
+  } catch (e) {}
 })();
