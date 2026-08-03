@@ -1,0 +1,329 @@
+<!-- ============================================================
+     Homepage act 4 — "the object".
+     Sid asked for a 3D moment further down the scroll (never over
+     the hero video). This is a real cube in perspective space:
+     six faces carrying six covers, spun by scroll position, and
+     grabbable — drag it and it keeps spinning with inertia.
+
+     Built with CSS 3D rather than WebGL on purpose. The faces stay
+     crisp at any DPR, each one is a real <a> so it is keyboard
+     reachable and crawlable, and there is no shader/context to lose
+     on a backgrounded tab. Perspective, z-depth and lighting are
+     genuine, not a sprite trick.
+     ============================================================ -->
+
+<style>
+  .hs-object {
+    position: relative;
+    z-index: 6;
+    background: var(--home-bg, #05070d);
+    padding: 16vh clamp(24px, 5vw, 90px) 18vh;
+    text-align: center;
+    overflow: hidden;
+  }
+  .hs-object::before {
+    /* Soft floor glow so the cube reads as sitting in a space. */
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: min(900px, 90vw);
+    height: min(900px, 90vw);
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(110, 168, 255, 0.13), rgba(185, 140, 255, 0.06) 42%, transparent 70%);
+    pointer-events: none;
+  }
+  .obj-head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: clamp(28px, 6vh, 64px);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 236, 244, 0.6);
+  }
+  .obj-head .cine-rule {
+    width: min(180px, 18vw);
+    height: 1px;
+    background: rgba(230, 236, 244, 0.24);
+  }
+  .obj-stage {
+    position: relative;
+    height: clamp(320px, 46vh, 560px);
+    perspective: 1200px;
+    perspective-origin: 50% 45%;
+    touch-action: pan-y;
+    cursor: grab;
+  }
+  .obj-stage.is-dragging {
+    cursor: grabbing;
+  }
+  .obj-cube {
+    --size: clamp(180px, 22vw, 300px);
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: var(--size);
+    height: var(--size);
+    margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+    transform-style: preserve-3d;
+    transform: rotateX(-18deg) rotateY(0deg);
+    will-change: transform;
+  }
+  .obj-face {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+    border-radius: 6px;
+    text-decoration: none;
+    background: #0a0d15;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    backface-visibility: hidden;
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.55);
+  }
+  .obj-face img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+    transition:
+      opacity 0.4s ease,
+      transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .obj-face span {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 26px 12px 10px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #eef2f8;
+    background: linear-gradient(180deg, transparent, rgba(5, 7, 13, 0.85));
+  }
+  .obj-face:hover img,
+  .obj-face:focus-visible img {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+  .obj-face:focus-visible {
+    outline: 2px solid #eef2f8;
+    outline-offset: 3px;
+  }
+  /* Six faces of a cube: each pushed out half the edge length. The
+     shade darkens the sides so the form reads as lit from the front. */
+  .obj-face--front {
+    transform: translateZ(calc(var(--size) / 2));
+  }
+  .obj-face--back {
+    transform: rotateY(180deg) translateZ(calc(var(--size) / 2));
+  }
+  .obj-face--right {
+    transform: rotateY(90deg) translateZ(calc(var(--size) / 2));
+  }
+  .obj-face--left {
+    transform: rotateY(-90deg) translateZ(calc(var(--size) / 2));
+  }
+  .obj-face--top {
+    transform: rotateX(90deg) translateZ(calc(var(--size) / 2));
+  }
+  .obj-face--bottom {
+    transform: rotateX(-90deg) translateZ(calc(var(--size) / 2));
+  }
+  .obj-face--right img,
+  .obj-face--left img {
+    filter: brightness(0.78);
+  }
+  .obj-face--top img,
+  .obj-face--bottom img {
+    filter: brightness(0.66);
+  }
+  .obj-hint {
+    position: relative;
+    margin-top: clamp(20px, 4vh, 40px);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(230, 236, 244, 0.36);
+  }
+  /* No JS, no motion preference, or a browser without preserve-3d:
+     the faces collapse into a readable row of links instead. */
+  .hs-object.is-flat .obj-stage {
+    height: auto;
+    perspective: none;
+    cursor: default;
+  }
+  .hs-object.is-flat .obj-cube {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    transform: none;
+    transform-style: flat;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+  }
+  .hs-object.is-flat .obj-face {
+    position: relative;
+    inset: auto;
+    aspect-ratio: 1;
+    transform: none !important;
+  }
+  .hs-object.is-flat .obj-face img {
+    filter: none;
+  }
+</style>
+
+<section class="hs-object" id="hs-object" aria-label="The work as an object">
+  <div class="obj-head"><span>03</span><span class="cine-rule"></span><span>Six sides of the practice</span></div>
+  <div class="obj-stage" id="obj-stage">
+    <div class="obj-cube" id="obj-cube">
+      <a class="obj-face obj-face--front" href="{{ site.baseurl }}/mool/">
+        <img src="{{ site.baseurl }}/assets/img/work-previews/mool/cover.webp" alt="Mool" loading="lazy" decoding="async" /><span
+          >Mool &middot; Fintech</span
+        >
+      </a>
+      <a class="obj-face obj-face--right" href="{{ site.baseurl }}/encoded/">
+        <img src="{{ site.baseurl }}/1.met/0.webp" alt="Encoded" loading="lazy" decoding="async" /><span>Encoded &middot; Spatial</span>
+      </a>
+      <a class="obj-face obj-face--back" href="{{ site.baseurl }}/m-health-fairview/">
+        <img src="{{ site.baseurl }}/assets/img/fairview/cover.webp" alt="M Health Fairview" loading="lazy" decoding="async" /><span
+          >Fairview &middot; Health</span
+        >
+      </a>
+      <a class="obj-face obj-face--left" href="{{ site.baseurl }}/marriott/">
+        <img src="{{ site.baseurl }}/assets/img/marriott/cover.webp" alt="Marriott" loading="lazy" decoding="async" /><span
+          >Marriott &middot; Enterprise</span
+        >
+      </a>
+      <a class="obj-face obj-face--top" href="{{ site.baseurl }}/naavo/">
+        <img src="{{ site.baseurl }}/7.naavo/cover.webp" alt="Naavo" loading="lazy" decoding="async" /><span>Naavo &middot; Brand</span>
+      </a>
+      <a class="obj-face obj-face--bottom" href="{{ site.baseurl }}/aananda/">
+        <img src="{{ site.baseurl }}/9.aananda/cover.webp" alt="Aananda" loading="lazy" decoding="async" /><span>Aananda &middot; Brand</span>
+      </a>
+    </div>
+  </div>
+  <p class="obj-hint">Drag to spin &middot; click a face to open it</p>
+</section>
+
+<script>
+  (function () {
+    try {
+      var sec = document.getElementById("hs-object");
+      var stage = document.getElementById("obj-stage");
+      var cube = document.getElementById("obj-cube");
+      if (!sec || !stage || !cube) return;
+
+      var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var supports3d = typeof CSS !== "undefined" && CSS.supports && CSS.supports("transform-style", "preserve-3d");
+      if (reduce || !supports3d) {
+        sec.classList.add("is-flat");
+        return;
+      }
+
+      var rotY = 0; // driven by scroll, nudged by drag
+      var rotX = -18;
+      var velY = 0; // drag inertia
+      var dragging = false;
+      var moved = 0;
+      var lastX = 0;
+      var lastY = 0;
+      var dragY = 0; // accumulated user offset, kept on top of scroll
+      var dragXAxis = 0;
+      var scrollY = 0;
+
+      var readScroll = function () {
+        var r = sec.getBoundingClientRect();
+        var vh = window.innerHeight || 1;
+        // -1 (below the fold) .. 1 (scrolled past); 0 while centred.
+        var p = (vh / 2 - (r.top + r.height / 2)) / (vh / 2 + r.height / 2);
+        scrollY = p * 190; // just over half a turn across its travel
+      };
+
+      var render = function () {
+        var y = scrollY + dragY;
+        var x = Math.max(-62, Math.min(62, rotX + dragXAxis));
+        cube.style.transform = "rotateX(" + x.toFixed(2) + "deg) rotateY(" + y.toFixed(2) + "deg)";
+      };
+
+      var raf = null;
+      var loop = function () {
+        raf = null;
+        if (!dragging && Math.abs(velY) > 0.02) {
+          dragY += velY;
+          velY *= 0.94; // friction
+          request();
+        }
+        render();
+      };
+      var request = function () {
+        if (raf === null) raf = requestAnimationFrame(loop);
+      };
+
+      var onScroll = function () {
+        readScroll();
+        request();
+      };
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener("resize", onScroll, { passive: true });
+
+      stage.addEventListener("pointerdown", function (e) {
+        dragging = true;
+        moved = 0;
+        velY = 0;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        stage.classList.add("is-dragging");
+        try {
+          stage.setPointerCapture(e.pointerId);
+        } catch (err) {}
+      });
+      stage.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        var dx = e.clientX - lastX;
+        var dy = e.clientY - lastY;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        moved += Math.abs(dx) + Math.abs(dy);
+        dragY += dx * 0.42;
+        dragXAxis -= dy * 0.26;
+        velY = dx * 0.42;
+        request();
+      });
+      var endDrag = function (e) {
+        if (!dragging) return;
+        dragging = false;
+        stage.classList.remove("is-dragging");
+        try {
+          stage.releasePointerCapture(e.pointerId);
+        } catch (err) {}
+        request();
+      };
+      stage.addEventListener("pointerup", endDrag);
+      stage.addEventListener("pointercancel", endDrag);
+      // A drag that ends over a face must not count as a click on it.
+      stage.addEventListener(
+        "click",
+        function (e) {
+          if (moved > 8) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        },
+        true
+      );
+
+      onScroll();
+    } catch (e) {}
+  })();
+</script>

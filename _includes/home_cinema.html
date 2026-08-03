@@ -1,0 +1,429 @@
+<!-- ============================================================
+     Homepage act 2 — "the cinema".
+     Replaces the old six-up card grid, which was just the hero's
+     project list again in a different shape. This pins a viewport
+     and drives a horizontal rail off vertical scroll: covers pan
+     inside their own frames (real parallax, opposite direction to
+     the rail), panels away from centre fall back in Z and lose
+     saturation, and the type rises as each one takes the stage.
+
+     Fallbacks are first-class, not afterthoughts:
+       - reduced motion / no JS  -> plain horizontal scroller
+       - narrow screens          -> same scroller, snap points
+     Both get the same markup; only the pinning is conditional,
+     added by JS via .is-pinned on the section.
+     ============================================================ -->
+
+<style>
+  .hs-cinema {
+    position: relative;
+    z-index: 6;
+    background: var(--home-bg, #05070d);
+    padding: 0;
+  }
+  /* Tall only once JS confirms it can pin. Without it the section is
+     its own height and the rail simply scrolls sideways. */
+  .hs-cinema.is-pinned {
+    height: 560vh;
+  }
+  .cine-sticky {
+    height: auto;
+    padding: 12vh 0 14vh;
+    overflow: hidden;
+  }
+  .hs-cinema.is-pinned .cine-sticky {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .cine-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 clamp(24px, 5vw, 90px);
+    margin-bottom: clamp(24px, 4vh, 46px);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(230, 236, 244, 0.6);
+  }
+  .cine-head .cine-rule {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(230, 236, 244, 0.28), rgba(230, 236, 244, 0));
+  }
+  .cine-viewport {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .cine-viewport::-webkit-scrollbar {
+    display: none;
+  }
+  .hs-cinema.is-pinned .cine-viewport {
+    overflow: hidden;
+    scroll-snap-type: none;
+  }
+  .cine-rail {
+    display: flex;
+    align-items: center;
+    gap: clamp(20px, 3vw, 56px);
+    padding: 0 clamp(24px, 9vw, 160px);
+    width: max-content;
+    will-change: transform;
+  }
+  .cine-panel {
+    position: relative;
+    flex: 0 0 auto;
+    width: clamp(280px, 46vw, 720px);
+    scroll-snap-align: center;
+    /* Depth is applied per-frame by JS as --d (0 at centre, 1 far away). */
+    --d: 0;
+    transform: scale(calc(1 - var(--d) * 0.14)) translateY(calc(var(--d) * 14px));
+    transition: transform 0.18s linear;
+  }
+  .cine-frame {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #0a0d15;
+    box-shadow: 0 30px 90px -40px rgba(0, 0, 0, 0.9);
+  }
+  .cine-frame img {
+    position: absolute;
+    inset: -8% 0;
+    width: 100%;
+    height: 116%;
+    object-fit: cover;
+    /* Counter-pan: the cover slides against the rail so the image reads
+       as sitting behind the frame rather than glued to it. */
+    transform: translate3d(calc(var(--px, 0) * 1px), 0, 0) scale(1.06);
+    filter: saturate(calc(1 - var(--d) * 0.55)) brightness(calc(1 - var(--d) * 0.22));
+    transition: filter 0.3s linear;
+  }
+  .cine-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(5, 7, 13, 0) 45%, rgba(5, 7, 13, 0.72) 100%);
+    opacity: calc(0.4 + (1 - var(--d)) * 0.6);
+  }
+  .cine-index {
+    position: absolute;
+    left: -0.06em;
+    bottom: 100%;
+    margin-bottom: -0.22em;
+    font-size: clamp(60px, 9vw, 150px);
+    font-weight: 700;
+    line-height: 0.8;
+    color: rgba(255, 255, 255, 0.06);
+    pointer-events: none;
+    user-select: none;
+  }
+  .cine-meta {
+    position: relative;
+    z-index: 2;
+    margin-top: 18px;
+    opacity: calc(1 - var(--d) * 1.05);
+    transform: translateY(calc(var(--d) * 12px));
+    transition:
+      opacity 0.25s linear,
+      transform 0.25s linear;
+  }
+  .cine-title {
+    margin: 0;
+    font-size: clamp(20px, 2.4vw, 34px);
+    letter-spacing: -0.02em;
+    color: #eef2f8;
+  }
+  .cine-kicker {
+    margin: 6px 0 0;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(230, 236, 244, 0.5);
+  }
+  .cine-line {
+    margin: 12px 0 0;
+    max-width: 46ch;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: rgba(230, 236, 244, 0.66);
+  }
+  .cine-go {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: rgba(230, 236, 244, 0.85);
+  }
+  .cine-go span {
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .cine-panel a {
+    text-decoration: none;
+    display: block;
+  }
+  .cine-panel a:hover .cine-go span {
+    transform: translateX(6px);
+  }
+  .cine-panel a:hover .cine-frame img {
+    filter: saturate(1.05) brightness(1.04);
+  }
+  .cine-panel a:focus-visible .cine-frame {
+    outline: 2px solid rgba(230, 236, 244, 0.8);
+    outline-offset: 4px;
+  }
+  .cine-progress {
+    margin: clamp(20px, 4vh, 44px) clamp(24px, 5vw, 90px) 0;
+    height: 1px;
+    background: rgba(230, 236, 244, 0.14);
+    overflow: hidden;
+  }
+  .cine-progress i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #6ea8ff, #ffc46b, #b98cff);
+    transform: scaleX(var(--p, 0));
+    transform-origin: 0 50%;
+  }
+  .cine-hint {
+    margin: 10px clamp(24px, 5vw, 90px) 0;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(230, 236, 244, 0.34);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hs-cinema.is-pinned {
+      height: auto;
+    }
+    .hs-cinema.is-pinned .cine-sticky {
+      position: static;
+      height: auto;
+      padding: 12vh 0 14vh;
+    }
+    .hs-cinema.is-pinned .cine-viewport {
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+    }
+    .cine-panel,
+    .cine-frame img,
+    .cine-meta {
+      --d: 0;
+      --px: 0;
+      transform: none;
+    }
+  }
+</style>
+
+<section class="hs-cinema" id="hs-cinema" aria-label="Selected work">
+  <div class="cine-sticky">
+    <div class="cine-head"><span>01</span><span class="cine-rule"></span><span>Selected work</span></div>
+    <div class="cine-viewport" id="cine-viewport">
+      <div class="cine-rail" id="cine-rail">
+        <article class="cine-panel">
+          <a href="{{ site.baseurl }}/mool/">
+            <div class="cine-frame">
+              <span class="cine-index">01</span>
+              <img src="{{ site.baseurl }}/assets/img/work-previews/mool/cover.webp" alt="Mool" loading="lazy" decoding="async" />
+            </div>
+            <div class="cine-meta">
+              <h3 class="cine-title">Mool</h3>
+              <p class="cine-kicker">Product &middot; Fintech &middot; Kyoorius winner</p>
+              <p class="cine-line">Long-term money decisions, made legible for first-time investors.</p>
+              <p class="cine-go">Read the case study <span aria-hidden="true">&rarr;</span></p>
+            </div>
+          </a>
+        </article>
+        <article class="cine-panel">
+          <a href="{{ site.baseurl }}/encoded/">
+            <div class="cine-frame">
+              <span class="cine-index">02</span>
+              <img src="{{ site.baseurl }}/1.met/0.webp" alt="Encoded" loading="lazy" decoding="async" />
+            </div>
+            <div class="cine-meta">
+              <h3 class="cine-title">Encoded</h3>
+              <p class="cine-kicker">Spatial &middot; The Met &middot; 2,000+ activations</p>
+              <p class="cine-line">Twenty-five artworks at the Metropolitan Museum, opened up through AR.</p>
+              <p class="cine-go">Read the case study <span aria-hidden="true">&rarr;</span></p>
+            </div>
+          </a>
+        </article>
+        <article class="cine-panel">
+          <a href="{{ site.baseurl }}/m-health-fairview/">
+            <div class="cine-frame">
+              <span class="cine-index">03</span>
+              <img src="{{ site.baseurl }}/assets/img/fairview/cover.webp" alt="M Health Fairview" loading="lazy" decoding="async" />
+            </div>
+            <div class="cine-meta">
+              <h3 class="cine-title">M Health Fairview</h3>
+              <p class="cine-kicker">Healthcare &middot; Service design</p>
+              <p class="cine-line">Specialty care, rebuilt around the moment a patient is actually lost.</p>
+              <p class="cine-go">Read the case study <span aria-hidden="true">&rarr;</span></p>
+            </div>
+          </a>
+        </article>
+        <article class="cine-panel">
+          <a href="{{ site.baseurl }}/marriott/">
+            <div class="cine-frame">
+              <span class="cine-index">04</span>
+              <img src="{{ site.baseurl }}/assets/img/marriott/cover.webp" alt="Marriott" loading="lazy" decoding="async" />
+            </div>
+            <div class="cine-meta">
+              <h3 class="cine-title">Marriott</h3>
+              <p class="cine-kicker">Enterprise UX &middot; Internal tooling</p>
+              <p class="cine-line">A workflow used daily by thousands, taken from tolerated to trusted.</p>
+              <p class="cine-go">Read the case study <span aria-hidden="true">&rarr;</span></p>
+            </div>
+          </a>
+        </article>
+        <article class="cine-panel">
+          <a href="{{ site.baseurl }}/naavo/">
+            <div class="cine-frame">
+              <span class="cine-index">05</span>
+              <img src="{{ site.baseurl }}/7.naavo/cover.webp" alt="Naavo" loading="lazy" decoding="async" />
+            </div>
+            <div class="cine-meta">
+              <h3 class="cine-title">Naavo</h3>
+              <p class="cine-kicker">Branding &middot; Identity system</p>
+              <p class="cine-line">An identity that had to survive contact with the real world, not a deck.</p>
+              <p class="cine-go">Read the case study <span aria-hidden="true">&rarr;</span></p>
+            </div>
+          </a>
+        </article>
+        <article class="cine-panel">
+          <a href="{{ site.baseurl }}/aananda/">
+            <div class="cine-frame">
+              <span class="cine-index">06</span>
+              <img src="{{ site.baseurl }}/9.aananda/cover.webp" alt="Aananda" loading="lazy" decoding="async" />
+            </div>
+            <div class="cine-meta">
+              <h3 class="cine-title">Aananda</h3>
+              <p class="cine-kicker">Branding &middot; App</p>
+              <p class="cine-line">Stillness as a product surface — brand and interface designed as one.</p>
+              <p class="cine-go">Read the case study <span aria-hidden="true">&rarr;</span></p>
+            </div>
+          </a>
+        </article>
+        <article class="cine-panel cine-panel--end">
+          <a href="{{ site.baseurl }}/works/">
+            <div class="cine-frame" style="display: flex; align-items: center; justify-content: center">
+              <span class="cine-index">07</span>
+              <span style="font-size: clamp(18px, 2vw, 28px); color: rgba(238, 242, 248, 0.9); text-align: center; padding: 0 8%">
+                Eight more case studies<br />in the full archive.
+              </span>
+            </div>
+            <div class="cine-meta">
+              <h3 class="cine-title">All work</h3>
+              <p class="cine-kicker">Archive</p>
+              <p class="cine-go">Open the archive <span aria-hidden="true">&rarr;</span></p>
+            </div>
+          </a>
+        </article>
+      </div>
+    </div>
+    <div class="cine-progress" id="cine-progress"><i></i></div>
+    <p class="cine-hint">Keep scrolling &mdash; the work moves sideways</p>
+  </div>
+</section>
+
+<script>
+  /* Drives the pinned rail. Everything here is optional polish: if any of
+     it fails or is unavailable, the section stays a normal horizontal
+     scroller and the links still work. */
+  (function () {
+    try {
+      var sec = document.getElementById("hs-cinema");
+      var viewport = document.getElementById("cine-viewport");
+      var rail = document.getElementById("cine-rail");
+      var bar = document.getElementById("cine-progress");
+      if (!sec || !rail || !viewport) return;
+      var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var panels = [].slice.call(rail.querySelectorAll(".cine-panel"));
+
+      // Pinning only makes sense when there is real overflow to travel
+      // through and the pointer is a mouse/trackpad. Touch keeps its own
+      // native horizontal swipe, which feels better than hijacked scroll.
+      var canPin = function () {
+        return !reduce && window.innerWidth >= 900 && rail.scrollWidth > window.innerWidth + 120;
+      };
+
+      var travel = 0;
+      var measure = function () {
+        if (canPin()) {
+          sec.classList.add("is-pinned");
+          travel = Math.max(0, rail.scrollWidth - window.innerWidth);
+          // Scroll distance is tied to horizontal travel so the pacing does
+          // not change when a project is added or the viewport resizes.
+          sec.style.height = Math.round(window.innerHeight + travel * 0.95) + "px";
+        } else {
+          sec.classList.remove("is-pinned");
+          sec.style.height = "";
+          rail.style.transform = "";
+          travel = 0;
+          panels.forEach(function (p) {
+            p.style.setProperty("--d", 0);
+            var im = p.querySelector("img");
+            if (im) im.style.setProperty("--px", 0);
+          });
+        }
+      };
+
+      var ticking = false;
+      var frame = function () {
+        ticking = false;
+        if (!sec.classList.contains("is-pinned")) return;
+        var r = sec.getBoundingClientRect();
+        var span = sec.offsetHeight - window.innerHeight;
+        var p = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0;
+        rail.style.transform = "translate3d(" + (-p * travel).toFixed(1) + "px,0,0)";
+        if (bar) bar.style.setProperty("--p", p.toFixed(4));
+        // Depth pass: distance of each panel from the viewport centre.
+        var mid = window.innerWidth / 2;
+        for (var i = 0; i < panels.length; i++) {
+          var pr = panels[i].getBoundingClientRect();
+          var off = (pr.left + pr.width / 2 - mid) / window.innerWidth;
+          var d = Math.min(1, Math.abs(off) * 1.35);
+          panels[i].style.setProperty("--d", d.toFixed(3));
+          var img = panels[i].querySelector("img");
+          if (img) img.style.setProperty("--px", (off * -38).toFixed(1));
+        }
+      };
+      var onScroll = function () {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(frame);
+      };
+
+      measure();
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+      window.addEventListener(
+        "resize",
+        function () {
+          measure();
+          onScroll();
+        },
+        { passive: true }
+      );
+      // Covers finish loading after first measure and can change scrollWidth.
+      window.addEventListener("load", function () {
+        measure();
+        onScroll();
+      });
+    } catch (e) {}
+  })();
+</script>
