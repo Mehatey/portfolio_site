@@ -304,4 +304,61 @@
       });
     }
   } catch (e) {}
+
+  // 6) Showreel ------------------------------------------------------------
+  // The original open/close handlers were stranded inside a retired IIFE in
+  // sid_home.html (the block that starts with `return;`), so clicking "watch
+  // the reel" did nothing in production. Rehomed here, self-contained.
+  try {
+    var reelBtn = document.getElementById("home-showreel");
+    var reelModal = document.getElementById("home-reel-modal");
+    var reelVideo = document.getElementById("home-reel-video");
+    var reelClose = document.getElementById("home-reel-close");
+    if (reelBtn && reelModal && reelVideo) {
+      var lastFocused = null;
+      var playReel = function () {
+        var go = reelVideo.play();
+        if (go && go.catch) go.catch(function () {});
+      };
+      var openReel = function () {
+        lastFocused = document.activeElement;
+        reelModal.classList.add("is-open");
+        reelModal.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+        if (reelClose && reelClose.focus) reelClose.focus();
+        // Fetch the reel only now, so it costs nothing on page load.
+        if (!reelVideo.getAttribute("src")) {
+          var src = reelVideo.dataset ? reelVideo.dataset.src : null;
+          if (src) {
+            reelVideo.src = src;
+            reelVideo.load();
+            // play() straight after load() is routinely aborted, so wait for
+            // the first frame instead of firing and hoping.
+            reelVideo.addEventListener("canplay", playReel, { once: true });
+            reelVideo.addEventListener("loadeddata", playReel, { once: true });
+          }
+        }
+        playReel();
+      };
+      var closeReel = function () {
+        try {
+          reelVideo.pause();
+          reelVideo.removeAttribute("src");
+          reelVideo.load();
+        } catch (e) {}
+        reelModal.classList.remove("is-open");
+        reelModal.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+        if (lastFocused && lastFocused.focus) lastFocused.focus();
+      };
+      reelBtn.addEventListener("click", openReel);
+      if (reelClose) reelClose.addEventListener("click", closeReel);
+      reelModal.addEventListener("click", function (event) {
+        if (event.target === reelModal) closeReel();
+      });
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape" && reelModal.classList.contains("is-open")) closeReel();
+      });
+    }
+  } catch (e) {}
 })();

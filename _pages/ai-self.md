@@ -44,12 +44,16 @@ next_project:
   .cs-grid-item img, .cs-grid-item video { object-fit: cover !important; height: 100% !important; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
-  .cs-grid { gap: 16px !important; align-items: stretch !important; }
+  /* Matched to mool / aananda / naavo so the AI case study reads with the same
+     rhythm as the rest of the work — it was the odd one out: no gutter reset on
+     the grid and half-height gaps between blocks. */
+  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; }
   .cs-bleed { margin-top: 40px !important; }
   .cs-bleed + .cs-bleed { margin-top: 40px !important; }
   .cs-grid { margin-top: 40px !important; }
-  .cs-grid + .cs-bleed { margin-top: 16px !important; }
-  .cs-bleed + .cs-grid { margin-top: 16px !important; }
+  .cs-grid + .cs-bleed { margin-top: 40px !important; }
+  .cs-bleed + .cs-grid { margin-top: 40px !important; }
+  .cs-grid + .cs-grid { margin-top: 16px !important; }
 
   .cube-cap { margin: 40px 0 0; }
   .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }

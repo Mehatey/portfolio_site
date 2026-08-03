@@ -1661,10 +1661,31 @@
         overflow: hidden;
         flex-shrink: 0;
       }
+      .next-cover {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.86;
+        transform: scale(1.02);
+        transition: transform 0.9s var(--ease-out), opacity 0.6s ease;
+      }
+      .proj-next:hover .next-cover { opacity: 1; transform: scale(1.06); }
+      /* A single next-project spans full width, so it gets room to breathe. */
+      .proj-next--solo .next-visual { height: clamp(300px, 42vh, 460px); }
+      .next-tags {
+        display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px;
+        font-family: var(--font-mono); font-size: 10.5px;
+        letter-spacing: 0.14em; text-transform: uppercase;
+        color: rgba(255,255,255,0.42);
+      }
+      .next-tags span + span::before { content: "\00b7"; margin-right: 14px; opacity: 0.5; }
       .next-visual::after {
         content: '';
         position: absolute; inset: 0;
-        background: linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.80) 100%);
+        background: linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.78) 100%);
+        z-index: 1;
       }
       .next-info {
         padding: 32px var(--gutter) 44px;
@@ -3780,40 +3801,55 @@
       {% endif %}
 
       <!-- NEXT PROJECTS -->
-      {% if page.next_projects %}
+      {% comment %} Next project used to be a title over an empty coloured slab. It now pulls the target page's own cover, category and year so the
+      reader can see what they are being sent to before they commit to the click. {% endcomment %} {% if page.next_projects %}
       <div class="proj-next-row">
-        {% for np in page.next_projects %}
+        {% for np in page.next_projects %} {% assign npPage = site.pages | where: "permalink", np.url | first %}
         <a href="{{ site.baseurl }}{{ np.url }}" class="proj-next" data-reveal>
-          <div class="next-visual" style="background: {{ np.bg | default: '#060608' }};"></div>
+          <div class="next-visual" style="background: {{ np.bg | default: '#060608' }};">
+            {% if npPage.hero_image %}
+            <img class="next-cover" src="{{ site.baseurl }}/{{ npPage.hero_image }}" alt="" loading="lazy" decoding="async" />
+            {% endif %}
+          </div>
           <div class="next-info">
             <p class="next-label">Next Project</p>
             <div class="next-title-row">
               <div>
-                <p class="next-title">{{ np.title }}</p>
-                {% if np.desc %}
-                <p class="next-desc">{{ np.desc }}</p>
+                <p class="next-title">{{ np.title | default: npPage.project_title }}</p>
+                {% if npPage.category or npPage.year %}
+                <p class="next-tags">
+                  {% if npPage.category %}<span>{{ npPage.category }}</span>{% endif %} {% if npPage.year %}<span>{{ npPage.year }}</span>{% endif %}
+                </p>
                 {% endif %}
+                <p class="next-desc">{{ np.desc | default: npPage.tagline | strip_html | truncate: 150 }}</p>
               </div>
-              <span class="next-arrow">→</span>
+              <span class="next-arrow">&rarr;</span>
             </div>
           </div>
         </a>
         {% endfor %}
       </div>
-      {% elsif page.next_project %}
+      {% elsif page.next_project %} {% assign npPage = site.pages | where: "permalink", page.next_project.url | first %}
       <div class="proj-next-row" style="grid-template-columns: 1fr">
-        <a href="{{ site.baseurl }}{{ page.next_project.url }}" class="proj-next" data-reveal>
-          <div class="next-visual" style="background: {{ page.next_project.bg | default: '#060608' }};"></div>
+        <a href="{{ site.baseurl }}{{ page.next_project.url }}" class="proj-next proj-next--solo" data-reveal>
+          <div class="next-visual" style="background: {{ page.next_project.bg | default: '#060608' }};">
+            {% if npPage.hero_image %}
+            <img class="next-cover" src="{{ site.baseurl }}/{{ npPage.hero_image }}" alt="" loading="lazy" decoding="async" />
+            {% endif %}
+          </div>
           <div class="next-info">
             <p class="next-label">Next Project</p>
             <div class="next-title-row">
               <div>
-                <p class="next-title">{{ page.next_project.title }}</p>
-                {% if page.next_project.desc %}
-                <p class="next-desc">{{ page.next_project.desc }}</p>
+                <p class="next-title">{{ page.next_project.title | default: npPage.project_title }}</p>
+                {% if npPage.category or npPage.year %}
+                <p class="next-tags">
+                  {% if npPage.category %}<span>{{ npPage.category }}</span>{% endif %} {% if npPage.year %}<span>{{ npPage.year }}</span>{% endif %}
+                </p>
                 {% endif %}
+                <p class="next-desc">{{ page.next_project.desc | default: npPage.tagline | strip_html | truncate: 170 }}</p>
               </div>
-              <span class="next-arrow">→</span>
+              <span class="next-arrow">&rarr;</span>
             </div>
           </div>
         </a>
@@ -3882,7 +3918,7 @@
             if (e.isIntersecting) {
               e.target.classList.add("reveal");
               const vid = e.target.querySelector("video");
-              if (vid) vid.play().catch(() => {});
+              if (vid) activateProjectVideo(vid);
               observer.unobserve(e.target);
             }
           });
@@ -3903,16 +3939,44 @@
       // browser, so clips may hold their source in data-src until they are near
       // the viewport. This keeps the opening hero responsive without changing
       // the visual sequence as someone scrolls through it.
+      function playProjectVideo(v) {
+        // Autoplay only survives if the element is provably muted + inline;
+        // the attributes alone are not enough once we swap the source in.
+        v.muted = true;
+        v.defaultMuted = true;
+        v.setAttribute("muted", "");
+        v.setAttribute("playsinline", "");
+        var go = v.play();
+        if (go && go.catch) go.catch(function () {});
+      }
+
       function activateProjectVideo(v) {
+        if (v.dataset.csActivated) return;
         var deferredSource = v.querySelector("source[data-src]");
+        // A clip that already has its source (e.g. the hero) just needs a
+        // nudge to play — never a reload, which would restart it mid-scroll.
+        if (!deferredSource && v.preload !== "none") {
+          playProjectVideo(v);
+          return;
+        }
+        v.dataset.csActivated = "1";
         if (deferredSource) {
           deferredSource.src = deferredSource.dataset.src;
           deferredSource.removeAttribute("data-src");
         }
-        if (v.preload === "none" || deferredSource) {
-          v.preload = "auto";
-          v.load();
-        }
+        v.preload = "auto";
+        v.load();
+        // Calling play() straight after load() is routinely aborted by the
+        // browser, and the parsed-time autoplay flag is already spent because
+        // the element had no source. So wait for real data, then play — and
+        // keep a late retry for clips that buffer slowly.
+        v.addEventListener("loadeddata", function () {
+          playProjectVideo(v);
+        });
+        v.addEventListener("canplay", function () {
+          playProjectVideo(v);
+        });
+        playProjectVideo(v);
       }
 
       // Load + play only when approaching viewport.
@@ -3920,18 +3984,16 @@
         (entries) => {
           entries.forEach((e) => {
             if (e.isIntersecting) {
-              const v = e.target;
-              if (v.preload === "none") {
-                activateProjectVideo(v);
-                v.play().catch(() => {});
-              }
-              videoLazyObserver.unobserve(v);
+              activateProjectVideo(e.target);
+              videoLazyObserver.unobserve(e.target);
             }
           });
         },
         { rootMargin: "400px 0px 400px 0px" }
       );
-      document.querySelectorAll('video[preload="none"]').forEach((v) => videoLazyObserver.observe(v));
+      document
+        .querySelectorAll('video[preload="none"], video source[data-src]')
+        .forEach((n) => videoLazyObserver.observe(n.tagName === "SOURCE" ? n.parentNode : n));
 
       // Section label animation (line draws + label fades)
       const sectionObserver = new IntersectionObserver(
