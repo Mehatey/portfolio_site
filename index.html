@@ -205,11 +205,38 @@
 
 
     <style>
+      /* ==================================================================
+         Homepage.
+
+         The page is one continuous WebGL space (see assets/js/home-gl.js)
+         with type laid on top of it. Nothing here paints an opaque
+         background over the canvas — every section is transparent and the
+         shader is the page's actual surface. Keep it that way; a solid
+         background on a section punches a hole in the whole effect.
+
+         Images are real <img> in real <a>. GL takes them over only after
+         it has successfully uploaded the texture (`.is-gl`), so the
+         no-WebGL / reduced-motion / slow-network path is simply "the page
+         you already see", not a separate fallback to maintain.
+         ================================================================== */
+
       :root {
         color-scheme: dark;
-        --home-bg: #020305;
-        --home-ink: #f5f7fa;
-        --home-muted: rgba(235, 240, 246, 0.72);
+        --home-bg: #04060b;
+        --home-ink: #f2f5f9;
+        --home-muted: rgba(236, 241, 247, 0.66);
+        --home-faint: rgba(236, 241, 247, 0.38);
+        --home-hair: rgba(236, 241, 247, 0.14);
+        --home-accent: #e0a45c;
+      }
+      html[data-theme="light"] {
+        color-scheme: light;
+        --home-bg: #f2efe8;
+        --home-ink: #14161b;
+        --home-muted: rgba(20, 22, 27, 0.68);
+        --home-faint: rgba(20, 22, 27, 0.42);
+        --home-hair: rgba(20, 22, 27, 0.16);
+        --home-accent: #7a4a12;
       }
 
       *,
@@ -217,1283 +244,556 @@
       *::after {
         box-sizing: border-box;
       }
-
       html,
       body {
-        width: 100%;
-        min-height: 100%;
         margin: 0;
+        width: 100%;
         overflow-x: hidden;
-        overflow-y: auto;
         background: var(--home-bg);
       }
-
       body {
         color: var(--home-ink);
         font-family: "Figtree", system-ui, sans-serif;
         -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
       }
-
+      img {
+        max-width: 100%;
+        display: block;
+      }
       a {
         color: inherit;
+        text-decoration: none;
+      }
+      ol,
+      ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
       }
 
       .skip-link {
         position: fixed;
-        z-index: 10000;
-        top: 8px;
-        left: 50%;
-        padding: 10px 14px;
-        background: #fff;
-        color: #05070a;
-        transform: translate(-50%, -180%);
+        top: -60px;
+        left: 16px;
+        z-index: 200;
+        padding: 10px 16px;
+        border-radius: 8px;
+        background: #f2f5f9;
+        color: #04060b;
+        font:
+          500 13px/1 "Figtree",
+          sans-serif;
+        transition: top 160ms ease;
       }
-
       .skip-link:focus {
-        transform: translate(-50%, 0);
+        top: 14px;
       }
 
-      .home-stage {
-        position: relative;
-        width: 100%;
-        height: 100svh;
-        overflow: hidden;
-        isolation: isolate;
-        background: #020305;
-      }
-
-      .home-film,
-      .home-project-focus {
-        position: absolute;
-        inset: 0;
-      }
-
-      .home-film {
-        z-index: -4;
-        cursor: crosshair;
-      }
-
-      .home-film video {
-        position: absolute;
-        inset: 0;
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center 53%;
-      }
-
-      .home-film__pixel {
-        z-index: 2;
-        mix-blend-mode: screen;
-        filter: saturate(0.92) contrast(1.08) brightness(1.08);
-        transition: opacity 320ms ease;
-      }
-
-      /* The always-on base layer. Raised from a near-invisible 0.28/0.52 so the
-         hero reads as a dim, alive space at rest — "there is something here,
-         come find it" — rather than a black void before the cursor paints Sid
-         in. Still quiet enough that the painted reveal remains the payoff. */
-      .home-film__ambient {
-        z-index: 0;
-        opacity: 0.56;
-        filter: saturate(0.82) contrast(1.08) brightness(0.82) blur(1px);
-      }
-
-      .home-film__real {
-        z-index: 1;
-        -webkit-mask-image: linear-gradient(transparent, transparent);
-        mask-image: linear-gradient(transparent, transparent);
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-        /* Brightened from 0.88 → 1.16. The source footage is low-key, so at the
-           old value the painted reveal emerged as dark-on-dark and the whole
-           mechanic read as dead. Now Sid resolves as a bright figure lifting out
-           of the black exactly where the cursor paints — which is the point. */
-        filter: saturate(1) contrast(1.09) brightness(1.16);
-        will-change: mask-image;
-      }
-
-      .home-film__real.is-liquifying {
-        filter: url("#home-liquify") saturate(1.06) contrast(1.08) brightness(1.18);
-      }
-
-      .home-stage.is-revealing .home-film__pixel {
-        opacity: 0.66;
-      }
-
-      /* ── GENERATIVE WEBGL FIELD ──
-         A real-time fragment shader: domain-warped fbm noise flowing through the
-         hero in the three pillar colours, bending and brightening around the
-         cursor — a nod to Sid's generative / TouchDesigner practice. Additive
-         (screen-blended) over the dark film so it only ever adds light. Removed
-         for reduced-motion; falls back to nothing if WebGL is unavailable. */
-      .home-gl {
-        position: absolute;
-        inset: 0;
-        z-index: 3;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        mix-blend-mode: screen;
-        opacity: 0.92;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .home-gl {
-          display: none;
-        }
-      }
-
-      .home-film::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background:
-          linear-gradient(90deg, rgba(1, 3, 6, 0.82) 0%, rgba(1, 3, 6, 0.48) 34%, rgba(1, 3, 6, 0.05) 68%, rgba(1, 3, 6, 0.2) 100%),
-          linear-gradient(0deg, rgba(1, 3, 6, 0.9), transparent 58%, rgba(1, 3, 6, 0.14));
-        pointer-events: none;
-      }
-
-      /* Quiet affordance so the reveal is discoverable. Sits upper-centre over
-         the film, fades the moment the visitor starts painting. */
-      .home-work-scrim {
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        pointer-events: none;
-        background: radial-gradient(130% 130% at 50% 44%, #0a0f1a 0%, #06070c 72%);
-      }
-      .home-work {
-        position: absolute;
-        inset: 0;
-        z-index: 3;
-        opacity: 0;
-        transition: opacity 0.5s var(--ease-out, ease);
-        pointer-events: none;
-        -webkit-mask-repeat: no-repeat;
-        mask-repeat: no-repeat;
-      }
-      .home-stage.is-working .home-work {
-        opacity: 1;
-      }
-      .home-work img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        filter: saturate(1.03);
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .home-work {
-          display: none;
-        }
-      }
-
-      .home-hint {
-        position: absolute;
-        z-index: 3;
-        top: clamp(88px, 15vh, 150px);
-        left: 50%;
-        transform: translateX(-50%);
-        margin: 0;
-        color: rgba(233, 240, 249, 0.5);
-        font:
-          400 10px/1.4 "DM Mono",
-          monospace;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        pointer-events: none;
-        animation: home-hint-breathe 3.4s ease-in-out infinite;
-        transition: opacity 500ms ease;
-      }
-      @keyframes home-hint-breathe {
-        0%,
-        100% {
-          opacity: 0.32;
-        }
-        50% {
-          opacity: 0.7;
-        }
-      }
-      .home-stage.is-revealing .home-hint,
-      .home-stage.has-project .home-hint {
-        opacity: 0;
-        animation: none;
-      }
-      @media (hover: none), (pointer: coarse) {
-        .home-hint {
-          display: none;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .home-hint {
-          animation: none;
-        }
-      }
-
-      .home-project-focus {
-        z-index: -2;
-        display: flex;
-        align-items: flex-end;
-        padding: clamp(110px, 13vh, 150px) clamp(28px, 6vw, 100px) clamp(52px, 7vh, 82px);
-        background: #04070b;
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transition:
-          opacity 280ms ease,
-          visibility 0s linear 280ms;
-      }
-
-      .home-stage.has-project .home-project-focus {
-        z-index: 2;
-        opacity: 1;
-        visibility: visible;
-        transition-delay: 0s;
-      }
-
-      .home-project-focus::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        background: linear-gradient(90deg, rgba(2, 4, 8, 0.36), transparent 58%), linear-gradient(0deg, rgba(2, 4, 8, 0.9), transparent 55%);
-      }
-
-      .home-project-focus__media {
-        position: absolute;
-        inset: 0;
-        z-index: -2;
-        display: grid;
-        place-items: center;
-        overflow: hidden;
-      }
-
-      .home-project-focus__media img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
-        opacity: 0.9;
-        transform: scale(1.035);
-        transition:
-          transform 850ms cubic-bezier(0.16, 1, 0.3, 1),
-          opacity 280ms ease;
-      }
-
-      .home-stage.has-project .home-project-focus__media img {
-        transform: scale(1);
-      }
-
-      .home-project-focus__copy {
-        display: grid;
-        grid-template-columns: minmax(180px, 0.72fr) minmax(280px, 1.28fr);
-        align-items: end;
-        gap: clamp(24px, 4vw, 70px);
-        width: min(960px, 72vw);
-        max-width: none;
-      }
-
-      .home-project-focus__copy span {
-        display: block;
-        grid-column: 1;
-        margin-bottom: 0;
-        color: rgba(231, 239, 248, 0.62);
-        font:
-          400 10px/1.3 "DM Mono",
-          monospace;
-        letter-spacing: 0.06em;
-      }
-
-      .home-project-focus h2 {
-        grid-column: 1;
-        margin: 0;
-        font-size: clamp(36px, 4vw, 58px);
-        font-weight: 400;
-        line-height: 0.96;
-        letter-spacing: -0.035em;
-        text-wrap: balance;
-      }
-
-      .home-project-focus p {
-        grid-column: 2;
-        grid-row: 1 / span 2;
-        max-width: 36ch;
-        margin: 0;
-        color: rgba(239, 244, 249, 0.76);
-        font-size: clamp(16px, 1.25vw, 20px);
-        line-height: 1.48;
-        text-wrap: pretty;
-      }
-
-      .home-project-focus__action {
-        grid-column: 2;
-        display: inline-block;
-        width: max-content;
-        margin-top: -6px;
-        padding-top: 6px;
-        padding-bottom: 5px;
-        border-bottom: 1px solid rgba(240, 246, 252, 0.55);
-        font:
-          500 10px/1.2 "DM Mono",
-          monospace;
-        letter-spacing: 0.06em;
-        text-decoration: none;
-      }
-
-      .home-copy {
-        position: absolute;
-        z-index: 4;
-        left: clamp(24px, 5vw, 82px);
-        bottom: clamp(38px, 5.5vh, 62px);
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        align-items: end;
-        gap: 14px clamp(28px, 5vw, 82px);
-        width: calc(100vw - clamp(48px, 10vw, 164px));
-        transition:
-          opacity 220ms ease,
-          transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      /* Hero simplified: the cursor-peephole reveal is retired (it hid the
-         headline on hover and showed creepy close-ups). The generative shader is
-         now the ambient backdrop; the headline and featured work stay visible. */
-      .home-work,
-      .home-work-scrim,
-      .home-hint {
-        display: none !important;
-      }
-      .home-stage.is-working .home-copy,
-      .home-stage.is-revealing .home-copy {
-        opacity: 1;
-        transform: none;
-        pointer-events: auto;
-      }
-      /* Hovering a project thumbnail turns the hero into that project's cover;
-         the intro copy steps back so the preview reads clean. */
-      .home-stage.has-project .home-copy {
-        opacity: 0;
-        transform: translateY(10px);
-        pointer-events: none;
-      }
-
-      /* ── IDENTITY BLOCK ──
-         Name, then the awards, then the headline. A recruiter's first pass over
-         a portfolio homepage is "who is this and has anyone else vouched for
-         them" — that used to take a click through to /about/, because the only
-         permanent mention of the Webbys lived there. The rotating proof line
-         under the headline names Kyoorius roughly a quarter of the time, which
-         is not the same as always being on screen.
-
-         Anchored above .home-copy so it sits with the name rather than after
-         the CTAs, where credentials read as a footnote. */
-      .home-ident {
-        position: absolute;
-        bottom: calc(100% + clamp(30px, 5vh, 58px));
-        left: 0;
-      }
-
-      .home-name {
-        margin: 0;
-        color: rgba(240, 245, 250, 0.7);
-        font:
-          500 11px/1.3 "DM Mono",
-          monospace;
-        letter-spacing: 0.05em;
-      }
-
-      /* One tab stop, one accessible name, one click to the dated list. Three
-         hairline-separated items keep it to a single line down to ~360px. */
-      .home-creds {
-        position: relative;
-        display: inline-flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 0 12px;
-        margin-top: 9px;
-        color: rgba(236, 244, 251, 0.7);
-        font:
-          500 10px/1.2 "DM Mono",
-          monospace;
-        letter-spacing: 0.06em;
-        text-decoration: none;
-        text-transform: uppercase;
-        transition: color 200ms ease;
-      }
-
-      .home-creds__item {
-        padding: 7px 0;
-      }
-
-      .home-creds__item + .home-creds__item {
-        padding-left: 12px;
-        border-left: 1px solid rgba(236, 244, 251, 0.24);
-      }
-
-      .home-creds__n {
-        margin-left: 4px;
-        opacity: 0.8;
-        font-style: normal;
-      }
-
-      /* Sits away from the last award so it reads as "this row goes somewhere"
-         rather than as part of the Kyoorius entry. */
-      .home-creds__go {
-        display: inline-block;
-        margin-left: 4px;
-        opacity: 0.55;
-        transition:
-          opacity 200ms ease,
-          transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .home-creds:hover,
-      .home-creds:focus-visible {
-        color: #fff;
-      }
-
-      .home-creds:hover .home-creds__go,
-      .home-creds:focus-visible .home-creds__go {
-        opacity: 1;
-        transform: translate(2px, -2px);
-      }
-
-      /* The row is 10px type inside a 26px box. Grown to the WCAG 2.2 AA 24px
-         minimum in both axes without changing what is drawn. */
-      .home-creds::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        right: 0;
-        left: 0;
-        height: max(100%, 40px);
-        transform: translateY(-50%);
-      }
-
-      .home-copy h1 {
-        grid-column: 1;
-        max-width: 17ch;
-        margin: 0;
-        font-size: clamp(40px, 4.4vw, 62px);
-        font-weight: 440;
-        line-height: 1;
-        letter-spacing: -0.035em;
-        text-wrap: balance;
-      }
-      /* No multicolour gradient — that reads as generic "AI". The emphasis is
-         a quiet warm-white tonal shift; the real character comes from the
-         cursor-physics letters below. */
-      .home-title__accent {
-        color: rgba(255, 250, 242, 0.98);
-      }
-
-      /* Per-letter kinetic type: each glyph is an inline-block that springs
-         away from the cursor and back, flung in proportion to how fast the
-         pointer is moving. */
-      .home-copy h1 .ht-w {
-        display: inline-block;
-        white-space: nowrap;
-      }
-      .home-copy h1 .ht-l {
-        display: inline-block;
-        will-change: transform;
-        transform: translate3d(0, 0, 0);
-      }
-
-      .home-proof__line {
-        display: inline-block;
-        transition:
-          opacity 520ms ease,
-          transform 640ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .home-proof__line.is-swapping {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-
-      .home-proof {
-        min-height: 1.4em;
-        margin: 20px 0 0;
-        color: rgba(236, 244, 251, 0.64);
-        font:
-          400 10px/1.4 "DM Mono",
-          monospace;
-        letter-spacing: 0.045em;
-      }
-
-      .home-actions {
-        grid-column: 1;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 12px 22px;
-        margin-top: 22px;
-      }
-
-      /* One clear primary action for the hero — a bright pill that reads as
-         *the* thing to click, with the two secondary links kept as quiet
-         underlines beside it. */
-      .home-actions__primary {
-        min-height: 40px;
-        align-items: center !important;
-        padding: 11px 20px 11px 22px !important;
-        border: 0 !important;
-        border-radius: 999px;
-        color: #05070c !important;
-        background: linear-gradient(180deg, #f4f8fd, #d7e6f7);
-        box-shadow: 0 10px 30px -12px rgba(180, 214, 255, 0.7);
-        transition:
-          transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
-          box-shadow 260ms ease,
-          background 260ms ease !important;
-      }
-      .home-actions__primary span {
-        transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .home-actions__primary:hover,
-      .home-actions__primary:focus-visible {
-        transform: translateY(-2px);
-        border: 0 !important;
-        box-shadow: 0 16px 38px -12px rgba(180, 214, 255, 0.9);
-        background: linear-gradient(180deg, #ffffff, #e4effb);
-      }
-      .home-actions__primary:hover span,
-      .home-actions__primary:focus-visible span {
-        transform: translateX(3px);
-      }
-
-      .home-actions a {
-        min-height: 40px;
-        padding-top: 10px;
-        border-bottom: 1px solid rgba(245, 248, 251, 0.4);
-        font:
-          500 10px/1.2 "DM Mono",
-          monospace;
-        letter-spacing: 0.05em;
-        text-decoration: none;
-        transition:
-          border-color 180ms ease,
-          transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .home-actions a:hover,
-      .home-actions a:focus-visible,
-      .home-actions button:hover,
-      .home-actions button:focus-visible {
-        border-color: #fff;
-        transform: translateY(-2px);
-      }
-
-      .home-actions button {
-        min-height: 40px;
-        padding: 10px 0 0;
-        border: 0;
-        border-bottom: 1px solid rgba(245, 248, 251, 0.4);
-        color: inherit;
-        background: transparent;
-        font:
-          500 10px/1.2 "DM Mono",
-          monospace;
-        letter-spacing: 0.05em;
-        cursor: pointer;
-        transition:
-          border-color 180ms ease,
-          transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      /* The three actions are a link, a button and a link, all 40px tall with
-         10px of top padding. The two links sat their label directly under that
-         padding; the button vertically centred its label in the remaining 30px,
-         so "Play showreel" rendered ~9px lower than its neighbours while the
-         underlines stayed level — a small, persistent misalignment in the one
-         row a recruiter is most likely to click. Both are flex now with their
-         content top-aligned, so the three labels share a baseline. */
-      .home-actions a,
-      .home-actions button {
-        display: inline-flex;
-        align-items: flex-start;
-        gap: 5px;
-      }
-
-      .home-reel-modal {
+      /* ── the GL surface ─────────────────────────────────────────── */
+      #gl-stage {
         position: fixed;
         inset: 0;
-        z-index: 9000;
-        display: grid;
-        place-items: center;
-        padding: clamp(18px, 4vw, 64px);
-        background: rgba(1, 2, 4, 0.94);
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-        transition:
-          opacity 260ms ease,
-          visibility 0s linear 260ms;
-      }
-
-      .home-reel-modal.is-open {
-        opacity: 1;
-        visibility: visible;
-        pointer-events: auto;
-        transition-delay: 0s;
-      }
-
-      .home-reel-modal__frame {
-        position: relative;
-        width: min(1180px, 100%);
-        aspect-ratio: 16 / 9;
-        max-height: calc(100svh - 120px);
-        box-shadow: 0 28px 100px rgba(0, 0, 0, 0.48);
-        background: #000;
-        border-radius: 6px;
-        overflow: hidden;
-      }
-      .home-reel-modal__video {
-        position: absolute;
-        inset: 0;
-        display: block;
+        z-index: 0;
         width: 100%;
         height: 100%;
-        border: 0;
-      }
-
-      .home-reel-modal__close {
-        position: absolute;
-        top: max(18px, env(safe-area-inset-top));
-        right: max(20px, env(safe-area-inset-right));
-        display: grid;
-        width: 42px;
-        height: 42px;
-        place-items: center;
-        border: 1px solid rgba(245, 248, 251, 0.28);
-        border-radius: 50%;
-        color: rgba(245, 248, 251, 0.82);
-        background: rgba(245, 248, 251, 0.06);
-        font:
-          400 18px/1 "Figtree",
-          system-ui,
-          sans-serif;
-        cursor: pointer;
-        transition:
-          border-color 180ms ease,
-          background 180ms ease,
-          transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .home-reel-modal__close:hover,
-      .home-reel-modal__close:focus-visible {
-        border-color: rgba(245, 248, 251, 0.72);
-        background: rgba(245, 248, 251, 0.12);
-        transform: rotate(8deg);
-      }
-
-      .home-reel-modal__label {
-        position: absolute;
-        right: max(24px, env(safe-area-inset-right));
-        bottom: max(20px, env(safe-area-inset-bottom));
-        margin: 0;
-        color: rgba(236, 243, 250, 0.56);
-        font:
-          400 9px/1.3 "DM Mono",
-          monospace;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-      }
-
-      @media (max-width: 640px) {
-        .home-reel-modal {
-          padding: 16px;
-        }
-
-        .home-reel-modal__video {
-          max-height: calc(100svh - 92px);
-        }
-      }
-
-      .home-reveal-note {
-        position: absolute;
-        z-index: 4;
-        top: clamp(104px, 14vh, 142px);
-        left: clamp(24px, 5vw, 82px);
-        margin: 0;
-        color: rgba(236, 243, 250, 0.55);
-        font:
-          400 9px/1.35 "DM Mono",
-          monospace;
-        letter-spacing: 0.07em;
-        pointer-events: none;
-        transition: opacity 180ms ease;
-      }
-
-      .home-stage.has-project .home-reveal-note {
-        opacity: 0;
-      }
-
-      .home-projects {
-        position: absolute;
-        z-index: 5;
-        right: clamp(24px, 4vw, 64px);
-        bottom: clamp(56px, 8vh, 88px);
-        display: flex;
-        align-items: flex-end;
-        gap: clamp(14px, 1.6vw, 24px);
-      }
-
-      .home-project {
-        position: relative;
         display: block;
-        width: clamp(112px, 12vw, 150px);
-        aspect-ratio: 4 / 3;
-        /* Pillar colour, not decoration: cool = product / AI, warm = cultural /
-           human. The same duality lights the Orbit scene, so the accent means
-           the same thing everywhere on the site. */
-        --pj-ring: rgba(255, 255, 255, 0.2);
-        --pj-hi: rgba(255, 255, 255, 0.72);
-        transform: translateY(var(--portal-y, 0));
-        transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
       }
-
-      /* Rotating conic halo in the portal's pillar colour — the circles read as
-         alive, curated objects rather than plain thumbnails. */
-      .home-project::before {
-        content: "";
-        position: absolute;
-        inset: -7px;
-        border-radius: 50%;
-        background: conic-gradient(
-          from 0deg,
-          transparent 0deg,
-          var(--pj-hi) 70deg,
-          transparent 150deg,
-          transparent 250deg,
-          var(--pj-hi) 320deg,
-          transparent 360deg
-        );
-        -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
-        mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px));
-        opacity: 0;
-        animation: none;
-        transition: opacity 220ms ease;
-      }
-      @keyframes home-portal-spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .home-project::before {
-          animation: none;
-        }
-      }
-
-      .home-project__disc {
-        position: absolute;
+      /* Until the shader is up, a CSS approximation of the same field so
+         first paint is never a flat void. It fades out once GL is live. */
+      .hg-base {
+        position: fixed;
         inset: 0;
-        display: block;
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1px solid var(--pj-ring);
-        background: #080b10;
-        box-shadow:
-          0 18px 46px rgba(0, 0, 0, 0.34),
-          inset 0 0 24px rgba(0, 0, 0, 0.5);
-        transition:
-          outline-color 180ms ease,
-          box-shadow 220ms ease;
-      }
-
-      /* Each portal wears its pillar colour (see design_tokens): Mool → product
-         blue, AI Prototypes → AI amber, Encoded → culture violet. Same three
-         colours as the Orbit rings, so the identity is consistent site-wide. */
-      .home-project:nth-child(1) {
-        --portal-y: 0px;
-        --pj-ring: rgba(var(--pillar-product), 0.42);
-        --pj-hi: rgba(var(--pillar-product), 0.95);
-      }
-
-      .home-project:nth-child(2) {
-        --portal-y: 0px;
-        --pj-ring: rgba(var(--pillar-ai), 0.46);
-        --pj-hi: rgba(var(--pillar-ai), 0.95);
-      }
-
-      /* Encoded sits in the AI & creative-tech pillar on the Works page, so it
-         wears amber here too — the colour has to mean the same thing on every
-         page or it stops meaning anything. */
-      .home-project:nth-child(3) {
-        --portal-y: 0px;
-        --pj-ring: rgba(var(--pillar-ai), 0.46);
-        --pj-hi: rgba(var(--pillar-ai), 0.95);
-      }
-
-      .home-project__disc img {
-        display: block;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .home-project:hover,
-      .home-project:focus-visible {
-        transform: translateY(calc(var(--portal-y, 0px) - 9px)) scale(1.05);
-      }
-
-      .home-project:hover .home-project__disc,
-      .home-project:focus-visible .home-project__disc {
-        border-color: var(--pj-hi);
-        box-shadow:
-          0 22px 52px rgba(0, 0, 0, 0.4),
-          0 0 34px -4px var(--pj-hi),
-          inset 0 0 24px rgba(0, 0, 0, 0.4);
-      }
-
-      .home-project:hover::before,
-      .home-project:focus-visible::before {
-        opacity: 0;
-        animation-duration: 5s;
-      }
-
-      .home-project:hover .home-project__disc img,
-      .home-project:focus-visible .home-project__disc img {
-        transform: scale(1.06);
-      }
-
-      /* Persistent caption so the portals read as named, curated work — not
-         mystery dots. Index in the pillar colour, project name below. */
-      .home-project__label {
-        position: absolute;
-        top: calc(100% + 12px);
-        left: 2px;
-        /* Counter the portal's stagger so all three captions share one baseline
-           even though the circles sit at different heights. */
-        transform: translateY(calc(-1 * var(--portal-y, 0px)));
-        display: flex;
-        align-items: baseline;
-        gap: 5px;
-        white-space: nowrap;
-        color: rgba(238, 244, 250, 0.82);
-        font:
-          400 9.5px/1.2 "DM Mono",
-          monospace;
-        letter-spacing: 0.05em;
+        z-index: 0;
         pointer-events: none;
-        transition: color 200ms ease;
+        background:
+          radial-gradient(120% 90% at 18% 8%, rgba(30, 52, 106, 0.55), transparent 62%),
+          radial-gradient(90% 80% at 82% 74%, rgba(102, 60, 20, 0.42), transparent 60%), var(--home-bg);
+        transition: opacity 900ms ease;
       }
-      .home-project__label i {
-        font-style: normal;
-        color: var(--pj-hi);
-        opacity: 0.9;
+      html[data-theme="light"] .hg-base {
+        background:
+          radial-gradient(120% 90% at 18% 8%, rgba(190, 205, 235, 0.72), transparent 62%),
+          radial-gradient(90% 80% at 82% 74%, rgba(236, 214, 186, 0.7), transparent 60%), var(--home-bg);
       }
-      .home-project:hover .home-project__label,
-      .home-project:focus-visible .home-project__label {
-        color: #fff;
-      }
-
-      @media (max-width: 820px) {
-        .home-film video {
-          object-position: 58% center;
-        }
-
-        .home-film::after {
-          background: linear-gradient(0deg, rgba(1, 3, 6, 0.96) 0%, rgba(1, 3, 6, 0.66) 50%, rgba(1, 3, 6, 0.18) 100%);
-        }
-
-        .home-copy {
-          bottom: 142px;
-          display: block;
-          width: calc(100vw - 44px);
-        }
-
-        .home-copy h1 {
-          max-width: 100%;
-          font-size: clamp(30px, 8.4vw, 42px);
-        }
-
-        /* Below 820px .home-copy is a block, so the identity block joins the
-           normal flow above the headline instead of hanging off the top edge. */
-        .home-ident {
-          position: static;
-          margin-bottom: 14px;
-        }
-
-        .home-creds {
-          gap: 0 10px;
-          font-size: 9px;
-          letter-spacing: 0.05em;
-        }
-
-        .home-creds__item + .home-creds__item {
-          padding-left: 10px;
-        }
-
-        .home-projects {
-          right: 22px;
-          bottom: 42px;
-          left: 22px;
-          justify-content: flex-end;
-        }
-
-        .home-project {
-          width: 66px;
-        }
-
-        .home-project__label {
-          display: none;
-        }
-
-        .home-project::before {
-          inset: -5px;
-        }
-
-        .home-project-focus {
-          align-items: end;
-          padding: 110px 22px 138px;
-        }
-
-        .home-project-focus__copy {
-          grid-template-columns: 1fr;
-          width: 100%;
-          gap: 10px;
-        }
-
-        .home-project-focus p,
-        .home-project-focus__action {
-          grid-column: 1;
-          grid-row: auto;
-        }
-
-        .home-project-focus__media img {
-          object-position: center;
-          opacity: 0.62;
-        }
-
-        .home-reveal-note {
-          top: 88px;
-          left: 22px;
-        }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        .home-film__real {
-          -webkit-mask-image: none;
-          mask-image: none;
-          opacity: 0;
-          transition: opacity 1ms linear;
-        }
-
-        .home-stage.is-revealing .home-film__real {
-          opacity: 1;
-        }
-
-        .home-project,
-        .home-project__disc img,
-        .home-copy,
-        .home-project-focus,
-        .home-project-focus__media img {
-          transition-duration: 1ms !important;
-        }
-      }
-
-      /* ─────────────────────────────────────────────────────────────────
-         ACCESSIBILITY FLOOR — deliberately the last block in this file.
-         Everything above is free to style these labels however it likes;
-         this block only guarantees two things the rest of the sheet kept
-         missing:
-
-         1. Contrast. The mono micro-labels were sitting at 0.32–0.48 alpha,
-            which measures 2.0–4.4:1 against the page background. At 9–12px
-            that is under the 4.5:1 WCAG AA floor and genuinely hard to read.
-            0.62 measures ~7.5:1 and still reads as clearly secondary next to
-            body copy at 0.75–0.86.
-         2. Touch targets. Coarse-pointer hit areas are grown to the WCAG 2.2
-            AA 24x24 minimum with a transparent ::after overlay, so the visual
-            size, type scale and layout are all unchanged.
-
-         Scoped with :not([data-theme="light"]) so the light-theme overrides
-         above keep their own values untouched.
-         ───────────────────────────────────────────────────────────────── */
-
-      @media (pointer: coarse) {
-        .home-project-focus__action {
-          position: relative;
-        }
-
-        .home-project-focus__action::after {
-          content: "";
-          position: absolute;
-          top: 50%;
-          right: -6px;
-          left: -6px;
-          height: 44px;
-          transform: translateY(-50%);
-        }
-      }
-
-      /* ── Homepage enhancements: typewriter caret + blur-to-sharp reveals ── */
-      #home-title .ht-head,
-      #home-title .ht-tail {
-        white-space: pre-wrap;
-      }
-      #home-title .ht-swap {
-        white-space: nowrap;
-      }
-      #home-title .ht-caret {
-        display: inline-block;
-        width: 3px;
-        height: 0.92em;
-        margin-left: 4px;
-        vertical-align: -0.06em;
-        background: currentColor;
-        opacity: 0.85;
-        animation: ht-blink 1s steps(1) infinite;
-      }
-      #home-title .ht-caret.is-done {
-        animation: ht-fade 1.6s ease forwards;
-      }
-      @keyframes ht-blink {
-        0%,
-        49% {
-          opacity: 0.85;
-        }
-        50%,
-        100% {
-          opacity: 0;
-        }
-      }
-      @keyframes ht-fade {
-        to {
-          opacity: 0;
-          width: 0;
-          margin: 0;
-        }
-      }
-      .he-blurin {
-        filter: blur(9px);
+      html.gl-on .hg-base {
         opacity: 0;
-        transform: translateY(14px);
-        transition:
-          filter 720ms ease,
-          opacity 720ms ease,
-          transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
-        will-change: filter, opacity, transform;
       }
-      .he-blurin.he-sharp {
-        filter: blur(0);
+
+      main {
+        position: relative;
+        z-index: 2;
+      }
+      .wrap {
+        width: min(1440px, 100%);
+        margin: 0 auto;
+        padding: 0 clamp(22px, 5vw, 92px);
+      }
+
+      /* ── reveal ─────────────────────────────────────────────────── */
+      .rv {
+        opacity: 0;
+        transform: translate3d(0, 22px, 0);
+        transition:
+          opacity 900ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: var(--d, 0ms);
+      }
+      .rv.in {
         opacity: 1;
         transform: none;
       }
-      @media (prefers-reduced-motion: reduce) {
-        .he-blurin {
-          filter: none;
+
+      /* ── hero ───────────────────────────────────────────────────── */
+      .hero {
+        min-height: 100svh;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding-bottom: clamp(46px, 8vh, 92px);
+        padding-top: clamp(120px, 18vh, 200px);
+      }
+      .hero__eyebrow {
+        margin: 0 0 clamp(26px, 5vh, 54px);
+        font-family: "DM Mono", monospace;
+        font-size: clamp(10px, 1.1vw, 12px);
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--home-muted);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 18px;
+      }
+      .hero__eyebrow .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--home-accent);
+        box-shadow: 0 0 14px var(--home-accent);
+      }
+      .hero__creds {
+        display: inline-flex;
+        gap: 14px;
+        padding: 5px 12px;
+        border: 1px solid var(--home-hair);
+        border-radius: 999px;
+        transition:
+          border-color 240ms ease,
+          color 240ms ease;
+      }
+      .hero__creds:hover,
+      .hero__creds:focus-visible {
+        border-color: currentColor;
+        color: var(--home-ink);
+      }
+
+      h1.hero__title {
+        margin: 0;
+        max-width: 15ch;
+        font-weight: 600;
+        font-size: clamp(2.5rem, 6.2vw, 6.1rem);
+        line-height: 0.98;
+        letter-spacing: -0.038em;
+      }
+      /* Word-by-word mask reveal. Each word rides up out of its own clip,
+         which is why the line resolves as a line and not as 40 letters. */
+      .w {
+        display: inline-block;
+        overflow: hidden;
+        vertical-align: bottom;
+      }
+      .w > i {
+        display: inline-block;
+        font-style: inherit;
+        transform: translate3d(0, 105%, 0);
+        transition: transform 1100ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: var(--d, 0ms);
+      }
+      .hero.in .w > i {
+        transform: none;
+      }
+      .accent {
+        color: var(--home-accent);
+      }
+
+      .hero__foot {
+        margin-top: clamp(30px, 5vh, 58px);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 14px 26px;
+      }
+      .hero__proof {
+        flex: 1 1 320px;
+        margin: 0;
+        max-width: 46ch;
+        color: var(--home-muted);
+        font-size: clamp(0.92rem, 1.3vw, 1.06rem);
+        line-height: 1.55;
+      }
+      .btns {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px 14px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 13px 24px;
+        border-radius: 999px;
+        border: 1px solid var(--home-hair);
+        font-size: 0.92rem;
+        font-weight: 500;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        font-family: inherit;
+        transition:
+          transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+          background 240ms ease,
+          border-color 240ms ease,
+          color 240ms ease;
+      }
+      .btn:hover,
+      .btn:focus-visible {
+        border-color: currentColor;
+        transform: translateY(-2px);
+      }
+      .btn--solid {
+        background: var(--home-ink);
+        color: var(--home-bg);
+        border-color: transparent;
+      }
+      .btn--solid:hover {
+        background: var(--home-accent);
+        color: #05070b;
+      }
+      .btn--ghost {
+        padding: 13px 4px;
+        border: 0;
+        border-bottom: 1px solid var(--home-hair);
+        border-radius: 0;
+        color: var(--home-muted);
+      }
+      .btn--ghost:hover {
+        color: var(--home-ink);
+        transform: none;
+      }
+
+      .scroll-cue {
+        position: absolute;
+        left: 50%;
+        bottom: 22px;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        font-family: "DM Mono", monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--home-faint);
+        pointer-events: none;
+      }
+      .scroll-cue span.bar {
+        width: 1px;
+        height: 44px;
+        background: linear-gradient(180deg, currentColor, transparent);
+        animation: cue 2.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+        transform-origin: top;
+      }
+      @keyframes cue {
+        0% {
+          transform: scaleY(0);
+          opacity: 0;
+        }
+        35% {
+          transform: scaleY(1);
           opacity: 1;
-          transform: none;
+        }
+        100% {
+          transform: scaleY(1) translateY(44px);
+          opacity: 0;
         }
       }
-      /* ── Hero film compositor (replaces the abstract smoke shader) ── */
-      #home-gl {
-        display: none !important;
+
+      /* ── section chrome ─────────────────────────────────────────── */
+      .sec {
+        position: relative;
+        z-index: 2;
+        padding: clamp(70px, 13vh, 170px) 0;
+        background: transparent;
       }
-      #home-hint {
-        display: none !important;
+      .sec-head {
+        display: flex;
+        align-items: baseline;
+        gap: 16px;
+        margin-bottom: clamp(34px, 6vh, 76px);
+        font-family: "DM Mono", monospace;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--home-muted);
       }
-      .home-film::after {
-        display: none !important;
+      .sec-head .rule {
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, currentColor, transparent);
+        opacity: 0.4;
       }
-      .home-film-gl {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        width: 100%;
-        height: 100%;
+
+      /* ── the gallery ────────────────────────────────────────────── */
+      .gal {
+        display: flex;
+        flex-direction: column;
+        gap: clamp(72px, 11vh, 132px);
+      }
+      .gal-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
+        align-items: center;
+        gap: clamp(24px, 4vw, 64px);
+      }
+      .gal-item:nth-child(even) {
+        grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.35fr);
+      }
+      .gal-item:nth-child(even) .gal-link {
+        order: 2;
+      }
+      .gal-item:nth-child(even) .gal-meta {
+        order: 1;
+        text-align: right;
+      }
+      /* A little vertical stagger so the column never reads as a table. */
+      .gal-item:nth-child(3n + 2) {
+        transform: translateY(clamp(20px, 5vh, 64px));
+      }
+      .gal-item:nth-child(3n) {
+        transform: translateY(clamp(-40px, -4vh, -12px));
+      }
+
+      .gal-link {
         display: block;
+        position: relative;
       }
-      .home-film-src {
-        position: absolute;
-        width: 2px;
-        height: 2px;
-        opacity: 0.001;
-        pointer-events: none;
-        left: -10px;
-        top: -10px;
+      .gal-frame {
+        position: relative;
+        display: block;
+        width: 100%;
+        aspect-ratio: 16 / 10;
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.03);
+        box-shadow: 0 40px 110px -50px rgba(0, 0, 0, 0.9);
       }
-      .home-film-fallback {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
+      html[data-theme="light"] .gal-frame {
+        background: rgba(20, 22, 27, 0.05);
+        box-shadow: 0 40px 100px -55px rgba(24, 28, 38, 0.6);
+      }
+      .gal-frame img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        object-position: center 40%;
+        transition:
+          transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 400ms ease;
+      }
+      .gal-link:hover .gal-frame img {
+        transform: scale(1.035);
+      }
+      /* Once GL owns the pixels, the DOM copy steps aside — but it stays in
+         the layout so the box, the link and the a11y tree are unchanged. */
+      html.gl-on .gal-frame.is-gl {
+        background: transparent;
+        box-shadow: none;
+      }
+      html.gl-on .gal-frame.is-gl img {
         opacity: 0;
       }
-      .home-film.is-fallback .home-film-fallback {
-        opacity: 1;
+      .gal-link:focus-visible .gal-frame {
+        outline: 2px solid var(--home-accent);
+        outline-offset: 6px;
       }
-      .home-film-hint {
+
+      .gal-idx {
         position: absolute;
-        left: 50%;
-        top: 42%;
-        transform: translate(-50%, -50%);
-        z-index: 2;
-        margin: 0;
-        font:
-          400 11px/1.4 "DM Mono",
-          ui-monospace,
-          monospace;
+        top: -0.34em;
+        left: -0.04em;
+        z-index: 3;
+        font-family: "DM Mono", monospace;
+        font-size: clamp(2.6rem, 5vw, 4.6rem);
+        line-height: 1;
+        font-weight: 300;
+        color: var(--home-ink);
+        opacity: 0.3;
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+      html[data-theme="light"] .gal-idx {
+        mix-blend-mode: multiply;
+        opacity: 0.34;
+      }
+      .gal-item:nth-child(even) .gal-idx {
+        left: auto;
+        right: -0.04em;
+      }
+
+      .gal-meta h3 {
+        margin: 0 0 10px;
+        font-size: clamp(1.5rem, 2.9vw, 2.5rem);
+        font-weight: 600;
+        letter-spacing: -0.028em;
+        line-height: 1.02;
+      }
+      .gal-kicker {
+        margin: 0 0 14px;
+        font-family: "DM Mono", monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--home-faint);
+      }
+      .gal-line {
+        margin: 0 0 20px;
+        max-width: 34ch;
+        color: var(--home-muted);
+        font-size: clamp(0.94rem, 1.2vw, 1.05rem);
+        line-height: 1.6;
+      }
+      .gal-item:nth-child(even) .gal-line {
+        margin-left: auto;
+      }
+      .gal-go {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        font-size: 0.88rem;
+        font-weight: 500;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--home-hair);
+        transition:
+          gap 260ms ease,
+          border-color 260ms ease;
+      }
+      .gal-link:hover ~ .gal-meta .gal-go,
+      .gal-meta:hover .gal-go,
+      .gal-go:hover {
+        gap: 16px;
+        border-color: currentColor;
+      }
+
+      @media (max-width: 900px) {
+        .gal-item,
+        .gal-item:nth-child(even) {
+          grid-template-columns: 1fr;
+          transform: none !important;
+        }
+        .gal-item:nth-child(even) .gal-link {
+          order: 0;
+        }
+        .gal-item:nth-child(even) .gal-meta {
+          order: 0;
+          text-align: left;
+        }
+        .gal-item:nth-child(even) .gal-line {
+          margin-left: 0;
+        }
+        .gal-item:nth-child(even) .gal-idx {
+          right: auto;
+          left: -0.06em;
+        }
+        .gal {
+          gap: clamp(64px, 11vh, 110px);
+        }
+      }
+
+      /* ── numbers ────────────────────────────────────────────────── */
+      .nums {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: clamp(18px, 3vw, 46px);
+      }
+      .num {
+        border-top: 1px solid var(--home-hair);
+        padding-top: 18px;
+      }
+      .num b {
+        display: block;
+        font-size: clamp(2.2rem, 5.4vw, 4.4rem);
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: -0.045em;
+        background: linear-gradient(180deg, var(--home-ink), var(--home-faint));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .num span {
+        display: block;
+        margin-top: 10px;
+        font-family: "DM Mono", monospace;
+        font-size: 10.5px;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: rgba(233, 240, 250, 0.72);
-        pointer-events: none;
-        transition: opacity 700ms ease;
-        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+        color: var(--home-muted);
       }
-      .home-film-hint.is-gone {
-        opacity: 0;
+      @media (max-width: 720px) {
+        .nums {
+          grid-template-columns: repeat(2, 1fr);
+        }
       }
-      .home-stage.has-project .home-film-hint {
-        opacity: 0;
+
+      /* The cube include ships its own styles and expects these wrappers. */
+      .hs-sec {
+        position: relative;
+        z-index: 2;
+        background: transparent;
+        padding: 0 clamp(22px, 5vw, 92px);
       }
+      /* home_cube.html paints `background: var(--home-bg)` on .hs-object, which
+         would punch an opaque hole straight through the shader. Its own radial
+         glow (::before) is kept — that reads as light in the field. */
+      .hs-object {
+        background: transparent !important;
+      }
+
+      /* ── door ───────────────────────────────────────────────────── */
+      .door {
+        text-align: center;
+      }
+      .door h2 {
+        margin: 0 auto 26px;
+        max-width: 20ch;
+        font-size: clamp(1.7rem, 4.6vw, 3.6rem);
+        font-weight: 600;
+        letter-spacing: -0.03em;
+        line-height: 1.04;
+      }
+      .door .btns {
+        justify-content: center;
+      }
+
       @media (prefers-reduced-motion: reduce) {
-        .home-film-hint {
-          display: none;
+        .rv,
+        .w > i {
+          transition: none !important;
+          opacity: 1 !important;
+          transform: none !important;
         }
-      }
-    </style>
-
-    <!-- ============================================================
-         Light theme for the home page.
-
-         The page was built dark-first, so rather than rewrite every
-         declaration this layer restates only the ones that carry
-         surface or ink. The hero keeps its cinematic frame but the
-         scrim inverts: instead of washing the film black on the left
-         so white type reads, it washes it warm-white so dark type
-         reads. Everything below the fold becomes a genuinely light
-         page — paper, not a dimmed screen.
-         ============================================================ -->
-    <style>
-      html[data-theme="light"] {
-        color-scheme: light;
-        --home-bg: #f5f3ee;
-        --home-ink: #14161b;
-        --home-muted: rgba(20, 22, 27, 0.66);
-      }
-
-      /* ── Hero ───────────────────────────────────────────────── */
-      html[data-theme="light"] .home-stage {
-        background: #f5f3ee;
-      }
-      /* The film sits in a paper frame: warm white on the reading side,
-         falling away to clear so the footage still breathes on the right. */
-      html[data-theme="light"] .home-film::after {
-        background:
-          linear-gradient(
-            90deg,
-            rgba(245, 243, 238, 0.96) 0%,
-            rgba(245, 243, 238, 0.86) 30%,
-            rgba(245, 243, 238, 0.24) 66%,
-            rgba(245, 243, 238, 0.4) 100%
-          ),
-          linear-gradient(0deg, rgba(245, 243, 238, 0.94), rgba(245, 243, 238, 0.1) 58%, rgba(245, 243, 238, 0.3));
-      }
-      @media (max-width: 820px) {
-        html[data-theme="light"] .home-film::after {
-          background: linear-gradient(0deg, rgba(245, 243, 238, 0.97) 0%, rgba(245, 243, 238, 0.8) 50%, rgba(245, 243, 238, 0.3) 100%);
+        .scroll-cue span.bar {
+          animation: none;
         }
-      }
-      html[data-theme="light"] .home-work-scrim {
-        background: radial-gradient(130% 130% at 50% 44%, #ffffff 0%, #f2efe8 72%);
-      }
-      html[data-theme="light"] .home-name {
-        color: rgba(20, 22, 27, 0.72);
-      }
-      html[data-theme="light"] .home-hint,
-      html[data-theme="light"] .home-film-hint {
-        color: rgba(20, 22, 27, 0.52);
-      }
-      html[data-theme="light"] .home-proof {
-        color: rgba(20, 22, 27, 0.64);
-      }
-      html[data-theme="light"] .home-creds {
-        color: rgba(20, 22, 27, 0.68);
-      }
-      html[data-theme="light"] .home-creds:hover,
-      html[data-theme="light"] .home-creds:focus-visible {
-        color: #05070c;
-      }
-      html[data-theme="light"] .home-title__accent {
-        color: #7a4a12;
-      }
-      /* Primary CTA flips to ink-on-paper so it still reads as the loudest thing. */
-      html[data-theme="light"] .home-actions__primary {
-        color: #f7f9fb !important;
-        background: linear-gradient(180deg, #1b1f27, #0a0d13);
-        box-shadow: 0 10px 30px -12px rgba(20, 30, 48, 0.5);
-      }
-      html[data-theme="light"] .home-actions__primary:hover,
-      html[data-theme="light"] .home-actions__primary:focus-visible {
-        background: linear-gradient(180deg, #262c36, #12161e);
-        box-shadow: 0 16px 38px -12px rgba(20, 30, 48, 0.6);
-      }
-      html[data-theme="light"] .home-actions a,
-      html[data-theme="light"] .home-actions button {
-        border-bottom-color: rgba(20, 22, 27, 0.35);
-      }
-      html[data-theme="light"] .home-actions a:hover,
-      html[data-theme="light"] .home-actions a:focus-visible,
-      html[data-theme="light"] .home-actions button:hover,
-      html[data-theme="light"] .home-actions button:focus-visible {
-        border-color: #05070c;
-      }
-      html[data-theme="light"] .home-reveal-note {
-        color: rgba(20, 22, 27, 0.55);
-      }
-      html[data-theme="light"] .skip-link {
-        background: #0a0d13;
-        color: #f7f9fb;
-      }
-      /* The bottom-right project discs and the hover takeover stay dark on
-         purpose — both are full-bleed imagery, and dark chrome around a photo
-         is correct in either theme. Only their labels need to survive the
-         lighter page behind them. */
-      html[data-theme="light"] .home-project__label {
-        color: rgba(20, 22, 27, 0.82);
-      }
-      html[data-theme="light"] .home-project:hover .home-project__label,
-      html[data-theme="light"] .home-project:focus-visible .home-project__label {
-        color: #05070c;
-      }
-
-      /* ── Sections below the fold ────────────────────────────── */
-      html[data-theme="light"] .hs-head,
-      html[data-theme="light"] .hs-stat span {
-        color: rgba(20, 22, 27, 0.62);
-      }
-      html[data-theme="light"] .hs-stat b {
-        background: linear-gradient(180deg, #14161b, rgba(20, 22, 27, 0.55));
-      }
-      html[data-theme="light"] .hs-univ a {
-        border-color: rgba(20, 22, 27, 0.28);
-      }
-      html[data-theme="light"] .hs-univ a:hover {
-        background: #14161b;
-        color: #f5f3ee;
-      }
-      html[data-theme="light"] .hs-replay {
-        color: rgba(20, 22, 27, 0.6);
-      }
-      html[data-theme="light"] .hs-replay:hover,
-      html[data-theme="light"] .hs-replay:focus-visible {
-        color: rgba(20, 22, 27, 0.95);
       }
     </style>
   </head>
 
   <body class="home-page">
-    <a class="skip-link" href="#home-title">Skip to introduction</a>
+    <a class="skip-link" href="#main">Skip to content</a>
     <style>
   #site-loader {
     position: fixed;
@@ -4135,847 +3435,166 @@
 </script>
 
 
-    <main class="home-stage" id="home-stage">
-      <div class="home-film" id="home-film" data-freeze="/assets/img/sid_pixel_freeze.webp" aria-hidden="true">
-        <canvas class="home-film-gl" id="home-film-gl"></canvas>
-        <img class="home-film-fallback" id="home-film-fallback" src="/assets/img/sid_pixel_freeze.webp" alt="" aria-hidden="true">
-        <video class="home-film-src" id="hf-pixel" muted playsinline preload="auto" aria-hidden="true">
-          <source src="/assets/video/sid_pixelated.mp4" type="video/mp4"></source>
-        </video>
-        <video class="home-film-src" id="hf-clear" muted loop playsinline preload="auto" aria-hidden="true">
-          <source src="/assets/video/sid_sitting.mp4" type="video/mp4"></source>
-        </video>
-      </div>
-      <p class="home-film-hint" id="home-film-hint" aria-hidden="true">Move to reveal • click to shift the look</p>
-      <canvas class="home-gl" id="home-gl" aria-hidden="true"></canvas>
-      <p class="home-hint" id="home-hint" aria-hidden="true">Move to reveal the work ✦</p>
+    <div class="hg-base" aria-hidden="true"></div>
+    <canvas id="gl-stage" aria-hidden="true"></canvas>
 
-      <section class="home-project-focus" id="home-project-focus" aria-live="polite">
-        <div class="home-project-focus__media"><img id="home-focus-image" src="" alt=""></div>
-        <div class="home-project-focus__copy">
-          <span id="home-focus-meta">Selected work</span>
-          <h2 id="home-focus-title">Mool</h2>
-          <p id="home-focus-description"></p>
-          <a class="home-project-focus__action" id="home-focus-link" href="/works/">Open project</a>
-        </div>
-      </section>
-
-      <section class="home-copy" aria-labelledby="home-title">
-        <div class="home-ident">
-          <p class="home-name">Sid Mehta · Product designer · New York</p>
-          <a class="home-creds" href="/about/#recognition" aria-label="Recognition: two Webby Awards, MIT Reality Hack, and a Kyoorius Design Award. See the dated list.">
-            <span class="home-creds__item">Webby<span class="home-creds__n">×2</span></span>
-            <span class="home-creds__item">MIT Reality Hack</span>
-            <span class="home-creds__item">Kyoorius</span>
-            <span class="home-creds__go" aria-hidden="true">↗</span>
+    <main id="main">
+      <!-- ───────────────── hero ───────────────── -->
+      <section class="hero wrap" id="hero" aria-labelledby="hero-title">
+        <p class="hero__eyebrow">
+          <span class="dot" aria-hidden="true"></span>
+          <span>Sid Mehta  ·  Product designer  ·  New York</span>
+          <a class="hero__creds" href="/about/#recognition" aria-label="Recognition: two Webby Awards, MIT Reality Hack, and a Kyoorius Design Award.">
+            <span>Webby ×2</span><span>MIT Reality Hack</span><span>Kyoorius</span>
           </a>
-        </div>
-        <h1 id="home-title">I turn complex technology into <span class="home-title__accent">clear, useful experiences.</span>
-</h1>
-        <p class="home-proof" id="home-proof" aria-live="polite">
-          <span class="home-proof__line" id="home-proof-line">6 yrs shipping product · 14 projects · 25 artworks activated at The Met</span>
         </p>
-        <div class="home-actions">
-          <a class="home-actions__primary" data-magnetic href="/works/">See selected work <span aria-hidden="true">→</span></a>
-          <button type="button" id="home-showreel" aria-haspopup="dialog" aria-controls="home-reel-modal">
-            Play showreel <span aria-hidden="true">↗</span>
-          </button>
-          <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume PDF</a>
+
+        <h1 class="hero__title" id="hero-title" data-split>
+          I turn complex technology into
+          <span class="accent">clear, useful experiences.</span>
+        </h1>
+
+        <div class="hero__foot rv">
+          <p class="hero__proof">
+            Six years shipping product. Fourteen public projects. Twenty-five artworks activated at The Met, and a hundred thousand people
+            carrying something I drew.
+          </p>
+          <div class="btns">
+            <a class="btn btn--solid" data-magnetic href="/works/">Selected work <span aria-hidden="true">→</span></a>
+            <button class="btn" type="button" id="reel-open" aria-haspopup="dialog" aria-controls="reel-modal">
+              Showreel <span aria-hidden="true">↗</span>
+            </button>
+            <a class="btn btn--ghost" href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume PDF</a>
+          </div>
+        </div>
+
+        <div class="scroll-cue" aria-hidden="true">
+<span class="bar"></span><span>Scroll</span>
+</div>
+      </section>
+
+      <!-- ───────────────── 01 work ───────────────── -->
+      <section class="sec wrap" id="work" aria-labelledby="work-h">
+        <div class="sec-head rv">
+<span>01</span><span class="rule"></span><span id="work-h">Selected work</span>
+</div>
+
+        <ol class="gal">
+          <li class="gal-item rv">
+            <a class="gal-link" href="/mool/" aria-label="Mool — product design for fintech">
+              <span class="gal-idx" aria-hidden="true">01</span>
+              <span class="gal-frame" data-gl-media>
+                <img src="/assets/img/work-previews/mool/cover.webp" alt="Mool" decoding="async">
+              </span>
+            </a>
+            <div class="gal-meta">
+              <p class="gal-kicker">Product · Fintech · Kyoorius winner</p>
+              <h3>Mool</h3>
+              <p class="gal-line">Long-term money decisions, made legible for first-time investors.</p>
+              <a class="gal-go" href="/mool/">Open project <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+
+          <li class="gal-item rv">
+            <a class="gal-link" href="/encoded/" aria-label="Encoded — spatial AR at The Met">
+              <span class="gal-idx" aria-hidden="true">02</span>
+              <span class="gal-frame" data-gl-media>
+                <img src="/1.met/0.webp" alt="Encoded" loading="lazy" decoding="async">
+              </span>
+            </a>
+            <div class="gal-meta">
+              <p class="gal-kicker">Spatial · The Met · 2,000+ activations</p>
+              <h3>Encoded</h3>
+              <p class="gal-line">Twenty-five artworks at the Metropolitan Museum, opened up through AR.</p>
+              <a class="gal-go" href="/encoded/">Open project <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+
+          <li class="gal-item rv">
+            <a class="gal-link" href="/ai-prototypes/" aria-label="2026 AI experiments">
+              <span class="gal-idx" aria-hidden="true">03</span>
+              <span class="gal-frame" data-gl-media>
+                <img src="/assets/img/ai-proto-cover.jpg" alt="2026 AI Experiments" loading="lazy" decoding="async">
+              </span>
+            </a>
+            <div class="gal-meta">
+              <p class="gal-kicker">Local AI · WebGPU · 11 live experiments</p>
+              <h3>2026 AI Experiments</h3>
+              <p class="gal-line">Browser-native prototypes asking what AI feels like when it is visible and steerable.</p>
+              <a class="gal-go" href="/ai-prototypes/">Open project <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+
+          <li class="gal-item rv">
+            <a class="gal-link" href="/m-health-fairview/" aria-label="M Health Fairview — healthcare service design">
+              <span class="gal-idx" aria-hidden="true">04</span>
+              <span class="gal-frame" data-gl-media>
+                <img src="/assets/img/fairview/cover.webp" alt="M Health Fairview" loading="lazy" decoding="async">
+              </span>
+            </a>
+            <div class="gal-meta">
+              <p class="gal-kicker">Healthcare · Service design</p>
+              <h3>M Health Fairview</h3>
+              <p class="gal-line">Specialty care, rebuilt around the moment a patient is actually lost.</p>
+              <a class="gal-go" href="/m-health-fairview/">Open project <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+
+          <li class="gal-item rv">
+            <a class="gal-link" href="/marriott/" aria-label="Marriott — enterprise UX">
+              <span class="gal-idx" aria-hidden="true">05</span>
+              <span class="gal-frame" data-gl-media>
+                <img src="/assets/img/marriott/cover.webp" alt="Marriott" loading="lazy" decoding="async">
+              </span>
+            </a>
+            <div class="gal-meta">
+              <p class="gal-kicker">Enterprise UX · Internal tooling</p>
+              <h3>Marriott</h3>
+              <p class="gal-line">A workflow used daily by thousands, taken from tolerated to trusted.</p>
+              <a class="gal-go" href="/marriott/">Open project <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+
+          <li class="gal-item rv">
+            <a class="gal-link" href="/naavo/" aria-label="Naavo — identity system">
+              <span class="gal-idx" aria-hidden="true">06</span>
+              <span class="gal-frame" data-gl-media>
+                <img src="/7.naavo/cover.webp" alt="Naavo" loading="lazy" decoding="async">
+              </span>
+            </a>
+            <div class="gal-meta">
+              <p class="gal-kicker">Branding · Identity system</p>
+              <h3>Naavo</h3>
+              <p class="gal-line">An identity that had to survive contact with the real world, not a deck.</p>
+              <a class="gal-go" href="/naavo/">Open project <span aria-hidden="true">→</span></a>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <!-- ───────────────── 02 numbers ───────────────── -->
+      <section class="sec wrap" aria-labelledby="nums-h">
+        <div class="sec-head rv">
+<span>02</span><span class="rule"></span><span id="nums-h">By the numbers</span>
+</div>
+        <div class="nums">
+          <div class="num rv" style="--d: 0ms">
+<b data-count="6">6</b><span>Years shipping</span>
+</div>
+          <div class="num rv" style="--d: 90ms">
+<b data-count="14">14</b><span>Public projects</span>
+</div>
+          <div class="num rv" style="--d: 180ms">
+<b data-count="25">25</b><span>Artworks · The Met</span>
+</div>
+          <div class="num rv" style="--d: 270ms">
+<b data-count="100" data-suffix="k+">100k+</b><span>Mool downloads</span>
+</div>
         </div>
       </section>
 
-      <nav class="home-projects" aria-label="Featured projects">
-        <a class="home-project" href="/mool/" data-title="Mool" data-meta="Product design · Fintech · Kyoorius winner" data-description="A culturally resonant banking experience that made long term financial decisions understandable for first time investors." data-image="/assets/img/work-previews/mool/cover.webp">
-          <span class="home-project__disc"><img src="/assets/img/work-previews/mool/cover.webp" alt=""></span>
-          <span class="home-project__label"><i>01</i>Mool</span>
-        </a>
-        <a class="home-project" href="/ai-prototypes/" data-title="2026 AI Experiments" data-meta="Local AI · WebGPU · 11 live experiments" data-description="Browser based prototypes exploring how AI can feel visible, controllable, and useful in an interface." data-image="/assets/img/ai-proto-cover.jpg">
-          <span class="home-project__disc"><img src="/assets/img/ai-proto-cover.jpg" alt=""></span>
-          <span class="home-project__label"><i>02</i>2026 AI Experiments</span>
-        </a>
-        <a class="home-project" href="/encoded/" data-title="Encoded" data-meta="Spatial interaction · The Met · 2,000+ activations" data-description="An augmented reality exhibition that activated twenty five artworks at The Metropolitan Museum of Art." data-image="/1.met/0.png">
-          <span class="home-project__disc"><img src="/1.met/0.png" alt=""></span>
-          <span class="home-project__label"><i>03</i>Encoded</span>
-        </a>
-      </nav>
-
-      <div class="home-reel-modal" id="home-reel-modal" role="dialog" aria-modal="true" aria-labelledby="home-reel-label" aria-hidden="true">
-        <button class="home-reel-modal__close" id="home-reel-close" type="button" aria-label="Close showreel">×</button>
-        <div class="home-reel-modal__frame">
-          <!-- The ~1:20 work compilation, served clean (no player branding) from
-               the GitHub Release asset. src is set from data-src only when the
-               modal opens, so it never downloads on page load. GitHub's asset
-               host supports range requests, so it streams/seeks. -->
-          <video class="home-reel-modal__video" id="home-reel-video" controls playsinline preload="none" data-src="https://github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4"></video>
-        </div>
-        <p class="home-reel-modal__label" id="home-reel-label">Sid Mehta · showreel</p>
-      </div>
-
-      <svg width="0" height="0" aria-hidden="true" focusable="false">
-        <filter id="home-liquify" x="-18%" y="-18%" width="136%" height="136%">
-          <feturbulence type="fractalNoise" basefrequency="0.014 0.032" numoctaves="2" seed="17" result="noise"></feturbulence>
-          <fedisplacementmap in="SourceGraphic" in2="noise" scale="52" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
-        </filter>
-      </svg>
-    </main>
-
-    <!-- ============================================================
-         Scrollable homepage: sections that live below the hero.
-         The hero stays a full first screen; scrolling moves through
-         selected work, the numbers, and a door into the Play universe.
-         ============================================================ -->
-    <style>
-      /* Keeps the fixed nav legible once you scroll onto the bright work cards.
-         Always-on (no transition) because this page freezes animations; it sits
-         over the hero's dark top strip where it is effectively invisible. */
-      .hs-sec {
-        position: relative;
-        z-index: 6;
-        background: var(--home-bg, #05070d);
-        padding: 0 clamp(24px, 5vw, 90px);
-      }
-      .hs-work {
-        padding-top: 15vh;
-        padding-bottom: 16vh;
-      }
-      .hs-head {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 48px;
-        font-family: "DM Mono", monospace;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        font-size: 11px;
-        color: rgba(230, 236, 244, 0.66);
-      }
-      .hs-head .hs-line {
-        flex: 0 0 30px;
-        height: 1px;
-        background: currentColor;
-        opacity: 0.45;
-      }
-      .hs-head--center {
-        justify-content: center;
-      }
-      .hs-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-      }
-      @media (max-width: 820px) {
-        .hs-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-      @media (max-width: 520px) {
-        .hs-grid {
-          grid-template-columns: 1fr;
-        }
-      }
-      @media (max-width: 640px) {
-        .hs-work {
-          padding-top: 11vh;
-          padding-bottom: 12vh;
-        }
-        .hs-head {
-          margin-bottom: 32px;
-        }
-        .hs-stats {
-          padding: 12vh 0;
-        }
-        .hs-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 36px 18px;
-        }
-        .hs-stat b {
-          font-size: clamp(38px, 13vw, 60px);
-        }
-        .hs-univ {
-          min-height: 68vh;
-          padding: 0 24px;
-        }
-        .hs-univ h2 {
-          font-size: clamp(27px, 8vw, 44px);
-          max-width: 14ch;
-        }
-        .hs-cap b {
-          font-size: 14px;
-        }
-      }
-      .hs-card {
-        position: relative;
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        aspect-ratio: 4/3;
-        box-shadow: 0 22px 50px rgba(0, 0, 0, 0.45);
-      }
-      .hs-card img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .hs-card:hover img {
-        transform: scale(1.05);
-      }
-      .hs-cap {
-        position: absolute;
-        left: 14px;
-        bottom: 12px;
-        z-index: 2;
-      }
-      .hs-cap b {
-        display: block;
-        font-weight: 500;
-        font-size: 15px;
-        color: #fff;
-      }
-      .hs-cap i {
-        font-style: normal;
-        font-size: 10.5px;
-        color: rgba(255, 255, 255, 0.72);
-        font-family: "DM Mono", monospace;
-        letter-spacing: 0.08em;
-      }
-      .hs-card::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(0deg, rgba(3, 5, 10, 0.5), transparent 42%);
-      }
-      .hs-card {
-        transition:
-          transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
-          box-shadow 0.5s ease,
-          border-color 0.3s ease;
-      }
-      .hs-card:hover {
-        transform: translateY(-6px);
-        border-color: rgba(255, 255, 255, 0.42);
-        box-shadow: 0 30px 72px rgba(0, 0, 0, 0.55);
-      }
-      .hs-view {
-        position: absolute;
-        right: 14px;
-        bottom: 13px;
-        z-index: 3;
-        font-family: "DM Mono", monospace;
-        font-size: 10px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: #fff;
-        opacity: 0;
-        transform: translateY(6px);
-        transition:
-          opacity 0.35s ease,
-          transform 0.35s ease;
-        pointer-events: none;
-        text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
-      }
-      .hs-card:hover .hs-view {
-        opacity: 0.92;
-        transform: none;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .hs-card,
-        .hs-view {
-          transition: none;
-        }
-      }
-      .hs-stats {
-        padding: 16vh 0;
-        text-align: center;
-      }
-      .hs-row {
-        display: flex;
-        justify-content: center;
-        gap: clamp(28px, 6vw, 96px);
-        flex-wrap: wrap;
-      }
-      .hs-stat b {
-        display: block;
-        font-weight: 500;
-        font-size: clamp(44px, 7vw, 92px);
-        letter-spacing: -0.04em;
-        line-height: 1;
-        background: linear-gradient(180deg, #fff, rgba(255, 255, 255, 0.55));
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-        color: transparent;
-      }
-      .hs-stat span {
-        display: block;
-        margin-top: 12px;
-        font-family: "DM Mono", monospace;
-        font-size: 11px;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: rgba(230, 236, 244, 0.66);
-      }
-      .hs-univ {
-        min-height: 82vh;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        gap: 26px;
-      }
-      .hs-univ h2 {
-        font-size: clamp(30px, 5vw, 68px);
-        font-weight: 440;
-        letter-spacing: -0.03em;
-        max-width: 16ch;
-        color: var(--home-ink, #eef4fb);
-      }
-      .hs-univ a {
-        font-family: "DM Mono", monospace;
-        font-size: 13px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: var(--home-ink, #eef4fb);
-        border: 1px solid rgba(255, 255, 255, 0.28);
-        padding: 16px 26px;
-        border-radius: 40px;
-        text-decoration: none;
-        transition: 0.3s;
-      }
-      .hs-univ a:hover {
-        background: #fff;
-        color: #05070d;
-      }
-      .hs-arrow {
-        display: inline-block;
-        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .hs-univ a:hover .hs-arrow {
-        transform: translateX(5px);
-      }
-      .hs-replay {
-        margin-top: 6px;
-        background: none;
-        border: 0;
-        cursor: pointer;
-        font-family: "DM Mono", monospace;
-        font-size: 11px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        color: rgba(230, 236, 244, 0.62);
-        transition:
-          color 0.3s,
-          transform 0.3s;
-        padding: 10px 12px;
-        min-height: 24px;
-        border-radius: 20px;
-      }
-      .hs-replay:hover,
-      .hs-replay:focus-visible {
-        color: rgba(230, 236, 244, 0.95);
-      }
-      .hs-replay:focus-visible {
-        outline: 1px solid rgba(230, 236, 244, 0.5);
-        outline-offset: 3px;
-      }
-    </style>
-
-    <!-- ============================================================
-     Homepage act 2 — "the cinema".
-     Replaces the old six-up card grid, which was just the hero's
-     project list again in a different shape. This pins a viewport
-     and drives a horizontal rail off vertical scroll: covers pan
-     inside their own frames (real parallax, opposite direction to
-     the rail), panels away from centre fall back in Z and lose
-     saturation, and the type rises as each one takes the stage.
-
-     Fallbacks are first-class, not afterthoughts:
-       - reduced motion / no JS  -> plain horizontal scroller
-       - narrow screens          -> same scroller, snap points
-     Both get the same markup; only the pinning is conditional,
-     added by JS via .is-pinned on the section.
-     ============================================================ -->
-
-<style>
-  .hs-cinema {
-    position: relative;
-    z-index: 6;
-    background: var(--home-bg, #05070d);
-    padding: 0;
-  }
-  /* Tall only once JS confirms it can pin. Without it the section is
-     its own height and the rail simply scrolls sideways. */
-  .hs-cinema.is-pinned {
-    height: 560vh;
-  }
-  .cine-sticky {
-    height: auto;
-    padding: 12vh 0 14vh;
-    overflow: hidden;
-  }
-  .hs-cinema.is-pinned .cine-sticky {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-  }
-  .cine-head {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 0 clamp(24px, 5vw, 90px);
-    margin-bottom: clamp(24px, 4vh, 46px);
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(230, 236, 244, 0.6);
-  }
-  .cine-head .cine-rule {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(230, 236, 244, 0.28), rgba(230, 236, 244, 0));
-  }
-  .cine-viewport {
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .cine-viewport::-webkit-scrollbar {
-    display: none;
-  }
-  .hs-cinema.is-pinned .cine-viewport {
-    overflow: hidden;
-    scroll-snap-type: none;
-  }
-  .cine-rail {
-    display: flex;
-    align-items: center;
-    gap: clamp(20px, 3vw, 56px);
-    padding: 0 clamp(24px, 9vw, 160px);
-    width: max-content;
-    will-change: transform;
-  }
-  .cine-panel {
-    position: relative;
-    flex: 0 0 auto;
-    width: clamp(280px, 46vw, 720px);
-    scroll-snap-align: center;
-    /* Depth is applied per-frame by JS as --d (0 at centre, 1 far away). */
-    --d: 0;
-    transform: scale(calc(1 - var(--d) * 0.14)) translateY(calc(var(--d) * 14px));
-    transition: transform 0.18s linear;
-  }
-  .cine-frame {
-    position: relative;
-    aspect-ratio: 4 / 3;
-    overflow: hidden;
-    border-radius: 14px;
-    background: #0a0d15;
-    box-shadow: 0 30px 90px -40px rgba(0, 0, 0, 0.9);
-  }
-  .cine-frame img {
-    position: absolute;
-    inset: -8% 0;
-    width: 100%;
-    height: 116%;
-    object-fit: cover;
-    /* Counter-pan: the cover slides against the rail so the image reads
-       as sitting behind the frame rather than glued to it. */
-    transform: translate3d(calc(var(--px, 0) * 1px), 0, 0) scale(1.06);
-    filter: saturate(calc(1 - var(--d) * 0.55)) brightness(calc(1 - var(--d) * 0.22));
-    transition: filter 0.3s linear;
-  }
-  .cine-frame::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(180deg, rgba(5, 7, 13, 0) 45%, rgba(5, 7, 13, 0.72) 100%);
-    opacity: calc(0.4 + (1 - var(--d)) * 0.6);
-  }
-  .cine-index {
-    position: absolute;
-    left: -0.06em;
-    bottom: 100%;
-    margin-bottom: -0.22em;
-    font-size: clamp(60px, 9vw, 150px);
-    font-weight: 700;
-    line-height: 0.8;
-    color: rgba(255, 255, 255, 0.06);
-    pointer-events: none;
-    user-select: none;
-  }
-  .cine-meta {
-    position: relative;
-    z-index: 2;
-    margin-top: 18px;
-    opacity: calc(1 - var(--d) * 1.05);
-    transform: translateY(calc(var(--d) * 12px));
-    transition:
-      opacity 0.25s linear,
-      transform 0.25s linear;
-  }
-  .cine-title {
-    margin: 0;
-    font-size: clamp(20px, 2.4vw, 34px);
-    letter-spacing: -0.02em;
-    color: #eef2f8;
-  }
-  .cine-kicker {
-    margin: 6px 0 0;
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 10.5px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgba(230, 236, 244, 0.5);
-  }
-  .cine-line {
-    margin: 12px 0 0;
-    max-width: 46ch;
-    font-size: 14.5px;
-    line-height: 1.55;
-    color: rgba(230, 236, 244, 0.66);
-  }
-  .cine-go {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    margin-top: 14px;
-    font-size: 13px;
-    color: rgba(230, 236, 244, 0.85);
-  }
-  .cine-go span {
-    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .cine-panel a {
-    text-decoration: none;
-    display: block;
-  }
-  .cine-panel a:hover .cine-go span {
-    transform: translateX(6px);
-  }
-  .cine-panel a:hover .cine-frame img {
-    filter: saturate(1.05) brightness(1.04);
-  }
-  .cine-panel a:focus-visible .cine-frame {
-    outline: 2px solid rgba(230, 236, 244, 0.8);
-    outline-offset: 4px;
-  }
-  .cine-progress {
-    margin: clamp(20px, 4vh, 44px) clamp(24px, 5vw, 90px) 0;
-    height: 1px;
-    background: rgba(230, 236, 244, 0.14);
-    overflow: hidden;
-  }
-  .cine-progress i {
-    display: block;
-    height: 100%;
-    width: 100%;
-    background: linear-gradient(90deg, #6ea8ff, #ffc46b, #b98cff);
-    transform: scaleX(var(--p, 0));
-    transform-origin: 0 50%;
-  }
-  .cine-hint {
-    margin: 10px clamp(24px, 5vw, 90px) 0;
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: rgba(230, 236, 244, 0.34);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .hs-cinema.is-pinned {
-      height: auto;
-    }
-    .hs-cinema.is-pinned .cine-sticky {
-      position: static;
-      height: auto;
-      padding: 12vh 0 14vh;
-    }
-    .hs-cinema.is-pinned .cine-viewport {
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-    }
-    .cine-panel,
-    .cine-frame img,
-    .cine-meta {
-      --d: 0;
-      --px: 0;
-      transform: none;
-    }
-  }
-
-  /* ── Light theme ─────────────────────────────────────────────
-     The rail becomes a contact sheet on paper: frames get a warm
-     card behind them instead of a black slug, and the caption
-     gradient lifts the copy off the image rather than sinking it. */
-  html[data-theme="light"] .cine-head {
-    color: rgba(20, 22, 27, 0.6);
-  }
-  html[data-theme="light"] .cine-head .cine-rule {
-    background: linear-gradient(90deg, rgba(20, 22, 27, 0.28), rgba(20, 22, 27, 0));
-  }
-  html[data-theme="light"] .cine-frame {
-    background: #e8e5de;
-    box-shadow: 0 30px 90px -44px rgba(24, 28, 38, 0.55);
-  }
-  html[data-theme="light"] .cine-frame::after {
-    background: linear-gradient(180deg, rgba(245, 243, 238, 0) 45%, rgba(245, 243, 238, 0.72) 100%);
-  }
-  html[data-theme="light"] .cine-index {
-    color: rgba(20, 22, 27, 0.08);
-  }
-  html[data-theme="light"] .cine-title {
-    color: #14161b;
-  }
-  html[data-theme="light"] .cine-kicker {
-    color: rgba(20, 22, 27, 0.5);
-  }
-  html[data-theme="light"] .cine-line {
-    color: rgba(20, 22, 27, 0.66);
-  }
-  html[data-theme="light"] .cine-go {
-    color: rgba(20, 22, 27, 0.85);
-  }
-  html[data-theme="light"] .cine-progress {
-    background: rgba(20, 22, 27, 0.14);
-  }
-  html[data-theme="light"] .cine-hint {
-    color: rgba(20, 22, 27, 0.4);
-  }
-</style>
-
-<section class="hs-cinema" id="hs-cinema" aria-label="Selected work">
-  <div class="cine-sticky">
-    <div class="cine-head">
-<span>01</span><span class="cine-rule"></span><span>Selected work</span>
-</div>
-    <div class="cine-viewport" id="cine-viewport">
-      <div class="cine-rail" id="cine-rail">
-        <article class="cine-panel">
-          <a href="/mool/">
-            <div class="cine-frame">
-              <span class="cine-index">01</span>
-              <img src="/assets/img/work-previews/mool/cover.webp" alt="Mool" loading="lazy" decoding="async">
-            </div>
-            <div class="cine-meta">
-              <h3 class="cine-title">Mool</h3>
-              <p class="cine-kicker">Product · Fintech · Kyoorius winner</p>
-              <p class="cine-line">Long-term money decisions, made legible for first-time investors.</p>
-              <p class="cine-go">Read the case study <span aria-hidden="true">→</span></p>
-            </div>
-          </a>
-        </article>
-        <article class="cine-panel">
-          <a href="/encoded/">
-            <div class="cine-frame">
-              <span class="cine-index">02</span>
-              <img src="/1.met/0.webp" alt="Encoded" loading="lazy" decoding="async">
-            </div>
-            <div class="cine-meta">
-              <h3 class="cine-title">Encoded</h3>
-              <p class="cine-kicker">Spatial · The Met · 2,000+ activations</p>
-              <p class="cine-line">Twenty-five artworks at the Metropolitan Museum, opened up through AR.</p>
-              <p class="cine-go">Read the case study <span aria-hidden="true">→</span></p>
-            </div>
-          </a>
-        </article>
-        <article class="cine-panel">
-          <a href="/m-health-fairview/">
-            <div class="cine-frame">
-              <span class="cine-index">03</span>
-              <img src="/assets/img/fairview/cover.webp" alt="M Health Fairview" loading="lazy" decoding="async">
-            </div>
-            <div class="cine-meta">
-              <h3 class="cine-title">M Health Fairview</h3>
-              <p class="cine-kicker">Healthcare · Service design</p>
-              <p class="cine-line">Specialty care, rebuilt around the moment a patient is actually lost.</p>
-              <p class="cine-go">Read the case study <span aria-hidden="true">→</span></p>
-            </div>
-          </a>
-        </article>
-        <article class="cine-panel">
-          <a href="/marriott/">
-            <div class="cine-frame">
-              <span class="cine-index">04</span>
-              <img src="/assets/img/marriott/cover.webp" alt="Marriott" loading="lazy" decoding="async">
-            </div>
-            <div class="cine-meta">
-              <h3 class="cine-title">Marriott</h3>
-              <p class="cine-kicker">Enterprise UX · Internal tooling</p>
-              <p class="cine-line">A workflow used daily by thousands, taken from tolerated to trusted.</p>
-              <p class="cine-go">Read the case study <span aria-hidden="true">→</span></p>
-            </div>
-          </a>
-        </article>
-        <article class="cine-panel">
-          <a href="/naavo/">
-            <div class="cine-frame">
-              <span class="cine-index">05</span>
-              <img src="/7.naavo/cover.webp" alt="Naavo" loading="lazy" decoding="async">
-            </div>
-            <div class="cine-meta">
-              <h3 class="cine-title">Naavo</h3>
-              <p class="cine-kicker">Branding · Identity system</p>
-              <p class="cine-line">An identity that had to survive contact with the real world, not a deck.</p>
-              <p class="cine-go">Read the case study <span aria-hidden="true">→</span></p>
-            </div>
-          </a>
-        </article>
-        <article class="cine-panel">
-          <a href="/aananda/">
-            <div class="cine-frame">
-              <span class="cine-index">06</span>
-              <img src="/9.aananda/cover.webp" alt="Aananda" loading="lazy" decoding="async">
-            </div>
-            <div class="cine-meta">
-              <h3 class="cine-title">Aananda</h3>
-              <p class="cine-kicker">Branding · App</p>
-              <p class="cine-line">Stillness as a product surface — brand and interface designed as one.</p>
-              <p class="cine-go">Read the case study <span aria-hidden="true">→</span></p>
-            </div>
-          </a>
-        </article>
-        <article class="cine-panel cine-panel--end">
-          <a href="/works/">
-            <div class="cine-frame" style="display: flex; align-items: center; justify-content: center">
-              <span class="cine-index">07</span>
-              <span style="font-size: clamp(18px, 2vw, 28px); color: rgba(238, 242, 248, 0.9); text-align: center; padding: 0 8%">
-                Eight more case studies<br>in the full archive.
-              </span>
-            </div>
-            <div class="cine-meta">
-              <h3 class="cine-title">All work</h3>
-              <p class="cine-kicker">Archive</p>
-              <p class="cine-go">Open the archive <span aria-hidden="true">→</span></p>
-            </div>
-          </a>
-        </article>
-      </div>
-    </div>
-    <div class="cine-progress" id="cine-progress"><i></i></div>
-    <p class="cine-hint">Keep scrolling — the work moves sideways</p>
-  </div>
-</section>
-
-<script>
-  /* Drives the pinned rail. Everything here is optional polish: if any of
-     it fails or is unavailable, the section stays a normal horizontal
-     scroller and the links still work. */
-  (function () {
-    try {
-      var sec = document.getElementById("hs-cinema");
-      var viewport = document.getElementById("cine-viewport");
-      var rail = document.getElementById("cine-rail");
-      var bar = document.getElementById("cine-progress");
-      if (!sec || !rail || !viewport) return;
-      var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var panels = [].slice.call(rail.querySelectorAll(".cine-panel"));
-
-      // Pinning only makes sense when there is real overflow to travel
-      // through and the pointer is a mouse/trackpad. Touch keeps its own
-      // native horizontal swipe, which feels better than hijacked scroll.
-      var canPin = function () {
-        return !reduce && window.innerWidth >= 900 && rail.scrollWidth > window.innerWidth + 120;
-      };
-
-      var travel = 0;
-      var measure = function () {
-        if (canPin()) {
-          sec.classList.add("is-pinned");
-          travel = Math.max(0, rail.scrollWidth - window.innerWidth);
-          // Scroll distance is tied to horizontal travel so the pacing does
-          // not change when a project is added or the viewport resizes.
-          sec.style.height = Math.round(window.innerHeight + travel * 0.95) + "px";
-        } else {
-          sec.classList.remove("is-pinned");
-          sec.style.height = "";
-          rail.style.transform = "";
-          travel = 0;
-          panels.forEach(function (p) {
-            p.style.setProperty("--d", 0);
-            var im = p.querySelector("img");
-            if (im) im.style.setProperty("--px", 0);
-          });
-        }
-      };
-
-      var ticking = false;
-      var frame = function () {
-        ticking = false;
-        if (!sec.classList.contains("is-pinned")) return;
-        var r = sec.getBoundingClientRect();
-        var span = sec.offsetHeight - window.innerHeight;
-        var p = span > 0 ? Math.min(1, Math.max(0, -r.top / span)) : 0;
-        rail.style.transform = "translate3d(" + (-p * travel).toFixed(1) + "px,0,0)";
-        if (bar) bar.style.setProperty("--p", p.toFixed(4));
-        // Depth pass: distance of each panel from the viewport centre.
-        var mid = window.innerWidth / 2;
-        for (var i = 0; i < panels.length; i++) {
-          var pr = panels[i].getBoundingClientRect();
-          var off = (pr.left + pr.width / 2 - mid) / window.innerWidth;
-          var d = Math.min(1, Math.abs(off) * 1.35);
-          panels[i].style.setProperty("--d", d.toFixed(3));
-          var img = panels[i].querySelector("img");
-          if (img) img.style.setProperty("--px", (off * -38).toFixed(1));
-        }
-      };
-      var onScroll = function () {
-        if (ticking) return;
-        ticking = true;
-        requestAnimationFrame(frame);
-      };
-
-      measure();
-      onScroll();
-      window.addEventListener("scroll", onScroll, { passive: true });
-      window.addEventListener(
-        "resize",
-        function () {
-          measure();
-          onScroll();
-        },
-        { passive: true }
-      );
-      // Covers finish loading after first measure and can change scrollWidth.
-      window.addEventListener("load", function () {
-        measure();
-        onScroll();
-      });
-    } catch (e) {}
-  })();
-</script>
-
-
-    <section class="hs-sec hs-stats" aria-label="By the numbers">
-      <div class="hs-head hs-head--center hs-reveal">
-<span>02</span><span class="hs-line"></span><span>By the numbers</span>
-</div>
-      <div class="hs-row">
-        <div class="hs-stat hs-reveal">
-<b>6</b><span>Years shipping</span>
-</div>
-        <div class="hs-stat hs-reveal">
-<b>14</b><span>Public projects</span>
-</div>
-        <div class="hs-stat hs-reveal">
-<b>25</b><span>Artworks · The Met</span>
-</div>
-        <div class="hs-stat hs-reveal">
-<b>100k+</b><span>Mool downloads</span>
-</div>
-      </div>
-    </section>
-
-    <!-- ============================================================
+      <!-- ───────────────── 03 the cube ───────────────── -->
+      <!-- ============================================================
      Homepage act 4 — "the object".
      Sid asked for a 3D moment further down the scroll (never over
      the hero video). This is a real cube in perspective space:
@@ -5331,667 +3950,222 @@
 </script>
 
 
-    <section class="hs-sec hs-univ">
-      <div class="hs-head hs-head--center hs-reveal">
-<span>04</span><span class="hs-line"></span><span>The studio</span>
-</div>
-      <h2 class="hs-reveal">Ninety-eight more pieces float in the studio.</h2>
-      <a class="hs-reveal" data-magnetic href="/play/">Step into the universe <span class="hs-arrow">→</span></a>
-      <button type="button" id="hs-replay" class="hs-replay" hidden aria-label="Replay the opening intro animation">↻ Replay intro</button>
-    </section>
+      <!-- ───────────────── 04 the door ───────────────── -->
+      <section class="sec wrap door" aria-labelledby="door-h">
+        <div class="sec-head rv" style="justify-content: center">
+          <span>04</span><span class="rule" style="max-width: 60px"></span><span id="door-h">The studio</span>
+        </div>
+        <h2 class="rv">Ninety-eight more pieces float in the studio.</h2>
+        <div class="btns rv" style="--d: 120ms">
+          <a class="btn btn--solid" data-magnetic href="/play/">Step into the universe <span aria-hidden="true">→</span></a>
+          <a class="btn" href="/contact/">Start a conversation</a>
+        </div>
+      </section>
+    </main>
+
+    <!-- showreel -->
+    <div class="home-reel-modal" id="reel-modal" role="dialog" aria-modal="true" aria-labelledby="reel-label" aria-hidden="true">
+      <button class="home-reel-modal__close" id="reel-close" type="button" aria-label="Close showreel">×</button>
+      <div class="home-reel-modal__frame">
+        <video class="home-reel-modal__video" id="reel-video" controls playsinline preload="none" data-src="https://github.com/Mehatey/portfolio_site/releases/download/v2.0/thesis.vid.newest.mp4"></video>
+      </div>
+      <p class="home-reel-modal__label" id="reel-label">Sid Mehta · showreel</p>
+    </div>
+    <style>
+      .home-reel-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        display: none;
+        place-items: center;
+        background: rgba(2, 4, 8, 0.92);
+        backdrop-filter: blur(14px);
+        padding: clamp(16px, 5vw, 60px);
+      }
+      .home-reel-modal.is-open {
+        display: grid;
+      }
+      .home-reel-modal__frame {
+        width: min(1180px, 100%);
+        aspect-ratio: 16 / 9;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #000;
+        box-shadow: 0 40px 120px -40px rgba(0, 0, 0, 0.9);
+      }
+      .home-reel-modal__video {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .home-reel-modal__close {
+        position: absolute;
+        top: 18px;
+        right: 20px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        background: transparent;
+        color: #f2f5f9;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+      }
+      .home-reel-modal__label {
+        margin: 14px 0 0;
+        font-family: "DM Mono", monospace;
+        font-size: 10.5px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(242, 245, 249, 0.6);
+      }
+    </style>
+
+    <script src="/assets/js/home-gl.js" defer></script>
 
     <script>
-      (() => {
-        return; // Hero cursor-peephole reveal retired; shader backdrop stays.
-        const stage = document.getElementById("home-stage");
-        const film = document.getElementById("home-film");
-        const realFilm = film.querySelector(".home-film__real");
-        const projects = [...document.querySelectorAll(".home-project")];
-        const focusImage = document.getElementById("home-focus-image");
-        const focusTitle = document.getElementById("home-focus-title");
-        const focusMeta = document.getElementById("home-focus-meta");
-        const focusDescription = document.getElementById("home-focus-description");
-        const focusLink = document.getElementById("home-focus-link");
-        const proof = document.getElementById("home-proof");
-        const showreelButton = document.getElementById("home-showreel");
-        const reelModal = document.getElementById("home-reel-modal");
-        const reelVideo = document.getElementById("home-reel-video");
-        const reelClose = document.getElementById("home-reel-close");
-        const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-        let held = false;
-        let holdStarted = 0;
-        let pointer = { x: innerWidth * 0.5, y: innerHeight * 0.5 };
-        const brush = [];
-
-        function paint(event) {
-          pointer = { x: event.clientX, y: event.clientY };
-          paintAt(pointer.x, pointer.y);
-        }
-
-        function paintAt(clientX, clientY) {
-          const x = (clientX / innerWidth) * 100;
-          const y = (clientY / innerHeight) * 100;
-          const previous = brush[brush.length - 1];
-          const angle = previous ? Math.atan2(y - previous.y, x - previous.x) : 0;
-          const holdAge = held ? Math.min(1, (performance.now() - holdStarted) / 2200) : 0;
-          brush.push({ x, y, angle, seed: Math.random(), holdAge });
-          if (brush.length > 22) brush.shift();
-          const masks = brush
-            .map((point, index) => {
-              const age = index / Math.max(1, brush.length - 1);
-              const radius = 6.6 + age * 7.4 + point.holdAge * 15;
-              const width = radius * (1.05 + point.seed * 0.55);
-              const height = radius * (0.42 + point.seed * 0.35);
-              const offset = radius * 0.28;
-              const satelliteX = point.x + Math.cos(point.angle + 0.9) * offset;
-              const satelliteY = point.y + Math.sin(point.angle + 0.9) * offset;
-              return [
-                `radial-gradient(ellipse ${width}vw ${height}vw at ${point.x}% ${point.y}%, #000 0 46%, rgba(0,0,0,.9) 63%, transparent 88%)`,
-                `radial-gradient(ellipse ${width * 0.42}vw ${height * 1.18}vw at ${satelliteX}% ${satelliteY}%, #000 0 40%, transparent 82%)`,
-              ].join(",");
-            })
-            .join(",");
-          realFilm.style.webkitMaskImage = masks;
-          realFilm.style.maskImage = masks;
-          stage.classList.add("is-revealing");
-          realFilm.classList.toggle("is-liquifying", held);
-        }
-
-        function clearBrush() {
-          brush.length = 0;
-          realFilm.style.webkitMaskImage = "linear-gradient(transparent, transparent)";
-          realFilm.style.maskImage = "linear-gradient(transparent, transparent)";
-          realFilm.classList.remove("is-liquifying");
-          stage.classList.remove("is-revealing");
-        }
-
-        function beginHold(event) {
-          if (event.pointerType === "mouse" && event.button !== 0) return;
-          held = true;
-          holdStarted = performance.now();
-          pointer = { x: event.clientX, y: event.clientY };
-          film.setPointerCapture?.(event.pointerId);
-          paintAt(pointer.x, pointer.y);
-        }
-
-        function endHold(event) {
-          held = false;
-          if (event?.pointerId != null && film.hasPointerCapture?.(event.pointerId)) film.releasePointerCapture(event.pointerId);
-          clearBrush();
-        }
-
-        const hint = document.getElementById("home-hint");
-        if (finePointer) {
-          film.addEventListener("pointermove", paint);
-          film.addEventListener("pointerdown", beginHold);
-          film.addEventListener("pointerup", endHold);
-          film.addEventListener("pointercancel", endHold);
-          film.addEventListener("pointerleave", () => {
-            if (!held) clearBrush();
-          });
-          const animateHold = () => {
-            if (held) paintAt(pointer.x, pointer.y);
-            requestAnimationFrame(animateHold);
-          };
-          requestAnimationFrame(animateHold);
-
-          // First impression: paint a gentle sweep so the reveal demonstrates
-          // itself instead of opening on a black void. It cancels the instant
-          // the visitor takes over, handing the brush straight to them.
-          let userTookOver = false;
-          const takeOver = () => {
-            userTookOver = true;
-            if (hint) {
-              hint.style.animation = "none";
-              hint.style.opacity = "0";
-            }
-          };
-          film.addEventListener("pointerdown", takeOver, { once: true });
-          film.addEventListener("pointermove", takeOver, { once: true });
-          if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            const demoPath = [
-              [20, 44],
-              [33, 55],
-              [46, 43],
-              [58, 56],
-              [70, 45],
-              [82, 55],
-              [88, 46],
-            ];
-            let di = 0;
-            const demoStep = () => {
-              if (userTookOver) return;
-              const [px, py] = demoPath[di];
-              paintAt((innerWidth * px) / 100, (innerHeight * py) / 100);
-              di += 1;
-              if (di < demoPath.length) setTimeout(demoStep, 240);
-              else
-                setTimeout(() => {
-                  if (!userTookOver) clearBrush();
-                }, 1100);
-            };
-            setTimeout(demoStep, 750);
-          }
-        } else {
-          stage.classList.add("is-revealing");
-          realFilm.style.webkitMaskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)";
-          realFilm.style.maskImage = "linear-gradient(90deg, transparent 0%, #000 42%, #000 72%, transparent 100%)";
-        }
-
-        // Rotating proof/stat line — a smooth crossfade on its own block, so
-        // nothing in the headline ever reflows. Replaces the old per-character
-        // typewriter that shoved the headline between one and two lines.
-        const proofLine = document.getElementById("home-proof-line");
-        const proofLines = [
-          "6 yrs shipping product · 14 projects · 25 artworks activated at The Met",
-          "100k+ Mool downloads · Kyoorius Design Award winner",
-          "Deloitte Digital · EyeJack · Philips · The Met",
-          "Designing for emotion, culture, and useful change",
-        ];
-        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (proofLine && !reduceMotion) {
-          let pIndex = 0;
-          setInterval(() => {
-            pIndex = (pIndex + 1) % proofLines.length;
-            proofLine.classList.add("is-swapping");
-            setTimeout(() => {
-              proofLine.textContent = proofLines[pIndex];
-              proofLine.classList.remove("is-swapping");
-            }, 520);
-          }, 4200);
-        }
-
-        function showProject(project) {
-          focusImage.src = project.dataset.image;
-          focusImage.alt = `${project.dataset.title} project preview`;
-          focusTitle.textContent = project.dataset.title;
-          focusMeta.textContent = project.dataset.meta;
-          focusDescription.textContent = project.dataset.description;
-          focusLink.href = project.href;
-          focusLink.textContent = `Open ${project.dataset.title}`;
-          stage.classList.add("has-project");
-        }
-
-        function hideProject() {
-          stage.classList.remove("has-project");
-        }
-
-        projects.forEach((project) => {
-          project.addEventListener("pointerenter", () => showProject(project));
-          project.addEventListener("pointerleave", hideProject);
-          project.addEventListener("focus", () => showProject(project));
-          project.addEventListener("blur", hideProject);
-        });
-
-        let lastFocused = null;
-        function openReel() {
-          lastFocused = document.activeElement;
-          reelModal.classList.add("is-open");
-          reelModal.setAttribute("aria-hidden", "false");
-          document.body.style.overflow = "hidden";
-          reelClose.focus();
-          // Load the reel only now, so it never costs bandwidth on page load.
-          if (reelVideo && !reelVideo.src) {
-            reelVideo.src = reelVideo.dataset.src;
-            reelVideo.load();
-            // preload was "none", so the source is not ready yet: play as soon as it can,
-            // otherwise the immediate play() below races the load and silently no-ops.
-            reelVideo.addEventListener(
-              "canplay",
-              function onCanPlay() {
-                reelVideo.removeEventListener("canplay", onCanPlay);
-                reelVideo.play().catch(() => {});
-              },
-              { once: true }
-            );
-          }
-          reelVideo && reelVideo.play && reelVideo.play().catch(() => {});
-        }
-
-        function closeReel() {
-          // Pause + drop the source to stop the download when closed.
-          if (reelVideo) {
-            reelVideo.pause();
-            reelVideo.removeAttribute("src");
-            reelVideo.load();
-          }
-          reelModal.classList.remove("is-open");
-          reelModal.setAttribute("aria-hidden", "true");
-          document.body.style.overflow = "";
-          lastFocused?.focus?.();
-        }
-
-        showreelButton?.addEventListener("click", openReel);
-        reelClose?.addEventListener("click", closeReel);
-        reelModal?.addEventListener("click", (event) => {
-          if (event.target === reelModal) closeReel();
-        });
-        document.addEventListener("keydown", (event) => {
-          if (event.key === "Escape" && reelModal?.classList.contains("is-open")) closeReel();
-        });
-      })();
-    </script>
-
-    <script>
-      // ── Generative WebGL field ──
-      // A real-time fragment shader: domain-warped fbm noise flowing through the
-      // hero in the three pillar colours, brightening around the cursor. Additive
-      // (screen-blended) over the dark film — it only ever adds light. Skipped for
-      // reduced-motion or if WebGL is unavailable.
+      /* ── headline split ──────────────────────────────────────────
+         Done in JS rather than in the markup so the H1 stays one clean
+         sentence for screen readers and for anyone with JS off. */
       (function () {
-        var canvas = document.getElementById("home-gl");
-        if (!canvas) return;
-        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        var gl = canvas.getContext("webgl", { premultipliedAlpha: false, alpha: true, antialias: true });
-        if (!gl) return;
-
-        var vsrc = "attribute vec2 p; void main(){ gl_Position = vec4(p,0.0,1.0); }";
-        var fsrc = [
-          "precision highp float;",
-          "uniform vec2 u_res; uniform float u_time; uniform vec2 u_mouse; uniform float u_mdown;",
-          "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }",
-          "float noise(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 u=f*f*(3.0-2.0*f);",
-          "  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x), mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x), u.y); }",
-          "float fbm(vec2 p){ float v=0.0, a=0.5; for(int i=0;i<5;i++){ v+=a*noise(p); p=p*2.0+vec2(37.0,17.0); a*=0.5; } return v; }",
-          "void main(){",
-          "  vec2 uv = gl_FragCoord.xy/u_res.xy;",
-          "  vec2 asp = vec2(u_res.x/u_res.y, 1.0);",
-          "  vec2 q = uv*asp;",
-          "  float t = u_time*0.05;",
-          "  vec2 w = vec2(fbm(q*2.2 + vec2(0.0,t)), fbm(q*2.2 + vec2(5.2,-t)));",
-          "  float f = fbm(q*2.6 + w*1.8 + vec2(t*0.6, -t*0.4));",
-          "  vec2 m = u_mouse*asp;",
-          "  float md = distance(q, m);",
-          "  float glow = smoothstep(0.5, 0.0, md) * (0.35 + u_mdown*0.5);",
-          "  f += glow*0.6;",
-          "  vec3 blue = vec3(0.30,0.52,1.0);",
-          "  vec3 violet = vec3(0.66,0.44,1.0);",
-          "  vec3 amber = vec3(1.0,0.55,0.30);",
-          "  vec3 col = mix(blue, violet, smoothstep(0.35,0.62,f));",
-          "  col = mix(col, amber, smoothstep(0.62,0.86,f));",
-          "  float intensity = pow(smoothstep(0.32,0.9,f), 1.6) + glow*0.5;",
-          "  col *= intensity;",
-          "  float a = clamp(intensity*0.5, 0.0, 0.85);",
-          "  gl_FragColor = vec4(col*a, a);",
-          "}",
-        ].join("\n");
-
-        function compile(type, src) {
-          var s = gl.createShader(type);
-          gl.shaderSource(s, src);
-          gl.compileShader(s);
-          return s;
-        }
-        var prog = gl.createProgram();
-        gl.attachShader(prog, compile(gl.VERTEX_SHADER, vsrc));
-        gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, fsrc));
-        gl.linkProgram(prog);
-        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
-        gl.useProgram(prog);
-        var buf = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-        var loc = gl.getAttribLocation(prog, "p");
-        gl.enableVertexAttribArray(loc);
-        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-        var uRes = gl.getUniformLocation(prog, "u_res"),
-          uTime = gl.getUniformLocation(prog, "u_time"),
-          uMouse = gl.getUniformLocation(prog, "u_mouse"),
-          uMdown = gl.getUniformLocation(prog, "u_mdown");
-        gl.disable(gl.DEPTH_TEST);
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-
-        var DPR = Math.min(window.devicePixelRatio || 1, 2);
-        function resize() {
-          var w = canvas.clientWidth || window.innerWidth,
-            h = canvas.clientHeight || window.innerHeight;
-          canvas.width = Math.round(w * DPR);
-          canvas.height = Math.round(h * DPR);
-          gl.viewport(0, 0, canvas.width, canvas.height);
-        }
-        resize();
-        window.addEventListener("resize", resize);
-        var mouse = [0.5, 0.55],
-          tmouse = [0.5, 0.55],
-          mdown = 0;
-        window.addEventListener("pointermove", function (e) {
-          tmouse = [e.clientX / window.innerWidth, 1.0 - e.clientY / window.innerHeight];
-        });
-        window.addEventListener("pointerdown", function () {
-          mdown = 1;
-        });
-        window.addEventListener("pointerup", function () {
-          mdown = 0;
-        });
-        var start = null;
-        function render(now) {
-          if (start === null) start = now;
-          var t = (now - start) / 1000;
-          mouse[0] += (tmouse[0] - mouse[0]) * 0.06;
-          mouse[1] += (tmouse[1] - mouse[1]) * 0.06;
-          gl.uniform2f(uRes, canvas.width, canvas.height);
-          gl.uniform1f(uTime, t);
-          gl.uniform2f(uMouse, mouse[0], mouse[1]);
-          gl.uniform1f(uMdown, mdown);
-          gl.drawArrays(gl.TRIANGLES, 0, 3);
-          requestAnimationFrame(render);
-        }
-        requestAnimationFrame(render);
-      })();
-    </script>
-
-    <!-- ── KINETIC HEADLINE ──────────────────────────────────────────────
-         Each glyph in the headline is an inline-block that springs away from
-         the cursor and settles back. The kick scales with pointer *velocity*,
-         so a slow drift parts the letters gently while a fast flick throws
-         them — physics, not a canned animation. Progressive enhancement:
-         with JS off or reduced-motion on, the headline is plain text. -->
-    <script>
-      (() => {
-        const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        const fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-        const title = document.getElementById("home-title");
-        if (reduce || !fine || !title) return;
-
-        // The typewriter in home-enhance.js owns the <h1> until it has finished
-        // typing (and swapping) the line; it then restores the clean markup and
-        // fires "home-title:typed". Waiting for that hand-off stops the two
-        // effects rebuilding the same heading on top of each other. The timeout
-        // is the safety net for when the typewriter never runs.
-        let started = false;
-        const start = () => {
-          if (started) return;
-          started = true;
-          build();
+        var h = document.querySelector("[data-split]");
+        if (!h) return;
+        var i = 0;
+        var walk = function (node) {
+          var kids = [].slice.call(node.childNodes);
+          kids.forEach(function (n) {
+            if (n.nodeType === 3) {
+              var frag = document.createDocumentFragment();
+              n.nodeValue.split(/(\s+)/).forEach(function (tok) {
+                if (!tok) return;
+                if (/^\s+$/.test(tok)) return frag.appendChild(document.createTextNode(" "));
+                var w = document.createElement("span");
+                w.className = "w";
+                var inner = document.createElement("i");
+                inner.textContent = tok;
+                inner.style.setProperty("--d", i * 55 + "ms");
+                i++;
+                w.appendChild(inner);
+                frag.appendChild(w);
+              });
+              node.replaceChild(frag, n);
+            } else if (n.nodeType === 1) walk(n);
+          });
         };
-        document.addEventListener("home-title:typed", start, { once: true });
-        setTimeout(start, 9000);
-
-        function build() {
-          const letters = [];
-          // Rebuild the heading as word spans (kept whole for wrapping) of
-          // per-letter spans, preserving the accent phrase's styling.
-          const segments = [];
-          title.childNodes.forEach((node) => {
-            if (node.nodeType === 3) segments.push({ text: node.textContent, accent: false });
-            else segments.push({ text: node.textContent, accent: node.classList && node.classList.contains("home-title__accent") });
+        walk(h);
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            document.getElementById("hero").classList.add("in");
           });
-          title.textContent = "";
-          segments.forEach((seg) => {
-            seg.text.split(/(\s+)/).forEach((chunk) => {
-              if (chunk === "") return;
-              if (/^\s+$/.test(chunk)) {
-                title.appendChild(document.createTextNode(" "));
-                return;
-              }
-              const word = document.createElement("span");
-              word.className = "ht-w";
-              for (const ch of chunk) {
-                const s = document.createElement("span");
-                s.className = "ht-l" + (seg.accent ? " home-title__accent" : "");
-                s.textContent = ch;
-                s.setAttribute("aria-hidden", "true");
-                word.appendChild(s);
-                letters.push({ el: s, ox: 0, oy: 0, vx: 0, vy: 0, rot: 0, vr: 0, cx: 0, cy: 0 });
-              }
-              title.appendChild(word);
-            });
-          });
-
-          function measure() {
-            for (const L of letters) L.el.style.transform = "";
-            for (const L of letters) {
-              const r = L.el.getBoundingClientRect();
-              L.cx = r.left + r.width / 2;
-              L.cy = r.top + r.height / 2;
-            }
-          }
-          measure();
-          window.addEventListener("resize", measure);
-          window.addEventListener("scroll", measure, { passive: true });
-
-          const pointer = { x: -9999, y: -9999, vx: 0, vy: 0, active: false, t: 0 };
-          window.addEventListener("pointermove", (e) => {
-            pointer.vx = e.clientX - pointer.x;
-            pointer.vy = e.clientY - pointer.y;
-            pointer.x = e.clientX;
-            pointer.y = e.clientY;
-            pointer.active = true;
-          });
-          window.addEventListener("pointerout", () => (pointer.active = false));
-
-          const R = 132,
-            stiffness = 0.055,
-            damping = 0.8,
-            rotStiff = 0.05,
-            rotDamp = 0.82;
-
-          function frame() {
-            const speed = Math.min(70, Math.hypot(pointer.vx, pointer.vy));
-            pointer.vx *= 0.55;
-            pointer.vy *= 0.55;
-            for (const L of letters) {
-              if (pointer.active) {
-                const dx = L.cx + L.ox - pointer.x;
-                const dy = L.cy + L.oy - pointer.y;
-                const d = Math.hypot(dx, dy);
-                if (d < R) {
-                  const f = 1 - d / R;
-                  const dir = d || 1;
-                  const push = f * (0.55 + speed * 0.22);
-                  L.vx += (dx / dir) * push;
-                  L.vy += (dy / dir) * push;
-                  L.vr += (dx * pointer.vy - dy * pointer.vx) * 0.00007 * f;
-                }
-              }
-              L.vx += -stiffness * L.ox;
-              L.vy += -stiffness * L.oy;
-              L.vx *= damping;
-              L.vy *= damping;
-              L.ox += L.vx;
-              L.oy += L.vy;
-              L.vr += -rotStiff * L.rot;
-              L.vr *= rotDamp;
-              L.rot += L.vr;
-              if (Math.abs(L.ox) < 0.02 && Math.abs(L.oy) < 0.02 && Math.abs(L.rot) < 0.02 && Math.abs(L.vx) < 0.02 && Math.abs(L.vy) < 0.02) {
-                if (L.el.style.transform) L.el.style.transform = "";
-              } else {
-                L.el.style.transform = "translate(" + L.ox.toFixed(2) + "px," + L.oy.toFixed(2) + "px) rotate(" + L.rot.toFixed(2) + "deg)";
-              }
-            }
-            requestAnimationFrame(frame);
-          }
-          if (document.fonts && document.fonts.ready)
-            document.fonts.ready.then(() => {
-              measure();
-              requestAnimationFrame(frame);
-            });
-          else requestAnimationFrame(frame);
-        }
-      })();
-    </script>
-    <script>
-      (function () {
-        return; // Work-reveal peephole retired.
-        const stage = document.getElementById("home-stage");
-        const film = document.getElementById("home-film");
-        const layer = document.getElementById("home-work");
-        const img = document.getElementById("home-work-img");
-        if (!stage || !film || !layer || !img) return;
-        const fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-        const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (!fine || reduce) return;
-        const B = "";
-        const ME = B + "/assets/img/sid_about_pf.webp";
-        const shots = [
-          B + "/assets/img/work-previews/mool/cover.webp",
-          B + "/assets/img/fairview/cover.webp",
-          B + "/10.alpha/cover.webp",
-          ME,
-          B + "/assets/img/marriott/cover.webp",
-          B + "/7.naavo/cover.webp",
-          B + "/6.mindu/cover2.webp",
-          ME,
-          B + "/15.bloom-vp/cover.jpg",
-          B + "/1.met/0.webp",
-          B + "/9.aananda/cover.webp",
-          ME,
-          B + "/11.illu/12.1.webp",
-          B + "/8.shotoniphone/cover.webp",
-          B + "/5.bb/cover.webp",
-          ME,
-        ];
-        shots.forEach(function (src) {
-          const i = new Image();
-          i.src = src;
         });
-        let idx = 0;
-        let last = { x: -1e4, y: -1e4 };
-        img.src = shots[0];
-        const trail = [];
-        function draw(x, y) {
-          trail.push({ x: x, y: y });
-          if (trail.length > 4) trail.shift();
-          const m = trail
-            .map(function (pt, i) {
-              const a = (i + 1) / trail.length;
-              const r = 120 + a * 70;
-              return (
-                "radial-gradient(circle " +
-                r +
-                "px at " +
-                pt.x +
-                "px " +
-                pt.y +
-                "px, rgba(0,0,0," +
-                (0.4 + a * 0.6).toFixed(2) +
-                ") 0 24%, rgba(0,0,0," +
-                (a * 0.35).toFixed(2) +
-                ") 56%, transparent 80%)"
-              );
-            })
-            .join(",");
-          layer.style.webkitMaskImage = m;
-          layer.style.maskImage = m;
-          stage.classList.add("is-working");
-        }
-        function clear() {
-          trail.length = 0;
-          stage.classList.remove("is-working");
-        }
-        film.addEventListener("pointermove", function (e) {
-          if (Math.hypot(e.clientX - last.x, e.clientY - last.y) > 330) {
-            idx = (idx + 1) % shots.length;
-            img.src = shots[idx];
-            last = { x: e.clientX, y: e.clientY };
-            trail.length = 0;
-          }
-          draw(e.clientX, e.clientY);
-        });
-        film.addEventListener("pointerleave", clear);
       })();
-    </script>
-    <script>
-      // Homepage scroll sections: interactive polish (View affordance + count-up stats).
+
+      /* ── reveal on enter ─────────────────────────────────────── */
       (function () {
-        var cards = document.querySelectorAll(".hs-card");
-        for (var i = 0; i < cards.length; i += 1) {
-          if (!cards[i].querySelector(".hs-view")) {
-            var v = document.createElement("span");
-            v.className = "hs-view";
-            v.setAttribute("aria-hidden", "true");
-            v.textContent = "View \u2192";
-            cards[i].appendChild(v);
-          }
-        }
-        var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (reduce || !("IntersectionObserver" in window)) return;
-        function countUp(el) {
-          var t = (el.textContent || "").trim();
-          var m = t.match(/^(\d+)(.*)$/);
-          if (!m) return;
-          var target = parseInt(m[1], 10),
-            suffix = m[2] || "",
-            start = null;
-          function step(ts) {
-            if (!start) start = ts;
-            var p = Math.min(1, (ts - start) / 1400);
-            var e = 1 - Math.pow(1 - p, 3);
-            el.textContent = Math.round(target * e) + suffix;
-            if (p < 1) requestAnimationFrame(step);
-            else el.textContent = m[1] + suffix;
-          }
-          requestAnimationFrame(step);
+        var els = [].slice.call(document.querySelectorAll(".rv"));
+        if (!("IntersectionObserver" in window)) {
+          els.forEach(function (e) {
+            e.classList.add("in");
+          });
+          return;
         }
         var io = new IntersectionObserver(
           function (entries) {
             entries.forEach(function (en) {
-              if (en.isIntersecting) {
-                countUp(en.target);
-                io.unobserve(en.target);
-              }
+              if (!en.isIntersecting) return;
+              en.target.classList.add("in");
+              io.unobserve(en.target);
             });
           },
-          { threshold: 0.6 }
+          { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
         );
-        var nums = document.querySelectorAll(".hs-stat b");
-        for (var j = 0; j < nums.length; j += 1) io.observe(nums[j]);
+        els.forEach(function (e) {
+          io.observe(e);
+        });
       })();
-    </script>
-    <script>
-      // Magnetic CTAs: buttons with [data-magnetic] subtly pull toward the cursor.
-      // Self-contained (mirrors the site-wide handler); rAF-driven so it works here.
+
+      /* ── numbers count up once ───────────────────────────────── */
       (function () {
-        if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+        var nodes = [].slice.call(document.querySelectorAll("[data-count]"));
+        if (!nodes.length || !("IntersectionObserver" in window)) return;
         if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        var STRENGTH = 0.28;
-        document.querySelectorAll("[data-magnetic]").forEach(function (el) {
-          var raf = null;
-          el.addEventListener("mousemove", function (e) {
-            if (raf) return;
-            raf = requestAnimationFrame(function () {
-              var r = el.getBoundingClientRect();
-              var dx = (e.clientX - (r.left + r.width / 2)) * STRENGTH;
-              var dy = (e.clientY - (r.top + r.height / 2)) * STRENGTH;
-              el.style.transform = "translate(" + dx + "px, " + dy + "px)";
-              raf = null;
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (en) {
+              if (!en.isIntersecting) return;
+              var el = en.target;
+              io.unobserve(el);
+              var to = parseFloat(el.getAttribute("data-count"));
+              var sfx = el.getAttribute("data-suffix") || "";
+              var t0 = performance.now();
+              var step = function (now) {
+                var p = Math.min(1, (now - t0) / 1400);
+                var e = 1 - Math.pow(1 - p, 4);
+                el.textContent = Math.round(to * e) + sfx;
+                if (p < 1) requestAnimationFrame(step);
+              };
+              requestAnimationFrame(step);
             });
-          });
-          el.addEventListener("mouseleave", function () {
-            el.style.transform = "";
-            if (raf) cancelAnimationFrame(raf);
-            raf = null;
-          });
+          },
+          { threshold: 0.5 }
+        );
+        nodes.forEach(function (n) {
+          io.observe(n);
         });
       })();
-    </script>
-    <script>
-      // Replay intro: the opening cube plays once, then is gated by localStorage.sid_loaded.
-      // Returning visitors get a subtle way back in without it ever trapping first-timers.
+
+      /* ── showreel ────────────────────────────────────────────── */
       (function () {
-        var btn = document.getElementById("hs-replay");
-        if (!btn) return;
-        var seen = false;
-        try {
-          seen = !!(localStorage.getItem("sid_loaded") || sessionStorage.getItem("sid_loaded"));
-        } catch (e) {}
-        if (!seen) return; // first visit: they are watching it now, no replay affordance needed
-        btn.hidden = false;
-        btn.addEventListener("click", function () {
+        var open = document.getElementById("reel-open");
+        var modal = document.getElementById("reel-modal");
+        var close = document.getElementById("reel-close");
+        var vid = document.getElementById("reel-video");
+        if (!open || !modal) return;
+        var show = function () {
+          if (!vid.src) vid.src = vid.getAttribute("data-src");
+          modal.classList.add("is-open");
+          modal.setAttribute("aria-hidden", "false");
+          document.body.style.overflow = "hidden";
           try {
-            localStorage.removeItem("sid_loaded");
-            sessionStorage.removeItem("sid_loaded");
+            vid.play();
           } catch (e) {}
-          // Return to the top and reload so the loader mounts fresh and plays the opening.
+          close.focus();
+        };
+        var hide = function () {
+          modal.classList.remove("is-open");
+          modal.setAttribute("aria-hidden", "true");
+          document.body.style.overflow = "";
           try {
-            window.scrollTo(0, 0);
+            vid.pause();
           } catch (e) {}
-          location.reload();
+          open.focus();
+        };
+        open.addEventListener("click", show);
+        close.addEventListener("click", hide);
+        modal.addEventListener("click", function (e) {
+          if (e.target === modal) hide();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape" && modal.classList.contains("is-open")) hide();
+        });
+      })();
+
+      /* ── magnetic buttons ────────────────────────────────────── */
+      (function () {
+        if (window.matchMedia && window.matchMedia("(hover: none)").matches) return;
+        [].slice.call(document.querySelectorAll("[data-magnetic]")).forEach(function (el) {
+          el.addEventListener("pointermove", function (e) {
+            var r = el.getBoundingClientRect();
+            var x = (e.clientX - r.left - r.width / 2) * 0.22;
+            var y = (e.clientY - r.top - r.height / 2) * 0.3;
+            el.style.transform = "translate(" + x + "px," + y + "px)";
+          });
+          el.addEventListener("pointerleave", function () {
+            el.style.transform = "";
+          });
         });
       })();
     </script>
-    <script src="/assets/js/home-film.js" defer></script>
-    <script src="/assets/js/home-enhance.js" defer></script>
   </body>
 </html>
