@@ -385,22 +385,23 @@
       /* Hero simplified: the cursor-peephole reveal is retired (it hid the
          headline on hover and showed creepy close-ups). The generative shader is
          now the ambient backdrop; the headline and featured work stay visible. */
-      .home-film,
       .home-work,
       .home-work-scrim,
-      .home-project-focus,
       .home-hint {
         display: none !important;
       }
-      .home-gl {
-        opacity: 1 !important;
-      }
-      .home-stage.has-project .home-copy,
       .home-stage.is-working .home-copy,
       .home-stage.is-revealing .home-copy {
         opacity: 1;
         transform: none;
         pointer-events: auto;
+      }
+      /* Hovering a project thumbnail turns the hero into that project's cover;
+         the intro copy steps back so the preview reads clean. */
+      .home-stage.has-project .home-copy {
+        opacity: 0;
+        transform: translateY(10px);
+        pointer-events: none;
       }
 
       /* ── IDENTITY BLOCK ──
@@ -1109,6 +1110,75 @@
           transform: none;
         }
       }
+      /* ── Hero film compositor (replaces the abstract smoke shader) ── */
+      #home-gl {
+        display: none !important;
+      }
+      #home-hint {
+        display: none !important;
+      }
+      .home-film::after {
+        display: none !important;
+      }
+      .home-film-gl {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .home-film-src {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        opacity: 0.001;
+        pointer-events: none;
+        left: -10px;
+        top: -10px;
+      }
+      .home-film-fallback {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center 40%;
+        opacity: 0;
+      }
+      .home-film.is-fallback .home-film-fallback {
+        opacity: 1;
+      }
+      .home-film-hint {
+        position: absolute;
+        left: 50%;
+        top: 42%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        margin: 0;
+        font:
+          400 11px/1.4 "DM Mono",
+          ui-monospace,
+          monospace;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(233, 240, 250, 0.72);
+        pointer-events: none;
+        transition: opacity 700ms ease;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.6);
+      }
+      .home-film-hint.is-gone {
+        opacity: 0;
+      }
+      .home-stage.has-project .home-film-hint {
+        opacity: 0;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .home-film-hint {
+          display: none;
+        }
+      }
     </style>
   </head>
 
@@ -1117,19 +1187,17 @@
     {% include loader.html %} {% include studio_nav.html %}
 
     <main class="home-stage" id="home-stage">
-      <div class="home-film" id="home-film" aria-label="Move across the hero to reveal selected work">
-        <video class="home-film__ambient" autoplay muted loop playsinline preload="auto" aria-hidden="true">
-          <source src="{{ site.baseurl }}/assets/video/sid_sitting.mp4" type="video/mp4" />
-        </video>
-        <video class="home-film__real" autoplay muted loop playsinline preload="auto">
-          <source src="{{ site.baseurl }}/assets/video/sid_sitting.mp4" type="video/mp4" />
-        </video>
-        <video class="home-film__pixel" autoplay muted loop playsinline preload="auto">
+      <div class="home-film" id="home-film" data-freeze="{{ site.baseurl }}/assets/img/sid_pixel_freeze.webp" aria-hidden="true">
+        <canvas class="home-film-gl" id="home-film-gl"></canvas>
+        <img class="home-film-fallback" id="home-film-fallback" src="{{ site.baseurl }}/assets/img/sid_pixel_freeze.webp" alt="" aria-hidden="true" />
+        <video class="home-film-src" id="hf-pixel" muted playsinline preload="auto" aria-hidden="true">
           <source src="{{ site.baseurl }}/assets/video/sid_pixelated.mp4" type="video/mp4" />
         </video>
-        <div class="home-work-scrim" aria-hidden="true"></div>
-        <div class="home-work" id="home-work" aria-hidden="true"><img id="home-work-img" alt="" decoding="async" /></div>
+        <video class="home-film-src" id="hf-clear" muted loop playsinline preload="auto" aria-hidden="true">
+          <source src="{{ site.baseurl }}/assets/video/sid_sitting.mp4" type="video/mp4" />
+        </video>
       </div>
+      <p class="home-film-hint" id="home-film-hint" aria-hidden="true">Move to reveal &#8226; click to shift the look</p>
       <canvas class="home-gl" id="home-gl" aria-hidden="true"></canvas>
       <p class="home-hint" id="home-hint" aria-hidden="true">Move to reveal the work &#10022;</p>
 
@@ -2179,6 +2247,7 @@
         });
       })();
     </script>
+    <script src="{{ site.baseurl }}/assets/js/home-film.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/home-enhance.js" defer></script>
   </body>
 </html>
