@@ -5,9 +5,10 @@ project_title: Naavo
 proj_num: "09"
 tagline: >
   How can traditional Ayurveda feel relevant to a modern lifestyle? Naavo is a branding and packaging project that reimagines Ayurveda for a contemporary audience. The direction was neither clinical nor nostalgic: something rooted in the source but not dressed in its clichés, with a visual language that reads calm and grounded without defaulting to beige and botanicals.
+quick_read: "Built an Ayurveda brand end to end, identity through packaging, in eight weeks, landing on a calm and grounded visual language that avoids both clinical and nostalgic clichés."
 category: Branding · Packaging
 year: 2020
-hero_bg: "radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)"
+hero_bg: "radial-gradient(ellipse at 45% 55%, #141c16 0%, #0a0e0b 50%, #020302 100%)"
 hero_image: "7.naavo/cover.png"
 meta:
   - label: Role

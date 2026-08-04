@@ -4,6 +4,7 @@ permalink: /b-plus-b/
 project_title: Broken and Beautiful
 proj_num: "05"
 tagline: "A public interaction project inspired by the Strangers Project. After hours reading anonymous thoughts there, I wanted to recreate that sense of shared emotion by asking one simple question: what feels beautiful, and what feels broken."
+quick_read: "Built and ran a public interaction piece in New York that gathered 285+ anonymous answers to one question: what feels beautiful, and what feels broken."
 category: Research · Public Art
 year: 2024
 hero_bg: "radial-gradient(ellipse at 70% 40%, #1a0d0d 0%, #0d0505 50%, #030101 100%)"

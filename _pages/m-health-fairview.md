@@ -10,6 +10,7 @@ category: Healthcare · Enterprise UX
 year: 2024
 hero_bg: "radial-gradient(ellipse at 50% 35%, #3a0d16 0%, #1e0710 50%, #0a0305 100%)"
 hero_image: "assets/img/fairview/cover.webp"
+refl_bg: "assets/img/fairview/13-impact.webp"
 meta:
   - label: Role
     value: Product Designer

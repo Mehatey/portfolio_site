@@ -1,11 +1,11 @@
 ---
 layout: project
-pillar: product
 permalink: /alpha-stockathon/
 project_title: Alpha Stockathon
 proj_num: "14"
 tagline: >
   Alpha Stockathon is a gamified desktop application that teaches the stock market through a pixel-art world. A character journeys to rescue a wizard, and each level introduces one concept: options, shorting, market cap. Players make decisions and face consequences inside a simulated market rather than reading about one.
+quick_read: "Designed a pixel-art desktop game that teaches options, shorting and market cap through consequence rather than instruction, taken from research to working prototype in three days."
 category: UI · Gamification
 year: 2021
 hero_bg: "radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)"
@@ -33,37 +33,6 @@ reflection: >
 
   Simplification is not dumbing down: every financial concept has a core mechanic, and finding that mechanic was the real design problem. Pixel art made commitment unavoidable. Each shape landed and stayed.
 refl_bg: "10.alpha/reflection.jpg"
-decisions:
-  - choice: "Taught one concept per level and let the level be short"
-    why: >
-      Financial education fails by front-loading vocabulary. Each level isolates a single mechanic (a short, a call
-      option, market cap) and ends as soon as the player has felt the consequence of using it, so the concept is
-      learned as an outcome rather than memorised as a definition.
-    tradeoff: >
-      The concepts stay isolated. Real markets are these mechanics interacting, and nothing in the structure teaches
-      how they compound, which is exactly where most people actually lose money.
-  - choice: "Chose pixel art, and chose it partly because of the deadline"
-    why: >
-      A fixed grid and a fixed palette remove almost every open question: no illustration style to develop, no
-      spacing debates, no fidelity creep. Inside three days that bought the time to actually design the game logic.
-      The retro register also lowers the stakes of a subject most people find intimidating.
-    tradeoff: >
-      It caps the product. The aesthetic is charming at concept stage and would read as unserious to anyone deciding
-      whether to trust it with a real portfolio, so this is not the visual direction it would ship with.
-  - choice: "Simulated the market instead of wiring in real data"
-    why: >
-      Live feeds bring latency, licensing, and the risk of a lesson being contradicted by that day's actual
-      movement. A simulated market can be authored (a level about shorting can guarantee the downturn it needs),
-      and authorship is what teaching requires.
-    tradeoff: >
-      It teaches a market more legible than the real one. Everything in it is causal, and the most important thing
-      about real markets is that a great deal of them is not.
-next_steps: >
-  Three days got this to a coherent prototype and no further. The honest next step is to put it in front of
-  people who do not already know the concepts and find out how much survives, because I designed it while
-  learning the material myself and I have no evidence that the mechanics teach what I believe they teach. After
-  that, the compounding problem: the levels are correct in isolation, and it needs at least one that makes them
-  interact.
 next_project:
   title: Illustrations
   url: /illustrations/

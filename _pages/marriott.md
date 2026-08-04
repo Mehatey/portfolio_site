@@ -10,6 +10,7 @@ category: Enterprise UX · Design Systems
 year: 2023
 hero_bg: "radial-gradient(ellipse at 50% 30%, #1c1a17 0%, #100e0c 50%, #050403 100%)"
 hero_image: "assets/img/marriott/cover.webp"
+refl_bg: "assets/img/marriott/09-desktop.webp"
 meta:
   - label: Role
     value: Product Designer

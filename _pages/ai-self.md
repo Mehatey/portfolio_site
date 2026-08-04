@@ -4,6 +4,7 @@ permalink: /ai-self/
 project_title: AI Self
 proj_num: "02"
 tagline: A research arc in three phases. First, experiments asking what AI actually perceives, and what that reveals about the gap between pattern and meaning. Second, a design concept for an AI that lives alongside you in mixed reality. Third, a VR world where an AI wakes up inside everything it has ever learned about humanity.
+quick_read: "Ran a three-part research arc across AI, AR and VR, probing what machines actually perceive and designing an intelligence that lives alongside you rather than answers to you."
 category: AI · AR · VR
 year: 2024-2025
 hero_bg: "radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)"

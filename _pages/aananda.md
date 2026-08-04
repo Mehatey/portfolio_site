@@ -1,14 +1,14 @@
 ---
 layout: project
-pillar: product
 permalink: /aananda/
 project_title: Aananda
 proj_num: "13"
 tagline: >
   Aananda explores how Jain philosophy reaches younger audiences without losing what makes it deep. The question was how to translate something ancient and dense into a form that feels present. The project spans a mobile app studied against existing religious platforms, a book drawing from the visual language of Jain temples, and a print identity that holds it together.
+quick_read: "Designed a complete identity system — mobile app, book and print — that translates Jain philosophy into a visual language a younger audience can actually sit with."
 category: Branding · App Design
 year: 2020
-hero_bg: "radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)"
+hero_bg: "radial-gradient(ellipse at 35% 65%, #24110c 0%, #120806 50%, #050202 100%)"
 hero_image: "9.aananda/cover.png"
 refl_bg: "9.aananda/reflection.jpg"
 meta:
@@ -32,36 +32,6 @@ reflection: >
 
 
   What stayed with me was how much the work depended on staying faithful to the source. Every type choice, color, and compositional pattern had to feel earned rather than borrowed. Design here was interpretation, not just production.
-decisions:
-  - choice: "Studied the existing religious apps and deliberately did not follow them"
-    why: >
-      The category converges on gold, gradients and an interface that treats scripture as content to be consumed.
-      Jain visual tradition is geometric, restrained and close to monochrome by comparison. Matching the category
-      would have meant misrepresenting the source in order to look familiar.
-    tradeoff: >
-      It gives up the recognition that helps a new app get understood in three seconds. To someone who does not know
-      the tradition, the restraint can read as unfinished rather than as faithful.
-  - choice: "Took the visual language from temple architecture rather than from manuscripts"
-    why: >
-      Manuscripts are the easier reference and the more decorative one. Temple geometry (repetition, symmetry, the
-      way a plan resolves toward a centre) is structural, so it could drive grid and layout across the book, the
-      app and the print identity instead of supplying ornament to only one of them.
-    tradeoff: >
-      It is a harder reference to read. The connection is obvious to someone who has stood in one of those spaces
-      and close to invisible to everyone else, which means the work does not explain itself.
-  - choice: "Built it in conversation with my father instead of from research"
-    why: >
-      Almost everything written about Jain philosophy in a design context is secondhand. Working from someone who
-      lives inside the tradition meant each decision could be checked against whether it felt true rather than only
-      against whether it looked correct.
-    tradeoff: >
-      It makes one person's reading the standard. Jain practice varies considerably by region and by sect, and this
-      is faithful to a particular version of it rather than to the whole.
-next_steps: >
-  The piece I never resolved is the app. The identity and the book hold, but the app was designed against a
-  category I had rejected and never found its own model for what daily use should feel like, and daily use is
-  the entire question with something like this. I would also want the work read by people outside my own family,
-  from other regions and sects, because the reference behind it is narrower than the subject is.
 next_project:
   title: "Naavo"
   url: /naavo/
