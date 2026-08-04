@@ -3603,6 +3603,88 @@
           transform: translateY(-50%);
         }
       }
+      /* ─── PROOF ROW — craft pass ───────────────────────────────────────
+         The three highlight figures are the first hard evidence a recruiter
+         hits on a case study, so they're treated as an instrument panel
+         rather than a static row: the cells reveal on a stagger, the numbers
+         count up to their real values, and hovering draws a hairline under
+         the figure it belongs to. The row also used to leave ~200px of dead
+         space beneath it (130px padding on top of a 70px margin), which read
+         as the page trailing off rather than as a section break. */
+      .proj-highlights {
+        padding-bottom: clamp(44px, 5vw, 78px) !important;
+        margin-bottom: clamp(28px, 3.4vw, 52px) !important;
+      }
+      .proj-highlight {
+        position: relative;
+        padding-bottom: 18px !important;
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: var(--hl-delay, 0ms);
+      }
+      .proj-highlights.is-lit .proj-highlight {
+        opacity: 1;
+        transform: none;
+      }
+      /* Drawn, not faded: the rule grows from the left edge of the figure it
+         underlines, so the hover reads as taking a measurement. */
+      .proj-highlight::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(150, 195, 255, 0.85), rgba(150, 195, 255, 0));
+        transform: scaleX(0);
+        transform-origin: 0 50%;
+        transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .proj-highlight:hover::after {
+        transform: scaleX(1);
+      }
+      .proj-highlight-value {
+        font-variant-numeric: tabular-nums;
+        transition:
+          color 260ms ease,
+          transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .proj-highlight:hover .proj-highlight-value {
+        transform: translateY(-2px);
+        color: #fff;
+      }
+      .proj-highlight-label {
+        transition: color 260ms ease;
+      }
+      .proj-highlight:hover .proj-highlight-label {
+        color: rgba(255, 255, 255, 0.72) !important;
+      }
+      html[data-theme="light"] .proj-highlight::after {
+        background: linear-gradient(90deg, rgba(30, 80, 170, 0.8), rgba(30, 80, 170, 0));
+      }
+      html[data-theme="light"] .proj-highlight:hover .proj-highlight-value {
+        color: #07090f;
+      }
+      html[data-theme="light"] .proj-highlight:hover .proj-highlight-label {
+        color: rgba(7, 9, 15, 0.75) !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .proj-highlight {
+          opacity: 1;
+          transform: none;
+        }
+        .proj-highlight,
+        .proj-highlight::after,
+        .proj-highlight-value {
+          transition: none;
+        }
+        .proj-highlight:hover .proj-highlight-value {
+          transform: none;
+        }
+      }
     </style>
   </head>
   <body data-pillar="{{ page.pillar }}">
@@ -3885,6 +3967,92 @@
           },
           { passive: true }
         );
+      })();
+
+      // ── PROOF ROW ── stagger the three highlight cells in, and count the
+      // numeric ones up to their real value. The number on screen is always
+      // the number in the front matter — the animation only decides how fast
+      // it gets there, and the original string is written back verbatim at
+      // the end so nothing can leave a mangled figure on the page.
+      (function () {
+        var row = document.querySelector(".proj-highlights");
+        if (!row) return;
+        var cells = row.querySelectorAll(".proj-highlight");
+        if (!cells.length) return;
+        var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        cells.forEach(function (cell, i) {
+          cell.style.setProperty("--hl-delay", i * 110 + "ms");
+        });
+
+        // "100k+" → prefix "", digits "100", suffix "k+". Values with no
+        // digits ("Kyoorius") just fade in with the rest of the row.
+        function countUp(el, startDelay) {
+          var full = el.textContent;
+          var m = full.match(/^(\D*?)([\d][\d.,]*)(.*)$/);
+          if (!m) return;
+          var pre = m[1],
+            raw = m[2],
+            post = m[3];
+          var decimals = (raw.split(".")[1] || "").length;
+          var grouped = raw.indexOf(",") !== -1;
+          var target = parseFloat(raw.replace(/,/g, ""));
+          if (!isFinite(target)) return;
+
+          function render(n) {
+            var s = n.toFixed(decimals);
+            if (grouped) {
+              var parts = s.split(".");
+              parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              s = parts.join(".");
+            }
+            el.textContent = pre + s + post;
+          }
+
+          render(0);
+          var DUR = 1100;
+          var t0 = null;
+          function frame(now) {
+            if (t0 === null) t0 = now;
+            var t = Math.min(1, (now - t0) / DUR);
+            // Same ease as the reveal, so the number settles when the cell does.
+            var e = 1 - Math.pow(1 - t, 3);
+            if (t >= 1) {
+              el.textContent = full;
+              return;
+            }
+            render(target * e);
+            requestAnimationFrame(frame);
+          }
+          setTimeout(function () {
+            requestAnimationFrame(frame);
+          }, startDelay);
+        }
+
+        function light() {
+          row.classList.add("is-lit");
+          if (still) return;
+          cells.forEach(function (cell, i) {
+            var v = cell.querySelector(".proj-highlight-value");
+            if (v) countUp(v, 160 + i * 110);
+          });
+        }
+
+        if (still || !("IntersectionObserver" in window)) {
+          light();
+          return;
+        }
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (!entry.isIntersecting) return;
+              io.disconnect();
+              light();
+            });
+          },
+          { threshold: 0.35 }
+        );
+        io.observe(row);
       })();
 
       // Progress bar + hero parallax (combined into one rAF loop for perf)
