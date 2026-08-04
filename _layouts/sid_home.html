@@ -53,6 +53,9 @@
         --home-faint: rgba(236, 241, 247, 0.38);
         --home-hair: rgba(236, 241, 247, 0.14);
         --home-accent: #eef1f7;
+        /* the film veil is written as raw channels so gradients can fade it
+           out with an explicit alpha instead of routing through `transparent` */
+        --film-veil: 4, 6, 11;
       }
       html[data-theme="light"] {
         color-scheme: light;
@@ -62,6 +65,7 @@
         --home-faint: rgba(20, 22, 27, 0.42);
         --home-hair: rgba(20, 22, 27, 0.16);
         --home-accent: #141821;
+        --film-veil: 242, 239, 232;
       }
 
       *,
@@ -172,12 +176,24 @@
 
       /* ── hero ───────────────────────────────────────────────────── */
       .hero {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
         min-height: 100svh;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
         padding-bottom: clamp(46px, 8vh, 92px);
         padding-top: clamp(120px, 18vh, 200px);
+      }
+      /* The hero is full-bleed now so the film can run edge to edge; the
+         copy keeps the site's measure by living in its own wrap. */
+      .hero__inner {
+        position: relative;
+        z-index: 2;
+        width: min(1440px, 100%);
+        margin: 0 auto;
+        padding: 0 clamp(22px, 5vw, 92px);
       }
       .hero__eyebrow {
         margin: 0 0 clamp(26px, 5vh, 54px);
@@ -216,28 +232,48 @@
 
       h1.hero__title {
         margin: 0;
-        max-width: 15ch;
-        font-weight: 600;
-        font-size: clamp(2.5rem, 6.2vw, 6.1rem);
+        max-width: 24ch;
+        font-weight: 500;
+        font-size: clamp(1.9rem, 6.4vw, 6.4rem);
         line-height: 0.98;
-        letter-spacing: -0.038em;
+        letter-spacing: -0.042em;
       }
-      /* Word-by-word mask reveal. Each word rides up out of its own clip,
-         which is why the line resolves as a line and not as 40 letters. */
-      .w {
-        display: inline-block;
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
         overflow: hidden;
-        vertical-align: bottom;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
       }
-      .w > i {
+      /* The headline writes itself. Each line is its own block, so the caret
+         sits at the end of the line being written and the block below never
+         jumps — the height is reserved by min-height, not by the text. */
+      .tw {
+        display: block;
+      }
+      .tw__line {
+        display: block;
+        min-height: 0.98em;
+        white-space: pre-wrap;
+      }
+      .tw__line.is-typing::after {
+        content: "";
         display: inline-block;
-        font-style: inherit;
-        transform: translate3d(0, 105%, 0);
-        transition: transform 1100ms cubic-bezier(0.16, 1, 0.3, 1);
-        transition-delay: var(--d, 0ms);
+        width: 0.05em;
+        height: 0.72em;
+        margin-left: 0.06em;
+        vertical-align: -0.02em;
+        background: currentColor;
+        animation: twCaret 780ms steps(1, end) infinite;
       }
-      .hero.in .w > i {
-        transform: none;
+      @keyframes twCaret {
+        50% {
+          opacity: 0;
+        }
       }
       .accent {
         color: var(--home-ink);
@@ -260,7 +296,8 @@
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        .accent {
+        .accent,
+        .tw__line.is-typing::after {
           animation: none;
         }
       }
@@ -278,13 +315,45 @@
           align-items: start;
         }
       }
-      .hero__proof {
+      /* One number, then two lines. Sid's call: the four-fact paragraph was
+         doing the job of a CV, and the hero is not a CV. */
+      .hero__num {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+        align-items: start;
+        gap: clamp(14px, 2.2vw, 30px);
         margin: 0;
-        max-width: 42ch;
+      }
+      .hero__num b {
+        display: block;
+        font-size: clamp(3.2rem, 7.4vw, 6.2rem);
+        font-weight: 500;
+        line-height: 0.78;
+        letter-spacing: -0.06em;
+        font-variant-numeric: tabular-nums;
+        background: linear-gradient(180deg, var(--home-ink), var(--home-faint));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hero__num b em {
+        display: block;
+        margin-top: 0.32em;
+        font-style: normal;
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        -webkit-text-fill-color: var(--home-faint);
+        color: var(--home-faint);
+      }
+      .hero__num span {
+        max-width: 44ch;
+        padding-top: 0.4em;
         color: var(--home-muted);
         font-family: "DM Mono", monospace;
-        font-size: clamp(0.78rem, 1vw, 0.9rem);
-        line-height: 1.7;
+        font-size: clamp(0.76rem, 0.98vw, 0.88rem);
+        line-height: 1.85;
       }
 
       /* Indexed destinations. Each row is a full-width rule that the label
@@ -445,6 +514,301 @@
         100% {
           transform: scaleY(1) translateY(44px);
           opacity: 0;
+        }
+      }
+
+      /* ── the film ───────────────────────────────────────────────
+         The hero's floor. Two takes of the same shot live in the DOM only
+         so the browser will decode them; WebGL reads both and paints the
+         pixelated one, then lets the pointer develop the clear one back
+         in. Everything here is presentation — no copy depends on it. */
+      .film {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .film canvas,
+      .film video,
+      .film__still {
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      /* The <video> elements are decode sources, never pixels on screen.
+         They stay in layout (display:none would stop decoding in several
+         browsers) and are simply invisible. */
+      .film video {
+        object-fit: cover;
+        opacity: 0;
+      }
+      .film canvas {
+        opacity: 0;
+        transition: opacity 1400ms ease;
+      }
+      .film.is-gl canvas {
+        opacity: 0.92;
+      }
+      html[data-theme="light"] .film.is-gl canvas {
+        opacity: 0.4;
+      }
+      .film__still {
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 700ms ease;
+      }
+      .film.is-static .film__still {
+        opacity: 0.5;
+      }
+      html[data-theme="light"] .film.is-static .film__still {
+        opacity: 0.24;
+      }
+      .film.is-static video,
+      .film.is-static canvas {
+        display: none;
+      }
+      /* The veil. Explicit rgba stops rather than `transparent`, because a
+         gradient to `transparent` interpolates through transparent BLACK
+         and leaves a grey bruise across the middle of the fade. */
+      .film::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(90deg, rgba(var(--film-veil), 0.97) 0%, rgba(var(--film-veil), 0.72) 34%, rgba(var(--film-veil), 0) 76%),
+          linear-gradient(0deg, rgba(var(--film-veil), 0.94) 0%, rgba(var(--film-veil), 0.3) 34%, rgba(var(--film-veil), 0) 62%),
+          linear-gradient(180deg, rgba(var(--film-veil), 0.9) 0%, rgba(var(--film-veil), 0) 34%);
+      }
+      .film__hint {
+        position: absolute;
+        right: clamp(22px, 5vw, 92px);
+        bottom: clamp(46px, 8vh, 92px);
+        z-index: 2;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        font-family: "DM Mono", monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--home-faint);
+        transition: opacity 600ms ease;
+      }
+      .film__hint b {
+        display: block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        border: 1px solid currentColor;
+        animation: filmPulse 2.6s ease-in-out infinite;
+      }
+      @keyframes filmPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        50% {
+          transform: scale(2.1);
+          opacity: 1;
+        }
+      }
+      .film.is-touched .film__hint,
+      .film.is-static .film__hint {
+        opacity: 0;
+      }
+      @media (max-width: 780px) {
+        .film__hint {
+          display: none;
+        }
+      }
+
+      /* ── how I think: the portrait that starts working ───────────
+         Sid wanted the old one back: hover the photo, it wakes up, and it
+         writes out how he actually makes decisions — in the one language
+         that cannot be vague about it. */
+      .ide {
+        position: relative;
+        display: grid;
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        gap: clamp(18px, 3vw, 44px);
+        margin: 0;
+      }
+      @media (max-width: 860px) {
+        .ide {
+          grid-template-columns: 1fr;
+        }
+      }
+      .ide__photo {
+        position: relative;
+        overflow: hidden;
+        border-radius: 14px;
+        aspect-ratio: 4 / 5;
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .ide__photo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(1) contrast(1.14) brightness(0.68);
+        transform: scale(1.045);
+        transition:
+          filter 900ms ease,
+          transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .ide.is-live .ide__photo img {
+        filter: grayscale(0) contrast(1.02) brightness(0.98);
+        transform: scale(1);
+      }
+      /* the CRT pass: standing scanlines, plus one bar that sweeps down
+         when it wakes, so it reads as a screen switching on */
+      .ide__photo::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0.55;
+        background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0 1px, rgba(0, 0, 0, 0) 1px 3px);
+        transition: opacity 800ms ease;
+      }
+      .ide.is-live .ide__photo::before {
+        opacity: 0.16;
+      }
+      .ide__photo::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -26%;
+        height: 26%;
+        z-index: 3;
+        pointer-events: none;
+        opacity: 0;
+        background: linear-gradient(180deg, rgba(150, 190, 255, 0) 0%, rgba(150, 190, 255, 0.24) 50%, rgba(150, 190, 255, 0) 100%);
+      }
+      .ide.is-live .ide__photo::after {
+        animation: ideSweep 1500ms cubic-bezier(0.16, 1, 0.3, 1) 1 forwards;
+      }
+      @keyframes ideSweep {
+        0% {
+          transform: translateY(0);
+          opacity: 0;
+        }
+        14% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(480%);
+          opacity: 0;
+        }
+      }
+      .ide__panel {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--home-hair);
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(4, 8, 16, 0.4);
+        backdrop-filter: blur(9px);
+        -webkit-backdrop-filter: blur(9px);
+      }
+      html[data-theme="light"] .ide__panel {
+        background: rgba(255, 255, 255, 0.44);
+      }
+      .ide__bar {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 13px 16px;
+        border-bottom: 1px solid var(--home-hair);
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        color: var(--home-faint);
+      }
+      .ide__bar b {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--home-hair);
+        transition: background 500ms ease;
+      }
+      .ide.is-live .ide__bar b:first-child {
+        background: #ff6f9c;
+      }
+      .ide.is-live .ide__bar b:nth-child(2) {
+        background: #7aa2ff;
+      }
+      .ide__bar em {
+        margin-left: 10px;
+        font-style: normal;
+      }
+      .ide__code {
+        flex: 1;
+        margin: 0;
+        padding: clamp(18px, 2.6vw, 36px);
+        overflow: hidden;
+        font-family: "DM Mono", monospace;
+        font-size: clamp(0.76rem, 1.1vw, 1rem);
+        line-height: 2.05;
+        white-space: pre-wrap;
+        color: var(--home-muted);
+      }
+      .ide__code .k {
+        color: #7aa2ff;
+      }
+      .ide__code .n {
+        color: var(--home-ink);
+      }
+      .ide__code .v {
+        color: #ff6f9c;
+      }
+      html[data-theme="light"] .ide__code .k {
+        color: #2b4fc4;
+      }
+      html[data-theme="light"] .ide__code .v {
+        color: #bd2c64;
+      }
+      .ide__code .cur::after {
+        content: "";
+        display: inline-block;
+        width: 0.5em;
+        height: 1.02em;
+        margin-left: 0.04em;
+        vertical-align: -0.2em;
+        background: currentColor;
+        opacity: 0.7;
+        animation: twCaret 780ms steps(1, end) infinite;
+      }
+      .ide__cap {
+        position: absolute;
+        left: 2px;
+        bottom: -26px;
+        font-family: "DM Mono", monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--home-faint);
+        transition: opacity 500ms ease;
+      }
+      .ide.is-live .ide__cap {
+        opacity: 0;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .ide__photo::after,
+        .ide__code .cur::after {
+          animation: none;
+        }
+        .ide__photo img {
+          transition: none;
         }
       }
 
@@ -727,44 +1091,70 @@
 
     <main id="main">
       <!-- ───────────────── hero ───────────────── -->
-      <section class="hero wrap" id="hero" aria-labelledby="hero-title">
-        <p class="hero__eyebrow">
-          <span class="dot" aria-hidden="true"></span>
-          <span>Sid Mehta &nbsp;·&nbsp; Product designer &nbsp;·&nbsp; New York</span>
-          <a
-            class="hero__creds"
-            href="{{ site.baseurl }}/about/#recognition"
-            aria-label="Recognition: two Webby Awards, MIT Reality Hack, and a Kyoorius Design Award."
-          >
-            <span>Webby ×2</span><span>MIT Reality Hack</span><span>Kyoorius</span>
-          </a>
-        </p>
+      <section class="hero" id="hero" aria-labelledby="hero-title">
+        <!-- The film. Two takes of one shot: pixelated is what you are given,
+             clear is what you develop by moving through it. The <video> tags
+             exist only so the browser decodes frames — WebGL draws both. -->
+        <div class="film" id="film-stage" aria-hidden="true">
+          <video id="film-pixel" src="{{ site.baseurl }}/assets/video/sid_pixelated.mp4" muted loop playsinline preload="auto"></video>
+          <video id="film-clear" src="{{ site.baseurl }}/assets/video/sid_sitting.mp4" muted loop playsinline preload="auto"></video>
+          <canvas id="film-gl"></canvas>
+          <img class="film__still" src="{{ site.baseurl }}/assets/img/sid_pixel_freeze.webp" alt="" decoding="async" />
+          <p class="film__hint"><b></b>Move to develop the frame</p>
+        </div>
 
-        <h1 class="hero__title" id="hero-title" data-split>
-          I turn complex technology into
-          <span class="accent">clear, useful experiences.</span>
-        </h1>
-
-        <div class="hero__foot rv">
-          <p class="hero__proof">
-            Six years shipping product. Fourteen public projects. Twenty-five artworks activated at The&nbsp;Met, and a hundred thousand people
-            carrying something I drew.
+        <div class="hero__inner">
+          <p class="hero__eyebrow">
+            <span class="dot" aria-hidden="true"></span>
+            <span>Sid Mehta &nbsp;·&nbsp; Product designer &nbsp;·&nbsp; New York</span>
+            <a
+              class="hero__creds"
+              href="{{ site.baseurl }}/about/#recognition"
+              aria-label="Recognition: two Webby Awards, MIT Reality Hack, and a Kyoorius Design Award."
+            >
+              <span>Webby ×2</span><span>MIT Reality Hack</span><span>Kyoorius</span>
+            </a>
           </p>
-          <ul class="hero__links">
-            <li>
-              <a href="{{ site.baseurl }}/works/"><em>01</em><b>Selected work</b><i aria-hidden="true">→</i></a>
-            </li>
-            <li>
-              <button type="button" id="reel-open" aria-haspopup="dialog" aria-controls="reel-modal"><em>02</em><b>Showreel</b><i aria-hidden="true">↗</i></button>
-            </li>
-            <li>
-              <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer"><em>03</em><b>Résumé PDF</b><i aria-hidden="true">↗</i></a>
-            </li>
-          </ul>
+
+          <h1 class="hero__title" id="hero-title">
+            <span class="sr-only">I make hard software feel obvious.</span>
+            <span class="tw" aria-hidden="true" data-tw="I make hard software|feel obvious."></span>
+          </h1>
+
+          <div class="hero__foot rv">
+            <p class="hero__num">
+              <b>06<em>years</em></b>
+              <span
+                >Product designer for fintech, spatial computing and AI tools.<br />I build the version people trust on the day it actually matters,
+                not the one that demos well.</span
+              >
+            </p>
+            <ul class="hero__links">
+              <li>
+                <a href="{{ site.baseurl }}/works/"><em>01</em><b>Selected work</b><i aria-hidden="true">→</i></a>
+              </li>
+              <li>
+                <button type="button" id="reel-open" aria-haspopup="dialog" aria-controls="reel-modal">
+                  <em>02</em><b>Showreel</b><i aria-hidden="true">↗</i>
+                </button>
+              </li>
+              <li>
+                <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer"
+                  ><em>03</em><b>Résumé PDF</b><i aria-hidden="true">↗</i></a
+                >
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div class="scroll-cue" aria-hidden="true"><span class="bar"></span><span>Scroll</span></div>
       </section>
+
+      <!-- ───────────────── the object ─────────────────
+           Moved up out of the tail. Straight after the film you get a real
+           thing in perspective that answers to your scroll — that is the
+           promise the rest of the page then has to keep. -->
+      {% include home_cube.html %}
 
       <!-- ───────────────── 01 work ───────────────── -->
       <section class="sec wrap" id="work" aria-labelledby="work-h">
@@ -863,9 +1253,24 @@
         </ol>
       </section>
 
-      <!-- ───────────────── 02 numbers ───────────────── -->
+      <!-- ───────────────── 02 how I think ───────────────── -->
+      <section class="sec wrap" id="how" aria-labelledby="how-h">
+        <div class="sec-head rv"><span>02</span><span class="rule"></span><span id="how-h">How I think</span></div>
+        <figure class="ide rv" id="ide">
+          <div class="ide__photo">
+            <img src="{{ site.baseurl }}/assets/img/sid_about_pf.webp" alt="Sid Mehta at his desk" loading="lazy" decoding="async" />
+          </div>
+          <div class="ide__panel" aria-hidden="true">
+            <div class="ide__bar"><b></b><b></b><b></b><em>design.principles.ts</em></div>
+            <pre class="ide__code"><code id="ide-code"></code></pre>
+          </div>
+          <figcaption class="ide__cap">Hover the photo — it starts working</figcaption>
+        </figure>
+      </section>
+
+      <!-- ───────────────── 03 numbers ───────────────── -->
       <section class="sec wrap" aria-labelledby="nums-h">
-        <div class="sec-head rv"><span>02</span><span class="rule"></span><span id="nums-h">By the numbers</span></div>
+        <div class="sec-head rv"><span>03</span><span class="rule"></span><span id="nums-h">By the numbers</span></div>
         <div class="nums">
           <div class="num rv" style="--d: 0ms"><b data-count="6">6</b><span>Years shipping</span></div>
           <div class="num rv" style="--d: 90ms"><b data-count="14">14</b><span>Public projects</span></div>
@@ -873,9 +1278,6 @@
           <div class="num rv" style="--d: 270ms"><b data-count="100" data-suffix="k+">100k+</b><span>Mool downloads</span></div>
         </div>
       </section>
-
-      <!-- ───────────────── 03 the cube ───────────────── -->
-      {% include home_cube.html %}
 
       <!-- ───────────────── 04 the door ───────────────── -->
       <section class="sec wrap door" aria-labelledby="door-h">
@@ -961,42 +1363,156 @@
     </style>
 
     <script src="{{ site.baseurl }}/assets/js/home-gl.js" defer></script>
+    <script src="{{ site.baseurl }}/assets/js/home-film.js" defer></script>
 
     <script>
-      /* ── headline split ──────────────────────────────────────────
-         Done in JS rather than in the markup so the H1 stays one clean
-         sentence for screen readers and for anyone with JS off. */
+      /* ── headline typewriter ─────────────────────────────────────
+         The H1 carries the real sentence for screen readers and for anyone
+         with JS off; this types a visual copy of it. Lines are pre-split so
+         the caret never lands mid-word and the block below never reflows. */
       (function () {
-        var h = document.querySelector("[data-split]");
-        if (!h) return;
-        var i = 0;
-        var walk = function (node) {
-          var kids = [].slice.call(node.childNodes);
-          kids.forEach(function (n) {
-            if (n.nodeType === 3) {
-              var frag = document.createDocumentFragment();
-              n.nodeValue.split(/(\s+)/).forEach(function (tok) {
-                if (!tok) return;
-                if (/^\s+$/.test(tok)) return frag.appendChild(document.createTextNode(" "));
-                var w = document.createElement("span");
-                w.className = "w";
-                var inner = document.createElement("i");
-                inner.textContent = tok;
-                inner.style.setProperty("--d", i * 55 + "ms");
-                i++;
-                w.appendChild(inner);
-                frag.appendChild(w);
-              });
-              node.replaceChild(frag, n);
-            } else if (n.nodeType === 1) walk(n);
+        var host = document.querySelector(".tw");
+        var hero = document.getElementById("hero");
+        if (!host) return;
+        var lines = (host.getAttribute("data-tw") || "").split("|");
+        var els = lines.map(function (txt, i) {
+          var el = document.createElement("span");
+          el.className = "tw__line" + (i === lines.length - 1 ? " accent" : "");
+          host.appendChild(el);
+          return el;
+        });
+        if (hero) hero.classList.add("in");
+
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          els.forEach(function (el, i) {
+            el.textContent = lines[i];
+          });
+          return;
+        }
+
+        var li = 0,
+          ci = 0,
+          gate = 0;
+        var tick = function (now) {
+          if (li >= lines.length) {
+            els[els.length - 1].classList.add("is-typing");
+            return;
+          }
+          if (now < gate) return requestAnimationFrame(tick);
+          gate = now + 34;
+          var el = els[li],
+            txt = lines[li];
+          el.classList.add("is-typing");
+          ci++;
+          el.textContent = txt.slice(0, ci);
+          if (ci >= txt.length) {
+            el.classList.remove("is-typing");
+            li++;
+            ci = 0;
+            gate = now + 300; /* a beat between lines */
+          }
+          requestAnimationFrame(tick);
+        };
+        setTimeout(function () {
+          requestAnimationFrame(function (now) {
+            gate = now;
+            tick(now);
+          });
+        }, 420);
+      })();
+
+      /* ── the portrait that starts working ────────────────────────
+         Hover it and it wakes up and writes out how the work actually gets
+         made. Code, because English lets you be vague about this and code
+         does not. Typed one character at a time out of a token list, so the
+         colouring is structural rather than a regex over a moving string. */
+      (function () {
+        var fig = document.getElementById("ide");
+        var out = document.getElementById("ide-code");
+        if (!fig || !out) return;
+
+        var PAIRS = [
+          ["emotion", "storytelling"],
+          ["structure", "clarity"],
+          ["detail", "restraint"],
+          ["motion", "physics"],
+          ["proof", "shipped"],
+        ];
+        var toks = [];
+        var pad = function (t, n) {
+          while (t.length < n) t += " ";
+          return t;
+        };
+        PAIRS.forEach(function (r) {
+          toks.push(["const ", "k"], [pad(r[0], 10), "n"], ["= ", ""], [r[1], "v"], ["\n", ""]);
+        });
+        toks.push(["\n", ""], ["export default ", "k"], ["trust", "v"]);
+        var total = toks.reduce(function (a, t) {
+          return a + t[0].length;
+        }, 0);
+
+        var esc = function (t) {
+          return t.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+        };
+        var render = function (n) {
+          var html = "",
+            used = 0;
+          for (var i = 0; i < toks.length && used < n; i++) {
+            var t = toks[i][0],
+              c = toks[i][1];
+            var part = t.slice(0, Math.min(t.length, n - used));
+            html += c ? '<span class="' + c + '">' + esc(part) + "</span>" : esc(part);
+            used += part.length;
+          }
+          out.innerHTML = html + (n < total ? '<span class="cur"></span>' : "");
+        };
+
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var typing = false;
+
+        var run = function () {
+          if (typing) return;
+          fig.classList.remove("is-live");
+          /* force the wake-up sweep to restart rather than sit finished */
+          void fig.offsetWidth;
+          fig.classList.add("is-live");
+          if (reduce) return render(total);
+          typing = true;
+          var n = 0,
+            gate = 0;
+          var step = function (now) {
+            if (now < gate) return requestAnimationFrame(step);
+            gate = now + 14;
+            n++;
+            render(n);
+            if (n < total) return requestAnimationFrame(step);
+            typing = false;
+          };
+          requestAnimationFrame(function (now) {
+            gate = now + 260; /* let the screen come on before it writes */
+            step(now);
           });
         };
-        walk(h);
-        requestAnimationFrame(function () {
-          requestAnimationFrame(function () {
-            document.getElementById("hero").classList.add("in");
-          });
-        });
+
+        fig.addEventListener("pointerenter", run);
+        fig.addEventListener("focusin", run);
+
+        /* Touch never hovers, so run it once when it arrives on screen. */
+        if ("IntersectionObserver" in window) {
+          var io = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (en) {
+                if (!en.isIntersecting) return;
+                io.unobserve(en.target);
+                run();
+              });
+            },
+            { threshold: 0.4 }
+          );
+          io.observe(fig);
+        } else {
+          run();
+        }
       })();
 
       /* ── reveal on enter ─────────────────────────────────────── */
