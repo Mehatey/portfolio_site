@@ -80,6 +80,12 @@ He has a strong, specific sensibility. Match it and he's happy; miss it and he'l
 - `device_bash` `timeout_ms` maxes out at 45000.
 - **Git can create `.lock` files on the fuse mount but cannot unlink them.** Prefix _every_ git call, in the same shell invocation, with a sweep that moves any lock into `.git/stale-locks/`. Do **not** rename locks in place under `.git/refs/` — git parses whatever is in there as a ref and `git log --all` starts failing with `fatal: bad object refs/heads/main.lock.cleared_…`.
 - **The cloud agent cannot push.** The remote is SSH (`git@github.com:…`) and the device VM has no `~/.ssh` and no credential helper; `git push` dies with `Connection closed by UNKNOWN port 65535`. Commits land locally and **Sid has to push them himself**.
+- **`git reset --hard` does not work on the mount** — it returns `fatal: Could not reset index file to revision 'HEAD~1'` even with every lock swept away. `git add` and `git commit` work fine; only index-rewriting operations fail. To undo a bad commit, restore the content and commit forward instead: `git show HEAD~1:path/to/file > path/to/file`, then `git add` + `git commit`. Verify the revert by checking that the commit stat is the exact inverse of the bad one.
+- **`device_stage_files` returns a stale cached copy for any path already staged this session.** It reports the correct byte count in its JSON result while the file that lands under `/mnt/user-data/uploads/` is the _old_ one — the mismatch between the reported `bytes` and `wc -c` on the staged file is the only tell. Workaround: copy the file to a fresh path on the device first (`cp HANDOFF.md _scratch/stage2/HANDOFF.md`) and stage _that_. **Always compare the reported `bytes` against `wc -c` after staging.**
+
+> **The single most expensive mistake made in this repo so far.** The container's `~/repo/` mirror is **not** kept in sync with `~/mnt/al-folio`. Commit `c3bfbca0` edited a container copy of `_layouts/project.html` that had drifted ~500 lines behind the device, then wrote the whole file back — silently deleting the pillar-accent system, the progress bar's tint and glow, and the entire design-decisions section. It was caught only because the commit stat read `203 insertions(+), 504 deletions(-)` for what was supposed to be a purely additive change.
+>
+> **Rule: stage a file from the device immediately before editing it, and check the commit stat afterwards.** A purely additive edit that reports deletions means you just overwrote something.
 
 ### The local QA loop (cloud agent — this is the thing that makes visual QA possible)
 
@@ -117,10 +123,14 @@ The page is one continuous WebGL space — `assets/js/home-gl.js` draws a fixed 
 
 ---
 
-## 6b. What landed in the overnight session (9 unpushed commits)
+## 6b. What landed in the overnight session (13 unpushed commits)
 
 Everything below is committed on local `main` and **not yet on `origin/main`** (see §5 — the cloud agent cannot push). Newest first:
 
+- `4a7f0f3d` — **The Plot no longer opens as bare ground.** Ambient growth alone took ~20 seconds to fill the plot, so a visitor who scrolled to the bottom met an empty pond, which reads as broken rather than as patient. It now sows 24 seedlings at staggered maturities on the first animation frame, so it opens as a garden that has already been growing. Also fixed a pre-existing bug where every unattended planting used a range (full width, 0.34–0.96 of the height) that overshot the pond on three sides and slowly stranded plants on the dry paper margin — all of it now goes through one `sowPoint()` that samples inside the pond.
+- `dddd7f0d` — case-study proof row: the three highlight figures reveal on a 110ms stagger, numeric values count up to their real figure, and hovering draws a hairline under the figure it belongs to. The row also shed ~150px of dead space beneath it. The count-up cannot mangle a number — it writes the front-matter string back verbatim at the end, skips values with no digits, and both the reduced-motion and no-IntersectionObserver paths land straight on the finished state.
+- `26301138` — **revert.** Restored `_layouts/project.html` after `c3bfbca0` was written from a stale container mirror and destroyed ~500 lines. See the warning box in §5.
+- `c3bfbca0` — **destructive, superseded by the revert above.** Left in history because rewriting it is not possible on this mount.
 - `03ac4dee` — removed ~120 lines of dead `#loader-stream` code (the terminal typewriter markup was deleted earlier; its styles, driver IIFE and fade hook were left behind and ran on every visit matching nothing), and re-fixed the light-theme nav blackout on dark-canvas pages (§5 trap 1).
 - `604a03fa` — removed a dead `.nav` scroll-dimming handler in `works.html` that threw `TypeError: Cannot read properties of null` on **every scroll frame**; the page renders `studio_nav`, which has no `.nav` element. `404.html` genuinely has `.nav`, so it got a null guard instead. A 12-page sweep afterwards came back JS-error-clean.
 - `7a273270` — a "Currently" block in the third About column with a **live New York clock** (`Intl.DateTimeFormat`, repainting every 20s) plus hairline SVG icons. Added because that column trailed off and left the grid unbalanced. Every line restates a fact already on the page — nothing invented.
@@ -135,9 +145,9 @@ Everything below is committed on local `main` and **not yet on `origin/main`** (
 
 ## 7. Open items
 
-1. **PUSH THE NINE COMMITS.** `git push origin main` from the Mac, then confirm prettier CI is green and QA the result live in both themes.
-2. **The three "no breathing room" follow-ons** from the governing brief that are not yet done: the case-study layout (`project.html`), the home page, and the Play page still want the same motion/hover/icon craft pass that Works, Contact and About got.
-3. **The "get to know Sid" strip** in `_includes/site_footer.html` has never been visually checked — confirm it loops seamlessly.
+1. **PUSH THE THIRTEEN COMMITS.** `git push origin main` from the Mac, then confirm prettier CI is green and QA the result live in both themes.
+2. **The remaining "no breathing room" follow-ons** from the governing brief: the **home page** and the **Play page** still want the motion/hover/icon craft pass that Works, Contact, About and the case-study layout have now had. Note that Play is the root-level standalone `play/index.html` (`layout: none`, ~98 items, its own 3D gallery) — it is _not_ a Jekyll page, `pc/ssg.js` does not build it, and it is the highest-risk file in the repo to touch unattended.
+3. ~~The "get to know Sid" strip~~ — checked. The strip no longer exists; The Plot replaced it. The footer now reads name → tagline → updated-date → links → pull-quote → plot, and renders correctly in both themes.
 4. **Mobile / touch pass** on the cube, the desk liquefy, and The Plot footer.
 5. **Tune the nav glass `scale`** (currently `16`) once Sid has judged the bend in real Chrome.
 6. **Dead code, safe to delete once Sid confirms he doesn't want v1 as a rollback:** `assets/js/home-enhance.js`, `_includes/home_cinema.html`, `_layouts/sid_home_v1.html`, `_layouts/about.liquid`, and the leftover `.hs-card` / `.hs-grid` CSS.
