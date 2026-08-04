@@ -63,7 +63,7 @@ He has a strong, specific sensibility. Match it and he's happy; miss it and he'l
 
 ## 5. Technical traps we hit (save yourself the pain)
 
-1. **Theme vs. dark-hero specificity.** Historically home / contact / play were _pinned_ dark even under `html[data-theme="light"]`, via overrides in `studio_nav.html`. **That is no longer true** — all three now have real light layers (commits `71034525`, `846f73c8`). The white nav ink those pages need in dark theme is now scoped `html:not([data-theme="light"]) .home-page .studio-nav {…}`, which keeps the specificity relationship explicit rather than relying on source order. If you add nav colour rules, keep that shape and **verify both themes** — a generic `html[data-theme="light"] .studio-nav` rule out-specifying the page rules is what once turned the logo into a white square.
+1. **Theme vs. dark-hero specificity — this bug has now bitten twice.** `studio_nav.html` carries a generic `html[data-theme="light"] .studio-nav { --nav-ink: #0a1727 }`. Its specificity (0,2,1) beats the page rule `.home-page .studio-nav` (0,2,0), so in light theme the dark-canvas pages inherit near-black labels and a white-filled logo mark on a black background — invisible. Fixed again in commit `03ac4dee` by adding explicitly `html[data-theme="light"]`-prefixed variants for `.home-page`, `.contact-page` and `.play-page` immediately after the generic block. **If you touch nav colour, re-screenshot home, contact and about in BOTH themes** — this is the single most-regressed thing in the repo.
 2. **jekyll-minifier mangles `var()` inside `calc()`.** It once broke `calc(var(--nav-h) …)` into `var( - - nav - h)`. There's a comment about it in `project.html`. Be cautious with CSS custom properties inside `calc()` in production output.
 3. **`home-film.js` went missing from the working tree once** (untracked + deleted on disk, though referenced by the homepage and live in prod). **After any big change, run `git ls-files assets/js/home-film.js`** — if it's empty, the hero will 404 on the next rebuild.
 4. **Liquid glass is Chromium-only for the refraction.** `studio_nav.html` uses `backdrop-filter: … url(#nav-glass)` with an inline SVG `feTurbulence` + `feDisplacementMap`. Non-Chromium browsers get a blur-only fallback (by design). Tune the bend via `scale="16"` in the filter.
@@ -78,6 +78,18 @@ He has a strong, specific sensibility. Match it and he's happy; miss it and he'l
 - Every commit prints `warning: unable to unlink '.git/objects/…/tmp_obj_…'` and a git-lfs hook warning. Both are benign; filter with `grep -v`.
 - **There is no `bundle`/`jekyll` on the device VM** (only `/usr/bin/ruby`, `/usr/bin/gem`), so Jekyll builds cannot be validated there. Keep new includes to plain `{{ site.baseurl }}` Liquid and lean on prettier + `node --check`.
 - `device_bash` `timeout_ms` maxes out at 45000.
+- **Git can create `.lock` files on the fuse mount but cannot unlink them.** Prefix _every_ git call, in the same shell invocation, with a sweep that moves any lock into `.git/stale-locks/`. Do **not** rename locks in place under `.git/refs/` — git parses whatever is in there as a ref and `git log --all` starts failing with `fatal: bad object refs/heads/main.lock.cleared_…`.
+- **The cloud agent cannot push.** The remote is SSH (`git@github.com:…`) and the device VM has no `~/.ssh` and no credential helper; `git push` dies with `Connection closed by UNKNOWN port 65535`. Commits land locally and **Sid has to push them himself**.
+
+### The local QA loop (cloud agent — this is the thing that makes visual QA possible)
+
+rubygems.org returns 403 in the container, so there is no real Jekyll. Instead `/home/claude/pc/` holds a Jekyll-lite pipeline that turns a 15-minute deploy round-trip into an 8-second one:
+
+- `pc/ssg.js` — reads `_config.yml`, `_data/*.yml` and the collections, renders each page through liquidjs, walks the layout chain, writes all 21 pages to `/home/claude/site/`. (liquidjs gotcha: `jekyllInclude: true` requires `dynamicPartials: false`.) It does **not** know about the root-level `play/index.html`, which is `layout: none`.
+- `pc/serve.js` — static server on `:4321`.
+- `pc/qa.js <path> [tag] [width] [height] [theme] [shots]` — Playwright + Chromium at `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` (pass `executablePath`; the default headless-shell path does not exist), launched with `--enable-unsafe-swiftshader --use-gl=swiftshader`. Dumps geometry JSON, collects page/console errors, writes screenshots. **Print `e.stack`, not `String(e)`** — that is what finally located a `classList` null error that had survived several sessions.
+- **`requestAnimationFrame` is throttled to ~500ms in this headless setup.** A rAF sampler over 900ms yields two frames, which looks exactly like a broken transition. To sample a CSS transition mid-flight use `setTimeout(tick, 60)`. Playwright-side `waitForTimeout` probes read endpoint values and lie the same way. Never conclude a transition snaps from rAF sampling alone.
+- Prettier runs out of `/tmp/pret` (the repo `.prettierrc` is **YAML**, not JSON): copy files in, `--write`, diff back, copy over only if changed. CI runs `npx prettier . --check` over the whole repo.
 
 ---
 
@@ -105,15 +117,33 @@ The page is one continuous WebGL space — `assets/js/home-gl.js` draws a fixed 
 
 ---
 
+## 6b. What landed in the overnight session (9 unpushed commits)
+
+Everything below is committed on local `main` and **not yet on `origin/main`** (see §5 — the cloud agent cannot push). Newest first:
+
+- `03ac4dee` — removed ~120 lines of dead `#loader-stream` code (the terminal typewriter markup was deleted earlier; its styles, driver IIFE and fade hook were left behind and ran on every visit matching nothing), and re-fixed the light-theme nav blackout on dark-canvas pages (§5 trap 1).
+- `604a03fa` — removed a dead `.nav` scroll-dimming handler in `works.html` that threw `TypeError: Cannot read properties of null` on **every scroll frame**; the page renders `studio_nav`, which has no `.nav` element. `404.html` genuinely has `.nav`, so it got a null guard instead. A 12-page sweep afterwards came back JS-error-clean.
+- `7a273270` — a "Currently" block in the third About column with a **live New York clock** (`Intl.DateTimeFormat`, repainting every 20s) plus hairline SVG icons. Added because that column trailed off and left the grid unbalanced. Every line restates a fact already on the page — nothing invented.
+- `f3ef0897` — About craft pass: row hovers, tag transitions, and a real height-animated FAQ (`<details>` can't animate, so the panel is a `0fr → 1fr` grid row and the summary click is intercepted to hold `open` until the close transition finishes).
+- `f68c164d` — Contact craft pass.
+- `d2a1cea9` — unified case-study front matter across all 15 projects.
+- `de72d861` — retired the last yellow from the nav icons.
+- `ba26a361` — **The Plot**: the footer rebuilt as an interactive ASCII/watercolour garden (the emmiwu.com + baothiento.com references).
+- `3a5b6850` — Works index rebuilt for breathing room.
+
+---
+
 ## 7. Open items
 
-1. **Visual QA of the light theme.** The layers were written by restating only the declarations that carry surface or ink — they were never seen rendered. Walk home, contact and play in **both** themes and look for anything still assuming a dark background. The home hero is the riskiest: its scrim was inverted (warm white on the reading side instead of black) so dark type reads over dark footage.
-2. **The "get to know Sid" strip** in `_includes/site_footer.html` has never been visually checked — confirm it loops seamlessly.
-3. **Mobile / touch pass** on the pinned cinema (it falls back to a snap scroller under 900px), the cube, and the desk liquefy.
-4. **Interactive video footer** — still only partially done. Sid wants the pixel/working video in the footer with content arranged on the left and blur. Only a CSS glass pass shipped.
+1. **PUSH THE NINE COMMITS.** `git push origin main` from the Mac, then confirm prettier CI is green and QA the result live in both themes.
+2. **The three "no breathing room" follow-ons** from the governing brief that are not yet done: the case-study layout (`project.html`), the home page, and the Play page still want the same motion/hover/icon craft pass that Works, Contact and About got.
+3. **The "get to know Sid" strip** in `_includes/site_footer.html` has never been visually checked — confirm it loops seamlessly.
+4. **Mobile / touch pass** on the cube, the desk liquefy, and The Plot footer.
 5. **Tune the nav glass `scale`** (currently `16`) once Sid has judged the bend in real Chrome.
-6. **Dead `.hs-card` CSS/JS** on the homepage can be removed (see §6).
-7. **`_to_delete/`** at the repo root holds scratch files the cloud agent could not `rm`. Untracked; delete it locally.
+6. **Dead code, safe to delete once Sid confirms he doesn't want v1 as a rollback:** `assets/js/home-enhance.js`, `_includes/home_cinema.html`, `_layouts/sid_home_v1.html`, `_layouts/about.liquid`, and the leftover `.hs-card` / `.hs-grid` CSS.
+7. **`works.html` CSS dedup** — deliberately deferred. A selector scan showed high counts, but most are legitimate duplicates inside media queries and theme blocks. A 4700-line single `<style>` block is high-risk / low-visible-reward to refactor unattended.
+8. **Housekeeping on the Mac:** `_to_delete/` (83M) and `_scratch/` (59M) need a local `rm -rf`; `.git/stale-locks/` is junk and can go too. The disk is at 100% (2.8G free of 461G) — the real pressure is outside this repo.
+9. **Untracked and not mine:** `_layouts/arcana.html`, `_pages/arcana.md`, `assets/css/arcana.css`, `assets/js/arcana.js`, `assets/tarot/`.
 
 ---
 
