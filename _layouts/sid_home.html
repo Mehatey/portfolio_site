@@ -1019,8 +1019,83 @@
         gap: clamp(18px, 3vw, 46px);
       }
       .num {
+        position: relative;
         border-top: 1px solid var(--home-hair);
         padding-top: 18px;
+      }
+
+      /* The hairline above each figure is the only structure this section
+         has, so it is also the thing that should tell you the section has
+         arrived. A brighter rule wipes left to right along the existing
+         border once the column reveals — the line does not appear, it is
+         drawn. It stops at --home-faint rather than full ink because four
+         full-strength rules across the page would read as a table. */
+      .num::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: -1px;
+        width: 100%;
+        height: 1px;
+        background: var(--home-faint);
+        transform: scaleX(0);
+        transform-origin: left center;
+        transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: calc(var(--d, 0ms) + 200ms);
+      }
+      .num.in::after {
+        transform: scaleX(1);
+      }
+
+      /* A hairline glyph per figure, at the same 1px weight as every rule
+         on this page so it reads as part of the drawing rather than as an
+         icon set bolted on. Each one strokes itself in behind its own
+         column's delay, so the row draws in sequence instead of blinking
+         on. dasharray is set longer than any of these paths, which makes
+         a full offset mean "not yet drawn" whatever the path length. */
+      .num__ico {
+        display: block;
+        width: 20px;
+        height: 20px;
+        margin-bottom: 14px;
+        color: var(--home-faint);
+        transition:
+          color 400ms ease,
+          transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .num__ico path,
+      .num__ico circle,
+      .num__ico rect {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 90;
+        stroke-dashoffset: 90;
+        transition: stroke-dashoffset 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: calc(var(--d, 0ms) + 280ms);
+      }
+      .num.in .num__ico path,
+      .num.in .num__ico circle,
+      .num.in .num__ico rect {
+        stroke-dashoffset: 0;
+      }
+
+      /* Hovering a figure has no destination — nothing here is a link — so
+         the response is acknowledgement, not invitation: the glyph steps up
+         and the whole column comes forward one value in the ink scale. */
+      @media (hover: hover) {
+        .num:hover .num__ico {
+          color: var(--home-ink);
+          transform: translateY(-3px);
+        }
+        .num:hover span {
+          color: var(--home-ink);
+        }
+        .num:hover::after {
+          background: var(--home-ink);
+        }
       }
       .num b {
         display: block;
@@ -1041,6 +1116,7 @@
         letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--home-muted);
+        transition: color 400ms ease;
       }
       @media (max-width: 720px) {
         .nums {
@@ -1087,6 +1163,18 @@
         }
         .scroll-cue span.bar {
           animation: none;
+        }
+        /* The wipe and the glyph both encode "this just arrived". With
+           motion off they simply arrive already finished. */
+        .num::after {
+          transition: none !important;
+          transform: scaleX(1) !important;
+        }
+        .num__ico path,
+        .num__ico circle,
+        .num__ico rect {
+          transition: none !important;
+          stroke-dashoffset: 0 !important;
         }
       }
     </style>
@@ -1267,10 +1355,31 @@
       <section class="sec wrap" aria-labelledby="nums-h">
         <div class="sec-head rv"><span>03</span><span class="rule"></span><span id="nums-h">By the numbers</span></div>
         <div class="nums">
-          <div class="num rv" style="--d: 0ms"><b data-count="6">6</b><span>Years shipping</span></div>
-          <div class="num rv" style="--d: 90ms"><b data-count="14">14</b><span>Public projects</span></div>
-          <div class="num rv" style="--d: 180ms"><b data-count="25">25</b><span>Artworks · The Met</span></div>
-          <div class="num rv" style="--d: 270ms"><b data-count="100" data-suffix="k+">100k+</b><span>Mool downloads</span></div>
+          <div class="num rv" style="--d: 0ms">
+            <svg class="num__ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path d="M1.5 15.5h17" />
+              <path d="M3.5 12.5l4-5 3.5 3 5.5-7" /></svg
+            ><b data-count="6">6</b><span>Years shipping</span>
+          </div>
+          <div class="num rv" style="--d: 90ms">
+            <svg class="num__ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path d="M2.5 6.5l7.5-4 7.5 4-7.5 4z" />
+              <path d="M2.5 10l7.5 4 7.5-4" /></svg
+            ><b data-count="14">14</b><span>Public projects</span>
+          </div>
+          <div class="num rv" style="--d: 180ms">
+            <svg class="num__ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <rect x="2.5" y="2.5" width="15" height="15" rx="1" />
+              <path d="M2.5 13.5l4.5-4 4 3.5 3-2.5 3 2.5" /></svg
+            ><b data-count="25">25</b><span>Artworks · The Met</span>
+          </div>
+          <div class="num rv" style="--d: 270ms">
+            <svg class="num__ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
+              <path d="M10 2.5v9" />
+              <path d="M6.5 8l3.5 3.5L13.5 8" />
+              <path d="M2.5 14v2.5h15V14" /></svg
+            ><b data-count="100" data-suffix="k+">100k+</b><span>Mool downloads</span>
+          </div>
         </div>
       </section>
 
