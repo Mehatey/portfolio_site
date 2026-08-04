@@ -165,7 +165,7 @@
       /* ─── PROGRESS BAR ─── */
       .progress-bar {
         position: fixed;
-        top: clamp(58px, 8vh, 72px);
+        top: var(--nav-h);
         left: 0;
         right: 0;
         height: 2px;
@@ -175,30 +175,10 @@
       .progress-fill {
         height: 100%;
         width: 100%;
-        background: linear-gradient(90deg, rgba(var(--page-pillar, 160 200 255), 0.9) 0%, rgba(var(--page-pillar, 160 200 255), 0.5) 100%);
+        background: linear-gradient(90deg, rgba(160, 200, 255, 0.7) 0%, rgba(180, 230, 220, 0.6) 50%, rgba(255, 200, 160, 0.6) 100%);
         transform: scaleX(var(--page-progress, 0));
         transform-origin: left center;
         will-change: transform;
-        /* Sits on the glass nav's lower edge, so give it a soft accent glow to
-           read as an intentional part of the bar rather than a floating line. */
-        box-shadow: 0 0 10px rgba(var(--page-pillar, 160 200 255), 0.55);
-      }
-
-      /* ─── PILLAR ACCENT ───
-         Each case study carries the colour of the body of work it belongs to,
-         taken from the same three-pillar system as the Works lanes, Orbit rings
-         and homepage portals (product blue / AI amber / culture violet). It tints
-         the scroll-progress bar and the current chapter in the reading rail, so a
-         reader always knows which discipline they're inside. Falls back to blue
-         if a page has no pillar set. */
-      body[data-pillar="product"] {
-        --page-pillar: var(--pillar-product);
-      }
-      body[data-pillar="ai"] {
-        --page-pillar: var(--pillar-ai);
-      }
-      body[data-pillar="culture"] {
-        --page-pillar: var(--pillar-culture);
       }
 
       /* ─── HERO ─── */
@@ -580,7 +560,6 @@
       #case-overview,
       #case-proof,
       #case-archive,
-      #case-decisions,
       #project-next-step { scroll-margin-top: calc(var(--nav-h) + 24px); }
 
       /* ─── CASE MAP ─── Long case studies need a stable reading anchor, not a
@@ -1322,203 +1301,6 @@
         color: var(--muted); line-height: 1.5; letter-spacing: 0.04em;
       }
 
-      /* ─── DESIGN DECISIONS ───
-         The visual story shows what got built. It does not show what got
-         *chosen*, and the thing a recruiter is actually hiring is the judgement,
-         not the screenshots. Every project page was ending on imagery and then
-         jumping straight to a testimonial, so the one question a design lead
-         asks in a portfolio review — "why this and not the obvious alternative?"
-         — had no answer anywhere on the page.
-
-         Each entry is a triplet: the decision, the reason, and the thing it
-         cost. The cost line is the load-bearing one. Anyone can list choices;
-         naming what each choice gave up is the part that cannot be faked, and
-         it is the difference between a case study and a slideshow.
-
-         Front-matter driven (`decisions:` / `next_steps:` in the page's md), so
-         a project with nothing honest to say here renders nothing at all rather
-         than padding the page with three generic bullets.
-
-         Geometry note: this deliberately matches the *effective* case-study
-         width, not the one declared at .case-study-layout further up. That rule
-         is overridden later in the cascade to `display: block; max-width:
-         1180px`, so 1180 + var(--gutter) is what actually lines up on screen. */
-      .proj-decisions {
-        max-width: 1180px;
-        margin: 0 auto;
-        padding: 0 var(--gutter);
-      }
-      /* The header, every decision row and the closing block share one column
-         split, so the section has a single vertical rule running down it. An
-         earlier pass gave the header the narrower .case-context ratio, which
-         put the lede 230px left of every "why" beneath it — the kind of
-         near-alignment that reads as a mistake rather than as a distinction. */
-      .proj-decisions__head,
-      .decision,
-      .proj-next-steps {
-        display: grid;
-        grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
-        gap: 0 clamp(24px, 3vw, 52px);
-        align-items: start;
-      }
-      .proj-decisions__head {
-        padding: 0 0 18px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      }
-      .proj-decisions__eyebrow {
-        margin: 3px 0 0;
-        font-family: var(--font-head);
-        font-size: 13px;
-        font-weight: 400;
-        letter-spacing: 0.01em;
-        line-height: 1.4;
-        color: rgba(223, 238, 255, 0.7);
-      }
-      .proj-decisions__lede {
-        margin: 0;
-        max-width: 56ch;
-        font-family: var(--font-head);
-        font-size: 13px;
-        font-weight: 300;
-        line-height: 1.6;
-        color: rgba(255, 255, 255, 0.5);
-      }
-      .decision-list {
-        margin: 0;
-        padding: 0;
-        list-style: none;
-      }
-      .decision {
-        padding: 30px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      }
-      .decision__choice {
-        margin: 0;
-        font-family: var(--font-head);
-        font-size: clamp(16px, 1.35vw, 19px);
-        font-weight: 400;
-        line-height: 1.4;
-        letter-spacing: -0.012em;
-        color: rgba(255, 255, 255, 0.9);
-        text-wrap: pretty;
-      }
-      /* The index is a reading aid, not a ranking — kept small and above the
-         line so the choice text still starts on the section's left edge. */
-      /* 0.6 rather than the 0.5 this started at: composited against the near-
-         black page, 0.5 lands at ~3.9:1, which is under the 4.5:1 floor for
-         10px type. 0.6 clears it at ~5.1:1 and still reads as an index rather
-         than as part of the heading. */
-      .decision__n {
-        display: block;
-        margin-bottom: 10px;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        font-weight: 400;
-        letter-spacing: 0.06em;
-        color: rgba(192, 213, 236, 0.6);
-        font-variant-numeric: tabular-nums;
-      }
-      .decision__body {
-        min-width: 0;
-      }
-      .decision__why {
-        margin: 0;
-        /* Capped at 62ch. The 0.62fr column runs 633px at 1440, which is ~90
-           characters of 14px prose — past the point where the eye reliably
-           finds the next line. The trailing space at wide viewports is the
-           cheaper cost. */
-        max-width: 62ch;
-        font-family: var(--font-head);
-        font-size: 14px;
-        font-weight: 300;
-        line-height: 1.72;
-        color: rgba(255, 255, 255, 0.64);
-        text-wrap: pretty;
-      }
-      /* Set apart, not styled down. The tradeoff is the most credible sentence
-         in the section, so it gets its own rule above it rather than being
-         demoted to fine print at the end of the paragraph. */
-      .decision__tradeoff {
-        display: flex;
-        gap: 14px;
-        margin: 15px 0 0;
-        padding: 13px 0 0;
-        max-width: 66ch;
-        border-top: 1px solid rgba(255, 255, 255, 0.09);
-        font-family: var(--font-head);
-        font-size: 13px;
-        font-weight: 300;
-        line-height: 1.65;
-        color: rgba(255, 255, 255, 0.58);
-      }
-      .decision__tradeoff-label {
-        flex: none;
-        font-family: var(--font-mono);
-        font-size: 9px;
-        letter-spacing: 0.09em;
-        line-height: 2.4;
-        text-transform: uppercase;
-        color: rgba(192, 213, 236, 0.62);
-      }
-
-      /* ─── WHAT I'D DO NEXT ───
-         Sits inside the decisions section rather than after it: "here is what I
-         chose" and "here is what I would change" are one thought. A portfolio
-         that never says the second half reads as either finished or incurious,
-         and neither is true of live work. */
-      .proj-next-steps {
-        padding: 30px 0 0;
-      }
-      .proj-next-steps__label {
-        margin: 3px 0 0;
-        font-family: var(--font-head);
-        font-size: 13px;
-        font-weight: 400;
-        letter-spacing: 0.01em;
-        line-height: 1.4;
-        color: rgba(223, 238, 255, 0.7);
-      }
-      .proj-next-steps__body {
-        min-width: 0;
-        max-width: 62ch;
-        font-family: var(--font-head);
-        font-size: 14px;
-        font-weight: 300;
-        line-height: 1.72;
-        color: rgba(255, 255, 255, 0.64);
-        text-wrap: pretty;
-      }
-      .proj-next-steps__body p {
-        margin: 0 0 1.05em;
-      }
-      .proj-next-steps__body p:last-child {
-        margin-bottom: 0;
-      }
-
-      @media (max-width: 900px) {
-        .proj-decisions__head,
-        .decision,
-        .proj-next-steps {
-          display: block;
-        }
-        .proj-decisions__lede { margin-top: 11px; }
-        .decision { padding: 26px 0; }
-        .decision__body { margin-top: 13px; }
-        .proj-next-steps__body { margin-top: 13px; }
-      }
-      @media (max-width: 600px) {
-        .decision { padding: 22px 0; }
-        /* The label sits on its own line below 600px — at this width a 9px
-           flex-none label plus a 13px sentence leaves the sentence about 22
-           characters wide, which is unreadable. */
-        .decision__tradeoff { display: block; }
-        .decision__tradeoff-label {
-          display: block;
-          margin-bottom: 5px;
-          line-height: 1.4;
-        }
-      }
-
       /* ─── REFLECTION ─── */
       .proj-reflection {
         margin-top: 120px;
@@ -1661,31 +1443,10 @@
         overflow: hidden;
         flex-shrink: 0;
       }
-      .next-cover {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        opacity: 0.86;
-        transform: scale(1.02);
-        transition: transform 0.9s var(--ease-out), opacity 0.6s ease;
-      }
-      .proj-next:hover .next-cover { opacity: 1; transform: scale(1.06); }
-      /* A single next-project spans full width, so it gets room to breathe. */
-      .proj-next--solo .next-visual { height: clamp(300px, 42vh, 460px); }
-      .next-tags {
-        display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px;
-        font-family: var(--font-mono); font-size: 10.5px;
-        letter-spacing: 0.14em; text-transform: uppercase;
-        color: rgba(255,255,255,0.42);
-      }
-      .next-tags span + span::before { content: "\00b7"; margin-right: 14px; opacity: 0.5; }
       .next-visual::after {
         content: '';
         position: absolute; inset: 0;
-        background: linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.78) 100%);
-        z-index: 1;
+        background: linear-gradient(to bottom, transparent 35%, rgba(0,0,0,0.80) 100%);
       }
       .next-info {
         padding: 32px var(--gutter) 44px;
@@ -2359,28 +2120,6 @@
         color: rgba(7, 9, 15, 0.54);
       }
       html[data-theme="light"] .case-story .cs-grid-item { background: rgba(7, 9, 15, 0.03) !important; }
-      /* Decisions section, light theme. The dark alphas do not invert to
-         anything legible, so every tier is restated against the light page.
-         The blue-grey accents need much higher alpha here than they do on
-         black: measured against rgb(245,243,238), the 10px index at 0.7 came
-         out at 3.79:1 and the 9px tradeoff label at 0.75 came out at 4.26:1,
-         both under the 4.5:1 floor. At 0.92 they land near 6.4:1. Hairlines
-         drop to 0.11/0.12/0.14 because a white hairline at 0.08 disappears
-         entirely on a light background. */
-      html[data-theme="light"] .proj-decisions__head { border-bottom-color: rgba(7, 9, 15, 0.14); }
-      html[data-theme="light"] .proj-decisions__eyebrow,
-      html[data-theme="light"] .proj-next-steps__label { color: rgba(30, 77, 123, 0.9); }
-      html[data-theme="light"] .proj-decisions__lede { color: rgba(7, 9, 15, 0.62); }
-      html[data-theme="light"] .decision { border-bottom-color: rgba(7, 9, 15, 0.11); }
-      html[data-theme="light"] .decision__choice { color: rgba(7, 9, 15, 0.86); }
-      html[data-theme="light"] .decision__n { color: rgba(30, 77, 123, 0.92); }
-      html[data-theme="light"] .decision__why,
-      html[data-theme="light"] .proj-next-steps__body { color: rgba(7, 9, 15, 0.62); }
-      html[data-theme="light"] .decision__tradeoff {
-        border-top-color: rgba(7, 9, 15, 0.12);
-        color: rgba(7, 9, 15, 0.6);
-      }
-      html[data-theme="light"] .decision__tradeoff-label { color: rgba(30, 77, 123, 0.92); }
       html[data-theme="light"] .project-details { border-color: rgba(7, 9, 15, 0.12); }
       html[data-theme="light"] .project-details > summary { color: rgba(7, 9, 15, 0.62); }
       html[data-theme="light"] .project-details > summary::after { color: rgba(30, 77, 123, 0.76); }
@@ -2594,7 +2333,7 @@
         opacity: 1;
         box-shadow:
           0 12px 34px rgba(10, 12, 18, 0.28),
-          inset 0 0 0 1px rgba(var(--page-pillar, 234 246 255), 0.85);
+          inset 0 0 0 1px rgba(234, 246, 255, 0.3);
       }
       .case-chapter-map__link:hover .case-chapter-map__thumb img,
       .case-chapter-map__link:focus-visible .case-chapter-map__thumb img,
@@ -3526,86 +3265,91 @@
         }
       }
 
-      /* ─────────────────────────────────────────────────────────────────
-         ACCESSIBILITY FLOOR — deliberately the last block in this file.
-         Everything above is free to style these labels however it likes;
-         this block only guarantees two things the rest of the sheet kept
-         missing:
-
-         1. Contrast. The mono micro-labels were sitting at 0.32–0.48 alpha,
-            which measures 2.0–4.4:1 against the page background. At 9–12px
-            that is under the 4.5:1 WCAG AA floor and genuinely hard to read.
-            0.62 measures ~7.5:1 and still reads as clearly secondary next to
-            body copy at 0.75–0.86.
-         2. Touch targets. Coarse-pointer hit areas are grown to the WCAG 2.2
-            AA 24x24 minimum with a transparent ::after overlay, so the visual
-            size, type scale and layout are all unchanged.
-
-         Scoped with :not([data-theme="light"]) so the light-theme overrides
-         above keep their own values untouched.
-         ───────────────────────────────────────────────────────────────── */
-
-      /* opacity is reset to 1 here because a rule above dims this whole label
-         family to 0.72 (and 0.54 in places). That multiplied against an
-         already-low colour alpha, taking .meta-k down to 1.96:1. The muting
-         now lives entirely in the colour, where it can be measured. */
-      html:not([data-theme="light"]) .meta-k,
-      html:not([data-theme="light"]) .proj-highlight-label {
-        color: rgba(255, 255, 255, 0.62) !important;
-        opacity: 1 !important;
+      /* ─── PROOF ROW — craft pass ───────────────────────────────────────
+         The three highlight figures are the first hard evidence a recruiter
+         hits on a case study, so they're treated as an instrument panel
+         rather than a static row: the cells reveal on a stagger, the numbers
+         count up to their real values, and hovering draws a hairline under
+         the figure it belongs to. The row also used to leave ~200px of dead
+         space beneath it (130px padding on top of a 70px margin), which read
+         as the page trailing off rather than as a section break. */
+      .proj-highlights {
+        padding-bottom: clamp(44px, 5vw, 78px) !important;
+        margin-bottom: clamp(28px, 3.4vw, 52px) !important;
       }
-
-      html:not([data-theme="light"]) .intro-label {
-        color: rgba(163, 196, 233, 0.78) !important;
-        opacity: 1 !important;
+      .proj-highlight {
+        position: relative;
+        padding-bottom: 18px !important;
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 700ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: var(--hl-delay, 0ms);
       }
-
-      html:not([data-theme="light"]) .case-progress__head {
-        color: rgba(222, 236, 250, 0.62) !important;
-        opacity: 1 !important;
+      .proj-highlights.is-lit .proj-highlight {
+        opacity: 1;
+        transform: none;
       }
-
-      html:not([data-theme="light"]) .case-chapter-map__label {
-        color: rgba(235, 245, 255, 0.62) !important;
-        opacity: 1 !important;
+      /* Drawn, not faded: the rule grows from the left edge of the figure it
+         underlines, so the hover reads as taking a measurement. */
+      .proj-highlight::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(150, 195, 255, 0.85), rgba(150, 195, 255, 0));
+        transform: scaleX(0);
+        transform-origin: 0 50%;
+        transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-
-      /* The press links carry their colour in an inline style attribute on the
-         page, so !important is the only way to reach them from here. 0.72
-         matches .hero-brief-jump, the other outbound affordance on this page. */
-      html:not([data-theme="light"]) .cs-watch-link {
-        color: rgba(232, 244, 255, 0.72) !important;
+      .proj-highlight:hover::after {
+        transform: scaleX(1);
       }
-
-      @media (pointer: coarse) {
-        /* .hero-brief-jump uses ::before because its ::after already renders
-           the arrow glyph. .bloom-interactive-toggle is position: absolute, so
-           it is left alone — it is already its own containing block. */
-        .hero-brief-jump {
-          position: relative;
+      .proj-highlight-value {
+        font-variant-numeric: tabular-nums;
+        transition:
+          color 260ms ease,
+          transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .proj-highlight:hover .proj-highlight-value {
+        transform: translateY(-2px);
+        color: #fff;
+      }
+      .proj-highlight-label {
+        transition: color 260ms ease;
+      }
+      .proj-highlight:hover .proj-highlight-label {
+        color: rgba(255, 255, 255, 0.72) !important;
+      }
+      html[data-theme="light"] .proj-highlight::after {
+        background: linear-gradient(90deg, rgba(30, 80, 170, 0.8), rgba(30, 80, 170, 0));
+      }
+      html[data-theme="light"] .proj-highlight:hover .proj-highlight-value {
+        color: #07090f;
+      }
+      html[data-theme="light"] .proj-highlight:hover .proj-highlight-label {
+        color: rgba(7, 9, 15, 0.75) !important;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .proj-highlight {
+          opacity: 1;
+          transform: none;
         }
-
-        /* Chapter-map rows on the first line already measure 24px tall; the
-           wrapped rows collapsed to 12px, so they get the floor explicitly. */
-        .case-chapter-map__link {
-          min-height: 24px;
-          align-items: center;
+        .proj-highlight,
+        .proj-highlight::after,
+        .proj-highlight-value {
+          transition: none;
         }
-
-        .hero-brief-jump::before,
-        .bloom-interactive-toggle::after {
-          content: "";
-          position: absolute;
-          top: 50%;
-          right: -6px;
-          left: -6px;
-          height: 44px;
-          transform: translateY(-50%);
+        .proj-highlight:hover .proj-highlight-value {
+          transform: none;
         }
       }
     </style>
   </head>
-  <body data-pillar="{{ page.pillar }}">
+  <body>
     <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
     <a class="skip-link" href="#main">Skip to project content</a>
 
@@ -3704,7 +3448,6 @@
             <a href="#case-overview">Overview</a>
             {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
             <a href="#case-archive">Visual story</a>
-            {% if page.decisions or page.next_steps %}<a href="#case-decisions">Decisions</a>{% endif %}
             <a href="#project-next-step">Next project</a>
           </nav>
           <nav class="case-chapter-map" id="case-chapter-map" aria-label="Visual story chapters" hidden></nav>
@@ -3715,7 +3458,6 @@
             <a href="#case-overview">Summary</a>
             {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
             <a href="#case-archive">Process</a>
-            {% if page.decisions or page.next_steps %}<a href="#case-decisions">Decisions</a>{% endif %}
             <a href="#project-next-step">Next</a>
           </nav>
 
@@ -3723,46 +3465,6 @@
           <div class="proj-body" id="case-archive">{{ content }}</div>
         </div>
       </div>
-
-      {% include scroll_reveal.html %}
-
-      <!-- DESIGN DECISIONS -->
-      {% if page.decisions or page.next_steps %}
-      <section class="proj-decisions" id="case-decisions" aria-labelledby="case-decisions-title">
-        <div class="proj-decisions__head">
-          <h2 class="proj-decisions__eyebrow" id="case-decisions-title" data-reveal>Design decisions</h2>
-          <p class="proj-decisions__lede" data-reveal>
-            {{ page.decisions_lede | default: "The calls that shaped this project: what I chose, why, and what each choice cost." }}
-          </p>
-        </div>
-
-        {% if page.decisions %}
-        <ol class="decision-list">
-          {% for d in page.decisions %}
-          <li class="decision" data-reveal>
-            <!-- The index is aria-hidden on purpose: this is an <ol>, so a
-                 screen reader already announces "2 of 3". Left exposed, it
-                 ran into the heading as "02Kept the numbers plain…". -->
-            <h3 class="decision__choice">
-              <span class="decision__n" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>{{ d.choice }}
-            </h3>
-            <div class="decision__body">
-              <p class="decision__why">{{ d.why }}</p>
-              {% if d.tradeoff %}
-              <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>{{ d.tradeoff }}</span></p>
-              {% endif %}
-            </div>
-          </li>
-          {% endfor %}
-        </ol>
-        {% endif %} {% if page.next_steps %}
-        <div class="proj-next-steps">
-          <h3 class="proj-next-steps__label" data-reveal>What I&rsquo;d do next</h3>
-          <div class="proj-next-steps__body" data-reveal>{{ page.next_steps | markdownify }}</div>
-        </div>
-        {% endif %}
-      </section>
-      {% endif %}
 
       <!-- REFLECTION -->
       {% if page.reflection %}
@@ -3801,55 +3503,40 @@
       {% endif %}
 
       <!-- NEXT PROJECTS -->
-      {% comment %} Next project used to be a title over an empty coloured slab. It now pulls the target page's own cover, category and year so the
-      reader can see what they are being sent to before they commit to the click. {% endcomment %} {% if page.next_projects %}
+      {% if page.next_projects %}
       <div class="proj-next-row">
-        {% for np in page.next_projects %} {% assign npPage = site.pages | where: "permalink", np.url | first %}
-        <a href="{{ site.baseurl }}{{ np.url }}" class="proj-next" data-reveal>
-          <div class="next-visual" style="background: {{ np.bg | default: '#060608' }};">
-            {% if npPage.hero_image %}
-            <img class="next-cover" src="{{ site.baseurl }}/{{ npPage.hero_image }}" alt="" loading="lazy" decoding="async" />
-            {% endif %}
-          </div>
+        {% for np in page.next_projects %}
+        <a href="{{ site.baseurl }}{{ np.url }}" class="proj-next">
+          <div class="next-visual" style="background: {{ np.bg | default: '#060608' }};"></div>
           <div class="next-info">
             <p class="next-label">Next Project</p>
             <div class="next-title-row">
               <div>
-                <p class="next-title">{{ np.title | default: npPage.project_title }}</p>
-                {% if npPage.category or npPage.year %}
-                <p class="next-tags">
-                  {% if npPage.category %}<span>{{ npPage.category }}</span>{% endif %} {% if npPage.year %}<span>{{ npPage.year }}</span>{% endif %}
-                </p>
+                <p class="next-title">{{ np.title }}</p>
+                {% if np.desc %}
+                <p class="next-desc">{{ np.desc }}</p>
                 {% endif %}
-                <p class="next-desc">{{ np.desc | default: npPage.tagline | strip_html | truncate: 150 }}</p>
               </div>
-              <span class="next-arrow">&rarr;</span>
+              <span class="next-arrow">→</span>
             </div>
           </div>
         </a>
         {% endfor %}
       </div>
-      {% elsif page.next_project %} {% assign npPage = site.pages | where: "permalink", page.next_project.url | first %}
+      {% elsif page.next_project %}
       <div class="proj-next-row" style="grid-template-columns: 1fr">
-        <a href="{{ site.baseurl }}{{ page.next_project.url }}" class="proj-next proj-next--solo" data-reveal>
-          <div class="next-visual" style="background: {{ page.next_project.bg | default: '#060608' }};">
-            {% if npPage.hero_image %}
-            <img class="next-cover" src="{{ site.baseurl }}/{{ npPage.hero_image }}" alt="" loading="lazy" decoding="async" />
-            {% endif %}
-          </div>
+        <a href="{{ site.baseurl }}{{ page.next_project.url }}" class="proj-next">
+          <div class="next-visual" style="background: {{ page.next_project.bg | default: '#060608' }};"></div>
           <div class="next-info">
             <p class="next-label">Next Project</p>
             <div class="next-title-row">
               <div>
-                <p class="next-title">{{ page.next_project.title | default: npPage.project_title }}</p>
-                {% if npPage.category or npPage.year %}
-                <p class="next-tags">
-                  {% if npPage.category %}<span>{{ npPage.category }}</span>{% endif %} {% if npPage.year %}<span>{{ npPage.year }}</span>{% endif %}
-                </p>
+                <p class="next-title">{{ page.next_project.title }}</p>
+                {% if page.next_project.desc %}
+                <p class="next-desc">{{ page.next_project.desc }}</p>
                 {% endif %}
-                <p class="next-desc">{{ page.next_project.desc | default: npPage.tagline | strip_html | truncate: 170 }}</p>
               </div>
-              <span class="next-arrow">&rarr;</span>
+              <span class="next-arrow">→</span>
             </div>
           </div>
         </a>
@@ -3887,6 +3574,92 @@
         );
       })();
 
+      // ── PROOF ROW ── stagger the three highlight cells in, and count the
+      // numeric ones up to their real value. The number on screen is always
+      // the number in the front matter — the animation only decides how fast
+      // it gets there, and the original string is written back verbatim at
+      // the end so nothing can leave a mangled figure on the page.
+      (function () {
+        var row = document.querySelector(".proj-highlights");
+        if (!row) return;
+        var cells = row.querySelectorAll(".proj-highlight");
+        if (!cells.length) return;
+        var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        cells.forEach(function (cell, i) {
+          cell.style.setProperty("--hl-delay", i * 110 + "ms");
+        });
+
+        // "100k+" → prefix "", digits "100", suffix "k+". Values with no
+        // digits ("Kyoorius") just fade in with the rest of the row.
+        function countUp(el, startDelay) {
+          var full = el.textContent;
+          var m = full.match(/^(\D*?)([\d][\d.,]*)(.*)$/);
+          if (!m) return;
+          var pre = m[1],
+            raw = m[2],
+            post = m[3];
+          var decimals = (raw.split(".")[1] || "").length;
+          var grouped = raw.indexOf(",") !== -1;
+          var target = parseFloat(raw.replace(/,/g, ""));
+          if (!isFinite(target)) return;
+
+          function render(n) {
+            var s = n.toFixed(decimals);
+            if (grouped) {
+              var parts = s.split(".");
+              parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+              s = parts.join(".");
+            }
+            el.textContent = pre + s + post;
+          }
+
+          render(0);
+          var DUR = 1100;
+          var t0 = null;
+          function frame(now) {
+            if (t0 === null) t0 = now;
+            var t = Math.min(1, (now - t0) / DUR);
+            // Same ease as the reveal, so the number settles when the cell does.
+            var e = 1 - Math.pow(1 - t, 3);
+            if (t >= 1) {
+              el.textContent = full;
+              return;
+            }
+            render(target * e);
+            requestAnimationFrame(frame);
+          }
+          setTimeout(function () {
+            requestAnimationFrame(frame);
+          }, startDelay);
+        }
+
+        function light() {
+          row.classList.add("is-lit");
+          if (still) return;
+          cells.forEach(function (cell, i) {
+            var v = cell.querySelector(".proj-highlight-value");
+            if (v) countUp(v, 160 + i * 110);
+          });
+        }
+
+        if (still || !("IntersectionObserver" in window)) {
+          light();
+          return;
+        }
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (!entry.isIntersecting) return;
+              io.disconnect();
+              light();
+            });
+          },
+          { threshold: 0.35 }
+        );
+        io.observe(row);
+      })();
+
       // Progress bar + hero parallax (combined into one rAF loop for perf)
       const progressEl = document.getElementById("progress");
       const heroMedia = document.querySelector(".proj-hero .hero-video");
@@ -3918,7 +3691,7 @@
             if (e.isIntersecting) {
               e.target.classList.add("reveal");
               const vid = e.target.querySelector("video");
-              if (vid) activateProjectVideo(vid);
+              if (vid) vid.play().catch(() => {});
               observer.unobserve(e.target);
             }
           });
@@ -3939,44 +3712,16 @@
       // browser, so clips may hold their source in data-src until they are near
       // the viewport. This keeps the opening hero responsive without changing
       // the visual sequence as someone scrolls through it.
-      function playProjectVideo(v) {
-        // Autoplay only survives if the element is provably muted + inline;
-        // the attributes alone are not enough once we swap the source in.
-        v.muted = true;
-        v.defaultMuted = true;
-        v.setAttribute("muted", "");
-        v.setAttribute("playsinline", "");
-        var go = v.play();
-        if (go && go.catch) go.catch(function () {});
-      }
-
       function activateProjectVideo(v) {
-        if (v.dataset.csActivated) return;
         var deferredSource = v.querySelector("source[data-src]");
-        // A clip that already has its source (e.g. the hero) just needs a
-        // nudge to play — never a reload, which would restart it mid-scroll.
-        if (!deferredSource && v.preload !== "none") {
-          playProjectVideo(v);
-          return;
-        }
-        v.dataset.csActivated = "1";
         if (deferredSource) {
           deferredSource.src = deferredSource.dataset.src;
           deferredSource.removeAttribute("data-src");
         }
-        v.preload = "auto";
-        v.load();
-        // Calling play() straight after load() is routinely aborted by the
-        // browser, and the parsed-time autoplay flag is already spent because
-        // the element had no source. So wait for real data, then play — and
-        // keep a late retry for clips that buffer slowly.
-        v.addEventListener("loadeddata", function () {
-          playProjectVideo(v);
-        });
-        v.addEventListener("canplay", function () {
-          playProjectVideo(v);
-        });
-        playProjectVideo(v);
+        if (v.preload === "none" || deferredSource) {
+          v.preload = "auto";
+          v.load();
+        }
       }
 
       // Load + play only when approaching viewport.
@@ -3984,16 +3729,18 @@
         (entries) => {
           entries.forEach((e) => {
             if (e.isIntersecting) {
-              activateProjectVideo(e.target);
-              videoLazyObserver.unobserve(e.target);
+              const v = e.target;
+              if (v.preload === "none") {
+                activateProjectVideo(v);
+                v.play().catch(() => {});
+              }
+              videoLazyObserver.unobserve(v);
             }
           });
         },
         { rootMargin: "400px 0px 400px 0px" }
       );
-      document
-        .querySelectorAll('video[preload="none"], video source[data-src]')
-        .forEach((n) => videoLazyObserver.observe(n.tagName === "SOURCE" ? n.parentNode : n));
+      document.querySelectorAll('video[preload="none"]').forEach((v) => videoLazyObserver.observe(v));
 
       // Section label animation (line draws + label fades)
       const sectionObserver = new IntersectionObserver(
@@ -4048,11 +3795,15 @@
       // names each chapter where the archive begins instead of following the reader
       // as a set of anonymous dashes.
       (function () {
+        const sections = document.querySelectorAll(".cs-section");
+        if (sections.length < 2) return;
         const chapterMap = document.getElementById("case-chapter-map");
         if (!chapterMap) return;
-
-        const norm = (s) =>
-          s
+        chapterMap.hidden = false;
+        sections.forEach((sec, i) => {
+          const labelEl = sec.querySelector(".cs-section-label");
+          const rawLabel = labelEl ? labelEl.textContent.trim() : `Section ${i + 1}`;
+          const label = rawLabel
             .toLocaleLowerCase()
             .replace(/^([a-z])/, function (_, char) {
               return char.toLocaleUpperCase();
@@ -4065,68 +3816,19 @@
             .replace(/\bapi\b/gi, "API")
             .replace(/\bwebgpu\b/gi, "WebGPU")
             .replace(/\bvisionos\b/gi, "visionOS");
-
-        // Preferred source is explicit .cs-section blocks. The markdown-authored
-        // case studies have none, so fall back to the fixed landmark sections
-        // every case page shares — previously the rail stayed empty and hidden on
-        // every one of them, which is the "no reading map on work detail" gap.
-        let items = [];
-        const csSections = document.querySelectorAll(".cs-section");
-        if (csSections.length >= 2) {
-          items = [...csSections].map((sec, i) => {
-            const labelEl = sec.querySelector(".cs-section-label");
-            return {
-              el: sec,
-              label: norm(labelEl ? labelEl.textContent.trim() : "Section " + (i + 1)),
-              media: sec.querySelector("img, video"),
-            };
-          });
-        } else {
-          const landmarks = [
-            ["case-overview", "Overview"],
-            ["case-proof", "Proof"],
-            ["case-archive", "Visual story"],
-            ["case-decisions", "Decisions"],
-            ["reflection-section", "Reflection"],
-            ["project-next-step", "Next project"],
-          ];
-          items = landmarks
-            .map(function (pair) {
-              const el = document.getElementById(pair[0]);
-              if (!el) return null;
-              let media = el.querySelector("img, video");
-              if (!media) {
-                // landmark anchors are often empty markers; look just after them
-                let sib = el.nextElementSibling;
-                let hops = 0;
-                while (sib && !media && hops < 4) {
-                  media = sib.querySelector ? sib.querySelector("img, video") : null;
-                  sib = sib.nextElementSibling;
-                  hops += 1;
-                }
-              }
-              return { el: el, label: pair[1], media: media };
-            })
-            .filter(Boolean);
-        }
-        if (items.length < 2) return;
-
-        chapterMap.hidden = false;
-        items.forEach(function (item, i) {
-          const sec = item.el;
-          if (!sec.id) sec.id = "section-" + i;
+          const media = sec.querySelector("img, video");
           let previewSrc = "";
-          const media = item.media;
           if (media) {
             if (media.tagName === "IMG") previewSrc = media.currentSrc || media.getAttribute("src") || "";
             else previewSrc = media.getAttribute("poster") || "";
           }
+          if (!sec.id) sec.id = "section-" + i;
           const link = document.createElement("a");
           link.href = "#" + sec.id;
           link.className = "case-chapter-map__link";
           link.setAttribute("data-section", sec.id);
           link.setAttribute("data-step", String(i + 1).padStart(2, "0"));
-          link.setAttribute("aria-label", String(i + 1).padStart(2, "0") + ": " + item.label);
+          link.setAttribute("aria-label", String(i + 1).padStart(2, "0") + ": " + label);
           const thumb = document.createElement("span");
           thumb.className = "case-chapter-map__thumb";
           thumb.setAttribute("aria-hidden", "true");
@@ -4139,7 +3841,7 @@
           }
           const text = document.createElement("span");
           text.className = "case-chapter-map__label";
-          text.textContent = item.label;
+          text.textContent = label;
           link.append(thumb, text);
           chapterMap.appendChild(link);
         });
@@ -4159,9 +3861,7 @@
           },
           { rootMargin: "-30% 0px -50% 0px", threshold: 0 }
         );
-        items.forEach(function (it) {
-          tocObs.observe(it.el);
-        });
+        sections.forEach((s) => tocObs.observe(s));
       })();
 
       // Lazy-load images below the fold
@@ -4509,6 +4209,5 @@
         </filter>
       </defs>
     </svg>
-    {% include scroll_length.html %}
   </body>
 </html>
