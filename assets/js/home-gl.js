@@ -169,6 +169,8 @@
     "uniform float u_hover;",
     "uniform float u_time;",
     "uniform float u_enter;",
+    "uniform float u_z;", // depth in CSS px, positive = further from camera
+    "uniform float u_persp;", // camera distance in CSS px
     "varying vec2 v_uv;",
     "varying float v_bend;",
     "void main(){",
@@ -190,7 +192,25 @@
     "  p.y += (1.0 - u_enter) * 46.0;",
     "  p = mid + (p - mid) * mix(0.965, 1.0, u_enter);",
     "  v_bend = bend / 34.0;",
-    "  gl_Position = vec4(p.x / u_res.x * 2.0 - 1.0, 1.0 - p.y / u_res.y * 2.0, 0.0, 1.0);",
+    // Real perspective, not a parallax multiplier. The plane sits at u_z in
+    // front of / behind the screen and we hand the divide to the GPU by
+    // writing w instead of pre-scaling xy — so near planes genuinely sweep
+    // faster than far ones, the shrink is correct foreshortening rather than
+    // a tuned constant, and varyings stay perspective-correct. The vanishing
+    // point is the viewport centre, which is also where a plane's GL position
+    // agrees most closely with its DOM rect, so links stay clickable exactly
+    // where people actually click.
+    "  float w = (u_persp + u_z) / u_persp;",
+    "  vec2 ndc = vec2(p.x / u_res.x * 2.0 - 1.0, 1.0 - p.y / u_res.y * 2.0);",
+    "  vec2 midNdc = vec2(mid.x / u_res.x * 2.0 - 1.0, 1.0 - mid.y / u_res.y * 2.0);",
+    // The plane's CENTRE goes through the perspective divide, so a deep plane
+    // sweeps past the vanishing point more slowly than a near one — real
+    // differential motion, not a tuned scroll multiplier. Its SIZE is put
+    // back, because the DOM rect is still the layout authority here and a
+    // foreshortened plane would sit visibly inset inside its own frame.
+    // Multiplying by w and letting the GPU divide keeps varyings correct.
+    "  vec2 out2 = midNdc / w + (ndc - midNdc);",
+    "  gl_Position = vec4(out2 * w, 0.0, w);",
     "}",
   ].join("\n");
 
@@ -321,6 +341,17 @@
         mouse: [0.5, 0.5],
         mouseT: [0.5, 0.5],
         enter: 0,
+        // Depth. An explicit data-gl-z wins; otherwise planes are dealt a
+        // repeating set of depths so neighbours in the gallery never sit on
+        // the same layer. Kept under ~250px against a 1600px camera so the
+        // worst-case gap between a plane and its DOM link is small, and only
+        // at the very top and bottom of the viewport.
+        z: (function (el, i) {
+          var explicit = parseFloat(el.getAttribute("data-gl-z"));
+          if (isFinite(explicit)) return explicit;
+          var ladder = [0, 96, 208, 40, 152, 248];
+          return ladder[i % ladder.length];
+        })(holder, media.length),
       };
       media.push(m);
       if (img.complete && img.naturalWidth) upload(m);
@@ -531,6 +562,8 @@
       gl.uniform1f(medProg.u.u_hover, m.hover);
       gl.uniform2f(medProg.u.u_mouse, m.mouse[0], m.mouse[1]);
       gl.uniform1f(medProg.u.u_enter, m.enter);
+      gl.uniform1f(medProg.u.u_z, m.z || 0);
+      gl.uniform1f(medProg.u.u_persp, 1200);
       gl.uniform1f(medProg.u.u_radius, 0.055 * Math.min(ax, ay) * 2.0);
       gl.uniform2f(medProg.u.u_aspect, ax, ay);
       gl.drawElements(gl.TRIANGLES, planeCount, gl.UNSIGNED_SHORT, 0);
