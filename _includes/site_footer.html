@@ -792,7 +792,8 @@
     field.addEventListener("keydown", function (e) {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
-        plant(Math.random() * W, H * (0.35 + Math.random() * 0.6), false);
+        var k = sowPoint();
+        plant(k.x, k.y, false);
       }
     });
 
@@ -802,12 +803,49 @@
     var ambientAt = 0;
     var AMBIENT_TARGET = 46;
 
+    // ── first light ───────────────────────────────────────────────────────
+    // Ambient growth alone takes the better part of twenty seconds to fill
+    // the plot, so the first thing a visitor who scrolls to the bottom sees
+    // is bare ground — which reads as broken rather than as patient. The plot
+    // therefore opens as a garden that has already been growing a while: the
+    // seedlings are sown at staggered maturities instead of all at zero, so
+    // it looks tended rather than spawned, and the ambient loop carries on
+    // filling the gaps from there.
+    // Unattended planting lands inside the water, not on the paper around it.
+    // The old range (full width, 0.34–0.96 of the height) overshot the pond
+    // on three sides, so ambient growth slowly stranded seedlings on the dry
+    // margin where they read as stray glyphs rather than as flora.
+    function sowPoint() {
+      var b = pond || { x: W * 0.07, y: H * 0.24, w: W * 0.86, h: H * 0.62 };
+      var mx = Math.min(b.w * 0.05, 46);
+      var my = Math.min(b.h * 0.1, 34);
+      return {
+        x: b.x + mx + Math.random() * Math.max(1, b.w - mx * 2),
+        y: b.y + my + Math.random() * Math.max(1, b.h - my * 2),
+      };
+    }
+
+    var sown = false;
+    function sow() {
+      if (sown || !W || !H) return;
+      sown = true;
+      for (var i = 0; i < 24; i++) {
+        var s = sowPoint();
+        plant(s.x, s.y, false);
+        plants[plants.length - 1].grow = 0.12 + Math.random() * 0.78;
+      }
+    }
+
     // ── loop ──────────────────────────────────────────────────────────────
     var raf = 0,
       prev = 0,
       visible = false;
 
     function frame(t) {
+      // Sown from the loop rather than from start(), because start() can fire
+      // before the field has been measured and a plot sown into a 0×0 box
+      // stacks every seedling in the top-left corner.
+      sow();
       if (!prev) prev = t;
       var dt = Math.min(64, t - prev);
       prev = t;
@@ -824,7 +862,8 @@
 
       if (plants.length < AMBIENT_TARGET && t > ambientAt) {
         ambientAt = t + 260 + Math.random() * 520;
-        plant(Math.random() * W, H * (0.34 + Math.random() * 0.62), false);
+        var a = sowPoint();
+        plant(a.x, a.y, false);
       }
 
       drawFlora(t);
@@ -863,7 +902,10 @@
         return p.x < W && p.y < H;
       });
       if (reduced) {
-        while (plants.length < 54) plant(Math.random() * W, H * (0.34 + Math.random() * 0.62), true);
+        while (plants.length < 54) {
+          var r = sowPoint();
+          plant(r.x, r.y, true);
+        }
         drawFlora(0);
       }
     }
