@@ -150,6 +150,28 @@ Everything below is committed on local `main` and **not yet on `origin/main`** (
 
 ---
 
+## 6c. Cover pass, meniscus fix and the light-mode contrast sweep (this session)
+
+Three things landed, all still unpushed at time of writing.
+
+**Covers.** The AI Experiments cover was resourced from `assets/media/ai-prototypes/mimic/mimic5.mp4` at t=1s: every `-poster.webp` on that page is only 1280x720 while the mp4s are true 1920x1080, so `ffmpeg` frame extraction beat every still on disk. ffmpeg and ffprobe are both on the device at `/usr/bin/`. Three works-page items (Bloom, AI Self, Cube of Creations) had no `data-img` at all; Alpha's cover was the yellow-speech-bubble pixel art and Aananda's was a three-panel collage, both replaced with single-scene frames. New covers live in `assets/img/work-covers/` at 1800px, WebP method=6. Contact sheets built with PIL on the device and staged as one image are the way to judge sixteen covers at once — staging sixteen files through the uploads mount hits the path cache.
+
+**The meniscus late-layout bug.** The curve on `.cs-bleed` and friends had shipped and looked right in spot checks, but counting `.mn-edge` elements without a `d` attribute showed it was silently missing on 20-70% of frames per page. It was a state bug, not a geometry bug: `apply()` bailed when the media had no height yet, but `tick()` marked the frame done regardless and the rAF loop parked. Fix was to make `apply()` return whether it actually drew, derive `done` from that, and add a `ResizeObserver` so a frame that gains height redraws. Verified 0 missing across all 17 pages, both themes, desktop and mobile.
+
+**Light-mode contrast.** A computed-contrast sweep (`pc/contrast.js`) over 20 pages x every viewport-height scroll position found text at 1.03-1.83 WCAG ratio in light theme -- white or accent type on the cream page. Fixed: the scroll-progress readout, mandala's thesis cards, the watch/play/source link bars on several pages, `.cs-watch-link` globally, encoded's award tiles and artist list, ai-prototypes' per-card accent links, and the works page 'Recruiter fast lane' label. Both themes now sweep clean.
+
+### Traps this session added to the pile
+
+- **The site-wide fixed background canvas breaks any "is this text over artwork?" heuristic.** `contrast.js` reported all 20 pages clean for three consecutive runs because the full-viewport canvas intersected every element's rect, so every element was skipped as "over media". Filter media by `position !== 'fixed'` and exclude anything covering >90% of the viewport. Always validate a detector against a known-bad element before believing a clean result.
+- **Sampling a long page at 7 evenly-spaced scroll positions misses most of it.** A 30000px page gets 4000px gaps. Step by ~760px instead.
+- **`pg.evaluate(someArrowFnString)` evaluates the string as an expression and returns the function, not its result.** Wrap it: `pg.evaluate("(" + FN + ")()")`.
+- **A debug harness that reads a template literal out of a source file with `readFileSync` gets the escaped source, not the runtime string.** `/[\\d.]+/` in the file is `/[\d.]+/` at runtime; read raw and the regex matches backslashes instead of digits. Two debugging detours came from this.
+- **`!important` inside a media query outranks a theme override of higher specificity.** The works 'Recruiter fast lane' label had a hard-coded blue that no light rule could beat. Route colours through a token that flips with the theme rather than adding `!important` to the override.
+- **The container mirror has no video files at all**, so every project page reports broken `<video>` and some zero-height grids. Those are artifacts. The real check is to enumerate every asset reference from `_pages/*.md` and `_layouts/*.html` on the device and `urllib.parse.unquote` before testing existence -- repo paths contain literal spaces written as `%20`. All 459 references resolve.
+- **Fast synthetic scrolls produce black screenshots** at the harness's ~12fps rAF. Verify with a single settled screenshot before concluding a page failed to render.
+
+---
+
 ## 7. Open items
 
 1. **PUSH THE TWENTY COMMITS.** (Counted, not estimated: `git rev-list --count origin/main..HEAD` says 20.) `git push origin main` from the Mac, then confirm prettier CI is green and QA the result live in both themes. The cloud agent cannot do this: the remote is `git@github.com:Mehatey/portfolio_site.git`, and the device VM has no `~/.ssh` and no credential helper, so `git push` dies with `Connection closed by UNKNOWN port 65535`.
