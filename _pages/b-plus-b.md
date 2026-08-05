@@ -258,7 +258,7 @@ next_project:
 </div>
 
 <div class="bb-process-link-bar">
-  <a href="https://www.youtube.com/watch?v=zUG-hui0tkw" target="_blank" rel="noopener">View Full Process ↗</a>
+  <a href="https://www.youtube.com/watch?v=zUG-hui0tkw" target="_blank" rel="noopener">View Full Process<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <!-- SECTION: THE SITE -->

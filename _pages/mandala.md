@@ -263,12 +263,12 @@ next_project:
   <a href="{{ site.baseurl }}/4.mandala/thesis-paper.pdf" target="_blank" rel="noopener" class="thesis-doc">
     <span class="thesis-doc-kicker">Thesis Paper · v1</span>
     <span class="thesis-doc-title">The academic write-up</span>
-    <span class="thesis-doc-meta">PDF ↗</span>
+    <span class="thesis-doc-meta">PDF<span class="xarrow" aria-hidden="true"></span></span>
   </a>
   <a href="{{ site.baseurl }}/4.mandala/bloom-diary.pdf" target="_blank" rel="noopener" class="thesis-doc">
     <span class="thesis-doc-kicker">Bloom · A Visual Diary</span>
     <span class="thesis-doc-title">Mandala explorations, illustrated</span>
-    <span class="thesis-doc-meta">PDF ↗</span>
+    <span class="thesis-doc-meta">PDF<span class="xarrow" aria-hidden="true"></span></span>
   </a>
 </div>
 
@@ -417,7 +417,7 @@ next_project:
 
 <!-- BREATHE LINK -->
 <div class="m-watch-link">
-  <a href="https://mehatey.github.io/breathe-game/" target="_blank" rel="noopener">Play Breathe ↗</a>
+  <a href="https://mehatey.github.io/breathe-game/" target="_blank" rel="noopener">Play Breathe<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <!-- SECTION: BLOOM -->
@@ -528,7 +528,7 @@ next_project:
 </div>
 
 <div class="m-watch-link">
-  <a href="https://www.youtube.com/watch?v=v14nAzshrLs" target="_blank" rel="noopener">Watch Full Meditation ↗</a>
+  <a href="https://www.youtube.com/watch?v=v14nAzshrLs" target="_blank" rel="noopener">Watch Full Meditation<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Most people needed a prompt to begin. Without direction, reflection stayed on the surface.</em></p>
@@ -670,7 +670,7 @@ next_project:
 </div>
 
 <div class="m-watch-link">
-  <a href="https://mehatey.github.io/sid-mandala-camera-one/" target="_blank" rel="noopener">Try the Full Experience ↗</a>
+  <a href="https://mehatey.github.io/sid-mandala-camera-one/" target="_blank" rel="noopener">Try the Full Experience<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <div class="cs-grid">
