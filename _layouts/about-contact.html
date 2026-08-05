@@ -1087,13 +1087,81 @@
         display: flex;
         flex-direction: column;
         gap: 0;
+        counter-reset: faq;
       }
       .faq-item {
+        position: relative;
         border-top: 1px solid rgba(255, 255, 255, 0.05);
         padding: 20px 0;
+        counter-increment: faq;
       }
       .faq-item:last-child {
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+
+      /* THE LIVE RULE.
+
+         Six questions stacked on 5%-white hairlines with a plus sign on the
+         right is the most anonymous thing on this site — it is the accordion
+         every template ships, and it sat directly under a marquee of brand
+         marks and above a water simulation. The panel animation underneath
+         it was always good; nothing above the fold of each row said so.
+
+         The rest of the site answers a pointer by drawing something rather
+         than by tinting something: the works list has a rule that arrives
+         under the row you are on. This is that same rule. It is the item's
+         own top border, redrawn brighter, wiped in from the left over 620ms
+         — long enough to read as a stroke being made rather than as a state
+         flipping. Origin is the left edge because that is where the question
+         starts and where the eye already is.
+
+         `-1px` rather than `0` so it lands exactly on the existing hairline
+         instead of beside it: the static border stays as the resting state
+         and this replaces it in place, which is why nothing shifts. */
+      .faq-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -1px;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(150, 205, 255, 0.85) 0%, rgba(150, 205, 255, 0.28) 46%, transparent 100%);
+        transform: scaleX(0);
+        transform-origin: 0 50%;
+        transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+      }
+      .faq-item:hover::before,
+      .faq-item[open]::before {
+        transform: scaleX(1);
+      }
+
+      /* And the count. The whole page is indexed in mono — the work lanes,
+         the awards years, the status line — so the questions were the one
+         list here that had no address. The numeral lives in the space the
+         question makes for it as it steps aside, which means it costs no
+         permanent gutter and it is the movement itself that reveals it:
+         nothing appears out of nowhere, the row opens a slot and the number
+         is already in it. */
+      .faq-item summary::before {
+        content: "0" counter(faq);
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        color: rgba(150, 205, 255, 0.55);
+        opacity: 0;
+        transition:
+          opacity 380ms ease,
+          transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+      }
+      .faq-item:hover summary::before,
+      .faq-item[open] summary::before {
+        opacity: 1;
       }
       .faq-item summary {
         cursor: none;
@@ -1105,7 +1173,18 @@
         list-style: none;
         position: relative;
         padding-right: 30px;
-        transition: color 0.3s;
+        /* The step aside. 26px is the numeral plus a mono space; the same
+           620ms and the same curve as the rule above it, so the two read as
+           one gesture — the line arrives and the question makes room — and
+           not as two effects that happened to fire together. */
+        padding-left: 0;
+        transition:
+          color 0.3s,
+          padding-left 620ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .faq-item:hover summary,
+      .faq-item[open] summary {
+        padding-left: 26px;
       }
       .faq-item summary::-webkit-details-marker {
         display: none;
@@ -1120,10 +1199,24 @@
         font-size: 22px;
         font-weight: 300;
         color: rgba(160, 200, 255, 0.6);
-        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        transition:
+          transform 620ms cubic-bezier(0.34, 1.42, 0.5, 1),
+          color 300ms ease;
       }
-      .faq-item[open] summary::after {
-        transform: translateY(-50%) rotate(45deg);
+      /* Hover leans it a tenth of the way into the turn it is about to make.
+         The plus does not change meaning — it is still the affordance to open
+         — it just stops being the only inert thing in a row where the rule is
+         drawing and the question is stepping aside. */
+      .faq-item:hover summary::after {
+        transform: translateY(-50%) rotate(9deg) scale(1.06);
+        color: rgba(180, 220, 255, 0.9);
+      }
+      /* Overshoot on the way to the cross: the curve above passes 45deg,
+         settles back, and that half-degree of recoil is the difference
+         between a glyph that rotated and one that was turned. */
+      .faq-item[open] summary::after,
+      .faq-item[open]:hover summary::after {
+        transform: translateY(-50%) rotate(45deg) scale(1);
         color: rgba(180, 220, 255, 0.95);
       }
       .faq-item[open] summary {
@@ -1149,13 +1242,23 @@
         display: grid;
         grid-template-rows: 0fr;
         opacity: 0;
+        padding-left: 0;
         transition:
           grid-template-rows 520ms cubic-bezier(0.16, 1, 0.3, 1),
-          opacity 300ms ease;
+          opacity 300ms ease,
+          padding-left 620ms cubic-bezier(0.16, 1, 0.3, 1) 40ms;
       }
       .faq-panel > div {
         min-height: 0;
         overflow: hidden;
+      }
+      /* The answer travels with its question. If only the summary stepped
+         aside, an open row would read as a hanging indent nobody asked for
+         — the question inset 26px and its own answer flush left under it.
+         Same distance, same curve, one beat later so the question leads. */
+      .faq-item:hover .faq-panel,
+      .faq-item[open] .faq-panel {
+        padding-left: 26px;
       }
       .faq-item[open] .faq-panel {
         grid-template-rows: 1fr;
@@ -1312,6 +1415,17 @@
           align-items: center;
           min-height: 48px;
           padding-block: 4px;
+        }
+        /* The step aside is a pointer gesture; on a phone there is no hover,
+           so the only thing that would ever move is an open row — and 26px
+           out of 390 is a sixth of the line, which turns a two-line question
+           into a three-line one on open. The numeral is what mattered, so it
+           keeps a smaller slot and the questions stay where they are. */
+        .faq-item:hover summary,
+        .faq-item[open] summary,
+        .faq-item:hover .faq-panel,
+        .faq-item[open] .faq-panel {
+          padding-left: 20px;
         }
         .about-action {
           display: inline-flex;
@@ -1488,6 +1602,16 @@
       }
       html[data-theme="light"] .faq-item[open] summary::after {
         color: rgba(40, 90, 180, 0.95);
+      }
+      /* On paper the drawn rule and the numeral both switch to the page's
+         ink blue. The gradient runs to transparent at the same 46%, so the
+         stroke tapers identically in both themes — only its colour changes,
+         which is the rule everywhere else on this page. */
+      html[data-theme="light"] .faq-item::before {
+        background: linear-gradient(90deg, rgba(30, 78, 165, 0.7) 0%, rgba(30, 78, 165, 0.24) 46%, transparent 100%);
+      }
+      html[data-theme="light"] .faq-item summary::before {
+        color: rgba(30, 78, 165, 0.62);
       }
       html[data-theme="light"] .faq-item p {
         color: rgba(7, 9, 15, 0.78);
