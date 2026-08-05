@@ -2686,22 +2686,6 @@
       html[data-theme="light"] .proj-highlight-label {
         color: rgba(7, 9, 15, 0.5);
       }
-      /* The highlight VALUE and the next-project arrow were the two survivors of the
-         light-mode pass on this layout: both stayed rgba(255,255,255,...) while the
-         canvas went cream (#f5f3ee), so they measured at contrast 1.11 — invisible.
-         The .proj-highlights strip has a transparent background in both themes, so
-         there is no dark surface behind them to rescue the white. */
-      html[data-theme="light"] .proj-highlight-value {
-        color: rgba(7, 9, 15, 0.92);
-      }
-      html[data-theme="light"] .next-arrow {
-        border-color: rgba(7, 9, 15, 0.16);
-        color: rgba(7, 9, 15, 0.45);
-      }
-      html[data-theme="light"] .proj-next:hover .next-arrow {
-        border-color: rgba(7, 9, 15, 0.42);
-        color: rgba(7, 9, 15, 0.85);
-      }
       html[data-theme="light"] .case-context {
         border-color: rgba(7, 9, 15, 0.1);
       }
@@ -3471,6 +3455,88 @@
         box-shadow: none !important;
         -webkit-backdrop-filter: none !important;
         backdrop-filter: none !important;
+        position: relative;
+      }
+
+      /* THE SHADE THE RULE CASTS.
+
+         The brief was stripped back to a hairline and three lines of type on
+         purpose — a card here would be a second window sitting on top of the
+         hero, and the whole top screen is meant to read as one image with
+         writing on it. That decision is right and it stays. What it did not
+         account for is that the type has no ground of its own, and the only
+         thing dimming the cover behind it is .hero-overlay, which is a purely
+         VERTICAL gradient. It assumes the words are at the bottom. The brief
+         is not at the bottom — it sits at 57-89% of the hero's height, in the
+         upper reaches of that gradient, where it is only getting about 0.4 of
+         the black it needs.
+
+         On a dark cover that is invisible and fine. Measured over the sixteen
+         project pages, thirteen are dark enough behind the rail that nothing
+         is wrong. Marriott and M Health Fairview are both product screenshots
+         with a pale UI card landing exactly under the first line, and the
+         backdrop there measures 119 of 255 AFTER the overlay. White at 0.84
+         over that is 3.5:1. The line reading "9,000+ · properties in scope"
+         is the single most useful sentence on the page for the person this
+         site is built for, and it was the least legible thing in the hero.
+
+         The obvious fixes were both wrong. Deepening .hero-overlay drags down
+         every hero on the site to rescue two. Putting the card back throws
+         away the reason the card was removed. Leaning harder on the existing
+         text-shadow just smears black fringe around each glyph, which over a
+         pale backdrop reads as a printing fault rather than as contrast.
+
+         So the rule casts shade. A horizontal wash anchored to the hairline,
+         at full strength where the border is and falling to nothing past the
+         longest line, masked to nothing top and bottom so it has no edge in
+         any direction. It is not a surface — there is no plane, no border, no
+         radius, nothing to catch the eye. It only exists where the cover is
+         bright enough for it to matter, and on the thirteen dark heroes it
+         changes the measured luminance by single digits.
+
+         The stops are asymmetric on purpose: in over the first 8% so the wash
+         is already at full strength by the time it reaches the hairline, and
+         out over the last 58% — nearly 300px of tail past the longest line —
+         because the failure mode of a wash like this is not being too weak,
+         it is having a discernible right-hand end. A short tail on a flat
+         cover reads as a soft rectangle; a tail this long reads as the image
+         simply being darker over there. z-index -1 keeps it behind the type;
+         the nearest stacking context is .hero-inner at z-index 3, so it paints
+         above .hero-overlay and above the cover, and below every word. */
+      .hero-recruiter-brief::before {
+        content: "";
+        position: absolute;
+        inset: -22px -92px -20px -34px;
+        z-index: -1;
+        pointer-events: none;
+        background: linear-gradient(
+          90deg,
+          rgba(4, 7, 13, 0) 0%,
+          rgba(4, 7, 13, 0.46) 8%,
+          rgba(4, 7, 13, 0.44) 42%,
+          rgba(4, 7, 13, 0.26) 72%,
+          rgba(4, 7, 13, 0) 100%
+        );
+        -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+        mask-image: linear-gradient(180deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+      }
+
+      /* Below 900 the brief loses its max-width and spans the column, and it
+         sits far enough down the hero that .hero-overlay is already past 0.9.
+         Full-strength shade across the whole width there would be a dark band
+         with nothing to justify it, so the wash keeps its shape and gives up
+         most of its weight. */
+      @media (max-width: 900px) {
+        .hero-recruiter-brief::before {
+          inset: -16px -24px -14px -26px;
+          background: linear-gradient(
+            90deg,
+            rgba(4, 7, 13, 0) 0%,
+            rgba(4, 7, 13, 0.3) 8%,
+            rgba(4, 7, 13, 0.26) 52%,
+            rgba(4, 7, 13, 0) 100%
+          );
+        }
       }
 
       .hero-brief-label:first-child {
@@ -3734,7 +3800,7 @@
         }
       }
 
-      /* ── Touch targets ──────────────────────────────────────────────
+      /* ── Touch targets ────────────────────────────────────────────────
          The chapter map is the only navigation inside a nine-thousand-pixel
          case study, and on a phone its links were 24px tall — the one
          control a reader most needs to hit while scrolling with a thumb was
