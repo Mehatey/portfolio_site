@@ -821,8 +821,27 @@
         display: block;
         transition: opacity 0.38s ease;
       }
+      /* Optical weight, not opacity. Every mark in the mono set is a white
+         silhouette at the same alpha, which is only fair if every mark has
+         the same ink density — and Dabur does not. It is a hairline italic
+         script where the others are grotesk wordmarks and solid lockups, so
+         at 48px its strokes land at well under a pixel and the same 0.66
+         that reads as confident grey on Deloitte reads as a watermark on it.
+         It has been the one visibly faint logo in the row since the marquee
+         shipped.
+
+         --ink is a per-mark correction set in the markup, and .m-logo--hair
+         pairs it with two half-pixel drop-shadows in the mark's own colour.
+         That is a dilation, not a glow: it fattens a hairline by about half
+         a pixel on each side, which is the typographic equivalent of
+         stepping the mark up a weight so it can hold its own beside a bold
+         one. Anything larger would bloom, and a silhouette that blooms
+         stops looking like a logo. */
       .m-logo__mono {
-        opacity: 0.66;
+        opacity: calc(0.66 * var(--ink, 1));
+      }
+      .m-logo--hair .m-logo__mono {
+        filter: drop-shadow(0 0 0.5px #fff) drop-shadow(0 0 0.5px #fff);
       }
       .m-logo__color {
         opacity: 0;
@@ -849,7 +868,15 @@
          Nothing else changes: the hover chip is paper in both themes. */
       html[data-theme="light"] .m-logo__mono {
         filter: invert(1);
-        opacity: 0.58;
+        opacity: calc(0.58 * var(--ink, 1));
+      }
+      /* The dilation has to be restated here rather than inherited, because
+         `filter` is a single property and the invert above replaces the whole
+         list. Order matters: invert first, then spread — spreading a white
+         mark and inverting the result would dilate the hole around it instead
+         of the strokes. */
+      html[data-theme="light"] .m-logo--hair .m-logo__mono {
+        filter: invert(1) drop-shadow(0 0 0.5px #0b1220) drop-shadow(0 0 0.5px #0b1220);
       }
       html[data-theme="light"] .m-logo::before {
         box-shadow:
@@ -1548,12 +1575,14 @@
       </section>
 
       <!-- Companies marquee — silhouette at rest, brand colour on a paper chip on hover.
-           Each entry is slug|label|height-in-px; the height equalises perceived size
-           across wordmarks and square lockups (see the .m-logo img comment). Both the
-           mono/ and color/ PNGs are background-free rebuilds of the originals. -->
+           Each entry is slug|label|height-in-px|ink; the height equalises perceived
+           size across wordmarks and square lockups (see the .m-logo img comment),
+           and the optional fourth field corrects for stroke weight (see the
+           .m-logo--hair comment — only hairline marks need it). Both the mono/ and
+           color/ PNGs are background-free rebuilds of the originals. -->
       {% assign collab_logos = "deloitte|Deloitte|28,eyejack|EyeJack|29,philips|Philips|54,marriott|Marriott|33,m-health-fairview|M Health
-      Fairview|45,leaf|Leaf Design Studio|37,dabur|Dabur|48,kfc|KFC|50,google|Google|34,pizza-hut|Pizza Hut|46,taco-bell|Taco Bell|57,del-taco|Del
-      Taco|40" | split: "," %}
+      Fairview|45,leaf|Leaf Design Studio|37,dabur|Dabur|48|1.42,kfc|KFC|50,google|Google|34,pizza-hut|Pizza Hut|46,taco-bell|Taco
+      Bell|57,del-taco|Del Taco|40" | split: "," %}
       <section class="marquee marquee--companies" aria-labelledby="collaborators-heading">
         <h2 class="marquee-kicker" id="collaborators-heading">Past collaborators</h2>
         <p class="sr-only">
@@ -1563,8 +1592,8 @@
         <div class="marquee-mask">
           <div class="marquee-track" aria-hidden="true">
             {% for i in (1..2) %}{% for entry in collab_logos %}{% assign p = entry | split: "|" %}<span
-              class="m-logo"
-              style="--h: {{ p[2] }}px"
+              class="m-logo{% if p[3] %} m-logo--hair{% endif %}"
+              style="--h: {{ p[2] }}px{% if p[3] %}; --ink: {{ p[3] }}{% endif %}"
               title="{{ p[1] }}"
               ><img
                 class="m-logo__mono"
