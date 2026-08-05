@@ -545,6 +545,7 @@
         fish: "#cfe9ff",
         pod: "#e8a882",
         glow: 6,
+        cast: null,
       },
       light: {
         body: ["rgba(196,216,220,0)", "rgba(174,203,208,0.6)", "rgba(150,186,194,0.82)"],
@@ -555,8 +556,33 @@
         fish: "#1d3a52",
         pod: "#7a4a2e",
         glow: 0,
+        /* Dark mode gets `glow`: at night the pond is bioluminescent and each
+           plant carries a halo in its own colour, which is what makes 12px of
+           monospace survive being underwater. Light mode had nothing — deep
+           inks sat flat on a mid-tone teal wash and the whole bed read at
+           maybe a third of the presence it has in the dark. The honest
+           daylight equivalent of a glow is not a glow: it is a shadow. A
+           plant standing in shallow water throws one onto the bed, down and
+           slightly off-sun. Same job — separate the glyph from the water —
+           done with the physics the scene actually has. */
+        cast: { color: "rgba(12,34,44,0.5)", blur: 5, dx: 1.5, dy: 2.5 },
       },
     };
+
+    /* Glow or cast shadow, whichever this theme uses, applied to a 2D context
+       that is already saved. `own` is the glyph's own colour — dark mode
+       haloes in it, light mode ignores it and uses the water's shadow ink. */
+    function depthCue(c, p, own, blur) {
+      if (p.glow) {
+        c.shadowColor = own;
+        c.shadowBlur = blur || p.glow;
+      } else if (p.cast) {
+        c.shadowColor = p.cast.color;
+        c.shadowBlur = p.cast.blur;
+        c.shadowOffsetX = p.cast.dx;
+        c.shadowOffsetY = p.cast.dy;
+      }
+    }
 
     function pal() {
       return isLight() ? PAL.light : PAL.dark;
@@ -803,7 +829,7 @@
     /* A pond nobody has touched yet should still look planted. Seed a bed
        across the whole band, biased toward the near shore, and scale each
        plant by how near it is so the bank reads as depth rather than as a
-       flat sheet of glyphs. Seeded quietly - 80 splashes at t=0 would boil
+       flat sheet of glyphs. Seeded quietly — 80 splashes at t=0 would boil
        the surface before the first frame. */
     function seedPlants() {
       plants = [];
@@ -832,10 +858,7 @@
         flora.save();
         flora.globalAlpha = pl.grow;
         flora.fillStyle = p.flora[pl.idx % p.flora.length];
-        if (p.glow) {
-          flora.shadowColor = p.flora[pl.idx % p.flora.length];
-          flora.shadowBlur = p.glow;
-        }
+        depthCue(flora, p, p.flora[pl.idx % p.flora.length]);
         flora.font = Math.round(FONT * sc) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
         flora.textAlign = "center";
         flora.textBaseline = "alphabetic";
@@ -927,10 +950,7 @@
         flora.save();
         flora.globalAlpha = 0.72 + f.startle * 0.25;
         flora.fillStyle = p.fish;
-        if (p.glow) {
-          flora.shadowColor = p.fish;
-          flora.shadowBlur = 5;
-        }
+        depthCue(flora, p, p.fish, 5);
         flora.font = Math.round(12 * f.sz) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
         flora.textAlign = "center";
         flora.textBaseline = "middle";
@@ -1028,10 +1048,7 @@
         flora.save();
         flora.globalAlpha = 0.66;
         flora.fillStyle = p.pod;
-        if (p.glow) {
-          flora.shadowColor = p.pod;
-          flora.shadowBlur = 5;
-        }
+        depthCue(flora, p, p.pod, 5);
         flora.translate(a.x, a.y + lift);
         flora.rotate(Math.sin(a.spin) * 0.28);
         flora.font = Math.round(11 * a.sz) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
