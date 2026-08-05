@@ -207,3 +207,42 @@ Full version not built (only a glass-blur CSS pass on `.site-footer`). Sid wants
 - **Dark mode**: the liquid-glass nav's dark-theme path is coded but never eyeballed — Sid explicitly asked to verify light AND dark. Check nav/logo/glass legibility in dark mode.
 - **Mobile / touch**: the film (`pointermove`), parallax, typewriter, and glass were never checked on mobile. Several are pointer/desktop-centric — verify and add touch fallbacks.
 - **Showreel**: only the URL + play logic were verified; the full modal play-through was never watched end-to-end. Confirm it actually plays.
+
+---
+
+## Session log — Aug 2026: meniscus edges, nav legibility, the pond bed
+
+### Traps this session cost real time on (read before touching the repo)
+
+- **`/mnt/user-data/uploads/` caches by device path.** `device_stage_files` reports honest byte counts in its JSON while the mount keeps serving a days-old snapshot at that same path, and re-staging the same path does not refresh it. Workaround: `device_bash`-copy the file to a **new** device path first (e.g. `_scratch/qaN/thing.html`) and stage _that_. A fresh path has no cache entry.
+- **The container mirror only carries cover images.** Every other case-study asset 404s, so media frames collapse to alt-text height (18px) and any geometry QA on a project page is meaningless. `pc/serve.js` now serves `pc/ph.jpg` — a gridded stand-in at 16:10 — for any missing `.png/.jpg/.webp/.gif`, which is what makes project-page layout QA possible at all.
+- **The harness runs rAF at ~12fps.** Measured, not guessed. Anything spring-driven will look mid-flight in a screenshot taken a second after the input; poll the geometry over 8s before concluding a spring does not settle. It probably does.
+- **`qa.js` sets both `theme` and `sid_theme`.** The site reads `sid_theme`; before this fix every light-theme screenshot was a lie.
+- **The Bash tool's working directory persists between calls.** Two patches died with `FileNotFoundError` because cwd had drifted to `/home/claude/pc`. Prefix relative-path patches with `cd /home/claude/repo &&`.
+- **`git *.lock` cleanup must move `.git/index.lock` AND `.git/HEAD.lock` to unique names.** The glob loop silently no-ops if the destination name already exists in `.git/stale-locks/`, and then the commit fails with "Another git process seems to be running". Suffix with `$RANDOM`.
+- **Start the local server with `setsid nohup node serve.js > /tmp/serve.log 2>&1 < /dev/null &`.** `pkill -f serve.js` matches the Bash tool's own shell and kills the call (exit 144).
+- **`_includes/cursor_fluid.html` lines ~4152–4260 (`GLOBAL CHROME 6.0`) paint nothing on any real page but ARE live on the 404 page**, which renders `<nav class="nav"><div class="nav-links">`. Do not delete the block.
+
+### The corrected `works.html` cascade map
+
+An earlier handoff named line ~4404's bare `.wli-name` as the winning rule. It is not. Two blocks inside `@media (min-width: 901px)` (around lines 2699 and 3727) share the selector list `.works-list .wli-name, .wli-name` — specificity (0,2,0) — and beat it. Every previous attempt to shrink the works-list type was inert; measurement showed all six rows still at `23.436px` (`1.55vw`) after the "fix". They now measure `19.5px`. **Judge by what is computed, not by what a written-down cascade map claims.**
+
+### The home page is a hard-dark page
+
+`html[data-theme="light"]` nav rules now target `:is(.contact-page, .home-page)`. A prior comment reasoned home _out_ of that list because the home rebuild gave it a cream `--home-bg`. True of the root's computed background, false of what is painted: the smoke canvas and the cube stage cover the whole viewport at every theme, so the nav sits on black and light-theme styling put near-white labels on a near-white capsule. **Judge by what is painted, not by what the root computes to.** `/play/` is still correctly excluded — it is the standalone root page and never includes the partial.
+
+### Meniscus (`_layouts/project.html`)
+
+Case-study media frames (`.cs-bleed`, `.cs-wide-inner`, `.cs-bleed-full`, `.cs-grid-item`, `.cs-split-media`, `.cs-pair-media`, `.cs-pair-media-grid`) get a `clip-path: polygon(...)` whose top and bottom edges are pinned at the corners and bow in the centre. The bow is a spring driven by scroll velocity; a two-stroke chromatic hairline (an `.mn-edge` SVG, `viewBox="0 0 100 100"`, `preserveAspectRatio="none"`, `vector-effect="non-scaling-stroke"`) rides the same curve.
+
+Things worth knowing before tuning it:
+
+- The frames' own `::before` is 70px of solid black top and bottom. Left alone it swallows the curve entirely — this is why the first attempt looked like nothing had changed. The module adds `.mn-on` to each frame and the stylesheet pulls that fade back to 22px at 0.5 alpha.
+- The hairline SVG is a child of the frame and is **not** clipped, deliberately. Clipping the frame instead of the media would halve the stroke.
+- The clip is applied to the media children, so the bow reveals the frame's own near-black background — the dark curve _is_ the effect.
+- Knobs, all in one place: `K` (0.16) stiffness, `C` (0.34) damping, `GAIN` (0.16) scroll sensitivity, `MAXB` (0.85) clamp, `base` (`max(10, min(30, H*0.055))`) the resting inset and therefore the bow's headroom.
+- Off-screen frames are drawn once via the `done` flag so nothing pops from straight to bowed on entry; the rAF loop parks when every spring is asleep.
+
+### Still unverified by anyone
+
+**Motion.** The footer pond's water, fish wake and pod collisions; the works-page liquid preview swap; and the meniscus at 60fps have only been checked numerically and frame-stepped at 12fps. None of it has been watched in a real browser.
