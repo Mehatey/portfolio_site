@@ -547,12 +547,31 @@
       }
 
       .gcol {
+        position: relative;
         padding: 44px 44px 52px 0;
-        border-right: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      /* The rule is a masked pseudo-element rather than a border. Grid stretches
+         every column to the tallest one, so a plain border-right drew a hard
+         full-height line past the bottom of three ragged lists and framed the
+         empty space instead of the content. Fading the last third lets the
+         columns end where their content ends. */
+      .gcol::after {
+        content: "";
+        position: absolute;
+        top: 44px;
+        right: 0;
+        bottom: 0;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.07);
+        -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 58%, transparent 100%);
+        mask-image: linear-gradient(180deg, #000 0%, #000 58%, transparent 100%);
+        pointer-events: none;
       }
       .gcol:last-child {
-        border-right: none;
         padding-right: 0;
+      }
+      .gcol:last-child::after {
+        display: none;
       }
       .gcol:not(:first-child) {
         padding-left: 44px;
@@ -1182,9 +1201,13 @@
         .gcol:not(:first-child) {
           padding-left: 32px;
         }
+        /* Two columns here, so the second one sits at the right edge and its
+           rule would hang in space. */
+        .gcol:nth-child(2)::after {
+          display: none;
+        }
         .gcol:last-child {
           grid-column: 1 / -1;
-          border-right: none;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
           padding-left: 0;
           padding-right: 0;
@@ -1218,9 +1241,11 @@
           grid-template-columns: 1fr;
         }
         .gcol {
-          border-right: none;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
           padding: 28px 0;
+        }
+        .gcol::after {
+          display: none;
         }
         .gcol:first-child {
           border-top: none;
@@ -1348,7 +1373,10 @@
 
       /* Grid columns + labels */
       html[data-theme="light"] .gcol {
-        border-right-color: rgba(7, 9, 15, 0.1);
+        border-top-color: rgba(7, 9, 15, 0.1);
+      }
+      html[data-theme="light"] .gcol::after {
+        background: rgba(7, 9, 15, 0.13);
       }
       html[data-theme="light"] .g-label {
         color: rgba(7, 9, 15, 0.45);
