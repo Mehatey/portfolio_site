@@ -9,8 +9,28 @@
   body {
     overflow-x: hidden; /* kill any horizontal scroll bleed (marquee tracks, oversized media, etc) */
   }
+  /* The stacking context above used to be made with `isolation: isolate`, and
+     that one line was silently switching off every piece of glass on the site.
+
+     `isolation: isolate` does not merely open a stacking context — per the
+     Filter Effects spec it also establishes a *Backdrop Root*, and
+     `backdrop-filter` can only sample what is painted behind the nearest
+     backdrop root. Behind this one there is nothing, so the nav capsule, the
+     mark, and every other frosted surface were blurring an empty image and
+     compositing their tint over sharp, unblurred page content. It looked like
+     a tinted sticker rather than glass, which is exactly the complaint: list
+     items read straight through the SID MEHTA mark, letter for letter.
+
+     `position: relative; z-index: 0` gives the identical stacking context —
+     the canvas at z-index -1 still sits behind body's content and in front of
+     the html background — without the backdrop root. And relative positioning
+     on body specifically is safe for the fixed children the note above worries
+     about: only transform, filter, perspective, will-change of those, and
+     contain create a containing block for `position: fixed`. Verified: the
+     skip link, theme toggle and nav all still measure as fixed. */
   body {
-    isolation: isolate;
+    position: relative;
+    z-index: 0;
   }
   #page-smoke-bg {
     position: fixed;
