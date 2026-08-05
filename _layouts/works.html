@@ -4580,28 +4580,75 @@
       }
 
       /* ── Preview ── one column, not two. A 16:10 frame the covers actually
-         fit, with the reading matter directly beneath it. */
+         fit, with the reading matter directly beneath it.
+
+         The column used to be height:auto, which meant it stopped wherever
+         its content happened to stop: at 1440x900 that was 618px of panel in
+         790px of available viewport, so the whole right-hand side of the page
+         was a dense block of image-then-paragraph-then-link with 172px of
+         nothing under it. Against a left column carrying a masthead, a count,
+         a rule, a fast lane, a section header and a note before the first
+         project even appears, the page read as crowded on one side and
+         abandoned on the other — which is most of what "too much on it
+         without breathing room" describes.
+
+         So the column takes a definite height and hands the free space to the
+         two places that want it. The frame grows first, because a bigger
+         cover is the reason anyone is looking at this side of the page at
+         all, and whatever the frame cannot use becomes air between the image
+         and the reading matter rather than a gap under it.
+
+         Both ends are bounded on purpose. The frame cannot pass 58vh or
+         600px, so a tall display never crops a landscape cover into a
+         portrait; the column cannot pass 860px, so the air between image and
+         copy never opens into a second dead region. Below those bounds the
+         behaviour is the old behaviour: at 900 the frame reaches its 52vh
+         cap and 62px falls out as air, at 720 there is no free space to give
+         and the panel sits exactly as it always did. */
       .works-preview {
         display: flex;
         flex-direction: column;
+        justify-content: space-between;
         gap: clamp(18px, 2.4vh, 28px);
         position: sticky;
         top: calc(var(--nav-h) + 28px);
         width: auto;
-        height: auto;
+        height: min(calc(100vh - var(--nav-h) - 28px - clamp(28px, 5vh, 56px)), 860px);
         max-height: none;
         padding: 0;
+        /* So the frame below can bound its own growth against the width of
+           this column rather than against the viewport. Inline-size only:
+           the block axis stays free, which is the whole point of the
+           definite height above. */
+        container-type: inline-size;
       }
       .wp-media {
         position: relative;
         width: 100%;
         height: auto;
+        flex: 1 1 auto;
+        min-height: 0;
         aspect-ratio: 16 / 10;
-        max-height: 52vh;
+        /* Three ceilings, and the third is the one that matters. The frame
+           takes the column's free space, so on a tall display it grew until
+           it hit 58vh or 600px — at 1440x1200 that produced a 696x600 hole,
+           1.16:1, very nearly a square. Every cover on this site is
+           landscape, and object-fit: cover resolves that by throwing away
+           the sides: the more square the frame gets, the more of each
+           project's own composition is cropped out of it.
+
+           74cqw is 74% of this column's width, which pins the tallest the
+           frame can ever be to 1.35:1 — still generous, still cinematic,
+           but never squarer than the work it is holding. On a short display
+           it is inert, because 58vh binds first. */
+        max-height: min(58vh, 600px, 74cqw);
         margin: 0;
         border-radius: 10px;
         border: 1px solid var(--wk-line-soft);
         overflow: hidden;
+      }
+      .wp-body {
+        flex: 0 0 auto;
       }
       .wp-body {
         display: grid;
@@ -4713,13 +4760,34 @@
           grid-template-columns: minmax(0, 1fr);
           row-gap: clamp(32px, 5vh, 56px);
         }
+        /* The viewport-height panel above only makes sense while the preview
+           is a sticky column beside the list. Here it stacks above the list in
+           normal flow, so a definite height has nothing to fill — it just
+           forces the frame to shrink below its own aspect ratio. At 1024 that
+           squeezed a 16:10 cover into a 2.68:1 letterbox strip. Hand the
+           height back to the content.
+
+           The frame still needs a ceiling — a full-width 16:10 cover at 1024
+           is 588px tall and would eat three quarters of the viewport before
+           the first project title appears. But that ceiling cannot be a
+           max-height: capping the height while the width stays full-bleed is
+           exactly how the letterbox happened in the first place. Cap the
+           WIDTH in viewport-height units instead and let aspect-ratio derive
+           the height from it, so the cover is always precisely 16:10 and
+           never taller than 52vh. Below that the width cap is inert and the
+           frame simply fills the column, which is the phone case. */
         .works-preview {
           position: static;
           order: -1;
           top: auto;
+          height: auto;
+          justify-content: flex-start;
         }
         .wp-media {
-          max-height: 44vh;
+          flex: 0 0 auto;
+          width: min(100%, 83vh);
+          max-height: none;
+          margin-inline: 0;
         }
         /* Below 1100 an old rule scattered the copy — title centred, blurb
            hard left, CTA adrift. One column, one edge, all of it left. */
