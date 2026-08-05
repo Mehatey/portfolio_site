@@ -89,12 +89,26 @@
   }
   /* Contextual cursor label — small mono pill that appears next to the dot over
      elements tagged [data-cursor-text] (e.g. "View", "Play"). Same visual language
-     as the pixel-art nav icons: mono type, tight tracking, no color. */
+     as the pixel-art nav icons: mono type, tight tracking, no color.
+
+     It stays inverted against the page — a white chip in the dark theme, a black
+     one in the light — because a cursor badge has one job, which is to be seen
+     immediately wherever it lands. Everything else about it is the chrome's
+     material: a capsule rather than a hard rectangle, a hairline, a shadow that
+     puts it a few millimetres above the page, and a blurred backdrop so a
+     photograph passing underneath tints it instead of being covered by it.
+
+     It also arrives rather than appears. The dot leads and the chip hangs 28px
+     below it, so it grows out of the dot: origin at the top, up from 0.86 and
+     4px, on the same ease-out the rest of the chrome uses. A pill that simply
+     switches on at full size reads as a browser tooltip, which is the one thing
+     a hand-built cursor must not look like. */
   #cur-label {
     position: fixed;
     top: 0;
     left: 0;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) translateY(4px) scale(0.86);
+    transform-origin: 50% 0;
     pointer-events: none;
     z-index: 99998;
     font-family: var(--font-mono);
@@ -102,19 +116,40 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: rgba(8, 8, 12, 0.92);
-    background: rgba(255, 255, 255, 0.92);
-    padding: 5px 10px;
+    background: rgba(248, 251, 255, 0.88);
+    -webkit-backdrop-filter: blur(10px) saturate(1.5);
+    backdrop-filter: blur(10px) saturate(1.5);
+    border-radius: 999px;
+    padding: 5px 11px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      0 1px 0 rgba(8, 12, 20, 0.16),
+      0 7px 20px rgba(0, 0, 0, 0.34);
     white-space: nowrap;
     opacity: 0;
     will-change: left, top, transform, opacity;
-    transition: opacity 0.22s ease;
+    transition:
+      opacity 0.18s ease,
+      transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
   }
   #cur-label.is-visible {
     opacity: 1;
+    transform: translate(-50%, -50%) translateY(0) scale(1);
   }
   html[data-theme="light"] #cur-label {
     color: rgba(255, 255, 255, 0.95);
-    background: rgba(7, 9, 15, 0.9);
+    background: rgba(7, 9, 15, 0.86);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 1px 0 rgba(255, 255, 255, 0.5),
+      0 7px 20px rgba(18, 32, 52, 0.26);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #cur-label,
+    #cur-label.is-visible {
+      transform: translate(-50%, -50%);
+      transition: opacity 0.18s ease;
+    }
   }
   /* Global click feedback — interactive elements briefly scale-down on press */
   a:active,
