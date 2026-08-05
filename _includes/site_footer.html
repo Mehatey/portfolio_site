@@ -543,7 +543,7 @@
         causticAlpha: 0.62,
         flora: ["#8fc46a", "#b3dc9c", "#59cbba", "#f29cb6", "#dd7fa0", "#ef8a66", "#bcd6e8"],
         fish: "#cfe9ff",
-        pod: "#e8d4a4",
+        pod: "#e8a882",
         glow: 6,
       },
       light: {
@@ -553,7 +553,7 @@
         causticAlpha: 0.5,
         flora: ["#274d12", "#3a6321", "#08574e", "#8e2b4c", "#6b1f40", "#7d2f11", "#20415a"],
         fish: "#1d3a52",
-        pod: "#6b5a2c",
+        pod: "#7a4a2e",
         glow: 0,
       },
     };
@@ -784,7 +784,7 @@
       return 0;
     }
 
-    function plant(x, y, instant) {
+    function plant(x, y, instant, quiet) {
       if (plants.length >= MAX_PLANTS) plants.shift();
       var p = pal();
       plants.push({
@@ -797,7 +797,25 @@
         grow: instant ? 1 : 0,
         phase: Math.random() * Math.PI * 2,
       });
-      splash(x, y, instant ? 0.5 : 2.6, 2.2);
+      if (!quiet) splash(x, y, instant ? 0.5 : 2.6, 2.2);
+    }
+
+    /* A pond nobody has touched yet should still look planted. Seed a bed
+       across the whole band, biased toward the near shore, and scale each
+       plant by how near it is so the bank reads as depth rather than as a
+       flat sheet of glyphs. Seeded quietly - 80 splashes at t=0 would boil
+       the surface before the first frame. */
+    function seedPlants() {
+      plants = [];
+      var band = live.bot - live.top;
+      if (band < 40) return;
+      var count = Math.min(MAX_PLANTS, Math.round(Math.max(26, Math.min(coarse ? 54 : 88, W / 16))));
+      for (var i = 0; i < count; i++) {
+        var d = Math.pow(Math.random(), 0.7);
+        plant(-24 + Math.random() * (W + 48), live.top + band * (0.12 + d * 0.82), true, true);
+        var pl = plants[plants.length - 1];
+        pl.scale *= 0.68 + d * 0.6;
+      }
     }
 
     function drawPlants(t) {
@@ -1157,6 +1175,7 @@
       layGround();
       seedFish();
       seedPods();
+      if (!plants.length) seedPlants();
       /* Anything planted before the resize is still in the array but its
          coordinates belonged to a different geometry; clamp rather than drop,
          because losing someone's garden on a window drag is rude. */
