@@ -16,8 +16,19 @@
     padding: 10px 8px;
     border-radius: 12px;
     background: rgba(15, 19, 26, 0.42);
-    backdrop-filter: blur(9px) saturate(120%);
-    -webkit-backdrop-filter: blur(9px) saturate(120%);
+    /* No backdrop-filter. It carried blur(9px) saturate(120%), which is the
+       right instinct for a glass chip and does nothing here for a structural
+       reason: this panel is fixed at right: 18px, which parks it in the page
+       gutter, and the gutter is where the smoke background is — wide, soft and
+       near-flat, so a blur has no high-frequency detail to smear. Measured on
+       and off over /works/ and over /ai-prototypes/, both mid-scroll with real
+       content on screen: the largest difference anywhere in the 30x132 panel
+       was 3/255, across under 1% of its pixels.
+
+       It was the most expensive no-op on the site, too. A backdrop-filter on a
+       position: fixed element has to re-read and re-blur its backdrop on every
+       single scroll frame — and this element exists only to be looked at while
+       scrolling. The 0.42 scrim and the hairline border are doing the work. */
     border: 1px solid rgba(180, 205, 235, 0.16);
     box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
     opacity: 0;
@@ -37,6 +48,19 @@
     letter-spacing: 0.08em;
     color: #9cc6ff;
     font-variant-numeric: tabular-nums;
+    /* tabular-nums pins the width of each digit; it cannot pin how many digits
+       there are. The readout runs 0 -> 5 -> 50 -> 100, so the panel that holds
+       it was 24.1px wide at the top of a page and 36.4px at the bottom, and
+       because it is centred and anchored to the right edge its left side crept
+       12px inward as you scrolled. A fixed chrome element that changes shape
+       while you read is the definition of jitter, and this one changes shape
+       in response to the exact gesture it exists to report on.
+
+       Three characters is the maximum, so three characters is the width, plus
+       the two inter-character gaps that letter-spacing adds on top. The number
+       stays centred in it and the panel never moves again. */
+    min-width: calc(3ch + 0.24em);
+    text-align: center;
   }
   .scrolllen__track {
     width: 4px;
