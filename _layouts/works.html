@@ -5507,6 +5507,16 @@
           }
 
           if (animate && preview) preview.style.opacity = "1";
+
+          // Hand the swap to the spring. Direction is which way you travelled
+          // through the list, so the copy enters from the side you came from.
+          if (animate && window.__wpSpring) {
+            var __all = document.querySelectorAll(".works-list-item");
+            var __i = Array.prototype.indexOf.call(__all, item);
+            var __prev = typeof window.__wpLastIdx === "number" ? window.__wpLastIdx : __i;
+            window.__wpLastIdx = __i;
+            window.__wpSpring.kick(__i === __prev ? 1 : __i > __prev ? 1 : -1);
+          }
         }
 
         if (_previewSwapTimer) {
@@ -6035,6 +6045,107 @@
         window.addEventListener("scroll", kick, { passive: true });
         window.addEventListener("wheel", kick, { passive: true });
         window.addEventListener("touchmove", kick, { passive: true });
+      })();
+    </script>
+    <script>
+      // ── the spring ──────────────────────────────────────────────────────────
+      // A CSS transition has a fixed duration and a fixed destination: it takes
+      // the same time to travel 8px as 80px, and it arrives dead. A spring has
+      // stiffness, damping and — the part that matters — velocity. It moves fast
+      // while it is far away, decelerates as it closes, overshoots slightly, and
+      // settles. And when you interrupt it mid-flight by hovering the next
+      // project, it carries the velocity it already had into the new target
+      // instead of snapping back to zero and restarting. That carried momentum
+      // is the whole reason a list like this feels alive rather than animated.
+      //
+      // Two springs, not one: the copy leads, the facts strip trails behind on a
+      // softer spring, so the block arrives as a body with follow-through rather
+      // than as a rigid rectangle.
+      (function () {
+        var copy = document.querySelector("#works-preview .wp-copy");
+        var facts = document.querySelector("#works-preview .wp-facts");
+        if (!copy && !facts) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        function Spring(stiffness, damping, impulse) {
+          this.k = stiffness;
+          this.c = damping;
+          this.impulse = impulse;
+          this.x = 0;
+          this.v = 0;
+        }
+        Spring.prototype.kick = function (dir) {
+          // Additive, deliberately: interrupting an in-flight swap stacks onto
+          // the existing velocity rather than resetting it.
+          this.v += dir * this.impulse;
+          // But do not let a mash of hovers fling the block off the page.
+          this.v = Math.max(-1400, Math.min(1400, this.v));
+        };
+        Spring.prototype.step = function (dt) {
+          // Fixed 1/240s substeps: explicit Euler goes unstable at these
+          // stiffnesses if it is fed a whole dropped-frame delta at once.
+          var h = 1 / 240;
+          var left = dt;
+          while (left > 0) {
+            var s = left > h ? h : left;
+            var a = -this.k * this.x - this.c * this.v;
+            this.v += a * s;
+            this.x += this.v * s;
+            left -= s;
+          }
+        };
+        Spring.prototype.asleep = function () {
+          return Math.abs(this.x) < 0.05 && Math.abs(this.v) < 0.5;
+        };
+
+        // ζ ≈ 0.77 and 0.75 — under-damped enough to overshoot once and settle,
+        // nowhere near enough to wobble.
+        var lead = new Spring(170, 20, 300);
+        var trail = new Spring(132, 17, 230);
+
+        var running = false;
+        var prevT = 0;
+
+        function paint() {
+          if (copy) {
+            copy.style.transform = "translate3d(0," + lead.x.toFixed(2) + "px,0)";
+            copy.style.opacity = (1 - Math.min(0.38, Math.abs(lead.x) / 64)).toFixed(3);
+          }
+          if (facts) {
+            facts.style.transform = "translate3d(0," + trail.x.toFixed(2) + "px,0) skewY(" + (trail.x * 0.012).toFixed(3) + "deg)";
+            facts.style.opacity = (1 - Math.min(0.34, Math.abs(trail.x) / 70)).toFixed(3);
+          }
+        }
+
+        function frame(t) {
+          if (!prevT) prevT = t;
+          var dt = Math.min(0.064, (t - prevT) / 1000);
+          prevT = t;
+          lead.step(dt);
+          trail.step(dt);
+          paint();
+          if (lead.asleep() && trail.asleep()) {
+            lead.x = lead.v = trail.x = trail.v = 0;
+            paint();
+            running = false;
+            prevT = 0;
+            return;
+          }
+          requestAnimationFrame(frame);
+        }
+
+        window.__wpSpring = {
+          kick: function (dir) {
+            var d = dir < 0 ? -1 : 1;
+            lead.kick(d);
+            trail.kick(d);
+            if (!running) {
+              running = true;
+              prevT = 0;
+              requestAnimationFrame(frame);
+            }
+          },
+        };
       })();
     </script>
   </body>
