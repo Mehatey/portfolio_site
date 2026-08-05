@@ -156,6 +156,56 @@ title: Play · Sid Mehta
       .play-stage.has-fallback .play-instruction { display: none; }
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
+      /* ── The wait ────────────────────────────────────────────────────
+         Everything on this page arrives late by construction: three.js
+         comes from a CDN and ninety eight textures follow it. Until the
+         first of those lands the stage is an unbroken black rectangle
+         with the word "Loading" pinned to the bottom of it, and on a
+         blocked CDN that is what you look at for the full nine seconds
+         before the stills fallback trips. A void with a caption reads as
+         a page that has failed, not as one that is working.
+
+         So put the shape of the answer on the screen while the answer is
+         in transit: the same arc of cards the carousel is about to be,
+         empty, breathing, receding toward both edges. It costs no
+         network — no images, no script, pure layout — and it is the
+         honest picture, because that really is where the pieces are
+         going to appear. Whichever path wins, WebGL or stills, it marks
+         the stage and this dissolves.
+
+         The tiles carry their own geometry as custom properties so the
+         arc is legible here as data rather than buried in eighteen
+         near-identical rules. */
+      .play-skeleton { position: absolute; inset: 0; z-index: 2; pointer-events: none; transition: opacity 620ms ease, visibility 0s linear 620ms; }
+      .play-stage.is-ready .play-skeleton, .play-stage.has-fallback .play-skeleton { opacity: 0; visibility: hidden; }
+      .play-skeleton i {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: var(--w);
+        height: var(--h);
+        margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+        border-radius: 11px;
+        background: linear-gradient(146deg, rgba(150, 190, 240, 0.11), rgba(150, 190, 240, 0.025));
+        box-shadow: inset 0 0 0 1px rgba(178, 210, 246, 0.085);
+        animation: playSkel 3.6s var(--d) ease-in-out infinite;
+      }
+      /* Opacity and lift together, so the row reads as cards floating at
+         slightly different depths rather than as a bank of blinking
+         placeholders. */
+      @keyframes playSkel {
+        0%, 100% { opacity: 0.3; transform: translateY(0); }
+        50% { opacity: 0.78; transform: translateY(-7px); }
+      }
+      /* The last six sit off the main arc, higher and lower in the frame.
+         They are further away, so they are dimmer and they move less. */
+      .play-skeleton i:nth-child(n + 10) { animation-name: playSkelFar; }
+      @keyframes playSkelFar {
+        0%, 100% { opacity: 0.13; transform: translateY(0); }
+        50% { opacity: 0.4; transform: translateY(-4px); }
+      }
+      @media (max-width: 760px) { .play-skeleton i:nth-child(n + 10) { display: none; } }
+
       @media (max-width: 760px) {
         .play-header { top: 78px; left: 18px; width: 205px; }
         .play-header h1 { font-size: 48px; }
@@ -170,6 +220,7 @@ title: Play · Sid Mehta
         .play-lightbox__copy p { font-size: 14px; }
       }
       @media (prefers-reduced-motion: reduce) {
+        .play-skeleton i { animation: none; opacity: 0.5; }
         .play-instruction { display: none; }
         .play-caption, .play-index__bar::after, .play-lightbox, .play-lightbox button { transition-duration: 1ms !important; }
       }
@@ -190,6 +241,23 @@ title: Play · Sid Mehta
           <a href="{{ site.baseurl }}/shot-on-iphone/">Camera roll ↗</a>
         </nav>
       </header>
+      <div class="play-skeleton" aria-hidden="true">
+        <i style="--x: 50%; --y: 52%; --w: 300px; --h: 188px; --d: 0s"></i>
+        <i style="--x: 31.5%; --y: 52%; --w: 232px; --h: 145px; --d: -0.35s"></i>
+        <i style="--x: 68.5%; --y: 52%; --w: 232px; --h: 145px; --d: -0.35s"></i>
+        <i style="--x: 17.5%; --y: 52%; --w: 172px; --h: 108px; --d: -0.7s"></i>
+        <i style="--x: 82.5%; --y: 52%; --w: 172px; --h: 108px; --d: -0.7s"></i>
+        <i style="--x: 7%; --y: 52%; --w: 124px; --h: 78px; --d: -1.05s"></i>
+        <i style="--x: 93%; --y: 52%; --w: 124px; --h: 78px; --d: -1.05s"></i>
+        <i style="--x: 0%; --y: 52%; --w: 92px; --h: 58px; --d: -1.4s"></i>
+        <i style="--x: 100%; --y: 52%; --w: 92px; --h: 58px; --d: -1.4s"></i>
+        <i style="--x: 50%; --y: 29%; --w: 150px; --h: 94px; --d: -1.9s"></i>
+        <i style="--x: 34%; --y: 29%; --w: 120px; --h: 75px; --d: -2.2s"></i>
+        <i style="--x: 66%; --y: 29%; --w: 120px; --h: 75px; --d: -2.05s"></i>
+        <i style="--x: 50%; --y: 77%; --w: 150px; --h: 94px; --d: -1.75s"></i>
+        <i style="--x: 34%; --y: 77%; --w: 120px; --h: 75px; --d: -2.4s"></i>
+        <i style="--x: 66%; --y: 77%; --w: 120px; --h: 75px; --d: -2.55s"></i>
+      </div>
       <p class="play-instruction">Scroll, drag, or use arrow keys. Select any piece to open it.</p>
       <div class="play-index" aria-hidden="true"><span id="play-count">01 / 98</span><span class="play-index__bar" id="play-progress"></span></div>
       <div class="play-caption is-visible" id="play-caption" aria-live="polite"><span>In focus</span><strong id="play-caption-title">Loading archive</strong></div>
