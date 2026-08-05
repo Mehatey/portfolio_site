@@ -185,6 +185,71 @@
       navigation: none;
     }
   }
+
+  /* ── VIDEO CHROME ──────────────────────────────────────────────────────
+     Every frame on this site is composed. The covers are cropped, the media
+     blocks have a curved leading edge, the reels have their own counters and
+     captions — and then a video with `controls` paints a light grey capsule
+     with a blue-ish progress bar across the bottom of it, because that is
+     what the user agent ships. On /ai-prototypes/ there are twelve of them,
+     stacked down a page whose entire argument is that these are finished
+     pieces of work. The default panel is the single loudest thing on it.
+
+     Removing `controls` is not the answer for those twelve: they are films a
+     visitor is meant to start, pause and scrub. The answer is to dress the
+     panel instead of the video, which Chromium and Safari both allow through
+     the media-controls pseudo-elements. Two rules do nearly all of it.
+
+     The enclosure inherits the element's own radius so the bar stops
+     squaring off the bottom corners of a media block that is rounded
+     everywhere else. The panel's opaque capsule becomes a gradient scrim in
+     the page's own ink — transparent at the top, near-solid where the
+     buttons sit — so the controls read as sitting ON the footage rather than
+     as a tray bolted under it. The glyphs the UA draws are white either way,
+     and white on a 0.82 scrim is more legible than white on the default grey.
+
+     Firefox exposes none of this and keeps its own controls, which is the
+     behaviour today, so nothing regresses there. */
+  video::-webkit-media-controls-enclosure {
+    border-radius: inherit;
+  }
+  video::-webkit-media-controls-panel {
+    background-color: transparent;
+    background-image: linear-gradient(180deg, rgba(4, 7, 13, 0) 0%, rgba(4, 7, 13, 0.4) 40%, rgba(4, 7, 13, 0.82) 100%);
+  }
+
+  /* ── FOCUS ─────────────────────────────────────────────────────────────
+     Several pages set a proper ring on their own controls and several do
+     not, so a keyboard walk of the home page landed on the skip link, the
+     "Open to roles" chip, the "Selected work" link and the reel button with
+     nothing but the UA default — a 1px near-black outline, on a near-black
+     page. Invisible. This is the floor, defined once where every layout
+     already includes it; pages with a stronger ring still override it. */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  [tabindex]:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid rgba(140, 200, 255, 0.75);
+    outline-offset: 3px;
+    border-radius: 3px;
+  }
+  html[data-theme="light"] a:focus-visible,
+  html[data-theme="light"] button:focus-visible,
+  html[data-theme="light"] summary:focus-visible,
+  html[data-theme="light"] [tabindex]:focus-visible,
+  html[data-theme="light"] input:focus-visible,
+  html[data-theme="light"] textarea:focus-visible,
+  html[data-theme="light"] select:focus-visible {
+    outline-color: rgba(24, 68, 140, 0.7);
+  }
+  /* Mouse users should never see it; a bare :focus rule would flash the ring
+     on every click on the custom-cursor pages. */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
 </style> <style>
       :root {
         --content-max: 1320px;
@@ -2809,22 +2874,6 @@
       html[data-theme="light"] .proj-highlight-label {
         color: rgba(7, 9, 15, 0.5);
       }
-      /* The highlight VALUE and the next-project arrow were the two survivors of the
-         light-mode pass on this layout: both stayed rgba(255,255,255,...) while the
-         canvas went cream (#f5f3ee), so they measured at contrast 1.11 — invisible.
-         The .proj-highlights strip has a transparent background in both themes, so
-         there is no dark surface behind them to rescue the white. */
-      html[data-theme="light"] .proj-highlight-value {
-        color: rgba(7, 9, 15, 0.92);
-      }
-      html[data-theme="light"] .next-arrow {
-        border-color: rgba(7, 9, 15, 0.16);
-        color: rgba(7, 9, 15, 0.45);
-      }
-      html[data-theme="light"] .proj-next:hover .next-arrow {
-        border-color: rgba(7, 9, 15, 0.42);
-        color: rgba(7, 9, 15, 0.85);
-      }
       html[data-theme="light"] .case-context {
         border-color: rgba(7, 9, 15, 0.1);
       }
@@ -3594,6 +3643,88 @@
         box-shadow: none !important;
         -webkit-backdrop-filter: none !important;
         backdrop-filter: none !important;
+        position: relative;
+      }
+
+      /* THE SHADE THE RULE CASTS.
+
+         The brief was stripped back to a hairline and three lines of type on
+         purpose — a card here would be a second window sitting on top of the
+         hero, and the whole top screen is meant to read as one image with
+         writing on it. That decision is right and it stays. What it did not
+         account for is that the type has no ground of its own, and the only
+         thing dimming the cover behind it is .hero-overlay, which is a purely
+         VERTICAL gradient. It assumes the words are at the bottom. The brief
+         is not at the bottom — it sits at 57-89% of the hero's height, in the
+         upper reaches of that gradient, where it is only getting about 0.4 of
+         the black it needs.
+
+         On a dark cover that is invisible and fine. Measured over the sixteen
+         project pages, thirteen are dark enough behind the rail that nothing
+         is wrong. Marriott and M Health Fairview are both product screenshots
+         with a pale UI card landing exactly under the first line, and the
+         backdrop there measures 119 of 255 AFTER the overlay. White at 0.84
+         over that is 3.5:1. The line reading "9,000+ · properties in scope"
+         is the single most useful sentence on the page for the person this
+         site is built for, and it was the least legible thing in the hero.
+
+         The obvious fixes were both wrong. Deepening .hero-overlay drags down
+         every hero on the site to rescue two. Putting the card back throws
+         away the reason the card was removed. Leaning harder on the existing
+         text-shadow just smears black fringe around each glyph, which over a
+         pale backdrop reads as a printing fault rather than as contrast.
+
+         So the rule casts shade. A horizontal wash anchored to the hairline,
+         at full strength where the border is and falling to nothing past the
+         longest line, masked to nothing top and bottom so it has no edge in
+         any direction. It is not a surface — there is no plane, no border, no
+         radius, nothing to catch the eye. It only exists where the cover is
+         bright enough for it to matter, and on the thirteen dark heroes it
+         changes the measured luminance by single digits.
+
+         The stops are asymmetric on purpose: in over the first 8% so the wash
+         is already at full strength by the time it reaches the hairline, and
+         out over the last 58% — nearly 300px of tail past the longest line —
+         because the failure mode of a wash like this is not being too weak,
+         it is having a discernible right-hand end. A short tail on a flat
+         cover reads as a soft rectangle; a tail this long reads as the image
+         simply being darker over there. z-index -1 keeps it behind the type;
+         the nearest stacking context is .hero-inner at z-index 3, so it paints
+         above .hero-overlay and above the cover, and below every word. */
+      .hero-recruiter-brief::before {
+        content: "";
+        position: absolute;
+        inset: -22px -92px -20px -34px;
+        z-index: -1;
+        pointer-events: none;
+        background: linear-gradient(
+          90deg,
+          rgba(4, 7, 13, 0) 0%,
+          rgba(4, 7, 13, 0.46) 8%,
+          rgba(4, 7, 13, 0.44) 42%,
+          rgba(4, 7, 13, 0.26) 72%,
+          rgba(4, 7, 13, 0) 100%
+        );
+        -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+        mask-image: linear-gradient(180deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+      }
+
+      /* Below 900 the brief loses its max-width and spans the column, and it
+         sits far enough down the hero that .hero-overlay is already past 0.9.
+         Full-strength shade across the whole width there would be a dark band
+         with nothing to justify it, so the wash keeps its shape and gives up
+         most of its weight. */
+      @media (max-width: 900px) {
+        .hero-recruiter-brief::before {
+          inset: -16px -24px -14px -26px;
+          background: linear-gradient(
+            90deg,
+            rgba(4, 7, 13, 0) 0%,
+            rgba(4, 7, 13, 0.3) 8%,
+            rgba(4, 7, 13, 0.26) 52%,
+            rgba(4, 7, 13, 0) 100%
+          );
+        }
       }
 
       .hero-brief-label:first-child {
@@ -3857,7 +3988,7 @@
         }
       }
 
-      /* ── Touch targets ──────────────────────────────────────────────
+      /* ── Touch targets ────────────────────────────────────────────────
          The chapter map is the only navigation inside a nine-thousand-pixel
          case study, and on a phone its links were 24px tall — the one
          control a reader most needs to hit while scrolling with a thumb was
@@ -3880,6 +4011,75 @@
     align-items: flex-start;
     justify-content: space-between;
     pointer-events: none;
+  }
+
+  /* THE NAV BAND SCRIM.
+
+     Both nav pieces are thick glass, and both are legible. The problem was
+     never transmission through them — it was the hole between them. The bar
+     is a flex row with space-between and nothing in the middle, so at 1440
+     the mark ends at x=188 and the links capsule starts at x=859: 671px of
+     completely bare viewport with a fixed header's worth of page scrolling
+     underneath it. On /about/ that meant EYEJACK, PHILIPS and MARRIOTT
+     BONVOY sliding through the gap at full contrast while the two glass
+     pieces either side sat there looking composed. At 390 the same hole is
+     x 56-144, and the awards row read straight through it.
+
+     Filling the gap with more glass was the obvious move and the wrong one:
+     a continuous capsule across the whole width is a chrome bar, which is
+     exactly the generic look this nav was built to avoid, and it would put
+     a hard bottom edge across every hero on the site.
+
+     So instead the band gets a scrim — the page's own background colour,
+     full-bleed, falling to nothing over ~104px. It is not a surface, it has
+     no edge, and it is invisible on any page whose top is already dark.
+     What it does is guarantee that whatever scrolls under the nav arrives
+     dimmed rather than at full strength, so type passing behind the bar
+     reads as depth instead of as a collision.
+
+     Mechanics worth keeping straight. `position: fixed` rather than
+     absolute, because the parent's inset box starts 22px down and stops at
+     the content — the scrim has to cover the strip above and outside it.
+     `z-index: -1` paints it behind the mark and the links but still inside
+     the nav's own z-index: 9000 stacking context, so it stays above the
+     page. Pointer-events are already none on the parent and inherit down,
+     so nothing here can eat a click.
+
+     The stops are eased rather than linear. A two-stop gradient over 100px
+     of near-black has a visible shoulder where it lands; four stops on an
+     ease-out curve put most of the falloff in the first third and let the
+     tail approach zero asymptotically, which is what makes it read as a
+     dimming of the page rather than as a rectangle drawn on it. */
+  .studio-nav::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 104px;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(3, 6, 11, 0.86) 0%, rgba(3, 6, 11, 0.68) 34%, rgba(3, 6, 11, 0.32) 64%, rgba(3, 6, 11, 0) 100%);
+  }
+
+  /* Same shape, the page's paper instead of its ink. Cream needs to sit a
+     touch stronger at the top than black does: a dark wordmark passing
+     under a pale veil keeps more of its contrast than a light one passing
+     under a dark veil, so 0.90 here does roughly the work 0.86 does above. */
+  html[data-theme="light"] .studio-nav::before {
+    background: linear-gradient(
+      180deg,
+      rgba(244, 241, 235, 0.9) 0%,
+      rgba(244, 241, 235, 0.72) 34%,
+      rgba(244, 241, 235, 0.34) 64%,
+      rgba(244, 241, 235, 0) 100%
+    );
+  }
+
+  /* Home and Play paint a dark stage at every theme — the same reason both
+     already pin --nav-ink light below. A cream scrim on either would be a
+     pale bar across the top of a black room. */
+  html[data-theme="light"] .home-page .studio-nav::before,
+  html[data-theme="light"] .play-page .studio-nav::before {
+    background: linear-gradient(180deg, rgba(3, 6, 11, 0.86) 0%, rgba(3, 6, 11, 0.68) 34%, rgba(3, 6, 11, 0.32) 64%, rgba(3, 6, 11, 0) 100%);
   }
 
   .studio-mark,
@@ -3962,7 +4162,8 @@
     html[data-theme="light"] .studio-mark-label {
       text-shadow: 0 1px 7px rgba(255, 255, 255, 0.9);
     }
-    html[data-theme="light"] :is(.contact-page, .home-page) .studio-mark-label {
+    /* Play opts back out — see the note beside `.play-page .studio-nav`. */
+    html[data-theme="light"] .play-page .studio-mark-label {
       text-shadow:
         0 1px 2px rgba(0, 0, 0, 0.55),
         0 1px 9px rgba(0, 0, 0, 0.4);
@@ -4002,10 +4203,10 @@
     pointer-events: auto;
     isolation: isolate;
     background:
-      radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.17), transparent 66%),
-      linear-gradient(168deg, rgba(126, 165, 208, 0.16), rgba(6, 11, 20, 0.3) 58%, rgba(88, 132, 180, 0.12));
-    backdrop-filter: blur(20px) saturate(1.9) brightness(0.94);
-    -webkit-backdrop-filter: blur(20px) saturate(1.9) brightness(0.94);
+      radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.18), transparent 66%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.28), rgba(6, 11, 20, 0.5) 58%, rgba(88, 132, 180, 0.22));
+    backdrop-filter: blur(32px) saturate(1.9) brightness(0.84);
+    -webkit-backdrop-filter: blur(32px) saturate(1.9) brightness(0.84);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.34),
       inset 0 -1px 0 rgba(255, 255, 255, 0.07),
@@ -4080,21 +4281,21 @@
   html[data-theme="light"] .studio-links {
     background:
       radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.95), transparent 66%),
-      linear-gradient(168deg, rgba(255, 255, 255, 0.66), rgba(214, 227, 240, 0.36));
+      linear-gradient(168deg, rgba(255, 255, 255, 0.84), rgba(206, 222, 238, 0.62));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
       inset 0 -1px 0 rgba(60, 104, 148, 0.1),
-      0 12px 32px rgba(30, 56, 84, 0.12);
-    backdrop-filter: blur(21px) saturate(1.7);
-    -webkit-backdrop-filter: blur(21px) saturate(1.7);
+      0 12px 32px rgba(30, 56, 84, 0.14);
+    backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
   }
 
   html[data-theme="light"] .studio-links::before {
     background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(120, 158, 196, 0.22) 40%, rgba(255, 255, 255, 0.5));
   }
 
-  /* Contact is hard-dark at every theme, so it opts back out of the above. */
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-links {
+  /* Play opts back out — see the note beside `.play-page .studio-nav`. */
+  html[data-theme="light"] .play-page .studio-links {
     background:
       radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.17), transparent 66%),
       linear-gradient(168deg, rgba(126, 165, 208, 0.16), rgba(6, 11, 20, 0.3) 58%, rgba(88, 132, 180, 0.12));
@@ -4103,35 +4304,95 @@
       inset 0 -1px 0 rgba(255, 255, 255, 0.07),
       0 12px 34px rgba(0, 0, 0, 0.26);
   }
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-links::before {
+  html[data-theme="light"] .play-page .studio-links::before {
     background: linear-gradient(150deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.06) 38%, rgba(190, 222, 255, 0.4));
   }
 
   /* The mark gets the same material so the two ends of the bar belong to each
-     other, at circle rather than capsule proportion. */
+     other, at circle rather than capsule proportion.
+
+     It did not, previously. The comment above claimed parity but the mark was
+     built from a single 0.14→0.26 gradient at blur(18px) with no sheen and no
+     refraction ring, while the links capsule had a radial highlight, a 1.5px
+     bevel and brightness(0.94) on top of blur(20px). The mark was thin glass
+     pretending to be thick, and the result was the oldest complaint about this
+     site: works-list titles read letter-for-letter straight through SID MEHTA.
+
+     Thin glass is a tint; thick glass is a wash. The distinction is physical —
+     what destroys a letterform behind a pane is the depth of the pane, i.e. how
+     far the blur kernel spreads relative to the glyph, plus how much of the
+     transmitted light the body of the glass absorbs. 18px of blur across a 30px
+     cap-height leaves the strokes perfectly reconstructable, and a 0.26 tint
+     absorbs almost nothing. So: the blur goes deep enough to spread past a
+     glyph rather than smudge it, brightness() gives the glass some actual body,
+     and the fill carries enough alpha to build a wash instead of a film. Same
+     four layers as the links capsule now, including the bevel — the two ends of
+     the bar are finally cut from one block. */
   .studio-mark {
+    position: relative;
     padding: 6px;
     border-radius: 50%;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: linear-gradient(168deg, rgba(126, 165, 208, 0.14), rgba(6, 11, 20, 0.26));
-    backdrop-filter: blur(18px) saturate(1.7);
-    -webkit-backdrop-filter: blur(18px) saturate(1.7);
+    isolation: isolate;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    background:
+      radial-gradient(90px 52px at 26% 6%, rgba(255, 255, 255, 0.18), transparent 68%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.3), rgba(6, 11, 20, 0.52) 58%, rgba(88, 132, 180, 0.24));
+    backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    -webkit-backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.3),
-      0 10px 28px rgba(0, 0, 0, 0.24);
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+      0 12px 32px rgba(0, 0, 0, 0.3);
+  }
+  /* Same refraction ring as the links capsule — a 1.5px band at the perimeter
+     carrying the bevel highlight, masked to the border only. */
+  .studio-mark::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.05) 42%, rgba(190, 222, 255, 0.38));
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
   }
   html[data-theme="light"] .studio-mark {
     border-color: rgba(24, 48, 78, 0.16);
-    background: linear-gradient(168deg, rgba(255, 255, 255, 0.72), rgba(214, 227, 240, 0.4));
+    background:
+      radial-gradient(90px 52px at 26% 6%, rgba(255, 255, 255, 0.9), transparent 70%),
+      linear-gradient(168deg, rgba(255, 255, 255, 0.88), rgba(206, 222, 238, 0.66));
+    backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
+    -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
-      0 10px 26px rgba(30, 56, 84, 0.12);
+      0 12px 30px rgba(30, 56, 84, 0.14);
   }
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-mark {
-    background: linear-gradient(168deg, rgba(126, 165, 208, 0.14), rgba(6, 11, 20, 0.26));
+  html[data-theme="light"] .studio-mark::before {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.1) 42%, rgba(190, 222, 255, 0.5));
+  }
+  /* Play opts back out — see the note beside `.play-page .studio-nav`. */
+  html[data-theme="light"] .play-page .studio-mark {
+    border-color: rgba(255, 255, 255, 0.22);
+    background:
+      radial-gradient(90px 52px at 26% 6%, rgba(255, 255, 255, 0.18), transparent 68%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.3), rgba(6, 11, 20, 0.52) 58%, rgba(88, 132, 180, 0.24));
+    backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    -webkit-backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.3),
-      0 10px 28px rgba(0, 0, 0, 0.24);
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+      0 12px 32px rgba(0, 0, 0, 0.3);
+  }
+  html[data-theme="light"] .play-page .studio-mark::before {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.05) 42%, rgba(190, 222, 255, 0.38));
   }
 
   .studio-link {
@@ -4290,64 +4551,80 @@
   html[data-theme="light"] .studio-nav {
     --nav-ink: #0a1727;
   }
-  html[data-theme="light"] .studio-mark .cube-front {
-    fill: rgba(237, 243, 248, 0.92);
-  }
+  /* No light-theme face override here. `cursor_fluid.html` paints the mark as
+     a dark face (#172a4c) with light eyes (#f8f5ee) in light theme, and that
+     pair is what makes the two eyes readable. This rule used to flip the face
+     to near-white at the same specificity but later in the document, which won
+     — leaving light eyes on a light face, so the mark rendered as an empty
+     rounded square on the cream capsule. */
   html[data-theme="light"] .studio-mark-label,
   html[data-theme="light"] .studio-link > span {
     text-shadow: 0 1px 7px rgba(255, 255, 255, 0.9);
   }
   .home-page .studio-nav,
-  .contact-page .studio-nav,
   .play-page .studio-nav {
     --nav-ink: #f5f7fb;
   }
 
-  /* Contact is hard-dark at every theme (#020407, no light rules at all),
-     so the light-theme nav treatment above must not reach it — its
-     [data-theme] selector outweighs the page-class rule and was painting
-     near-black labels and a white-filled mark onto a black page.
+  /* The contact page used to opt out of every light-theme nav rule here,
+     because it was hard-dark at every theme (#020407, no light rules at
+     all) and the light treatment painted near-black labels onto a black
+     page. That premise is gone: contact.html now carries a full daylight
+     palette, so the page underneath this bar is cream like every other
+     one, and the exceptions were the only thing left making the nav
+     unreadable there — pale grey labels and a dark glass capsule floating
+     on paper.
 
-     Home is in the list too. The comment that used to sit here said it
-     was not - that the home rebuild had given it a cream --home-bg and the
-     exception was forcing white labels onto it. That is still true of the
-     document background, but the current home is a full-viewport dark
-     portal: the smoke canvas and cube stage cover the cream at every
-     theme, so what the nav actually sits on is black. Screenshotting it in
-     light theme showed near-white labels on a near-white capsule over that
-     black. Judge by what is painted, not by what the root computes to.
+     Home was removed from this list earlier for exactly the same reason.
+     Contact followed. Judge by what is painted, not by what the root
+     computes to.
 
-     Play is still deliberately NOT in this list. It used to be dark-canvas at
-     every theme, but the home rebuild gave it a real light palette
-     (--home-bg: #f2efe8), and this exception kept forcing #f5f7fb labels
-     onto that cream — white-on-cream, contrast about 1.05, the nav simply
-     vanished. It is the standalone root page and
-     carries its own nav, so it never included this partial. */
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-nav {
+     Play was removed too, and that one was a mistake — the note left
+     behind claimed "the home rebuild gave it a real light palette
+     (--home-bg: #f2efe8)" and that it "carries its own nav, so it never
+     included this partial". Neither is true of Play: `play/index.html`
+     includes this file at the top of its body, and it contains no
+     `data-theme` rule anywhere — `:root { color-scheme: dark }` and a
+     hardcoded #020409 body, full stop. Both sentences describe the home
+     page; they were attached to the wrong one.
+
+     Applying that same test to what Play actually paints: the light
+     treatment put a bright silver capsule and near-black labels on a
+     pure black spatial stage — legible, and completely wrong, a chrome
+     bar dropped into a dark room. So Play gets its exception back below,
+     on the honest premise this time.
+
+     Unlike contact, this one is not obviously temporary. Contact was a
+     page of type and a cut-out that had simply never been lit; Play is a
+     black-box gallery whose scene background, fog and card lighting are
+     all built for a void. If it ever does gain a daylight palette, delete
+     these five blocks and it will inherit the shared treatment. Until
+     then they are load-bearing.
+
+     What remains below is the shared light treatment, which contact now
+     simply inherits. */
+  html[data-theme="light"] .play-page .studio-nav {
     --nav-ink: #f5f7fb;
   }
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-mark .cube-front {
+  html[data-theme="light"] .play-page .studio-mark .cube-front {
     fill: rgba(5, 12, 23, 0.82);
   }
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-mark-label,
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-link > span {
+  html[data-theme="light"] .play-page .studio-mark-label,
+  html[data-theme="light"] .play-page .studio-link > span {
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
   }
-  /* Contact stays hard-dark at every theme, so the hire pill has to opt back
-     out of the light treatment or it lands white-on-black-on-white. */
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-hire {
+  html[data-theme="light"] .play-page .studio-hire {
     border-color: rgba(255, 255, 255, 0.18);
     background: rgba(255, 255, 255, 0.05);
   }
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-hire:hover,
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-hire:focus-visible {
+  html[data-theme="light"] .play-page .studio-hire:hover,
+  html[data-theme="light"] .play-page .studio-hire:focus-visible {
     border-color: rgba(255, 255, 255, 0.42);
     background: rgba(255, 255, 255, 0.1);
   }
-  html[data-theme="light"] :is(.contact-page, .home-page) .studio-hire__label {
+  html[data-theme="light"] .play-page .studio-hire__label {
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
   }
-
   /* noth.in keeps a "let's chat" affordance visible on every screen rather than
      parking it behind a contact page. Same idea, stated as availability instead
      of a sales button: a live dot and four words, present on every page, one
@@ -4454,13 +4731,41 @@
     .studio-nav {
       inset: 13px 14px auto;
     }
+    /* The bar starts 9px higher here and the pieces are the same height, so
+       its underside lands at 61 instead of 70. Scaling the scrim to match
+       keeps the ratio of covered band to falloff identical; leaving it at
+       104 would put a third of the fade below the nav on a screen that has
+       far less room to spend on it. */
+    .studio-nav::before {
+      height: 88px;
+    }
     /* Narrow screens keep the signal, drop the words: the pill collapses to the
        live dot, which is still a tap target to the same mailto. */
     .studio-hire {
+      position: relative;
       width: 32px;
       padding: 0;
       justify-content: center;
       margin-left: 2px;
+    }
+    /* 32x30 is the painted pill, and it is also everything a thumb was given
+       to aim at — well under the 44px minimum, on the one control in the nav
+       that is a job enquiry. The ring cannot simply be drawn bigger without
+       turning the dot back into the pill the collapse exists to avoid, so the
+       hit area goes on ::before instead, which nothing else here claims.
+
+       44px centred puts it at x 331-375 in a bar that runs to 376, with its
+       left edge landing exactly on the right edge of the last nav link: the
+       full minimum, and not one pixel of it stolen from a neighbour. */
+    .studio-hire::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
     }
     .studio-hire__label {
       display: none;
@@ -5115,6 +5420,21 @@
       align-items: center;
       min-height: 44px;
     }
+
+    /* The theme toggle and the cube are fixed in the bottom corners, occupying
+       roughly the last 60px of the viewport. The footer above zeroes its own
+       bottom padding on small screens, so the very last thing on every page —
+       the colophon — came to rest underneath them: scroll to the end of any
+       page on a phone and the credit line read "___LT BY HAND", with a glass
+       disc parked on the first three characters.
+
+       Reserving the band here rather than moving the buttons keeps the two
+       controls where a thumb expects to find them and costs only the height
+       of the run-out. 56px clears a 44px control sitting 16px off the bottom,
+       and the existing 22px of the shorthand stays as the line's own air. */
+    .site-footer-colophon {
+      padding-bottom: 78px;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -5223,6 +5543,7 @@
         fish: "#cfe9ff",
         pod: "#e8a882",
         glow: 6,
+        cast: null,
       },
       light: {
         body: ["rgba(196,216,220,0)", "rgba(174,203,208,0.6)", "rgba(150,186,194,0.82)"],
@@ -5233,8 +5554,33 @@
         fish: "#1d3a52",
         pod: "#7a4a2e",
         glow: 0,
+        /* Dark mode gets `glow`: at night the pond is bioluminescent and each
+           plant carries a halo in its own colour, which is what makes 12px of
+           monospace survive being underwater. Light mode had nothing — deep
+           inks sat flat on a mid-tone teal wash and the whole bed read at
+           maybe a third of the presence it has in the dark. The honest
+           daylight equivalent of a glow is not a glow: it is a shadow. A
+           plant standing in shallow water throws one onto the bed, down and
+           slightly off-sun. Same job — separate the glyph from the water —
+           done with the physics the scene actually has. */
+        cast: { color: "rgba(12,34,44,0.5)", blur: 5, dx: 1.5, dy: 2.5 },
       },
     };
+
+    /* Glow or cast shadow, whichever this theme uses, applied to a 2D context
+       that is already saved. `own` is the glyph's own colour — dark mode
+       haloes in it, light mode ignores it and uses the water's shadow ink. */
+    function depthCue(c, p, own, blur) {
+      if (p.glow) {
+        c.shadowColor = own;
+        c.shadowBlur = blur || p.glow;
+      } else if (p.cast) {
+        c.shadowColor = p.cast.color;
+        c.shadowBlur = p.cast.blur;
+        c.shadowOffsetX = p.cast.dx;
+        c.shadowOffsetY = p.cast.dy;
+      }
+    }
 
     function pal() {
       return isLight() ? PAL.light : PAL.dark;
@@ -5481,7 +5827,7 @@
     /* A pond nobody has touched yet should still look planted. Seed a bed
        across the whole band, biased toward the near shore, and scale each
        plant by how near it is so the bank reads as depth rather than as a
-       flat sheet of glyphs. Seeded quietly - 80 splashes at t=0 would boil
+       flat sheet of glyphs. Seeded quietly — 80 splashes at t=0 would boil
        the surface before the first frame. */
     function seedPlants() {
       plants = [];
@@ -5510,10 +5856,7 @@
         flora.save();
         flora.globalAlpha = pl.grow;
         flora.fillStyle = p.flora[pl.idx % p.flora.length];
-        if (p.glow) {
-          flora.shadowColor = p.flora[pl.idx % p.flora.length];
-          flora.shadowBlur = p.glow;
-        }
+        depthCue(flora, p, p.flora[pl.idx % p.flora.length]);
         flora.font = Math.round(FONT * sc) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
         flora.textAlign = "center";
         flora.textBaseline = "alphabetic";
@@ -5605,10 +5948,7 @@
         flora.save();
         flora.globalAlpha = 0.72 + f.startle * 0.25;
         flora.fillStyle = p.fish;
-        if (p.glow) {
-          flora.shadowColor = p.fish;
-          flora.shadowBlur = 5;
-        }
+        depthCue(flora, p, p.fish, 5);
         flora.font = Math.round(12 * f.sz) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
         flora.textAlign = "center";
         flora.textBaseline = "middle";
@@ -5706,10 +6046,7 @@
         flora.save();
         flora.globalAlpha = 0.66;
         flora.fillStyle = p.pod;
-        if (p.glow) {
-          flora.shadowColor = p.pod;
-          flora.shadowBlur = 5;
-        }
+        depthCue(flora, p, p.pod, 5);
         flora.translate(a.x, a.y + lift);
         flora.rotate(Math.sin(a.spin) * 0.28);
         flora.font = Math.round(11 * a.sz) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
@@ -5990,12 +6327,26 @@
   }
   /* Contextual cursor label — small mono pill that appears next to the dot over
      elements tagged [data-cursor-text] (e.g. "View", "Play"). Same visual language
-     as the pixel-art nav icons: mono type, tight tracking, no color. */
+     as the pixel-art nav icons: mono type, tight tracking, no color.
+
+     It stays inverted against the page — a white chip in the dark theme, a black
+     one in the light — because a cursor badge has one job, which is to be seen
+     immediately wherever it lands. Everything else about it is the chrome's
+     material: a capsule rather than a hard rectangle, a hairline, a shadow that
+     puts it a few millimetres above the page, and a blurred backdrop so a
+     photograph passing underneath tints it instead of being covered by it.
+
+     It also arrives rather than appears. The dot leads and the chip hangs 28px
+     below it, so it grows out of the dot: origin at the top, up from 0.86 and
+     4px, on the same ease-out the rest of the chrome uses. A pill that simply
+     switches on at full size reads as a browser tooltip, which is the one thing
+     a hand-built cursor must not look like. */
   #cur-label {
     position: fixed;
     top: 0;
     left: 0;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) translateY(4px) scale(0.86);
+    transform-origin: 50% 0;
     pointer-events: none;
     z-index: 99998;
     font-family: var(--font-mono);
@@ -6003,19 +6354,40 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: rgba(8, 8, 12, 0.92);
-    background: rgba(255, 255, 255, 0.92);
-    padding: 5px 10px;
+    background: rgba(248, 251, 255, 0.88);
+    -webkit-backdrop-filter: blur(10px) saturate(1.5);
+    backdrop-filter: blur(10px) saturate(1.5);
+    border-radius: 999px;
+    padding: 5px 11px;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      0 1px 0 rgba(8, 12, 20, 0.16),
+      0 7px 20px rgba(0, 0, 0, 0.34);
     white-space: nowrap;
     opacity: 0;
     will-change: left, top, transform, opacity;
-    transition: opacity 0.22s ease;
+    transition:
+      opacity 0.18s ease,
+      transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
   }
   #cur-label.is-visible {
     opacity: 1;
+    transform: translate(-50%, -50%) translateY(0) scale(1);
   }
   html[data-theme="light"] #cur-label {
     color: rgba(255, 255, 255, 0.95);
-    background: rgba(7, 9, 15, 0.9);
+    background: rgba(7, 9, 15, 0.86);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.16),
+      0 1px 0 rgba(255, 255, 255, 0.5),
+      0 7px 20px rgba(18, 32, 52, 0.26);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #cur-label,
+    #cur-label.is-visible {
+      transform: translate(-50%, -50%);
+      transition: opacity 0.18s ease;
+    }
   }
   /* Global click feedback — interactive elements briefly scale-down on press */
   a:active,
@@ -6982,14 +7354,30 @@
   }
   /* Footer light-mode rules now live in _includes/site_footer.html alongside the new structure. */
   /* Theme toggle button itself — flips to a light variant */
+  /* In dark mode this button is a near-black disc on light content, so it
+     separates itself. Light mode was the mirror image on paper only: a 72%
+     white disc with a 10%-black hairline, which over a pale background —
+     the footer pond's teal wash is the worst case — is white on white with
+     nothing holding the edge. A floating control has to look like it is
+     floating, so give it the thing a raised object actually has: a cast
+     shadow, plus an inner highlight along the top edge so the disc reads as
+     lit from above rather than as a hole. */
   html[data-theme="light"] #theme-toggle {
-    background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(0, 0, 0, 0.1);
-    color: rgba(7, 9, 15, 0.85);
+    background: rgba(255, 255, 255, 0.82);
+    border-color: rgba(0, 0, 0, 0.16);
+    color: rgba(7, 9, 15, 0.95);
+    box-shadow:
+      0 3px 12px rgba(12, 28, 40, 0.18),
+      0 1px 2px rgba(12, 28, 40, 0.12),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
   html[data-theme="light"] #theme-toggle:hover {
-    background: rgba(255, 255, 255, 0.92);
-    border-color: rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.96);
+    border-color: rgba(0, 0, 0, 0.28);
+    box-shadow:
+      0 6px 18px rgba(12, 28, 40, 0.24),
+      0 1px 2px rgba(12, 28, 40, 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
   }
   /* Cube chat — light variant */
   html[data-theme="light"] #cube-chat {
@@ -7857,11 +8245,30 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.45);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
+    /* Thick glass, same recipe as the nav. This disc is fixed in a corner that
+       scrolling body copy passes through — on /works/ it lands on the left
+       column's section note, and 0.45 black at blur(14px) let every letter
+       under it stay legible, so it read as a misplaced sticker rather than as
+       a control floating above the page. Depth is what separates the two: a
+       kernel wide enough to destroy a glyph, enough alpha to build a wash
+       instead of a film, and a brightness term so the glass has body.
+
+       The radial is the specular hit and the bevel pair is the edge, both
+       lifted from .studio-mark, so the three pieces of floating chrome on the
+       site are visibly cut from one material. */
+    background:
+      radial-gradient(38px 24px at 30% 8%, rgba(255, 255, 255, 0.2), transparent 70%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.26), rgba(6, 11, 20, 0.6) 58%, rgba(88, 132, 180, 0.2));
+    -webkit-backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.92);
+    /* Same lift as the light variant, tuned for a dark ground: the shadow is
+       what keeps the disc from dissolving into a dark hero image. */
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.07);
   }
   /* On home (has fixed .bottom-bar): lift theme above bottom-bar so it doesn't cover the
      "Design & Technology · Parsons NYC" text. Hide chat FAB entirely so the desk-stage
@@ -7884,6 +8291,7 @@
     transition:
       transform 0.3s var(--ease-out),
       border-color 0.25s ease,
+      box-shadow 0.25s ease,
       background 0.25s ease;
     padding: 0;
   }
@@ -7939,14 +8347,21 @@
     width: 52px;
     height: 52px;
     border-radius: 16px;
-    background: rgba(0, 0, 0, 0.55);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    backdrop-filter: blur(16px) saturate(1.4);
-    border: 1px solid rgba(160, 200, 255, 0.18);
+    /* Matched to the theme toggle and the nav mark — see the note there. The
+       cube keeps its blue rim light, which is its own signature, but the body
+       of the glass is now the same depth as the rest of the chrome. */
+    background:
+      radial-gradient(42px 26px at 30% 8%, rgba(255, 255, 255, 0.2), transparent 70%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.26), rgba(6, 11, 20, 0.62) 58%, rgba(88, 132, 180, 0.2));
+    -webkit-backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    border: 1px solid rgba(160, 200, 255, 0.24);
     box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(160, 200, 255, 0.04),
-      0 0 24px rgba(80, 130, 220, 0.18);
+      0 12px 32px rgba(0, 0, 0, 0.42),
+      0 0 0 1px rgba(160, 200, 255, 0.05),
+      0 0 24px rgba(80, 130, 220, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -10160,6 +10575,80 @@
       height: 44px !important;
     }
   }
+
+  /* THE FAB HALO.
+
+     Both floating buttons live in the bottom corners at rest and clear away
+     the moment the page moves, which is the right behaviour and stays. The
+     problem is what they sit on when the page is NOT moving — which is to
+     say, whenever anyone is actually reading. On /works/ at the top of the
+     page the theme switch lands squarely on the second line of the AI lane's
+     description; the touch rules above already record the same collision
+     eating the F of "FREQUENTLY ASKED" on /about/, and solved it there by
+     moving the button to the opposite corner on touch devices only. Desktop
+     never got a fix, because on desktop there is nowhere better to put it.
+
+     So stop trying to find a corner with nothing in it and give the buttons
+     the one thing they have never had: separation. Each gets a radial wash
+     of the page's ink, twice its own diameter, falling to nothing well
+     before it reaches anything the eye is tracking. It is the same move as
+     the nav band scrim and the hero brief's shade — the page dims where a
+     floating thing hovers over it, which is what a floating thing does.
+
+     Deliberately generous and deliberately weak: 0.52 at the centre is
+     enough to lift a 44px control off body copy, and by 60% of the radius it
+     is under 0.1, so on the dark pages where nothing was wrong it is not
+     visible at all. -1 keeps it behind the glass — both buttons carry
+     backdrop-filter, and a halo painted in front would be blurred by the
+     very surface it exists to support. It also inherits the parent's
+     opacity, so it clears away on scroll with the button rather than
+     leaving a bare smudge in the corner. */
+  #theme-toggle::before,
+  #cube-chat-fab:not(.is-open)::before {
+    content: "";
+    position: absolute;
+    inset: -50%;
+    z-index: -1;
+    pointer-events: none;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(4, 7, 13, 0.52) 0%,
+      rgba(4, 7, 13, 0.34) 34%,
+      rgba(4, 7, 13, 0.09) 60%,
+      rgba(4, 7, 13, 0) 78%
+    );
+  }
+
+  /* On paper the ink is the paper. Same shape, same falloff, the page's own
+     cream — a dark halo on a light page would be a bruise under the button,
+     and a light halo is what actually separates a dark glyph from dark type
+     underneath it. */
+  html[data-theme="light"] #theme-toggle::before,
+  html[data-theme="light"] #cube-chat-fab:not(.is-open)::before {
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(244, 241, 235, 0.62) 0%,
+      rgba(244, 241, 235, 0.4) 34%,
+      rgba(244, 241, 235, 0.11) 60%,
+      rgba(244, 241, 235, 0) 78%
+    );
+  }
+
+  /* Home and Play are dark stages at every theme — the same exception the nav
+     scrim already makes, for the same reason. */
+  html[data-theme="light"] .home-page #theme-toggle::before,
+  html[data-theme="light"] .play-page #theme-toggle::before,
+  html[data-theme="light"] .home-page #cube-chat-fab:not(.is-open)::before,
+  html[data-theme="light"] .play-page #cube-chat-fab:not(.is-open)::before {
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba(4, 7, 13, 0.52) 0%,
+      rgba(4, 7, 13, 0.34) 34%,
+      rgba(4, 7, 13, 0.09) 60%,
+      rgba(4, 7, 13, 0) 78%
+    );
+  }
 </style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <div id="cur-dot"></div> <div id="cur-label" aria-hidden="true"></div> <script src="/assets/js/gsap.min.js"></script> <script>
   // Let the navigation lens carry a moving highlight without moving the
   // controls themselves. This makes the glass feel optical, not decorative.
@@ -10799,8 +11288,48 @@
       hint.innerHTML = '<span class="scroll-hint-line"></span><span class="scroll-hint-label">Scroll</span>';
       document.body.appendChild(hint);
       let dismissed = false;
+
+      /* The hint is fixed to the bottom centre of the viewport, which means it
+         is placed with no knowledge whatsoever of what the page has put there.
+         On /works/ that is the preview column's "View project" link: the word
+         SCROLL printed straight through the middle of the primary call to
+         action, with its animated hairline hanging off the paragraph above it.
+
+         Rather than special-case that page — and then the next one, and the one
+         after — the hint now looks before it speaks. It measures its own box at
+         show() time, when layout has settled, and samples three points across
+         it. If anything with actual content is under any of them, the hint
+         simply never appears: a nudge to scroll is worth very little, and it is
+         certainly worth less than the legibility of whatever it would sit on.
+
+         "Actual content" means a link, a button, a media element, or any leaf
+         node carrying text. Wrappers, the smoke canvas and the page background
+         are all transparent to this test, so on a page whose lower centre is
+         genuinely empty — which is where the hint earns its keep — nothing
+         changes. */
+      function isClear() {
+        const r = hint.getBoundingClientRect();
+        if (!r.width || !r.height) return true;
+        const y = r.top + r.height * 0.72;
+        const xs = [r.left + 4, r.left + r.width / 2, r.right - 4];
+        for (const x of xs) {
+          for (const el of document.elementsFromPoint(x, y)) {
+            if (el === hint || hint.contains(el)) continue;
+            if (el === document.body || el === document.documentElement) continue;
+            if (/^(A|BUTTON|IMG|VIDEO|SVG|INPUT)$/i.test(el.tagName)) return false;
+            if (!el.children.length && (el.textContent || "").trim()) return false;
+          }
+        }
+        return true;
+      }
+
       function show() {
         if (dismissed || window.scrollY > 30) return;
+        if (!isClear()) {
+          dismissed = true;
+          hint.remove();
+          return;
+        }
         hint.classList.add("is-visible");
       }
       function dismiss() {
@@ -12768,14 +13297,51 @@
     background: #23507f;
     box-shadow: 0 0 8px rgba(35, 80, 127, 0.35);
   }
+  /* On a 390px screen the glass panel, the number and the track added up to a
+     floating readout that looked like debug instrumentation bolted onto the
+     page — and being fixed to the right edge it crossed every right-aligned
+     label on the way down: the works count, the project meta, the footer rule.
+     It also had to share the bottom of the viewport with two FABs.
+
+     A phone does not need a percentage. It needs a sense of where it is in the
+     document, which is the one thing a 2px hairline at the very edge of the
+     glass does perfectly and at zero cost to the layout. So the panel, the
+     blur, the border, the shadow and the number all go on small screens, and
+     what is left reads as part of the frame rather than as a widget sitting on
+     top of the page. The track carries a little more alpha here than on
+     desktop because 2px of colour needs it to register at all. */
   @media (max-width: 640px) {
     .scrolllen {
-      right: 12px;
-      bottom: 88px;
-      padding: 8px 6px;
+      inset: 0 0 0 auto;
+      justify-content: center;
+      gap: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: none;
+      box-shadow: none;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      transform: none;
+    }
+    .scrolllen.is-on {
+      transform: none;
+    }
+    .scrolllen__pct {
+      display: none;
     }
     .scrolllen__track {
-      height: 64px;
+      width: 2px;
+      height: 34vh;
+      border-radius: 0;
+      background: rgba(180, 205, 235, 0.2);
+    }
+    .scrolllen__fill {
+      border-radius: 0;
+      box-shadow: 0 0 10px rgba(82, 139, 196, 0.7);
+    }
+    html[data-theme="light"] .scrolllen__track {
+      background: rgba(7, 9, 15, 0.16);
     }
   }
   @media (prefers-reduced-motion: reduce) {
