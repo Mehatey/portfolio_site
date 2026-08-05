@@ -4791,6 +4791,43 @@
           min-height: 44px;
         }
       }
+
+      /* ── The preview panel's exit ────────────────────────────────────
+         The preview is sticky inside the split, so it stays pinned until
+         the split's bottom catches it and then rides up and off. That is
+         exactly what `position: sticky` is specified to do, and it looks
+         broken every time: the image leaves the top of the screen first,
+         so for the last ~500px of the list you are reading captions for a
+         picture that isn't there, and the caption itself ends up sliding
+         underneath the translucent nav where two sets of type overlap.
+
+         Nothing is wrong with the geometry, so don't fight the geometry —
+         change what the departure looks like. Once the panel is dragged
+         past its pinned position it recedes: fades, drops back a little,
+         and softens, as though it were being set down rather than yanked
+         off. By the time it reaches the nav there is nothing left to
+         collide with, and the eye is handed cleanly to the last few rows
+         of the list. Scrolling back up brings it forward again.
+
+         `--wp-exit` runs 0 → 1 and is written by the small watcher at the
+         foot of this file; with no JS it stays 0 and the panel behaves
+         exactly as it does today. */
+      .works-preview {
+        --wp-exit: 0;
+      }
+      .works-preview.wp-can-exit {
+        opacity: calc(1 - var(--wp-exit));
+        transform: translate3d(0, calc(var(--wp-exit) * 26px), 0) scale(calc(1 - var(--wp-exit) * 0.045));
+        transform-origin: 50% 30%;
+        filter: blur(calc(var(--wp-exit) * 5px));
+        will-change: opacity, transform;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .works-preview.wp-can-exit {
+          transform: none;
+          filter: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -6367,6 +6404,75 @@
             }
           },
         };
+      })();
+
+      /* ── Preview exit watcher ────────────────────────────────────────
+         Writes `--wp-exit` on the preview panel: 0 while it is pinned,
+         rising to 1 over the first stretch of travel once the split's
+         bottom drags it off. See the `.wp-can-exit` rules for why.
+
+         The measurement is taken from the *split*, never from the panel
+         itself. The panel is the thing being translated and scaled, so
+         its own rect already contains the effect we are deriving — read
+         that and each frame's output feeds the next frame's input, and
+         the value settles into a wobble instead of a number. The split
+         is untransformed, and a sticky box's released position is always
+         its container's bottom minus its own layout height, which
+         `offsetHeight` still reports correctly under a transform.
+
+         The class is only attached while the panel is genuinely sticky,
+         so the phone layout — where the preview is a static block in the
+         flow — is untouched. */
+      (function () {
+        var panel = document.querySelector(".works-preview");
+        var split = document.querySelector(".works-split");
+        if (!panel || !split) return;
+        var SPAN = 240; /* travel over which it goes from present to gone */
+        var raf = 0,
+          armed = false,
+          last = -1;
+
+        function arm() {
+          var sticky = getComputedStyle(panel).position === "sticky";
+          if (sticky === armed) return;
+          armed = sticky;
+          panel.classList.toggle("wp-can-exit", sticky);
+          if (!sticky) panel.style.removeProperty("--wp-exit");
+        }
+
+        function read() {
+          raf = 0;
+          if (!armed) return;
+          var pinned = parseFloat(getComputedStyle(panel).top);
+          if (!isFinite(pinned)) return;
+          var released = split.getBoundingClientRect().bottom - panel.offsetHeight;
+          var drag = pinned - released;
+          var k = drag <= 0 ? 0 : drag >= SPAN ? 1 : drag / SPAN;
+          /* Round before writing: the value only has to survive being
+             multiplied by 26px, and skipping identical writes keeps this
+             off the style-recalc path for most frames. */
+          k = Math.round(k * 200) / 200;
+          if (k === last) return;
+          last = k;
+          panel.style.setProperty("--wp-exit", String(k));
+        }
+
+        function kick() {
+          if (!raf) raf = requestAnimationFrame(read);
+        }
+
+        arm();
+        kick();
+        window.addEventListener("scroll", kick, { passive: true });
+        window.addEventListener(
+          "resize",
+          function () {
+            arm();
+            last = -1;
+            kick();
+          },
+          { passive: true }
+        );
       })();
     </script>
   </body>
