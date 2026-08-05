@@ -854,6 +854,118 @@
       transition-duration: 1ms !important;
     }
   }
+
+  /* ── THE MARK ACTUALLY OPENS ───────────────────────────────────────────
+     site_logo.html says, at the top of the file, that the mark "rests as a
+     layered cube-of-creation with a quiet two-eye face, then assembles +
+     spins into a full cube on hover." It has never done the second half.
+     The choreography exists — three faces, a scan line, a 360° turn — and
+     it lives in cursor_fluid.html scoped to `.nav > a:hover`. There is no
+     `.nav` on this site and has not been for months; it is the same corpse
+     as the `.nav .nav-links` glass rules the LIQUID GLASS note further up
+     already records as painting nothing. So the biggest, most-clicked
+     target in the header answers the cursor with a 0.88 → 1 opacity nudge
+     on its wordmark and a 1.1 scaleY on a 1.7px-wide eye. That is not a
+     hover state, it is a rounding error.
+
+     Two other things fall out of the same fault. The extra faces and the
+     scan line are only switched off by cursor_fluid, and cursor_fluid is
+     not included by sid_home — so on the home page alone, `.cube-top` and
+     `.cube-right` paint at full strength directly on top of `.cube-front`
+     (identical geometry, their separating transforms also live in
+     cursor_fluid), trebling the stroke, and `.logo-scan` sits visible at
+     0.82 where every other page hides it. The mark is quietly a different
+     mark on the front page.
+
+     Both are fixed by moving the whole thing here, into the file that owns
+     the nav and is included wherever the nav is. Selectors are written
+     `.studio-mark .logo-cube …` — three classes — so they outrank
+     cursor_fluid's two-class copies on the pages that load both, whatever
+     order the includes land in.
+
+     The one change of substance: perspective. The original spun a flat SVG
+     with none, and orthographically a rotateY is not a turn — it is a
+     horizontal squash and un-squash, the flat fake of a card flip. It has
+     to be the `perspective()` function inside the transform list, not the
+     `perspective` property: the property applies a camera to an element's
+     CHILDREN, and the rotation here is on the cube itself, so the property
+     would sit there measuring nothing. 340px on a 42px glyph is a close,
+     strong camera — the leading edge genuinely comes at you and the
+     trailing one recedes. It is a cube; it should turn like one. */
+  .studio-mark .logo-cube .cube-face {
+    fill: currentColor;
+    fill-opacity: 0;
+    stroke: currentColor;
+    stroke-width: 1.35;
+    stroke-linejoin: round;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      opacity 0.42s var(--ease-out),
+      transform 0.42s var(--ease-out),
+      fill-opacity 0.42s ease;
+  }
+  .studio-mark .logo-cube .cube-top {
+    transform: translateY(1.8px);
+  }
+  .studio-mark .logo-cube .cube-right {
+    transform: translateX(-1.8px);
+  }
+
+  /* Drawn, not faded: dashoffset runs the stroke across the face from one
+     side, which is what makes it read as something sweeping rather than
+     something appearing. */
+  .studio-mark .logo-cube .logo-scan {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.1;
+    stroke-linecap: round;
+    stroke-dasharray: 15 22;
+    stroke-dashoffset: 15;
+    opacity: 0;
+    transition:
+      opacity 0.3s ease,
+      stroke-dashoffset 0.55s var(--ease-out);
+  }
+
+  .studio-mark:hover .logo-cube,
+  .studio-mark:focus-visible .logo-cube {
+    transform: perspective(340px) translateY(-1px) rotateY(360deg) scale(1.075);
+    color: rgba(206, 228, 255, 0.98);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.34)) drop-shadow(0 0 16px rgba(150, 200, 255, 0.42));
+  }
+  .studio-mark:hover .logo-cube .cube-face,
+  .studio-mark:focus-visible .logo-cube .cube-face {
+    opacity: 0.82;
+    fill-opacity: 0.16;
+  }
+  .studio-mark:hover .logo-cube .cube-top,
+  .studio-mark:focus-visible .logo-cube .cube-top {
+    transform: translateY(0);
+  }
+  .studio-mark:hover .logo-cube .cube-right,
+  .studio-mark:focus-visible .logo-cube .cube-right {
+    transform: translateX(0);
+  }
+  .studio-mark:hover .logo-cube .logo-scan,
+  .studio-mark:focus-visible .logo-cube .logo-scan {
+    opacity: 0.72;
+    stroke-dashoffset: 0;
+  }
+
+  /* A full turn is exactly the kind of motion this switch exists for. Hold
+     the assembled faces and the drawn scan — those are information, not
+     decoration — and drop only the spin and the lift. */
+  @media (prefers-reduced-motion: reduce) {
+    .studio-mark .logo-cube .logo-scan {
+      transition-duration: 1ms !important;
+    }
+    .studio-mark:hover .logo-cube,
+    .studio-mark:focus-visible .logo-cube {
+      transform: none;
+    }
+  }
 </style>
 
 <script>
