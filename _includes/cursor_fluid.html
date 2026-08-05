@@ -2007,16 +2007,30 @@
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    background: rgba(0, 0, 0, 0.45);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.85);
+    /* Thick glass, same recipe as the nav. This disc is fixed in a corner that
+       scrolling body copy passes through — on /works/ it lands on the left
+       column's section note, and 0.45 black at blur(14px) let every letter
+       under it stay legible, so it read as a misplaced sticker rather than as
+       a control floating above the page. Depth is what separates the two: a
+       kernel wide enough to destroy a glyph, enough alpha to build a wash
+       instead of a film, and a brightness term so the glass has body.
+
+       The radial is the specular hit and the bevel pair is the edge, both
+       lifted from .studio-mark, so the three pieces of floating chrome on the
+       site are visibly cut from one material. */
+    background:
+      radial-gradient(38px 24px at 30% 8%, rgba(255, 255, 255, 0.2), transparent 70%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.26), rgba(6, 11, 20, 0.6) 58%, rgba(88, 132, 180, 0.2));
+    -webkit-backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.92);
     /* Same lift as the light variant, tuned for a dark ground: the shadow is
        what keeps the disc from dissolving into a dark hero image. */
     box-shadow:
-      0 3px 14px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      0 12px 30px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.07);
   }
   /* On home (has fixed .bottom-bar): lift theme above bottom-bar so it doesn't cover the
      "Design & Technology · Parsons NYC" text. Hide chat FAB entirely so the desk-stage
@@ -2095,14 +2109,21 @@
     width: 52px;
     height: 52px;
     border-radius: 16px;
-    background: rgba(0, 0, 0, 0.55);
-    -webkit-backdrop-filter: blur(16px) saturate(1.4);
-    backdrop-filter: blur(16px) saturate(1.4);
-    border: 1px solid rgba(160, 200, 255, 0.18);
+    /* Matched to the theme toggle and the nav mark — see the note there. The
+       cube keeps its blue rim light, which is its own signature, but the body
+       of the glass is now the same depth as the rest of the chrome. */
+    background:
+      radial-gradient(42px 26px at 30% 8%, rgba(255, 255, 255, 0.2), transparent 70%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.26), rgba(6, 11, 20, 0.62) 58%, rgba(88, 132, 180, 0.2));
+    -webkit-backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    border: 1px solid rgba(160, 200, 255, 0.24);
     box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.4),
-      0 0 0 1px rgba(160, 200, 255, 0.04),
-      0 0 24px rgba(80, 130, 220, 0.18);
+      0 12px 32px rgba(0, 0, 0, 0.42),
+      0 0 0 1px rgba(160, 200, 255, 0.05),
+      0 0 24px rgba(80, 130, 220, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.06);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -5088,8 +5109,48 @@
       hint.innerHTML = '<span class="scroll-hint-line"></span><span class="scroll-hint-label">Scroll</span>';
       document.body.appendChild(hint);
       let dismissed = false;
+
+      /* The hint is fixed to the bottom centre of the viewport, which means it
+         is placed with no knowledge whatsoever of what the page has put there.
+         On /works/ that is the preview column's "View project" link: the word
+         SCROLL printed straight through the middle of the primary call to
+         action, with its animated hairline hanging off the paragraph above it.
+
+         Rather than special-case that page — and then the next one, and the one
+         after — the hint now looks before it speaks. It measures its own box at
+         show() time, when layout has settled, and samples three points across
+         it. If anything with actual content is under any of them, the hint
+         simply never appears: a nudge to scroll is worth very little, and it is
+         certainly worth less than the legibility of whatever it would sit on.
+
+         "Actual content" means a link, a button, a media element, or any leaf
+         node carrying text. Wrappers, the smoke canvas and the page background
+         are all transparent to this test, so on a page whose lower centre is
+         genuinely empty — which is where the hint earns its keep — nothing
+         changes. */
+      function isClear() {
+        const r = hint.getBoundingClientRect();
+        if (!r.width || !r.height) return true;
+        const y = r.top + r.height * 0.72;
+        const xs = [r.left + 4, r.left + r.width / 2, r.right - 4];
+        for (const x of xs) {
+          for (const el of document.elementsFromPoint(x, y)) {
+            if (el === hint || hint.contains(el)) continue;
+            if (el === document.body || el === document.documentElement) continue;
+            if (/^(A|BUTTON|IMG|VIDEO|SVG|INPUT)$/i.test(el.tagName)) return false;
+            if (!el.children.length && (el.textContent || "").trim()) return false;
+          }
+        }
+        return true;
+      }
+
       function show() {
         if (dismissed || window.scrollY > 30) return;
+        if (!isClear()) {
+          dismissed = true;
+          hint.remove();
+          return;
+        }
         hint.classList.add("is-visible");
       }
       function dismiss() {
