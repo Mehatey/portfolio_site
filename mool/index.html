@@ -12553,8 +12553,28 @@
           },
           { rootMargin: "120px 0px 120px 0px" }
         );
+        /* Media loads after this script runs, so most frames measure zero
+           on the first tick and their curve would never be drawn. Watch the
+           boxes and redraw whenever one actually resolves a height. */
+        var ro =
+          typeof ResizeObserver === "function"
+            ? new ResizeObserver(function (es) {
+                for (var i = 0; i < es.length; i++)
+                  for (var j = 0; j < items.length; j++)
+                    if (items[j].el === es[i].target) {
+                      items[j].done = false;
+                      break;
+                    }
+                kick();
+              })
+            : null;
         items.forEach(function (it) {
           io.observe(it.el);
+          if (ro) ro.observe(it.el);
+          it.media.forEach(function (m) {
+            m.addEventListener("load", kick, { once: true });
+            m.addEventListener("loadedmetadata", kick, { once: true });
+          });
         });
 
         var lastY = window.pageYOffset || 0,
@@ -12585,7 +12605,10 @@
         function apply(it) {
           var r = it.el.getBoundingClientRect();
           var H = r.height;
-          if (H < 8) return;
+          /* Nothing to cut yet — the media hasn't laid out. Report the
+             miss so the caller doesn't mark this frame done; a
+             ResizeObserver will call us back the moment it has height. */
+          if (H < 8) return false;
           /* Baseline inset. The clip has to give the bow somewhere to
              travel before it leaves the box, so the frame always sits a
              little short of its own edges. */
@@ -12615,6 +12638,7 @@
           it.paths[1].setAttribute("d", db);
           it.paths[2].setAttribute("d", dt);
           it.paths[3].setAttribute("d", db);
+          return true;
         }
 
         var raf = 0;
@@ -12634,8 +12658,7 @@
               if (it.x !== 0 || !it.done) {
                 it.x = 0;
                 it.v = 0;
-                it.done = true;
-                apply(it);
+                it.done = apply(it);
               }
               continue;
             }
@@ -12643,9 +12666,8 @@
             it.v += d * K;
             it.v *= 1 - C;
             it.x += it.v;
-            it.done = true;
+            it.done = apply(it) || it.done;
             if (Math.abs(it.v) > 0.0008 || Math.abs(it.x - target * it.w) > 0.0008) awake = true;
-            apply(it);
           }
           if (awake || vel !== 0) kick();
         }
