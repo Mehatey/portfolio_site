@@ -5268,6 +5268,200 @@
         });
       })();
 
+      /* ── LIQUID PREVIEW SWAP ────────────────────────────────────────────
+         The preview used to cross-fade, which is the one transition every
+         template on the internet already does. The footer runs a real water
+         simulation; this page should feel like it belongs to the same site.
+
+         So: moving to a project drops the new cover into the panel from the
+         row you are pointing at. A circular front spreads from that edge, the
+         image warps as it passes, and inside the front the new project has
+         already arrived. The old cover is still there ahead of the wave. It
+         is a wipe, but the boundary is a wave rather than a line.
+
+         Honest about the approximation: the displacement is sampled on the
+         vertical axis through the drop point rather than per-pixel radially,
+         so each row shifts as a unit. At 96 rows over ~600ms nobody reads it
+         as banding, and it costs two drawImage calls a row instead of a
+         per-pixel pass — which is what keeps this at 60fps without WebGL.
+
+         Skipped entirely on coarse pointers and for reduced-motion visitors;
+         the DOM swap underneath is the fallback and it is already correct. */
+      (function () {
+        var media = document.getElementById("wp-media");
+        var slides = document.getElementById("wp-slides");
+        if (!media || !slides) return;
+        var mq = window.matchMedia;
+        if (mq && mq("(prefers-reduced-motion: reduce)").matches) return;
+        if (mq && mq("(hover: none), (pointer: coarse)").matches) return;
+
+        var cv = document.createElement("canvas");
+        cv.setAttribute("aria-hidden", "true");
+        cv.style.cssText =
+          "position:absolute;inset:0;width:100%;height:100%;display:block;" + "pointer-events:none;z-index:9;opacity:0;border-radius:inherit;";
+        media.appendChild(cv);
+        var ctx = cv.getContext("2d");
+
+        var oldCv = document.createElement("canvas");
+        var oldCtx = oldCv.getContext("2d");
+        var newCv = document.createElement("canvas");
+        var newCtx = newCv.getContext("2d");
+
+        var W = 0,
+          H = 0,
+          dpr = 1;
+        var raf = 0,
+          bail = 0,
+          entryY = 0.5;
+
+        /* Where the drop lands. The list is on the left, so the wave enters
+           from the left edge at the height of the row you are actually
+           pointing at — the swap reads as caused by you, not by a timer. */
+        document.addEventListener(
+          "pointerover",
+          function (e) {
+            var item = e.target && e.target.closest ? e.target.closest(".works-list-item") : null;
+            if (!item) return;
+            var ir = item.getBoundingClientRect();
+            var mr = media.getBoundingClientRect();
+            if (!mr.height) return;
+            entryY = Math.max(0, Math.min(1, (ir.top + ir.height / 2 - mr.top) / mr.height));
+          },
+          { passive: true }
+        );
+
+        function fitCover(c, cx2, img) {
+          var s = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+          var dw = img.naturalWidth * s,
+            dh = img.naturalHeight * s;
+          cx2.setTransform(1, 0, 0, 1, 0, 0);
+          cx2.clearRect(0, 0, c.width, c.height);
+          cx2.setTransform(dpr, 0, 0, dpr, 0, 0);
+          cx2.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+        }
+
+        function sizeAll() {
+          var r = media.getBoundingClientRect();
+          W = Math.round(r.width);
+          H = Math.round(r.height);
+          dpr = Math.min(2, window.devicePixelRatio || 1);
+          [cv, oldCv, newCv].forEach(function (c) {
+            c.width = Math.round(W * dpr);
+            c.height = Math.round(H * dpr);
+          });
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        var ROWS = 160,
+          DUR = 620,
+          AMP = 17,
+          K = 0.055,
+          FALL = 88;
+
+        function run() {
+          var cx = -W * 0.04;
+          var cy = H * entryY;
+          var far = Math.max(Math.hypot(cx - W, cy), Math.hypot(cx - W, cy - H), Math.hypot(cx, cy - H), Math.hypot(cx, cy));
+          var start = performance.now();
+          var rh = H / ROWS;
+          cv.style.opacity = "1";
+
+          function frame(now) {
+            var p = Math.min(1, (now - start) / DUR);
+            var r = p * far * 1.08;
+            var decay = 1 - p * p;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            for (var i = 0; i < ROWS; i++) {
+              var y = i * rh;
+              var ymid = y + rh / 2;
+              var axis = Math.abs(ymid - cy);
+              var off = axis - r;
+              var dx = Math.sin(off * K) * Math.exp(-Math.abs(off) / FALL) * AMP * decay;
+              var sh = Math.min(rh + 1, H - y);
+
+              ctx.drawImage(oldCv, 0, y * dpr, W * dpr, sh * dpr, dx, y, W, sh);
+
+              var dy = ymid - cy;
+              var inside = r * r - dy * dy;
+              if (inside > 0) {
+                var hw = Math.sqrt(inside);
+                var x0 = Math.max(0, cx - hw);
+                var x1 = Math.min(W, cx + hw);
+                if (x1 > x0) {
+                  ctx.drawImage(newCv, x0 * dpr, y * dpr, (x1 - x0) * dpr, sh * dpr, x0 + dx, y, x1 - x0, sh);
+                  /* The rim. Where a wavefront lifts the surface it catches
+                     the light — the same reason the footer's caustics exist. */
+                  if (x1 < W - 0.5) {
+                    var rim = 0.72 * decay;
+                    ctx.fillStyle = "rgba(255,168,120," + (rim * 0.6).toFixed(3) + ")";
+                    ctx.fillRect(x1 + dx - 2.6, y, 2.2, sh);
+                    ctx.fillStyle = "rgba(222,240,255," + rim.toFixed(3) + ")";
+                    ctx.fillRect(x1 + dx - 1.2, y, 2.2, sh);
+                  }
+                }
+              }
+            }
+
+            if (p < 1) {
+              raf = requestAnimationFrame(frame);
+            } else {
+              cv.style.opacity = "0";
+              raf = 0;
+            }
+          }
+          if (raf) cancelAnimationFrame(raf);
+          raf = requestAnimationFrame(frame);
+        }
+
+        document.addEventListener("works:preview-change", function (e) {
+          var src = e.detail && e.detail.images && e.detail.images[0];
+          if (!src) return;
+          var prev = slides.querySelector(".wp-slide.is-active img") || slides.querySelector("img");
+          if (!prev || !prev.complete || !prev.naturalWidth) return;
+          sizeAll();
+          if (!W || !H) return;
+          fitCover(oldCv, oldCtx, prev);
+
+          /* Hold the outgoing cover on the canvas from this instant. The DOM
+             underneath is about to be replaced synchronously, and the new
+             image may take a frame or ten to decode — without this the panel
+             would show the new cover, then the wave would arrive carrying it
+             again, and the whole thing would read backwards. */
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, cv.width, cv.height);
+          ctx.drawImage(oldCv, 0, 0);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          cv.style.opacity = "1";
+          if (raf) {
+            cancelAnimationFrame(raf);
+            raf = 0;
+          }
+          clearTimeout(bail);
+          bail = setTimeout(function () {
+            if (!raf) cv.style.opacity = "0";
+          }, 550);
+
+          var next = new Image();
+          next.decoding = "async";
+          next.onerror = function () {
+            cv.style.opacity = "0";
+          };
+          next.onload = function () {
+            if (!next.naturalWidth) {
+              cv.style.opacity = "0";
+              return;
+            }
+            clearTimeout(bail);
+            fitCover(newCv, newCtx, next);
+            run();
+          };
+          next.src = src;
+        });
+      })();
+
       // Preview panel — hover a list item to update the right panel
       var _currentItem = null;
       var _previewSwapTimer = null;
