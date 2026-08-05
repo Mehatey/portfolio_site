@@ -36,6 +36,75 @@
     pointer-events: none;
   }
 
+  /* THE NAV BAND SCRIM.
+
+     Both nav pieces are thick glass, and both are legible. The problem was
+     never transmission through them — it was the hole between them. The bar
+     is a flex row with space-between and nothing in the middle, so at 1440
+     the mark ends at x=188 and the links capsule starts at x=859: 671px of
+     completely bare viewport with a fixed header's worth of page scrolling
+     underneath it. On /about/ that meant EYEJACK, PHILIPS and MARRIOTT
+     BONVOY sliding through the gap at full contrast while the two glass
+     pieces either side sat there looking composed. At 390 the same hole is
+     x 56-144, and the awards row read straight through it.
+
+     Filling the gap with more glass was the obvious move and the wrong one:
+     a continuous capsule across the whole width is a chrome bar, which is
+     exactly the generic look this nav was built to avoid, and it would put
+     a hard bottom edge across every hero on the site.
+
+     So instead the band gets a scrim — the page's own background colour,
+     full-bleed, falling to nothing over ~104px. It is not a surface, it has
+     no edge, and it is invisible on any page whose top is already dark.
+     What it does is guarantee that whatever scrolls under the nav arrives
+     dimmed rather than at full strength, so type passing behind the bar
+     reads as depth instead of as a collision.
+
+     Mechanics worth keeping straight. `position: fixed` rather than
+     absolute, because the parent's inset box starts 22px down and stops at
+     the content — the scrim has to cover the strip above and outside it.
+     `z-index: -1` paints it behind the mark and the links but still inside
+     the nav's own z-index: 9000 stacking context, so it stays above the
+     page. Pointer-events are already none on the parent and inherit down,
+     so nothing here can eat a click.
+
+     The stops are eased rather than linear. A two-stop gradient over 100px
+     of near-black has a visible shoulder where it lands; four stops on an
+     ease-out curve put most of the falloff in the first third and let the
+     tail approach zero asymptotically, which is what makes it read as a
+     dimming of the page rather than as a rectangle drawn on it. */
+  .studio-nav::before {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 104px;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(3, 6, 11, 0.86) 0%, rgba(3, 6, 11, 0.68) 34%, rgba(3, 6, 11, 0.32) 64%, rgba(3, 6, 11, 0) 100%);
+  }
+
+  /* Same shape, the page's paper instead of its ink. Cream needs to sit a
+     touch stronger at the top than black does: a dark wordmark passing
+     under a pale veil keeps more of its contrast than a light one passing
+     under a dark veil, so 0.90 here does roughly the work 0.86 does above. */
+  html[data-theme="light"] .studio-nav::before {
+    background: linear-gradient(
+      180deg,
+      rgba(244, 241, 235, 0.9) 0%,
+      rgba(244, 241, 235, 0.72) 34%,
+      rgba(244, 241, 235, 0.34) 64%,
+      rgba(244, 241, 235, 0) 100%
+    );
+  }
+
+  /* Home and Play paint a dark stage at every theme — the same reason both
+     already pin --nav-ink light below. A cream scrim on either would be a
+     pale bar across the top of a black room. */
+  html[data-theme="light"] .home-page .studio-nav::before,
+  html[data-theme="light"] .play-page .studio-nav::before {
+    background: linear-gradient(180deg, rgba(3, 6, 11, 0.86) 0%, rgba(3, 6, 11, 0.68) 34%, rgba(3, 6, 11, 0.32) 64%, rgba(3, 6, 11, 0) 100%);
+  }
+
   .studio-mark,
   .studio-link {
     pointer-events: auto;
@@ -684,6 +753,14 @@
   @media (max-width: 760px) {
     .studio-nav {
       inset: 13px 14px auto;
+    }
+    /* The bar starts 9px higher here and the pieces are the same height, so
+       its underside lands at 61 instead of 70. Scaling the scrim to match
+       keeps the ratio of covered band to falloff identical; leaving it at
+       104 would put a third of the fade below the nav on a screen that has
+       far less room to spend on it. */
+    .studio-nav::before {
+      height: 88px;
     }
     /* Narrow screens keep the signal, drop the words: the pill collapses to the
        live dot, which is still a tap target to the same mailto. */
