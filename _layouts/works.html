@@ -5862,7 +5862,26 @@
             wpCta.classList.add("wp-cta--hidden");
           }
 
-          if (animate && preview) preview.style.opacity = "1";
+          /* This used to read `preview.style.opacity = "1"`, left over from a
+             swap that faded the whole panel out and back in. That fade is
+             long gone — nothing anywhere sets this panel's opacity to 0 any
+             more — but the line stayed, and an inline `opacity: 1` beats a
+             stylesheet rule no matter how specific it is. So the exit
+             watcher's `opacity: calc(1 - var(--wp-exit))` never applied.
+
+             The visible result was worse than a missing animation. The other
+             two halves of the departure still ran, so once you reached the
+             foot of the list the panel sat there at --wp-exit: 1, scaled to
+             0.955 and blurred by 5px, at full opacity. A blurred, slightly
+             shrunken copy of the last project, parked over the right half of
+             the screen, reading as a browser rendering fault rather than as
+             anything anyone designed.
+
+             Clearing the property instead of setting it keeps the original
+             defensive intent — whatever happens during a swap, the panel is
+             not left stuck at some stale inline opacity — and hands control
+             back to the cascade, where the exit rule can finally reach it. */
+          if (animate && preview) preview.style.removeProperty("opacity");
 
           // Hand the swap to the spring. Direction is which way you travelled
           // through the list, so the copy enters from the side you came from.
