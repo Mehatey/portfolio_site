@@ -238,6 +238,24 @@ next_project:
     transition: color 0.3s;
   }
   .thesis-doc:hover .thesis-doc-meta { color: rgba(255, 255, 255, 0.65); }
+
+  /* Light mode. Everything above is written for the dark shell; on the cream
+     page these read at a 1.11 contrast ratio, i.e. white on near-white. */
+  html[data-theme="light"] .m-watch-link {
+    border-top-color: rgba(7,9,15,0.10);
+    border-bottom-color: rgba(7,9,15,0.10);
+  }
+  html[data-theme="light"] .m-watch-link a { color: rgba(7,9,15,0.6); }
+  html[data-theme="light"] .m-watch-link a:hover { color: #07090f; }
+  html[data-theme="light"] .thesis-doc { border-color: rgba(7,9,15,0.12); }
+  html[data-theme="light"] .thesis-doc:hover {
+    border-color: rgba(7,9,15,0.28);
+    background: rgba(7,9,15,0.03);
+  }
+  html[data-theme="light"] .thesis-doc-kicker { color: rgba(7,9,15,0.55); }
+  html[data-theme="light"] .thesis-doc-title { color: rgba(7,9,15,0.88); }
+  html[data-theme="light"] .thesis-doc-meta { color: rgba(7,9,15,0.45); }
+  html[data-theme="light"] .thesis-doc:hover .thesis-doc-meta { color: rgba(7,9,15,0.75); }
 </style>
 
 <!-- THESIS DOCUMENTS -->

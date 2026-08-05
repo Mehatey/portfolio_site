@@ -172,6 +172,15 @@ next_project:
   }
   .bl-watch-link a:hover { color: rgba(255, 255, 255, 0.88); }
 
+  /* Light mode — link bar and the story column both sit on the cream page. */
+  html[data-theme="light"] .bl-watch-link {
+    border-top-color: rgba(7,9,15,0.10);
+    border-bottom-color: rgba(7,9,15,0.10);
+  }
+  html[data-theme="light"] .bl-watch-link a { color: rgba(7,9,15,0.6); }
+  html[data-theme="light"] .bl-watch-link a:hover { color: #07090f; }
+  html[data-theme="light"] .bl-story-open-copy p { color: rgba(7,9,15,0.72); }
+
   @media (max-width: 760px) {
     .bl-story-open { grid-template-columns: 1fr; }
     .bl-story-open-copy { padding-top: 0; }

@@ -128,6 +128,14 @@ next_project:
   }
   .bb-process-link-bar a:hover { color: rgba(255,255,255,0.88); }
 
+  /* Light mode — the bar is page-level, not over media, so white text vanishes. */
+  html[data-theme="light"] .bb-process-link-bar {
+    border-top-color: rgba(7,9,15,0.10);
+    border-bottom-color: rgba(7,9,15,0.10);
+  }
+  html[data-theme="light"] .bb-process-link-bar a { color: rgba(7,9,15,0.6); }
+  html[data-theme="light"] .bb-process-link-bar a:hover { color: #07090f; }
+
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.008) translateY(-3px); }

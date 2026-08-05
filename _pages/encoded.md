@@ -94,7 +94,20 @@ next_project:
   .cube-cap { margin: 40px 0 0; }
   .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 16px !important; }
   .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 8px !important; }
-  .enc-award-tile:hover { border-color: rgba(255,220,80,0.3) !important; background: rgba(255,220,80,0.03) !important; }
+  .enc-award-tile:hover { border-color: rgba(156,198,255,0.34) !important; background: rgba(156,198,255,0.04) !important; }
+
+  /* Light mode. The tiles and the artist list are written inline for the dark
+     shell — white at 0.35-0.85 alpha disappears on cream, so these have to
+     outrank the style attribute. */
+  html[data-theme="light"] .enc-award-tile { border-color: rgba(7,9,15,0.12) !important; }
+  html[data-theme="light"] .enc-award-tile:hover {
+    border-color: rgba(35,80,127,0.4) !important;
+    background: rgba(35,80,127,0.04) !important;
+  }
+  html[data-theme="light"] .enc-award-kicker { color: rgba(35,80,127,0.9) !important; }
+  html[data-theme="light"] .enc-award-title { color: rgba(7,9,15,0.88) !important; }
+  html[data-theme="light"] .enc-award-sub { color: rgba(7,9,15,0.5) !important; }
+  html[data-theme="light"] .enc-artists { color: rgba(7,9,15,0.66) !important; }
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
     50% { transform: scale(1.008) translateY(-3px); }
@@ -104,14 +117,14 @@ next_project:
 <!-- Awards -->
 <div style="padding:0 var(--gutter);margin-top:40px;display:flex;gap:16px;flex-wrap:wrap;">
   <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="enc-award-tile" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;text-decoration:none;transition:border-color 0.2s,background 0.2s;">
-    <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,220,80,0.55);margin-bottom:8px;">Webby Winner · 2026</p>
-    <p style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Use of Augmented Reality</p>
-    <p style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);">Apps, Software & Immersive</p>
+    <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
+    <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Use of Augmented Reality</p>
+    <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);">Apps, Software & Immersive</p>
   </a>
   <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="enc-award-tile" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;text-decoration:none;transition:border-color 0.2s,background 0.2s;">
-    <p style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(255,220,80,0.55);margin-bottom:8px;">Webby Winner · 2026</p>
-    <p style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Community Engagement</p>
-    <p style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);">Apps, Software & Immersive</p>
+    <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
+    <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Community Engagement</p>
+    <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);">Apps, Software & Immersive</p>
   </a>
 </div>
 
@@ -187,7 +200,7 @@ next_project:
 <div class="cs-section">
   <h2 class="cs-section-label">Featured Artists</h2>
 </div>
-<p style="font-family:var(--font-mono);font-size:13px;color:rgba(255,255,255,0.50);line-height:2;padding:0 var(--gutter);max-width:620px;margin-bottom:16px;letter-spacing:0.02em;">Amelia Winger-Bearskin · Bear Fox · Bird x Bird · Cannupa Hanska Luger · Cass Gardiner · Demian DinéYazhi´ · Lite Brite Neon · Flechas · Jarrette Werk · Jeremy Dennis · Josué Rivas · Katsitsionni Fox · Lokotah Sanborn · Mali Obomsawin · Mer Young · Nicholas Galanin · Priscilla Dobler Dzul · Skawennati</p>
+<p class="enc-artists" style="font-family:var(--font-mono);font-size:13px;color:rgba(255,255,255,0.50);line-height:2;padding:0 var(--gutter);max-width:620px;margin-bottom:16px;letter-spacing:0.02em;">Amelia Winger-Bearskin · Bear Fox · Bird x Bird · Cannupa Hanska Luger · Cass Gardiner · Demian DinéYazhi´ · Lite Brite Neon · Flechas · Jarrette Werk · Jeremy Dennis · Josué Rivas · Katsitsionni Fox · Lokotah Sanborn · Mali Obomsawin · Mer Young · Nicholas Galanin · Priscilla Dobler Dzul · Skawennati</p>
 
 <p class="cube-cap cube-cap--above"><em>Exhibition promo.</em></p>
 <div class="cs-bleed">
