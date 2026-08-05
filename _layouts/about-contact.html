@@ -744,37 +744,111 @@
           transform: translateX(-50%);
         }
       }
-      /* Logos — show in their original brand colors. The earlier grayscale+invert filter
-         was turning JPG logos with white backgrounds into blank silhouettes. */
+      /* Logos — silhouette at rest, brand colour on a lifting paper chip on hover.
+         That intent was written here long before it could work: every source file
+         carried a baked-in backdrop (white paper on the Deloitte/Marriott/Leaf
+         JPGs, a black plate on EyeJack, a flat yellow field on Fairview), and no
+         CSS filter can un-bake a background — grayscale+invert flattened them to
+         blank rectangles, and dropping the filter left a ragged row of hard white
+         boxes floating on the dark page. The assets are now keyed per file and
+         emitted as two normalised PNGs each: `mono/` is a white silhouette and
+         `color/` is transparent brand colour. Twelve marks drawn in different
+         eras at different weights finally sit at one visual weight.
+
+         The chip matters as much as the colour: half these marks are dark ink
+         (Deloitte, Marriott, Leaf, the Pizza Hut and Taco Bell wordmarks), so
+         revealing brand colour straight onto the dark page would make them
+         vanish on hover. Sliding a paper card in behind fixes every polarity at
+         once, and reads as the logo lifting off the wall. */
       .m-logo {
-        height: 44px; /* bigger than before (28px) so the horizontal logos read at distance */
+        position: relative;
+        display: grid;
+        place-items: center;
+        isolation: isolate;
+        box-sizing: content-box;
+        height: 60px;
+        padding: 7px 20px;
+        border-radius: 13px;
+        transition: transform 0.42s cubic-bezier(0.2, 0.75, 0.2, 1);
+      }
+      .m-logo::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        border-radius: inherit;
+        background: linear-gradient(178deg, #ffffff 0%, #f4f1ea 100%);
+        box-shadow:
+          0 18px 34px -20px rgba(0, 0, 0, 0.85),
+          inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+        opacity: 0;
+        transform: scale(0.9);
+        transition:
+          opacity 0.42s cubic-bezier(0.2, 0.75, 0.2, 1),
+          transform 0.42s cubic-bezier(0.2, 0.75, 0.2, 1);
+      }
+      .m-logo img {
+        grid-area: 1 / 1;
+        /* --h is set per logo in the markup. Twelve marks at one height would be
+           wrong: a square lockup like KFC carries far more area than a 5:1
+           wordmark like Deloitte at the same pixel height. Each height is
+           50 * aspect^-0.35, which equalises perceived size rather than a
+           single dimension. */
+        height: var(--h, 40px);
         width: auto;
-        max-width: 160px;
         object-fit: contain;
         display: block;
-        opacity: 0.78;
-        transition:
-          opacity 0.3s ease,
-          transform 0.3s ease;
+        transition: opacity 0.38s ease;
+      }
+      .m-logo__mono {
+        opacity: 0.66;
+      }
+      .m-logo__color {
+        opacity: 0;
       }
       .m-logo:hover {
+        transform: translateY(-4px);
+      }
+      .m-logo:hover::before {
         opacity: 1;
-        transform: scale(1.05);
+        transform: scale(1);
+      }
+      .m-logo:hover .m-logo__mono {
+        opacity: 0;
+      }
+      .m-logo:hover .m-logo__color {
+        opacity: 1;
       }
       .m-sep {
         font-family: var(--font-mono);
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.18);
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.14);
       }
-      /* Light mode — same logos at slightly higher opacity since cream bg gives less contrast */
-      html[data-theme="light"] .m-logo {
-        opacity: 0.85;
+      /* Light mode — the silhouettes ship as white PNGs, so invert them to ink.
+         Nothing else changes: the hover chip is paper in both themes. */
+      html[data-theme="light"] .m-logo__mono {
+        filter: invert(1);
+        opacity: 0.58;
       }
-      html[data-theme="light"] .m-logo:hover {
-        opacity: 1;
+      html[data-theme="light"] .m-logo::before {
+        box-shadow:
+          0 18px 30px -20px rgba(20, 24, 34, 0.4),
+          inset 0 0 0 1px rgba(20, 24, 34, 0.08);
       }
       html[data-theme="light"] .m-sep {
-        color: rgba(7, 9, 15, 0.22);
+        color: rgba(7, 9, 15, 0.18);
+      }
+      @media (hover: none) {
+        /* Touch never fires the reveal. Resist the urge to just show the colour
+           layer instead — half these marks are dark ink and would disappear into
+           the page. The silhouette row is the state that always reads, so on
+           touch that is the whole treatment. */
+        .m-logo__mono {
+          opacity: 0.74;
+        }
+        .m-logo__color {
+          opacity: 0;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         .marquee-track {
@@ -1168,7 +1242,7 @@
           justify-content: flex-start;
         }
 
-        /* ── Touch targets ────────────────────────────────────────────
+        /* ── Touch targets ──────────────────────────────────────────────
            On a pointer device the whole row reads as clickable because the
            cursor changes over it; on a thumb it does not. Several controls
            here were only as tall as their own text — the FAQ triggers were
@@ -1443,10 +1517,13 @@
         </div>
       </section>
 
-      <!-- Companies marquee — actual brand logos. Mono-tinted at rest, full color on hover. -->
-      {% assign collab_logos = "deloitte.jpg|Deloitte,eyejack.png|EyeJack,philips.svg|Philips,marriott.jpg|Marriott,m-health-fairview.jpg|M Health
-      Fairview,leaf.avif|Leaf Design Studio,dabur.png|Dabur,kfc.svg|KFC,google.png|Google,pizza-hut.png|Pizza Hut,taco-bell.png|Taco
-      Bell,del-taco.png|Del Taco" | split: "," %}
+      <!-- Companies marquee — silhouette at rest, brand colour on a paper chip on hover.
+           Each entry is slug|label|height-in-px; the height equalises perceived size
+           across wordmarks and square lockups (see the .m-logo img comment). Both the
+           mono/ and color/ PNGs are background-free rebuilds of the originals. -->
+      {% assign collab_logos = "deloitte|Deloitte|28,eyejack|EyeJack|29,philips|Philips|54,marriott|Marriott|33,m-health-fairview|M Health
+      Fairview|45,leaf|Leaf Design Studio|37,dabur|Dabur|48,kfc|KFC|50,google|Google|34,pizza-hut|Pizza Hut|46,taco-bell|Taco Bell|57,del-taco|Del
+      Taco|40" | split: "," %}
       <section class="marquee marquee--companies" aria-labelledby="collaborators-heading">
         <h2 class="marquee-kicker" id="collaborators-heading">Past collaborators</h2>
         <p class="sr-only">
@@ -1455,21 +1532,23 @@
         </p>
         <div class="marquee-mask">
           <div class="marquee-track" aria-hidden="true">
-            {% for entry in collab_logos %}{% assign p = entry | split: "|" %}<img
+            {% for i in (1..2) %}{% for entry in collab_logos %}{% assign p = entry | split: "|" %}<span
               class="m-logo"
-              src="{{ site.baseurl }}/assets/img/companies/{{ p[0] }}"
-              alt="{{ p[1] }}"
-              loading="lazy"
-              decoding="async"
-            /><span class="m-sep">◇</span>{% endfor %} {% comment %}Duplicated set so the loop is seamless{% endcomment %} {% for entry in
-            collab_logos %}{% assign p = entry | split: "|" %}<img
-              class="m-logo"
-              src="{{ site.baseurl }}/assets/img/companies/{{ p[0] }}"
-              alt=""
-              aria-hidden="true"
-              loading="lazy"
-              decoding="async"
-            /><span class="m-sep" aria-hidden="true">◇</span>{% endfor %}
+              style="--h: {{ p[2] }}px"
+              title="{{ p[1] }}"
+              ><img
+                class="m-logo__mono"
+                src="{{ site.baseurl }}/assets/img/companies/mono/{{ p[0] }}.png"
+                alt=""
+                loading="lazy"
+                decoding="async" /><img
+                class="m-logo__color"
+                src="{{ site.baseurl }}/assets/img/companies/color/{{ p[0] }}.png"
+                alt=""
+                loading="lazy"
+                decoding="async" /></span
+            ><span class="m-sep">◇</span>{% endfor %}{% comment %}The set is emitted twice so the -50% keyframe lands on an identical frame. The whole
+            track is aria-hidden; the readable list is the sr-only paragraph above.{% endcomment %}{% endfor %}
           </div>
         </div>
       </section>
