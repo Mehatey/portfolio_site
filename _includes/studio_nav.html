@@ -103,11 +103,157 @@
     display: none;
   }
 
+  /* ── LIQUID GLASS ───────────────────────────────────────────────────────
+     The old glass lived on `.nav .nav-links`, an element this nav replaced
+     months ago, so every one of those rules has been painting nothing. This
+     is the real thing, on the element that actually exists.
+
+     Four layers, because that is what glass is: a blurred, saturated backdrop
+     so the page's colour bleeds through; a specular sheen along the top lip;
+     a moving highlight that tracks the pointer, so the surface reads as
+     curved rather than flat; and a refraction ring at the very edge, blurred
+     harder than the body, which is what sells a thick piece of glass — light
+     bends most where the surface turns away from you. */
   .studio-links {
+    --gx: 72%;
+    --gy: 8%;
+    position: relative;
     display: flex;
     align-items: center;
-    gap: clamp(14px, 1.7vw, 28px);
+    gap: clamp(10px, 1.25vw, 20px);
+    padding: 5px clamp(10px, 1vw, 15px);
+    border-radius: 999px;
     pointer-events: auto;
+    isolation: isolate;
+    background:
+      radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.17), transparent 66%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.16), rgba(6, 11, 20, 0.3) 58%, rgba(88, 132, 180, 0.12));
+    backdrop-filter: blur(20px) saturate(1.9) brightness(0.94);
+    -webkit-backdrop-filter: blur(20px) saturate(1.9) brightness(0.94);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+      inset 0 0 24px rgba(160, 200, 245, 0.06),
+      0 12px 34px rgba(0, 0, 0, 0.26);
+    transition:
+      box-shadow 420ms ease,
+      background 420ms ease,
+      transform 560ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* The refraction ring. Blurring the backdrop twice as hard in a 1.5px band
+     at the perimeter is what a real bevel does to whatever is behind it. */
+  .studio-links::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(
+      150deg,
+      rgba(255, 255, 255, 0.62),
+      rgba(255, 255, 255, 0.06) 38%,
+      rgba(255, 255, 255, 0.03) 64%,
+      rgba(190, 222, 255, 0.4)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* The travelling caustic. It is deliberately larger than the capsule and
+     clipped by it, so the bright part sweeps rather than sits. */
+  .studio-links::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    overflow: hidden;
+    background: radial-gradient(64px 34px at var(--gx) var(--gy), rgba(226, 242, 255, 0.3), transparent 70%);
+    opacity: 0;
+    transition: opacity 320ms ease;
+    pointer-events: none;
+  }
+
+  .studio-links:hover::after,
+  .studio-links:focus-within::after {
+    opacity: 1;
+  }
+
+  /* Once the page has moved, the glass thickens — more blur, deeper shadow —
+     because by then it is floating over content rather than over the header. */
+  body.nav-lifted .studio-links {
+    background:
+      radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.2), transparent 66%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.2), rgba(5, 9, 17, 0.44) 58%, rgba(88, 132, 180, 0.16));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.08),
+      inset 0 0 26px rgba(160, 200, 245, 0.08),
+      0 16px 44px rgba(0, 0, 0, 0.38);
+  }
+
+  html[data-theme="light"] .studio-links {
+    background:
+      radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.95), transparent 66%),
+      linear-gradient(168deg, rgba(255, 255, 255, 0.66), rgba(214, 227, 240, 0.36));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 0 rgba(60, 104, 148, 0.1),
+      0 12px 32px rgba(30, 56, 84, 0.12);
+    backdrop-filter: blur(21px) saturate(1.7);
+    -webkit-backdrop-filter: blur(21px) saturate(1.7);
+  }
+
+  html[data-theme="light"] .studio-links::before {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(120, 158, 196, 0.22) 40%, rgba(255, 255, 255, 0.5));
+  }
+
+  /* Contact is hard-dark at every theme, so it opts back out of the above. */
+  html[data-theme="light"] .contact-page .studio-links {
+    background:
+      radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.17), transparent 66%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.16), rgba(6, 11, 20, 0.3) 58%, rgba(88, 132, 180, 0.12));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.34),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.07),
+      0 12px 34px rgba(0, 0, 0, 0.26);
+  }
+  html[data-theme="light"] .contact-page .studio-links::before {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.06) 38%, rgba(190, 222, 255, 0.4));
+  }
+
+  /* The mark gets the same material so the two ends of the bar belong to each
+     other, at circle rather than capsule proportion. */
+  .studio-mark {
+    padding: 5px;
+    border-radius: 50%;
+    background: linear-gradient(168deg, rgba(126, 165, 208, 0.14), rgba(6, 11, 20, 0.26));
+    backdrop-filter: blur(18px) saturate(1.7);
+    -webkit-backdrop-filter: blur(18px) saturate(1.7);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 10px 28px rgba(0, 0, 0, 0.24);
+  }
+  html[data-theme="light"] .studio-mark {
+    background: linear-gradient(168deg, rgba(255, 255, 255, 0.72), rgba(214, 227, 240, 0.4));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      0 10px 26px rgba(30, 56, 84, 0.12);
+  }
+  html[data-theme="light"] .contact-page .studio-mark {
+    background: linear-gradient(168deg, rgba(126, 165, 208, 0.14), rgba(6, 11, 20, 0.26));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.3),
+      0 10px 28px rgba(0, 0, 0, 0.24);
   }
 
   .studio-link {
@@ -115,9 +261,9 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    min-height: 44px;
+    min-height: 40px;
     outline: none;
-    opacity: 0.7;
+    opacity: 0.86;
     transition:
       opacity 180ms ease,
       transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -139,7 +285,7 @@
       500 11px/1 "DM Mono",
       monospace;
     letter-spacing: 0.06em;
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.62);
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
     display: inline-block;
     overflow: hidden;
     vertical-align: middle;
@@ -319,14 +465,12 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    height: 32px;
-    padding: 0 13px 0 11px;
-    margin-left: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    height: 30px;
+    padding: 0 12px 0 10px;
+    margin-left: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(9px);
-    -webkit-backdrop-filter: blur(9px);
+    background: rgba(255, 255, 255, 0.07);
     color: var(--nav-ink);
     text-decoration: none;
     -webkit-tap-highlight-color: transparent;
@@ -436,7 +580,11 @@
       display: none;
     }
     .studio-links {
-      gap: 8px;
+      gap: 4px;
+      padding: 4px 7px;
+    }
+    .studio-mark {
+      padding: 3px;
     }
     .studio-link {
       width: 42px;
@@ -460,3 +608,50 @@
     }
   }
 </style>
+
+<script>
+  /* The highlight has to follow the pointer for the surface to read as curved.
+     Tracked on the capsule itself rather than on the window, so it costs
+     nothing until the pointer is actually over the glass. `nav-lifted` is the
+     scroll state: past the first screenful the bar is floating over content,
+     and the material thickens to match. */
+  (function () {
+    var caps = document.querySelector(".studio-links");
+    if (!caps) return;
+    var fine = !(window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches);
+    if (fine) {
+      caps.addEventListener(
+        "pointermove",
+        function (e) {
+          var r = caps.getBoundingClientRect();
+          caps.style.setProperty("--gx", (((e.clientX - r.left) / r.width) * 100).toFixed(1) + "%");
+          caps.style.setProperty("--gy", (((e.clientY - r.top) / r.height) * 100).toFixed(1) + "%");
+        },
+        { passive: true }
+      );
+      caps.addEventListener("pointerleave", function () {
+        caps.style.setProperty("--gx", "72%");
+        caps.style.setProperty("--gy", "8%");
+      });
+    }
+    var lifted = false;
+    var ticking = false;
+    function read() {
+      ticking = false;
+      var want = (window.scrollY || document.documentElement.scrollTop || 0) > 40;
+      if (want === lifted) return;
+      lifted = want;
+      document.body.classList.toggle("nav-lifted", want);
+    }
+    window.addEventListener(
+      "scroll",
+      function () {
+        if (ticking) return;
+        ticking = true;
+        requestAnimationFrame(read);
+      },
+      { passive: true }
+    );
+    read();
+  })();
+</script>

@@ -2,7 +2,51 @@
   .site-footer {
     position: relative;
     z-index: 5;
+    overflow: hidden;
+    isolation: isolate;
     padding: clamp(76px, 9vw, 128px) var(--gutter, clamp(20px, 4vw, 64px)) 0;
+  }
+
+  /* ── THE WATER LAYER ────────────────────────────────────────────────────
+     Sid: "the plants section feels separate from the footer ... can u not
+     extend the water across the whole footer or fade it in. the transition
+     from work to okay this is the footer is weird and abrupt."
+
+     It was abrupt because the pond was a rounded rectangle floating on a
+     patch of paper, inset on all four sides, sitting *below* the footer
+     rather than under it. So it now spans the entire footer and bleeds off
+     the left, right and bottom edges — no corners to notice — while the top
+     dissolves upward through a mask. There is no longer an edge where the
+     page stops and the water starts; there is a depth at which the page
+     becomes water. */
+  .plot__bleed {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .plot__bleed canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* Wash and caustics fade in from above; the flora canvas does not, because
+     nothing grows up in the shallows and a faded plant just reads as a bug. */
+  #plot-wash,
+  #plot-caustic {
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.16) 14%, rgba(0, 0, 0, 0.62) 33%, #000 56%);
+    mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.16) 14%, rgba(0, 0, 0, 0.62) 33%, #000 56%);
+  }
+
+  .site-footer-inner,
+  .site-footer > .plot,
+  .site-footer-colophon {
+    position: relative;
+    z-index: 1;
   }
 
   .site-footer-inner {
@@ -185,10 +229,8 @@
 
   .plot {
     position: relative;
-    margin: clamp(56px, 8vh, 104px) calc(-1 * var(--gutter, clamp(20px, 4vw, 64px))) 0;
+    margin: clamp(40px, 6vh, 72px) calc(-1 * var(--gutter, clamp(20px, 4vw, 64px))) 0;
     padding: 0;
-    overflow: hidden;
-    isolation: isolate;
   }
 
   .plot__quote {
@@ -262,16 +304,8 @@
     position: relative;
     display: block;
     width: 100%;
-    height: clamp(340px, 46vh, 470px);
+    height: clamp(360px, 48vh, 500px);
     touch-action: pan-y;
-  }
-
-  .plot__field canvas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    display: block;
   }
 
   /* A watering can, drawn rather than described. Only on real pointers —
@@ -363,6 +397,12 @@
 </style>
 
 <footer class="site-footer" aria-label="Site footer">
+  <div class="plot__bleed" aria-hidden="true">
+    <canvas id="plot-wash"></canvas>
+    <canvas id="plot-caustic"></canvas>
+    <canvas id="plot-flora"></canvas>
+  </div>
+
   <div class="site-footer-inner">
     <div class="site-footer-identity">
       <strong>Siddharth Mehta</strong>
@@ -388,10 +428,13 @@
         ><span class="plot__hint-touch">Drag across the plot to plant</span></span
       >
     </p>
-    <div class="plot__field" id="plot-field" tabindex="0" role="img" aria-label="A small garden of ASCII plants growing in a watercolour wash.">
-      <canvas id="plot-wash" aria-hidden="true"></canvas>
-      <canvas id="plot-flora" aria-hidden="true"></canvas>
-    </div>
+    <div
+      class="plot__field"
+      id="plot-field"
+      tabindex="0"
+      role="img"
+      aria-label="A pond of ASCII plants and fish. Moving across it plants seedlings and pushes ripples through the water."
+    ></div>
   </section>
 
   <p class="site-footer-colophon">Built by hand · Jekyll, WebGL and too much canvas · <span id="site-footer-time"></span></p>
@@ -442,73 +485,276 @@
 
 <script>
   /* ────────────────────────────────────────────────────────────────────────
-     THE PLOT — watercolour ground + ASCII flora
-     Two canvases. The wash never clears, so pigment accumulates where you
-     garden; the flora clears every frame because it moves. Everything is
-     frame-rate independent (step = dt / 16.667) so it behaves the same on a
-     60Hz laptop and a 120Hz phone.
+     THE PLOT — a pond that runs the whole width and depth of the footer.
+
+     It used to be a rounded rectangle of water floating on a patch of paper,
+     inset on all four sides, which is why the hand-off from the page to the
+     footer read as a hard edge rather than a descent. Now there is one water
+     layer spanning the entire footer, bleeding off the left, right and bottom
+     so no corner is ever visible, with the top dissolved by a CSS mask. You
+     do not cross a boundary into the pond; the page just gets deeper.
+
+     Three canvases:
+       #plot-wash    — the body of the water. Painted on resize, not per frame.
+       #plot-caustic — the live surface. A 2D wave-equation height field,
+                       rendered as surface-normal luminance.
+       #plot-flora   — everything alive: plants, fish, drifting seed pods.
+
+     The point of the height field is that it is shared. The pointer writes
+     to it, fish wakes write to it, pods colliding write to it, seeds landing
+     write to it — and plants, pods and light all read from it. Nothing here
+     is animated on its own timeline pretending to be connected to the rest.
      ──────────────────────────────────────────────────────────────────────── */
   (function () {
+    var layer = document.querySelector(".plot__bleed");
     var field = document.getElementById("plot-field");
+    var footerEl = document.querySelector(".site-footer");
     var washCv = document.getElementById("plot-wash");
+    var causCv = document.getElementById("plot-caustic");
     var floraCv = document.getElementById("plot-flora");
-    if (!field || !washCv || !floraCv) return;
+    if (!layer || !field || !footerEl || !washCv || !causCv || !floraCv) return;
 
     var wash = washCv.getContext("2d");
+    var caus = causCv.getContext("2d");
     var flora = floraCv.getContext("2d");
-    if (!wash || !flora) return;
+    if (!wash || !caus || !flora) return;
 
-    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var mq = window.matchMedia;
+    var reduced = mq && mq("(prefers-reduced-motion: reduce)").matches;
+    var coarse = mq && mq("(hover: none), (pointer: coarse)").matches;
 
     var W = 0,
       H = 0,
-      DPR = 1;
-
-    // ── palette ───────────────────────────────────────────────────────────
-    // No yellow anywhere. Moss and sage carry the field, teal and rose are
-    // the accents, terracotta is rare enough to feel like a find.
-    var FLORA_COLORS = [
-      { c: "#7fae5e", w: 30 }, // moss
-      { c: "#9ec48a", w: 24 }, // sage
-      { c: "#4fb3a5", w: 16 }, // teal
-      { c: "#e58fa8", w: 12 }, // rose
-      { c: "#c96f8e", w: 8 }, // deep rose
-      { c: "#d97a5a", w: 6 }, // terracotta
-      { c: "#a9c3d6", w: 4 }, // pale ink
-    ];
-    // On cream paper the dark-mode brights vanish, so light mode gets its own
-    // set — same hues, inked down — plus a paper-coloured halo at draw time so
-    // they stay legible where they overlap the pond.
-    var FLORA_LIGHT = ["#4a7a2f", "#628f45", "#1c7d72", "#bf5378", "#993f63", "#ad4a29", "#3f6076"];
-    var FLORA_TOTAL = FLORA_COLORS.reduce(function (t, x) {
-      return t + x.w;
-    }, 0);
-
-    function pickIndex() {
-      var r = Math.random() * FLORA_TOTAL;
-      for (var i = 0; i < FLORA_COLORS.length; i++) {
-        r -= FLORA_COLORS[i].w;
-        if (r <= 0) return i;
-      }
-      return FLORA_COLORS.length - 1;
-    }
+      dpr = 1;
+    /* The water covers the whole footer, but life only happens in the deep
+       band — the part of the footer the .plot section occupies. Plants
+       sprouting behind the resume link would be a bug, not a feature. */
+    var live = { top: 0, bot: 0 };
 
     function isLight() {
       return document.documentElement.getAttribute("data-theme") === "light";
     }
 
-    function washPalette() {
-      return isLight() ? ["#1f4d63", "#23405e", "#2f6070", "#1a3b52"] : ["#154456", "#193752", "#215663", "#122f45"];
+    var PAL = {
+      dark: {
+        body: ["rgba(6,16,28,0)", "rgba(9,26,42,0.72)", "rgba(7,20,34,0.94)"],
+        shelf: "rgba(120,178,220,0.16)",
+        caustic: [172, 226, 255],
+        causticAlpha: 0.62,
+        flora: ["#8fc46a", "#b3dc9c", "#59cbba", "#f29cb6", "#dd7fa0", "#ef8a66", "#bcd6e8"],
+        fish: "#cfe9ff",
+        pod: "#e8d4a4",
+        glow: 6,
+      },
+      light: {
+        body: ["rgba(196,216,220,0)", "rgba(174,203,208,0.6)", "rgba(150,186,194,0.82)"],
+        shelf: "rgba(70,110,124,0.2)",
+        caustic: [255, 255, 255],
+        causticAlpha: 0.5,
+        flora: ["#274d12", "#3a6321", "#08574e", "#8e2b4c", "#6b1f40", "#7d2f11", "#20415a"],
+        fish: "#1d3a52",
+        pod: "#6b5a2c",
+        glow: 0,
+      },
+    };
+
+    function pal() {
+      return isLight() ? PAL.light : PAL.dark;
     }
 
-    function paper() {
-      return isLight() ? "#efe9dd" : "#0a0910";
+    /* ── THE HEIGHT FIELD ──────────────────────────────────────────────────
+       h(t+1) = 2h(t) − h(t−1) + c²∇²h, then damped. c² must stay under 0.5
+       for a 2D grid or the whole thing detonates into noise on the third
+       frame. 0.26 is springy without being unstable. The damping is close
+       enough to 1 that a ripple crosses the footer twice before it dies. */
+    var CELL = 11,
+      gw = 0,
+      gh = 0,
+      cur = null,
+      prv = null,
+      nxt = null,
+      causImg = null,
+      causBuf = null,
+      causBufCtx = null;
+    var C2 = 0.26,
+      DAMP = 0.9955;
+
+    function buildGrid() {
+      gw = Math.max(24, Math.min(180, Math.round(W / CELL)));
+      gh = Math.max(16, Math.min(90, Math.round(H / CELL)));
+      cur = new Float32Array(gw * gh);
+      prv = new Float32Array(gw * gh);
+      nxt = new Float32Array(gw * gh);
+      causBuf = document.createElement("canvas");
+      causBuf.width = gw;
+      causBuf.height = gh;
+      causBufCtx = causBuf.getContext("2d");
+      causImg = causBufCtx.createImageData(gw, gh);
     }
 
-    // ── species ───────────────────────────────────────────────────────────
-    // Rows read top-to-bottom, the way they're drawn. A plant grows by
-    // revealing rows from the bottom up, which is the direction a real one
-    // gets taller.
+    function splash(x, y, amount, radius) {
+      if (!cur) return;
+      var cx = (x / W) * (gw - 1),
+        cy = (y / H) * (gh - 1);
+      var r = radius || 2;
+      var i0 = Math.max(1, Math.floor(cx - r)),
+        i1 = Math.min(gw - 2, Math.ceil(cx + r));
+      var j0 = Math.max(1, Math.floor(cy - r)),
+        j1 = Math.min(gh - 2, Math.ceil(cy + r));
+      for (var j = j0; j <= j1; j++) {
+        for (var i = i0; i <= i1; i++) {
+          var dx = i - cx,
+            dy = j - cy;
+          var d = Math.sqrt(dx * dx + dy * dy) / r;
+          if (d > 1) continue;
+          var f = Math.cos(d * Math.PI * 0.5);
+          cur[j * gw + i] += amount * f * f;
+        }
+      }
+    }
+
+    function heightAt(x, y) {
+      if (!cur) return 0;
+      var cx = (x / W) * (gw - 1),
+        cy = (y / H) * (gh - 1);
+      var i = Math.max(0, Math.min(gw - 2, Math.floor(cx)));
+      var j = Math.max(0, Math.min(gh - 2, Math.floor(cy)));
+      var fx = cx - i,
+        fy = cy - j,
+        k = j * gw + i;
+      var a = cur[k] * (1 - fx) + cur[k + 1] * fx;
+      var b = cur[k + gw] * (1 - fx) + cur[k + gw + 1] * fx;
+      return a * (1 - fy) + b * fy;
+    }
+
+    function slopeX(x, y) {
+      var s = (W / gw) * 0.9;
+      return heightAt(Math.min(W, x + s), y) - heightAt(Math.max(0, x - s), y);
+    }
+
+    function slopeY(x, y) {
+      var s = (H / gh) * 0.9;
+      return heightAt(x, Math.min(H, y + s)) - heightAt(x, Math.max(0, y - s));
+    }
+
+    function stepWater(step) {
+      if (!cur) return;
+      var iterations = step > 1.6 ? 2 : 1;
+      for (var n = 0; n < iterations; n++) {
+        for (var j = 1; j < gh - 1; j++) {
+          var row = j * gw;
+          for (var i = 1; i < gw - 1; i++) {
+            var k = row + i;
+            nxt[k] = (2 * cur[k] - prv[k] + C2 * (cur[k - 1] + cur[k + 1] + cur[k - gw] + cur[k + gw] - 4 * cur[k])) * DAMP;
+          }
+        }
+        var swap = prv;
+        prv = cur;
+        cur = nxt;
+        nxt = swap;
+      }
+    }
+
+    /* Surface-normal luminance. Where the surface tilts toward the light it
+       brightens; where it tilts away it dims. That is the whole trick — no
+       ray marching, no shader, just the gradient of the height field written
+       into a 180×90 image and scaled up with smoothing on. */
+    function drawWater() {
+      if (!causImg) return;
+      var p = pal();
+      var c = p.caustic;
+      var d = causImg.data;
+      var o = 0;
+      for (var j = 0; j < gh; j++) {
+        var row = j * gw;
+        for (var i = 0; i < gw; i++) {
+          var k = row + i;
+          var gx = i > 0 && i < gw - 1 ? cur[k + 1] - cur[k - 1] : 0;
+          var gy = j > 0 && j < gh - 1 ? cur[k + gw] - cur[k - gw] : 0;
+          var lum = gx * 0.72 + gy * 0.5;
+          var a = Math.min(190, Math.abs(lum) * 900);
+          d[o] = c[0];
+          d[o + 1] = c[1];
+          d[o + 2] = c[2];
+          d[o + 3] = lum > 0 ? a : a * 0.55;
+          o += 4;
+        }
+      }
+      causBufCtx.putImageData(causImg, 0, 0);
+      caus.setTransform(1, 0, 0, 1, 0, 0);
+      caus.clearRect(0, 0, causCv.width, causCv.height);
+      caus.setTransform(dpr, 0, 0, dpr, 0, 0);
+      caus.globalAlpha = p.causticAlpha;
+      caus.imageSmoothingEnabled = true;
+      caus.drawImage(causBuf, 0, 0, W, H);
+      caus.globalAlpha = 1;
+    }
+
+    /* ── THE BODY OF THE WATER ─────────────────────────────────────────────
+       No paper fill, no rectangle, no corners. A vertical gradient that is
+       fully transparent at the top of the footer and full depth at the
+       bottom, plus a wandering shelf line where the shallows drop away, plus
+       a handful of watercolour blooms so it is not a flat wash. Everything
+       runs from x = −80 to x = W + 80 so both ends are off-screen. */
+    function layGround() {
+      var p = pal();
+      wash.setTransform(1, 0, 0, 1, 0, 0);
+      wash.clearRect(0, 0, washCv.width, washCv.height);
+      wash.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      var g = wash.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, p.body[0]);
+      g.addColorStop(0.46, p.body[1]);
+      g.addColorStop(1, p.body[2]);
+      wash.fillStyle = g;
+      wash.fillRect(-80, 0, W + 160, H + 90);
+
+      var shelfY = Math.max(24, live.top - 26);
+      wash.beginPath();
+      wash.moveTo(-80, shelfY);
+      for (var x = -80; x <= W + 80; x += 26) {
+        var wob = Math.sin(x * 0.011) * 9 + Math.sin(x * 0.037 + 1.7) * 5 + Math.sin(x * 0.0061 + 4.2) * 13;
+        wash.lineTo(x, shelfY + wob);
+      }
+      wash.strokeStyle = p.shelf;
+      wash.lineWidth = 1.2;
+      wash.stroke();
+
+      wash.save();
+      wash.globalCompositeOperation = isLight() ? "multiply" : "screen";
+      for (var b = 0; b < 9; b++) {
+        var bx = (b / 8) * (W + 160) - 80 + Math.sin(b * 2.3) * 60;
+        var by = live.top + ((b * 97) % Math.max(60, H - live.top));
+        var br = 70 + ((b * 53) % 130);
+        var rg = wash.createRadialGradient(bx, by, 0, bx, by, br);
+        rg.addColorStop(0, isLight() ? "rgba(120,158,168,0.13)" : "rgba(78,140,186,0.11)");
+        rg.addColorStop(1, "rgba(0,0,0,0)");
+        wash.fillStyle = rg;
+        wash.beginPath();
+        wash.arc(bx, by, br, 0, Math.PI * 2);
+        wash.fill();
+      }
+      wash.restore();
+
+      /* Grain. Water photographs grainy; a perfectly smooth gradient reads
+         as a CSS background, which is exactly what this is trying not to be. */
+      wash.save();
+      wash.globalAlpha = isLight() ? 0.05 : 0.07;
+      wash.fillStyle = isLight() ? "#2a3c44" : "#9fc6e4";
+      for (var n = 0; n < 900; n++) {
+        var gxp = Math.random() * (W + 160) - 80;
+        var gyp = live.top * 0.4 + Math.random() * (H - live.top * 0.4);
+        wash.fillRect(gxp, gyp, 1, 1);
+      }
+      wash.restore();
+    }
+
+    /* ── FLORA ─────────────────────────────────────────────────────────────
+       Bigger (12px, was 10), brighter, and in dark mode each plant carries a
+       shadowBlur in its own colour so it glows through the water instead of
+       disappearing into it. They also bend: every row above the base is
+       displaced by the local surface slope, squared by height, so a ripple
+       passing through visibly pushes the stems over. */
     var SPECIES = [
       { rows: ["(*)", ">/"], w: 16 },
       { rows: ["(o)", "\\|/"], w: 14 },
@@ -521,421 +767,402 @@
       { rows: [":'", "-!:`"], w: 6 },
       { rows: ["^^^"], w: 10 },
     ];
-    var SPECIES_TOTAL = SPECIES.reduce(function (t, s) {
-      return t + s.w;
-    }, 0);
+    var TOTAL_W = 0;
+    for (var s = 0; s < SPECIES.length; s++) TOTAL_W += SPECIES[s].w;
 
-    function pick(list, total) {
-      var r = Math.random() * total;
-      for (var i = 0; i < list.length; i++) {
-        r -= list[i].w;
-        if (r <= 0) return list[i];
-      }
-      return list[list.length - 1];
-    }
-
-    // ── watercolour ───────────────────────────────────────────────────────
-    // A pigment drop is a polygon whose edges are subdivided and displaced at
-    // their midpoints, several times over. That's what gives paint its ragged
-    // capillary edge. Stacking a handful of them at low alpha, each slightly
-    // smaller and rotated, builds the darker core the same way a real wash
-    // does — by overlap, not by a gradient stop.
-    function deform(pts, iterations, roughness) {
-      for (var it = 0; it < iterations; it++) {
-        var next = [];
-        for (var i = 0; i < pts.length; i++) {
-          var a = pts[i];
-          var b = pts[(i + 1) % pts.length];
-          next.push(a);
-          var mx = (a[0] + b[0]) / 2;
-          var my = (a[1] + b[1]) / 2;
-          var dx = b[0] - a[0];
-          var dy = b[1] - a[1];
-          var len = Math.sqrt(dx * dx + dy * dy) || 1;
-          var amt = (Math.random() - 0.5) * len * roughness;
-          next.push([mx + (-dy / len) * amt, my + (dx / len) * amt]);
-        }
-        pts = next;
-        roughness *= 0.62;
-      }
-      return pts;
-    }
-
-    function polygon(cx, cy, radius, squash, sides) {
-      var pts = [];
-      for (var i = 0; i < sides; i++) {
-        var a = (i / sides) * Math.PI * 2;
-        var r = radius * (0.78 + Math.random() * 0.44);
-        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r * squash]);
-      }
-      return pts;
-    }
-
-    function fillPoly(ctx, pts) {
-      ctx.beginPath();
-      ctx.moveTo(pts[0][0], pts[0][1]);
-      for (var i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    function drop(cx, cy, radius, alpha, color, squash) {
-      wash.save();
-      wash.globalCompositeOperation = "source-over";
-      wash.fillStyle = color;
-      var layers = 5;
-      for (var l = 0; l < layers; l++) {
-        var t = l / (layers - 1 || 1);
-        var r = radius * (1 - t * 0.62);
-        var pts = deform(polygon(cx, cy, r, squash == null ? 0.72 : squash, 9), 4, 0.42);
-        wash.globalAlpha = alpha * (0.35 + t * 0.65);
-        fillPoly(wash, pts);
-      }
-      wash.restore();
-    }
-
-    // ── grain ─────────────────────────────────────────────────────────────
-    // Paper tooth. Generated once, tiled, and drawn over the wash so the
-    // pigment sits *in* something rather than floating on a flat rectangle.
-    var grainPattern = null;
-    function buildGrain() {
-      var g = document.createElement("canvas");
-      g.width = g.height = 140;
-      var gx = g.getContext("2d");
-      var img = gx.createImageData(140, 140);
-      for (var i = 0; i < img.data.length; i += 4) {
-        var v = 128 + (Math.random() - 0.5) * 116;
-        img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
-        img.data[i + 3] = 26;
-      }
-      gx.putImageData(img, 0, 0);
-      grainPattern = wash.createPattern(g, "repeat");
-    }
-
-    // ── the ground ────────────────────────────────────────────────────────
-    // A rounded-rectangle pond, inset so there is paper around it — without
-    // the margin the wash bleeds off every edge and stops reading as a poured
-    // shape at all. The outline is a densely sampled rounded rect, deformed
-    // gently, so it keeps the silhouette but gains a capillary edge.
-    function roundRectPts(x, y, w, h, r, spacing) {
-      var pts = [];
-      var arc = function (cx, cy, a0, a1) {
-        for (var k = 0; k <= 9; k++) {
-          var a = a0 + ((a1 - a0) * k) / 9;
-          pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
-        }
-      };
-      var line = function (x0, y0, x1, y1) {
-        var d = Math.hypot(x1 - x0, y1 - y0);
-        var n = Math.max(1, Math.round(d / spacing));
-        for (var k = 1; k < n; k++) pts.push([x0 + ((x1 - x0) * k) / n, y0 + ((y1 - y0) * k) / n]);
-      };
-      var L = x + r,
-        R = x + w - r,
-        T = y + r,
-        B = y + h - r;
-      arc(L, T, Math.PI, Math.PI * 1.5);
-      line(L, y, R, y);
-      arc(R, T, Math.PI * 1.5, Math.PI * 2);
-      line(x + w, T, x + w, B);
-      arc(R, B, 0, Math.PI * 0.5);
-      line(R, y + h, L, y + h);
-      arc(L, B, Math.PI * 0.5, Math.PI);
-      line(x, B, x, T);
-      return pts;
-    }
-
-    var pond = null; // {x,y,w,h} in CSS px — flora uses it to find the bank
-
-    function layGround() {
-      wash.setTransform(DPR, 0, 0, DPR, 0, 0);
-      wash.clearRect(0, 0, W, H);
-
-      wash.fillStyle = paper();
-      wash.fillRect(0, 0, W, H);
-
-      var pal = washPalette();
-      var mx = Math.min(W * 0.06, 96);
-      var px = mx;
-      var py = H * 0.24;
-      var pw = W - mx * 2;
-      var ph = H * 0.62;
-      var rad = Math.min(ph * 0.24, 58);
-      pond = { x: px, y: py, w: pw, h: ph };
-
-      // Body: nested deformed outlines at rising alpha. Overlap builds the
-      // depth, the way a real pour does — no gradient stops anywhere.
-      var body = null;
-      for (var l = 0; l < 6; l++) {
-        var t = l / 5;
-        var inset = t * Math.min(pw, ph) * 0.13;
-        var pts = deform(roundRectPts(px + inset, py + inset, pw - inset * 2, ph - inset * 2, Math.max(8, rad - inset * 0.5), 30), 4, 0.2);
-        if (l === 0) body = pts;
-        wash.save();
-        wash.fillStyle = pal[l % pal.length];
-        wash.globalAlpha = l === 0 ? 0.5 : 0.15;
-        fillPoly(wash, pts);
-        wash.restore();
-      }
-
-      // Interior mottling, clipped to the pond so the pigment pools inside
-      // the shape instead of smearing across the paper.
-      if (body) {
-        wash.save();
-        wash.beginPath();
-        wash.moveTo(body[0][0], body[0][1]);
-        for (var m = 1; m < body.length; m++) wash.lineTo(body[m][0], body[m][1]);
-        wash.closePath();
-        wash.clip();
-        for (var i = 0; i < 9; i++) {
-          drop(px + Math.random() * pw, py + Math.random() * ph, Math.min(pw, ph) * (0.24 + Math.random() * 0.34), 0.12, pal[i % pal.length], 0.7);
-        }
-        // A darker seam near the far bank reads as depth falling away.
-        for (var j = 0; j < 4; j++) {
-          drop(px + pw * (0.15 + Math.random() * 0.7), py + ph * (0.06 + Math.random() * 0.14), Math.min(pw, ph) * 0.34, 0.15, pal[0], 0.3);
-        }
-        wash.restore();
-      }
-
-      if (!grainPattern) buildGrain();
-      if (grainPattern) {
-        wash.save();
-        wash.globalAlpha = isLight() ? 0.7 : 0.45;
-        wash.fillStyle = grainPattern;
-        wash.fillRect(0, 0, W, H);
-        wash.restore();
-      }
-    }
-
-    // ── flora ─────────────────────────────────────────────────────────────
+    var FONT = 12,
+      ROW_H = 11,
+      MAX_PLANTS = coarse ? 90 : 150;
     var plants = [];
-    var MAX_PLANTS = 150;
-    var ROW_H = 9;
-    var FONT = '10px "DM Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+
+    function pickSpecies() {
+      var r = Math.random() * TOTAL_W;
+      for (var i = 0; i < SPECIES.length; i++) {
+        r -= SPECIES[i].w;
+        if (r <= 0) return i;
+      }
+      return 0;
+    }
 
     function plant(x, y, instant) {
-      var sp = pick(SPECIES, SPECIES_TOTAL);
-      var ci = pickIndex();
-      var p = {
+      if (plants.length >= MAX_PLANTS) plants.shift();
+      var p = pal();
+      plants.push({
         x: x,
         y: y,
-        rows: sp.rows,
-        ci: ci,
+        sp: pickSpecies(),
+        scale: 0.86 + Math.random() * 0.42,
+        col: p.flora[Math.floor(Math.random() * p.flora.length)],
+        idx: Math.floor(Math.random() * 7),
         grow: instant ? 1 : 0,
-        speed: 0.012 + Math.random() * 0.014,
         phase: Math.random() * Math.PI * 2,
-        wind: 0.4 + Math.random() * 0.5,
-        amp: 0.6 + Math.random() * 1.5,
-        age: 0,
-        fade: 1,
-      };
-      plants.push(p);
-
-      // Wherever something takes root, the ground darkens a little. This is
-      // the part that rewards standing still and watching.
-      if (y > H * 0.28) {
-        var pal = washPalette();
-        drop(x + (Math.random() - 0.5) * 14, y + 4, 16 + Math.random() * 26, 0.05, pal[(Math.random() * pal.length) | 0], 0.6);
-      }
-
-      if (plants.length > MAX_PLANTS) {
-        var over = plants.length - MAX_PLANTS;
-        for (var i = 0; i < over; i++) plants[i].fade = Math.min(plants[i].fade, 0.985);
-      }
-      return p;
+      });
+      splash(x, y, instant ? 0.5 : 2.6, 2.2);
     }
 
-    function drawFlora(t) {
-      flora.setTransform(DPR, 0, 0, DPR, 0, 0);
-      flora.clearRect(0, 0, W, H);
-      flora.font = FONT;
-      flora.textAlign = "center";
-      flora.textBaseline = "alphabetic";
-      var lightTheme = isLight();
-      if (lightTheme) {
-        flora.shadowColor = "rgba(243, 238, 229, 0.62)";
-        flora.shadowBlur = 2;
-      } else {
-        flora.shadowBlur = 0;
+    function drawPlants(t) {
+      var p = pal();
+      for (var n = 0; n < plants.length; n++) {
+        var pl = plants[n];
+        if (pl.grow < 1) pl.grow = Math.min(1, pl.grow + 0.045);
+        var rows = SPECIES[pl.sp].rows;
+        var count = rows.length;
+        var sc = pl.scale * (0.4 + pl.grow * 0.6);
+        var tilt = slopeX(pl.x, pl.y) * 260;
+        var lift = heightAt(pl.x, pl.y) * 22;
+        var sway = Math.sin(t * 0.0011 + pl.phase) * 1.6;
+        flora.save();
+        flora.globalAlpha = pl.grow;
+        flora.fillStyle = p.flora[pl.idx % p.flora.length];
+        if (p.glow) {
+          flora.shadowColor = p.flora[pl.idx % p.flora.length];
+          flora.shadowBlur = p.glow;
+        }
+        flora.font = Math.round(FONT * sc) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
+        flora.textAlign = "center";
+        flora.textBaseline = "alphabetic";
+        for (var r = 0; r < count; r++) {
+          var fromBase = count - 1 - r;
+          var f = count > 1 ? fromBase / (count - 1) : 0;
+          var bend = (tilt + sway) * f * f;
+          flora.fillText(rows[r], pl.x + bend, pl.y + lift - fromBase * ROW_H * sc);
+        }
+        flora.restore();
+      }
+    }
+
+    /* ── FISH ──────────────────────────────────────────────────────────────
+       They wander, they keep out of each other's way, they stay off the
+       banks, and they bolt from the pointer. Every one of them drags a
+       continuous negative wake through the height field, so the water is
+       never still even when nobody is touching it. */
+    var FISH_GLYPH = ["><>", "><°>", "•••>"];
+    var FISH_BACK = ["<><", "<°><", "<•••"];
+    var fish = [];
+
+    function seedFish() {
+      fish = [];
+      var count = W < 700 ? 2 : 4;
+      for (var i = 0; i < count; i++) {
+        fish.push({
+          x: 60 + Math.random() * Math.max(80, W - 120),
+          y: live.top + 30 + Math.random() * Math.max(40, live.bot - live.top - 60),
+          vx: (Math.random() - 0.5) * 1.2,
+          vy: (Math.random() - 0.5) * 0.5,
+          g: Math.floor(Math.random() * FISH_GLYPH.length),
+          sz: 0.9 + Math.random() * 0.45,
+          startle: 0,
+        });
+      }
+    }
+
+    function stepFish(step, t) {
+      var p = pal();
+      for (var i = 0; i < fish.length; i++) {
+        var f = fish[i];
+        f.vx += (Math.random() - 0.5) * 0.06 * step;
+        f.vy += (Math.random() - 0.5) * 0.04 * step;
+
+        for (var j = 0; j < fish.length; j++) {
+          if (j === i) continue;
+          var o = fish[j];
+          var dx = f.x - o.x,
+            dy = f.y - o.y;
+          var d2 = dx * dx + dy * dy;
+          if (d2 < 7000 && d2 > 0.01) {
+            var inv = 1 / Math.sqrt(d2);
+            f.vx += dx * inv * 0.09 * step;
+            f.vy += dy * inv * 0.09 * step;
+          }
+        }
+
+        if (f.x < 70) f.vx += 0.07 * step;
+        if (f.x > W - 70) f.vx -= 0.07 * step;
+        if (f.y < live.top + 26) f.vy += 0.06 * step;
+        if (f.y > live.bot - 26) f.vy -= 0.06 * step;
+
+        if (pointer.on) {
+          var px = f.x - pointer.x,
+            py = f.y - pointer.y;
+          var pd2 = px * px + py * py;
+          if (pd2 < 21000 && pd2 > 0.01) {
+            var pinv = 1 / Math.sqrt(pd2);
+            f.vx += px * pinv * 0.34 * step;
+            f.vy += py * pinv * 0.28 * step;
+            f.startle = 1;
+          }
+        }
+        f.startle *= 0.94;
+
+        var sp = Math.sqrt(f.vx * f.vx + f.vy * f.vy);
+        var max = 0.85 + f.startle * 2.2;
+        if (sp > max) {
+          f.vx = (f.vx / sp) * max;
+          f.vy = (f.vy / sp) * max;
+          sp = max;
+        }
+        f.x += f.vx * step;
+        f.y += f.vy * step;
+        splash(f.x, f.y, -0.16 * Math.min(1.6, sp) * step, 1.6);
+
+        var lift = heightAt(f.x, f.y) * 16;
+        flora.save();
+        flora.globalAlpha = 0.72 + f.startle * 0.25;
+        flora.fillStyle = p.fish;
+        if (p.glow) {
+          flora.shadowColor = p.fish;
+          flora.shadowBlur = 5;
+        }
+        flora.font = Math.round(12 * f.sz) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
+        flora.textAlign = "center";
+        flora.textBaseline = "middle";
+        flora.fillText(f.vx >= 0 ? FISH_GLYPH[f.g] : FISH_BACK[f.g], f.x, f.y + lift);
+        flora.restore();
+      }
+    }
+
+    /* ── PODS ──────────────────────────────────────────────────────────────
+       Seed heads with no propulsion whatsoever. They are moved by the slope
+       of the water and nothing else, so they ride the ripples the fish and
+       your pointer make. When two of them knock together — and they do —
+       the collision puts a fresh ripple back into the field. That is the bit
+       worth building: the pond starts talking to itself. */
+    var POD_GLYPH = ["(o)", "<*>", "{~}", "(·)"];
+    var pods = [];
+
+    function seedPods() {
+      pods = [];
+      var count = W < 700 ? 4 : 8;
+      for (var i = 0; i < count; i++) {
+        pods.push({
+          x: 40 + Math.random() * Math.max(80, W - 80),
+          y: live.top + 20 + Math.random() * Math.max(40, live.bot - live.top - 40),
+          vx: 0,
+          vy: 0,
+          g: Math.floor(Math.random() * POD_GLYPH.length),
+          spin: Math.random() * Math.PI * 2,
+          sz: 0.8 + Math.random() * 0.5,
+        });
+      }
+    }
+
+    function stepPods(step) {
+      var p = pal();
+      var i, a;
+      for (i = 0; i < pods.length; i++) {
+        a = pods[i];
+        a.vx += -slopeX(a.x, a.y) * 46 * step;
+        a.vy += -slopeY(a.x, a.y) * 34 * step;
+        a.vx *= Math.pow(0.965, step);
+        a.vy *= Math.pow(0.965, step);
+        a.x += a.vx * step;
+        a.y += a.vy * step;
+        if (a.x < 18) {
+          a.x = 18;
+          a.vx = Math.abs(a.vx) * 0.5;
+        }
+        if (a.x > W - 18) {
+          a.x = W - 18;
+          a.vx = -Math.abs(a.vx) * 0.5;
+        }
+        if (a.y < live.top + 14) {
+          a.y = live.top + 14;
+          a.vy = Math.abs(a.vy) * 0.5;
+        }
+        if (a.y > live.bot - 14) {
+          a.y = live.bot - 14;
+          a.vy = -Math.abs(a.vy) * 0.5;
+        }
+        a.spin += (a.vx * 0.02 + 0.002) * step;
       }
 
-      for (var i = 0; i < plants.length; i++) {
-        var p = plants[i];
-        var n = p.rows.length;
-        var shown = Math.min(n, Math.ceil(p.grow * n));
-        if (shown <= 0) continue;
-
-        for (var r = 0; r < shown; r++) {
-          // r counts from the top row of the glyph stack; rows nearer the top
-          // are further from the soil, so they swing more.
-          var fromBase = n - r;
-          var rowY = p.y - (n - 1 - r) * ROW_H;
-          var sway = reduced ? 0 : Math.sin(t * 0.0011 * p.wind + p.phase + fromBase * 0.24) * p.amp * (fromBase / n);
-
-          // The newest row eases in rather than snapping on.
-          var rowProgress = Math.min(1, Math.max(0, p.grow * n - (n - 1 - r)));
-          var ease = rowProgress * rowProgress * (3 - 2 * rowProgress);
-
-          flora.globalAlpha = Math.min(1, ease * p.fade * 0.92);
-          flora.fillStyle = lightTheme ? FLORA_LIGHT[p.ci] : FLORA_COLORS[p.ci].c;
-          flora.fillText(p.rows[r], p.x + sway, rowY);
+      for (i = 0; i < pods.length; i++) {
+        for (var j = i + 1; j < pods.length; j++) {
+          var b = pods[j];
+          a = pods[i];
+          var dx = b.x - a.x,
+            dy = b.y - a.y;
+          var d = Math.sqrt(dx * dx + dy * dy);
+          var minD = 22;
+          if (d < minD && d > 0.01) {
+            var nx = dx / d,
+              ny = dy / d;
+            var push = (minD - d) * 0.5;
+            a.x -= nx * push;
+            a.y -= ny * push;
+            b.x += nx * push;
+            b.y += ny * push;
+            var rel = Math.abs((b.vx - a.vx) * nx + (b.vy - a.vy) * ny);
+            var t1 = a.vx;
+            a.vx = b.vx * 0.86;
+            b.vx = t1 * 0.86;
+            var t2 = a.vy;
+            a.vy = b.vy * 0.86;
+            b.vy = t2 * 0.86;
+            if (rel > 0.12) splash((a.x + b.x) / 2, (a.y + b.y) / 2, Math.min(2.2, rel * 2.4), 2);
+          }
         }
       }
-      flora.shadowBlur = 0;
-      flora.globalAlpha = 1;
+
+      for (i = 0; i < pods.length; i++) {
+        a = pods[i];
+        var lift = heightAt(a.x, a.y) * 20;
+        flora.save();
+        flora.globalAlpha = 0.66;
+        flora.fillStyle = p.pod;
+        if (p.glow) {
+          flora.shadowColor = p.pod;
+          flora.shadowBlur = 5;
+        }
+        flora.translate(a.x, a.y + lift);
+        flora.rotate(Math.sin(a.spin) * 0.28);
+        flora.font = Math.round(11 * a.sz) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
+        flora.textAlign = "center";
+        flora.textBaseline = "middle";
+        flora.fillText(POD_GLYPH[a.g], 0, 0);
+        flora.restore();
+      }
     }
 
-    // ── seeding ───────────────────────────────────────────────────────────
-    var lastX = -999,
-      lastY = -999;
-    var SPACING = 44;
+    /* ── INPUT ─────────────────────────────────────────────────────────────
+       Ripples come from anywhere over the footer, because the water is
+       everywhere over the footer. Planting is still restricted to the deep
+       band, because that is where the ground is. */
+    var pointer = { x: 0, y: 0, on: false, px: 0, py: 0 };
+    var lastSeed = 0,
+      SEED_GAP = 26;
 
-    function seedAt(clientX, clientY) {
-      var rect = field.getBoundingClientRect();
-      var x = clientX - rect.left;
-      var y = clientY - rect.top;
-      if (x < 0 || y < 0 || x > W || y > H) return;
-      var dx = x - lastX;
-      var dy = y - lastY;
-      if (dx * dx + dy * dy < SPACING * SPACING) return;
-      lastX = x;
-      lastY = y;
-      plant(x + (Math.random() - 0.5) * 10, y + (Math.random() - 0.5) * 8, false);
+    function toLocal(e) {
+      var r = layer.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
     }
 
-    field.addEventListener(
+    footerEl.addEventListener(
       "pointermove",
       function (e) {
-        seedAt(e.clientX, e.clientY);
+        var l = toLocal(e);
+        if (l.x < 0 || l.x > W || l.y < 0 || l.y > H) return;
+        var sp = pointer.on ? Math.sqrt(Math.pow(l.x - pointer.px, 2) + Math.pow(l.y - pointer.py, 2)) : 0;
+        pointer.px = l.x;
+        pointer.py = l.y;
+        pointer.x = l.x;
+        pointer.y = l.y;
+        pointer.on = true;
+        if (!reduced) splash(l.x, l.y, -Math.min(2.4, sp * 0.09), 2 + Math.min(2, sp * 0.05));
       },
       { passive: true }
     );
+
+    footerEl.addEventListener("pointerleave", function () {
+      pointer.on = false;
+    });
+
+    function seedAt(e) {
+      var fr = field.getBoundingClientRect();
+      if (e.clientX < fr.left || e.clientX > fr.right || e.clientY < fr.top || e.clientY > fr.bottom) return;
+      var now = performance.now ? performance.now() : Date.now();
+      if (now - lastSeed < SEED_GAP) return;
+      lastSeed = now;
+      var l = toLocal(e);
+      plant(l.x, l.y, false);
+    }
+
+    field.addEventListener("pointermove", seedAt, { passive: true });
     field.addEventListener(
       "pointerdown",
       function (e) {
-        lastX = lastY = -999;
-        seedAt(e.clientX, e.clientY);
+        var l = toLocal(e);
+        splash(l.x, l.y, 7, 3.4);
+        plant(l.x, l.y, false);
       },
       { passive: true }
     );
     field.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        var k = sowPoint();
-        plant(k.x, k.y, false);
-      }
+      if (e.key !== "Enter" && e.key !== " ") return;
+      e.preventDefault();
+      var x = 40 + Math.random() * Math.max(40, W - 80);
+      var y = live.top + 20 + Math.random() * Math.max(40, live.bot - live.top - 40);
+      splash(x, y, 6, 3);
+      plant(x, y, false);
     });
 
-    // ── ambient ───────────────────────────────────────────────────────────
-    // Even untouched, the plot fills in slowly on its own, so a visitor who
-    // never moves their mouse still gets something worth looking at.
-    var ambientAt = 0;
-    var AMBIENT_TARGET = 46;
+    /* Ambient rain. Without it the pond settles to glass after ten seconds
+       and reads as broken rather than calm. */
+    var nextDrop = 0;
 
-    // ── first light ───────────────────────────────────────────────────────
-    // Ambient growth alone takes the better part of twenty seconds to fill
-    // the plot, so the first thing a visitor who scrolls to the bottom sees
-    // is bare ground — which reads as broken rather than as patient. The plot
-    // therefore opens as a garden that has already been growing a while: the
-    // seedlings are sown at staggered maturities instead of all at zero, so
-    // it looks tended rather than spawned, and the ambient loop carries on
-    // filling the gaps from there.
-    // Unattended planting lands inside the water, not on the paper around it.
-    // The old range (full width, 0.34–0.96 of the height) overshot the pond
-    // on three sides, so ambient growth slowly stranded seedlings on the dry
-    // margin where they read as stray glyphs rather than as flora.
-    function sowPoint() {
-      var b = pond || { x: W * 0.07, y: H * 0.24, w: W * 0.86, h: H * 0.62 };
-      var mx = Math.min(b.w * 0.05, 46);
-      var my = Math.min(b.h * 0.1, 34);
-      return {
-        x: b.x + mx + Math.random() * Math.max(1, b.w - mx * 2),
-        y: b.y + my + Math.random() * Math.max(1, b.h - my * 2),
-      };
-    }
-
-    var sown = false;
-    function sow() {
-      if (sown || !W || !H) return;
-      sown = true;
-      for (var i = 0; i < 24; i++) {
-        var s = sowPoint();
-        plant(s.x, s.y, false);
-        plants[plants.length - 1].grow = 0.12 + Math.random() * 0.78;
-      }
-    }
-
-    // ── loop ──────────────────────────────────────────────────────────────
+    /* ── LOOP ──────────────────────────────────────────────────────────── */
     var raf = 0,
-      prev = 0,
-      visible = false;
+      last = 0,
+      visible = false,
+      running = false;
 
     function frame(t) {
-      // Sown from the loop rather than from start(), because start() can fire
-      // before the field has been measured and a plot sown into a 0×0 box
-      // stacks every seedling in the top-left corner.
-      sow();
-      if (!prev) prev = t;
-      var dt = Math.min(64, t - prev);
-      prev = t;
-      var step = dt / 16.667 || 1;
-
-      for (var i = plants.length - 1; i >= 0; i--) {
-        var p = plants[i];
-        if (p.grow < 1) p.grow = Math.min(1, p.grow + p.speed * step);
-        if (p.fade < 1) {
-          p.fade -= 0.006 * step;
-          if (p.fade <= 0) plants.splice(i, 1);
-        }
-      }
-
-      if (plants.length < AMBIENT_TARGET && t > ambientAt) {
-        ambientAt = t + 260 + Math.random() * 520;
-        var a = sowPoint();
-        plant(a.x, a.y, false);
-      }
-
-      drawFlora(t);
+      if (!running) return;
       raf = requestAnimationFrame(frame);
+      var dt = last ? Math.min(64, t - last) : 16.667;
+      last = t;
+      var step = dt / 16.667;
+
+      if (!reduced) {
+        if (t > nextDrop) {
+          nextDrop = t + 900 + Math.random() * 2600;
+          splash(Math.random() * W, live.top + Math.random() * Math.max(30, live.bot - live.top), -3.4, 2.4);
+        }
+        stepWater(step);
+        drawWater();
+      }
+
+      flora.setTransform(1, 0, 0, 1, 0, 0);
+      flora.clearRect(0, 0, floraCv.width, floraCv.height);
+      flora.setTransform(dpr, 0, 0, dpr, 0, 0);
+      drawPlants(t);
+      if (!reduced) {
+        stepPods(step);
+        stepFish(step, t);
+      }
     }
 
     function start() {
-      if (raf || reduced) return;
-      prev = 0;
+      if (running) return;
+      running = true;
+      last = 0;
       raf = requestAnimationFrame(frame);
     }
 
     function stop() {
-      if (!raf) return;
-      cancelAnimationFrame(raf);
+      running = false;
+      if (raf) cancelAnimationFrame(raf);
       raf = 0;
     }
 
-    // ── size ──────────────────────────────────────────────────────────────
-    function resize() {
-      var rect = field.getBoundingClientRect();
-      if (!rect.width || !rect.height) return;
-      W = Math.round(rect.width);
-      H = Math.round(rect.height);
-      DPR = Math.min(2, window.devicePixelRatio || 1);
-      [washCv, floraCv].forEach(function (c) {
-        c.width = Math.round(W * DPR);
-        c.height = Math.round(H * DPR);
-      });
-      grainPattern = null;
-      layGround();
+    function sizeCanvas(cv, ctx) {
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
 
-      // Re-scatter whatever was growing so a resize doesn't leave plants
-      // hanging in mid-air off the edge of the new plot.
-      plants = plants.filter(function (p) {
-        return p.x < W && p.y < H;
-      });
-      if (reduced) {
-        while (plants.length < 54) {
-          var r = sowPoint();
-          plant(r.x, r.y, true);
-        }
-        drawFlora(0);
+    function resize() {
+      var r = layer.getBoundingClientRect();
+      if (!r.width || !r.height) return;
+      W = Math.round(r.width);
+      H = Math.round(r.height);
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      var fr = field.getBoundingClientRect();
+      live.top = Math.max(0, Math.min(H - 40, Math.round(fr.top - r.top)));
+      live.bot = Math.max(live.top + 40, Math.min(H, Math.round(fr.bottom - r.top)));
+      sizeCanvas(washCv, wash);
+      sizeCanvas(causCv, caus);
+      sizeCanvas(floraCv, flora);
+      buildGrid();
+      layGround();
+      seedFish();
+      seedPods();
+      /* Anything planted before the resize is still in the array but its
+         coordinates belonged to a different geometry; clamp rather than drop,
+         because losing someone's garden on a window drag is rude. */
+      for (var i = 0; i < plants.length; i++) {
+        plants[i].x = Math.max(12, Math.min(W - 12, plants[i].x));
+        plants[i].y = Math.max(live.top + 12, Math.min(live.bot - 6, plants[i].y));
       }
     }
 
@@ -945,26 +1172,25 @@
       resizeTimer = setTimeout(resize, 180);
     });
 
-    // Repaint the ground when the theme flips — cream paper under a dark
-    // page would be a hole in the layout.
-    if (window.MutationObserver) {
-      new MutationObserver(function () {
-        layGround();
-      }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    }
+    /* The pigment and the palette are theme-dependent, so a theme flip has to
+       repaint the ground and recolour everything already growing. */
+    new MutationObserver(function () {
+      var p = pal();
+      layGround();
+      for (var i = 0; i < plants.length; i++) plants[i].col = p.flora[plants[i].idx % p.flora.length];
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-    // Only run while the plot is actually on screen.
-    if (window.IntersectionObserver) {
+    if ("IntersectionObserver" in window) {
       new IntersectionObserver(
         function (entries) {
           visible = entries[0].isIntersecting;
           if (visible) {
-            if (!W) resize();
+            resize();
             start();
           } else stop();
         },
-        { rootMargin: "160px" }
-      ).observe(field);
+        { rootMargin: "220px" }
+      ).observe(footerEl);
     } else {
       resize();
       start();
