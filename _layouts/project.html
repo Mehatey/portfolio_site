@@ -2802,13 +2802,24 @@
         background: rgba(7, 9, 15, 0.018);
       }
       html[data-theme="light"] .meta-k {
-        color: rgba(7, 9, 15, 0.42);
+        /* 0.62 here, not 0.42, and it is the same 0.62 dark uses. The old
+           value was not chosen badly, it was chosen without knowing that a
+           second dimmer was going to multiply into it -- see the note in the
+           accessibility floor at the foot of this file. Now that the element
+           opacity is pinned to 1 in both themes, this alpha is the whole of
+           the muting, and it measures 5.5:1 on cream. */
+        color: rgba(7, 9, 15, 0.62);
       }
       html[data-theme="light"] .meta-v {
         color: rgba(7, 9, 15, 0.68);
       }
       html[data-theme="light"] .intro-label {
-        color: rgba(30, 77, 123, 0.62);
+        /* Darkened rather than merely opaqued. This is the one label in the
+           family that carries a hue instead of ink, and pushing a light blue
+           to full alpha to make it legible turns it into a wash rather than a
+           colour. Deepening the blue and holding it just off full lets it
+           stay recognisably the accent while measuring 6.6:1. */
+        color: rgba(24, 62, 100, 0.85);
       }
       html[data-theme="light"] .intro-tagline {
         color: rgba(7, 9, 15, 0.78);
@@ -2933,7 +2944,8 @@
       html[data-theme="light"] .project-details > summary,
       html[data-theme="light"] .case-progress__head,
       html[data-theme="light"] .case-progress__note {
-        color: rgba(7, 9, 15, 0.48);
+        /* 9px type carrying two dimmers landed at 2.3:1. One dimmer, 5.1:1. */
+        color: rgba(7, 9, 15, 0.6);
       }
       html[data-theme="light"] .case-chapter-map__link {
         color: rgba(7, 9, 15, 0.48);
@@ -3965,6 +3977,39 @@
       html:not([data-theme="light"]) .meta-k,
       html:not([data-theme="light"]) .proj-highlight-label {
         color: rgba(255, 255, 255, 0.62) !important;
+        opacity: 1 !important;
+      }
+
+      /* The opacity reset has to be unscoped, and scoping it to dark was the
+         bug this whole block exists to prevent, reintroduced one theme over.
+
+         The reasoning in the original was that the light overrides above had
+         their own values and should be left alone -- true of the colours, but
+         `opacity: 0.72 !important` from the label-noise block up at line 3547
+         is not a colour and is not theme-scoped, so it kept multiplying into
+         them. .meta-k reads rgba(7,9,15,0.42) in the sheet; what actually
+         landed on cream was 0.302, which measures 2.04:1 at 11px on all
+         fifteen project routes. The stated value and the painted value were
+         different numbers, which is the failure mode that makes a contrast
+         audit of the stylesheet useless.
+
+         Same remedy as .case-chapter-map__label further down: kill the second
+         dimmer everywhere so the colour alpha is the only knob, and let each
+         theme's own colour rule carry the muting where it can be measured.
+
+         Scoped to light on purpose, and this time the scoping is checked
+         rather than assumed: dark already resets opacity on four of these
+         six, and the two it does not -- .case-progress__head and __note --
+         audit clear on dark at their current effective alpha. Un-dimming them
+         there would be changing how dark looks to fix a bug that only exists
+         on cream. */
+      html[data-theme="light"] .proj-kicker,
+      html[data-theme="light"] .meta-k,
+      html[data-theme="light"] .intro-label,
+      html[data-theme="light"] .proj-highlight-label,
+      html[data-theme="light"] .case-progress__head,
+      html[data-theme="light"] .case-progress__note,
+      html[data-theme="light"] .case-chapter-map__label {
         opacity: 1 !important;
       }
 
