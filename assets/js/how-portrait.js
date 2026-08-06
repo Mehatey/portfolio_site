@@ -13,11 +13,27 @@
      hover  they converge onto their true coordinates — the image
      click  they detonate and re-form under a different drawing law
 
-   Four laws (click cycles them):
-     DUST      points are points. Straight reconstruction.
-     HALFTONE  size carries tone, colour is dropped. A newspaper cut.
-     SLIT      rows shear on a travelling wave, channels separate.
-     TOPO      points ride contour rings of the luminance field.
+   Four laws (click cycles them). The rule that earns them their place
+   is that each has to be recognisable in a still frame — four labels
+   over one effect is decoration, not a mechanism:
+
+     DUST      points are points. The photograph, reconstructed.
+     HALFTONE  a real newsprint screen. Exactly one dot per 2x2 source
+               cell, uniform ink, and the tone lives entirely in dot
+               SIZE — dark tone means no dot at all, so the plate has
+               white space in it the way printed halftone does.
+     SLIT      rows shear on a travelling wave and the points split
+               into two chromatic channels that pull apart. The site
+               already leans on chromatic aberration; this is that
+               idiom taken to its limit rather than a new vocabulary.
+     TOPO      only the points sitting ON a luminance contour survive.
+               The face becomes a survey drawing — line, not tone.
+
+   TOPO and HALFTONE both read tone, and tone read per-pixel from a
+   photograph is noise. So a_lum is a 5x5 box blur of the luminance
+   field, computed once on the CPU. Without it TOPO is speckle; with
+   it, it is contour lines. That one change is the difference between
+   the mode reading as an idea and reading as an accident.
 
    The <img> stays in the DOM. It is the a11y text, the no-WebGL path
    and the reduced-motion path; GL only takes over after the point
@@ -44,116 +60,125 @@
     "attribute vec2 a_uv;", // 0..1 position in the source image
     "attribute vec3 a_rgb;",
     "attribute vec2 a_rnd;", // two stable per-point randoms
-    "attribute float a_lum;",
+    "attribute float a_lum;", // BLURRED luminance — see the note above
     "uniform float u_reveal;", // 0 scattered .. 1 resolved
     "uniform float u_time;",
     "uniform float u_mode;",
     "uniform float u_burst;", // 1 right after a click, decays to 0
-    "uniform float u_aspect;",
     "uniform float u_px;", // one sampling pitch, in point-size units
     "uniform float u_light;", // 1 on the cream theme, 0 on the dark one
     "varying vec3 v_rgb;",
-    "varying float v_lum;",
     "varying float v_fade;",
-
-    "float hash(vec2 p){ return fract(sin(dot(p, vec2(41.71, 289.13))) * 43758.5453); }",
 
     "void main(){",
     "  vec2 uv = a_uv;",
     "  float rev = u_reveal;",
     "  float m = u_mode;",
     "  vec2 pos = uv;",
+    "  float ix = floor(uv.x * 200.0);",
+    "  float iy = floor(uv.y * 250.0);",
+    "  float drop = 0.0;", // 1 = this point is not part of this law
+    "  float s = 1.15;",
+    "  vec3 col = a_rgb;",
+    "  float extra = 1.0;",
+    /* On paper the ink is dark, on a screen the light is bright. The
+       same tone therefore has to mean opposite things in the two
+       themes, or the halftone comes out as a negative of itself. */
+    "  float tone = mix(a_lum, 1.0 - a_lum, u_light);",
 
-    /* --- the law ------------------------------------------------- */
-    /* DUST: nothing extra — the scatter below does all the work.    */
+    /* --- DUST ----------------------------------------------------- */
+    /* At full reveal the points must slightly overlap their own cell,
+       or the sampling lattice shows through as a dark grid. 1.45 is
+       the smallest value that closes it. */
+    "  if (m < 0.5) {",
+    "    s = mix(1.35, 1.45, rev);",
+    "    col = a_rgb;",
+    "  }",
 
-    /* HALFTONE: snap to a coarser lattice so the points read as an
-       engraved screen rather than a photograph.                     */
-    "  if (m > 0.5 && m < 1.5) {",
+    /* --- HALFTONE ------------------------------------------------- */
+    /* Four source points land in each screen cell, so three of them
+       are dropped by grid parity rather than left to pile up — four
+       overlapping dots would blow every cell out to solid ink. */
+    "  else if (m < 1.5) {",
     "    vec2 cell = vec2(1.0 / 100.0, 1.0 / 125.0);",
     "    pos = (floor(uv / cell) + 0.5) * cell;",
+    "    if (mod(ix, 2.0) > 0.5 || mod(iy, 2.0) > 0.5) drop = 1.0;",
+    "    s = tone * 2.05 * mix(0.6, 1.0, rev);",
+    "    col = mix(vec3(0.93, 0.95, 1.0), vec3(0.05, 0.07, 0.11), u_light);",
+    /* no minimum dot size — the lightest tones have to vanish, or the
+       plate fills in and the whole point of a screen is lost */
+    "    extra = smoothstep(0.0, 0.1, tone);",
     "  }",
 
-    /* SLIT: each row shears on a travelling wave. At full reveal the
-       wave is still there but tiny, so the image keeps breathing.   */
-    "  if (m > 1.5 && m < 2.5) {",
-    "    float amp = mix(0.13, 0.012, rev);",
-    "    float w = sin(uv.y * 46.0 + u_time * 1.1) * 0.6 + sin(uv.y * 13.0 - u_time * 0.7) * 0.4;",
-    "    pos.x += w * amp;",
+    /* --- SLIT ----------------------------------------------------- */
+    /* The shear is quantised into 52 bands so it reads as scan lines
+       rather than as a smooth ripple, and it never fully settles —
+       even resolved, the plate keeps breathing. */
+    "  else if (m < 2.5) {",
+    "    float band = floor(uv.y * 52.0);",
+    "    float w = sin(band * 0.66 + u_time * 1.5) * 0.65 + sin(band * 0.17 - u_time * 0.9) * 0.35;",
+    "    pos.x += w * mix(0.11, 0.028, rev);",
+    "    float ch = step(0.5, a_rnd.x);",
+    "    pos.x += (ch * 2.0 - 1.0) * mix(0.035, 0.013, rev);",
+    "    col = mix(vec3(1.0, 0.42, 0.7), vec3(0.42, 0.84, 1.0), ch) * (0.24 + a_lum * 0.88);",
+    "    col *= mix(1.0, 0.62, u_light);",
+    "    s = mix(1.3, 1.15, rev);",
     "  }",
 
-    /* TOPO: points migrate onto luminance contour rings — the face
-       becomes a survey map that tightens back into a face.         */
-    "  if (m > 2.5) {",
-    "    float band = 9.0;",
-    "    float target = (floor(a_lum * band) + 0.5) / band;",
-    "    vec2 c = vec2(0.5, 0.46);",
-    "    vec2 d = uv - c;",
-    "    float r = length(d) + 0.0001;",
-    "    float push = (target - a_lum) * mix(0.9, 0.07, rev);",
-    "    pos += (d / r) * push;",
-    "    pos.y += sin(u_time * 0.5 + a_lum * 22.0) * mix(0.02, 0.002, rev);",
+    /* --- TOPO ----------------------------------------------------- */
+    /* Keep only the points whose luminance sits near a band boundary.
+       Roughly a fifth survive, and they land in lines, so the face is
+       drawn rather than shaded. */
+    "  else {",
+    "    float f = a_lum * 12.0;",
+    "    float dist = min(fract(f), 1.0 - fract(f));",
+    "    float on = 1.0 - smoothstep(0.06, 0.17, dist);",
+    "    if (on < 0.06) drop = 1.0;",
+    "    pos.y += sin(u_time * 0.7 + a_lum * 30.0) * mix(0.03, 0.0022, rev);",
+    "    col = mix(vec3(0.74, 0.87, 1.0), vec3(0.07, 0.2, 0.48), u_light);",
+    "    s = 1.05;",
+    "    extra = on;",
     "  }",
 
-    /* --- the scatter --------------------------------------------- */
+    /* --- the scatter ---------------------------------------------- */
     /* Dispersal is radial-outward plus a per-point drift, so the
        cloud has a silhouette rather than being a uniform fog.       */
     "  float ang = a_rnd.x * 6.2831853;",
     "  float rad = 0.05 + a_rnd.y * 0.22;",
     "  vec2 away = vec2(cos(ang), sin(ang)) * rad;",
     "  away += (uv - vec2(0.5)) * 0.30 * a_rnd.y;",
-    "  float drift = sin(u_time * 0.6 + a_rnd.x * 12.0) * 0.018;",
-    "  away.y += drift;",
+    "  away.y += sin(u_time * 0.6 + a_rnd.x * 12.0) * 0.018;",
     "  away.x += cos(u_time * 0.45 + a_rnd.y * 9.0) * 0.014;",
-
-    "  float scat = (1.0 - rev) + u_burst * 1.15;",
-    "  scat = clamp(scat, 0.0, 1.6);",
+    "  float scat = clamp((1.0 - rev) + u_burst * 1.15, 0.0, 1.6);",
     "  pos += away * scat;",
 
-    /* --- to clip space ------------------------------------------- */
-    "  vec2 clip = vec2(pos.x * 2.0 - 1.0, 1.0 - pos.y * 2.0);",
-    "  gl_Position = vec4(clip, 0.0, 1.0);",
+    /* dropped points are pushed outside clip space rather than merely
+       made transparent — a fully transparent point still costs a
+       fragment, and there are tens of thousands of them */
+    "  if (drop > 0.5) { gl_Position = vec4(3.0, 3.0, 0.0, 1.0); gl_PointSize = 0.0; v_rgb = vec3(0.0); v_fade = 0.0; return; }",
 
-    /* --- size ----------------------------------------------------- */
-    "  float s = 1.15;",
-    "  if (m > 0.5 && m < 1.5) {",
-    "    float tone = mix(a_lum, 1.0 - a_lum, u_light);",
-    "    s = mix(0.15, 2.0, tone) * mix(0.55, 1.15, rev);",
-    "  }",
-    "  else if (m > 2.5)       { s = mix(0.5, 1.25, a_lum); }",
-    "  else                    { s = mix(1.35, 1.12, rev); }",
-    "  gl_PointSize = max(1.0, s * u_px);",
+    "  gl_Position = vec4(pos.x * 2.0 - 1.0, 1.0 - pos.y * 2.0, 0.0, 1.0);",
+    "  gl_PointSize = max(0.0, s * u_px);",
 
-    /* --- colour ---------------------------------------------------- */
-    "  vec3 col = a_rgb;",
-    "  if (m > 0.5 && m < 1.5) {",
-    "    col = mix(vec3(mix(0.62, 0.96, a_lum)), vec3(mix(0.05, 0.26, a_lum)), u_light);",
-    "  }",
-    "  if (m > 1.5 && m < 2.5) {",
-    "    float sh = (hash(vec2(uv.y, 3.1)) - 0.5) * mix(0.9, 0.12, rev);",
-    "    col = vec3(a_rgb.r * (1.0 + sh), a_rgb.g, a_rgb.b * (1.0 - sh));",
-    "  }",
+    "  col *= mix(1.0, 0.78, u_light);",
     /* scattered points are colder and dimmer — the colour arrives with
        the form, so hovering reads as the picture "finding" itself */
-    "  col *= mix(1.0, 0.74, u_light);",
     "  float grey = dot(col, vec3(0.299, 0.587, 0.114));",
-    "  col = mix(vec3(grey) * 0.92 + vec3(0.03, 0.05, 0.09), col, clamp(rev * 1.15, 0.0, 1.0));",
+    "  col = mix(vec3(grey) * 0.92 + vec3(0.03, 0.05, 0.09), col, clamp(rev * 1.2, 0.0, 1.0));",
     "  v_rgb = col;",
-    "  v_lum = a_lum;",
-    "  v_fade = mix(0.8, 1.0, rev) * (1.0 - u_burst * 0.25);",
+    "  v_fade = mix(0.78, 1.0, rev) * (1.0 - u_burst * 0.25) * extra;",
     "}",
   ].join("\n");
 
   var FRAG = [
     "precision mediump float;",
     "varying vec3 v_rgb;",
-    "varying float v_lum;",
     "varying float v_fade;",
     "void main(){",
     "  vec2 d = gl_PointCoord - vec2(0.5);",
     "  float r = dot(d, d);",
     "  if (r > 0.25) discard;",
-    "  float a = smoothstep(0.25, 0.06, r);",
+    "  float a = smoothstep(0.25, 0.05, r);",
     "  gl_FragColor = vec4(v_rgb, a * v_fade);",
     "}",
   ].join("\n");
@@ -173,6 +198,34 @@
     } catch (e) {
       return null;
     }
+
+    /* luminance, then a 5x5 box blur of it. HALFTONE and TOPO both
+       read tone, and per-pixel tone off a photograph is noise: TOPO
+       in particular degenerates into speckle without this. */
+    var N = GRID_W * GRID_H;
+    var L0 = new Float32Array(N);
+    for (var q = 0; q < N; q++) {
+      L0[q] = (0.299 * d[q * 4] + 0.587 * d[q * 4 + 1] + 0.114 * d[q * 4 + 2]) / 255;
+    }
+    var LB = new Float32Array(N);
+    for (var by = 0; by < GRID_H; by++) {
+      for (var bx = 0; bx < GRID_W; bx++) {
+        var acc = 0,
+          cnt = 0;
+        for (var dy = -2; dy <= 2; dy++) {
+          var yy = by + dy;
+          if (yy < 0 || yy >= GRID_H) continue;
+          for (var dx = -2; dx <= 2; dx++) {
+            var xx = bx + dx;
+            if (xx < 0 || xx >= GRID_W) continue;
+            acc += L0[yy * GRID_W + xx];
+            cnt++;
+          }
+        }
+        LB[by * GRID_W + bx] = acc / cnt;
+      }
+    }
+
     var uv = [],
       rgb = [],
       rnd = [],
@@ -183,13 +236,10 @@
         var o = (j * GRID_W + i) * 4;
         var a = d[o + 3] / 255;
         if (a < 0.22) continue; // the cutout's empty air
-        var r = d[o] / 255,
-          g = d[o + 1] / 255,
-          b = d[o + 2] / 255;
         uv.push((i + 0.5) / GRID_W, (j + 0.5) / GRID_H);
-        rgb.push(r, g, b);
+        rgb.push(d[o] / 255, d[o + 1] / 255, d[o + 2] / 255);
         rnd.push(Math.random(), Math.random());
-        lum.push(0.299 * r + 0.587 * g + 0.114 * b);
+        lum.push(LB[j * GRID_W + i]);
         n++;
       }
     }
@@ -254,7 +304,7 @@
     buf(data.lum, "a_lum", 1);
 
     var U = {};
-    ["u_reveal", "u_time", "u_mode", "u_burst", "u_aspect", "u_px", "u_light"].forEach(function (k) {
+    ["u_reveal", "u_time", "u_mode", "u_burst", "u_px", "u_light"].forEach(function (k) {
       U[k] = gl.getUniformLocation(pr, k);
     });
 
@@ -327,13 +377,19 @@
       want = 1;
       setMode(mode + 1);
     });
-    /* keyboard parity — the slot is focusable via the button below */
+    /* keyboard parity — the slot is focusable */
     host.addEventListener("keydown", function (e) {
       if (e.key === "Enter" || e.key === " ") {
         e.preventDefault();
         want = 1;
         setMode(mode + 1);
       }
+    });
+    host.addEventListener("focus", function () {
+      want = 1;
+    });
+    host.addEventListener("blur", function () {
+      want = 0;
     });
 
     if (window.IntersectionObserver) {
@@ -366,7 +422,6 @@
       gl.uniform1f(U.u_time, t);
       gl.uniform1f(U.u_mode, mode);
       gl.uniform1f(U.u_burst, burst);
-      gl.uniform1f(U.u_aspect, W / H);
       gl.uniform1f(U.u_px, W / GRID_W);
       gl.uniform1f(U.u_light, light);
       gl.drawArrays(gl.POINTS, 0, data.n);
