@@ -9,7 +9,7 @@ quick_read: "Designed a pixel-art desktop game that teaches options, shorting an
 category: UI · Gamification
 year: 2021
 hero_bg: "radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)"
-hero_image: "10.alpha/cover.png"
+hero_image: "10.alpha/cover.jpg"
 meta:
   - label: Role
     value: Solo

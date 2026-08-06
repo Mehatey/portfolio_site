@@ -9,7 +9,7 @@ quick_read: "Built an Ayurveda brand end to end, identity through packaging, in 
 category: Branding · Packaging
 year: 2020
 hero_bg: "radial-gradient(ellipse at 45% 55%, #141c16 0%, #0a0e0b 50%, #020302 100%)"
-hero_image: "7.naavo/cover.png"
+hero_image: "7.naavo/cover.jpg"
 meta:
   - label: Role
     value: Branding, Logo Design, Packaging

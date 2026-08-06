@@ -9,7 +9,7 @@ quick_read: "Designed a complete identity system — mobile app, book and print 
 category: Branding · App Design
 year: 2020
 hero_bg: "radial-gradient(ellipse at 35% 65%, #24110c 0%, #120806 50%, #050202 100%)"
-hero_image: "9.aananda/cover.png"
+hero_image: "9.aananda/cover.jpg"
 refl_bg: "9.aananda/reflection.jpg"
 meta:
   - label: Role

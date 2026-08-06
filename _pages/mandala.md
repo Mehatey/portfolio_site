@@ -12,7 +12,7 @@ category: Installation · TouchDesigner
 year: 2025
 hero_bg: "radial-gradient(ellipse at 40% 60%, #160d24 0%, #080408 55%, #020102 100%)"
 hero_video: "4.mandala/cover.mp4"
-hero_image: "4.mandala/cover.png"
+hero_image: "4.mandala/cover.jpg"
 meta:
   - label: Role
     value: Solo
@@ -493,7 +493,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/4.mandala/cover.png" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/cover.jpg" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
   </div>
 </div>
 

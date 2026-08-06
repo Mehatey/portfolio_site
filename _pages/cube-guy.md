@@ -9,7 +9,7 @@ quick_read: >
 category: Film · Game · Character
 year: 2018-2025
 hero_bg: "radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)"
-hero_image: "2.cube/cover.png"
+hero_image: "2.cube/cover.jpg"
 meta:
   - label: Year
     value: "2018-2025"

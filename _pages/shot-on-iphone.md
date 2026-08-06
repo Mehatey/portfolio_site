@@ -9,7 +9,7 @@ quick_read: "Turned a photography series into a QR-linked print experiment so ea
 category: Photography · Interactive
 year: 2024
 hero_bg: "radial-gradient(ellipse at 30% 50%, #0d1a18 0%, #05100e 50%, #010504 100%)"
-hero_image: "8.shotoniphone/cover.png"
+hero_image: "8.shotoniphone/cover.jpg"
 meta:
   - label: Role
     value: Solo
