@@ -35,7 +35,7 @@
     var mo = new MutationObserver(syncThemeColor);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
   })();
-</script> <title>Contact · Sid Mehta</title> <meta name="description" content="Contact Sid Mehta, a product designer and creative technologist in New York. Open to product design roles and selected collaborations."> <link rel="canonical" href="https://siddharthmehta.design/contact/"> <meta property="og:title" content="Contact · Sid Mehta"> <meta property="og:description" content="Product designer and creative technologist in New York."> <meta property="og:type" content="website"> <meta property="og:url" content="https://siddharthmehta.design/contact/"> <meta property="og:image" content="https://siddharthmehta.design/assets/img/og-card.jpg"> <meta property="og:image:width" content="1200"> <meta property="og:image:height" content="630"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap"> <style>
+</script> <title>Contact · Sid Mehta</title> <meta name="description" content="Contact Sid Mehta, a product designer and creative technologist in New York. Open to product design roles and selected collaborations."> <link rel="canonical" href="https://siddharthmehta.design/contact/"> <meta property="og:title" content="Contact · Sid Mehta"> <meta property="og:description" content="Product designer and creative technologist in New York."> <meta property="og:type" content="website"> <meta property="og:url" content="https://siddharthmehta.design/contact/"> <meta property="og:image" content="https://siddharthmehta.design/assets/img/og-card.jpg"> <meta property="og:image:width" content="1200"> <meta property="og:image:height" content="630"> <meta property="og:site_name" content="Sid Mehta"> <meta name="twitter:card" content="summary_large_image"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap"> <style>
   /* ── DESIGN TOKENS ──────────────────────────────────────────────────────────
      Single source of truth for all design tokens. Included in <head> of every
      layout. Page-specific overrides live in each layout's own <style> block.
@@ -375,12 +375,39 @@
         -webkit-font-smoothing: antialiased;
       }
 
+      /* ── THE ROOM, NOT THE SLIDE ────────────────────────────────────────
+         Sid: "the desk has again become a left right pgoogle slides
+         presentation vibe. i told u to stray away from that."
+
+         He is right and the reason is structural, not cosmetic. This was
+         `grid-template-columns: 0.72fr 1.28fr` with `align-items: center` —
+         words in the left cell, picture in the right cell, both floated to
+         the vertical middle. That is the literal construction of a title-and-
+         image slide, and no amount of treatment inside the two cells changes
+         what the two cells say. It also left ~250px of dead air across the
+         top, because centring two short columns in a tall viewport always
+         does.
+
+         The desk stops being a column and becomes the room. It is absolutely
+         positioned, bleeding off the right and the bottom, running the full
+         width of the shell — including *behind* the words. There is no gap
+         and no seam because there are no longer two things to put a gap
+         between; there is one space with type standing in the dark part of
+         it. What used to be a grid gutter is now a directional scrim
+         (::after), which is the same idiom the project hero briefs and the
+         video controls already use on this site: shade falling across a
+         picture in one direction so text can sit on it.
+
+         The copy anchors to the top of the shell rather than its middle, so
+         the composition runs diagonally — words upper-left, the lit desk
+         lower-right — instead of splitting the frame down a vertical line.
+         That single change is what removes both the slide reading and the
+         dead band at the top, in the same move. */
       .contact-shell {
         position: relative;
         display: grid;
-        grid-template-columns: minmax(330px, 0.72fr) minmax(520px, 1.28fr);
-        align-items: center;
-        gap: clamp(24px, 4vw, 70px);
+        grid-template-columns: 1fr;
+        align-content: start;
         width: 100%;
         height: 100svh;
         padding: clamp(110px, 14vh, 152px) clamp(28px, 6vw, 104px) clamp(44px, 6vh, 70px);
@@ -391,8 +418,8 @@
 
       .contact-copy {
         position: relative;
-        z-index: 3;
-        max-width: 590px;
+        z-index: 4;
+        max-width: min(590px, 44vw);
       }
 
       /* Entry stagger. Each block rises through its own blur, so the page
@@ -416,8 +443,11 @@
       .contact-links {
         animation-delay: 530ms;
       }
+      .contact-hint {
+        animation-delay: 640ms;
+      }
       .contact-meta {
-        animation-delay: 660ms;
+        animation-delay: 760ms;
       }
 
       @keyframes contactRise {
@@ -624,21 +654,166 @@
         transform-origin: left;
       }
 
-      .contact-desk {
+      /* ── The lens hint ────────────────────────────────────────────────
+         The plate is a pointer-tracked lens that de-pixelates the desk,
+         and a click-to-hold on top of that. Two interactions, and until
+         now nothing on the page admitted either existed — the only
+         affordance was an aria-label, which is to say none at all for
+         anyone using their eyes.
+
+         It goes here because here is where the page was empty. The copy
+         column ended at y≈490 and the footer meta sits at y≈870, so the
+         whole bottom-left quadrant was dead air while the plate carried
+         the entire lower half of the frame. A hint is the right tenant
+         for that space: it is the one thing on the page that belongs
+         beside the plate rather than above it.
+
+         Hidden entirely on coarse pointers — there is no lens to find
+         without a mouse, and an instruction you cannot follow is worse
+         than silence. */
+      .contact-hint {
+        display: none;
+        margin: 54px 0 0;
+        align-items: center;
+        gap: 10px;
+        font:
+          400 10px/1.5 "DM Mono",
+          monospace;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        /* 0.5 measured 4.45:1 on the page ground and this is 10px uppercase
+           mono, which is a 4.5 line — and it is often read over the plate,
+           which is brighter than the ground in places. 0.62 clears it. */
+        color: rgba(226, 236, 246, 0.62);
+        transition:
+          opacity 620ms ease,
+          transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 861px) {
+        .contact-hint {
+          display: flex;
+        }
+      }
+
+      /* Retired, not removed: it fades and drifts a few pixels the way the
+         lens itself moves, so the page loses a line rather than dropping
+         one. pointer-events stay off throughout — it was never a control. */
+      .contact-hint {
+        pointer-events: none;
+      }
+
+      /* `animation: none` is not decoration here, it is the fix. The entry
+         stagger runs with `both`, so contactRise's final keyframe keeps
+         writing opacity: 1 onto every child of .contact-copy forever —
+         animation fill outranks any rule in the cascade. Setting opacity: 0
+         alone measured 1.000 after retirement. Dropping the finished
+         animation hands the property back to the cascade, and the 620ms
+         transition then has something to travel. */
+      .contact-hint.is-retired {
+        animation: none;
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+
+      /* The glyph is the lens, at a twentieth of the size: a soft aperture
+         with a bright pupil, breathing on the same slow clock the plate's
+         rim light uses. It is a picture of the thing the sentence names. */
+      .chint-lens {
         position: relative;
-        z-index: 2;
-        align-self: end;
-        justify-self: end;
-        width: min(67vw, 1180px);
+        flex: none;
+        width: 13px;
+        height: 13px;
+        border: 1px solid rgba(150, 196, 245, 0.5);
+        border-radius: 50%;
+        animation: chint-breathe 3200ms ease-in-out infinite;
+      }
+
+      .chint-lens::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 3px;
+        height: 3px;
+        margin: -1.5px 0 0 -1.5px;
+        border-radius: 50%;
+        background: rgba(170, 208, 250, 0.9);
+      }
+
+      @keyframes chint-breathe {
+        0%,
+        100% {
+          transform: scale(1);
+          border-color: rgba(150, 196, 245, 0.42);
+        }
+        50% {
+          transform: scale(1.16);
+          border-color: rgba(170, 208, 250, 0.78);
+        }
+      }
+
+      .chint-sep {
+        color: rgba(150, 196, 245, 0.55);
+        padding: 0 2px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .chint-lens {
+          animation: none;
+        }
+      }
+
+      html[data-theme="light"] .contact-hint {
+        /* Same story on cream: 0.62 measured 4.25:1, 0.72 clears 4.5. */
+        color: rgba(20, 30, 44, 0.72);
+      }
+
+      html[data-theme="light"] .chint-lens {
+        border-color: rgba(37, 78, 168, 0.5);
+      }
+
+      html[data-theme="light"] .chint-lens::after {
+        background: rgba(37, 78, 168, 0.9);
+      }
+
+      html[data-theme="light"] .chint-sep {
+        color: rgba(37, 78, 168, 0.6);
+      }
+
+      /* The desk is no longer a column in a two-column layout — it is the room
+         the page happens in. Absolutely positioned, bleeding off the right and
+         the bottom, running wide enough that it passes *behind* the type rather
+         than beside it. That is the whole fix for the slide reading: a slide is
+         two cells with a gutter, and there is now one space. */
+      .contact-desk {
+        position: absolute;
+        z-index: 1;
+        right: clamp(-190px, -9vw, -60px);
+        bottom: clamp(-92px, -6vh, -34px);
+        width: min(104vw, 1720px);
         aspect-ratio: 1200 / 669;
-        margin-right: clamp(-84px, -4vw, -28px);
-        margin-bottom: clamp(-48px, -3vh, -14px);
         cursor: crosshair;
         outline: none;
         --reveal-x: 52%;
         --reveal-y: 48%;
         --tilt-x: 0deg;
         --tilt-y: 0deg;
+        /* The desk artwork is a rectangle, and its bottom edge was landing as a
+           ruled horizontal cut a few pixels above the meta row — a diorama that
+           stopped rather than a room that ran out of light. Both plates get this
+           as a mask so the floor falls off into the dark instead of ending. It
+           is applied to the two <img> layers rather than to this wrapper on
+           purpose: ::before is the blue floor-glow that grounds the whole scene,
+           and fading that away at the bottom would remove the very thing the
+           fade is trying to imply. */
+        /* Now fades at the ceiling as well as the floor. Once the plate went
+           full-bleed its top edge stopped being buried behind the layout and
+           became a ruled horizontal cut across the middle of the screen — the
+           exact diorama-ends-here problem the bottom fade was written to solve,
+           reappearing at the other end because the geometry moved. Same
+           remedy: let the room run out of light rather than run out of pixels. */
+        --desk-floor: linear-gradient(to top, transparent 0%, rgba(0, 0, 0, 0.4) 5%, #000 16%, #000 72%, rgba(0, 0, 0, 0.62) 87%, transparent 100%);
         transform-style: preserve-3d;
         transform: perspective(1400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
         will-change: transform;
@@ -672,9 +847,27 @@
         pointer-events: none;
       }
 
-      .contact-desk:hover::after,
+      /* Keyed to the shell, not to the desk. The copy now stands on top of the
+         photograph, so a pointer crossing the words is still a pointer moving
+         over the room — and a light that switched off whenever the cursor
+         passed behind a headline would read as a bug rather than as a lamp. */
+      .contact-shell:hover .contact-desk::after,
       .contact-desk:focus-visible::after {
         opacity: 1;
+      }
+
+      /* An empty span rather than a third pseudo-element, because the desk has
+         already spent both of them: ::before is the cast shadow and ::after is
+         the cursor lamp above. A light-mode-only rule on ::after would not have
+         made a second layer, it would have overwritten the lamp's background
+         while inheriting its opacity: 0 and its screen blend — a wash that only
+         appeared on hover and blended wrong when it did. Carries no paint in
+         dark mode; see the light block for what it is for. */
+      .contact-desk__fade {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
       }
 
       .contact-desk img {
@@ -690,6 +883,10 @@
       .contact-desk__pixel {
         opacity: 0.92;
         filter: saturate(0.86) contrast(1.04) brightness(0.9);
+        -webkit-mask-image: var(--desk-floor);
+        mask-image: var(--desk-floor);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
         transition:
           opacity 420ms ease,
           filter 620ms ease;
@@ -699,13 +896,17 @@
         opacity: 1;
         filter: saturate(0.92) contrast(1.04) brightness(0.88);
         transform: scale(0.995);
-        -webkit-mask-image: radial-gradient(
-          circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y),
-          #000 0 42%,
-          rgba(0, 0, 0, 0.94) 57%,
-          transparent 76%
-        );
-        mask-image: radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%);
+        -webkit-mask-image:
+          radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%),
+          var(--desk-floor);
+        mask-image:
+          radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%),
+          var(--desk-floor);
+        /* Two mask layers, intersected: the cursor lens decides where the photo
+           shows through the voxels, and the floor gradient decides where either
+           plate exists at all. Union would light the whole photograph up. */
+        -webkit-mask-composite: source-in;
+        mask-composite: intersect;
         -webkit-mask-repeat: no-repeat;
         mask-repeat: no-repeat;
         transition:
@@ -718,10 +919,12 @@
         opacity: 0;
       }
 
+      /* Fully revealed: the lens opens out to the whole plate, but the floor
+         gradient stays, so the desk keeps sinking into the room. */
       .contact-desk.is-real .contact-desk__real {
         transform: scale(1);
-        -webkit-mask-image: linear-gradient(#000, #000);
-        mask-image: linear-gradient(#000, #000);
+        -webkit-mask-image: linear-gradient(#000, #000), var(--desk-floor);
+        mask-image: linear-gradient(#000, #000), var(--desk-floor);
       }
 
       .contact-meta {
@@ -729,11 +932,18 @@
         right: clamp(24px, 4vw, 64px);
         bottom: 22px;
         left: clamp(24px, 6vw, 104px);
-        z-index: 4;
+        z-index: 5;
         display: flex;
         justify-content: space-between;
         gap: 18px;
-        color: rgba(230, 238, 247, 0.48);
+        /* The scrim below fixed the backdrop; the ink was still the other half
+           of the problem. Measured against the darkened photograph this row
+           came in at 1.98:1 on "New York, NY" and 2.15:1 on the clock — the
+           two lowest readings on the page, on the only line that carries the
+           live local time, which is the whole point of putting a clock there.
+           0.75 sits clearly under the display copy above it and still reads
+           as a caption pressed into the photograph rather than typed onto it. */
+        color: rgba(230, 238, 247, 0.86);
         font:
           400 9px/1.3 "DM Mono",
           monospace;
@@ -767,7 +977,23 @@
         bottom: 0;
         left: 0;
         height: 168px;
-        background: linear-gradient(0deg, rgba(2, 4, 7, 0.92) 0%, rgba(2, 4, 7, 0.72) 38%, rgba(2, 4, 7, 0) 100%);
+        background: linear-gradient(0deg, rgba(2, 4, 7, 0.97) 0%, rgba(2, 4, 7, 0.84) 38%, rgba(2, 4, 7, 0) 100%);
+        pointer-events: none;
+      }
+
+      /* What used to be the grid gutter. With the desk running the full width
+         of the shell, the type stands on the photograph, and the thing that
+         makes that readable is shade falling across the picture in one
+         direction — the same idiom as the project hero briefs, the FAB halo and
+         the video-control scrim. 104deg rather than 90 so the darkness leans
+         with the composition: heavy at the upper left where the words are,
+         gone by the time it reaches the lit tabletop lower right. */
+      .contact-shell::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        background: linear-gradient(104deg, rgba(2, 4, 7, 0.97) 0%, rgba(2, 4, 7, 0.92) 24%, rgba(2, 4, 7, 0.55) 46%, rgba(2, 4, 7, 0) 68%);
         pointer-events: none;
       }
 
@@ -942,7 +1168,7 @@
       /* #7fe18d is a screen-glow green; on cream it is a highlighter. The
          same beacon read in daylight is a deeper, denser green. */
       html[data-theme="light"] .contact-status {
-        color: #197a3a;
+        color: #12652d;
         /* The expanding ring is hardcoded pale green in the keyframe, which
            is a glow value — invisible on cream. Same pulse, denser ink. */
         --beacon-ring: rgba(25, 122, 58, 0.34);
@@ -987,18 +1213,75 @@
       }
       /* The render was pushed down 12% to sit inside a black page. On
          cream it only needs to stop being murky. */
+      /* The monitor and the wall behind it are clipped to pure 255 in the
+         photograph. On black that is the one lit surface in a dark room and it
+         is the whole point of the picture. On cream it is brighter than the
+         paper it is printed on, which is not a lit screen — it is a rectangle
+         where the page shows through, a die-cut with a hard left edge and a
+         hard bottom edge sitting in the middle of the composition.
+
+         A clipped highlight cannot be recovered, only lowered. 0.93 takes the
+         blown white to ~237 against a ~240 ground, so the panel settles just
+         under the paper instead of just over it and stops reading as a hole.
+         Everything else in the frame is well below clipping and simply gets a
+         touch deeper, which the lit tabletop wants anyway. Saturation goes up
+         as brightness comes down so the desk does not go grey with it. */
       html[data-theme="light"] .contact-desk__pixel {
-        filter: saturate(0.9) contrast(1.02) brightness(0.99);
+        filter: saturate(0.98) contrast(1.02) brightness(0.93);
       }
       html[data-theme="light"] .contact-desk__real {
-        filter: saturate(0.96) contrast(1.02) brightness(1);
+        filter: saturate(1.04) contrast(1.02) brightness(0.93);
       }
       html[data-theme="light"] .contact-shell::before {
-        background: linear-gradient(0deg, rgba(240, 236, 227, 0.94) 0%, rgba(240, 236, 227, 0.7) 38%, rgba(240, 236, 227, 0) 100%);
+        background: linear-gradient(0deg, rgba(240, 236, 227, 0.97) 0%, rgba(240, 236, 227, 0.82) 38%, rgba(240, 236, 227, 0) 100%);
       }
       html[data-theme="light"] .contact-meta {
-        color: rgba(23, 34, 46, 0.52);
+        /* 2.6–2.8:1 over the lit tabletop — the same row that needed lifting
+           in dark mode, failing harder here because the scrim below it is
+           cream over a bright photograph and has much less to work with. */
+        color: rgba(23, 34, 46, 0.86);
         border-top-color: rgba(23, 34, 46, 0.16);
+      }
+
+      /* The diagonal shade in paper. Light mode cannot use the dark version at
+         all — it would be ink poured across cream — and it also cannot be as
+         opaque: a cut-out photograph on a light ground has far less contrast to
+         lose, so the same alphas that read as shade on black read as fog here.
+         Shorter throw, lower ceiling, and the desk stays an object. */
+      html[data-theme="light"] .contact-shell::after {
+        background: linear-gradient(
+          104deg,
+          rgba(240, 236, 227, 0.95) 0%,
+          rgba(240, 236, 227, 0.86) 22%,
+          rgba(240, 236, 227, 0.4) 44%,
+          rgba(240, 236, 227, 0) 62%
+        );
+      }
+
+      /* THE HOLE IN THE PAPER.
+         The monitor in the photograph is clipped to pure white, and against a
+         cream ground that is not a bright screen — it is a rectangle where the
+         page shows through, sitting a few pixels brighter than the paper it is
+         printed on. In dark mode it reads correctly as the one lit surface in
+         a dark room; in light mode it reads as a die-cut.
+
+         No amount of filtering recovers a clipped highlight, and veiling just
+         the panel would only trade a bright rectangle for a dull one — the
+         rectangle is the problem, not its value. So the frame dissolves into
+         the page instead of stopping at an edge, and the blown panel goes with
+         it. The stops are set against where the desk box actually falls on a
+         1440 viewport, not against the box itself: the box overhangs the right
+         edge by roughly 9%, so a fade that only reached full strength at 100%
+         would still be mid-transition where the page ends, which is a leak
+         rather than a fade. Full cream by 90%. Cream rather than neutral grey,
+         and 96deg rather than flat, so it runs with the room's key light and
+         with the 104deg shade on the shell above it. */
+      html[data-theme="light"] .contact-desk {
+        -webkit-mask-image: linear-gradient(96deg, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.86) 62%, rgba(0, 0, 0, 0.42) 76%, rgba(0, 0, 0, 0) 87%);
+        mask-image: linear-gradient(96deg, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.86) 62%, rgba(0, 0, 0, 0.42) 76%, rgba(0, 0, 0, 0) 87%);
+      }
+      html[data-theme="light"] .contact-desk__fade {
+        background: linear-gradient(96deg, rgba(243, 239, 231, 0) 46%, rgba(243, 239, 231, 0.3) 66%, rgba(243, 239, 231, 0.52) 80%);
       }
       @media (max-width: 900px) {
         /* The render is knocked back to 0.58 on phones so the copy can sit
@@ -1024,7 +1307,7 @@
          foot of this file. This layout used to be standalone and carried a
          ~110-line copy of the toggle alone; everything else on that list it
          simply did not have. See the note beside the include. */
-    </style> </head> <body class="contact-page"> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="logo-depth" x="10" y="10" width="20" height="20" rx="2.4" fill="#0a111c" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.2"></rect> <rect class="cube-face cube-top" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <rect class="cube-face cube-right" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <rect class="cube-front" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="12.15" y="13.4" width="1.7" height="7.2" rx="0.85" fill="#e7f1ff"></rect> <rect class="logo-eye" x="19.15" y="13.4" width="1.7" height="7.2" rx="0.85" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12.4 24h8.2"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link" href="/works/" aria-label="Work"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> <span><b data-roll="Work">Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> <span><b data-roll="Play">Play</b></span> </a> <a class="studio-link is-active" href="/contact/" aria-label="Contact"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="11" y="2" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="11" y="16" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="2" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__core" x="9" y="9" width="6" height="6" rx="2"></rect> </svg> <span><b data-roll="Contact">Contact</b></span> </a> <a class="studio-link" href="/about/" aria-label="About"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> <span><b data-roll="About">About</b></span> </a> <a class="studio-hire" href="mailto:sidmehtadesign@gmail.com" aria-label="Open to roles — email Sid Mehta"> <span class="studio-hire__dot" aria-hidden="true"></span> <span class="studio-hire__label"><b data-roll="Say hello →">Open to roles</b></span> </a> </nav> </header> <style>
+    </style> </head> <body class="contact-page"> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <path class="cube-front" d="M18 6.7 L29 12.9 L29 24.1 L18 30.3 L7 24.1 L7 12.9 Z"></path> <path class="cube-edges" d="M18 18.5 L18 30.3 M18 18.5 L7 12.9 M18 18.5 L29 12.9"></path> <path class="cube-face cube-top" d="M18 6.7 L29 12.9 L18 18.5 L7 12.9 Z"></path> <path class="cube-face cube-right" d="M29 12.9 L29 24.1 L18 30.3 L18 18.5 Z"></path> <path class="cube-face cube-left" d="M7 12.9 L7 24.1 L18 30.3 L18 18.5 Z"></path> <path class="logo-scan" d="M7 12.9 L29 12.9"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link" href="/works/" aria-label="Work"> <svg class="nav-mark nav-mark--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-mark__back" x="4.6" y="3.6" width="12.8" height="12.8" rx="2.2"></rect> <rect class="nav-mark__front" x="7.4" y="7.4" width="12.8" height="12.8" rx="2.2"></rect> <circle class="nav-mark__dot" cx="10.9" cy="10.9" r="1.15"></circle> </svg> <span aria-hidden="true"><b>Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <svg class="nav-mark nav-mark--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path class="nav-mark__stem" d="M12 20.8 C12 16.4 12 12.4 12 8.6"></path> <path class="nav-mark__leaf" d="M12 15.2 C9.1 15.2 7.1 13.7 6.9 11.1 C9.7 11.1 11.7 12.6 12 15.2 Z"></path> <path class="nav-mark__leaf" d="M12 11.9 C14.9 11.9 16.9 10.4 17.1 7.8 C14.3 7.8 12.3 9.3 12 11.9 Z"></path> <circle class="nav-mark__dot" cx="12" cy="6.6" r="1.3"></circle> </svg> <span aria-hidden="true"><b>Play</b></span> </a> <a class="studio-link is-active" href="/contact/" aria-label="Contact"> <svg class="nav-mark nav-mark--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <ellipse class="nav-mark__ring nav-mark__ring--1" cx="12" cy="15.4" rx="4.7" ry="1.7"></ellipse> <ellipse class="nav-mark__ring nav-mark__ring--2" cx="12" cy="15.4" rx="9.1" ry="3.3"></ellipse> <circle class="nav-mark__dot" cx="12" cy="6.2" r="1.35"></circle> </svg> <span aria-hidden="true"><b>Contact</b></span> </a> <a class="studio-link" href="/about/" aria-label="About"> <svg class="nav-mark nav-mark--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path class="nav-mark__coil" d="M20.5 12 A7.85 7.85 0 0 1 4.8 12 A6.35 6.35 0 0 1 17.5 12 A4.85 4.85 0 0 1 7.8 12 A3.55 3.55 0 0 1 14.9 12 A2.25 2.25 0 0 1 10.4 12"></path> <circle class="nav-mark__dot" cx="11.9" cy="12" r="1.15"></circle> </svg> <span aria-hidden="true"><b>About</b></span> </a> <a class="studio-hire" href="mailto:sidmehtadesign@gmail.com" aria-label="Open to roles — email Sid Mehta"> <span class="studio-hire__dot" aria-hidden="true"></span> <span class="studio-hire__label"><b data-roll="Say hello →">Open to roles</b></span> </a> </nav> </header> <style>
   /* The bar is pinned to the viewport edges, which is right up to about
      1600px and wrong above it. Every page on this site lays its content out
      on a measure — --content-max is 1440, /about/ narrower still — and
@@ -1122,10 +1405,30 @@
     );
   }
 
-  /* Home and Play paint a dark stage at every theme — the same reason both
-     already pin --nav-ink light below. A cream scrim on either would be a
-     pale bar across the top of a black room. */
-  html[data-theme="light"] .home-page .studio-nav::before,
+  /* Play paints a dark stage at every theme — `play/index.html` has no
+     data-theme rule anywhere, just `:root { color-scheme: dark }` and a
+     hardcoded #020409 body. A cream scrim there would be a pale bar across
+     the top of a black room.
+
+     Home used to be in this list on the same premise, and the premise had
+     expired. The home rebuild gave it `--home-bg: #f2efe8` under
+     html[data-theme="light"], so the page beneath this bar is cream like
+     every other one — measured, not assumed: body background computes to
+     rgb(245, 243, 238). Two things followed from leaving the exception in.
+
+     The scrim itself became a near-black 0.86 veil fading down over 104px
+     of paper, which is the grey smear across the top of the light home
+     page. And it was doing that while the labels under it were dark: the
+     comment claimed home "pins --nav-ink light below", but that pin is
+     `.home-page .studio-nav` at 0-2-0, and it loses to
+     `html[data-theme="light"] .studio-nav` at 0-2-1 a dozen lines above
+     it. --nav-ink computes to #0a1727. So the veil was not lifting a pale
+     wordmark off a dark stage, it was dropping shade behind an already
+     dark wordmark on cream — costing contrast in the one place a scrim
+     exists to buy it.
+
+     Home now inherits the cream scrim, which is the shape this page has
+     actually needed since the rebuild. Judge by what is painted. */
   html[data-theme="light"] .play-page .studio-nav::before {
     background: linear-gradient(180deg, rgba(3, 6, 11, 0.86) 0%, rgba(3, 6, 11, 0.68) 34%, rgba(3, 6, 11, 0.32) 64%, rgba(3, 6, 11, 0) 100%);
   }
@@ -1157,21 +1460,30 @@
 
   .studio-mark .cube-front,
   .studio-mark .cube-face,
+  .studio-mark .cube-edges,
   .studio-mark .logo-scan {
     fill: rgba(5, 12, 23, 0.82);
     stroke: currentColor;
     stroke-width: 1.55;
+    stroke-linejoin: round;
+    stroke-linecap: round;
     vector-effect: non-scaling-stroke;
+  }
+
+  /* The three near edges are lighter than the silhouette that contains them.
+     A cube drawn at one weight throughout flattens into a hexagon with a Y in
+     it: the outline has to win, because in life the boundary against the
+     background is the higher-contrast edge and the internal creases are not.
+     0.72 is where the solid reads without the Y going faint at 42px. */
+  .studio-mark .cube-edges {
+    fill: none;
+    stroke-width: 1.15;
+    opacity: 0.72;
   }
 
   .studio-mark .logo-scan {
     fill: none;
     opacity: 0.82;
-  }
-
-  .studio-mark .logo-gaze {
-    transform-origin: 15px 21px;
-    transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .studio-mark-label {
@@ -1186,11 +1498,6 @@
       opacity 220ms ease,
       transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
-  }
-
-  .studio-mark:hover .logo-gaze,
-  .studio-mark:focus-visible .logo-gaze {
-    transform: scaleY(1.1);
   }
 
   .studio-mark-label {
@@ -1483,31 +1790,36 @@
     overflow: hidden;
     vertical-align: middle;
   }
-  /* The k95 rolling label. Two copies of the word stacked in one clipped box;
-     the visible one leaves upward as its duplicate arrives from below, so the
-     label re-sets itself rather than just changing colour. */
+  /* This used to be the k95 rolling label — two copies of the same word
+     stacked in a clipped box, the visible one leaving upward as its duplicate
+     arrived from below. It is a good effect for a label that says something
+     *new* on hover, which is why the "Open to roles" pill still uses it: that
+     one rolls to "Say hello →". But "Work" rolling to "Work" is motion with
+     nothing behind it, and four of those firing across the bar was the most
+     decorative thing in the nav.
+
+     The word now re-forms instead: it drops into noise and resolves
+     left-to-right, one character at a time. It reads as the label being
+     *assembled* rather than replaced, which is the difference between an
+     effect and a gesture.
+
+     Nothing about it is in CSS beyond this, because the whole thing is one
+     text node being rewritten — which is also why it costs no layout: the
+     labels are set in DM Mono and every substitute glyph is exactly as wide
+     as the letter it stands in for. A proportional face here would make the
+     capsule breathe on every hover. */
   .studio-link > span > b {
     position: relative;
     display: block;
     font-weight: inherit;
-    transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    font-variant-ligatures: none;
   }
-  .studio-link > span > b::after {
-    content: attr(data-roll);
-    position: absolute;
-    left: 0;
-    top: 100%;
-    width: 100%;
-  }
-  .studio-link:hover > span > b,
-  .studio-link:focus-visible > span > b,
-  .studio-link.is-active > span > b {
-    transform: translateY(-100%);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .studio-link > span > b {
-      transition: none;
-    }
+  /* While a label is mid-resolve the unsettled characters are held back a
+     little, so the eye follows the resolved edge travelling left to right
+     rather than reading the noise. */
+  .studio-link > span > b > i {
+    font-style: inherit;
+    opacity: 0.45;
   }
 
   .studio-link::after {
@@ -1538,21 +1850,66 @@
     transform-origin: left;
   }
 
-  .studio-link:nth-child(1):hover svg,
-  .studio-link:nth-child(1):focus-visible svg {
-    transform: rotate(135deg) scale(1.08);
+  /* Hover motion, one per mark, chosen from what the drawn object would
+     actually do. The old set rotated each icon by an arbitrary angle — 135°,
+     45°, −7° — which is the tell of decoration: a spiral spun 135° and a
+     sparkle spun 45° are the same gesture wearing two numbers.
+
+     A stack has its front piece pulled further off the back. A plant leans.
+     Rings travel outward. A spiral turns, because turning is the only motion
+     a spiral has. Each one is small, and each one is the object's own. */
+  .studio-link:nth-child(1):hover .nav-mark__front,
+  .studio-link:nth-child(1):focus-visible .nav-mark__front,
+  .studio-link:nth-child(1):hover .nav-mark__dot,
+  .studio-link:nth-child(1):focus-visible .nav-mark__dot {
+    transform: translate(1.1px, 1.1px);
   }
   .studio-link:nth-child(2):hover svg,
   .studio-link:nth-child(2):focus-visible svg {
-    transform: translateY(-2px) rotate(-7deg) scale(1.08);
+    transform: rotate(-7deg);
   }
-  .studio-link:nth-child(3):hover svg,
-  .studio-link:nth-child(3):focus-visible svg {
-    transform: rotate(45deg) scale(1.1);
+  /* Rings travel outward from the point of impact, and the drop falls toward
+     it. Two motions of one event, which is the only reason they are allowed to
+     fire together — the drop is not decoration moving in sympathy, it is the
+     cause of the thing the rings are doing. */
+  .studio-link:nth-child(3):hover .nav-mark__ring,
+  .studio-link:nth-child(3):focus-visible .nav-mark__ring {
+    transform: scale(1.12);
+  }
+  .studio-link:nth-child(3):hover .nav-mark__dot,
+  .studio-link:nth-child(3):focus-visible .nav-mark__dot {
+    transform: translateY(1.6px);
+  }
+  /* The impact point is the shared centre of the rings, not the centre of the
+     viewBox — scaling about the box would slide the whole ripple sideways as it
+     grew, and a ripple whose source moves is not a ripple. */
+  .studio-link:nth-child(3) .nav-mark__ring {
+    transform-origin: 12px 15.4px;
+    transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .studio-link:nth-child(3) .nav-mark__dot {
+    transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .studio-link:nth-child(3) .nav-mark__ring--2 {
+    transition-delay: 55ms;
+  }
+  .studio-link:nth-child(1) .nav-mark__front,
+  .studio-link:nth-child(1) .nav-mark__dot {
+    transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .studio-link:nth-child(2) svg {
+    transform-origin: 12px 21px;
   }
   .studio-link:nth-child(4):hover svg,
   .studio-link:nth-child(4):focus-visible svg {
-    transform: rotate(-7deg) scale(1.08);
+    transform: rotate(28deg);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .studio-link .nav-mark__front,
+    .studio-link .nav-mark__dot,
+    .studio-link .nav-mark__ring {
+      transition: none;
+    }
   }
 
   .studio-link:active,
@@ -1566,34 +1923,42 @@
     outline-offset: 5px;
   }
 
-  .studio-link .nav-pixel--work path {
-    stroke: #3aa0ff;
+  /* ── THE NAV MARKS ──────────────────────────────────────────────────────
+     Everything about the set is here, in eight declarations, because the set
+     has one construction rule and the rule belongs in one place. The four
+     icons used to carry seven hardcoded hues between them and needed a theme
+     override apiece; they now inherit `currentColor` from the link, which
+     means they are already correct in both themes, already correct at the
+     link's rest, hover and active opacities, and already correct if the ink
+     token ever changes. That is the actual argument for a monochrome icon
+     set — not restraint for its own sake, but that a mark which inherits
+     cannot drift out of step with the label it sits beside. */
+  .studio-link .nav-mark {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
-  .studio-link .nav-pixel--work rect {
-    fill: #3aa0ff;
+  /* The one filled shape in the set, and the only place the eye is asked to
+     land. Same size, same treatment, one per icon. */
+  .studio-link .nav-mark__dot {
+    fill: currentColor;
+    stroke: none;
   }
-  .studio-link .nav-pixel--play .nav-pixel__stem,
-  .studio-link .nav-pixel--play .nav-pixel__leaf {
-    fill: #5ad167;
+  /* Depth is alpha, never a second colour. The back frame of the work stack
+     and the spent outer ripple ring recede by weight alone. */
+  .studio-link .nav-mark__back {
+    opacity: 0.42;
   }
-  .studio-link .nav-pixel--play .nav-pixel__petal {
-    fill: #ff2459;
+  .studio-link .nav-mark__ring--2 {
+    opacity: 0.5;
   }
-  .studio-link .nav-pixel--play .nav-pixel__core {
-    fill: #ffd7c9;
-  }
-  .studio-link .nav-pixel--contact .nav-pixel__ray {
-    fill: #ef7d4e;
-  }
-  .studio-link .nav-pixel--contact .nav-pixel__core {
-    fill: #ff9a72;
-  }
-  .studio-link .nav-pixel--about .nav-pixel__tile {
-    fill: #0ac0b2;
-  }
-  .studio-link .nav-pixel--about .nav-pixel__eye,
-  .studio-link .nav-pixel--about .nav-pixel__mouth {
-    fill: #eaffff;
+  /* The leaves are the one exception to `fill: none`, at a whisper — a sprout
+     drawn in pure outline reads as two commas beside a line. 12% is enough to
+     close the shapes without turning them into solids. */
+  .studio-link .nav-mark__leaf {
+    fill: color-mix(in srgb, currentColor 12%, transparent);
   }
 
   html[data-theme="light"] .studio-nav {
@@ -1654,7 +2019,11 @@
   html[data-theme="light"] .play-page .studio-nav {
     --nav-ink: #f5f7fb;
   }
-  html[data-theme="light"] .play-page .studio-mark .cube-front {
+  /* Play is a dark room at every theme, so its mark keeps the night fill.
+     Written with `.logo-cube` in the chain — 0-4-1 — because the light-mode
+     paper fill added further down is 0-3-1 and would otherwise beat this on
+     source order and put a cream cube on a black stage. */
+  html[data-theme="light"] .play-page .studio-mark .logo-cube .cube-front {
     fill: rgba(5, 12, 23, 0.82);
   }
   html[data-theme="light"] .play-page .studio-mark-label,
@@ -1846,7 +2215,6 @@
   @media (prefers-reduced-motion: reduce) {
     .studio-mark .logo-cube,
     .studio-mark .cube-face,
-    .studio-mark .logo-gaze,
     .studio-mark-label,
     .studio-link,
     .studio-link svg,
@@ -1906,11 +2274,21 @@
       transform 0.42s var(--ease-out),
       fill-opacity 0.42s ease;
   }
+  /* The rest positions: each face held off the solid along its own outward
+     normal, so hover pulls them home rather than sliding them in from
+     wherever. The old pair moved the top face *down* and the right face
+     *left* — inward — which is the same distance travelled and the opposite
+     event: faces sinking into the block instead of a block assembling. In
+     isometric the two side normals run at ±30°, hence the 1.9/1.1 split;
+     the top face's normal is straight up. */
   .studio-mark .logo-cube .cube-top {
-    transform: translateY(1.8px);
+    transform: translateY(-2.2px);
   }
   .studio-mark .logo-cube .cube-right {
-    transform: translateX(-1.8px);
+    transform: translate(1.9px, 1.1px);
+  }
+  .studio-mark .logo-cube .cube-left {
+    transform: translate(-1.9px, 1.1px);
   }
 
   /* Drawn, not faded: dashoffset runs the stroke across the face from one
@@ -1941,12 +2319,12 @@
     fill-opacity: 0.16;
   }
   .studio-mark:hover .logo-cube .cube-top,
-  .studio-mark:focus-visible .logo-cube .cube-top {
-    transform: translateY(0);
-  }
+  .studio-mark:focus-visible .logo-cube .cube-top,
   .studio-mark:hover .logo-cube .cube-right,
-  .studio-mark:focus-visible .logo-cube .cube-right {
-    transform: translateX(0);
+  .studio-mark:focus-visible .logo-cube .cube-right,
+  .studio-mark:hover .logo-cube .cube-left,
+  .studio-mark:focus-visible .logo-cube .cube-left {
+    transform: none;
   }
   .studio-mark:hover .logo-cube .logo-scan,
   .studio-mark:focus-visible .logo-cube .logo-scan {
@@ -2010,6 +2388,24 @@
     color: rgba(23, 60, 126, 1) !important;
     filter: drop-shadow(0 2px 6px rgba(30, 56, 84, 0.26)) drop-shadow(0 0 14px rgba(120, 165, 220, 0.3));
   }
+  /* THE SOLID'S FILL HAS TO FLIP WITH THE THEME, AND IT DID NOT.
+
+     In dark mode the cube is a near-black solid outlined in pale ink: fill
+     dark, stroke light, and the three interior edges read because they are
+     the light thing on the dark thing. Light mode inherited a fill of #172a4c
+     from cursor_fluid — a deep navy — set back when this mark was a solid
+     square with two pale pill "eyes" painted on top of it. Against that fill
+     a navy stroke is invisible, so on cream the cube rendered as a dark blue
+     blob with no edges at all. Measured by looking at it; nothing about the
+     rule itself was wrong, its premise had simply expired with the geometry
+     it was written for.
+
+     Paper fill, ink edges. Written at 0-3-1 rather than 0-2-1 because
+     cursor_fluid ships at the end of <body> and its copy would otherwise win
+     the cascade on every page that loads both. */
+  html[data-theme="light"] .studio-mark .logo-cube .cube-front {
+    fill: rgba(249, 247, 242, 0.92);
+  }
   html[data-theme="light"] .studio-mark .logo-cube .cube-face {
     stroke-width: 1.25;
   }
@@ -2063,7 +2459,137 @@
     );
     read();
   })();
-</script> <main class="contact-shell" id="main"> <section class="contact-copy" aria-labelledby="contact-title"> <p class="contact-status">Open to product design roles</p> <h1 id="contact-title">Start a conversation.</h1> <p class="contact-intro"> Based in New York. Best reached by email for product design roles, creative technology teams, and thoughtful collaborations. </p> <div class="contact-primary"> <div class="contact-row"> <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a> <button class="contact-copybtn" type="button" data-copy="sidmehtadesign@gmail.com" aria-label="Copy email address">Copy</button> </div> <div class="contact-row"> <a href="tel:+16462877550">+1 646 287 7550</a> <button class="contact-copybtn" type="button" data-copy="+16462877550" aria-label="Copy phone number">Copy</button> </div> </div> <nav class="contact-links" aria-label="Contact links"> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.behance.net/mehatey" target="_blank" rel="noopener noreferrer">Behance<span class="xarrow" aria-hidden="true"></span></a> </nav> </section> <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk"> <img class="contact-desk__pixel" src="/assets/img/tnew2.png" alt="Sid’s pixelated desk filled with sketches, devices, and experiments"> <img class="contact-desk__real" src="/assets/img/table_new.png" alt="" aria-hidden="true"> </div> <footer class="contact-meta" aria-label="Contact footer"> <span>New York, NY</span><span>Updated Jul 2026</span><span id="contact-time">--:-- NYC</span> </footer> </main> <script>
+</script> <script>
+  /* ── THE RE-FORMING LABEL ─────────────────────────────────────────────────
+     Sid: "the animation when u hover on text in nav bar can we have the text
+     reforming like the cryptic text on hover."
+
+     A label drops into noise and resolves left to right, one character at a
+     time, so the word assembles itself under the cursor.
+
+     Four decisions are what keep it from being the stock decrypt effect.
+
+     The alphabet is the site's own. Not `!@#$%^&*` — that set is loud, it is
+     mostly punctuation, and its glyphs sit at wildly different visual weights
+     so the noise flickers in brightness as it cycles. This one is drawn from
+     the marks the rest of the site is built out of: the plant and fish glyphs
+     in the footer pond, the arrows, the box rules. Uppercase letters are in
+     it too, because a decrypt made only of symbols never reads as *text*
+     becoming text.
+
+     It resolves in one direction and never scrambles a character twice after
+     it has landed. A scramble that keeps re-noising settled letters has no
+     shape — you cannot tell how far through it is. With a travelling front
+     you can read the progress, and reading the progress is the whole effect.
+
+     Leaving mid-run does not snap. The word finishes assembling and then
+     stops. Cancelling on mouseout is the reflex, and it produces a label
+     that flicks back to noise-then-nothing every time the pointer grazes it,
+     which is the twitchiest thing a nav can do.
+
+     And it never runs twice at once on the same label, so crossing the bar
+     quickly leaves four words resolving in sequence rather than four
+     independent timers fighting over the same text nodes.
+
+     Accessibility: the visible label is aria-hidden and every link already
+     carries an aria-label, so a screen reader reads "Work", not "W7<K". And
+     under prefers-reduced-motion nothing here binds at all — the underline
+     and the colour shift, which were always doing the real work of saying
+     "this is the thing you are pointing at", carry the whole interaction. */
+  (function () {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var NOISE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/\\|^~*+=-_()".split("");
+
+    /* Per character. 34ms is roughly three frames — fast enough to read as
+       churn rather than as a slideshow of wrong letters, slow enough that
+       each substitution is actually visible. */
+    var CHURN = 34;
+    /* How long the front takes to travel one character. Deliberately slower
+       than the churn: if the front moved at the churn rate every character
+       would show exactly one piece of noise and the whole thing would look
+       like a typo correcting itself. */
+    var STEP = 52;
+
+    function pick(prev) {
+      var c;
+      do {
+        c = NOISE[(Math.random() * NOISE.length) | 0];
+      } while (c === prev && NOISE.length > 1);
+      return c;
+    }
+
+    function reform(el) {
+      if (el.__reforming) return;
+      var word = el.__word || (el.__word = el.textContent);
+      el.__reforming = true;
+
+      var chars = word.split("");
+      var state = chars.map(function () {
+        return "";
+      });
+      var tick = chars.map(function () {
+        return -1;
+      });
+      var t0 = null;
+
+      function frame(now) {
+        if (t0 === null) t0 = now;
+        var elapsed = now - t0;
+        /* The front is a position, not an index — the character it is
+           currently sitting on is the last one still churning. */
+        var front = elapsed / STEP;
+        var done = true;
+        var out = "";
+
+        for (var i = 0; i < chars.length; i++) {
+          if (chars[i] === " ") {
+            out += " ";
+            continue;
+          }
+          if (i < front) {
+            state[i] = chars[i];
+            out += chars[i];
+          } else {
+            done = false;
+            /* Every unsettled character advances on its own phase offset so
+               the noise does not pulse in lockstep across the word — without
+               the offset all four or seven letters flip on the same frame and
+               the label strobes instead of churning. */
+            var k = ((elapsed + i * 11) / CHURN) | 0;
+            if (k !== tick[i]) {
+              tick[i] = k;
+              state[i] = pick(state[i]);
+            }
+            out += "<i>" + state[i] + "</i>";
+          }
+        }
+
+        el.innerHTML = out;
+        if (done) {
+          el.textContent = word;
+          el.__reforming = false;
+          return;
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    var labels = document.querySelectorAll(".studio-link > span > b");
+    for (var i = 0; i < labels.length; i++) {
+      (function (el) {
+        var link = el.closest(".studio-link");
+        if (!link) return;
+        var go = function () {
+          reform(el);
+        };
+        link.addEventListener("pointerenter", go);
+        link.addEventListener("focus", go);
+      })(labels[i]);
+    }
+  })();
+</script> <main class="contact-shell" id="main"> <section class="contact-copy" aria-labelledby="contact-title"> <p class="contact-status">Open to product design roles</p> <h1 id="contact-title">Start a conversation.</h1> <p class="contact-intro"> Based in New York. Best reached by email for product design roles, creative technology teams, and thoughtful collaborations. </p> <div class="contact-primary"> <div class="contact-row"> <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a> <button class="contact-copybtn" type="button" data-copy="sidmehtadesign@gmail.com" aria-label="Copy email address">Copy</button> </div> <div class="contact-row"> <a href="tel:+16462877550">+1 646 287 7550</a> <button class="contact-copybtn" type="button" data-copy="+16462877550" aria-label="Copy phone number">Copy</button> </div> </div> <nav class="contact-links" aria-label="Contact links"> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.behance.net/mehatey" target="_blank" rel="noopener noreferrer">Behance<span class="xarrow" aria-hidden="true"></span></a> </nav> <p class="contact-hint" id="contact-hint" aria-hidden="true"> <span class="chint-lens"></span> <span class="chint-text">Move across the plate to bring the desk into focus <span class="chint-sep">·</span> click to hold it</span> </p> </section> <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk"> <img class="contact-desk__pixel" src="/assets/img/tnew2.png" alt="Sid’s pixelated desk filled with sketches, devices, and experiments"> <img class="contact-desk__real" src="/assets/img/table_new.png" alt="" aria-hidden="true"> <span class="contact-desk__fade" aria-hidden="true"></span> </div> <footer class="contact-meta" aria-label="Contact footer"> <span>New York, NY</span><span>Updated Jul 2026</span><span id="contact-time">--:-- NYC</span> </footer> </main> <script>
       (() => {
         const desk = document.getElementById("contact-desk");
         const time = document.getElementById("contact-time");
@@ -2071,8 +2597,33 @@
         const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
         const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
 
-        desk.addEventListener("click", () => desk.classList.toggle("is-real"));
-        desk.addEventListener("pointermove", (event) => {
+        // The desk fills the shell and sits *under* the copy, so pointer events
+        // over the words never reach it. Listen on the shell and keep measuring
+        // against the desk's own box, which is what the mask coordinates are in.
+        const shell = document.querySelector(".contact-shell");
+
+        // The hint retires on travel, not on time. A timer would clear it
+        // while the reader is still on the first line; a single move event
+        // would clear it on the stray pixel the cursor drifts when the page
+        // loads. 420px is roughly one deliberate sweep of the plate — by
+        // then the lens has visibly done its trick and the sentence has
+        // been read by the only thing that can read it, which is the hand.
+        const hint = document.getElementById("contact-hint");
+        let travel = 0;
+        let lastPt = null;
+        function noteTravel(event) {
+          if (!hint || hint.classList.contains("is-retired")) return;
+          if (lastPt) travel += Math.hypot(event.clientX - lastPt.x, event.clientY - lastPt.y);
+          lastPt = { x: event.clientX, y: event.clientY };
+          if (travel > 420) hint.classList.add("is-retired");
+        }
+
+        desk.addEventListener("click", () => {
+          desk.classList.toggle("is-real");
+          if (hint) hint.classList.add("is-retired");
+        });
+        shell.addEventListener("pointermove", (event) => {
+          noteTravel(event);
           const bounds = desk.getBoundingClientRect();
           const nx = (event.clientX - bounds.left) / bounds.width;
           const ny = (event.clientY - bounds.top) / bounds.height;
@@ -2120,8 +2671,8 @@
           desk.style.setProperty("--tilt-y", "0deg");
         }
 
-        desk.addEventListener("pointerenter", startTilt);
-        desk.addEventListener("pointerleave", stopTilt);
+        shell.addEventListener("pointerenter", startTilt);
+        shell.addEventListener("pointerleave", stopTilt);
         document.addEventListener("visibilitychange", () => {
           if (document.hidden) stopTilt();
         });
@@ -2481,14 +3032,6 @@
       animation: none !important;
     }
   }
-  /* The gaze tracks the cursor; the eye pills themselves own the blink animation. */
-  .logo-gaze {
-    transform: translateX(calc(var(--eye-x, 0) * 0.7px)) translateY(calc(var(--eye-y, 0) * 0.5px));
-    transition: transform 0.25s ease-out;
-    transform-box: view-box;
-    transform-origin: center;
-  }
-
   /* "Type SID" easter egg — wave the cube logo */
   @keyframes logoWave {
     0%,
@@ -2689,11 +3232,9 @@
   @media (prefers-reduced-motion: reduce) {
     .logo-cube,
     .logo-cube .cube-face,
-    .logo-cube .logo-eye,
     .logo-cube.is-idle,
     .cube-wanderer,
-    .logo-cube .logo-scan,
-    .logo-gaze {
+    .logo-cube .logo-scan {
       animation: none;
       transition: none !important;
     }
@@ -2778,7 +3319,7 @@
     font-size: 9px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.45);
+    color: rgba(255, 255, 255, 0.68);
   }
   @media (max-width: 600px) {
     #scroll-hint {
@@ -2972,9 +3513,6 @@
   }
   html[data-theme="light"] .logo-cube .cube-front {
     fill: #172a4c;
-  }
-  html[data-theme="light"] .logo-cube .logo-eye {
-    fill: #f8f5ee;
   }
   /* The light-theme hover colour used to be here, on `.nav > a:hover` — the
      same dead ancestor as the rest of the mark's choreography, and dead in
@@ -3241,9 +3779,12 @@
   }
   /* "OVERVIEW" / "INSIGHT" labels above each cs-intro block — were rgba(255,255,255,0.28)
      which renders as faint cream on cream in light mode. Bump to a readable mid-gray. */
+  /* 4.28:1 at 12px on cream — under 4.5. This rule ships later than the
+     matching one in _layouts/project.html and wins, so the two are kept at
+     the same value to stop a future tuner editing the losing one. */
   html[data-theme="light"] .cs-intro .intro-overview-label,
   html[data-theme="light"] .cs-intro .cs-body--insight .insight-label {
-    color: rgba(7, 9, 15, 0.55);
+    color: rgba(7, 9, 15, 0.68);
   }
   html[data-theme="light"] .case-context__eyebrow,
   html[data-theme="light"] .case-progress__head,
@@ -3464,7 +4005,7 @@
     color: rgba(7, 9, 15, 0.68);
   }
   html[data-theme="light"] .marquee-kicker {
-    color: rgba(7, 9, 15, 0.55);
+    color: rgba(7, 9, 15, 0.8);
   }
   html[data-theme="light"] .pill {
     color: rgba(7, 9, 15, 0.6);
@@ -3537,7 +4078,7 @@
     color: rgba(7, 9, 15, 0.7);
   }
   html[data-theme="light"] .scroll-hint-label {
-    color: rgba(7, 9, 15, 0.55);
+    color: rgba(7, 9, 15, 0.92);
   }
   /* The stray .notfound-link-secondary pair that used to sit here belonged to
      the 404 block a few hundred lines up, and has gone with it — see the note
@@ -4147,26 +4688,47 @@
     background: rgba(40, 90, 180, 0.08);
   }
   /* Play lightbox arrows + counter — already cream-friendly since on dark backdrop */
-  /* Theme toggle button — bottom-left fixed */
+  /* ── THEME TOGGLE — RIGHT RAIL, ABOVE THE CUBE ────────────────────────────
+     It lived in the bottom-left corner for a long time and the corner was the
+     bug. A fixed disc on the left margin does not overlap text in the harmless
+     way a right-hand one does: left-aligned copy *begins* at the left margin,
+     so this disc did not clip the ragged end of a line, it ate the first
+     letter of one. On /works/ at rest that reads "patial, AR and in-browser AI
+     work, / esigned and built by the same person." Two words destroyed at the
+     exact position the eye starts every line.
+
+     This has been found before and half-fixed twice. The touch rules once
+     moved it to the top-right specifically because it was clipping the F off
+     "FREQUENTLY ASKED", then moved it back down when top-right collided with
+     the About icon. Both fixes treated it as a touch problem. It never was —
+     it is a left-margin problem, and it is worse on desktop, where the disc is
+     larger and the pages are longer.
+
+     No amount of glass fixes a covered glyph, so it moves. Right rail, on the
+     same plumb line the cube already hangs from: the cube is 52px at
+     right: 22px, centre 48px in from the edge; this is 48px, so right: 24px
+     puts it on the same centre. 88px up clears the cube by 14. The right edge
+     is where every line of this site's copy runs out, so a disc parked there
+     covers the empty half of a measure instead of a word.
+
+     Making room for it is what demoted the scroll indicator from a corner
+     panel to an edge hairline — three objects on one rail is a toolbar. See
+     the note in scroll_length.html.
+
+     Thick glass, same recipe as the nav: a kernel wide enough to destroy a
+     glyph, enough alpha to build a wash instead of a film, and a brightness
+     term so the glass has body. The radial is the specular hit and the bevel
+     pair is the edge, both lifted from .studio-mark, so the floating chrome on
+     the site is visibly cut from one material. */
   #theme-toggle {
     position: fixed;
-    bottom: 22px;
-    left: 22px;
+    bottom: 88px;
+    right: 24px;
+    left: auto;
     z-index: 200;
     width: 48px;
     height: 48px;
     border-radius: 50%;
-    /* Thick glass, same recipe as the nav. This disc is fixed in a corner that
-       scrolling body copy passes through — on /works/ it lands on the left
-       column's section note, and 0.45 black at blur(14px) let every letter
-       under it stay legible, so it read as a misplaced sticker rather than as
-       a control floating above the page. Depth is what separates the two: a
-       kernel wide enough to destroy a glyph, enough alpha to build a wash
-       instead of a film, and a brightness term so the glass has body.
-
-       The radial is the specular hit and the bevel pair is the edge, both
-       lifted from .studio-mark, so the three pieces of floating chrome on the
-       site are visibly cut from one material. */
     background:
       radial-gradient(38px 24px at 30% 8%, rgba(255, 255, 255, 0.2), transparent 70%),
       linear-gradient(168deg, rgba(126, 165, 208, 0.26), rgba(6, 11, 20, 0.6) 58%, rgba(88, 132, 180, 0.2));
@@ -4242,8 +4804,9 @@
   }
   @media (max-width: 600px) {
     #theme-toggle {
-      bottom: 16px;
-      left: 16px;
+      bottom: 74px;
+      right: 16px;
+      left: auto;
       width: 44px;
       height: 44px;
     }
@@ -4615,11 +5178,13 @@
     font-size: 13px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255, 220, 180, 0.95);
+    /* Was amber. The konami tag is still chrome, and chrome on this site
+       does not go gold — it goes to the one accent everything else uses. */
+    color: rgba(190, 220, 255, 0.96);
     background: rgba(15, 18, 26, 0.78);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     backdrop-filter: blur(20px) saturate(1.6);
-    border: 1px solid rgba(255, 220, 180, 0.32);
+    border: 1px solid rgba(160, 200, 255, 0.36);
     border-radius: 999px;
     padding: 10px 22px;
     pointer-events: none;
@@ -5097,12 +5662,19 @@
   html[data-theme="light"] [style*="color: rgba(255, 255, 255, 0.85)"] {
     color: rgba(7, 9, 15, 0.88) !important;
   }
-  /* Mid white text (0.5, 0.42, 0.35) → mid-gray */
+  /* Mid white text (0.5, 0.42, 0.35) → mid-gray.
+     0.55 measured 3.75-3.91:1 on cream on the Webby tiles, which is the
+     smallest type this shim catches (10px mono). Because it is an attribute
+     selector with !important shipping at the very end of the document, it
+     beats any per-page rule written for the same elements — so this is the
+     only place the value can be tuned, and it has to be set for the worst
+     case it covers rather than the average. 0.66 lands at ~6.3:1 and is
+     still a clear step below the 0.88 body tier above. */
   html[data-theme="light"] [style*="color:rgba(255,255,255,0.50)"],
   html[data-theme="light"] [style*="color:rgba(255,255,255,0.42)"],
   html[data-theme="light"] [style*="color:rgba(255,255,255,0.35)"],
   html[data-theme="light"] [style*="color:rgba(255,255,255,0.32)"] {
-    color: rgba(7, 9, 15, 0.55) !important;
+    color: rgba(7, 9, 15, 0.66) !important;
   }
   /* Faint white borders → faint dark borders */
   html[data-theme="light"] [style*="rgba(255,255,255,0.07)"],
@@ -5149,7 +5721,7 @@
      Theme toggle + cube chat FAB push up so they don't sit under the home indicator. */
   @supports (padding: max(0px)) {
     #theme-toggle {
-      bottom: max(20px, env(safe-area-inset-bottom)) !important;
+      bottom: calc(max(20px, env(safe-area-inset-bottom)) + 64px) !important;
     }
     #cube-chat-fab {
       bottom: max(20px, env(safe-area-inset-bottom)) !important;
@@ -6363,14 +6935,16 @@
 
     /* Keep the utility theme switch away from the primary navigation. Earlier
        touch rules placed it over the About icon, reducing both controls to one
-       ambiguous target. It returns to its familiar bottom-left resting place
-       and still clears away while the page is moving. */
+       ambiguous target, and before that in the bottom-left corner, where it ate
+       the first letter of every line it landed on. It rests on the right rail
+       above the cube — the side where copy runs out rather than starts — and
+       still clears away while the page is moving. */
     #theme-toggle,
     body:has(.bottom-bar) #theme-toggle {
       top: auto !important;
-      right: auto !important;
-      bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
-      left: 16px !important;
+      left: auto !important;
+      right: 16px !important;
+      bottom: calc(max(16px, env(safe-area-inset-bottom, 0px)) + 58px) !important;
       width: 44px !important;
       height: 44px !important;
     }
@@ -7207,31 +7781,81 @@
          action, with its animated hairline hanging off the paragraph above it.
 
          Rather than special-case that page — and then the next one, and the one
-         after — the hint now looks before it speaks. It measures its own box at
-         show() time, when layout has settled, and samples three points across
-         it. If anything with actual content is under any of them, the hint
-         simply never appears: a nudge to scroll is worth very little, and it is
-         certainly worth less than the legibility of whatever it would sit on.
+         after — the hint looks before it speaks. It measures its own box at
+         show() time, when layout has settled, and samples a grid across it. If
+         anything with actual content is under any sample, the hint simply never
+         appears: a nudge to scroll is worth very little, and it is certainly
+         worth less than the legibility of whatever it would sit on.
 
          "Actual content" means a link, a button, a media element, or any leaf
          node carrying text. Wrappers, the smoke canvas and the page background
          are all transparent to this test, so on a page whose lower centre is
          genuinely empty — which is where the hint earns its keep — nothing
-         changes. */
+         changes.
+
+         The grid used to be a single scanline at 72% of the box height, and
+         and it hit-tested with elementsFromPoint, which was wrong twice over.
+
+         The home page has its own `.scroll-cue` — a hairline bar and the word
+         Scroll — sitting at y 867–878; the hint's box runs 826–872. The single
+         scanline landed at 859 and sailed straight through the gap above the
+         cue's label, so four seconds after load the home page printed SCROLL
+         twice, five pixels apart, in two different type sizes. And even a
+         denser grid would not have caught it: `.scroll-cue` is decorative and
+         carries `pointer-events: none`, which makes it invisible to
+         elementsFromPoint. The one thing this function most needed to see was
+         the one class of thing it structurally could not.
+
+         So the test is geometric now. It walks every leaf that carries text,
+         plus links, buttons and media, and asks whether that element's box
+         intersects the hint's box grown by 10px — near-misses read as
+         collisions to the eye, and the whole point of this function is to defer
+         to whatever was there first. Pointer-events, stacking order and
+         overlays are all irrelevant to that question, which is why none of them
+         appear in it. */
       function isClear() {
         const r = hint.getBoundingClientRect();
         if (!r.width || !r.height) return true;
-        const y = r.top + r.height * 0.72;
-        const xs = [r.left + 4, r.left + r.width / 2, r.right - 4];
-        for (const x of xs) {
-          for (const el of document.elementsFromPoint(x, y)) {
-            if (el === hint || hint.contains(el)) continue;
-            if (el === document.body || el === document.documentElement) continue;
-            if (/^(A|BUTTON|IMG|VIDEO|SVG|INPUT)$/i.test(el.tagName)) return false;
-            if (!el.children.length && (el.textContent || "").trim()) return false;
-          }
+        const pad = 10;
+        const L = r.left - pad,
+          R = r.right + pad,
+          T = r.top - pad,
+          B = r.bottom + pad;
+        const all = document.body.querySelectorAll("*");
+        for (const el of all) {
+          if (el === hint || hint.contains(el)) continue;
+          const media = /^(A|BUTTON|IMG|VIDEO|SVG|INPUT)$/i.test(el.tagName);
+          const leafText = !el.children.length && (el.textContent || "").trim();
+          if (!media && !leafText) continue;
+          const cs = getComputedStyle(el);
+          if (cs.visibility === "hidden" || cs.display === "none" || parseFloat(cs.opacity) === 0) continue;
+          const b = el.getBoundingClientRect();
+          if (!b.width || !b.height) continue;
+          if (b.right > L && b.left < R && b.bottom > T && b.top < B) return false;
         }
         return true;
+      }
+
+      /* A one-shot geometric test is only valid for one frame, and this site
+         has moving furniture. /about/ puts the Past Collaborators marquee
+         across the bottom of the first screen: at show() time the gap between
+         two logos happened to be under the hint, the test passed, and then the
+         strip kept travelling and parked the Leaf wordmark directly behind the
+         word SCROLL. The guard was not wrong, it was just answering a question
+         about a single instant on a page where the answer changes every frame.
+
+         So the check keeps running while the hint is up. 700ms is slow enough
+         to be free — the loop only exists during the few seconds the hint is
+         on screen, and it stops the moment the hint goes away — and fast
+         enough that a logo drifting in is met with a fade rather than a
+         collision. Once it has yielded it stays yielded: the hint is a
+         courtesy, and a courtesy that flickers back in every time a gap passes
+         underneath it would be worse than no hint at all. */
+      let watch = 0;
+      function stopWatch() {
+        if (!watch) return;
+        clearInterval(watch);
+        watch = 0;
       }
 
       function show() {
@@ -7242,10 +7866,15 @@
           return;
         }
         hint.classList.add("is-visible");
+        watch = setInterval(() => {
+          if (dismissed) return stopWatch();
+          if (!isClear()) dismiss();
+        }, 700);
       }
       function dismiss() {
         if (dismissed) return;
         dismissed = true;
+        stopWatch();
         hint.classList.remove("is-visible");
         setTimeout(() => hint.remove(), 600);
       }
@@ -7895,7 +8524,7 @@
     try {
       const big = ["color: rgba(160, 200, 255, 0.95)", "font: 14px 'DM Mono', monospace", "padding: 6px 0", "letter-spacing: 0.04em"].join(";");
       const dim = "color: rgba(255, 255, 255, 0.5); font: 11px 'DM Mono', monospace; letter-spacing: 0.06em";
-      const accent = "color: rgba(255, 220, 160, 0.9); font: 11px 'DM Mono', monospace; letter-spacing: 0.06em";
+      const accent = "color: rgba(160, 200, 255, 0.92); font: 11px 'DM Mono', monospace; letter-spacing: 0.06em";
       console.log("%c◇ Hi from Sid Mehta", big);
       console.log(
         "%c   ◆     · · ·\n  ◆ ◆   /     \\\n   ◆     · · ·\n",
