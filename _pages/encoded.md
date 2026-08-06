@@ -131,7 +131,7 @@ next_project:
   }
   html[data-theme="light"] .enc-award-kicker { color: rgba(35,80,127,0.9) !important; }
   html[data-theme="light"] .enc-award-title { color: rgba(7,9,15,0.88) !important; }
-  html[data-theme="light"] .enc-award-sub { color: rgba(7,9,15,0.5) !important; }
+  html[data-theme="light"] .enc-award-sub { color: rgba(7,9,15,0.5) !important; } /* NOTE: this does not win. The inline-style shim in _includes/cursor_fluid.html matches these <p style="color:rgba(255,255,255,0.35)"> elements with equal !important and ships later, so the value that actually lands is set there. */
   html[data-theme="light"] .enc-artists { color: rgba(7,9,15,0.66) !important; }
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
