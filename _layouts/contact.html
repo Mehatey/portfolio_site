@@ -130,8 +130,11 @@
       .contact-links {
         animation-delay: 530ms;
       }
+      .contact-hint {
+        animation-delay: 640ms;
+      }
       .contact-meta {
-        animation-delay: 660ms;
+        animation-delay: 760ms;
       }
 
       @keyframes contactRise {
@@ -336,6 +339,133 @@
       .contact-links a:focus-visible::after {
         transform: scaleX(1);
         transform-origin: left;
+      }
+
+      /* ── The lens hint ────────────────────────────────────────────────
+         The plate is a pointer-tracked lens that de-pixelates the desk,
+         and a click-to-hold on top of that. Two interactions, and until
+         now nothing on the page admitted either existed — the only
+         affordance was an aria-label, which is to say none at all for
+         anyone using their eyes.
+
+         It goes here because here is where the page was empty. The copy
+         column ended at y≈490 and the footer meta sits at y≈870, so the
+         whole bottom-left quadrant was dead air while the plate carried
+         the entire lower half of the frame. A hint is the right tenant
+         for that space: it is the one thing on the page that belongs
+         beside the plate rather than above it.
+
+         Hidden entirely on coarse pointers — there is no lens to find
+         without a mouse, and an instruction you cannot follow is worse
+         than silence. */
+      .contact-hint {
+        display: none;
+        margin: 54px 0 0;
+        align-items: center;
+        gap: 10px;
+        font:
+          400 10px/1.5 "DM Mono",
+          monospace;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+        /* 0.5 measured 4.45:1 on the page ground and this is 10px uppercase
+           mono, which is a 4.5 line — and it is often read over the plate,
+           which is brighter than the ground in places. 0.62 clears it. */
+        color: rgba(226, 236, 246, 0.62);
+        transition:
+          opacity 620ms ease,
+          transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      @media (hover: hover) and (pointer: fine) and (min-width: 861px) {
+        .contact-hint {
+          display: flex;
+        }
+      }
+
+      /* Retired, not removed: it fades and drifts a few pixels the way the
+         lens itself moves, so the page loses a line rather than dropping
+         one. pointer-events stay off throughout — it was never a control. */
+      .contact-hint {
+        pointer-events: none;
+      }
+
+      /* `animation: none` is not decoration here, it is the fix. The entry
+         stagger runs with `both`, so contactRise's final keyframe keeps
+         writing opacity: 1 onto every child of .contact-copy forever —
+         animation fill outranks any rule in the cascade. Setting opacity: 0
+         alone measured 1.000 after retirement. Dropping the finished
+         animation hands the property back to the cascade, and the 620ms
+         transition then has something to travel. */
+      .contact-hint.is-retired {
+        animation: none;
+        opacity: 0;
+        transform: translateY(-4px);
+      }
+
+      /* The glyph is the lens, at a twentieth of the size: a soft aperture
+         with a bright pupil, breathing on the same slow clock the plate's
+         rim light uses. It is a picture of the thing the sentence names. */
+      .chint-lens {
+        position: relative;
+        flex: none;
+        width: 13px;
+        height: 13px;
+        border: 1px solid rgba(150, 196, 245, 0.5);
+        border-radius: 50%;
+        animation: chint-breathe 3200ms ease-in-out infinite;
+      }
+
+      .chint-lens::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 3px;
+        height: 3px;
+        margin: -1.5px 0 0 -1.5px;
+        border-radius: 50%;
+        background: rgba(170, 208, 250, 0.9);
+      }
+
+      @keyframes chint-breathe {
+        0%,
+        100% {
+          transform: scale(1);
+          border-color: rgba(150, 196, 245, 0.42);
+        }
+        50% {
+          transform: scale(1.16);
+          border-color: rgba(170, 208, 250, 0.78);
+        }
+      }
+
+      .chint-sep {
+        color: rgba(150, 196, 245, 0.55);
+        padding: 0 2px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .chint-lens {
+          animation: none;
+        }
+      }
+
+      html[data-theme="light"] .contact-hint {
+        /* Same story on cream: 0.62 measured 4.25:1, 0.72 clears 4.5. */
+        color: rgba(20, 30, 44, 0.72);
+      }
+
+      html[data-theme="light"] .chint-lens {
+        border-color: rgba(37, 78, 168, 0.5);
+      }
+
+      html[data-theme="light"] .chint-lens::after {
+        background: rgba(37, 78, 168, 0.9);
+      }
+
+      html[data-theme="light"] .chint-sep {
+        color: rgba(37, 78, 168, 0.6);
       }
 
       /* The desk is no longer a column in a two-column layout — it is the room
@@ -900,6 +1030,16 @@
             >Behance<span class="xarrow" aria-hidden="true"></span
           ></a>
         </nav>
+
+        <!-- Retires itself once the pointer has actually travelled across
+             the plate: an instruction that stays on screen after it has
+             been obeyed stops being guidance and starts being nagging.
+             aria-hidden because the same two behaviours are already
+             described on the plate's own role="button". -->
+        <p class="contact-hint" id="contact-hint" aria-hidden="true">
+          <span class="chint-lens"></span>
+          <span class="chint-text">Move across the plate to bring the desk into focus <span class="chint-sep">·</span> click to hold it</span>
+        </p>
       </section>
 
       <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk">
@@ -930,8 +1070,28 @@
         // against the desk's own box, which is what the mask coordinates are in.
         const shell = document.querySelector(".contact-shell");
 
-        desk.addEventListener("click", () => desk.classList.toggle("is-real"));
+        // The hint retires on travel, not on time. A timer would clear it
+        // while the reader is still on the first line; a single move event
+        // would clear it on the stray pixel the cursor drifts when the page
+        // loads. 420px is roughly one deliberate sweep of the plate — by
+        // then the lens has visibly done its trick and the sentence has
+        // been read by the only thing that can read it, which is the hand.
+        const hint = document.getElementById("contact-hint");
+        let travel = 0;
+        let lastPt = null;
+        function noteTravel(event) {
+          if (!hint || hint.classList.contains("is-retired")) return;
+          if (lastPt) travel += Math.hypot(event.clientX - lastPt.x, event.clientY - lastPt.y);
+          lastPt = { x: event.clientX, y: event.clientY };
+          if (travel > 420) hint.classList.add("is-retired");
+        }
+
+        desk.addEventListener("click", () => {
+          desk.classList.toggle("is-real");
+          if (hint) hint.classList.add("is-retired");
+        });
         shell.addEventListener("pointermove", (event) => {
+          noteTravel(event);
           const bounds = desk.getBoundingClientRect();
           const nx = (event.clientX - bounds.left) / bounds.width;
           const ny = (event.clientY - bounds.top) / bounds.height;

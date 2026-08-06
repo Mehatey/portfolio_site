@@ -5233,6 +5233,28 @@
         return true;
       }
 
+      /* A one-shot geometric test is only valid for one frame, and this site
+         has moving furniture. /about/ puts the Past Collaborators marquee
+         across the bottom of the first screen: at show() time the gap between
+         two logos happened to be under the hint, the test passed, and then the
+         strip kept travelling and parked the Leaf wordmark directly behind the
+         word SCROLL. The guard was not wrong, it was just answering a question
+         about a single instant on a page where the answer changes every frame.
+
+         So the check keeps running while the hint is up. 700ms is slow enough
+         to be free — the loop only exists during the few seconds the hint is
+         on screen, and it stops the moment the hint goes away — and fast
+         enough that a logo drifting in is met with a fade rather than a
+         collision. Once it has yielded it stays yielded: the hint is a
+         courtesy, and a courtesy that flickers back in every time a gap passes
+         underneath it would be worse than no hint at all. */
+      let watch = 0;
+      function stopWatch() {
+        if (!watch) return;
+        clearInterval(watch);
+        watch = 0;
+      }
+
       function show() {
         if (dismissed || window.scrollY > 30) return;
         if (!isClear()) {
@@ -5241,10 +5263,15 @@
           return;
         }
         hint.classList.add("is-visible");
+        watch = setInterval(() => {
+          if (dismissed) return stopWatch();
+          if (!isClear()) dismiss();
+        }, 700);
       }
       function dismiss() {
         if (dismissed) return;
         dismissed = true;
+        stopWatch();
         hint.classList.remove("is-visible");
         setTimeout(() => hint.remove(), 600);
       }
