@@ -359,7 +359,7 @@ next_project:
 
 <!-- FILM LINK -->
 <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
-  <a href="https://www.youtube.com/watch?v=fl8L5V_pOUU" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Full Film<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="https://www.youtube.com/watch?v=fl8L5V_pOUU" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Full Film<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <!-- SECTION: 2D GAME -->
@@ -498,8 +498,8 @@ next_project:
 
 <!-- 2D GAME LINKS -->
 <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
-  <a href="https://mehatey.github.io/game_final/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 28px 16px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Play Game<span class="xarrow" aria-hidden="true"></span></a>
-  <a href="https://github.com/Mehatey/game_final" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">GitHub<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="https://mehatey.github.io/game_final/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 28px 16px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Play Game<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="https://github.com/Mehatey/game_final" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">GitHub<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <!-- SECTION: 3D GAME -->
@@ -633,7 +633,7 @@ next_project:
 
 <!-- 3D GAME LINK -->
 <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
-  <a href="https://www.youtube.com/watch?v=2q1UYA1BzR0" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Walkthrough<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="https://www.youtube.com/watch?v=2q1UYA1BzR0" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Walkthrough<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <!-- END OF CUBE -->

@@ -131,7 +131,11 @@ next_project:
   }
   html[data-theme="light"] .enc-award-kicker { color: rgba(35,80,127,0.9) !important; }
   html[data-theme="light"] .enc-award-title { color: rgba(7,9,15,0.88) !important; }
-  html[data-theme="light"] .enc-award-sub { color: rgba(7,9,15,0.5) !important; } /* NOTE: this does not win. The inline-style shim in _includes/cursor_fluid.html matches these <p style="color:rgba(255,255,255,0.35)"> elements with equal !important and ships later, so the value that actually lands is set there. */
+  /* Measured, not assumed: the value that actually lands here is 0.66, set by a
+     broader light-mode rule that ships later. 0.5 computed to 3.7:1 on cream
+     anyway, so the losing declaration was also the wrong one — matching 0.66
+     leaves this line honest whether or not it wins. */
+  html[data-theme="light"] .enc-award-sub { color: rgba(7,9,15,0.66) !important; }
   html[data-theme="light"] .enc-artists { color: rgba(7,9,15,0.66) !important; }
   @keyframes projBreathe {
     0%, 100% { transform: scale(1) translateY(0); }
@@ -144,23 +148,23 @@ next_project:
   <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="enc-award-tile" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;text-decoration:none;transition:border-color 0.2s,background 0.2s;">
     <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
     <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Use of Augmented Reality</p>
-    <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);">Apps, Software & Immersive</p>
+    <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">Apps, Software & Immersive</p>
     <span class="xarrow" aria-hidden="true"></span>
   </a>
   <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="enc-award-tile" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;text-decoration:none;transition:border-color 0.2s,background 0.2s;">
     <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
     <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Community Engagement</p>
-    <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);">Apps, Software & Immersive</p>
+    <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">Apps, Software & Immersive</p>
     <span class="xarrow" aria-hidden="true"></span>
   </a>
 </div>
 
 <!-- Press -->
 <div style="display:flex;gap:0;margin:24px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);">
-  <a href="https://news.artnet.com/art-world/unsanctioned-augmented-reality-indigenous-art-met-museum-2699689" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Artnet<span class="xarrow" aria-hidden="true"></span></a>
-  <a href="https://agog.org/reframing-the-american-wing-encoded-at-the-metropolitan-museum-of-art/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Agog<span class="xarrow" aria-hidden="true"></span></a>
-  <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Webby Awards<span class="xarrow" aria-hidden="true"></span></a>
-  <a href="https://www.encodedatthemet.com/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.42);padding:14px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">View Exhibition<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="https://news.artnet.com/art-world/unsanctioned-augmented-reality-indigenous-art-met-museum-2699689" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Artnet<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="https://agog.org/reframing-the-american-wing-encoded-at-the-metropolitan-museum-of-art/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Agog<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:14px 24px 14px 0;margin-right:24px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Webby Awards<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="https://www.encodedatthemet.com/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:14px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">View Exhibition<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <div class="cs-bleed">
