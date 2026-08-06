@@ -3547,23 +3547,100 @@
          cover reads as a soft rectangle; a tail this long reads as the image
          simply being darker over there. z-index -1 keeps it behind the type;
          the nearest stacking context is .hero-inner at z-index 3, so it paints
-         above .hero-overlay and above the cover, and below every word. */
-      .hero-recruiter-brief::before {
-        content: "";
+         above .hero-overlay and above the cover, and below every word.
+
+         ── AND WHY IT IS HEAVIER THAN IT LOOKS LIKE IT SHOULD BE ──
+
+         The shade above was written on the assumption that the Marriott and
+         M Health heroes were a CONTRAST problem. Measured on the render, they
+         are not: the backdrop behind "9,000+ · properties in scope" comes in
+         at 45 of 255 with the wash on, which puts white at 0.84 over it at
+         better than 9:1. The line passes every threshold there is and is still
+         hard to read, because the thing competing with it is not brightness.
+         It is other writing. The cover is a product screenshot, and reading up
+         through Sid's three lines are "XPMS DATE · Tue, Jul 24, 2023",
+         "Scheduled Maintenance", "FRI, JULY 27" and two lines about an
+         elevator being out between 1:00 and 5:00 AM. Two documents' worth of
+         typography occupying the same 350x220 rectangle. No amount of black
+         fixes that; past a point more black just makes both documents dimmer.
+
+         The instrument that separates two overlapping texts is focus, not
+         tone, and focus is not available here. backdrop-filter does not paint
+         anywhere inside this hero. Established, in order: on the ::before it
+         was inert (radius pushed to 40px moved the region by 5 of 255, dither
+         only); as a real element it was inert; at z-index 0 inert; at z-index
+         5 it paints over the brief's own type and the screenshot behind it
+         stays perfectly sharp; with the mask removed, inert; with the
+         background removed, inert. A position: fixed clone of the identical
+         box appended to <body> blurs the same pixels beautifully. So the
+         feature works in the engine and something on the hero's ancestor chain
+         is a Backdrop Root that an opacity / filter / isolation / mask /
+         mix-blend-mode / contain audit does not catch. Chasing it further is
+         not worth a shade behind three lines of text.
+
+         So: more black after all — and the reason the "more black just dims
+         both documents" argument does not apply here is worth writing down,
+         because it is the thing that makes this specific case work. That
+         argument is true when the interfering text is light on dark: black
+         over it takes the letters down along with their ground and the ratio
+         between them never changes. Here the interference is the exact
+         opposite — it is DARK type on a LIGHT card. Black over that collapses
+         the card toward the value the letters already sit at, so the
+         interfering pair loses its own internal contrast and stops resolving
+         as words at all. Sid's three lines are painted ON the wash rather than
+         seen THROUGH it, so they give up nothing. Subtractive on one document,
+         additive on the other. 0.70 is where the screenshot's own typography
+         stops being legible as language while the card's large shapes still
+         read as a picture; past about 0.80 the hero starts looking like it has
+         a black rectangle on it.
+
+         The mask still changed shape, and that part was a real improvement
+         independent of all the above. The horizontal falloff used to live in
+         the background gradient, which meant the wash and its own soft edge
+         were the same declaration and could not be tuned apart. It now lives
+         in a second mask layer composited with the first, so the background is
+         flat and the falloff is genuine in all four directions — the region
+         has no discernible end anywhere, which is the actual failure mode a
+         wash like this has. `intersect` is the standard keyword; `source-in`
+         is the same operation under the older WebKit property, which is what
+         Safari still reads.
+
+         It is a real <span> rather than the ::before it started as. That was
+         forced by the blur experiments and there is no longer a rendering
+         reason for it, but it stays: a named element is greppable, it can be
+         addressed by the sibling-lift rule below without a pseudo's ordering
+         surprises, and the one node it costs is not worth a second migration.
+         It sits at z-index 0 with the brief's own children lifted to 1. */
+      .hero-brief-shade {
         position: absolute;
-        inset: -22px -92px -20px -34px;
-        z-index: -1;
+        /* -34 at the top rather than -22, with the fade-in shortened to match.
+           The wash reached full strength 34px down, which put its ramp exactly
+           on the first line of the brief — the one line that had the least
+           protection was the first one anybody reads. Starting higher and
+           ramping faster gets the wash to full weight before line one instead
+           of underneath it, and the extra 12px is off the top of the rail
+           where there is nothing to cover. */
+        inset: -34px -92px -20px -34px;
+        z-index: 0;
         pointer-events: none;
-        background: linear-gradient(
-          90deg,
-          rgba(4, 7, 13, 0) 0%,
-          rgba(4, 7, 13, 0.46) 8%,
-          rgba(4, 7, 13, 0.44) 42%,
-          rgba(4, 7, 13, 0.26) 72%,
-          rgba(4, 7, 13, 0) 100%
-        );
-        -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
-        mask-image: linear-gradient(180deg, transparent 0%, #000 15%, #000 85%, transparent 100%);
+        background: rgba(4, 7, 13, 0.7);
+        -webkit-mask-image:
+          linear-gradient(180deg, transparent 0%, #000 9%, #000 85%, transparent 100%),
+          linear-gradient(90deg, transparent 0%, #000 9%, #000 44%, rgba(0, 0, 0, 0.6) 72%, transparent 100%);
+        mask-image:
+          linear-gradient(180deg, transparent 0%, #000 9%, #000 85%, transparent 100%),
+          linear-gradient(90deg, transparent 0%, #000 9%, #000 44%, rgba(0, 0, 0, 0.6) 72%, transparent 100%);
+        -webkit-mask-composite: source-in;
+        mask-composite: intersect;
+      }
+
+      /* The other half of the z-index 0 arrangement. The shade has to sit in a
+         layer that has a backdrop to sample, which means it can no longer hide
+         behind the brief at -1 — so everything else in the rail is lifted one
+         step above it instead. Same painting order, opposite mechanism. */
+      .hero-recruiter-brief > *:not(.hero-brief-shade) {
+        position: relative;
+        z-index: 1;
       }
 
       /* Below 900 the brief loses its max-width and spans the column, and it
@@ -3572,19 +3649,30 @@
          with nothing to justify it, so the wash keeps its shape and gives up
          most of its weight. */
       @media (max-width: 900px) {
-        .hero-recruiter-brief::before {
+        .hero-brief-shade {
           inset: -16px -24px -14px -26px;
-          background: linear-gradient(
-            90deg,
-            rgba(4, 7, 13, 0) 0%,
-            rgba(4, 7, 13, 0.3) 8%,
-            rgba(4, 7, 13, 0.26) 52%,
-            rgba(4, 7, 13, 0) 100%
-          );
+          /* Lighter than desktop, because down here the brief spans the whole
+             column and the shade is most of the screen's width. At 0.70 that
+             would not read as a patch behind some type, it would read as the
+             hero having been dimmed — and on a phone the brief also sits far
+             enough down the image that .hero-overlay is already past 0.9 and
+             has done most of this job. */
+          background: rgba(4, 7, 13, 0.5);
+          -webkit-mask-image:
+            linear-gradient(180deg, transparent 0%, #000 9%, #000 85%, transparent 100%),
+            linear-gradient(90deg, transparent 0%, #000 8%, #000 52%, transparent 100%);
+          mask-image:
+            linear-gradient(180deg, transparent 0%, #000 9%, #000 85%, transparent 100%),
+            linear-gradient(90deg, transparent 0%, #000 8%, #000 52%, transparent 100%);
         }
       }
 
-      .hero-brief-label:first-child {
+      /* :first-of-type, not :first-child. The rail's first child is now the
+         shade span, so the "At a glance" label it was written to suppress
+         stopped matching the moment that node was inserted — a silent
+         regression that would have put a redundant heading back on fifteen
+         project heroes. Typed against the paragraph, it cannot drift again. */
+      .hero-brief-label:first-of-type {
         display: none !important;
       }
 
@@ -3900,6 +3988,15 @@
             {% endif %}
           </div>
           <aside class="hero-recruiter-brief" aria-label="Project at a glance">
+            <!-- The shade behind the rail. This is a real element and not the
+                 ::before it started life as, for one measured reason: a
+                 backdrop-filter declared on a pseudo-element here is inert —
+                 the declaration computes, the mask computes, and the backdrop
+                 comes back untouched. Verified against a control div in the
+                 same position with the same rule, which blurs correctly. A
+                 span costs one node and works. See the long note on
+                 .hero-brief-shade in the stylesheet for what it is doing. -->
+            <span class="hero-brief-shade" aria-hidden="true"></span>
             <p class="hero-brief-label">At a glance</p>
             {% if page.category %}
             <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">{{ page.category }}</span></p>
