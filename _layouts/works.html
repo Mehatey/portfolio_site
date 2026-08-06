@@ -1584,7 +1584,10 @@
       }
       .works-list-item.is-active,
       .works-list-item:not(.wli--nda):hover {
-        padding-left: 16px;
+        /* A 2px nudge into the row, not a 16px one: base padding-left is now 0
+           since the box sits on the column measure. This used to read as 16
+           against a base of 14. */
+        padding-left: 2px;
       }
       .wli-name {
         font-size: clamp(16px, 1.45vw, 20px);
@@ -4390,8 +4393,22 @@
         gap: 18px;
         min-height: clamp(54px, 5.6vh, 68px);
         height: auto;
-        padding: 14px 16px 14px 14px;
-        margin: 0 -14px;
+        /* The row used to carry `margin: 0 -14px` with matching padding, so the
+           box hung 14px outside the column on both sides and the hover tint
+           bled past the text measure. That bleed is right — but the resting
+           border-bottom was riding the same outset box, so sixteen row rules
+           drew at 44→628 while every lane rule above them drew at 58→614. Two
+           hairline measures alternating down one column reads as a stagger.
+
+           Worse, the row's own selection hairline (::after) was already inset
+           to 14/16 — the content measure — so on hover an accent line drew
+           across 58→612 on top of a resting line running 44→628 and visibly
+           stopped short at both ends.
+
+           The box now sits on the column measure, so every rule on this page
+           shares one edge, and the bleed moves to ::before where it only ever
+           belonged: the tint is the thing that wants to run wide, not the rule. */
+        padding: 14px 2px 14px 0;
         border-bottom: 1px solid var(--wk-line-soft);
         counter-increment: wli;
         isolation: isolate;
@@ -4399,7 +4416,8 @@
       .works-list-item::before {
         content: "";
         position: absolute;
-        inset: 0;
+        /* Carries the 14px overhang the box used to own — see the note above. */
+        inset: 0 -14px;
         z-index: -1;
         border-radius: 6px;
         background: linear-gradient(90deg, var(--wk-tint), transparent);
@@ -4419,8 +4437,8 @@
       .works-list-item::after {
         content: "";
         position: absolute;
-        left: 14px;
-        right: 16px;
+        left: 0;
+        right: 2px;
         bottom: -1px;
         height: 1px;
         background: linear-gradient(90deg, var(--wk-accent), rgba(143, 180, 255, 0));
@@ -4836,8 +4854,12 @@
         }
         .works-list-item {
           min-height: 70px;
-          padding: 16px 8px;
-          margin: 0 -8px;
+          padding: 16px 0;
+        }
+        /* Narrower column, narrower bleed — 14px each side would push the tint
+           closer to the viewport edge than it has room for down here. */
+        .works-list-item::before {
+          inset: 0 -8px;
         }
         .wli-name {
           font-size: clamp(1.2rem, 6vw, 1.6rem);
