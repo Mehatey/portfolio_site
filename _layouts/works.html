@@ -4311,12 +4311,15 @@
 
            The old 9vh tail was tuned against the list — air under the last
            row — rather than against the thing the container's height is
-           actually carrying, which is the preview's sticky travel. At ~32vh
-           the split runs past doc 2100, the departure does not begin until
-           the last row is already well up the screen, and the stretch where
-           the left column is empty is exactly the stretch the exit
-           choreography wants: the panel blurring and sinking away with
-           nothing left to introduce. */
+           actually carrying, which is the preview's sticky travel. The first
+           pass at 32vh over-corrected — it left a ~380px dead band between
+           the end cap and the marquee — so the shipped value is 22vh.
+           Measured there, the release begins at scroll ~1370 with the last
+           row still at viewport y=475 and completes at ~1600 with it at
+           y=245: the departure now runs while the left column is emptying
+           out, which is exactly the stretch the exit choreography wants —
+           the panel blurring and sinking away with nothing left to
+           introduce. */
         padding: 0 0 clamp(150px, 22vh, 280px);
       }
 
@@ -6057,7 +6060,20 @@
             var wrap = document.getElementById("wpx-cover");
             var cimg = document.getElementById("wpx-cover-img");
             if (!wrap || !cimg) return;
+            // Three rows — Bloom, AI Self and Cube of Creations — carry a
+            // data-preview reel but no data-img. They were never given one,
+            // and the consequence was not a missing cover but a wrong one:
+            // with src empty this block removed `is-on`, and the previous
+            // project's cover spent half a second fading out underneath the
+            // new project's title before handing the frame to the ambient
+            // shader. Selecting "AI Self" showed the Mool cover. The reel's
+            // first frame is the cover in every one of those three cases, so
+            // read it rather than asking the markup to repeat itself.
             var src = item.dataset.img || "";
+            if (!src) {
+              var first = (item.dataset.preview || "").split("|")[0] || "";
+              if (first.indexOf("image:") === 0) src = first.slice(6);
+            }
             var tok = (window.__wpxTok = (window.__wpxTok || 0) + 1);
             if (isNda || !src) {
               wrap.classList.remove("is-on");
