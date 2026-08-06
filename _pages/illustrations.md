@@ -96,7 +96,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/3.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/3.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -106,17 +106,17 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/6.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/6.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <!-- SECTION: THERE WILL COME SOFT RAINS -->
@@ -127,31 +127,31 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Illustrative book.</em></p>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/8.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/8.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/8.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/8.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/9.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/9.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/10.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/10.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/10.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/10.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/11.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/11.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/11.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/11.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/12.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/12.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/12.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/12.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/13.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/13.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: AVATAR VISHNU -->
@@ -164,11 +164,11 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/15.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/15.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/16.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/16.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
@@ -185,12 +185,12 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/18.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/18.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Mock-up of cards.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/19.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/19.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: ASTROLOGER IDENTITY -->
@@ -208,9 +208,9 @@ next_project:
 </div>
 
 <div class="cs-grid-3">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.3.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.3.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <!-- SECTION: REMINISCENCE -->
@@ -221,12 +221,12 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Font designed by me.</em></p>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/21.1.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/21.1.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -237,15 +237,15 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.2.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/23.1.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/23.1.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/23.2.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/23.2.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: ILLUSTRATIVE IDENTITY -->
@@ -256,20 +256,20 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Made for an Indian small shop owner.</em></p>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/24.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/24.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/25.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/25.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Settled on Apna Da, meaning my spot.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/26.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/26.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/27.1.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/27.1.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -280,23 +280,23 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Ideating logo type.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/28.1.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/28.1.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/28.2.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/28.2.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/29.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/29.1.webp" alt="Illustrations" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/29.2.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Menu.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/30.1.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/30.1.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/31.1.png" alt="Illustrations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/31.1.webp" alt="Illustrations" loading="lazy" decoding="async" />
 </div>

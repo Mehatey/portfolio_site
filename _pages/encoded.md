@@ -39,7 +39,7 @@ reflection: >
   Siddharth took ownership of on-site 3D scanning and spatial deployment for Encoded at the Metropolitan Museum of Art. He handled the full pipeline from Polycam capture to Niantic Lightship integration, remaining persistent through unstable uploads and inconsistent scans. His ability to work discreetly within the museum, collaborate across LA and Melbourne, and contribute beyond his core scope made him a strong and dependable part of the team.
 refl_source: Stuart Campbell
 refl_role: "Founder: EyeJack"
-refl_bg: "1.met/12.png"
+refl_bg: "1.met/12.webp"
 decisions:
   - choice: "Captured 25 artworks on a phone instead of bringing production gear into the museum"
     why: >
@@ -168,7 +168,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/1.met/1.png" alt="Encoded" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/1.met/1.webp" alt="Encoded" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Scanning in the American Wing.</em></p>

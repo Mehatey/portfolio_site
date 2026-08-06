@@ -88,115 +88,115 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/2.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/2.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Learning Jainism from my father, who is pursuing a PhD in the subject.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/3.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/3.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/4.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/4.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Illustration style inspired by Jain temples.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/5.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/5.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Mobile application for teachers and students.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/6.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/6.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>App screens.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/7.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/7.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed cs-bleed--narrow">
-  <img src="{{ site.baseurl }}/9.aananda/8.png" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/8.webp" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/9.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/9.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Newspaper advertisement.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/10.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/10.webp" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/11.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/11.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Advertisements for the app.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/12.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/12.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/13.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/13.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Aananda, the book.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/14.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/14.webp" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/15.1.png" alt="Aananda" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/15.2.png" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/15.1.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/15.2.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/16.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/16.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/17.1.png" alt="Aananda" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/17.2.png" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/17.1.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/17.2.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/18.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/18.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Cards to be placed in temples.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/19.png" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/19.webp" alt="Aananda" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/20.png" alt="Aananda" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/21.png" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/20.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/21.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/22.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/22.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Stands to inform about sculptures.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/23.png" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/23.webp" alt="Aananda" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/24.1.png" alt="Aananda" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/24.2.png" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/24.1.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/24.2.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/25.1.png" alt="Aananda" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/25.2.png" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/25.1.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/25.2.webp" alt="Aananda" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/26.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/26.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/27.png" alt="Aananda" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/27.webp" alt="Aananda" loading="lazy" decoding="async" />
 </div>

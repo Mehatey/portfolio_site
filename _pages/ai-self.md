@@ -32,7 +32,7 @@ reflection: >
 
 
   Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference. AI Self was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.
-refl_bg: "2.ai-self/reflection.png"
+refl_bg: "2.ai-self/reflection.webp"
 next_project:
   title: "Aananda"
   url: /aananda/
@@ -69,7 +69,7 @@ next_project:
 
 <!-- HERO -->
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/2.ai-self/1.png" alt="AI Self: research, design, and VR experience" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/2.ai-self/1.webp" alt="AI Self: research, design, and VR experience" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <!-- SECTION: AI PERCEPTION -->
@@ -79,7 +79,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Google Cloud Vision run against my own photographs. My first experiment with machine perception.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/2.png" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.ai-self/2.webp" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>A simple system to feed images through a model and watch what it decides is worth naming.</em></p>
@@ -124,12 +124,12 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The first UI concept. Pick a mascot. Talk to it. Over time it becomes a companion, not a tool.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/12.png" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.ai-self/12.webp" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Beyond the app. AR woven into everyday life, not a screen you hold up but a layer that lives with you.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/13.png" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.ai-self/13.webp" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>AR walkthrough. Idea conception, not a live build.</em></p>
@@ -157,7 +157,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/17.png" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.ai-self/17.webp" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -194,12 +194,12 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>A different entry point. An AI assembling a sense of self from fragments of what it has learned.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/21.png" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.ai-self/21.webp" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Process sketches for how the scenes were structured.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.ai-self/22.png" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.ai-self/22.webp" alt="AI Self: research, design, and VR experience" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Eva. The AI that wakes up. This is her opening.</em></p>

@@ -338,7 +338,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/4.mandala/10.2.png" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/10.2.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -355,18 +355,18 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/4.mandala/12.2.png" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/12.2.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
   </div>
 </div>
 
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/9.2.png" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/9.2.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
 </div>
 
 <!-- 13.1 + 13.2 + 13.3 grid -->
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/13.1.png" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/13.1.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">
@@ -374,7 +374,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/13.3.png" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/13.3.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -450,11 +450,11 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Mandalas made on festival floors, then walked over and dissolved. This started from that memory.</em></p>
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/2.png" alt="Bloom mandala installation: process and explorations" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/2.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/1.png" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/1.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -540,7 +540,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/j.png" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/j.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -571,7 +571,7 @@ next_project:
 
 <div class="cs-grid ma-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/test-ma26.png" alt="Bloom mandala installation: process and explorations" loading="lazy" class="ma-cover" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/test-ma26.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" class="ma-cover" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video autoplay muted loop playsinline preload="none">

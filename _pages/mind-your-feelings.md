@@ -137,7 +137,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Our supporters.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/2.0.png" alt="Supporters" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/2.0.webp" alt="Supporters" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -147,11 +147,11 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/3.png" alt="Mind Your Feelings" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/3.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/5.png" alt="Mind Your Feelings" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/5.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Walkthrough of the kiosk.</em></p>
@@ -169,14 +169,14 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/6.png" alt="Mind Your Feelings" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/6.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.1.png" alt="Mind Your Feelings" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.2.png" alt="Mind Your Feelings" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.1.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.2.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/gg.png" alt="Mind Your Feelings" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/gg.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" />
 </div>

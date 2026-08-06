@@ -32,7 +32,7 @@ reflection: >
 
 
   The challenge was figuring out how far to push interaction without losing simplicity. The strength of the original idea is how effortless it feels. Adding a layer risks overcomplicating it. Knowing when to stop became the actual design decision.
-refl_bg: "8.shotoniphone/5.png"
+refl_bg: "8.shotoniphone/5.webp"
 next_project:
   title: "Encoded"
   url: /encoded/
@@ -78,57 +78,57 @@ next_project:
 </style>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/8.shotoniphone/0.png" alt="Shot on iPhone" loading="eager" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/0.webp" alt="Shot on iPhone" loading="eager" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/1.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/1.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/2.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/2.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/3.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/3.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/4.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/4.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/8.shotoniphone/5.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/5.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/6.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/6.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/7.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/7.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/8.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/8.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/9.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/9.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/8.shotoniphone/10.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/10.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/11.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/11.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/12.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/12.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/8.shotoniphone/13.png" alt="Shot on iPhone" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/8.shotoniphone/13.webp" alt="Shot on iPhone" loading="lazy" decoding="async" />
 </div>

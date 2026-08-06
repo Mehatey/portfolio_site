@@ -165,26 +165,26 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>A Reddit thread titled "places to cry in NYC." People looking for somewhere to feel something without being seen.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/2.png" alt="Reddit thread: places to cry in NYC" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/2.webp" alt="Reddit thread: places to cry in NYC" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/3.png" alt="Research references" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/3.webp" alt="Research references" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above">
   <em>What I wanted the space to feel like: quiet enough to think, open enough not to feel alone.</em>
 </p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/4.png" alt="Space reference: what it should feel like" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/4.webp" alt="Space reference: what it should feel like" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/5.png" alt="Process" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/5.webp" alt="Process" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/6.png" alt="Process" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/6.webp" alt="Process" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
@@ -208,7 +208,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/5.bb/board1.3.png" alt="The stand" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.bb/board1.3.webp" alt="The stand" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -270,7 +270,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>I had an idea to create an online, Reddit-like site to store stories.</em></p>
 
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/5.bb/branding.png" alt="Broken and Beautiful branding" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/branding.webp" alt="Broken and Beautiful branding" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -289,11 +289,11 @@ next_project:
   <em>Made different versions of the poster, each one a small bet on which stranger might stop long enough to scan.</em>
 </p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/d3.png" alt="QR code poster variations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/d3.webp" alt="QR code poster variations" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/d4.png" alt="Poster variations" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/d4.webp" alt="Poster variations" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above">
