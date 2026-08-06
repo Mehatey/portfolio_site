@@ -319,6 +319,15 @@
         --reveal-y: 48%;
         --tilt-x: 0deg;
         --tilt-y: 0deg;
+        /* The desk artwork is a rectangle, and its bottom edge was landing as a
+           ruled horizontal cut a few pixels above the meta row — a diorama that
+           stopped rather than a room that ran out of light. Both plates get this
+           as a mask so the floor falls off into the dark instead of ending. It
+           is applied to the two <img> layers rather than to this wrapper on
+           purpose: ::before is the blue floor-glow that grounds the whole scene,
+           and fading that away at the bottom would remove the very thing the
+           fade is trying to imply. */
+        --desk-floor: linear-gradient(to top, transparent 0%, rgba(0, 0, 0, 0.4) 5%, #000 16%);
         transform-style: preserve-3d;
         transform: perspective(1400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
         will-change: transform;
@@ -370,6 +379,10 @@
       .contact-desk__pixel {
         opacity: 0.92;
         filter: saturate(0.86) contrast(1.04) brightness(0.9);
+        -webkit-mask-image: var(--desk-floor);
+        mask-image: var(--desk-floor);
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
         transition:
           opacity 420ms ease,
           filter 620ms ease;
@@ -379,13 +392,17 @@
         opacity: 1;
         filter: saturate(0.92) contrast(1.04) brightness(0.88);
         transform: scale(0.995);
-        -webkit-mask-image: radial-gradient(
-          circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y),
-          #000 0 42%,
-          rgba(0, 0, 0, 0.94) 57%,
-          transparent 76%
-        );
-        mask-image: radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%);
+        -webkit-mask-image:
+          radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%),
+          var(--desk-floor);
+        mask-image:
+          radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%),
+          var(--desk-floor);
+        /* Two mask layers, intersected: the cursor lens decides where the photo
+           shows through the voxels, and the floor gradient decides where either
+           plate exists at all. Union would light the whole photograph up. */
+        -webkit-mask-composite: source-in;
+        mask-composite: intersect;
         -webkit-mask-repeat: no-repeat;
         mask-repeat: no-repeat;
         transition:
@@ -398,10 +415,12 @@
         opacity: 0;
       }
 
+      /* Fully revealed: the lens opens out to the whole plate, but the floor
+         gradient stays, so the desk keeps sinking into the room. */
       .contact-desk.is-real .contact-desk__real {
         transform: scale(1);
-        -webkit-mask-image: linear-gradient(#000, #000);
-        mask-image: linear-gradient(#000, #000);
+        -webkit-mask-image: linear-gradient(#000, #000), var(--desk-floor);
+        mask-image: linear-gradient(#000, #000), var(--desk-floor);
       }
 
       .contact-meta {
