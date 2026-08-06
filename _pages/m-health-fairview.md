@@ -82,7 +82,7 @@ next_project:
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">07 · The new entry point. Helping you choose the right care, one clear place to start with same day and scheduled paths.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/07-choose.gif" alt="Choose the right care page in motion" loading="lazy" decoding="async" /></div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
 
 <p class="cube-cap cube-cap--above">08 · Get Care Today and Schedule Your Care. Immediate needs and later appointments separated into two calm, self explaining paths.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/08-getcare.webp" alt="Get Care Today and Schedule Your Care" loading="lazy" decoding="async" /></div>
@@ -97,7 +97,7 @@ next_project:
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/10-caretypes.gif" alt="Care type selection in motion" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">11 · The assistant. A conversational helper for patients who would rather be guided than browse.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/11-assistant.gif" alt="Conversational care assistant" loading="lazy" decoding="async" /></div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="{{ site.baseurl }}/assets/img/fairview/11-assistant.mp4" type="video/mp4" /></video></div>
 
 <p class="cube-cap cube-cap--above">12 · Prepare for your visit. Clear before and after visit guidance so patients arrive ready and leave informed.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async" /></div>
