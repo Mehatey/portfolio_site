@@ -354,6 +354,25 @@
         0%, 70%, 100% { left: -100%; }
         40% { left: 150%; }
       }
+      /* The badge had no responsive size, which is a different mistake from
+         having the wrong one. 96px against a 1440 viewport is 6.7% of the
+         width — a credential in the corner. The same 96px against a 390 phone
+         is 25%, and a 390×844 render of /mool/ shows what that costs: a
+         saturated blue plate, the loudest colour on the page, floating in the
+         empty sky above a title set at 44px, winning the first look off a
+         project it is only meant to endorse. It also stops being a sticker on
+         the corner of the cover once it is a quarter of the cover.
+
+         68px holds the same proportion it has on desktop and the mark inside
+         it still resolves — it is a silhouette and a year, not a paragraph.
+         The clearance stays 12px below the nav; only the plate shrinks. */
+      @media (max-width: 600px) {
+        .award-badge {
+          width: 68px;
+          right: 20px;
+          border-radius: 8px;
+        }
+      }
       .hero-overlay {
         position: absolute; inset: 0; z-index: 2;
         background: linear-gradient(to bottom,
@@ -3688,27 +3707,50 @@
         z-index: 1;
       }
 
-      /* Below 900 the brief loses its max-width and spans the column, and it
-         sits far enough down the hero that .hero-overlay is already past 0.9.
-         Full-strength shade across the whole width there would be a dark band
-         with nothing to justify it, so the wash keeps its shape and gives up
-         most of its weight. */
+      /* Below 900 the brief loses its max-width and spans the column.
+         This block used to read: "it sits far enough down the hero that
+         .hero-overlay is already past 0.9, so the wash keeps its shape and
+         gives up most of its weight." Both halves of that were wrong, and a
+         390×844 render of /aananda/ shows it plainly — the cover's poster type
+         ("Is Mahavira the God in Jainism?", set enormous) reads straight
+         through the brief at nearly full strength, with the word "Mahavira"
+         crossing the line that says "Branding · App Design  Solo".
+
+         The arithmetic, since the premise was never checked. The hero is
+         56→522 and the brief is 265→464, so the brief occupies 45%–88% of the
+         hero's height. .hero-overlay is `rgba(0,0,0,0.15) 0%, transparent 25%,
+         rgba(0,0,0,0.55) 70%, rgba(0,0,0,0.96) 100%` — which puts it at about
+         0.22 on the brief's first line, not 0.9. The one line with the least
+         protection was again the first one anybody reads, and the shade had
+         been thinned to 0.5 on the strength of help that was not arriving.
+         0.72 over 0.22 lands a little past where desktop's 0.70 does, which is
+         right: desktop also has a vertical rule and 40px of white space between
+         the rail and the cover's centre of interest, and a phone has neither —
+         the brief is laid directly across the middle of the picture. 0.62 was
+         tried first and rendered: "Mahavira" separated from the copy but was
+         still legibly a word behind it. The band does not read as the hero
+         being dimmed, because its top edge lands exactly on the hairline rule
+         that already divides title from brief, so it reads as that rule having
+         a plate under it.
+
+         The horizontal mask is gone rather than retuned. Its ramp used to
+         start at 52% — halfway across the brief's own copy, the identical
+         falloff-measured-against-the-foreground mistake the desktop rule was
+         just corrected for. But down here the fix is not to move the ramp: the
+         shade spans x −6→394 inside a 390-wide viewport, so *both* of its
+         horizontal ends are already off-screen. There is no visible edge for a
+         horizontal falloff to soften, and the left ramp was in fact doing harm
+         — reaching full weight 36px in, at x=30, when the rail's text starts at
+         x=20. A mask that only ever subtracts from the covered region and
+         never hides an edge is not a mask, it is a leak. Top and bottom are
+         the only edges on screen, so the vertical layer is the only one left
+         and it no longer needs compositing. */
       @media (max-width: 900px) {
         .hero-brief-shade {
           inset: -16px -24px -14px -26px;
-          /* Lighter than desktop, because down here the brief spans the whole
-             column and the shade is most of the screen's width. At 0.70 that
-             would not read as a patch behind some type, it would read as the
-             hero having been dimmed — and on a phone the brief also sits far
-             enough down the image that .hero-overlay is already past 0.9 and
-             has done most of this job. */
-          background: rgba(4, 7, 13, 0.5);
-          -webkit-mask-image:
-            linear-gradient(180deg, transparent 0%, #000 9%, #000 85%, transparent 100%),
-            linear-gradient(90deg, transparent 0%, #000 8%, #000 52%, transparent 100%);
-          mask-image:
-            linear-gradient(180deg, transparent 0%, #000 9%, #000 85%, transparent 100%),
-            linear-gradient(90deg, transparent 0%, #000 8%, #000 52%, transparent 100%);
+          background: rgba(4, 7, 13, 0.72);
+          -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 9%, #000 85%, transparent 100%);
+          mask-image: linear-gradient(180deg, transparent 0%, #000 9%, #000 85%, transparent 100%);
         }
       }
 
