@@ -230,9 +230,21 @@
     box-shadow: 0 0 8px rgba(120, 221, 137, 0.55);
   }
 
+  /* 4.24:1 at 10px, and 4.08:1 for .site-footer-updated which reads this
+     same colour through a 0.92 opacity. Both land over 4.5 at 0.76. */
   html[data-theme="light"] .site-footer-identity > span,
   html[data-theme="light"] .site-footer-meta {
-    color: rgba(15, 25, 38, 0.66);
+    color: rgba(15, 25, 38, 0.76);
+  }
+
+  /* In dark the shared --muted token resolves to 0.48 white, which is
+     4.08:1 at 10px — under the bar, and this is the one line in the footer
+     that says what Sid actually does. Same shape as the .site-footer-updated
+     correction below: the light branch is already fine, so the fix belongs
+     on the dark branch alone rather than on a token other elements read. */
+  html:not([data-theme="light"]) .site-footer-identity > span,
+  html:not([data-theme="light"]) .site-footer-meta {
+    color: rgba(255, 255, 255, 0.66);
   }
 
   /* ══════════════════════════════════════════════════════════════════════
@@ -269,7 +281,14 @@
     font: 400 10px/1.5 var(--font-mono, "DM Mono", monospace);
     letter-spacing: 0.13em;
     text-transform: uppercase;
-    color: var(--plot-dim, rgba(226, 236, 250, 0.42));
+    /* 3.59:1 at 10px uppercase, and this line does not sit on the page
+       ground — it sits over the plot wash, which is lit canvas rather than
+       a flat colour, so the real backdrop is brighter and busier than the
+       token assumes. The .plot__hint children inherit this, which means the
+       one sentence telling you the garden is interactive at all was the
+       faintest thing in the footer. 0.62 keeps it a clear step under the
+       serif quote above it and still readable in passing. */
+    color: var(--plot-dim, rgba(226, 236, 250, 0.62));
   }
 
   .plot__hint {
@@ -353,16 +372,67 @@
     font: 400 9px/1.5 var(--font-mono, "DM Mono", monospace);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--plot-dim, rgba(226, 236, 250, 0.34));
+    /* 2.01:1 in dark and 2.11:1 in light at 9px — the live NYC clock in this
+       line was the lowest contrast text anywhere on the site. 9px uppercase
+       mono is already doing all the de-emphasis this line needs; the alpha
+       was doing it a second time. */
+    color: var(--plot-dim, rgba(226, 236, 250, 0.72));
+    position: relative;
+  }
+
+  /* Alpha alone could not fix this line, because the problem was never the
+     ink — it was that the colophon is the one run of text in the footer with
+     no ground under it at all. It sits out over the open pond, where the
+     backdrop is moving water in the mid tones, so ink and paper are both
+     wrong against it and raising either just trades one bad direction for
+     the other.
+
+     So it gets a shore. The veil fades up from the bottom edge of the page,
+     which is where the water would meet the bank anyway, and it is gone
+     before it reaches the plants. Full-bleed rather than inset, because a
+     rectangle of paper floating in a pond is a patch; an edge the water runs
+     out against is a shore. */
+  .site-footer-colophon::before {
+    content: "";
+    position: absolute;
+    /* Full-bleed on purpose. The footer carries a 4vw gutter, so an
+       inset:0 veil stopped 58px short of each edge and read as a pale
+       rectangle floating in the pond with two hard vertical seams — the
+       exact patch this is meant not to be. 100vw off the centre line
+       removes both edges, and then the only boundary left is the one that
+       fades. */
+    left: 50%;
+    right: auto;
+    width: 100vw;
+    transform: translateX(-50%);
+    top: -34px;
+    bottom: 0;
+    z-index: -1;
+    pointer-events: none;
+    /* Held solid through the band the type actually occupies and only then
+       allowed to go, rather than fading across the whole height — a falloff
+       that starts at the text is a falloff tuned against the veil's extent
+       instead of the thing it is there to carry. */
+    background: linear-gradient(to top, var(--plot-shore, rgba(7, 6, 12, 0.97)) 0%, var(--plot-shore, rgba(7, 6, 12, 0.97)) 46%, transparent 100%);
+  }
+
+  html[data-theme="light"] .site-footer-colophon::before {
+    background: linear-gradient(to top, rgba(245, 243, 238, 0.98) 0%, rgba(245, 243, 238, 0.98) 46%, transparent 100%);
   }
 
   html[data-theme="light"] .plot__quote {
     color: rgba(14, 20, 30, 0.9);
   }
 
-  html[data-theme="light"] .plot__sig,
+  /* 2.96:1 and 2.11:1 on cream at 10px and 9px. Cream is a lower-contrast
+     ground than near-black to begin with, so an alpha that is merely quiet
+     in dark goes past quiet here. Matched to the dark side's correction. */
+  html[data-theme="light"] .plot__sig {
+    color: rgba(18, 26, 38, 0.72);
+  }
+
   html[data-theme="light"] .site-footer-colophon {
-    color: rgba(18, 26, 38, 0.5);
+    color: rgba(18, 26, 38, 0.82);
   }
 
   html[data-theme="light"] .plot__field {
