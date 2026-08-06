@@ -6,16 +6,16 @@
 
   <nav class="studio-links" aria-label="Portfolio sections">
     <a class="studio-link{% if include.active == 'work' %} is-active{% endif %}" href="{{ site.baseurl }}/works/" aria-label="Work">
-      {% include nav_icon.html icon="work" %}<span><b data-roll="Work">Work</b></span>
+      {% include nav_icon.html icon="work" %}<span aria-hidden="true"><b>Work</b></span>
     </a>
     <a class="studio-link{% if include.active == 'play' %} is-active{% endif %}" href="{{ site.baseurl }}/play/" aria-label="Play">
-      {% include nav_icon.html icon="play" %}<span><b data-roll="Play">Play</b></span>
+      {% include nav_icon.html icon="play" %}<span aria-hidden="true"><b>Play</b></span>
     </a>
     <a class="studio-link{% if include.active == 'contact' %} is-active{% endif %}" href="{{ site.baseurl }}/contact/" aria-label="Contact">
-      {% include nav_icon.html icon="contact" %}<span><b data-roll="Contact">Contact</b></span>
+      {% include nav_icon.html icon="contact" %}<span aria-hidden="true"><b>Contact</b></span>
     </a>
     <a class="studio-link{% if include.active == 'about' %} is-active{% endif %}" href="{{ site.baseurl }}/about/" aria-label="About">
-      {% include nav_icon.html icon="about" %}<span><b data-roll="About">About</b></span>
+      {% include nav_icon.html icon="about" %}<span aria-hidden="true"><b>About</b></span>
     </a>
     <a class="studio-hire" href="mailto:sidmehtadesign@gmail.com" aria-label="Open to roles — email Sid Mehta">
       <span class="studio-hire__dot" aria-hidden="true"></span>
@@ -503,31 +503,36 @@
     overflow: hidden;
     vertical-align: middle;
   }
-  /* The k95 rolling label. Two copies of the word stacked in one clipped box;
-     the visible one leaves upward as its duplicate arrives from below, so the
-     label re-sets itself rather than just changing colour. */
+  /* This used to be the k95 rolling label — two copies of the same word
+     stacked in a clipped box, the visible one leaving upward as its duplicate
+     arrived from below. It is a good effect for a label that says something
+     *new* on hover, which is why the "Open to roles" pill still uses it: that
+     one rolls to "Say hello →". But "Work" rolling to "Work" is motion with
+     nothing behind it, and four of those firing across the bar was the most
+     decorative thing in the nav.
+
+     The word now re-forms instead: it drops into noise and resolves
+     left-to-right, one character at a time. It reads as the label being
+     *assembled* rather than replaced, which is the difference between an
+     effect and a gesture.
+
+     Nothing about it is in CSS beyond this, because the whole thing is one
+     text node being rewritten — which is also why it costs no layout: the
+     labels are set in DM Mono and every substitute glyph is exactly as wide
+     as the letter it stands in for. A proportional face here would make the
+     capsule breathe on every hover. */
   .studio-link > span > b {
     position: relative;
     display: block;
     font-weight: inherit;
-    transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    font-variant-ligatures: none;
   }
-  .studio-link > span > b::after {
-    content: attr(data-roll);
-    position: absolute;
-    left: 0;
-    top: 100%;
-    width: 100%;
-  }
-  .studio-link:hover > span > b,
-  .studio-link:focus-visible > span > b,
-  .studio-link.is-active > span > b {
-    transform: translateY(-100%);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .studio-link > span > b {
-      transition: none;
-    }
+  /* While a label is mid-resolve the unsettled characters are held back a
+     little, so the eye follows the resolved edge travelling left to right
+     rather than reading the noise. */
+  .studio-link > span > b > i {
+    font-style: inherit;
+    opacity: 0.45;
   }
 
   .studio-link::after {
@@ -1084,5 +1089,137 @@
       { passive: true }
     );
     read();
+  })();
+</script>
+
+<script>
+  /* ── THE RE-FORMING LABEL ─────────────────────────────────────────────────
+     Sid: "the animation when u hover on text in nav bar can we have the text
+     reforming like the cryptic text on hover."
+
+     A label drops into noise and resolves left to right, one character at a
+     time, so the word assembles itself under the cursor.
+
+     Four decisions are what keep it from being the stock decrypt effect.
+
+     The alphabet is the site's own. Not `!@#$%^&*` — that set is loud, it is
+     mostly punctuation, and its glyphs sit at wildly different visual weights
+     so the noise flickers in brightness as it cycles. This one is drawn from
+     the marks the rest of the site is built out of: the plant and fish glyphs
+     in the footer pond, the arrows, the box rules. Uppercase letters are in
+     it too, because a decrypt made only of symbols never reads as *text*
+     becoming text.
+
+     It resolves in one direction and never scrambles a character twice after
+     it has landed. A scramble that keeps re-noising settled letters has no
+     shape — you cannot tell how far through it is. With a travelling front
+     you can read the progress, and reading the progress is the whole effect.
+
+     Leaving mid-run does not snap. The word finishes assembling and then
+     stops. Cancelling on mouseout is the reflex, and it produces a label
+     that flicks back to noise-then-nothing every time the pointer grazes it,
+     which is the twitchiest thing a nav can do.
+
+     And it never runs twice at once on the same label, so crossing the bar
+     quickly leaves four words resolving in sequence rather than four
+     independent timers fighting over the same text nodes.
+
+     Accessibility: the visible label is aria-hidden and every link already
+     carries an aria-label, so a screen reader reads "Work", not "W7<K". And
+     under prefers-reduced-motion nothing here binds at all — the underline
+     and the colour shift, which were always doing the real work of saying
+     "this is the thing you are pointing at", carry the whole interaction. */
+  (function () {
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var NOISE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<>/\\|^~*+=-_()".split("");
+
+    /* Per character. 34ms is roughly three frames — fast enough to read as
+       churn rather than as a slideshow of wrong letters, slow enough that
+       each substitution is actually visible. */
+    var CHURN = 34;
+    /* How long the front takes to travel one character. Deliberately slower
+       than the churn: if the front moved at the churn rate every character
+       would show exactly one piece of noise and the whole thing would look
+       like a typo correcting itself. */
+    var STEP = 52;
+
+    function pick(prev) {
+      var c;
+      do {
+        c = NOISE[(Math.random() * NOISE.length) | 0];
+      } while (c === prev && NOISE.length > 1);
+      return c;
+    }
+
+    function reform(el) {
+      if (el.__reforming) return;
+      var word = el.__word || (el.__word = el.textContent);
+      el.__reforming = true;
+
+      var chars = word.split("");
+      var state = chars.map(function () {
+        return "";
+      });
+      var tick = chars.map(function () {
+        return -1;
+      });
+      var t0 = null;
+
+      function frame(now) {
+        if (t0 === null) t0 = now;
+        var elapsed = now - t0;
+        /* The front is a position, not an index — the character it is
+           currently sitting on is the last one still churning. */
+        var front = elapsed / STEP;
+        var done = true;
+        var out = "";
+
+        for (var i = 0; i < chars.length; i++) {
+          if (chars[i] === " ") {
+            out += " ";
+            continue;
+          }
+          if (i < front) {
+            state[i] = chars[i];
+            out += chars[i];
+          } else {
+            done = false;
+            /* Every unsettled character advances on its own phase offset so
+               the noise does not pulse in lockstep across the word — without
+               the offset all four or seven letters flip on the same frame and
+               the label strobes instead of churning. */
+            var k = ((elapsed + i * 11) / CHURN) | 0;
+            if (k !== tick[i]) {
+              tick[i] = k;
+              state[i] = pick(state[i]);
+            }
+            out += "<i>" + state[i] + "</i>";
+          }
+        }
+
+        el.innerHTML = out;
+        if (done) {
+          el.textContent = word;
+          el.__reforming = false;
+          return;
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+
+    var labels = document.querySelectorAll(".studio-link > span > b");
+    for (var i = 0; i < labels.length; i++) {
+      (function (el) {
+        var link = el.closest(".studio-link");
+        if (!link) return;
+        var go = function () {
+          reform(el);
+        };
+        link.addEventListener("pointerenter", go);
+        link.addEventListener("focus", go);
+      })(labels[i]);
+    }
   })();
 </script>
