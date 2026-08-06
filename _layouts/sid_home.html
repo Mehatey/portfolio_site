@@ -79,8 +79,28 @@
       body {
         margin: 0;
         width: 100%;
-        overflow-x: hidden;
         background: var(--home-bg);
+      }
+      /* ── WHY `clip` AND NOT `hidden` ────────────────────────────────────
+         `overflow-x: hidden` on an element does not only hide the overflow —
+         it makes that element a scroll container, and its `overflow-y`
+         computes to `auto` whether you asked for it or not. A scroll
+         container is a scrollport, and `position: sticky` inside it sticks
+         to *that* scrollport. Body's box is exactly as tall as its content,
+         so it never scrolls by a single pixel, so every sticky descendant
+         sits there computing `position: sticky` and never sticking. That is
+         what was happening to the coda's stage: correct CSS, dead effect.
+
+         `clip` does the same visual job — no horizontal bleed from marquee
+         tracks or oversized media — without creating a scroll container, so
+         overflow-y stays `visible` and sticky resolves against the viewport
+         where it belongs. html keeps `hidden`, because html's overflow
+         propagates to the viewport and the viewport genuinely does scroll. */
+      html {
+        overflow-x: hidden;
+      }
+      body {
+        overflow-x: clip;
       }
       body {
         color: var(--home-ink);
@@ -1525,6 +1545,10 @@
     <!-- The page ended at section 04 with no footer at all: no contact, no
          social, no "get to know Sid" strip. Every other layout ships it. -->
     {% include site_footer.html %}
+
+    <!-- The coda sits *after* the footer on purpose. The footer is the last
+         thing the site asks of you; this is the last thing it tells you. -->
+    {% include home_coda.html %}
 
     <!-- showreel -->
     <div class="home-reel-modal" id="reel-modal" role="dialog" aria-modal="true" aria-labelledby="reel-label" aria-hidden="true">

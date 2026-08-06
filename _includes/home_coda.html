@@ -1,0 +1,354 @@
+<!-- ── THE CODA ───────────────────────────────────────────────────────────────
+     Sid: "when you scroll more below, then I want you to have this video, and
+     it should sort of play through just when you are scrolling through. And,
+     um, like, maybe you need to cut it up into individual PNGs. I don't know
+     how you do it, but, like, basically, the scroll should scroll the video in,
+     like, a reactive dynamic way."
+
+     It is his own screen recording — a phone scrolling his Apple Music library
+     — and it goes at the very bottom, after the pond, which is the right place
+     for it: everything above this is the case for hiring him, and this is the
+     one thing on the site that is just true about him and asks for nothing. A
+     portfolio that ends on a call to action ends on a pitch. This one ends on a
+     record collection.
+
+     THE MECHANISM. A tall runway (280vh) with a sticky stage inside it. How far
+     the runway has travelled through the viewport is the playhead; the playhead
+     picks a frame; the frame is drawn to a canvas. There is no <video> and no
+     currentTime seek, because seeking a compressed stream lands on the nearest
+     keyframe and scrubbing it backwards stutters on every browser that is not
+     Safari. Thirty stills at 360px, decoded once, indexed by a number — the
+     scrub is then exactly as smooth as the scroll is, which is the whole point
+     of the effect.
+
+     Thirty, not seventy. The recording is 10.4 seconds of continuous scrolling;
+     at 2.9fps the album grid moves about a row and a half between frames, which
+     at this size is a step you read as motion rather than as slides. Doubling
+     the count doubles a megabyte to buy a smoothness nobody looks for on a
+     coda.
+
+     WHAT IT COSTS, AND WHEN. Nothing until you are near it. The frames are
+     fetched by an IntersectionObserver with 900px of margin — far enough that
+     they are decoded by the time the stage is sticky, close enough that a
+     visitor who never scrolls past the pond never pays for them. Until then the
+     canvas holds a single poster frame that ships with the page.
+     ───────────────────────────────────────────────────────────────────────── -->
+<section class="coda" id="coda" aria-labelledby="coda-title">
+  <div class="coda__runway">
+    <div class="coda__stage">
+      <!-- Corner-set, not stacked in a column. A block of centred copy over a
+           picture is a title slide, and a column of copy beside it is the other
+           kind of title slide; annotations pinned to the corners of the frame
+           read as a plate label, which is what this is. -->
+      <p class="coda__eyebrow">Coda · 00:00–00:10</p>
+      <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2>
+
+      <div class="coda__device">
+        <canvas
+          class="coda__screen"
+          id="coda-screen"
+          width="360"
+          height="780"
+          role="img"
+          aria-label="A phone scrolling through Sid’s music library"
+        ></canvas>
+        <!-- The glass. A single low-angle sheen across the panel, and nothing
+             else — no notch drawn on, no fake bezel highlight. The recording
+             already contains its own status bar and home indicator, so the
+             device is established by the artefact rather than by a drawing of a
+             device around it. -->
+        <span class="coda__glare" aria-hidden="true"></span>
+      </div>
+
+      <!-- The playhead, as a hairline under the panel. It is the only readout
+           and it is deliberately not a scrollbar: it fills, it does not travel,
+           because what the scroll is doing here is spending a duration. -->
+      <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div>
+
+      <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .coda {
+    position: relative;
+    z-index: 1;
+    background: #04070c;
+    color: rgba(240, 246, 252, 0.92);
+  }
+
+  /* The runway is the duration. 280vh gives the ten seconds about two and a
+     half screens of scroll to spend, which lands each of the thirty frames on
+     roughly 84px of travel — slow enough to feel like a hand moving a list,
+     fast enough that nobody gets stranded in it. */
+  .coda__runway {
+    height: 280vh;
+  }
+
+  .coda__stage {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    justify-items: center;
+    height: 100svh;
+    /* The top pad clears the fixed nav rather than approximating it. At
+       default sizes the logo pill bottoms out at y=73 and the nav pill at
+       y=73; an eyebrow set at 63 lands *behind* the logo. Both annotations
+       start below 104 so the plate label reads as the stage's, not as
+       something the chrome is sitting on. */
+    padding: clamp(104px, 13vh, 132px) clamp(24px, 5vw, 80px) clamp(34px, 5vh, 60px);
+    overflow: hidden;
+  }
+
+  .coda__eyebrow {
+    justify-self: start;
+    margin: 0;
+    color: rgba(240, 246, 252, 0.4);
+    font:
+      400 10px/1.2 "DM Mono",
+      monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Sits on the same top line as the eyebrow, pulled up out of the flow, so
+     the two annotations bracket the frame rather than stacking above it. */
+  .coda__title {
+    position: absolute;
+    top: clamp(102px, 13vh, 130px);
+    right: clamp(24px, 5vw, 80px);
+    max-width: 15ch;
+    margin: 0;
+    font-size: clamp(17px, 1.5vw, 22px);
+    font-weight: 400;
+    line-height: 1.26;
+    letter-spacing: -0.02em;
+    text-align: right;
+    text-wrap: balance;
+  }
+
+  .coda__device {
+    position: relative;
+    align-self: center;
+    /* Sized off the viewport height, not its width: this is a portrait object
+       in a landscape frame, so height is the constraint that actually binds.
+       aspect-ratio does the rest, which keeps the canvas from ever being
+       letterboxed inside its own box. */
+    height: min(62svh, 560px);
+    aspect-ratio: 360 / 780;
+    border-radius: clamp(20px, 3.4svh, 34px);
+    overflow: hidden;
+    background: #0a0d12;
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.07) inset,
+      0 40px 90px -30px rgba(0, 0, 0, 0.9),
+      0 0 0 1px rgba(240, 246, 252, 0.09);
+  }
+
+  .coda__screen {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .coda__glare {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(196deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 17%, transparent 38%);
+    pointer-events: none;
+  }
+
+  .coda__track {
+    width: min(360px, 46vw);
+    height: 1px;
+    margin-top: clamp(20px, 3vh, 30px);
+    background: rgba(240, 246, 252, 0.14);
+  }
+
+  .coda__fill {
+    display: block;
+    width: 0%;
+    height: 100%;
+    background: rgba(240, 246, 252, 0.72);
+  }
+
+  .coda__note {
+    margin: 14px 0 0;
+    color: rgba(240, 246, 252, 0.34);
+    font:
+      400 9.5px/1.2 "DM Mono",
+      monospace;
+    letter-spacing: 0.07em;
+  }
+
+  .coda__note span {
+    color: rgba(240, 246, 252, 0.22);
+  }
+
+  html[data-theme="light"] .coda {
+    background: #efece4;
+    color: rgba(20, 27, 36, 0.9);
+  }
+  html[data-theme="light"] .coda__eyebrow {
+    color: rgba(20, 27, 36, 0.44);
+  }
+  html[data-theme="light"] .coda__note {
+    color: rgba(20, 27, 36, 0.42);
+  }
+  html[data-theme="light"] .coda__note span {
+    color: rgba(20, 27, 36, 0.3);
+  }
+  html[data-theme="light"] .coda__track {
+    background: rgba(20, 27, 36, 0.16);
+  }
+  html[data-theme="light"] .coda__fill {
+    background: rgba(20, 27, 36, 0.66);
+  }
+  /* The recording is a dark-mode phone screen. On cream it needs a shadow that
+     reads as an object resting on paper rather than a hole cut in it. */
+  html[data-theme="light"] .coda__device {
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.07) inset,
+      0 34px 70px -34px rgba(28, 22, 12, 0.55),
+      0 0 0 1px rgba(20, 27, 36, 0.12);
+  }
+  html[data-theme="light"] .coda__glare {
+    background: linear-gradient(196deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 17%, transparent 38%);
+  }
+
+  /* Reduced motion gets the object and no runway: one screen tall, one frame,
+     no scrub. The section still says the thing it is there to say. */
+  @media (prefers-reduced-motion: reduce) {
+    .coda__runway {
+      height: auto;
+    }
+    .coda__stage {
+      position: static;
+      height: auto;
+      min-height: 86svh;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .coda__runway {
+      height: 230vh;
+    }
+    .coda__title {
+      position: static;
+      justify-self: start;
+      max-width: 22ch;
+      margin-top: 10px;
+      text-align: left;
+    }
+    .coda__stage {
+      justify-items: start;
+    }
+    .coda__device {
+      align-self: center;
+      justify-self: center;
+      height: min(54svh, 460px);
+    }
+    .coda__track {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var sec = document.getElementById("coda");
+    var cv = document.getElementById("coda-screen");
+    var fill = document.getElementById("coda-fill");
+    if (!sec || !cv || !cv.getContext) return;
+
+    var COUNT = 30;
+    var BASE = "{{ site.baseurl }}/assets/img/coda/";
+    var ctx = cv.getContext("2d", { alpha: false });
+    var frames = new Array(COUNT);
+    var ready = 0;
+    var drawn = -1;
+    var wanted = 0;
+    var raf = 0;
+
+    /* Paint whatever is nearest to the frame we want. Early in the load the
+       later frames do not exist yet, so walking backwards to the last decoded
+       one keeps the panel showing the right *kind* of thing instead of going
+       black — a scrub that degrades into a slower scrub rather than into a
+       hole. */
+    function draw(i) {
+      var j = i;
+      while (j >= 0 && !frames[j]) j--;
+      if (j < 0 || j === drawn) return;
+      ctx.drawImage(frames[j], 0, 0, cv.width, cv.height);
+      drawn = j;
+    }
+
+    function frame() {
+      raf = 0;
+      var box = sec.getBoundingClientRect();
+      var span = box.height - window.innerHeight;
+      /* 0 while the section is still below the fold, 1 once its runway is
+         spent. Clamped at both ends so overscroll on a trackpad cannot push
+         the playhead past the last frame and snap it back. */
+      var t = span > 0 ? Math.min(1, Math.max(0, -box.top / span)) : 0;
+      wanted = Math.min(COUNT - 1, Math.floor(t * COUNT));
+      draw(wanted);
+      if (fill) fill.style.width = (t * 100).toFixed(2) + "%";
+    }
+
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(frame);
+    }
+
+    function load() {
+      for (var i = 0; i < COUNT; i++) {
+        (function (i) {
+          var im = new Image();
+          im.decoding = "async";
+          /* Eager, but explicitly at the bottom of the queue: by the time this
+             runs the visitor is already near the section, so lazy would stall
+             the first frames behind the observer a second time — and nothing
+             above this on the page is still waiting for bandwidth. */
+          im.fetchPriority = "low";
+          im.onload = function () {
+            frames[i] = im;
+            ready++;
+            /* The first arrival paints immediately so the panel is never a
+               blank rectangle; after that only repaint if this frame is the
+               one the playhead is actually sitting on. */
+            if (ready === 1 || i === wanted) {
+              drawn = -1;
+              draw(wanted);
+            }
+          };
+          im.src = BASE + "g" + (i + 1 < 10 ? "0" : "") + (i + 1) + ".jpg";
+        })(i);
+      }
+    }
+
+    var io = new IntersectionObserver(
+      function (entries) {
+        if (entries[0].isIntersecting) {
+          io.disconnect();
+          load();
+        }
+      },
+      { rootMargin: "900px 0px" }
+    );
+    io.observe(sec);
+
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      /* No runway to scrub. Show the middle of the recording — the densest
+         part of the grid — and leave it. */
+      wanted = 14;
+      if (fill) fill.style.width = "100%";
+      return;
+    }
+
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    frame();
+  })();
+</script>
