@@ -147,8 +147,8 @@
     // only has to be weather behind glass. The second ink also moved off
     // amber — warm was the last of the yellow, and it is gone.
     "  vec3 deep  = mix(vec3(0.016, 0.023, 0.043), vec3(0.945, 0.937, 0.918), u_light);",
-    "  vec3 blue  = mix(vec3(0.078, 0.121, 0.253), vec3(0.842, 0.868, 0.929), u_light);",
-    "  vec3 cool  = mix(vec3(0.152, 0.118, 0.259), vec3(0.884, 0.872, 0.906), u_light);",
+    "  vec3 blue  = mix(vec3(0.078, 0.121, 0.253), vec3(0.901, 0.919, 0.951), u_light);",
+    "  vec3 cool  = mix(vec3(0.152, 0.118, 0.259), vec3(0.936, 0.921, 0.944), u_light);",
     "  vec3 col = deep;",
     "  col = mix(col, blue, band * 0.44);",
     "  col = mix(col, cool, smoothstep(0.66, 1.06, f) * (0.16 + abs(u_vel) * 0.24));",
@@ -156,7 +156,7 @@
     "  float spec = pow(max(0.0, 1.0 - length(p - vec2(u_mouse.x * 0.5, u_mouse.y * 0.35))), 3.2);",
     "  col += mix(vec3(0.022, 0.028, 0.044), vec3(0.0), u_light) * spec;",
     "  float vig = smoothstep(1.35, 0.25, length(p));",
-    "  col *= mix(mix(0.52, 1.0, vig), mix(0.90, 1.0, vig), u_light);",
+    "  col *= mix(mix(0.52, 1.0, vig), mix(0.962, 1.0, vig), u_light);",
     "  col += (grain(uv, u_time) - 0.5) * 0.016;",
     "  gl_FragColor = vec4(col, 1.0);",
     "}",

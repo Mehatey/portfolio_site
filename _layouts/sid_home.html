@@ -712,8 +712,15 @@
       .film.is-gl canvas {
         opacity: 0.92;
       }
+      /* Dark footage laid over cream at a flat opacity is not a light
+         mode, it is a grey smear — the frame loses its hue and reads as
+         dirt on the page. Lifting the blacks first and then multiplying
+         keeps the cream showing through the highlights, so the film
+         reads as a pale print of itself instead of fog. */
       html[data-theme="light"] .film.is-gl canvas {
-        opacity: 0.4;
+        opacity: 0.66;
+        mix-blend-mode: multiply;
+        filter: brightness(2.1) contrast(0.72) saturate(1.28);
       }
       .film__still {
         object-fit: cover;
@@ -724,7 +731,9 @@
         opacity: 0.5;
       }
       html[data-theme="light"] .film.is-static .film__still {
-        opacity: 0.24;
+        opacity: 0.66;
+        mix-blend-mode: multiply;
+        filter: brightness(2.1) contrast(0.72) saturate(1.28);
       }
       .film.is-static video,
       .film.is-static canvas {
@@ -829,26 +838,45 @@
           grid-template-columns: 1fr;
         }
       }
+      /* The portrait is a background-free cutout, so this slot has to
+         supply its own room: a dark plate, a calibration grid, and a
+         floor glow under the feet. Without a ground a transparent PNG
+         just floats on the page and the CRT wake-up reads as nothing. */
       .ide__photo {
         position: relative;
         overflow: hidden;
         border-radius: 14px;
         aspect-ratio: 4 / 5;
-        background: rgba(255, 255, 255, 0.03);
+        background:
+          linear-gradient(0deg, rgba(160, 200, 255, 0.09), rgba(160, 200, 255, 0) 46%),
+          radial-gradient(78% 50% at 50% 92%, rgba(160, 200, 255, 0.16), rgba(160, 200, 255, 0) 72%),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0) 1px 34px),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0) 1px 34px),
+          linear-gradient(180deg, #0a0f1a 0%, #05080f 100%);
+      }
+      html[data-theme="light"] .ide__photo {
+        background:
+          linear-gradient(0deg, rgba(52, 92, 168, 0.1), rgba(52, 92, 168, 0) 46%),
+          radial-gradient(78% 50% at 50% 92%, rgba(52, 92, 168, 0.13), rgba(52, 92, 168, 0) 72%),
+          repeating-linear-gradient(90deg, rgba(22, 32, 52, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 34px),
+          repeating-linear-gradient(0deg, rgba(22, 32, 52, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 34px), linear-gradient(180deg, #e2e0d6 0%, #c9cac5 100%);
       }
       .ide__photo img {
         display: block;
+        position: relative;
+        z-index: 1;
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        filter: grayscale(1) contrast(1.14) brightness(0.68);
+        object-fit: contain;
+        object-position: 50% 100%;
+        filter: grayscale(1) contrast(1.14) brightness(0.6) drop-shadow(0 14px 22px rgba(0, 0, 0, 0.34));
         transform: scale(1.045);
         transition:
           filter 900ms ease,
           transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       .ide.is-live .ide__photo img {
-        filter: grayscale(0) contrast(1.02) brightness(0.98);
+        filter: grayscale(0) contrast(1.02) brightness(1) drop-shadow(0 20px 30px rgba(0, 0, 0, 0.3));
         transform: scale(1);
       }
       /* the CRT pass: standing scanlines, plus one bar that sweeps down
@@ -1552,18 +1580,20 @@
         <div class="sec-head rv"><span>02</span><span class="rule"></span><span id="how-h">How I think</span></div>
         <figure class="ide rv" id="ide">
           <div class="ide__photo">
-            <!-- This slot shipped al-folio's stock template portrait — a
-                 black-and-white photograph of Albert Einstein — under the
-                 filename sid_about_pf.webp and the alt text "Sid Mehta at
-                 his desk". It survived because the CSS starts the image at
-                 grayscale(1) brightness(0.68), so at rest it reads as a
-                 dim archival texture rather than as a face you recognise.
-                 The file now holds Sid: the same shoot /about/ already
-                 uses, rotated upright and cropped to the 4:5 slot. The
-                 hover payoff is better for it — grayscale(1) → grayscale(0)
-                 on a colour photograph is the screen actually switching on,
-                 which is what the caption below has always promised. -->
-            <img src="{{ site.baseurl }}/assets/img/sid_about_pf.webp" alt="Sid Mehta" loading="lazy" decoding="async" />
+            <!-- Central Park, blue jacket, blue cap, background removed.
+                 /about/ already spends the grey-backdrop studio shoot, and
+                 running the same frame twice on one scroll made the page
+                 feel shorter than it is. This one is a cutout standing in
+                 the plate above, so grayscale(1) → grayscale(0) reads as
+                 the screen finding him rather than a photo fading up. -->
+            <img
+              src="{{ site.baseurl }}/assets/img/home/sid-how.webp"
+              alt="Sid Mehta in Central Park"
+              width="1200"
+              height="1500"
+              loading="lazy"
+              decoding="async"
+            />
           </div>
           <div class="ide__panel" aria-hidden="true">
             <div class="ide__bar"><b></b><b></b><b></b><em>design.principles.ts</em></div>
