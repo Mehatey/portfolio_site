@@ -239,14 +239,25 @@
      "Open to roles" chip, the "Selected work" link and the reel button with
      nothing but the UA default — a 1px near-black outline, on a near-black
      page. Invisible. This is the floor, defined once where every layout
-     already includes it; pages with a stronger ring still override it. */
+     already includes it; pages with a stronger ring still override it.
+
+     `video` was the gap. It is not a link, a button or a [tabindex] — it is
+     focusable purely because it carries `controls`, so it fell through every
+     selector in this list while still taking two tab stops apiece (the
+     element, then its shadow-DOM control bar). On /ai-prototypes/ that is
+     ten consecutive stops with no ring at all: a keyboard user tabbing the
+     page simply loses the caret for a third of it. `audio` and `iframe` are
+     here for the same reason, before they become the next version of it. */
   a:focus-visible,
   button:focus-visible,
   summary:focus-visible,
   [tabindex]:focus-visible,
   input:focus-visible,
   textarea:focus-visible,
-  select:focus-visible {
+  select:focus-visible,
+  video:focus-visible,
+  audio:focus-visible,
+  iframe:focus-visible {
     outline: 2px solid rgba(140, 200, 255, 0.75);
     outline-offset: 3px;
     border-radius: 3px;
@@ -257,13 +268,115 @@
   html[data-theme="light"] [tabindex]:focus-visible,
   html[data-theme="light"] input:focus-visible,
   html[data-theme="light"] textarea:focus-visible,
-  html[data-theme="light"] select:focus-visible {
+  html[data-theme="light"] select:focus-visible,
+  html[data-theme="light"] video:focus-visible,
+  html[data-theme="light"] audio:focus-visible,
+  html[data-theme="light"] iframe:focus-visible {
     outline-color: rgba(24, 68, 140, 0.7);
   }
   /* Mouse users should never see it; a bare :focus rule would flash the ring
      on every click on the custom-cursor pages. */
   :focus:not(:focus-visible) {
     outline: none;
+  }
+
+  /* ── OUTBOUND ARROW ────────────────────────────────────────────────────
+     Every link on this site that leaves the page ends in a ↗, and until now
+     that arrow was a literal character sitting in the label — which means it
+     was the one part of the link that could not move. The links themselves
+     are careful: the contact row draws its rule in from the left, the about
+     actions lift. The arrow just sat there through all of it, and a mark that
+     stays put while everything around it responds reads as a typo rather than
+     as restraint.
+
+     So the glyph becomes a slot instead: a square the size of the text, with
+     the arrow inside it and a second copy of the arrow waiting one diagonal
+     step down and to the left, outside the clip. On hover the pair travels
+     along that diagonal together — the first arrow leaves through the top-
+     right corner exactly as the second arrives in its place. It is the same
+     move the arrow itself describes, performed by the arrow, and it costs two
+     pseudo-elements and no markup beyond an empty span.
+
+     The diagonal is 110% rather than 100% so both glyphs are fully outside
+     the box at the midpoint and the swap never shows two arrows at once. The
+     easing is the site's own 0.16/1/0.3/1, and it runs on :focus-visible as
+     well as :hover so a keyboard walk sees the same thing a cursor does.
+
+     Written here, in the one include every layout carries, because the same
+     arrow appears on contact, about, the project pages and the reels — this
+     is the class they can all reach for. */
+  .xarrow {
+    display: inline-block;
+    position: relative;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.34em;
+    overflow: hidden;
+    vertical-align: -0.08em;
+    line-height: 1;
+  }
+  .xarrow::before,
+  .xarrow::after {
+    content: "↗";
+    position: absolute;
+    inset: 0;
+    display: block;
+    text-align: center;
+    line-height: 1em;
+    font-size: 0.94em;
+    transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .xarrow::after {
+    transform: translate(-110%, 110%);
+  }
+  /* Keyed to the DIRECT parent rather than to `a` or `button`, because a third
+     of the arrows on this site hang off neither: the reels on /ai-prototypes/
+     open through `<span data-href>` handlers, and those were about to be the
+     only outbound marks that stayed still. `:hover >` is the honest expression
+     of the rule — the arrow answers to the thing it is inside, whatever that
+     thing happens to be — and it keeps ancestor hovers from firing it. */
+  :hover > .xarrow::before,
+  :focus-visible > .xarrow::before {
+    transform: translate(110%, -110%);
+  }
+  :hover > .xarrow::after,
+  :focus-visible > .xarrow::after {
+    transform: translate(0, 0);
+  }
+  /* The same slot, turned on its side, for the arrows that mean "onward" rather
+     than "away": the works CTA, the 404 escape hatches, the home index row, the
+     loader's enter button. Those all point → instead of ↗, so the handoff runs
+     along the horizontal rather than the diagonal — the arrow still leaves in
+     exactly the direction it is pointing, which is the whole idea.
+
+     Wider than the diagonal slot because → is a wider glyph than ↗ and a 1em
+     box clips its tail. Declared after the base rules so the identical-
+     specificity overrides land; the travel is 120% so the outgoing mark is
+     fully clear of the box before the incoming one arrives. */
+  .xarrow--right {
+    width: 1.15em;
+  }
+  .xarrow--right::before,
+  .xarrow--right::after {
+    content: "→";
+  }
+  .xarrow--right::after {
+    transform: translate(-120%, 0);
+  }
+  :hover > .xarrow--right::before,
+  :focus-visible > .xarrow--right::before {
+    transform: translate(120%, 0);
+  }
+  :hover > .xarrow--right::after,
+  :focus-visible > .xarrow--right::after {
+    transform: translate(0, 0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .xarrow::before,
+    .xarrow::after {
+      transition-duration: 1ms;
+    }
   }
 </style> <style>
       html,
@@ -503,8 +616,22 @@
           radial-gradient(260px 180px at 28% 0%, rgba(255, 255, 255, 0.2), transparent 68%),
           linear-gradient(135deg, rgba(222, 242, 255, 0.18), rgba(11, 14, 22, 0.52));
         border: 1px solid rgba(220, 240, 255, 0.3);
-        backdrop-filter: blur(18px) saturate(1.22);
-        -webkit-backdrop-filter: blur(18px) saturate(1.22);
+        /* No backdrop-filter here. It used to carry blur(18px) saturate(1.22),
+           which sounds right for a glass card and does nothing at all in
+           practice: a blur can only show itself where there is high-frequency
+           detail behind it to smear, and what is behind this card is the smoke
+           background — a wide, soft, near-flat gradient that looks identical
+           blurred. Measured on and off, in both themes, and again with the
+           photo forced to 50% opacity to simulate the mid-crossfade worst
+           case: the largest difference anywhere in the 410×513 card was 6/255,
+           across 46 pixels. Invisible.
+
+           It was not free, though. The card tilts on pointermove, so the
+           compositor was re-running an 18px blur plus a saturate over the
+           whole card on every frame of every mouse movement across it, to
+           produce a picture nobody could tell from the one without it. The
+           glass here is doing its work through the gradient, the inset
+           highlights and the shine sweep, all of which are visible. */
         box-shadow:
           0 32px 92px rgba(0, 0, 0, 0.28),
           inset 0 1px 0 rgba(255, 255, 255, 0.34),
@@ -1979,11 +2106,36 @@
     tick();
   })();
 </script> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="logo-depth" x="10" y="10" width="20" height="20" rx="2.4" fill="#0a111c" stroke="currentColor" stroke-opacity="0.3" stroke-width="1.2"></rect> <rect class="cube-face cube-top" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <rect class="cube-face cube-right" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <rect class="cube-front" x="6.5" y="6.5" width="20" height="20" rx="2.4"></rect> <g class="logo-gaze"> <rect class="logo-eye" x="12.15" y="13.4" width="1.7" height="7.2" rx="0.85" fill="#e7f1ff"></rect> <rect class="logo-eye" x="19.15" y="13.4" width="1.7" height="7.2" rx="0.85" fill="#e7f1ff"></rect> </g> <path class="logo-scan" d="M12.4 24h8.2"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link" href="/works/" aria-label="Work"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> <span><b data-roll="Work">Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> <span><b data-roll="Play">Play</b></span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="11" y="2" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="11" y="16" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__ray" x="2" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="11" width="6" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="6" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="6" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__ray" x="16" y="16" width="2" height="2" rx="1"></rect> <rect class="nav-pixel__core" x="9" y="9" width="6" height="6" rx="2"></rect> </svg> <span><b data-roll="Contact">Contact</b></span> </a> <a class="studio-link is-active" href="/about/" aria-label="About"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> <span><b data-roll="About">About</b></span> </a> <a class="studio-hire" href="mailto:sidmehtadesign@gmail.com" aria-label="Open to roles — email Sid Mehta"> <span class="studio-hire__dot" aria-hidden="true"></span> <span class="studio-hire__label"><b data-roll="Say hello →">Open to roles</b></span> </a> </nav> </header> <style>
+  /* The bar is pinned to the viewport edges, which is right up to about
+     1600px and wrong above it. Every page on this site lays its content out
+     on a measure — --content-max is 1440, /about/ narrower still — and
+     centres it. The header did not participate. At 2560 the mark sat at
+     x=40 while "Selected work" began at x=563, and the links capsule ended
+     at x=2520 against a content edge at x=1997: five hundred pixels of bare
+     viewport on each side, with the two heaviest objects on the page parked
+     out in it. It read as browser chrome rather than as part of the page —
+     the one thing this nav was built not to look like.
+
+     So give it the same measure the content has, plus 120px, so it frames
+     the column rather than aligning flush to it: the mark sits just outside
+     the first character of the heading, the capsule just outside the right
+     edge of the preview. The +120 is what keeps it reading as a header over
+     a page instead of as a table of contents pretending to be one.
+
+     Auto margins on a fixed box with both left and right resolved split the
+     leftover space equally, so this centres without a transform and without
+     a wrapper element. And because the inset clamp already tops out at 40px,
+     the constraint is inert below ~1640px — at 1440 and 1280 the computed
+     box is unchanged to the pixel. The scrim is a separate fixed layer at
+     inset: 0 0 auto 0 and stays full-bleed, which is correct: the dimming
+     covers the whole band, only the objects are on the measure. */
   .studio-nav {
     --nav-ink: #f5f7fb;
     position: fixed;
     z-index: 9000;
     inset: 22px clamp(18px, 2.5vw, 40px) auto;
+    max-width: calc(var(--content-max, 1440px) + 120px);
+    margin-inline: auto;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -2783,6 +2935,170 @@
       transition-duration: 1ms !important;
     }
   }
+
+  /* ── THE MARK ACTUALLY OPENS ───────────────────────────────────────────
+     site_logo.html says, at the top of the file, that the mark "rests as a
+     layered cube-of-creation with a quiet two-eye face, then assembles +
+     spins into a full cube on hover." It has never done the second half.
+     The choreography exists — three faces, a scan line, a 360° turn — and
+     it lives in cursor_fluid.html scoped to `.nav > a:hover`. There is no
+     `.nav` on this site and has not been for months; it is the same corpse
+     as the `.nav .nav-links` glass rules the LIQUID GLASS note further up
+     already records as painting nothing. So the biggest, most-clicked
+     target in the header answers the cursor with a 0.88 → 1 opacity nudge
+     on its wordmark and a 1.1 scaleY on a 1.7px-wide eye. That is not a
+     hover state, it is a rounding error.
+
+     Two other things fall out of the same fault. The extra faces and the
+     scan line are only switched off by cursor_fluid, and cursor_fluid is
+     not included by sid_home — so on the home page alone, `.cube-top` and
+     `.cube-right` paint at full strength directly on top of `.cube-front`
+     (identical geometry, their separating transforms also live in
+     cursor_fluid), trebling the stroke, and `.logo-scan` sits visible at
+     0.82 where every other page hides it. The mark is quietly a different
+     mark on the front page.
+
+     Both are fixed by moving the whole thing here, into the file that owns
+     the nav and is included wherever the nav is. Selectors are written
+     `.studio-mark .logo-cube …` — three classes — so they outrank
+     cursor_fluid's two-class copies on the pages that load both, whatever
+     order the includes land in.
+
+     The one change of substance: perspective. The original spun a flat SVG
+     with none, and orthographically a rotateY is not a turn — it is a
+     horizontal squash and un-squash, the flat fake of a card flip. It has
+     to be the `perspective()` function inside the transform list, not the
+     `perspective` property: the property applies a camera to an element's
+     CHILDREN, and the rotation here is on the cube itself, so the property
+     would sit there measuring nothing. 340px on a 42px glyph is a close,
+     strong camera — the leading edge genuinely comes at you and the
+     trailing one recedes. It is a cube; it should turn like one. */
+  .studio-mark .logo-cube .cube-face {
+    fill: currentColor;
+    fill-opacity: 0;
+    stroke: currentColor;
+    stroke-width: 1.35;
+    stroke-linejoin: round;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    transition:
+      opacity 0.42s var(--ease-out),
+      transform 0.42s var(--ease-out),
+      fill-opacity 0.42s ease;
+  }
+  .studio-mark .logo-cube .cube-top {
+    transform: translateY(1.8px);
+  }
+  .studio-mark .logo-cube .cube-right {
+    transform: translateX(-1.8px);
+  }
+
+  /* Drawn, not faded: dashoffset runs the stroke across the face from one
+     side, which is what makes it read as something sweeping rather than
+     something appearing. */
+  .studio-mark .logo-cube .logo-scan {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.1;
+    stroke-linecap: round;
+    stroke-dasharray: 15 22;
+    stroke-dashoffset: 15;
+    opacity: 0;
+    transition:
+      opacity 0.3s ease,
+      stroke-dashoffset 0.55s var(--ease-out);
+  }
+
+  .studio-mark:hover .logo-cube,
+  .studio-mark:focus-visible .logo-cube {
+    transform: perspective(340px) translateY(-1px) rotateY(360deg) scale(1.075);
+    color: rgba(206, 228, 255, 0.98);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.34)) drop-shadow(0 0 16px rgba(150, 200, 255, 0.42));
+  }
+  .studio-mark:hover .logo-cube .cube-face,
+  .studio-mark:focus-visible .logo-cube .cube-face {
+    opacity: 0.82;
+    fill-opacity: 0.16;
+  }
+  .studio-mark:hover .logo-cube .cube-top,
+  .studio-mark:focus-visible .logo-cube .cube-top {
+    transform: translateY(0);
+  }
+  .studio-mark:hover .logo-cube .cube-right,
+  .studio-mark:focus-visible .logo-cube .cube-right {
+    transform: translateX(0);
+  }
+  .studio-mark:hover .logo-cube .logo-scan,
+  .studio-mark:focus-visible .logo-cube .logo-scan {
+    opacity: 0.72;
+    stroke-dashoffset: 0;
+  }
+
+  /* A full turn is exactly the kind of motion this switch exists for. Hold
+     the assembled faces and the drawn scan — those are information, not
+     decoration — and drop only the spin and the lift. */
+  @media (prefers-reduced-motion: reduce) {
+    .studio-mark .logo-cube .logo-scan {
+      transition-duration: 1ms !important;
+    }
+    .studio-mark:hover .logo-cube,
+    .studio-mark:focus-visible .logo-cube {
+      transform: none;
+    }
+  }
+
+  /* The turn had a transition; the colour and the shadow did not, so they
+     snapped while the cube was still coming round. Same rule as line ~150,
+     later in the same block, so it simply replaces it. */
+  .studio-mark .logo-cube {
+    transition:
+      transform 560ms cubic-bezier(0.16, 1, 0.3, 1),
+      color 300ms ease,
+      filter 300ms ease;
+  }
+
+  /* ── AND IT HAS TO SURVIVE THE LIGHT THEME ─────────────────────────────
+     Two separate faults, both only visible on cream, and they are opposite
+     faults — which is what made them worth chasing rather than patching.
+
+     On every page that loads cursor_fluid, `html[data-theme="light"]
+     .logo-cube { color: … !important }` pins the mark's ink, so the hover
+     colour never lands at all: the cube assembles, turns, draws its scan,
+     and stays exactly the shade it started. The deeper blue that was meant
+     to arrive with it — rgba(27, 67, 135, 1) — sits four lines below that
+     rule scoped to `.nav > a:hover`, dead in the same way and for the same
+     reason as everything else that used to hang off `.nav`.
+
+     On the home page, which does not load cursor_fluid, there is no
+     !important and so the dark-theme hover colour wins instead. That colour
+     is rgba(206, 228, 255, 0.98) — a pale blue built to read against a dark
+     page. The cube's strokes are `stroke: currentColor` and the capsule
+     under them is near-white glass on cream. Hovering the mark on the front
+     page in light mode was, in effect, erasing it.
+
+     So: state the light hover here, where the nav lives and every page can
+     reach it, and carry the !important only because the base rule it has to
+     outrank carries one. The colour goes the right way — deeper and more
+     saturated than at rest, which is what "you are about to click this"
+     looks like on a pale ground; on dark it stays the pale blue, for the
+     same reason inverted. The filter is rebuilt too: the dark hover stacks
+     three black drop-shadows and a blue bloom, which on cream reads as
+     grime around the glyph rather than lift. One soft blue-grey shadow is
+     enough over white glass. */
+  html[data-theme="light"] .studio-mark:hover .logo-cube,
+  html[data-theme="light"] .studio-mark:focus-visible .logo-cube {
+    color: rgba(23, 60, 126, 1) !important;
+    filter: drop-shadow(0 2px 6px rgba(30, 56, 84, 0.26)) drop-shadow(0 0 14px rgba(120, 165, 220, 0.3));
+  }
+  html[data-theme="light"] .studio-mark .logo-cube .cube-face {
+    stroke-width: 1.25;
+  }
+  html[data-theme="light"] .studio-mark:hover .logo-cube .cube-face,
+  html[data-theme="light"] .studio-mark:focus-visible .logo-cube .cube-face {
+    opacity: 0.72;
+    fill-opacity: 0.1;
+  }
 </style> <script>
   /* The highlight has to follow the pointer for the surface to read as curved.
      Tracked on the capsule itself rather than on the window, so it costs
@@ -2828,7 +3144,7 @@
     );
     read();
   })();
-</script> <main class="about-page" id="main"> <section class="about-hero"> <div class="hero-bio-col"> <p class="about-eyebrow">New York, NY</p> <h1 class="about-name">Sid Mehta</h1> <p class="about-role">Product designer &amp; creative technologist</p> <p class="about-bio"> I design product systems and spatial experiences that make complex technology feel clear, useful, and human.<br><br> Previously at Deloitte Digital, EyeJack, and Philips; recognized by the Webby Awards, Kyoorius, and MIT Reality Hack. </p> <div class="about-actions"> <a href="/works/" class="about-action">Selected work ↗</a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer" class="about-action about-resume-link">Resume ↗<span class="sr-only"> (opens in a new tab)</span></a> </div> </div> <div class="hero-ident"> <div class="about-profile-card" id="about-profile-card" tabindex="0" role="button" aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."> <img class="about-photo active" src="/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta"> <img class="about-photo" src="/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta"> <div class="about-card-meta" aria-hidden="true"> <strong>Sid Mehta</strong><span>New York<br>Open to roles</span> </div> </div> </div> </section> <section class="marquee marquee--companies" aria-labelledby="collaborators-heading"> <h2 class="marquee-kicker" id="collaborators-heading">Past collaborators</h2> <p class="sr-only"> Past collaborators include Deloitte, EyeJack, Philips, Marriott, M Health Fairview, Leaf Design Studio, Dabur, KFC, Google, Pizza Hut, Taco Bell, and Del Taco. </p> <div class="marquee-mask"> <div class="marquee-track" aria-hidden="true"> <span class="m-logo" style="--h: 28px" title="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px" title="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px" title="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px" title="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px" title="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px" title="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ink: 1.42" title="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px" title="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px" title="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px" title="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px" title="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px" title="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 28px" title="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px" title="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px" title="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px" title="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px" title="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px" title="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ink: 1.42" title="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px" title="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px" title="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px" title="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px" title="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px" title="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span> </div> </div> </section> <div class="about-grid" id="about-grid"> <div class="gcol" data-reveal> <h2 class="g-label">Experience</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Senior UX Designer</span> <span class="exp-co">Deloitte Digital</span> </div> <span class="exp-yr">2022–23</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Product Designer</span> <span class="exp-co">EyeJack</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Visual Designer</span> <span class="exp-co">Leaf Design Studio</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">UX Designer</span> <span class="exp-co">Philips</span> </div> <span class="exp-yr">2020</span> </li> </ul> <h2 class="g-label" style="margin-top: 36px">Education</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">MFA Design &amp; Technology</span> <span class="exp-co">Parsons · The New School</span> </div> <span class="exp-yr">2024–2026</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">BDes Communication Design</span> <span class="exp-co">Indian School of Design and Innovation, Mumbai</span> </div> <span class="exp-yr">2019</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Recognition</h2> <ul class="recog-list"> <li class="recog-item"> <span class="recog-name">Webby Award · Best Use of AR, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Webby Award · Best Community Engagement, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">MIT Reality Hack</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Kyoorius Design Award, Mool</span> <span class="recog-yr">2021</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Capabilities</h2> <div class="cap-tags"> <span class="cap-tag" data-reveal>Product Design</span> <span class="cap-tag" data-reveal>UX Research</span> <span class="cap-tag" data-reveal>AR / XR</span> <span class="cap-tag" data-reveal>Unity</span> <span class="cap-tag" data-reveal>Figma</span> <span class="cap-tag" data-reveal>TouchDesigner</span> <span class="cap-tag" data-reveal>Unreal Engine</span> <span class="cap-tag" data-reveal>JavaScript</span> <span class="cap-tag" data-reveal>Python</span> <span class="cap-tag" data-reveal>Branding</span> <span class="cap-tag" data-reveal>Arduino</span> <span class="cap-tag" data-reveal>Premiere Pro</span> </div> <h2 class="g-label">Currently</h2> <dl class="now-list"> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 1.6c-2.4 0-4.3 1.9-4.3 4.3 0 3.2 4.3 8.5 4.3 8.5s4.3-5.3 4.3-8.5c0-2.4-1.9-4.3-4.3-4.3z"></path> <circle class="now-dot" cx="8" cy="5.9" r="1.6"></circle> </svg> <span class="sr-only">Based in</span> </dt> <dd>Brooklyn, New York</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <circle cx="8" cy="8" r="6.1"></circle> <path class="now-hand" d="M8 4.4V8l2.6 1.6"></path> </svg> <span class="sr-only">Local time</span> </dt> <dd><span id="now-clock">Eastern Time</span></dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M2 5.4h12v8H2z"></path> <path class="now-hand" d="M6 5.4V3.4h4v2"></path> </svg> <span class="sr-only">Availability</span> </dt> <dd>Open to remote, hybrid, or relocating</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 2.4 14.4 5.8 8 9.2 1.6 5.8z"></path> <path class="now-hand" d="M4.4 7.4v3.2c0 1 1.6 1.9 3.6 1.9s3.6-.9 3.6-1.9V7.4"></path> </svg> <span class="sr-only">Studying</span> </dt> <dd>MFA Design &amp; Technology, Parsons</dd> </div> </dl> </div> </div> <div class="faq-section"> <h2 class="g-label">Working together</h2> <div class="faq-list"> <details class="faq-item" data-reveal> <summary>Which project taught you the most?</summary> <div class="faq-panel"> <div> <p> Mool. Designing a banking app for users new to digital meant unlearning every shortcut I'd taken in design. Every interaction had to earn its place. It rewired how I think about clarity. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What kind of team brings out your best work?</summary> <div class="faq-panel"> <div> <p> Small. Curious. People who can hold strong opinions loosely. I do my best work when there's room to prototype before there's a brief, and a team that treats design as part of the thinking, not the polish at the end. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What do you do when you're stuck?</summary> <div class="faq-panel"> <div> <p> I leave the screen. Most of my best ideas have come on a walk, in the shower, or while drawing in a sketchbook. The wall is usually a sign I haven't gone wide enough on the inputs yet. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What's the one thing you wish people asked more?</summary> <div class="faq-panel"> <div> <p> Why I make. Cube, mandalas, the AR work, the bank, the small daily illustrations. They all come from the same place: a curiosity about how design can shift the way people feel about themselves and the world. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Lead end-to-end or join mid-sprint?</summary> <div class="faq-panel"> <div> <p> Both. I've shipped solo projects from concept to install, and I've joined product teams to translate research into flows. Async-friendly, comfortable across timezones, fast at finding the shape of a problem. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Where are you based?</summary> <div class="faq-panel"> <div><p>Brooklyn, NYC. Eastern Time. Open to remote, hybrid, or relocating for the right team.</p></div> </div> </details> </div> </div> </main> <style>
+</script> <main class="about-page" id="main"> <section class="about-hero"> <div class="hero-bio-col"> <p class="about-eyebrow">New York, NY</p> <h1 class="about-name">Sid Mehta</h1> <p class="about-role">Product designer &amp; creative technologist</p> <p class="about-bio"> I design product systems and spatial experiences that make complex technology feel clear, useful, and human.<br><br> Previously at Deloitte Digital, EyeJack, and Philips; recognized by the Webby Awards, Kyoorius, and MIT Reality Hack. </p> <div class="about-actions"> <a href="/works/" class="about-action">Selected work<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer" class="about-action about-resume-link">Resume<span class="xarrow" aria-hidden="true"></span><span class="sr-only"> (opens in a new tab)</span></a> </div> </div> <div class="hero-ident"> <div class="about-profile-card" id="about-profile-card" tabindex="0" role="button" aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."> <img class="about-photo active" src="/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta"> <img class="about-photo" src="/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta"> <div class="about-card-meta" aria-hidden="true"> <strong>Sid Mehta</strong><span>New York<br>Open to roles</span> </div> </div> </div> </section> <section class="marquee marquee--companies" aria-labelledby="collaborators-heading"> <h2 class="marquee-kicker" id="collaborators-heading">Past collaborators</h2> <p class="sr-only"> Past collaborators include Deloitte, EyeJack, Philips, Marriott, M Health Fairview, Leaf Design Studio, Dabur, KFC, Google, Pizza Hut, Taco Bell, and Del Taco. </p> <div class="marquee-mask"> <div class="marquee-track" aria-hidden="true"> <span class="m-logo" style="--h: 28px" title="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px" title="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px" title="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px" title="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px" title="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px" title="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ink: 1.42" title="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px" title="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px" title="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px" title="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px" title="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px" title="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 28px" title="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px" title="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px" title="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px" title="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px" title="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px" title="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ink: 1.42" title="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px" title="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px" title="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px" title="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px" title="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px" title="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" loading="lazy" decoding="async"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" loading="lazy" decoding="async"></span><span class="m-sep">◇</span> </div> </div> </section> <div class="about-grid" id="about-grid"> <div class="gcol" data-reveal> <h2 class="g-label">Experience</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Senior UX Designer</span> <span class="exp-co">Deloitte Digital</span> </div> <span class="exp-yr">2022–23</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Product Designer</span> <span class="exp-co">EyeJack</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Visual Designer</span> <span class="exp-co">Leaf Design Studio</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">UX Designer</span> <span class="exp-co">Philips</span> </div> <span class="exp-yr">2020</span> </li> </ul> <h2 class="g-label" style="margin-top: 36px">Education</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">MFA Design &amp; Technology</span> <span class="exp-co">Parsons · The New School</span> </div> <span class="exp-yr">2024–2026</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">BDes Communication Design</span> <span class="exp-co">Indian School of Design and Innovation, Mumbai</span> </div> <span class="exp-yr">2019</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Recognition</h2> <ul class="recog-list"> <li class="recog-item"> <span class="recog-name">Webby Award · Best Use of AR, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Webby Award · Best Community Engagement, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">MIT Reality Hack</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Kyoorius Design Award, Mool</span> <span class="recog-yr">2021</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Capabilities</h2> <div class="cap-tags"> <span class="cap-tag" data-reveal>Product Design</span> <span class="cap-tag" data-reveal>UX Research</span> <span class="cap-tag" data-reveal>AR / XR</span> <span class="cap-tag" data-reveal>Unity</span> <span class="cap-tag" data-reveal>Figma</span> <span class="cap-tag" data-reveal>TouchDesigner</span> <span class="cap-tag" data-reveal>Unreal Engine</span> <span class="cap-tag" data-reveal>JavaScript</span> <span class="cap-tag" data-reveal>Python</span> <span class="cap-tag" data-reveal>Branding</span> <span class="cap-tag" data-reveal>Arduino</span> <span class="cap-tag" data-reveal>Premiere Pro</span> </div> <h2 class="g-label">Currently</h2> <dl class="now-list"> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 1.6c-2.4 0-4.3 1.9-4.3 4.3 0 3.2 4.3 8.5 4.3 8.5s4.3-5.3 4.3-8.5c0-2.4-1.9-4.3-4.3-4.3z"></path> <circle class="now-dot" cx="8" cy="5.9" r="1.6"></circle> </svg> <span class="sr-only">Based in</span> </dt> <dd>Brooklyn, New York</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <circle cx="8" cy="8" r="6.1"></circle> <path class="now-hand" d="M8 4.4V8l2.6 1.6"></path> </svg> <span class="sr-only">Local time</span> </dt> <dd><span id="now-clock">Eastern Time</span></dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M2 5.4h12v8H2z"></path> <path class="now-hand" d="M6 5.4V3.4h4v2"></path> </svg> <span class="sr-only">Availability</span> </dt> <dd>Open to remote, hybrid, or relocating</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 2.4 14.4 5.8 8 9.2 1.6 5.8z"></path> <path class="now-hand" d="M4.4 7.4v3.2c0 1 1.6 1.9 3.6 1.9s3.6-.9 3.6-1.9V7.4"></path> </svg> <span class="sr-only">Studying</span> </dt> <dd>MFA Design &amp; Technology, Parsons</dd> </div> </dl> </div> </div> <div class="faq-section"> <h2 class="g-label">Working together</h2> <div class="faq-list"> <details class="faq-item" data-reveal> <summary>Which project taught you the most?</summary> <div class="faq-panel"> <div> <p> Mool. Designing a banking app for users new to digital meant unlearning every shortcut I'd taken in design. Every interaction had to earn its place. It rewired how I think about clarity. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What kind of team brings out your best work?</summary> <div class="faq-panel"> <div> <p> Small. Curious. People who can hold strong opinions loosely. I do my best work when there's room to prototype before there's a brief, and a team that treats design as part of the thinking, not the polish at the end. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What do you do when you're stuck?</summary> <div class="faq-panel"> <div> <p> I leave the screen. Most of my best ideas have come on a walk, in the shower, or while drawing in a sketchbook. The wall is usually a sign I haven't gone wide enough on the inputs yet. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What's the one thing you wish people asked more?</summary> <div class="faq-panel"> <div> <p> Why I make. Cube, mandalas, the AR work, the bank, the small daily illustrations. They all come from the same place: a curiosity about how design can shift the way people feel about themselves and the world. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Lead end-to-end or join mid-sprint?</summary> <div class="faq-panel"> <div> <p> Both. I've shipped solo projects from concept to install, and I've joined product teams to translate research into flows. Async-friendly, comfortable across timezones, fast at finding the shape of a problem. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Where are you based?</summary> <div class="faq-panel"> <div><p>Brooklyn, NYC. Eastern Time. Open to remote, hybrid, or relocating for the right team.</p></div> </div> </details> </div> </div> </main> <style>
   .site-footer {
     position: relative;
     z-index: 5;
@@ -4447,30 +4763,12 @@
       transform: scaleY(0.08);
     }
   }
-  .nav > a:hover .logo-cube,
-  .nav > a:focus-visible .logo-cube {
-    transform: translateY(-1px) rotateY(360deg) scale(1.075) !important;
-    color: rgba(206, 228, 255, 0.98);
-    filter: none;
-  }
-  .nav > a:hover .logo-cube .cube-face,
-  .nav > a:focus-visible .logo-cube .cube-face {
-    opacity: 0.82;
-    fill-opacity: 0.16;
-  }
-  .nav > a:hover .logo-cube .cube-top,
-  .nav > a:focus-visible .logo-cube .cube-top {
-    transform: translateY(0);
-  }
-  .nav > a:hover .logo-cube .cube-right,
-  .nav > a:focus-visible .logo-cube .cube-right {
-    transform: translateX(0);
-  }
-  .nav > a:hover .logo-cube .logo-scan,
-  .nav > a:focus-visible .logo-cube .logo-scan {
-    opacity: 0.72;
-    stroke-dashoffset: 0;
-  }
+  /* The mark's hover choreography used to live here, scoped to
+     `.nav > a:hover`. There is no `.nav` element on this site — the header
+     is `.studio-nav > .studio-mark` — so none of it ever ran, exactly like
+     the `.nav .nav-links` glass rules noted in studio_nav.html. It now
+     lives in studio_nav.html, correctly targeted, and reaches the home page
+     too (which does not include this file). Nothing to keep here. */
   @keyframes sid-logo-press {
     0% {
       transform: translateY(0) scale(1);
@@ -4844,11 +5142,11 @@
   html[data-theme="light"] .logo-cube .logo-eye {
     fill: #f8f5ee;
   }
-  html[data-theme="light"] .nav > a:hover .logo-cube,
-  html[data-theme="light"] .nav > a:focus-visible .logo-cube {
-    color: rgba(27, 67, 135, 1) !important;
-    filter: none;
-  }
+  /* The light-theme hover colour used to be here, on `.nav > a:hover` — the
+     same dead ancestor as the rest of the mark's choreography, and dead in
+     the same way. It now lives in studio_nav.html beside the hover state it
+     belongs to, and carries an !important of its own because the base rule
+     directly above this comment has one. */
   /* Bottom bar on home — dark text */
   html[data-theme="light"] .bottom-role-line {
     color: rgba(7, 9, 15, 0.6) !important;

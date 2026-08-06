@@ -210,14 +210,25 @@
      "Open to roles" chip, the "Selected work" link and the reel button with
      nothing but the UA default — a 1px near-black outline, on a near-black
      page. Invisible. This is the floor, defined once where every layout
-     already includes it; pages with a stronger ring still override it. */
+     already includes it; pages with a stronger ring still override it.
+
+     `video` was the gap. It is not a link, a button or a [tabindex] — it is
+     focusable purely because it carries `controls`, so it fell through every
+     selector in this list while still taking two tab stops apiece (the
+     element, then its shadow-DOM control bar). On /ai-prototypes/ that is
+     ten consecutive stops with no ring at all: a keyboard user tabbing the
+     page simply loses the caret for a third of it. `audio` and `iframe` are
+     here for the same reason, before they become the next version of it. */
   a:focus-visible,
   button:focus-visible,
   summary:focus-visible,
   [tabindex]:focus-visible,
   input:focus-visible,
   textarea:focus-visible,
-  select:focus-visible {
+  select:focus-visible,
+  video:focus-visible,
+  audio:focus-visible,
+  iframe:focus-visible {
     outline: 2px solid rgba(140, 200, 255, 0.75);
     outline-offset: 3px;
     border-radius: 3px;
@@ -228,13 +239,115 @@
   html[data-theme="light"] [tabindex]:focus-visible,
   html[data-theme="light"] input:focus-visible,
   html[data-theme="light"] textarea:focus-visible,
-  html[data-theme="light"] select:focus-visible {
+  html[data-theme="light"] select:focus-visible,
+  html[data-theme="light"] video:focus-visible,
+  html[data-theme="light"] audio:focus-visible,
+  html[data-theme="light"] iframe:focus-visible {
     outline-color: rgba(24, 68, 140, 0.7);
   }
   /* Mouse users should never see it; a bare :focus rule would flash the ring
      on every click on the custom-cursor pages. */
   :focus:not(:focus-visible) {
     outline: none;
+  }
+
+  /* ── OUTBOUND ARROW ────────────────────────────────────────────────────
+     Every link on this site that leaves the page ends in a ↗, and until now
+     that arrow was a literal character sitting in the label — which means it
+     was the one part of the link that could not move. The links themselves
+     are careful: the contact row draws its rule in from the left, the about
+     actions lift. The arrow just sat there through all of it, and a mark that
+     stays put while everything around it responds reads as a typo rather than
+     as restraint.
+
+     So the glyph becomes a slot instead: a square the size of the text, with
+     the arrow inside it and a second copy of the arrow waiting one diagonal
+     step down and to the left, outside the clip. On hover the pair travels
+     along that diagonal together — the first arrow leaves through the top-
+     right corner exactly as the second arrives in its place. It is the same
+     move the arrow itself describes, performed by the arrow, and it costs two
+     pseudo-elements and no markup beyond an empty span.
+
+     The diagonal is 110% rather than 100% so both glyphs are fully outside
+     the box at the midpoint and the swap never shows two arrows at once. The
+     easing is the site's own 0.16/1/0.3/1, and it runs on :focus-visible as
+     well as :hover so a keyboard walk sees the same thing a cursor does.
+
+     Written here, in the one include every layout carries, because the same
+     arrow appears on contact, about, the project pages and the reels — this
+     is the class they can all reach for. */
+  .xarrow {
+    display: inline-block;
+    position: relative;
+    width: 1em;
+    height: 1em;
+    margin-left: 0.34em;
+    overflow: hidden;
+    vertical-align: -0.08em;
+    line-height: 1;
+  }
+  .xarrow::before,
+  .xarrow::after {
+    content: "↗";
+    position: absolute;
+    inset: 0;
+    display: block;
+    text-align: center;
+    line-height: 1em;
+    font-size: 0.94em;
+    transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .xarrow::after {
+    transform: translate(-110%, 110%);
+  }
+  /* Keyed to the DIRECT parent rather than to `a` or `button`, because a third
+     of the arrows on this site hang off neither: the reels on /ai-prototypes/
+     open through `<span data-href>` handlers, and those were about to be the
+     only outbound marks that stayed still. `:hover >` is the honest expression
+     of the rule — the arrow answers to the thing it is inside, whatever that
+     thing happens to be — and it keeps ancestor hovers from firing it. */
+  :hover > .xarrow::before,
+  :focus-visible > .xarrow::before {
+    transform: translate(110%, -110%);
+  }
+  :hover > .xarrow::after,
+  :focus-visible > .xarrow::after {
+    transform: translate(0, 0);
+  }
+  /* The same slot, turned on its side, for the arrows that mean "onward" rather
+     than "away": the works CTA, the 404 escape hatches, the home index row, the
+     loader's enter button. Those all point → instead of ↗, so the handoff runs
+     along the horizontal rather than the diagonal — the arrow still leaves in
+     exactly the direction it is pointing, which is the whole idea.
+
+     Wider than the diagonal slot because → is a wider glyph than ↗ and a 1em
+     box clips its tail. Declared after the base rules so the identical-
+     specificity overrides land; the travel is 120% so the outgoing mark is
+     fully clear of the box before the incoming one arrives. */
+  .xarrow--right {
+    width: 1.15em;
+  }
+  .xarrow--right::before,
+  .xarrow--right::after {
+    content: "→";
+  }
+  .xarrow--right::after {
+    transform: translate(-120%, 0);
+  }
+  :hover > .xarrow--right::before,
+  :focus-visible > .xarrow--right::before {
+    transform: translate(120%, 0);
+  }
+  :hover > .xarrow--right::after,
+  :focus-visible > .xarrow--right::after {
+    transform: translate(0, 0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .xarrow::before,
+    .xarrow::after {
+      transition-duration: 1ms;
+    }
   }
 </style> <style>
       :root {
