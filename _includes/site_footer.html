@@ -4,7 +4,12 @@
     z-index: 5;
     overflow: hidden;
     isolation: isolate;
-    padding: clamp(76px, 9vw, 128px) var(--gutter, clamp(20px, 4vw, 64px)) 0;
+    /* Was clamp(76px, 9vw, 128px) on top. That pad existed to separate the
+       footer from the page above it, and the know-me strip now does that job
+       one band earlier — so keeping both left 128px of dead air directly under
+       a hairline, and pushed the strip up under the fixed nav at the bottom of
+       every page. Cutting it fixes the collision and the emptiness at once. */
+    padding: clamp(28px, 3vw, 44px) var(--gutter, clamp(20px, 4vw, 64px)) 0;
   }
 
   /* ── THE WATER LAYER ────────────────────────────────────────────────────
@@ -304,7 +309,12 @@
     position: relative;
     display: block;
     width: 100%;
-    height: clamp(360px, 48vh, 500px);
+    /* Was clamp(360px, 48vh, 500px). Half a viewport of water at the bottom of
+       every page is not a footer, it is a second page, and the emptier it got
+       the more the scattered plants read as noise dropped into a void. At 340
+       the bed fills the frame and the pond is something you glance into on the
+       way out rather than something you have to scroll past. */
+    height: clamp(240px, 32vh, 340px);
     touch-action: pan-y;
   }
 
@@ -409,7 +419,143 @@
       animation: none;
     }
   }
+
+  /* ── THE KNOW-ME STRIP ──────────────────────────────────────────────────
+     Sid: "on the bottom we have that one horizontal bar which keeps showing
+     all these little things about Sid, get to know him more, right above the
+     footer."
+
+     A portfolio tells you what someone shipped and almost never what they are
+     like to sit next to. This is the second thing, in the one place a person
+     who has read to the end of the page will actually see it — the last band
+     of paper before the water.
+
+     It carries no background of its own. Every page it ships on has a live
+     surface underneath (the home GL stage, the smoke field elsewhere) and an
+     opaque bar here would punch a hole in it. Two hairlines and type. */
+  .kts {
+    position: relative;
+    z-index: 5;
+    overflow: hidden;
+    border-top: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+    padding: 13px 0;
+    /* The footer is almost exactly a viewport tall, so at the natural resting
+       scroll position — the bottom of the page — this strip lands within a few
+       pixels of the top of the window, which is where the fixed nav pill lives.
+       Half its facts ended up behind the logo. The margin is not decoration:
+       it is what keeps the strip out from under the chrome at the one scroll
+       position every visitor is guaranteed to reach. */
+    margin-top: clamp(84px, 11vh, 132px);
+  }
+
+  /* The fade is on a mask rather than a pair of gradient overlays for the same
+     reason as the background: an overlay would need a colour to fade to, and
+     there is no colour under here to name. */
+  .kts__mask {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%);
+  }
+
+  .kts__track {
+    display: flex;
+    align-items: center;
+    width: max-content;
+    white-space: nowrap;
+    animation: ktsRun 74s linear infinite;
+    will-change: transform;
+  }
+
+  /* The set is emitted twice, so -50% lands on a pixel-identical frame and the
+     loop has no seam. Same trick as the collaborator marquee on /about/. */
+  @keyframes ktsRun {
+    to {
+      transform: translate3d(-50%, 0, 0);
+    }
+  }
+
+  .kts:hover .kts__track,
+  .kts:focus-within .kts__track {
+    animation-play-state: paused;
+  }
+
+  .kts__item {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 11.5px;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    opacity: 0.62;
+    transition: opacity 260ms ease;
+  }
+
+  .kts:hover .kts__item {
+    opacity: 0.9;
+  }
+
+  .kts__sep {
+    display: inline-block;
+    margin: 0 22px;
+    font-size: 8px;
+    opacity: 0.3;
+    transform: translateY(-1px);
+  }
+
+  /* Reduced motion gets the strip as a thing you scroll yourself rather than a
+     thing that scrolls at you. Killing the animation alone would leave twelve
+     facts running off the right edge with no way to reach them. */
+  @media (prefers-reduced-motion: reduce) {
+    .kts__mask {
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .kts__mask::-webkit-scrollbar {
+      display: none;
+    }
+    .kts__track {
+      animation: none;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .kts {
+      padding: 11px 0;
+    }
+    .kts__item {
+      font-size: 10.5px;
+    }
+    .kts__sep {
+      margin: 0 15px;
+    }
+  }
 </style>
+
+<!-- No record contains a space: multi-word facts are written with `~` and put
+     back with `replace` at the point of use. Prettier reflows a capture block
+     on every run and breaks at whitespace, and a wrap landing inside a fact
+     would ship a line break and six spaces of source indentation into the
+     middle of a sentence. With no whitespace inside a record the only place a
+     formatter *can* break is the space after a `;`, and `;` — not `, ` — is
+     the delimiter precisely because a break there turns the separator into
+     `;\n` and a `", "` split would silently weld two facts together. Splitting
+     on the bare `;` is immune to that, and `strip` cleans up the newline. -->
+{% capture kts_raw %} Brooklyn,~New~York; Eastern~Time; MFA~Design~&~Technology~at~Parsons; Two~Webby~Awards~for~Encoded;
+Kyoorius~Design~Award~for~Mool; MIT~Reality~Hack~2026; Previously~Deloitte~Digital,~EyeJack,~Philips; Designs~in~Figma,~builds~in~Unity;
+Writes~his~own~JavaScript; Draws~mandalas~by~hand; Ninety-eight~more~pieces~in~the~studio; Best~ideas~arrive~on~walks; Holds~strong~opinions~loosely;
+Open~to~remote,~hybrid,~or~relocating {% endcapture %} {% assign kts_items = kts_raw | split: ";" %}
+
+<section class="kts" aria-label="More about Sid">
+  <p class="sr-only">
+    Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality
+    Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand.
+    Ninety-eight more pieces in the studio. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating.
+  </p>
+  <div class="kts__mask">
+    <div class="kts__track" aria-hidden="true">
+      {% for pass in (1..2) %}{% for fact in kts_items %}<span class="kts__item">{{ fact | strip | replace: "~", " " }}</span
+      ><span class="kts__sep">◆</span>{% endfor %}{% endfor %}
+    </div>
+  </div>
+</section>
 
 <footer class="site-footer" aria-label="Site footer">
   <div class="plot__bleed" aria-hidden="true">
@@ -567,18 +713,46 @@
         shelf: "rgba(120,178,220,0.16)",
         caustic: [172, 226, 255],
         causticAlpha: 0.62,
-        flora: ["#8fc46a", "#b3dc9c", "#59cbba", "#f29cb6", "#dd7fa0", "#ef8a66", "#bcd6e8"],
+        /* ── ONE HUE, FIVE VALUES ──────────────────────────────────────────
+           This used to be seven hues at once — green, mint, teal, pink,
+           magenta, orange and pale blue — assigned to each plant at random.
+           Seven hues distributed randomly across eighty small shapes is the
+           definition of confetti: there is no way for an eye to group them,
+           so the bed reads as static rather than as planting.
+
+           A pond at night has almost no colour in it. What it has is *value*:
+           near things lighter and warmer, far things collapsing toward the
+           colour of the water. So the ramp below is one hue at five steps,
+           indexed by depth, and depth is the only thing that decides which
+           step a plant gets. Grouping happens for free — everything at the
+           same distance shares a colour, which is what makes a bank read as
+           a bank.
+
+           `bloom` is the single exception, and it is the whole reason the
+           restraint is worth it: one warm note in a cold field is visible
+           from across the room. Roughly one plant in seven carries it. */
+        flora: ["#1b4741", "#26594e", "#33705d", "#468a6f", "#5da586"],
+        bloom: "#e08a63",
         fish: "#cfe9ff",
         pod: "#e8a882",
         glow: 6,
         cast: null,
       },
       light: {
-        body: ["rgba(196,216,220,0)", "rgba(174,203,208,0.6)", "rgba(150,186,194,0.82)"],
-        shelf: "rgba(70,110,124,0.2)",
+        /* The old light water was rgba(150,186,194,0.82) at its deepest — a
+           pale mint that never got darker than the paper it sat on, so there
+           was no depth to recede into and the bed floated on a flat sheet of
+           colour. It now runs to a proper slate-teal, which gives the value
+           ramp below somewhere to go. */
+        body: ["rgba(198,216,219,0)", "rgba(150,183,190,0.68)", "rgba(104,146,154,0.9)"],
+        shelf: "rgba(48,86,98,0.26)",
         caustic: [255, 255, 255],
-        causticAlpha: 0.5,
-        flora: ["#274d12", "#3a6321", "#08574e", "#8e2b4c", "#6b1f40", "#7d2f11", "#20415a"],
+        causticAlpha: 0.62,
+        /* Same ramp inverted: in daylight the far plants wash out toward the
+           surface and the near ones sink to near-black, which is how a bed
+           actually looks through water lit from above. */
+        flora: ["#7d9a99", "#5c8180", "#3f6660", "#2b4b43", "#1a332c"],
+        bloom: "#b0543a",
         fish: "#1d3a52",
         pod: "#7a4a2e",
         glow: 0,
@@ -807,24 +981,27 @@
        disappearing into it. They also bend: every row above the base is
        displaced by the local surface slope, squared by height, so a ripple
        passing through visibly pushes the stems over. */
+    /* Ten species at 12px was ten different kinds of speck. Five, drawn
+       larger, with genuinely different heights — a pad flat on the surface, a
+       low tuft, a mid leaf, a tall reed, a flower that stands above
+       everything — so the bed has a skyline instead of a texture. `bloom: 1`
+       means the top row is a flower head and gets the warm accent; everything
+       else in the plant is stem. */
     var SPECIES = [
-      { rows: ["(*)", ">/"], w: 16 },
-      { rows: ["(o)", "\\|/"], w: 14 },
-      { rows: ["'''", "~Y~", "\\|/", "^^^"], w: 12 },
-      { rows: ["ʊʊʊ", "(_)", "\\|/", "^^^^^"], w: 10 },
-      { rows: ["\\ |/"], w: 16 },
-      { rows: ["¡", "^^^"], w: 12 },
-      { rows: ["\\(| ,-", "\\|/"], w: 8 },
-      { rows: ["..", "\\|/"], w: 8 },
-      { rows: [":'", "-!:`"], w: 6 },
-      { rows: ["^^^"], w: 10 },
+      { rows: ["<~>"], w: 13, bloom: 0 },
+      { rows: ["\\|/", "^^"], w: 20, bloom: 0 },
+      { rows: ["(o)", "\\|/", "^^^"], w: 17, bloom: 1 },
+      { rows: ["|", "|", "|", "^^^"], w: 15, bloom: 0 },
+      { rows: ["*", "\\|", " |", "^^^"], w: 9, bloom: 1 },
     ];
     var TOTAL_W = 0;
     for (var s = 0; s < SPECIES.length; s++) TOTAL_W += SPECIES[s].w;
 
-    var FONT = 12,
-      ROW_H = 11,
-      MAX_PLANTS = coarse ? 90 : 150;
+    /* Fewer and bigger. 150 twelve-pixel plants is a texture; 78 fifteen-pixel
+       ones are a bed you can count. */
+    var FONT = 15,
+      ROW_H = 13,
+      MAX_PLANTS = coarse ? 52 : 78;
     var plants = [];
 
     function pickSpecies() {
@@ -836,18 +1013,33 @@
       return 0;
     }
 
+    /* Depth, 0 at the far bank and 1 at the near one, derived from where in
+       the live band the plant stands. Everything visual hangs off this single
+       number: which step of the colour ramp, how big, how opaque, how much
+       glow. That is the point — one variable driving every channel is what
+       makes a scene read as space rather than as decoration. */
+    function depthAt(y) {
+      var band = Math.max(1, live.bot - live.top);
+      return Math.max(0, Math.min(1, (y - live.top) / band));
+    }
+
     function plant(x, y, instant, quiet) {
       if (plants.length >= MAX_PLANTS) plants.shift();
-      var p = pal();
+      var d = depthAt(y);
       plants.push({
         x: x,
         y: y,
+        d: d,
         sp: pickSpecies(),
-        scale: 0.86 + Math.random() * 0.42,
-        col: p.flora[Math.floor(Math.random() * p.flora.length)],
-        idx: Math.floor(Math.random() * 7),
+        /* Scale is depth times a small jitter, not a free random. Two plants
+           standing side by side at wildly different sizes is the single
+           loudest way to break the illusion of a ground plane. */
+        scale: (0.66 + d * 0.62) * (0.92 + Math.random() * 0.18),
         grow: instant ? 1 : 0,
         phase: Math.random() * Math.PI * 2,
+        /* Roughly one in seven flowers. Decided once, at planting, so a plant
+           does not flicker in and out of bloom between frames. */
+        flower: Math.random() < 0.15,
       });
       if (!quiet) splash(x, y, instant ? 0.5 : 2.6, 2.2);
     }
@@ -857,17 +1049,59 @@
        plant by how near it is so the bank reads as depth rather than as a
        flat sheet of glyphs. Seeded quietly — 80 splashes at t=0 would boil
        the surface before the first frame. */
+    /* ── COMPOSITION ────────────────────────────────────────────────────────
+       The old seed was a uniform random scatter across the whole band, and a
+       uniform scatter is the one distribution that never looks planted.
+       Nothing grows evenly spaced. Real vegetation arrives in stands with
+       clearings between them, because a plant that seeds drops its seeds near
+       itself.
+
+       So: pick a handful of stands across the width, give each one a depth and
+       a spread, and drop most of the bed into them with a falloff. Keep a few
+       strays outside — a bed with no strays reads as arranged, which is the
+       other failure mode. And leave the clearings genuinely empty; the empty
+       water between two stands is what lets you see that they are stands. */
     function seedPlants() {
       plants = [];
       var band = live.bot - live.top;
       if (band < 40) return;
-      var count = Math.min(MAX_PLANTS, Math.round(Math.max(26, Math.min(coarse ? 54 : 88, W / 16))));
-      for (var i = 0; i < count; i++) {
-        var d = Math.pow(Math.random(), 0.7);
-        plant(-24 + Math.random() * (W + 48), live.top + band * (0.12 + d * 0.82), true, true);
-        var pl = plants[plants.length - 1];
-        pl.scale *= 0.68 + d * 0.6;
+
+      var stands = Math.max(3, Math.min(7, Math.round(W / 320)));
+      var total = Math.min(MAX_PLANTS, Math.round(Math.max(24, Math.min(coarse ? 44 : 66, W / 21))));
+      var strays = Math.round(total * 0.16);
+      var clumped = total - strays;
+
+      var centres = [];
+      for (var s = 0; s < stands; s++) {
+        /* Stands are spaced on a jittered grid rather than at random x. Pure
+           random x clusters two stands on top of each other about a third of
+           the time, and then the whole left half is empty. */
+        var slot = (s + 0.5) / stands;
+        centres.push({
+          x: (slot + ((Math.random() - 0.5) * 0.55) / stands) * W,
+          d: 0.14 + Math.pow(Math.random(), 0.8) * 0.82,
+          spread: W * (0.045 + Math.random() * 0.055),
+        });
       }
+
+      for (var i = 0; i < clumped; i++) {
+        var c = centres[i % stands];
+        /* Sum of two uniforms — a cheap triangular distribution, denser at the
+           centre of the stand than at its edges, which is what a stand is. */
+        var off = (Math.random() + Math.random() - 1) * c.spread;
+        var dd = Math.max(0.06, Math.min(0.98, c.d + (Math.random() + Math.random() - 1) * 0.11));
+        plant(c.x + off, live.top + band * dd, true, true);
+      }
+      for (var j = 0; j < strays; j++) {
+        plant(-20 + Math.random() * (W + 40), live.top + band * (0.1 + Math.pow(Math.random(), 0.7) * 0.86), true, true);
+      }
+
+      /* Painter's algorithm. Without this a far plant drawn last punches a
+         hole through the near one in front of it, and depth stops meaning
+         anything the moment two stands overlap. */
+      plants.sort(function (a, b) {
+        return a.d - b.d;
+      });
     }
 
     function drawPlants(t) {
@@ -875,23 +1109,42 @@
       for (var n = 0; n < plants.length; n++) {
         var pl = plants[n];
         if (pl.grow < 1) pl.grow = Math.min(1, pl.grow + 0.045);
-        var rows = SPECIES[pl.sp].rows;
+        var spec = SPECIES[pl.sp];
+        var rows = spec.rows;
         var count = rows.length;
         var sc = pl.scale * (0.4 + pl.grow * 0.6);
         var tilt = slopeX(pl.x, pl.y) * 22;
         var lift = heightAt(pl.x, pl.y) * 2.5;
         var sway = Math.sin(t * 0.0011 + pl.phase) * 1.6;
+
+        /* One number, four channels. A far plant is darker (low ramp index),
+           fainter, smaller and barely glows; a near one is lit, solid and
+           haloed. Aerial perspective, done in four lines. */
+        var step = Math.min(p.flora.length - 1, Math.floor(pl.d * p.flora.length));
+        var stem = p.flora[step];
+        /* The floor is 0.42, not 0.3. At 0.3 the far rank was faint enough to
+           read as dirt on the screen rather than as a plant a long way off —
+           aerial perspective works by making distant things *lower contrast*,
+           not by making them nearly absent. */
+        var alpha = (0.42 + pl.d * 0.5) * pl.grow;
+
         flora.save();
-        flora.globalAlpha = pl.grow;
-        flora.fillStyle = p.flora[pl.idx % p.flora.length];
-        depthCue(flora, p, p.flora[pl.idx % p.flora.length]);
+        flora.globalAlpha = alpha;
         flora.font = Math.round(FONT * sc) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
         flora.textAlign = "center";
         flora.textBaseline = "alphabetic";
+
         for (var r = 0; r < count; r++) {
           var fromBase = count - 1 - r;
           var f = count > 1 ? fromBase / (count - 1) : 0;
           var bend = (tilt + sway) * f * f;
+          /* The flower head is the only thing in the bed allowed to be warm,
+             and only on the top row of a flowering species. Everything below
+             it is stem, in the water's own colour. */
+          var isHead = spec.bloom && r === 0 && pl.flower;
+          var ink = isHead ? p.bloom : stem;
+          flora.fillStyle = ink;
+          depthCue(flora, p, ink, p.glow ? p.glow * (0.35 + pl.d * 0.9) : 0);
           flora.fillText(rows[r], pl.x + bend, pl.y + lift - fromBase * ROW_H * sc);
         }
         flora.restore();
