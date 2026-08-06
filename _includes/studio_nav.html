@@ -177,21 +177,30 @@
 
   .studio-mark .cube-front,
   .studio-mark .cube-face,
+  .studio-mark .cube-edges,
   .studio-mark .logo-scan {
     fill: rgba(5, 12, 23, 0.82);
     stroke: currentColor;
     stroke-width: 1.55;
+    stroke-linejoin: round;
+    stroke-linecap: round;
     vector-effect: non-scaling-stroke;
+  }
+
+  /* The three near edges are lighter than the silhouette that contains them.
+     A cube drawn at one weight throughout flattens into a hexagon with a Y in
+     it: the outline has to win, because in life the boundary against the
+     background is the higher-contrast edge and the internal creases are not.
+     0.72 is where the solid reads without the Y going faint at 42px. */
+  .studio-mark .cube-edges {
+    fill: none;
+    stroke-width: 1.15;
+    opacity: 0.72;
   }
 
   .studio-mark .logo-scan {
     fill: none;
     opacity: 0.82;
-  }
-
-  .studio-mark .logo-gaze {
-    transform-origin: 15px 21px;
-    transition: transform 460ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .studio-mark-label {
@@ -206,11 +215,6 @@
       opacity 220ms ease,
       transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.55);
-  }
-
-  .studio-mark:hover .logo-gaze,
-  .studio-mark:focus-visible .logo-gaze {
-    transform: scaleY(1.1);
   }
 
   .studio-mark-label {
@@ -732,7 +736,11 @@
   html[data-theme="light"] .play-page .studio-nav {
     --nav-ink: #f5f7fb;
   }
-  html[data-theme="light"] .play-page .studio-mark .cube-front {
+  /* Play is a dark room at every theme, so its mark keeps the night fill.
+     Written with `.logo-cube` in the chain — 0-4-1 — because the light-mode
+     paper fill added further down is 0-3-1 and would otherwise beat this on
+     source order and put a cream cube on a black stage. */
+  html[data-theme="light"] .play-page .studio-mark .logo-cube .cube-front {
     fill: rgba(5, 12, 23, 0.82);
   }
   html[data-theme="light"] .play-page .studio-mark-label,
@@ -924,7 +932,6 @@
   @media (prefers-reduced-motion: reduce) {
     .studio-mark .logo-cube,
     .studio-mark .cube-face,
-    .studio-mark .logo-gaze,
     .studio-mark-label,
     .studio-link,
     .studio-link svg,
@@ -984,11 +991,21 @@
       transform 0.42s var(--ease-out),
       fill-opacity 0.42s ease;
   }
+  /* The rest positions: each face held off the solid along its own outward
+     normal, so hover pulls them home rather than sliding them in from
+     wherever. The old pair moved the top face *down* and the right face
+     *left* — inward — which is the same distance travelled and the opposite
+     event: faces sinking into the block instead of a block assembling. In
+     isometric the two side normals run at ±30°, hence the 1.9/1.1 split;
+     the top face's normal is straight up. */
   .studio-mark .logo-cube .cube-top {
-    transform: translateY(1.8px);
+    transform: translateY(-2.2px);
   }
   .studio-mark .logo-cube .cube-right {
-    transform: translateX(-1.8px);
+    transform: translate(1.9px, 1.1px);
+  }
+  .studio-mark .logo-cube .cube-left {
+    transform: translate(-1.9px, 1.1px);
   }
 
   /* Drawn, not faded: dashoffset runs the stroke across the face from one
@@ -1019,12 +1036,12 @@
     fill-opacity: 0.16;
   }
   .studio-mark:hover .logo-cube .cube-top,
-  .studio-mark:focus-visible .logo-cube .cube-top {
-    transform: translateY(0);
-  }
+  .studio-mark:focus-visible .logo-cube .cube-top,
   .studio-mark:hover .logo-cube .cube-right,
-  .studio-mark:focus-visible .logo-cube .cube-right {
-    transform: translateX(0);
+  .studio-mark:focus-visible .logo-cube .cube-right,
+  .studio-mark:hover .logo-cube .cube-left,
+  .studio-mark:focus-visible .logo-cube .cube-left {
+    transform: none;
   }
   .studio-mark:hover .logo-cube .logo-scan,
   .studio-mark:focus-visible .logo-cube .logo-scan {
@@ -1087,6 +1104,24 @@
   html[data-theme="light"] .studio-mark:focus-visible .logo-cube {
     color: rgba(23, 60, 126, 1) !important;
     filter: drop-shadow(0 2px 6px rgba(30, 56, 84, 0.26)) drop-shadow(0 0 14px rgba(120, 165, 220, 0.3));
+  }
+  /* THE SOLID'S FILL HAS TO FLIP WITH THE THEME, AND IT DID NOT.
+
+     In dark mode the cube is a near-black solid outlined in pale ink: fill
+     dark, stroke light, and the three interior edges read because they are
+     the light thing on the dark thing. Light mode inherited a fill of #172a4c
+     from cursor_fluid — a deep navy — set back when this mark was a solid
+     square with two pale pill "eyes" painted on top of it. Against that fill
+     a navy stroke is invisible, so on cream the cube rendered as a dark blue
+     blob with no edges at all. Measured by looking at it; nothing about the
+     rule itself was wrong, its premise had simply expired with the geometry
+     it was written for.
+
+     Paper fill, ink edges. Written at 0-3-1 rather than 0-2-1 because
+     cursor_fluid ships at the end of <body> and its copy would otherwise win
+     the cascade on every page that loads both. */
+  html[data-theme="light"] .studio-mark .logo-cube .cube-front {
+    fill: rgba(249, 247, 242, 0.92);
   }
   html[data-theme="light"] .studio-mark .logo-cube .cube-face {
     stroke-width: 1.25;
