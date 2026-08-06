@@ -5155,29 +5155,57 @@
          action, with its animated hairline hanging off the paragraph above it.
 
          Rather than special-case that page — and then the next one, and the one
-         after — the hint now looks before it speaks. It measures its own box at
-         show() time, when layout has settled, and samples three points across
-         it. If anything with actual content is under any of them, the hint
-         simply never appears: a nudge to scroll is worth very little, and it is
-         certainly worth less than the legibility of whatever it would sit on.
+         after — the hint looks before it speaks. It measures its own box at
+         show() time, when layout has settled, and samples a grid across it. If
+         anything with actual content is under any sample, the hint simply never
+         appears: a nudge to scroll is worth very little, and it is certainly
+         worth less than the legibility of whatever it would sit on.
 
          "Actual content" means a link, a button, a media element, or any leaf
          node carrying text. Wrappers, the smoke canvas and the page background
          are all transparent to this test, so on a page whose lower centre is
          genuinely empty — which is where the hint earns its keep — nothing
-         changes. */
+         changes.
+
+         The grid used to be a single scanline at 72% of the box height, and
+         and it hit-tested with elementsFromPoint, which was wrong twice over.
+
+         The home page has its own `.scroll-cue` — a hairline bar and the word
+         Scroll — sitting at y 867–878; the hint's box runs 826–872. The single
+         scanline landed at 859 and sailed straight through the gap above the
+         cue's label, so four seconds after load the home page printed SCROLL
+         twice, five pixels apart, in two different type sizes. And even a
+         denser grid would not have caught it: `.scroll-cue` is decorative and
+         carries `pointer-events: none`, which makes it invisible to
+         elementsFromPoint. The one thing this function most needed to see was
+         the one class of thing it structurally could not.
+
+         So the test is geometric now. It walks every leaf that carries text,
+         plus links, buttons and media, and asks whether that element's box
+         intersects the hint's box grown by 10px — near-misses read as
+         collisions to the eye, and the whole point of this function is to defer
+         to whatever was there first. Pointer-events, stacking order and
+         overlays are all irrelevant to that question, which is why none of them
+         appear in it. */
       function isClear() {
         const r = hint.getBoundingClientRect();
         if (!r.width || !r.height) return true;
-        const y = r.top + r.height * 0.72;
-        const xs = [r.left + 4, r.left + r.width / 2, r.right - 4];
-        for (const x of xs) {
-          for (const el of document.elementsFromPoint(x, y)) {
-            if (el === hint || hint.contains(el)) continue;
-            if (el === document.body || el === document.documentElement) continue;
-            if (/^(A|BUTTON|IMG|VIDEO|SVG|INPUT)$/i.test(el.tagName)) return false;
-            if (!el.children.length && (el.textContent || "").trim()) return false;
-          }
+        const pad = 10;
+        const L = r.left - pad,
+          R = r.right + pad,
+          T = r.top - pad,
+          B = r.bottom + pad;
+        const all = document.body.querySelectorAll("*");
+        for (const el of all) {
+          if (el === hint || hint.contains(el)) continue;
+          const media = /^(A|BUTTON|IMG|VIDEO|SVG|INPUT)$/i.test(el.tagName);
+          const leafText = !el.children.length && (el.textContent || "").trim();
+          if (!media && !leafText) continue;
+          const cs = getComputedStyle(el);
+          if (cs.visibility === "hidden" || cs.display === "none" || parseFloat(cs.opacity) === 0) continue;
+          const b = el.getBoundingClientRect();
+          if (!b.width || !b.height) continue;
+          if (b.right > L && b.left < R && b.bottom > T && b.top < B) return false;
         }
         return true;
       }

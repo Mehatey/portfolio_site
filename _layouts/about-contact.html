@@ -831,6 +831,15 @@
            single dimension. */
         height: var(--h, 40px);
         width: auto;
+        /* --ar is the mark's intrinsic w/h, also set per logo in the markup.
+           Without it the marquee measured 0px wide per image until each PNG
+           decoded, so the track's total length — and therefore where every
+           logo after the first one sat — grew as the images arrived. The row
+           reflowed under the reader on a cold load. `height` plus `aspect-ratio`
+           gives the box its final width before a single byte of image is
+           decoded, which is the whole point: this is a decorative strip, and a
+           decorative strip has no business moving the page around. */
+        aspect-ratio: var(--ar, 1);
         object-fit: contain;
         display: block;
         transition: opacity 0.38s ease;
@@ -1713,14 +1722,34 @@
       </section>
 
       <!-- Companies marquee — silhouette at rest, brand colour on a paper chip on hover.
-           Each entry is slug|label|height-in-px|ink; the height equalises perceived
-           size across wordmarks and square lockups (see the .m-logo img comment),
-           and the optional fourth field corrects for stroke weight (see the
-           .m-logo--hair comment — only hairline marks need it). Both the mono/ and
-           color/ PNGs are background-free rebuilds of the originals. -->
-      {% assign collab_logos = "deloitte|Deloitte|28,eyejack|EyeJack|29,philips|Philips|54,marriott|Marriott|33,m-health-fairview|M Health
-      Fairview|45,leaf|Leaf Design Studio|37,dabur|Dabur|48|1.42,kfc|KFC|50,google|Google|34,pizza-hut|Pizza Hut|46,taco-bell|Taco
-      Bell|57,del-taco|Del Taco|40" | split: "," %}
+           Each entry is slug|label|height-in-px|intrinsic-aspect|ink. The height
+           equalises perceived size across wordmarks and square lockups (see the
+           .m-logo img comment); the aspect is the PNG's real w/h and exists so the
+           track has its final length before any image decodes (see the aspect-ratio
+           comment); the optional fifth field corrects for stroke weight (see the
+           .m-logo--hair comment — only hairline marks need it). The optional field
+           is last precisely so the fixed ones keep stable indices. Both the mono/
+           and color/ PNGs are background-free rebuilds of the originals, and the
+           two sets share dimensions mark for mark.
+
+           No record contains a space — multi-word labels are written with `~`
+           and put back with `replace` at the point of use. That looks fussy and
+           is the entire safety property. This was once a single long string
+           literal, and prettier — correctly, by its own lights — reflowed it at
+           the column limit; the wrap landed inside two labels and the marquee
+           shipped with `title="M\n      Health Fairview"` and
+           `title="Pizza\n      Hut"`, tooltips carrying a line break and six
+           spaces of source indentation. Splitting the data one-per-line only
+           moved the problem: prettier reflows this block on every run and breaks
+           at whitespace, so it was one column of drift away from landing inside
+           `M Health Fairview` again. With no whitespace inside a record, the
+           only place a formatter *can* break is the `, ` between records — which
+           is the split delimiter, and `strip` cleans up after it. The data is now
+           unbreakable rather than merely currently-unbroken. -->
+      {% capture collab_raw %} deloitte|Deloitte|28|450/84, eyejack|EyeJack|29|450/94, philips|Philips|54|160/200, marriott|Marriott|33|450/136,
+      m-health-fairview|M~Health~Fairview|45|263/200, leaf|Leaf~Design~Studio|37|450/195, dabur|Dabur|48|224/200|1.42, kfc|KFC|50|200/200,
+      google|Google|34|450/148, pizza-hut|Pizza~Hut|46|251/200, taco-bell|Taco~Bell|57|138/200, del-taco|Del~Taco|40|375/200 {% endcapture %} {%
+      assign collab_logos = collab_raw | split: "," %}
       <section class="marquee marquee--companies" aria-labelledby="collaborators-heading">
         <h2 class="marquee-kicker" id="collaborators-heading">Past collaborators</h2>
         <p class="sr-only">
@@ -1729,21 +1758,21 @@
         </p>
         <div class="marquee-mask">
           <div class="marquee-track" aria-hidden="true">
-            {% for i in (1..2) %}{% for entry in collab_logos %}{% assign p = entry | split: "|" %}<span
-              class="m-logo{% if p[3] %} m-logo--hair{% endif %}"
-              style="--h: {{ p[2] }}px{% if p[3] %}; --ink: {{ p[3] }}{% endif %}"
-              title="{{ p[1] }}"
+            {% for i in (1..2) %}{% for entry in collab_logos %}{% assign p = entry | strip | split: "|" %}<span
+              class="m-logo{% if p[4] %} m-logo--hair{% endif %}"
+              style="--h: {{ p[2] }}px; --ar: {{ p[3] }}{% if p[4] %}; --ink: {{ p[4] }}{% endif %}"
+              title="{{ p[1] | replace: '~', ' ' }}"
               ><img
                 class="m-logo__mono"
                 src="{{ site.baseurl }}/assets/img/companies/mono/{{ p[0] }}.png"
                 alt=""
-                loading="lazy"
-                decoding="async" /><img
+                decoding="async"
+                fetchpriority="low" /><img
                 class="m-logo__color"
                 src="{{ site.baseurl }}/assets/img/companies/color/{{ p[0] }}.png"
                 alt=""
-                loading="lazy"
-                decoding="async" /></span
+                decoding="async"
+                fetchpriority="low" /></span
             ><span class="m-sep">◇</span>{% endfor %}{% comment %}The set is emitted twice so the -50% keyframe lands on an identical frame. The whole
             track is aria-hidden; the readable list is the sr-only paragraph above.{% endcomment %}{% endfor %}
           </div>

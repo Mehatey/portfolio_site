@@ -753,9 +753,36 @@
       .works-list-item:not(.wli--nda):hover::before {
         transform: scaleY(1);
       }
-      .works-list-item.is-active,
-      .works-list-item:not(.wli--nda):hover {
-        transform: translateX(6px);
+      /* The step-forward on selection.
+
+         It used to sit on the row box, which took the row's border-bottom with
+         it: the selected row's hairline drew at 68→624 while every other row
+         rule — and every lane rule — drew at 58→614. One row in sixteen with
+         its rule offset ten pixels does not read as "this one is selected", it
+         reads as a broken column. (Same class as the `margin: 0 -14px` bleed
+         fixed further down: a transform meant for the content applied to the
+         box that owns the rule.) It now rides .wli-content — the number, the
+         title and the pills, everything the eye tracks — and the box, and so
+         the rule, holds its measure in every state.
+
+         One distance, not two. This was 6px here and 10px in the ≥901px block,
+         and because the hover half of that pair carries a :not() it outranked
+         the desktop rule: the row selected on load stepped 10px, every row you
+         actually hovered stepped 6px. Nobody would call that a hover state
+         with a different feel from the load state — they would call it jitter.
+
+         .wli-right (the year) deliberately does not move. Leaving it as a
+         fixed rail makes the left content read as sliding out from under a
+         stationary index, which is a stronger affordance than the whole row
+         shunting sideways. The title travels a further 10px of its own on top
+         of this — see .wli-name in the ≥901px block. */
+      .wli-content {
+        transition: transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .works-list-item.is-active .wli-content,
+      .works-list-item:not(.wli--nda):hover .wli-content,
+      .works-list-item:focus-visible .wli-content {
+        transform: translateX(10px);
       }
 
       .wli-content {
@@ -1582,13 +1609,11 @@
       .works-list-item:not(.wli--nda):hover::before {
         transform: scaleX(1) translateY(-50%);
       }
-      .works-list-item.is-active,
-      .works-list-item:not(.wli--nda):hover {
-        /* A 2px nudge into the row, not a 16px one: base padding-left is now 0
-           since the box sits on the column measure. This used to read as 16
-           against a base of 14. */
-        padding-left: 2px;
-      }
+      /* A hover `padding-left` used to live here. It never applied — a later
+         unscoped block sets `padding-left: 0` on the same three states at
+         equal specificity and wins. Removed rather than left as a comment
+         describing behaviour the page does not have; the step-forward is
+         handled by a transform on .wli-content in the desktop block below. */
       .wli-name {
         font-size: clamp(16px, 1.45vw, 20px);
         color: rgba(255, 255, 255, 0.64);
@@ -3957,11 +3982,8 @@
             transform 360ms cubic-bezier(0.22, 1, 0.36, 1);
         }
 
-        .works-list-item:hover,
-        .works-list-item:focus-visible,
-        .works-list-item.is-active {
-          transform: translateX(10px);
-        }
+        /* The step-forward lives unscoped further up now, at one distance for
+           every breakpoint and every state. See the note on .wli-content. */
 
         .works-preview {
           grid-template-columns: minmax(460px, 1.58fr) minmax(270px, 0.52fr);
