@@ -10,6 +10,7 @@ category: Installation · Creative Tech
 year: 2026
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)"
 hero_image: "6.mindu/cover2.webp"
+og_image: "assets/img/og/mind-your-feelings.jpg"
 meta:
   - label: Role
     value: Developer
