@@ -53,6 +53,40 @@ title: Play · Sid Mehta
 
       .play-stage { position: fixed; inset: 0; isolation: isolate; background: radial-gradient(circle at 50% 48%, #101c2d 0%, #050811 34%, #020409 74%); }
       .play-stage::after { display: none; }
+      /* ── A ground for the header, not an alpha on the type ──
+         The gallery is a full-bleed field of photographs and the title block
+         is fixed on top of it at the left, so whatever happens to drift
+         through that corner decides whether "Play" and its line of body copy
+         can be read. On the current arc that is usually a bright interior
+         shot, and 14px at 0.72 alpha over a mid-tone photograph is not
+         readable at any alpha — the answer to text over a mid-tone backdrop
+         is never more opacity, it is a ground underneath it.
+
+         Directional, the same way the nav band and the project hero brief are
+         shaded: dense at the corner the type actually occupies, gone by the
+         time it reaches the centre of the stage, so the gallery is never
+         framed by a rectangle. It sits above the canvas and below the header,
+         and it never eats clicks. */
+      .play-stage::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        background: radial-gradient(
+          78% 62% at 0% 18%,
+          rgba(3, 6, 12, 0.88) 0%,
+          rgba(3, 6, 12, 0.62) 26%,
+          rgba(3, 6, 12, 0.24) 52%,
+          rgba(3, 6, 12, 0) 74%
+        );
+      }
+      @media (max-width: 760px) {
+        /* The subtitle is hidden and the block shrinks to a word and two
+           links, so the veil pulls in to match rather than dimming half the
+           gallery on the smallest screen it has. */
+        .play-stage::before { background: radial-gradient(92% 34% at 0% 12%, rgba(3, 6, 12, 0.86) 0%, rgba(3, 6, 12, 0.4) 44%, rgba(3, 6, 12, 0) 78%); }
+      }
       #play-canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
       #play-canvas:active { cursor: grabbing; }
       .play-header {
@@ -278,7 +312,11 @@ title: Play · Sid Mehta
 
     <div class="play-lightbox" id="play-lightbox" role="dialog" aria-modal="true" aria-labelledby="play-lightbox-title">
       <button type="button" aria-label="Close selected piece">×</button>
-      <div class="play-lightbox__media"><img src="" alt="" /></div>
+      <!-- No src attribute at all until a card is chosen. src="" is not an
+             empty image, it resolves against the document and makes the
+             browser re-request this page as an image on every load, which
+             then fails and leaves a broken-image node in the tree. -->
+        <div class="play-lightbox__media"><img alt="" /></div>
       <div class="play-lightbox__copy"><h2 id="play-lightbox-title">Selected experiment</h2><p>Part of Sid’s ongoing practice across creative technology, image making, and spatial interaction.</p></div>
     </div>
 
@@ -526,11 +564,35 @@ title: Play · Sid Mehta
               z
             );
             card.lookAt(camera.position.x * 0.08, card.position.y * 0.06, camera.position.z);
-            const depthScale = THREE.MathUtils.clamp((z + 13.4) / 18.5, 0.2, 1);
-            const inViewingWindow = path < (compact ? 0.08 : 0.11);
-            const targetScale = card === hovered ? 1.14 : depthScale * (compact ? 0.72 : 0.82);
+            /* ── The falloff was tuned against the wrong extent ──
+               depthScale is clamp((z + 13.4) / 18.5) and z is 5.1 - path*18.5,
+               which reduces to exactly 1 - path. But nothing is ever drawn
+               beyond path 0.11, so across the entire viewing window depthScale
+               only ever moved between 0.89 and 1.00 — and the opacity clamp
+               then flattened even that to a constant 0.9. The 0.18 floor was
+               unreachable code. Every neighbour was therefore rendered at
+               nine tenths of the lead's brightness and four fifths of its
+               size, and the result on screen was not a carousel receding into
+               fog, it was a flat collage of eleven near-identical cards
+               running edge to edge behind the title with the focused piece
+               indistinguishable inside it.
+
+               The ladder below is measured against the window that actually
+               exists. `near` is 1 at the lead and 0 at the far lip, so the
+               curve has somewhere to travel: the card beside the lead sits at
+               about 0.47, the one past that at 0.17, and the lip at 0.06 —
+               present enough to promise more, faint enough to stay scenery.
+               The exponent does the work; a linear ramp reads as a dissolve,
+               2.2 reads as distance. Scale falls with it for the same reason,
+               from 1.08 at the lead down to 0.42 at the lip, so recession is
+               carried by size as well as light rather than by light alone. */
+            const windowSpan = compact ? 0.08 : 0.11;
+            const near = THREE.MathUtils.clamp(1 - path / windowSpan, 0, 1);
+            const recede = Math.pow(near, 2.2);
+            const inViewingWindow = path < windowSpan;
+            const targetScale = card === hovered ? 1.14 : (compact ? 0.38 : 0.42) + recede * (compact ? 0.3 : 0.34);
             card.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
-            const targetOpacity = !card.userData.loaded || !inViewingWindow ? 0 : card === hovered ? 1 : THREE.MathUtils.clamp(depthScale, 0.18, 0.9);
+            const targetOpacity = !card.userData.loaded || !inViewingWindow ? 0 : card === hovered ? 1 : 0.06 + recede * 0.52;
             card.material.opacity += (targetOpacity - card.material.opacity) * 0.08;
             card.visible = card.material.opacity > 0.012 || inViewingWindow;
           });
