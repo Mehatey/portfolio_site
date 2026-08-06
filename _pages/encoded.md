@@ -94,13 +94,37 @@ next_project:
   .cube-cap { margin: 40px 0 0; }
   .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 16px !important; }
   .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 8px !important; }
-  .enc-award-tile:hover { border-color: rgba(156,198,255,0.34) !important; background: rgba(156,198,255,0.04) !important; }
+  .enc-award-tile:hover, .enc-award-tile:focus-visible { border-color: rgba(156,198,255,0.34) !important; background: rgba(156,198,255,0.04) !important; }
+
+  /* These two tiles are the only outbound links on the page that were not
+     carrying the house ↗ (see .xarrow in design_tokens), because the mark was
+     written for inline text links and a card has no end-of-sentence to sit at.
+     It gets a corner instead: same slot, same diagonal handoff on hover, just
+     pinned to the top-right of the tile rather than trailing the label. The
+     tile becomes the positioning context; the span stays a DIRECT child of the
+     <a> so the `:hover > .xarrow` rule in design_tokens still reaches it. */
+  .enc-award-tile { position: relative; padding-right: 54px !important; }
+  .enc-award-tile .xarrow {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    margin-left: 0;
+    font-size: 13px;
+    color: rgba(255,255,255,0.32);
+    transition: color 0.2s;
+  }
+  .enc-award-tile:hover .xarrow,
+  .enc-award-tile:focus-visible .xarrow { color: rgba(156,198,255,0.8); }
+  html[data-theme="light"] .enc-award-tile .xarrow { color: rgba(7,9,15,0.32); }
+  html[data-theme="light"] .enc-award-tile:hover .xarrow,
+  html[data-theme="light"] .enc-award-tile:focus-visible .xarrow { color: rgba(35,80,127,0.85); }
 
   /* Light mode. The tiles and the artist list are written inline for the dark
      shell — white at 0.35-0.85 alpha disappears on cream, so these have to
      outrank the style attribute. */
   html[data-theme="light"] .enc-award-tile { border-color: rgba(7,9,15,0.12) !important; }
-  html[data-theme="light"] .enc-award-tile:hover {
+  html[data-theme="light"] .enc-award-tile:hover,
+  html[data-theme="light"] .enc-award-tile:focus-visible {
     border-color: rgba(35,80,127,0.4) !important;
     background: rgba(35,80,127,0.04) !important;
   }
@@ -120,11 +144,13 @@ next_project:
     <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
     <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Use of Augmented Reality</p>
     <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);">Apps, Software & Immersive</p>
+    <span class="xarrow" aria-hidden="true"></span>
   </a>
   <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="enc-award-tile" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;text-decoration:none;transition:border-color 0.2s,background 0.2s;">
     <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
     <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Community Engagement</p>
     <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.35);">Apps, Software & Immersive</p>
+    <span class="xarrow" aria-hidden="true"></span>
   </a>
 </div>
 

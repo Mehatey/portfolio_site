@@ -14,14 +14,30 @@
     <meta property="og:type" content="article" />
     <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.permalink }}" />
     <meta property="og:site_name" content="Sid Mehta" />
-    {% if page.hero_image %}
-    <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/{{ page.hero_image }}" />
+    <!-- The share card falls back to the hero, but a hero is chosen to sit
+         behind a title at 1440px and a share card is looked at for a quarter of
+         a second at 500px inside somebody else's feed — so `og_image` exists to
+         override it, and the three covers that are .webp use it.
+
+         WebP is the reason it had to exist at all. Several of the crawlers that
+         matter here — LinkedIn in particular, which is where these links
+         actually get posted — do not render WebP previews, so /marriott/,
+         /m-health-fairview/ and /mind-your-feelings/ were being shared as a
+         bare headline with an empty grey box. The overrides point at
+         /assets/img/og/*.jpg: 1200×630, progressive, cropped in past the dark
+         gutters the Marriott artwork carries so the product reads at thumbnail
+         size instead of floating in a black frame.
+
+         Declared once here rather than per-tag so og: and twitter: cannot drift
+         apart, which they were already one careless edit away from doing. -->
+    {% assign share_img = page.og_image | default: page.hero_image %} {% if share_img %}
+    <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/{{ share_img }}" />
     {% endif %}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{{ page.project_title }} · Sid Mehta" />
     <meta name="twitter:description" content="{{ page.tagline | default: page.project_title | strip_newlines | truncate: 200 }}" />
-    {% if page.hero_image %}
-    <meta name="twitter:image" content="{{ site.url }}{{ site.baseurl }}/{{ page.hero_image }}" />
+    {% if share_img %}
+    <meta name="twitter:image" content="{{ site.url }}{{ site.baseurl }}/{{ share_img }}" />
     {% endif %}
 
     <!-- Schema.org CreativeWork — per-project structured data for richer search results -->
@@ -460,13 +476,23 @@
         white-space: nowrap;
       }
 
-      /* All values same style — no priority differentiation */
+      /* All values same style — no priority differentiation.
+
+         This is the one anchor on a project page that leaves the site — the
+         "Case Study → View on Leaf Design" row inside the details drawer — and
+         until now it was also the only outbound link anywhere that carried
+         neither the house ↗ (see .xarrow in design_tokens) nor any focus
+         state at all. It had a hover, so it looked finished; a keyboard walk
+         through the drawer landed on it and nothing happened. The rule below
+         now names :focus-visible alongside :hover so the two states are the
+         same thing said twice, which is the only way they stay in step. */
       .meta-v a {
         color: inherit;
         border-bottom: 1px solid rgba(255,255,255,0.35);
         transition: border-color 0.2s, color 0.2s;
       }
-      .meta-v a:hover { color: #fff; border-color: rgba(255,255,255,0.7); }
+      .meta-v a:hover,
+      .meta-v a:focus-visible { color: #fff; border-color: rgba(255,255,255,0.7); }
 
       /*
        * ─── TYPE SYSTEM (4 styles only) ───────────────────────────────────
@@ -2022,7 +2048,8 @@
       html[data-theme="light"] .meta-v a {
         color: rgba(7, 9, 15, 0.82);
       }
-      html[data-theme="light"] .meta-v a:hover {
+      html[data-theme="light"] .meta-v a:hover,
+      html[data-theme="light"] .meta-v a:focus-visible {
         color: #07090f;
         border-color: rgba(7, 9, 15, 0.6);
       }
@@ -3901,8 +3928,9 @@
           <div class="meta-item" {% if item.priority %} data-priority="{{ item.priority }}" {% endif %}>
             <p class="meta-k">{{ item.label }}</p>
             <p class="meta-v">
-              {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.value }}</a>{% else %}{{ item.value }}{%
-              endif %}
+              {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer"
+                >{{ item.value }}<span class="xarrow" aria-hidden="true"></span></a
+              >{% else %}{{ item.value }}{% endif %}
             </p>
           </div>
           {% endunless %}{% endfor %}
