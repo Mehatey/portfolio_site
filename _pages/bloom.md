@@ -10,6 +10,7 @@ category: Spatial Computing · visionOS
 year: 2025-2026
 hero_bg: "radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)"
 hero_image: "15.bloom-vp/cover.jpg"
+og_image: "assets/img/og/bloom.jpg"
 meta:
   - label: Year
     value: "2025-2026"

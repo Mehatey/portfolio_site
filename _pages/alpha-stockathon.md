@@ -10,6 +10,7 @@ category: UI · Gamification
 year: 2021
 hero_bg: "radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)"
 hero_image: "10.alpha/cover.jpg"
+og_image: "assets/img/og/alpha-stockathon.jpg"
 meta:
   - label: Role
     value: Solo

@@ -10,6 +10,7 @@ category: AR · Exhibition
 year: 2025
 hero_bg: "radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
 hero_image: "1.met/0.jpg"
+og_image: "assets/img/og/encoded.jpg"
 meta:
   - label: Year
     value: "2025"

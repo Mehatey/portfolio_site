@@ -10,6 +10,7 @@ year: 2024
 hero_bg: "radial-gradient(ellipse at 70% 40%, #1a0d0d 0%, #0d0505 50%, #030101 100%)"
 hero_video: "5.bb/d8.mp4"
 hero_image: "5.bb/cover.jpg"
+og_image: "assets/img/og/b-plus-b.jpg"
 meta:
   - label: Role
     value: Solo

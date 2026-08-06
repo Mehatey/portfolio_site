@@ -11,6 +11,7 @@ category: Illustration · Visual Diary
 year: 2018-2025
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)"
 hero_image: "11.illu/1.JPG"
+og_image: "assets/img/og/illustrations.jpg"
 refl_bg: "11.illu/refl_bg.jpg"
 meta:
   - label: Role
