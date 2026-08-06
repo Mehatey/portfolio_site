@@ -1,81 +1,59 @@
-<!-- Scroll-length indicator: bottom-right rectangle showing how far down the page the reader is. -->
+<!-- Scroll-length indicator: a hairline at the right edge of the viewport
+     showing how far down the page the reader is. -->
 <div class="scrolllen" aria-hidden="true">
-  <span class="scrolllen__pct" id="scrolllen-pct">0</span>
   <span class="scrolllen__track"><span class="scrolllen__fill" id="scrolllen-fill"></span></span>
 </div>
 <style>
+  /* ── WHY THIS IS NO LONGER A PANEL ──────────────────────────────────────────
+     This used to be a glass chip in the bottom-right corner: a rounded panel, a
+     hairline border, a shadow, and a mono percentage readout above a 92px
+     track. It was carefully made and it was the wrong object twice over.
+
+     It was a widget. Everything else that floats on this site is a control —
+     the theme switch, the cube — and a control earns its footprint because you
+     can act on it. This one only reported. A portfolio that puts a numeric
+     progress readout on top of the work is describing the scroll instead of
+     letting you have it, and the number was never the thing anybody wanted; the
+     question a reader actually has is "am I near the end", which is a length,
+     not a figure.
+
+     And it was in the way. Three pieces of chrome were competing for one
+     corner — the cube at the bottom, this at 96px, and now the theme switch,
+     which had to leave the bottom-left because a fixed disc parked on the left
+     margin lands on the first letter of every line it passes. Two objects on
+     the right rail's plumb line is a stack; three is a toolbar. Something had
+     to give, and the thing that gives is the one that was only ever talking.
+
+     The phone build had already worked this out — it stripped the panel down to
+     a 2px hairline at the very edge of the glass, and it reads better there
+     than the panel ever did on desktop: it is part of the frame rather than an
+     instrument bolted to it, it costs the layout nothing, it crosses no
+     right-aligned label on the way down, and it says the one thing it has to
+     say. So the phone treatment is now the only treatment.
+     ────────────────────────────────────────────────────────────────────────── */
   .scrolllen {
     position: fixed;
-    /* 30px, not 18px, so this chip shares a centre line with the cube FAB
-       below it. The FAB is 52px wide at right: 22px, putting its centre at
-       48px in from the edge; this chip is 36px wide, so it needs 30px to
-       land on the same line. At 18px the two sat 12px apart horizontally —
-       close enough that they read as one stack and far enough that the
-       stack looked accidental. They are the only two pieces of chrome in
-       this corner and they should hang off the same plumb line. */
-    right: 30px;
-    bottom: 96px;
+    inset: 0 0 0 auto;
     z-index: 60;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 8px;
-    padding: 10px 8px;
-    border-radius: 12px;
-    background: rgba(15, 19, 26, 0.42);
-    /* No backdrop-filter. It carried blur(9px) saturate(120%), which is the
-       right instinct for a glass chip and does nothing here for a structural
-       reason: this panel is fixed at right: 18px, which parks it in the page
-       gutter, and the gutter is where the smoke background is — wide, soft and
-       near-flat, so a blur has no high-frequency detail to smear. Measured on
-       and off over /works/ and over /ai-prototypes/, both mid-scroll with real
-       content on screen: the largest difference anywhere in the 30x132 panel
-       was 3/255, across under 1% of its pixels.
-
-       It was the most expensive no-op on the site, too. A backdrop-filter on a
-       position: fixed element has to re-read and re-blur its backdrop on every
-       single scroll frame — and this element exists only to be looked at while
-       scrolling. The 0.42 scrim and the hairline border are doing the work. */
-    border: 1px solid rgba(180, 205, 235, 0.16);
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.28);
+    justify-content: center;
     opacity: 0;
-    transform: translateY(6px);
-    transition:
-      opacity 0.4s ease,
-      transform 0.4s ease;
+    transition: opacity 0.4s ease;
     pointer-events: none;
   }
   .scrolllen.is-on {
     opacity: 1;
-    transform: translateY(0);
-  }
-  .scrolllen__pct {
-    font-family: var(--mono, "DM Mono", monospace);
-    font-size: 9px;
-    letter-spacing: 0.08em;
-    color: #9cc6ff;
-    font-variant-numeric: tabular-nums;
-    /* tabular-nums pins the width of each digit; it cannot pin how many digits
-       there are. The readout runs 0 -> 5 -> 50 -> 100, so the panel that holds
-       it was 24.1px wide at the top of a page and 36.4px at the bottom, and
-       because it is centred and anchored to the right edge its left side crept
-       12px inward as you scrolled. A fixed chrome element that changes shape
-       while you read is the definition of jitter, and this one changes shape
-       in response to the exact gesture it exists to report on.
-
-       Three characters is the maximum, so three characters is the width, plus
-       the two inter-character gaps that letter-spacing adds on top. The number
-       stays centred in it and the panel never moves again. */
-    min-width: calc(3ch + 0.24em);
-    text-align: center;
   }
   .scrolllen__track {
-    width: 4px;
-    height: 92px;
-    border-radius: 4px;
-    background: rgba(180, 205, 235, 0.14);
-    overflow: hidden;
+    /* 3px on desktop, 2px on a phone. A hairline this close to the bezel needs
+       enough width to register as a deliberate rule rather than as a rendering
+       seam, and a desktop viewport is wide enough that 2px reads as the latter. */
+    width: 3px;
+    height: 38vh;
+    background: rgba(180, 205, 235, 0.18);
     position: relative;
+    overflow: hidden;
   }
   .scrolllen__fill {
     position: absolute;
@@ -83,80 +61,29 @@
     top: 0;
     width: 100%;
     height: 0%;
-    border-radius: 4px;
     background: #9cc6ff;
-    box-shadow: 0 0 8px rgba(82, 139, 196, 0.55);
+    box-shadow: 0 0 10px rgba(82, 139, 196, 0.65);
     transition: height 0.12s linear;
   }
-  /* Light mode: the dark glass panel over cream washed the readout out to a
-     1.59 contrast ratio. Invert the panel and take the accent to a deeper
-     blue so the number and the fill both survive on the page background. */
-  html[data-theme="light"] .scrolllen {
-    background: rgba(255, 255, 255, 0.72);
-    border-color: rgba(7, 9, 15, 0.12);
-    box-shadow: 0 6px 20px rgba(7, 9, 15, 0.1);
-  }
-  html[data-theme="light"] .scrolllen__pct {
-    color: #23507f;
-  }
   html[data-theme="light"] .scrolllen__track {
-    background: rgba(7, 9, 15, 0.12);
+    background: rgba(7, 9, 15, 0.14);
   }
   html[data-theme="light"] .scrolllen__fill {
     background: #23507f;
-    box-shadow: 0 0 8px rgba(35, 80, 127, 0.35);
+    box-shadow: 0 0 10px rgba(35, 80, 127, 0.3);
   }
-  /* On a 390px screen the glass panel, the number and the track added up to a
-     floating readout that looked like debug instrumentation bolted onto the
-     page — and being fixed to the right edge it crossed every right-aligned
-     label on the way down: the works count, the project meta, the footer rule.
-     It also had to share the bottom of the viewport with two FABs.
-
-     A phone does not need a percentage. It needs a sense of where it is in the
-     document, which is the one thing a 2px hairline at the very edge of the
-     glass does perfectly and at zero cost to the layout. So the panel, the
-     blur, the border, the shadow and the number all go on small screens, and
-     what is left reads as part of the frame rather than as a widget sitting on
-     top of the page. The track carries a little more alpha here than on
-     desktop because 2px of colour needs it to register at all. */
   @media (max-width: 640px) {
-    .scrolllen {
-      inset: 0 0 0 auto;
-      justify-content: center;
-      gap: 0;
-      padding: 0;
-      border: 0;
-      border-radius: 0;
-      background: none;
-      box-shadow: none;
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
-      transform: none;
-    }
-    .scrolllen.is-on {
-      transform: none;
-    }
-    .scrolllen__pct {
-      display: none;
-    }
     .scrolllen__track {
       width: 2px;
       height: 34vh;
-      border-radius: 0;
       background: rgba(180, 205, 235, 0.2);
-    }
-    .scrolllen__fill {
-      border-radius: 0;
-      box-shadow: 0 0 10px rgba(82, 139, 196, 0.7);
     }
     html[data-theme="light"] .scrolllen__track {
       background: rgba(7, 9, 15, 0.16);
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .scrolllen {
-      transition: none;
-    }
+    .scrolllen,
     .scrolllen__fill {
       transition: none;
     }
@@ -167,31 +94,26 @@
     var el = document.querySelector(".scrolllen");
     if (!el) return;
     var fill = document.getElementById("scrolllen-fill"),
-      pct = document.getElementById("scrolllen-pct"),
       tick = false;
     function upd() {
       var h = document.documentElement.scrollHeight - window.innerHeight;
       var p = h > 0 ? Math.max(0, Math.min(1, window.scrollY / h)) : 0;
       fill.style.height = (p * 100).toFixed(1) + "%";
-      pct.textContent = Math.round(p * 100);
       /* Two conditions, not one. The page has to be long enough to be worth
          reporting on (h > 240) *and* the reader has to have started reading.
 
-         The second half is the interesting one. Before, this chip appeared the
+         The second half is the interesting one. Before, this appeared the
          instant any tall page loaded, which meant every project hero — the
          single most-looked-at frame on the site, the one that ends up in a
-         screenshot — carried a floating panel in the top right reading "0". A
-         progress readout that reads zero is not reporting anything; it is
-         announcing itself. And a lone unsuffixed digit hanging over a
-         full-bleed image reads less like a percentage than like a bug.
+         screenshot — carried a progress indicator sitting at zero. A readout
+         that reads zero is not reporting anything; it is announcing itself.
 
          Gating on 8px of scroll makes it behave the way the rest of this
          site's chrome already behaves: the theme toggle and the cube FAB hide
          while you are scrolling because they are actions and you are not
          acting. This is the inverse of that rule, not an exception to it —
          it is the one piece of chrome that is *about* the scroll, so it earns
-         its place by scrolling and gives it back at the top. The existing
-         0.4s opacity + 6px rise handles the entrance; nothing snaps. */
+         its place by scrolling and gives it back at the top. */
       el.classList.toggle("is-on", h > 240 && window.scrollY > 8);
       tick = false;
     }
