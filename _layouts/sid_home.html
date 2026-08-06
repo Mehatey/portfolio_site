@@ -291,9 +291,36 @@
         white-space: nowrap;
         border: 0;
       }
-      /* The headline writes itself. Each line is its own block, so the caret
-         sits at the end of the line being written and the block below never
-         jumps — the height is reserved by min-height, not by the text. */
+      /* ── THE HEADLINE ARRIVES; IT DOES NOT TYPE ────────────────────────────
+         This was a character-by-character typewriter: 34ms a letter across
+         three lines of twenty-eight, plus a 300ms beat between lines, which is
+         a little over three seconds before the most important sentence on the
+         site is legible. Three problems with that, in rising order of how much
+         they matter.
+
+         It is the single most-copied "AI website" gesture there is, and Sid's
+         one standing constraint is that nothing here read as slop.
+
+         It fights the brief. Sid described this block as "one two three line
+         block constant" and the line under it as the reactive segment. A
+         constant that assembles itself in front of you is not constant — the
+         page then has two things moving and no anchor.
+
+         And it puts the four facts a hiring manager is scanning for behind a
+         three-second animation, during which the hero is a mostly-empty frame.
+
+         What replaces it is the same motion the rest of the site already uses
+         for arriving type — each line rising out from behind its own edge,
+         staggered — except it takes 820ms for the whole block instead of 3.1s,
+         and every line is fully formed the moment it appears. Nothing draws
+         itself letter by letter; three finished lines walk up into place. The
+         caret and its blink go with the typewriter, since there is no longer
+         anything being written for it to sit at the end of.
+
+         The mask is the line box itself (overflow: hidden), so the type is
+         genuinely occluded by the edge it rises past rather than faded in
+         against the background — the difference between something arriving and
+         something appearing. */
       .tw {
         display: block;
       }
@@ -301,6 +328,25 @@
         display: block;
         min-height: 0.98em;
         white-space: pre-wrap;
+        overflow: hidden;
+        /* The clip runs on the line box, and "designer" / "shipped" hang below
+           the baseline. Pad the box down and pull the same amount back off the
+           flow, so descenders survive the mask without opening a gap between
+           the three lines. */
+        padding-bottom: 0.14em;
+        margin-bottom: -0.14em;
+      }
+      .tw__ink {
+        display: block;
+        animation: twRise 820ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes twRise {
+        from {
+          transform: translateY(104%);
+        }
+        to {
+          transform: none;
+        }
       }
       .tw__line.is-typing::after,
       .hero__rot-val.is-typing::after {
@@ -341,7 +387,8 @@
       @media (prefers-reduced-motion: reduce) {
         .accent,
         .tw__line.is-typing::after,
-        .hero__rot-val.is-typing::after {
+        .hero__rot-val.is-typing::after,
+        .tw__ink {
           animation: none;
         }
       }
@@ -1549,59 +1596,37 @@
     <script src="{{ site.baseurl }}/assets/js/home-film.js" defer></script>
 
     <script>
-      /* ── headline typewriter ─────────────────────────────────────
+      /* ── headline arrival ────────────────────────────────────────
          The H1 carries the real sentence for screen readers and for anyone
-         with JS off; this types a visual copy of it. Lines are pre-split so
-         the caret never lands mid-word and the block below never reflows. */
+         with JS off; this prints a visual copy of it, pre-split, one span per
+         line, each line's ink rising out from behind its own line box.
+
+         Note what this no longer is: a per-character rAF loop that ran for
+         three seconds and left the hero half-empty for most of them. The text
+         is written into the DOM in one pass; the only thing that takes time is
+         the transform, which is on the compositor. If the animation never runs
+         — old browser, reduced motion, JS budget blown — the headline is still
+         simply there, because the text does not depend on the motion. That was
+         not true of the typewriter. */
       (function () {
         var host = document.querySelector(".tw");
         var hero = document.getElementById("hero");
         if (!host) return;
         var lines = (host.getAttribute("data-tw") || "").split("|");
-        var els = lines.map(function (txt, i) {
+        lines.forEach(function (txt, i) {
           var el = document.createElement("span");
           el.className = "tw__line";
+          var ink = document.createElement("span");
+          ink.className = "tw__ink";
+          ink.textContent = txt;
+          /* 110ms apart. Wide enough that the three lines read as a sequence
+             rather than one block sliding, tight enough that the last one is
+             home before the eye has finished the first. */
+          ink.style.animationDelay = 240 + i * 110 + "ms";
+          el.appendChild(ink);
           host.appendChild(el);
-          return el;
         });
         if (hero) hero.classList.add("in");
-
-        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          els.forEach(function (el, i) {
-            el.textContent = lines[i];
-          });
-          return;
-        }
-
-        var li = 0,
-          ci = 0,
-          gate = 0;
-        var tick = function (now) {
-          if (li >= lines.length) {
-            els[els.length - 1].classList.add("is-typing");
-            return;
-          }
-          if (now < gate) return requestAnimationFrame(tick);
-          gate = now + 34;
-          var el = els[li],
-            txt = lines[li];
-          el.classList.add("is-typing");
-          ci++;
-          el.textContent = txt.slice(0, ci);
-          if (ci >= txt.length) {
-            el.classList.remove("is-typing");
-            li++;
-            ci = 0;
-            gate = now + 300; /* a beat between lines */
-          }
-          requestAnimationFrame(tick);
-        };
-        setTimeout(function () {
-          requestAnimationFrame(function (now) {
-            gate = now;
-            tick(now);
-          });
-        }, 420);
       })();
 
       /* ── the reactive tail ───────────────────────────────────────
