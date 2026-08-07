@@ -300,6 +300,15 @@ title: Play · Orbit · Sid Mehta
       .stage.has-fallback #orbit-canvas {
         display: none;
       }
+      /* When the scene is not coming, neither is anything these two describe.
+         "Drag to orbit, scroll to zoom" printed over an empty black field is
+         worse than silence: it tells you the page is working. */
+      .stage.has-fallback .imm-hint,
+      .stage.has-fallback .imm-caption,
+      .stage.has-fallback .rings-legend,
+      .stage.has-fallback .hud-top p {
+        display: none;
+      }
       .orbit-lightbox {
         position: fixed;
         inset: 0;
@@ -417,6 +426,33 @@ title: Play · Orbit · Sid Mehta
     </style>
   </head>
   <body>
+    <!-- The watchdog.
+
+         Everything on this page is drawn by one `<script type="module">`, and
+         that module's first line imports three from a CDN. If that import
+         fails -- offline, blocked, a corporate proxy, jsdelivr having a bad
+         afternoon -- the module never executes a single statement. Not the
+         try/catch around the renderer, not the fallback message, nothing. What
+         is left is a black screen with a heading, three filter chips and a
+         line of text reading "drag to orbit, scroll to zoom", over nothing.
+         That is the state this page renders in offline, and it is what any
+         locked-down browser gets.
+
+         The fallback markup already exists and already says the right thing
+         (go back to the Play grid and browse the same work as images). It just
+         had no way of being reached, because the only code that could reveal
+         it lived inside the thing that failed. So the check moves out here,
+         into a classic script that runs regardless, and the module signals
+         success by setting a flag. Three seconds, same reasoning as the
+         loader's portal deadline: long enough that a healthy load never sees
+         it, short enough that a broken one does not sit there. -->
+    <script>
+      setTimeout(function () {
+        if (window.__orbitReady) return;
+        var s = document.getElementById("orbit-stage");
+        if (s) s.classList.add("has-fallback");
+      }, 3000);
+    </script>
     <a class="skip-link" href="#orbit-stage">Skip to Orbit gallery</a>
     <main class="stage" id="orbit-stage">
       <canvas
@@ -527,6 +563,10 @@ title: Play · Orbit · Sid Mehta
       let renderer;
       try {
         renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+        /* Read by the watchdog in the classic script above. It has to be set
+           from in here, because the whole point of the watchdog is that it
+           cannot assume this module ever ran. */
+        window.__orbitReady = true;
       } catch (err) {
         stage.classList.add("has-fallback");
       }
