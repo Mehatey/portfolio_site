@@ -4987,9 +4987,35 @@
         let dpr = 1;
         const brushRadius = 80;
 
-        // Image starts hidden — canvas acts as a black mask over it
-        // Painting clears the mask to reveal the image underneath
+        // Image starts hidden — the canvas is a mask over it, and painting
+        // clears the mask to reveal the photograph underneath.
+        //
+        // The mask used to be #000 unconditionally, which is the same mistake
+        // as painting a scrim in one theme's colour: on the dark page a black
+        // fill is invisible and the section reads as page, which is the whole
+        // point. On cream it is a solid black rectangle covering the full
+        // width of the section -- and the light-mode ink inside it is
+        // rgba(7,9,15,0.74), so the quote sat at dark-on-black. Sampled the
+        // painted pixels across the quote's own box: luminance 0 to 7, a
+        // maximum possible contrast of 1.04:1. Sid's writing about the
+        // project, on all fifteen project pages, simply could not be read in
+        // light mode until you scrubbed the mask off with the cursor.
+        //
+        // The contrast auditor could not see it either, and that is worth
+        // recording: it walks ancestors looking for a background *colour*, and
+        // this backdrop is a canvas. It found the page's cream, composited
+        // dark ink against it, and reported a healthy ratio. The stylesheet
+        // was never wrong. The paint was.
+        //
+        // A mask is supposed to be the surface it is hiding something behind,
+        // so it takes the page's own --bg. Cream on cream, black on black,
+        // and the photograph is genuinely hidden in both.
         img.style.opacity = "0.4";
+
+        function maskColor() {
+          var v = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+          return v || "#000";
+        }
 
         function resize() {
           dpr = window.devicePixelRatio || 1;
@@ -5000,15 +5026,26 @@
           canvas.style.height = rect.height + "px";
           ctx.setTransform(1, 0, 0, 1, 0, 0);
           ctx.scale(dpr, dpr);
-          // Fill with black (hides the image)
+          // Fill with the page's own background, which is what hides the
+          // image in whichever theme is on.
           ctx.globalCompositeOperation = "source-over";
-          ctx.fillStyle = "#000";
+          ctx.fillStyle = maskColor();
           ctx.fillRect(0, 0, rect.width, rect.height);
         }
 
         img.addEventListener("load", resize);
         if (img.complete) resize();
         window.addEventListener("resize", resize, { passive: true });
+
+        /* Switching theme repaints the mask. It also discards whatever the
+           visitor had already scrubbed away, which is the right trade: a
+           half-erased mask in the wrong colour is worse than starting over,
+           and someone who has just changed theme is looking at the page, not
+           mid-gesture. */
+        new MutationObserver(resize).observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
 
         function paint(x, y) {
           const rect = section.getBoundingClientRect();
