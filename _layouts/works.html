@@ -725,6 +725,24 @@
         transition:
           opacity 0.5s var(--ease-out),
           transform 0.5s var(--ease-out);
+        /* A dead man's switch on the reveal. These rows start at zero opacity
+           and are brought in by a JS stagger; if that script never runs --
+           blocked, errored earlier in the file, scripting off -- every work on
+           the page is invisible. That was survivable when the preview panel
+           still painted beside an empty list. It is not survivable now that
+           the sixteen rows *are* the page.
+
+           The animation has a delay longer than the stagger's own run, so on a
+           healthy load it never has an effect: .wli--in has already set the
+           same two values by the time it would begin. It only ever matters on
+           the load where nothing else arrives. */
+        animation: wliFailsafe 1ms linear 2600ms forwards;
+      }
+      @keyframes wliFailsafe {
+        to {
+          opacity: 1;
+          transform: none;
+        }
       }
       .works-list-item.wli--in {
         opacity: 1;
@@ -5613,6 +5631,31 @@
         }
         .works-split .works-list > a.works-list-item:nth-of-type(16) {
           grid-area: M1 / L;
+        }
+
+        /* ── the frame closes in ──
+           The base rest position slides every row in from the left, which is
+           right for a list and wrong for a ring: it means the right column and
+           the bottom row arrive travelling *away* from the thing they point
+           at. Each side now starts outside its own edge and moves inward, so
+           the reveal reads as a frame drawing itself around the plate rather
+           than sixteen rows arriving from stage left. The stagger is already
+           in DOM order, which here is clockwise from the top left, so the
+           whole thing sweeps round once and settles. */
+        .works-split .works-list > a.works-list-item:nth-of-type(-n + 4) {
+          transform: translateY(-12px);
+        }
+        .works-split .works-list > a.works-list-item:nth-of-type(n + 5):nth-of-type(-n + 8) {
+          transform: translateX(14px);
+        }
+        .works-split .works-list > a.works-list-item:nth-of-type(n + 9):nth-of-type(-n + 12) {
+          transform: translateY(12px);
+        }
+        .works-split .works-list > a.works-list-item:nth-of-type(n + 13) {
+          transform: translateX(-14px);
+        }
+        .works-split .works-list > a.works-list-item.wli--in {
+          transform: none;
         }
 
         /* ── everything faces the plate ── */
