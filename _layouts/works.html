@@ -5201,15 +5201,21 @@
          exactly the works. That means the whole layout is a stylesheet
          change: the markup, the data attributes and every piece of preview
          machinery bound to them are untouched. */
-      /* The floor is 1220 wide AND 700 tall, and both halves were measured
+      /* The floor is 1220 wide AND 840 tall, and both halves were measured
          rather than picked. At 1101x700 the frame collapses: four cells a side
-         is 190px each, titles wrap to three lines, the left column's rows
-         overlap each other and the plate shrinks to a stamp. A ring needs room
-         to be a ring. Below this the page is the list-and-panel layout it has
+         is 190px each and titles wrap to three lines. The height floor is the
+         same argument on the other axis: the side columns are four items of
+         about sixty pixels stacked against the plate, and the plate's height
+         is what feeds them. Measured, the gap between consecutive left-column
+         items ran 14px at 900 tall, 4px at 861, and minus 11 at 800 -- the
+         tag row of one item printing through the ordinal of the next. Every
+         margin in the frame has since been trimmed to buy that back, but
+         there is a height below which four items a side simply do not fit,
+         and 840 is where it lands. A ring needs room to be a ring. Below this the page is the list-and-panel layout it has
          always been, unchanged, because `display: contents` is inside the
          query -- so the list goes back to being a real box and every rule
          above this block applies exactly as it did. */
-      @media (min-width: 1220px) and (min-height: 700px) {
+      @media (min-width: 1220px) and (min-height: 840px) {
         /* The list stops being a box and becomes its children, so the sixteen
            items, the masthead, the three lane chips and the fast lane all
            become direct participants in the ring grid alongside the preview.
@@ -5232,10 +5238,19 @@
             [L] minmax(190px, 244px)
             [C1] minmax(0, 1fr) [C2] minmax(0, 1fr) [C3] minmax(0, 1fr) [C4] minmax(0, 1fr)
             [R] minmax(190px, 244px) [Rend];
+          /* The caption gets its own row. It used to share M4 with the
+             fourth item of each side column, and because `1fr` floors a track
+             at its content, the caption's two lines of copy made M4 taller
+             than M1 to M3 -- so the left column read 86, 86, 155 down its
+             length instead of an even four. Giving the copy a row of its own
+             leaves M1 to M4 genuinely equal, and it aligns the four side
+             items exactly with the plate they sit beside, which is what makes
+             the frame look measured rather than approximately spaced. */
           grid-template-rows:
             [H] auto
             [T] auto
             [M1] 1fr [M2] 1fr [M3] 1fr [M4] 1fr
+            [CAP] auto
             [B] auto [Bend];
           column-gap: clamp(14px, 1.7vw, 26px);
           row-gap: 0;
@@ -5247,7 +5262,7 @@
              larger than it looks like it needs to be because the theme toggle
              and the chat button are fixed in the lower right and the ring's
              bottom row runs the full width under them. */
-          padding: clamp(80px, 8.6vh, 100px) clamp(22px, 3vw, 52px) clamp(40px, 4.6vh, 56px);
+          padding: clamp(76px, 8vh, 96px) clamp(22px, 3vw, 52px) clamp(30px, 3.6vh, 46px);
           /* Minus the nav band: .works-split's own top edge already sits at
              64px, so a full 100svh put its floor 64px past the fold and cut
              the bottom row in half. Measured: box was y64 h861 in an 861 tall
@@ -5265,7 +5280,7 @@
           align-items: baseline;
           justify-content: flex-start;
           gap: 14px;
-          padding: 0 0 12px;
+          padding: 0 0 8px;
           border-bottom: 0;
         }
         /* The masthead was set at display size for a page whose first screen
@@ -5427,11 +5442,11 @@
           position: relative;
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 4px;
           min-width: 0;
           min-height: 0;
           margin: 0;
-          padding: 11px 0 0;
+          padding: 9px 0 0;
           border: 0;
           background: none;
           overflow: visible;
@@ -5485,7 +5500,7 @@
           font-family: var(--font-head);
           font-size: 14.5px;
           font-weight: 400;
-          line-height: 1.15;
+          line-height: 1.1;
           letter-spacing: -0.008em;
           transform: none;
         }
@@ -5593,11 +5608,11 @@
         /* ── everything faces the plate ── */
         .works-split .works-list > a.works-list-item:nth-of-type(-n + 4) {
           align-self: end;
-          margin-bottom: 16px;
+          margin-bottom: 9px;
         }
         .works-split .works-list > a.works-list-item:nth-of-type(n + 9):nth-of-type(-n + 12) {
           align-self: start;
-          margin-top: 16px;
+          margin-top: 9px;
         }
         .works-split .works-list > a.works-list-item:nth-of-type(n + 13),
         .works-split .works-list > a.works-list-item:nth-of-type(n + 5):nth-of-type(-n + 8) {
@@ -5644,7 +5659,7 @@
            caption. */
         .works-split .wp-media {
           grid-column: C1 / R !important;
-          grid-row: M1 / M4 !important;
+          grid-row: M1 / CAP !important;
           height: 100% !important;
           width: auto !important;
           max-width: 100% !important;
@@ -5656,13 +5671,13 @@
         }
         .works-split .wp-body {
           grid-column: C1 / R !important;
-          grid-row: M4 / B !important;
+          grid-row: CAP / B !important;
           display: grid !important;
           grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) !important;
           align-items: start;
           align-content: start;
           gap: 6px 34px !important;
-          margin: 14px 0 0 !important;
+          margin: 9px 0 0 !important;
           padding: 0;
           min-width: 0;
         }
@@ -5692,12 +5707,33 @@
         .works-split .wp-pills {
           margin: 0 !important;
         }
+        .works-split .wp-cta {
+          margin-top: 10px !important;
+        }
         .works-split .wp-facts {
           display: flex;
           flex-direction: column;
           gap: 7px;
           padding-top: 2px;
           margin: 0 !important;
+        }
+
+        /* Between the 840 floor and 900 the frame is real but the side
+           columns are working with about eighty pixels a row, and measured at
+           1280x845 the gap between consecutive items came out at nine. Nine
+           is not a collision but it is not a gap either -- the tag row of one
+           item and the ordinal of the next stop reading as two things. Half a
+           point off the title and half off the tags takes six pixels out of
+           every item and puts them back between them, which at this height is
+           the difference between a stack and a list. Above 900 nothing
+           changes, because above 900 there is nothing to fix. */
+        @media (max-height: 899px) {
+          .works-split .works-list > a.works-list-item .wli-name {
+            font-size: 13.5px;
+          }
+          .works-split .works-list > a.works-list-item .wli-pill {
+            font-size: 8px;
+          }
         }
 
         /* Under 1400 the three lane names and the fast-lane label are
@@ -6841,7 +6877,7 @@
         var list = document.getElementById("works-list");
         var isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
         var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (!list || isTouch || window.innerWidth <= 900 || (window.innerWidth >= 1220 && window.innerHeight >= 700)) return;
+        if (!list || isTouch || window.innerWidth <= 900 || (window.innerWidth >= 1220 && window.innerHeight >= 840)) return;
 
         var queued = false;
         function syncPreview() {
