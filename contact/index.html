@@ -398,11 +398,12 @@
          video controls already use on this site: shade falling across a
          picture in one direction so text can sit on it.
 
-         The copy anchors to the top of the shell rather than its middle, so
-         the composition runs diagonally — words upper-left, the lit desk
-         lower-right — instead of splitting the frame down a vertical line.
-         That single change is what removes both the slide reading and the
-         dead band at the top, in the same move. */
+         The copy anchors to the edges of the shell rather than its middle,
+         so the composition runs diagonally across a frame — masthead
+         upper-left, details lower-left, the lit desk through the middle and
+         off to the right — instead of splitting the page down a vertical
+         line. That is what removes both the slide reading and the dead band
+         at the top, in the same move. */
       .contact-shell {
         position: relative;
         display: grid;
@@ -410,7 +411,20 @@
         align-content: start;
         width: 100%;
         height: 100svh;
-        padding: clamp(110px, 14vh, 152px) clamp(28px, 6vw, 104px) clamp(44px, 6vh, 70px);
+        /* The bottom value is not free. .contact-meta is absolutely
+           positioned 22px off the floor and measures 24px tall, so it always
+           occupies the lowest 46px of this box regardless of how tall the
+           viewport is. The old clamp bottomed out at 44px, which is less than
+           46 -- so on a 1280x720 or 1512x700 display the floor-anchored end
+           of the copy column and the meta row overlapped by two pixels, and
+           at 780 they were one pixel apart. The measurement only looked
+           healthy at 861 and above, which is where it happened to be checked.
+
+           78px is 46 for the row plus 32 of air, and it holds that 32 all the
+           way up to 1600-tall where 6vh finally takes over. So the gap under
+           the last line of copy is now a constant instead of something that
+           quietly runs out on the most common laptop height there is. */
+        padding: clamp(110px, 14vh, 152px) clamp(28px, 6vw, 104px) clamp(78px, 6vh, 96px);
         overflow: hidden;
         isolation: isolate;
         background: radial-gradient(circle at 75% 45%, #111d29 0%, #05080d 37%, #020407 76%);
@@ -420,6 +434,44 @@
         position: relative;
         z-index: 4;
         max-width: min(590px, 44vw);
+      }
+
+      /* Above the mobile breakpoint the copy column is given the full height
+         of the shell and split in two: the masthead — status, headline, intro
+         — stays pinned to the top, and the things a reader actually acts on —
+         address, phone, social row, plate hint — are pushed onto the floor by
+         a single auto margin.
+
+         The point is not to fill the gap. It is that the gap stops being a
+         gap. Top-anchored, the entire column ended 284px above the footer rule
+         and read as one block of text parked beside a picture, which is
+         precisely the slide composition this page is trying not to be. Split,
+         the column becomes a left-hand frame — type on the top edge, type on
+         the bottom edge — and the lit desk in the middle becomes the subject
+         of the page rather than the other half of a two-up. */
+      @media (min-width: 901px) {
+        .contact-shell {
+          align-content: stretch;
+        }
+
+        .contact-copy {
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+
+        /* The one auto margin that does all of it.
+
+           Written as a child selector on purpose. The plain .contact-primary
+           rule that sets margin-top: 30px is declared further down this same
+           stylesheet, so at equal specificity it won on source order and this
+           media query did nothing at all -- the column stayed top-anchored and
+           the 284px dead band it was written to remove was still there. One
+           extra class in the selector is enough to settle it, and settles it
+           independently of where either rule happens to sit in the file. */
+        .contact-copy > .contact-primary {
+          margin-top: auto;
+        }
       }
 
       /* Entry stagger. Each block rises through its own blur, so the page
@@ -1226,14 +1278,36 @@
          Everything else in the frame is well below clipping and simply gets a
          touch deeper, which the lit tabletop wants anyway. Saturation goes up
          as brightness comes down so the desk does not go grey with it. */
+      /* THE SCISSOR EDGE.
+         table_new.png is a cut-out: 44% of it is transparent, and the opaque
+         silhouette used to start on one row with no falloff at all. Against
+         black that boundary is invisible, because what sits outside the cut is
+         the same darkness as what sits just inside it. Against cream it was an
+         80-value step across four pixels running the full width of the frame,
+         which is the most pasted-in thing that can happen to a picture -- not
+         a photograph of a room, a photograph laid on a desk.
+
+         The plates themselves now carry a feathered alpha, so the silhouette
+         dissolves over about forty screen pixels instead of ending. This pair
+         of shadows is the other half of it: a cut-out on paper reads as pasted
+         precisely because it casts nothing. drop-shadow follows the alpha
+         exactly, so the transition is paper to shadow to photo, and the plate
+         sits on the sheet rather than being punched through it. Wide and soft
+         for the object's weight, tight and dark for the contact -- the pair a
+         real object under a high key throws. Offset down and slightly left
+         because the key in this photograph is high and to the right, which is
+         also where ::before puts the cast shadow and where the 104deg shade
+         above runs. */
       html[data-theme="light"] .contact-desk__pixel {
-        filter: saturate(0.98) contrast(1.02) brightness(0.93);
+        filter: saturate(0.98) contrast(1.02) brightness(0.93) drop-shadow(-7px 18px 30px rgba(52, 44, 34, 0.24))
+          drop-shadow(-1px 3px 5px rgba(52, 44, 34, 0.22));
       }
       html[data-theme="light"] .contact-desk__real {
-        filter: saturate(1.04) contrast(1.02) brightness(0.93);
+        filter: saturate(1.04) contrast(1.02) brightness(0.93) drop-shadow(-7px 18px 30px rgba(52, 44, 34, 0.24))
+          drop-shadow(-1px 3px 5px rgba(52, 44, 34, 0.22));
       }
       html[data-theme="light"] .contact-shell::before {
-        background: linear-gradient(0deg, rgba(240, 236, 227, 0.97) 0%, rgba(240, 236, 227, 0.82) 38%, rgba(240, 236, 227, 0) 100%);
+        background: linear-gradient(0deg, rgba(245, 243, 238, 0.97) 0%, rgba(245, 243, 238, 0.82) 38%, rgba(245, 243, 238, 0) 100%);
       }
       html[data-theme="light"] .contact-meta {
         /* 2.6–2.8:1 over the lit tabletop — the same row that needed lifting
@@ -1251,10 +1325,10 @@
       html[data-theme="light"] .contact-shell::after {
         background: linear-gradient(
           104deg,
-          rgba(240, 236, 227, 0.95) 0%,
-          rgba(240, 236, 227, 0.86) 22%,
-          rgba(240, 236, 227, 0.4) 44%,
-          rgba(240, 236, 227, 0) 62%
+          rgba(245, 243, 238, 0.95) 0%,
+          rgba(245, 243, 238, 0.86) 22%,
+          rgba(245, 243, 238, 0.4) 44%,
+          rgba(245, 243, 238, 0) 62%
         );
       }
 
@@ -1281,7 +1355,7 @@
         mask-image: linear-gradient(96deg, rgba(0, 0, 0, 1) 50%, rgba(0, 0, 0, 0.86) 62%, rgba(0, 0, 0, 0.42) 76%, rgba(0, 0, 0, 0) 87%);
       }
       html[data-theme="light"] .contact-desk__fade {
-        background: linear-gradient(96deg, rgba(243, 239, 231, 0) 46%, rgba(243, 239, 231, 0.3) 66%, rgba(243, 239, 231, 0.52) 80%);
+        background: linear-gradient(96deg, rgba(245, 243, 238, 0) 46%, rgba(245, 243, 238, 0.3) 66%, rgba(245, 243, 238, 0.52) 80%);
       }
       @media (max-width: 900px) {
         /* The render is knocked back to 0.58 on phones so the copy can sit
@@ -1298,7 +1372,7 @@
           opacity: 0.92;
         }
         html[data-theme="light"] .contact-shell::after {
-          background: linear-gradient(0deg, rgba(240, 236, 227, 0.97) 0%, rgba(240, 236, 227, 0.7) 54%, rgba(240, 236, 227, 0.14) 100%);
+          background: linear-gradient(0deg, rgba(245, 243, 238, 0.97) 0%, rgba(245, 243, 238, 0.7) 54%, rgba(245, 243, 238, 0.14) 100%);
         }
       }
 
@@ -1636,17 +1710,17 @@
   html[data-theme="light"] .studio-links {
     background:
       radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.95), transparent 66%),
-      linear-gradient(168deg, rgba(255, 255, 255, 0.84), rgba(206, 222, 238, 0.62));
+      linear-gradient(168deg, rgba(255, 253, 247, 0.86), rgba(227, 224, 214, 0.64));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 0 rgba(60, 104, 148, 0.1),
-      0 12px 32px rgba(30, 56, 84, 0.14);
+      inset 0 -1px 0 rgba(96, 88, 70, 0.12),
+      0 12px 32px rgba(84, 70, 48, 0.16);
     backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
   }
 
   html[data-theme="light"] .studio-links::before {
-    background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(120, 158, 196, 0.22) 40%, rgba(255, 255, 255, 0.5));
+    background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(120, 158, 196, 0.34) 40%, rgba(255, 255, 255, 0.5));
   }
 
   /* Play opts back out — see the note beside `.play-page .studio-nav`. */
@@ -1723,12 +1797,12 @@
     border-color: rgba(24, 48, 78, 0.16);
     background:
       radial-gradient(90px 52px at 26% 6%, rgba(255, 255, 255, 0.9), transparent 70%),
-      linear-gradient(168deg, rgba(255, 255, 255, 0.88), rgba(206, 222, 238, 0.66));
+      linear-gradient(168deg, rgba(255, 253, 247, 0.9), rgba(227, 224, 214, 0.68));
     backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
-      0 12px 30px rgba(30, 56, 84, 0.14);
+      0 12px 30px rgba(84, 70, 48, 0.16);
   }
   html[data-theme="light"] .studio-mark::before {
     background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.1) 42%, rgba(190, 222, 255, 0.5));

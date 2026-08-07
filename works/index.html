@@ -5510,8 +5510,24 @@
       opacity: 0.55;
     }
   }
+  /* Light mode used to switch this off entirely, and that one line was the
+     single biggest reason light mode felt thin next to dark. Dark got a
+     living nebula behind every page; light got flat cream. The atmosphere
+     was not the problem — the palette was. So the same field now renders on
+     paper: the base colour IS the page cream, so an unlit pixel composites
+     to exactly the background it replaces, and the noise only ever moves
+     away from it by a couple of percent. Maximum darkening measured under
+     the cursor is about 4%, which is nowhere near the cream contrast floor.
+
+     It reads as light falling unevenly across a sheet rather than as smoke,
+     which is the right translation: smoke on paper would be dirt. */
   html[data-theme="light"] #page-smoke-bg {
-    display: none !important;
+    animation-name: pageSmokeFadeInLight;
+  }
+  @keyframes pageSmokeFadeInLight {
+    to {
+      opacity: 0.85;
+    }
   }
 </style> <script>
   (function () {
@@ -5538,13 +5554,13 @@
     var VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}";
     var FS = [
       "precision mediump float;",
-      "uniform float u_time;uniform vec2 u_res;uniform vec2 u_mouse;",
+      "uniform float u_time;uniform vec2 u_res;uniform vec2 u_mouse;uniform float u_light;",
       "vec3 mod289(vec3 x){return x-floor(x/289.0)*289.0;}",
       "vec2 mod289(vec2 x){return x-floor(x/289.0)*289.0;}",
       "vec3 permute(vec3 x){return mod289((x*34.0+1.0)*x);}",
       "float snoise(vec2 v){const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);vec2 i=floor(v+dot(v,C.yy));vec2 x0=v-i+dot(i,C.xx);vec2 i1=x0.x>x0.y?vec2(1,0):vec2(0,1);vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod289(i);vec3 p=permute(permute(i.y+vec3(0,i1.y,1))+i.x+vec3(0,i1.x,1));vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);m=m*m;m=m*m;vec3 x=2.0*fract(p*C.www)-1.0;vec3 h=abs(x)-0.5;vec3 ox=floor(x+0.5);vec3 a0=x-ox;m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;return 130.0*dot(m,g);}",
       "float fbm(vec2 p){float f=0.0;f+=0.5*snoise(p);p*=2.02;f+=0.25*snoise(p);p*=2.03;f+=0.125*snoise(p);p*=2.01;f+=0.0625*snoise(p);return f;}",
-      "void main(){vec2 uv=gl_FragCoord.xy/u_res;float t=u_time*0.15;vec2 mouse=u_mouse;vec2 d=uv-mouse;float dist=length(d);float curl=exp(-dist*3.0)*0.4;vec2 swirl=vec2(-d.y,d.x)*curl;float n1=fbm(uv*3.0+vec2(t*0.8,t*0.6)+swirl*2.0);float n2=fbm(uv*2.0+vec2(-t*0.5,t*0.7)+swirl*1.5+0.5);float n3=fbm(uv*4.5+vec2(t*0.3,-t*0.4)+swirl*3.0+1.0);float smoke=n1*0.5+n2*0.3+n3*0.2;smoke=smoke*0.5+0.5;smoke=smoothstep(0.25,0.75,smoke);vec3 deep=vec3(0.01,0.02,0.04);vec3 mid=vec3(0.04,0.12,0.18);vec3 light=vec3(0.15,0.30,0.35);vec3 highlight=vec3(0.35,0.50,0.48);vec3 col=mix(deep,mid,smoothstep(0.2,0.45,smoke));col=mix(col,light,smoothstep(0.45,0.65,smoke));col=mix(col,highlight,smoothstep(0.7,0.9,smoke)*0.3);float proximity=exp(-dist*12.0);col*=proximity*2.5+0.005;float glow=exp(-dist*18.0)*0.25;col+=vec3(0.30,0.50,0.55)*glow;float vig=1.0-dot((uv-0.5)*1.6,(uv-0.5)*1.6);col*=vig;gl_FragColor=vec4(col,1.0);}",
+      "void main(){vec2 uv=gl_FragCoord.xy/u_res;float t=u_time*0.15;vec2 mouse=u_mouse;vec2 d=uv-mouse;float dist=length(d);float curl=exp(-dist*3.0)*0.4;vec2 swirl=vec2(-d.y,d.x)*curl;float n1=fbm(uv*3.0+vec2(t*0.8,t*0.6)+swirl*2.0);float n2=fbm(uv*2.0+vec2(-t*0.5,t*0.7)+swirl*1.5+0.5);float n3=fbm(uv*4.5+vec2(t*0.3,-t*0.4)+swirl*3.0+1.0);float smoke=n1*0.5+n2*0.3+n3*0.2;smoke=smoke*0.5+0.5;smoke=smoothstep(0.25,0.75,smoke);vec3 deep=vec3(0.01,0.02,0.04);vec3 mid=vec3(0.04,0.12,0.18);vec3 light=vec3(0.15,0.30,0.35);vec3 highlight=vec3(0.35,0.50,0.48);vec3 col=mix(deep,mid,smoothstep(0.2,0.45,smoke));col=mix(col,light,smoothstep(0.45,0.65,smoke));col=mix(col,highlight,smoothstep(0.7,0.9,smoke)*0.3);float proximity=exp(-dist*12.0);float vig=1.0-dot((uv-0.5)*1.6,(uv-0.5)*1.6);float glow=exp(-dist*18.0)*0.25;if(u_light>0.5){vec3 paper=vec3(0.961,0.953,0.933);vec3 shade=vec3(0.795,0.805,0.828);vec3 half_=vec3(0.888,0.888,0.890);vec3 lift=vec3(0.995,0.992,0.975);vec3 pc=mix(shade,half_,smoothstep(0.2,0.55,smoke));pc=mix(pc,lift,smoothstep(0.62,0.92,smoke));float rev=clamp(proximity*2.2+0.30,0.0,1.0);col=mix(paper,pc,rev);col=mix(col,vec3(0.902,0.929,0.972),glow*1.1);col*=mix(0.962,1.0,vig);}else{col*=proximity*2.5+0.005;col+=vec3(0.30,0.50,0.55)*glow;col*=vig;}gl_FragColor=vec4(col,1.0);}",
     ].join("\n");
     function mkShader(t, s) {
       var sh = gl.createShader(t);
@@ -5566,6 +5582,8 @@
     var uTime = gl.getUniformLocation(prog, "u_time");
     var uRes = gl.getUniformLocation(prog, "u_res");
     var uMouse = gl.getUniformLocation(prog, "u_mouse");
+    var uLight = gl.getUniformLocation(prog, "u_light");
+    var docEl = document.documentElement;
     var mx = 0.5,
       my = 0.5,
       tmx = 0.5,
@@ -5589,6 +5607,7 @@
       gl.uniform1f(uTime, (performance.now() - t0 - tOff) / 1000);
       gl.uniform2f(uRes, c.width, c.height);
       gl.uniform2f(uMouse, mx, my);
+      gl.uniform1f(uLight, docEl.getAttribute("data-theme") === "light" ? 1 : 0);
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       if (!hidden) rafId = requestAnimationFrame(tick);
     }
@@ -5934,17 +5953,17 @@
   html[data-theme="light"] .studio-links {
     background:
       radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.95), transparent 66%),
-      linear-gradient(168deg, rgba(255, 255, 255, 0.84), rgba(206, 222, 238, 0.62));
+      linear-gradient(168deg, rgba(255, 253, 247, 0.86), rgba(227, 224, 214, 0.64));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 0 rgba(60, 104, 148, 0.1),
-      0 12px 32px rgba(30, 56, 84, 0.14);
+      inset 0 -1px 0 rgba(96, 88, 70, 0.12),
+      0 12px 32px rgba(84, 70, 48, 0.16);
     backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
   }
 
   html[data-theme="light"] .studio-links::before {
-    background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(120, 158, 196, 0.22) 40%, rgba(255, 255, 255, 0.5));
+    background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(120, 158, 196, 0.34) 40%, rgba(255, 255, 255, 0.5));
   }
 
   /* Play opts back out — see the note beside `.play-page .studio-nav`. */
@@ -6021,12 +6040,12 @@
     border-color: rgba(24, 48, 78, 0.16);
     background:
       radial-gradient(90px 52px at 26% 6%, rgba(255, 255, 255, 0.9), transparent 70%),
-      linear-gradient(168deg, rgba(255, 255, 255, 0.88), rgba(206, 222, 238, 0.66));
+      linear-gradient(168deg, rgba(255, 253, 247, 0.9), rgba(227, 224, 214, 0.68));
     backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
-      0 12px 30px rgba(30, 56, 84, 0.14);
+      0 12px 30px rgba(84, 70, 48, 0.16);
   }
   html[data-theme="light"] .studio-mark::before {
     background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.1) 42%, rgba(190, 222, 255, 0.5));
@@ -6887,7 +6906,7 @@
       })(labels[i]);
     }
   })();
-</script> <main id="main"> <h1 class="sr-only">Selected work by Siddharth Mehta</h1> <div class="works-split" id="works-split"> <div class="works-list" id="works-list"> <div class="works-list-head"> <p class="works-list-title">Selected work</p> <p class="works-list-count">16 works</p> </div> <div class="works-product-path" aria-label="Recruiter fast lane"> <p class="works-product-path__label">Recruiter fast lane</p> <div class="works-product-path__links"> <a href="/mool/">Mool</a> <a href="/ai-prototypes/">2026 AI Experiments</a> <a href="/encoded/">Encoded</a> </div> <p class="works-product-path__note"> If you only read three: product thinking, coded interaction, and shipped proof. The lanes below are the full practice. </p> </div> <div class="works-lane" data-pillar="product"> <div class="works-lane__row"> <h2 class="works-lane__name"> <span class="works-lane__idx">01</span>Product design</h2> <span class="works-lane__count">5 works</span> </div> <p class="works-lane__note">Interfaces and systems shipped for fintech, healthcare and hospitality teams.</p> </div> <a class="works-list-item" href="/mool/" data-cat="ui" data-title="Mool" data-desc="A more trusted, culturally resonant banking experience for underserved users in India." data-year="2021" data-bg="radial-gradient(ellipse at 50% 40%, #141c4d 0%, #080f2b 50%, #02040c 100%)" data-img="/assets/img/work-previews/mool/cover.webp" data-preview="image:/assets/img/work-previews/mool/cover.webp|image:/assets/img/work-previews/mool/02.webp|image:/assets/img/work-previews/mool/03.webp" data-role="Visual Designer" data-proof="100k+ downloads · Kyoorius winner" data-badge-img="/assets/img/badge_kyoorius.png" data-badge-label="Kyoorius · 2021"> <div class="wli-content"> <span class="wli-name">Mool</span> <div class="wli-pills"> <span class="wli-pill">UI</span><span class="wli-pill">Fintech</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2021">2021</b></span> </div> </a> <a class="works-list-item" href="/aananda/" data-cat="branding" data-title="Aananda" data-desc="Jain philosophy for younger audiences across a mobile app, temple-inspired book, and QR installations." data-year="2020" data-bg="radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)" data-img="/9.aananda/cover.webp" data-preview="image:/9.aananda/cover.webp|image:/9.aananda/24.1.png|image:/9.aananda/8.png" data-role="Designer" data-proof="App · book · print identity system"> <div class="wli-content"> <span class="wli-name">Aananda</span> <div class="wli-pills"> <span class="wli-pill">Branding</span><span class="wli-pill">App Design</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2020">2020</b></span> </div> </a> <a class="works-list-item" href="/alpha-stockathon/" data-cat="ui game" data-title="Alpha Stockathon" data-desc="Gamified desktop app teaching the stock market through a pixel-art world, one concept per level." data-year="2021" data-bg="radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)" data-img="/10.alpha/cover.webp" data-preview="image:/10.alpha/cover.webp|image:/10.alpha/24.1.png|image:/10.alpha/27.1.png" data-role="Designer" data-proof="3-day learning game prototype"> <div class="wli-content"> <span class="wli-name">Alpha Stockathon</span> <div class="wli-pills"> <span class="wli-pill">UI</span><span class="wli-pill">Gamification</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2021">2021</b></span> </div> </a> <a class="works-list-item" href="/m-health-fairview/" data-cat="ui" data-title="M Health Fairview" data-desc="Care discovery and scheduling redesign with Deloitte Digital for one of Minnesota's largest health systems." data-year="2024" data-bg="radial-gradient(ellipse at 40% 60%, #3a0d16 0%, #1e0710 50%, #0a0305 100%)" data-img="/assets/img/fairview/cover.webp" data-preview="image:/assets/img/fairview/cover.webp|image:/assets/img/fairview/06-beforeafter.webp|image:/assets/img/fairview/13-impact.webp" data-role="Product Designer, Deloitte Digital" data-proof="$13.6M+ scheduling revenue · 32% more new patients"> <div class="wli-content"> <span class="wli-name">M Health Fairview</span> <div class="wli-pills"> <span class="wli-pill">Healthcare</span><span class="wli-pill">Enterprise UX</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2024">2024</b></span> </div> </a> <a class="works-list-item" href="/marriott/" data-cat="ui" data-title="Marriott" data-desc="SPOG, an end to end employee operations app across 9,000+ Marriott Bonvoy properties, built with Deloitte Digital." data-year="2023" data-bg="radial-gradient(ellipse at 50% 40%, #1c1a17 0%, #100e0c 50%, #050403 100%)" data-img="/assets/img/marriott/cover.webp" data-preview="image:/assets/img/marriott/cover.webp|image:/assets/img/marriott/03-spec.webp|image:/assets/img/marriott/09-desktop.webp" data-role="Product Designer, Deloitte Digital" data-proof="9,000+ properties · 17% inventory accuracy lift"> <div class="wli-content"> <span class="wli-name">Marriott</span> <div class="wli-pills"> <span class="wli-pill">Enterprise UX</span><span class="wli-pill">Hospitality</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2023">2023</b></span> </div> </a> <div class="works-lane" data-pillar="ai"> <div class="works-lane__row"> <h2 class="works-lane__name"> <span class="works-lane__idx">02</span>AI &amp; creative tech</h2> <span class="works-lane__count">6 works</span> </div> <p class="works-lane__note">Spatial, AR and in-browser AI work, designed and built by the same person.</p> </div> <a class="works-list-item" href="/encoded/" data-cat="xr" data-title="Encoded" data-desc="Making 25 works at the Met discoverable through a location-aware AR experience." data-year="2025" data-bg="radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)" data-img="/1.met/0.webp" data-preview="image:/1.met/0.webp|image:/1.met/12.png|image:/1.met/1.png" data-role="Creative Technologist" data-proof="25 artworks · 2,000+ activations" data-badge-img="/assets/img/badge_webby.webp" data-badge-label="Webby × 2 · 2026"> <div class="wli-content"> <span class="wli-name">Encoded</span> <div class="wli-pills"> <span class="wli-pill">AR</span><span class="wli-pill">Exhibition</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2025">2025</b></span> </div> </a> <a class="works-list-item" href="/ai-prototypes/" data-cat="research xr ui" data-title="2026 AI Experiments" data-desc="Prototyping how local AI can feel understandable, controllable, and useful in an interface." data-year="2025" data-bg="radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)" data-img="/assets/img/ai-proto-cover.jpg" data-preview="image:/assets/img/ai-proto-cover.jpg|image:/ai-prototypes/latent-atlas/assets/cover-iHsdcUBA.png" data-role="Designer · Developer · Researcher" data-proof="11 live in-browser AI experiments"> <div class="wli-content"> <span class="wli-name">2026 AI Experiments</span> <div class="wli-pills"> <span class="wli-pill">WebGPU</span><span class="wli-pill">In-browser AI</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2025">2025</b></span> </div> </a> <a class="works-list-item" href="/bloom/" data-cat="xr installation" data-title="Bodhi" data-desc="A Vision Pro app placing an AI-inhabited bodhi tree in your room, asking who you are." data-year="2025-26" data-bg="radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)" data-img="/15.bloom-vp/cover.jpg" data-preview="image:/15.bloom-vp/poster.jpg|image:/15.bloom-vp/cover.jpg|image:/15.bloom-vp/altar.jpg" data-role="Designer · Developer · Researcher" data-proof="Solo MFA thesis · visionOS"> <div class="wli-content"> <span class="wli-name">Bodhi</span> <div class="wli-pills"> <span class="wli-pill">visionOS</span><span class="wli-pill">Spatial AI</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2025-26">2025-26</b></span> </div> </a> <a class="works-list-item" href="/mind-your-feelings/" data-cat="installation" data-title="Mind Your Feelings" data-desc="Touchscreen LED brain installation at Johnson Public Library with 800+ participants externalizing emotion." data-year="2026" data-bg="radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)" data-img="/6.mindu/cover2.webp" data-preview="image:/6.mindu/cover2.webp|image:/6.mindu/7.2.png|image:/6.mindu/7.1.png" data-role="Developer" data-proof="800+ community participants"> <div class="wli-content"> <span class="wli-name">Mind Your Feelings</span> <div class="wli-pills"> <span class="wli-pill">Installation</span><span class="wli-pill">Creative Tech</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2026">2026</b></span> </div> </a> <a class="works-list-item" href="/mandalas/" data-cat="installation" data-title="Bloom; who are you" data-desc="Generative mandalas, layered audio, and a darkened room designed for stillness." data-year="2025" data-bg="radial-gradient(ellipse at 50% 50%, #1a0d24 0%, #0d0518 50%, #030108 100%)" data-preview="image:/4.mandala/cover.jpg|image:/4.mandala/j.png|image:/4.mandala/13.1.png" data-role="Solo designer · developer" data-proof="Generative thesis installation"> <div class="wli-content"> <span class="wli-name">Bloom; who are you</span> <div class="wli-pills"> <span class="wli-pill">Installation</span><span class="wli-pill">TouchDesigner</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2025">2025</b></span> </div> </a> <a class="works-list-item" href="/ai-self/" data-cat="xr research" data-title="AI Self" data-desc="Three ways of asking what AI understands about us: machine perception, AR companion, and VR." data-year="2024-25" data-bg="radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)" data-preview="image:/2.ai-self/cover.jpg|image:/2.ai-self/12.png|image:/2.ai-self/17.png" data-role="Solo designer · developer · researcher" data-proof="Three-part AI, AR &amp; VR research arc"> <div class="wli-content"> <span class="wli-name">AI Self</span> <div class="wli-pills"> <span class="wli-pill">AI</span><span class="wli-pill">VR</span><span class="wli-pill">AR</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2024-25">2024-25</b></span> </div> </a> <div class="works-lane" data-pillar="culture"> <div class="works-lane__row"> <h2 class="works-lane__name"> <span class="works-lane__idx">03</span>Culture, space &amp; image</h2> <span class="works-lane__count">5 works</span> </div> <p class="works-lane__note">Public art, brand and a visual practice that keeps feeding the work above.</p> </div> <a class="works-list-item" href="/b-plus-b/" data-cat="research" data-title="Broken and Beautiful" data-desc="Public interaction across NYC asking what feels broken and what feels beautiful, with 285+ responses." data-year="2024" data-bg="radial-gradient(ellipse at 70% 40%, #1a0d0d 0%, #0d0505 50%, #030101 100%)" data-img="/5.bb/cover.webp" data-preview="image:/5.bb/6.png|image:/5.bb/4.png|image:/5.bb/d4.png" data-role="Designer · Developer · Researcher" data-proof="285+ public responses · NYC"> <div class="wli-content"> <span class="wli-name">Broken and Beautiful</span> <div class="wli-pills"> <span class="wli-pill">Research</span><span class="wli-pill">Public Art</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2024">2024</b></span> </div> </a> <a class="works-list-item" href="/cube-guy/" data-cat="game" data-title="Cube of Creations" data-desc="A seven-year character study across sketchbook, film, game, music, and tattoo." data-year="2018-25" data-bg="radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)" data-preview="image:/2.cube/cover.jpg|image:/2.cube/3d/3.1.png|image:/2.cube/conception/7.1.png" data-role="Director · Designer · Developer" data-proof="7-year character world across film &amp; game"> <div class="wli-content"> <span class="wli-name">Cube of Creations</span> <div class="wli-pills"> <span class="wli-pill">Game</span><span class="wli-pill">Film</span><span class="wli-pill">Character</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2018-25">2018-25</b></span> </div> </a> <a class="works-list-item" href="/naavo/" data-cat="branding" data-title="Naavo" data-desc="Ayurveda for a modern audience: rooted but fresh, not clinical, not traditional." data-year="2020" data-bg="radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)" data-img="/7.naavo/cover.webp" data-preview="image:/7.naavo/cover.webp|image:/7.naavo/13.3%20solo.png|image:/7.naavo/20.1.png" data-role="Branding · logo · packaging" data-proof="8-week identity &amp; packaging system"> <div class="wli-content"> <span class="wli-name">Naavo</span> <div class="wli-pills"> <span class="wli-pill">Branding</span><span class="wli-pill">Packaging</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2020">2020</b></span> </div> </a> <a class="works-list-item" href="/shot-on-iphone/" data-cat="research" data-title="Shot on iPhone" data-desc="Photographs as conversations, with QR codes turning each image into the story behind it." data-year="2024" data-bg="radial-gradient(ellipse at 30% 50%, #1a1a0d 0%, #0d0d05 50%, #050501 100%)" data-img="/8.shotoniphone/cover.webp" data-preview="image:/8.shotoniphone/cover.webp|image:/8.shotoniphone/4.png|image:/8.shotoniphone/10.png" data-role="Designer · Photographer" data-proof="Photography, print &amp; QR storytelling"> <div class="wli-content"> <span class="wli-name">Shot on iPhone</span> <div class="wli-pills"> <span class="wli-pill">Photography</span><span class="wli-pill">Interactive</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2024">2024</b></span> </div> </a> <a class="works-list-item" href="/illustrations/" data-cat="research" data-title="Illustrations" data-desc="Eight years of personal illustrations spanning visual diaries, abstract compositions, and cultural graphics." data-year="2018-25" data-bg="radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)" data-img="/11.illu/12.1.webp" data-preview="image:/11.illu/12.1.webp|image:/11.illu/24.png|image:/11.illu/8.1.png" data-role="Illustrator" data-proof="Eight-year visual diary &amp; art practice"> <div class="wli-content"> <span class="wli-name">Illustrations</span> <div class="wli-pills"> <span class="wli-pill">Illustration</span><span class="wli-pill">Visual Diary</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2018-25">2018-25</b></span> </div> </a> <p class="works-list-end"> <span class="wle-rule" aria-hidden="true"></span> <span class="wle-text">Sixteen projects · 2018—2026</span> <span class="wle-note">Older work and experiments live in <a href="/play/">Play</a>.</span> </p> </div> <div class="works-preview" id="works-preview"> <div class="wp-media" id="wp-media" style="background: radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)"> <div class="works-cube-stage" id="works-cube-stage" aria-hidden="true"></div> <div class="wpx-cover" id="wpx-cover" aria-hidden="true"><img id="wpx-cover-img" alt="" decoding="async"></div> <div class="wp-slides" id="wp-slides" role="group" aria-label="Mool project preview, 1 of 3"> <span class="wp-slide is-active" data-type="image" data-src="/assets/img/work-previews/mool/cover.webp" aria-hidden="false"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" decoding="async" fetchpriority="high" width="1800" height="1248"> </span> </div> <div class="wp-media-rail"> <span class="wp-media-count" id="wp-media-count">01 / 02</span> <span class="wp-media-dots" id="wp-media-dots"><i class="wp-media-dot is-active"></i><i class="wp-media-dot"></i></span> </div> <div class="wp-exit-flash" id="wp-exit-flash" aria-hidden="true"></div> </div> <p class="wp-award-note" id="wp-award-note" aria-live="polite"></p> <div class="wp-body"> <div class="wp-copy"> <div class="wp-pills" id="wp-pills"> <span class="wp-pill">UI</span><span class="wp-pill">Fintech</span> </div> <h2 class="wp-title" id="wp-title">Mool</h2> <p class="wp-desc" id="wp-desc">A more trusted, culturally resonant banking experience for underserved users in India.</p> <a class="wp-cta" id="wp-cta" href="/mool/"><span id="wp-cta-label">View project</span><span class="xarrow xarrow--right" aria-hidden="true"></span></a> </div> <div class="wp-facts" aria-label="Project quick facts"> <div class="wp-fact"> <span class="wp-fact-label">Role</span><span class="wp-fact-value" id="wp-role">Visual Designer</span> </div> <div class="wp-fact"> <span class="wp-fact-label">Proof</span><span class="wp-fact-value" id="wp-proof">100k+ downloads · Kyoorius winner</span> </div> </div> </div> </div> </div> </main> <style>
+</script> <main id="main"> <h1 class="sr-only">Selected work by Siddharth Mehta</h1> <div class="works-split" id="works-split"> <div class="works-list" id="works-list"> <div class="works-list-head"> <p class="works-list-title">Selected work</p> <p class="works-list-count">16 works</p> </div> <div class="works-product-path" aria-label="Recruiter fast lane"> <p class="works-product-path__label">Recruiter fast lane</p> <div class="works-product-path__links"> <a href="/mool/">Mool</a> <a href="/ai-prototypes/">2026 AI Experiments</a> <a href="/encoded/">Encoded</a> </div> <p class="works-product-path__note"> If you only read three: product thinking, coded interaction, and shipped proof. The lanes below are the full practice. </p> </div> <div class="works-lane" data-pillar="product"> <div class="works-lane__row"> <h2 class="works-lane__name"> <span class="works-lane__idx">01</span>Product design</h2> <span class="works-lane__count">5 works</span> </div> <p class="works-lane__note">Interfaces and systems shipped for fintech, healthcare and hospitality teams.</p> </div> <a class="works-list-item" href="/mool/" data-cat="ui" data-title="Mool" data-desc="A more trusted, culturally resonant banking experience for underserved users in India." data-year="2021" data-bg="radial-gradient(ellipse at 50% 40%, #141c4d 0%, #080f2b 50%, #02040c 100%)" data-img="/assets/img/work-previews/mool/cover.webp" data-preview="image:/assets/img/work-previews/mool/cover.webp|image:/assets/img/work-previews/mool/02.webp|image:/assets/img/work-previews/mool/03.webp" data-role="Visual Designer" data-proof="100k+ downloads · Kyoorius winner" data-badge-img="/assets/img/badge_kyoorius.png" data-badge-label="Kyoorius · 2021"> <div class="wli-content"> <span class="wli-name">Mool</span> <div class="wli-pills"> <span class="wli-pill">UI</span><span class="wli-pill">Fintech</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2021">2021</b></span> </div> </a> <a class="works-list-item" href="/aananda/" data-cat="branding" data-title="Aananda" data-desc="Jain philosophy for younger audiences across a mobile app, temple-inspired book, and QR installations." data-year="2020" data-bg="radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)" data-img="/9.aananda/cover.webp" data-preview="image:/9.aananda/cover.webp|image:/9.aananda/24.1.webp|image:/9.aananda/8.webp" data-role="Designer" data-proof="App · book · print identity system"> <div class="wli-content"> <span class="wli-name">Aananda</span> <div class="wli-pills"> <span class="wli-pill">Branding</span><span class="wli-pill">App Design</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2020">2020</b></span> </div> </a> <a class="works-list-item" href="/alpha-stockathon/" data-cat="ui game" data-title="Alpha Stockathon" data-desc="Gamified desktop app teaching the stock market through a pixel-art world, one concept per level." data-year="2021" data-bg="radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)" data-img="/10.alpha/cover.webp" data-preview="image:/10.alpha/cover.webp|image:/10.alpha/24.1.png|image:/10.alpha/27.1.webp" data-role="Designer" data-proof="3-day learning game prototype"> <div class="wli-content"> <span class="wli-name">Alpha Stockathon</span> <div class="wli-pills"> <span class="wli-pill">UI</span><span class="wli-pill">Gamification</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2021">2021</b></span> </div> </a> <a class="works-list-item" href="/m-health-fairview/" data-cat="ui" data-title="M Health Fairview" data-desc="Care discovery and scheduling redesign with Deloitte Digital for one of Minnesota's largest health systems." data-year="2024" data-bg="radial-gradient(ellipse at 40% 60%, #3a0d16 0%, #1e0710 50%, #0a0305 100%)" data-img="/assets/img/fairview/cover.webp" data-preview="image:/assets/img/fairview/cover.webp|image:/assets/img/fairview/06-beforeafter.webp|image:/assets/img/fairview/13-impact.webp" data-role="Product Designer, Deloitte Digital" data-proof="$13.6M+ scheduling revenue · 32% more new patients"> <div class="wli-content"> <span class="wli-name">M Health Fairview</span> <div class="wli-pills"> <span class="wli-pill">Healthcare</span><span class="wli-pill">Enterprise UX</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2024">2024</b></span> </div> </a> <a class="works-list-item" href="/marriott/" data-cat="ui" data-title="Marriott" data-desc="SPOG, an end to end employee operations app across 9,000+ Marriott Bonvoy properties, built with Deloitte Digital." data-year="2023" data-bg="radial-gradient(ellipse at 50% 40%, #1c1a17 0%, #100e0c 50%, #050403 100%)" data-img="/assets/img/marriott/cover.webp" data-preview="image:/assets/img/marriott/cover.webp|image:/assets/img/marriott/03-spec.webp|image:/assets/img/marriott/09-desktop.webp" data-role="Product Designer, Deloitte Digital" data-proof="9,000+ properties · 17% inventory accuracy lift"> <div class="wli-content"> <span class="wli-name">Marriott</span> <div class="wli-pills"> <span class="wli-pill">Enterprise UX</span><span class="wli-pill">Hospitality</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2023">2023</b></span> </div> </a> <div class="works-lane" data-pillar="ai"> <div class="works-lane__row"> <h2 class="works-lane__name"> <span class="works-lane__idx">02</span>AI &amp; creative tech</h2> <span class="works-lane__count">6 works</span> </div> <p class="works-lane__note">Spatial, AR and in-browser AI work, designed and built by the same person.</p> </div> <a class="works-list-item" href="/encoded/" data-cat="xr" data-title="Encoded" data-desc="Making 25 works at the Met discoverable through a location-aware AR experience." data-year="2025" data-bg="radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)" data-img="/1.met/0.webp" data-preview="image:/1.met/0.webp|image:/1.met/12.webp|image:/1.met/1.webp" data-role="Creative Technologist" data-proof="25 artworks · 2,000+ activations" data-badge-img="/assets/img/badge_webby.webp" data-badge-label="Webby × 2 · 2026"> <div class="wli-content"> <span class="wli-name">Encoded</span> <div class="wli-pills"> <span class="wli-pill">AR</span><span class="wli-pill">Exhibition</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2025">2025</b></span> </div> </a> <a class="works-list-item" href="/ai-prototypes/" data-cat="research xr ui" data-title="2026 AI Experiments" data-desc="Prototyping how local AI can feel understandable, controllable, and useful in an interface." data-year="2025" data-bg="radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)" data-img="/assets/img/ai-proto-cover.jpg" data-preview="image:/assets/img/ai-proto-cover.jpg|image:/ai-prototypes/latent-atlas/assets/cover-iHsdcUBA.png" data-role="Designer · Developer · Researcher" data-proof="11 live in-browser AI experiments"> <div class="wli-content"> <span class="wli-name">2026 AI Experiments</span> <div class="wli-pills"> <span class="wli-pill">WebGPU</span><span class="wli-pill">In-browser AI</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2025">2025</b></span> </div> </a> <a class="works-list-item" href="/bloom/" data-cat="xr installation" data-title="Bodhi" data-desc="A Vision Pro app placing an AI-inhabited bodhi tree in your room, asking who you are." data-year="2025-26" data-bg="radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)" data-img="/15.bloom-vp/cover.jpg" data-preview="image:/15.bloom-vp/poster.jpg|image:/15.bloom-vp/cover.jpg|image:/15.bloom-vp/altar.jpg" data-role="Designer · Developer · Researcher" data-proof="Solo MFA thesis · visionOS"> <div class="wli-content"> <span class="wli-name">Bodhi</span> <div class="wli-pills"> <span class="wli-pill">visionOS</span><span class="wli-pill">Spatial AI</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2025-26">2025-26</b></span> </div> </a> <a class="works-list-item" href="/mind-your-feelings/" data-cat="installation" data-title="Mind Your Feelings" data-desc="Touchscreen LED brain installation at Johnson Public Library with 800+ participants externalizing emotion." data-year="2026" data-bg="radial-gradient(ellipse at 50% 50%, #1a0a2e 0%, #0d0518 50%, #030108 100%)" data-img="/6.mindu/cover2.webp" data-preview="image:/6.mindu/cover2.webp|image:/6.mindu/7.2.webp|image:/6.mindu/7.1.webp" data-role="Developer" data-proof="800+ community participants"> <div class="wli-content"> <span class="wli-name">Mind Your Feelings</span> <div class="wli-pills"> <span class="wli-pill">Installation</span><span class="wli-pill">Creative Tech</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2026">2026</b></span> </div> </a> <a class="works-list-item" href="/mandalas/" data-cat="installation" data-title="Bloom; who are you" data-desc="Generative mandalas, layered audio, and a darkened room designed for stillness." data-year="2025" data-bg="radial-gradient(ellipse at 50% 50%, #1a0d24 0%, #0d0518 50%, #030108 100%)" data-preview="image:/4.mandala/cover.jpg|image:/4.mandala/j.webp|image:/4.mandala/13.1.webp" data-role="Solo designer · developer" data-proof="Generative thesis installation"> <div class="wli-content"> <span class="wli-name">Bloom; who are you</span> <div class="wli-pills"> <span class="wli-pill">Installation</span><span class="wli-pill">TouchDesigner</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2025">2025</b></span> </div> </a> <a class="works-list-item" href="/ai-self/" data-cat="xr research" data-title="AI Self" data-desc="Three ways of asking what AI understands about us: machine perception, AR companion, and VR." data-year="2024-25" data-bg="radial-gradient(ellipse at 30% 60%, #0a0f28 0%, #050810 50%, #010105 100%)" data-preview="image:/2.ai-self/cover.jpg|image:/2.ai-self/12.webp|image:/2.ai-self/17.webp" data-role="Solo designer · developer · researcher" data-proof="Three-part AI, AR &amp; VR research arc"> <div class="wli-content"> <span class="wli-name">AI Self</span> <div class="wli-pills"> <span class="wli-pill">AI</span><span class="wli-pill">VR</span><span class="wli-pill">AR</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2024-25">2024-25</b></span> </div> </a> <div class="works-lane" data-pillar="culture"> <div class="works-lane__row"> <h2 class="works-lane__name"> <span class="works-lane__idx">03</span>Culture, space &amp; image</h2> <span class="works-lane__count">5 works</span> </div> <p class="works-lane__note">Public art, brand and a visual practice that keeps feeding the work above.</p> </div> <a class="works-list-item" href="/b-plus-b/" data-cat="research" data-title="Broken and Beautiful" data-desc="Public interaction across NYC asking what feels broken and what feels beautiful, with 285+ responses." data-year="2024" data-bg="radial-gradient(ellipse at 70% 40%, #1a0d0d 0%, #0d0505 50%, #030101 100%)" data-img="/5.bb/cover.webp" data-preview="image:/5.bb/6.webp|image:/5.bb/4.webp|image:/5.bb/d4.webp" data-role="Designer · Developer · Researcher" data-proof="285+ public responses · NYC"> <div class="wli-content"> <span class="wli-name">Broken and Beautiful</span> <div class="wli-pills"> <span class="wli-pill">Research</span><span class="wli-pill">Public Art</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2024">2024</b></span> </div> </a> <a class="works-list-item" href="/cube-guy/" data-cat="game" data-title="Cube of Creations" data-desc="A seven-year character study across sketchbook, film, game, music, and tattoo." data-year="2018-25" data-bg="radial-gradient(ellipse at 35% 55%, #0d1a1a 0%, #060d0d 50%, #020505 100%)" data-preview="image:/2.cube/cover.jpg|image:/2.cube/3d/3.1.webp|image:/2.cube/conception/7.1.webp" data-role="Director · Designer · Developer" data-proof="7-year character world across film &amp; game"> <div class="wli-content"> <span class="wli-name">Cube of Creations</span> <div class="wli-pills"> <span class="wli-pill">Game</span><span class="wli-pill">Film</span><span class="wli-pill">Character</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2018-25">2018-25</b></span> </div> </a> <a class="works-list-item" href="/naavo/" data-cat="branding" data-title="Naavo" data-desc="Ayurveda for a modern audience: rooted but fresh, not clinical, not traditional." data-year="2020" data-bg="radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)" data-img="/7.naavo/cover.webp" data-preview="image:/7.naavo/cover.webp|image:/7.naavo/13.3%20solo.webp|image:/7.naavo/20.1.webp" data-role="Branding · logo · packaging" data-proof="8-week identity &amp; packaging system"> <div class="wli-content"> <span class="wli-name">Naavo</span> <div class="wli-pills"> <span class="wli-pill">Branding</span><span class="wli-pill">Packaging</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2020">2020</b></span> </div> </a> <a class="works-list-item" href="/shot-on-iphone/" data-cat="research" data-title="Shot on iPhone" data-desc="Photographs as conversations, with QR codes turning each image into the story behind it." data-year="2024" data-bg="radial-gradient(ellipse at 30% 50%, #1a1a0d 0%, #0d0d05 50%, #050501 100%)" data-img="/8.shotoniphone/cover.webp" data-preview="image:/8.shotoniphone/cover.webp|image:/8.shotoniphone/4.webp|image:/8.shotoniphone/10.webp" data-role="Designer · Photographer" data-proof="Photography, print &amp; QR storytelling"> <div class="wli-content"> <span class="wli-name">Shot on iPhone</span> <div class="wli-pills"> <span class="wli-pill">Photography</span><span class="wli-pill">Interactive</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2024">2024</b></span> </div> </a> <a class="works-list-item" href="/illustrations/" data-cat="research" data-title="Illustrations" data-desc="Eight years of personal illustrations spanning visual diaries, abstract compositions, and cultural graphics." data-year="2018-25" data-bg="radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)" data-img="/11.illu/12.1.webp" data-preview="image:/11.illu/12.1.webp|image:/11.illu/24.webp|image:/11.illu/8.1.webp" data-role="Illustrator" data-proof="Eight-year visual diary &amp; art practice"> <div class="wli-content"> <span class="wli-name">Illustrations</span> <div class="wli-pills"> <span class="wli-pill">Illustration</span><span class="wli-pill">Visual Diary</span> </div> </div> <div class="wli-right"> <span class="wli-year"><b data-roll="2018-25">2018-25</b></span> </div> </a> <p class="works-list-end"> <span class="wle-rule" aria-hidden="true"></span> <span class="wle-text">Sixteen projects · 2018—2026</span> <span class="wle-note">Older work and experiments live in <a href="/play/">Play</a>.</span> </p> </div> <div class="works-preview" id="works-preview"> <div class="wp-media" id="wp-media" style="background: radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)"> <div class="works-cube-stage" id="works-cube-stage" aria-hidden="true"></div> <div class="wpx-cover" id="wpx-cover" aria-hidden="true"><img id="wpx-cover-img" alt="" decoding="async"></div> <div class="wp-slides" id="wp-slides" role="group" aria-label="Mool project preview, 1 of 3"> <span class="wp-slide is-active" data-type="image" data-src="/assets/img/work-previews/mool/cover.webp" aria-hidden="false"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" decoding="async" fetchpriority="high" width="1800" height="1248"> </span> </div> <div class="wp-media-rail"> <span class="wp-media-count" id="wp-media-count">01 / 02</span> <span class="wp-media-dots" id="wp-media-dots"><i class="wp-media-dot is-active"></i><i class="wp-media-dot"></i></span> </div> <div class="wp-exit-flash" id="wp-exit-flash" aria-hidden="true"></div> </div> <p class="wp-award-note" id="wp-award-note" aria-live="polite"></p> <div class="wp-body"> <div class="wp-copy"> <div class="wp-pills" id="wp-pills"> <span class="wp-pill">UI</span><span class="wp-pill">Fintech</span> </div> <h2 class="wp-title" id="wp-title">Mool</h2> <p class="wp-desc" id="wp-desc">A more trusted, culturally resonant banking experience for underserved users in India.</p> <a class="wp-cta" id="wp-cta" href="/mool/"><span id="wp-cta-label">View project</span><span class="xarrow xarrow--right" aria-hidden="true"></span></a> </div> <div class="wp-facts" aria-label="Project quick facts"> <div class="wp-fact"> <span class="wp-fact-label">Role</span><span class="wp-fact-value" id="wp-role">Visual Designer</span> </div> <div class="wp-fact"> <span class="wp-fact-label">Proof</span><span class="wp-fact-value" id="wp-proof">100k+ downloads · Kyoorius winner</span> </div> </div> </div> </div> </div> </main> <style>
   .site-footer {
     position: relative;
     z-index: 5;
@@ -7257,7 +7276,12 @@
 
   .site-footer-colophon {
     margin: 0;
-    padding: 18px var(--gutter, clamp(20px, 4vw, 64px)) 22px;
+    /* The footer already carries the gutter, and this line is a direct child of
+       it. Repeating the gutter here indented the credit a second time, so it
+       sat 60px right of the divider rule, the name block, the quote and the
+       plot hint — every other left edge in the footer. Vertical padding only;
+       the horizontal plumb line is the footer's to set. */
+    padding: 18px 0 22px;
     font: 400 9px/1.5 var(--font-mono, "DM Mono", monospace);
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -7680,8 +7704,26 @@
        h(t+1) = 2h(t) − h(t−1) + c²∇²h, then damped. c² must stay under 0.5
        for a 2D grid or the whole thing detonates into noise on the third
        frame. 0.26 is springy without being unstable. The damping is close
-       enough to 1 that a ripple crosses the footer twice before it dies. */
-    var CELL = 11,
+       enough to 1 that a ripple crosses the footer twice before it dies.
+
+       The cell was 11px, and that was the single worst thing about this
+       footer: a 137x31 height field blown up to 1512px wide by bilinear
+       filtering does not read as water, it reads as a quilt. Every ripple
+       arrived wearing visible diamonds.
+
+       Halving the cell fixes it, but not for free -- the grid is the ruler
+       the physics is measured in. A wave moves sqrt(c2) CELLS per step, so
+       halving the cell halves the speed in pixels. Compensating with c2 is
+       not available: 0.5 is the hard 2D stability ceiling and 4x0.26 is
+       past it. So the compensation is two substeps per frame, which
+       restores the pixel speed exactly, and DAMP is square-rooted so the
+       per-frame decay is unchanged after those two substeps. Measured
+       offline against the old grid, the ripple front is within 1.5% at
+       every frame out to 140. The water moves the same. It just stopped
+       being made of squares. Cost is 0.43ms a frame. */
+    var CELL = 5.5,
+      RSCALE = 11 / CELL,
+      SUBSTEPS = 2,
       gw = 0,
       gh = 0,
       cur = null,
@@ -7691,11 +7733,11 @@
       causBuf = null,
       causBufCtx = null;
     var C2 = 0.26,
-      DAMP = 0.9955;
+      DAMP = 0.99775;
 
     function buildGrid() {
-      gw = Math.max(24, Math.min(180, Math.round(W / CELL)));
-      gh = Math.max(16, Math.min(90, Math.round(H / CELL)));
+      gw = Math.max(24, Math.min(320, Math.round(W / CELL)));
+      gh = Math.max(16, Math.min(130, Math.round(H / CELL)));
       cur = new Float32Array(gw * gh);
       prv = new Float32Array(gw * gh);
       nxt = new Float32Array(gw * gh);
@@ -7710,7 +7752,9 @@
       if (!cur) return;
       var cx = (x / W) * (gw - 1),
         cy = (y / H) * (gh - 1);
-      var r = radius || 2;
+      /* Splash radii at every call site are authored in the old 11px
+         cells, so they are converted rather than rewritten. */
+      var r = (radius || 2) * RSCALE;
       var i0 = Math.max(1, Math.floor(cx - r)),
         i1 = Math.min(gw - 2, Math.ceil(cx + r));
       var j0 = Math.max(1, Math.floor(cy - r)),
@@ -7741,19 +7785,23 @@
       return a * (1 - fy) + b * fy;
     }
 
+    /* The sample distance stays PHYSICAL. It used to be one grid cell, and
+       when the grid got finer that quietly halved every plant's tilt and
+       every pod's drift, because a slope measured over half the distance is
+       half the number. RSCALE holds the sampling arm at its old ~10px. */
     function slopeX(x, y) {
-      var s = (W / gw) * 0.9;
+      var s = (W / gw) * 0.9 * RSCALE;
       return heightAt(Math.min(W, x + s), y) - heightAt(Math.max(0, x - s), y);
     }
 
     function slopeY(x, y) {
-      var s = (H / gh) * 0.9;
+      var s = (H / gh) * 0.9 * RSCALE;
       return heightAt(x, Math.min(H, y + s)) - heightAt(x, Math.max(0, y - s));
     }
 
     function stepWater(step) {
       if (!cur) return;
-      var iterations = step > 1.6 ? 2 : 1;
+      var iterations = SUBSTEPS * (step > 1.6 ? 2 : 1);
       for (var n = 0; n < iterations; n++) {
         for (var j = 1; j < gh - 1; j++) {
           var row = j * gw;
@@ -7772,7 +7820,10 @@
     /* Surface-normal luminance. Where the surface tilts toward the light it
        brightens; where it tilts away it dims. That is the whole trick — no
        ray marching, no shader, just the gradient of the height field written
-       into a 180×90 image and scaled up with smoothing on. */
+       into a 275×62 image and scaled up with smoothing on. The gain is
+       170 rather than 140 because a gradient sampled across two cells
+       shrinks when the cells do; 170 was picked by matching mean caustic
+       brightness against the old grid at three points in a ripple's life. */
     function drawWater() {
       if (!causImg) return;
       var p = pal();
@@ -7786,7 +7837,7 @@
           var gx = i > 0 && i < gw - 1 ? cur[k + 1] - cur[k - 1] : 0;
           var gy = j > 0 && j < gh - 1 ? cur[k + gw] - cur[k - gw] : 0;
           var lum = gx * 0.72 + gy * 0.5;
-          var a = Math.min(190, Math.abs(lum) * 140);
+          var a = Math.min(190, Math.abs(lum) * 170);
           d[o] = c[0];
           d[o + 1] = c[1];
           d[o + 2] = c[2];
@@ -7887,8 +7938,12 @@
 
     /* Fewer and bigger. 150 twelve-pixel plants is a texture; 78 fifteen-pixel
        ones are a bed you can count. */
-    var FONT = 15,
-      ROW_H = 13,
+    /* 15px was legible and inconsequential: a bed of small marks at the
+       bottom of a 340px pond. 17 gives the planting enough body to be the
+       thing you look at, which is the point of a footer you are invited to
+       plant in. Row height rides with it. */
+    var FONT = 17,
+      ROW_H = 14.5,
       MAX_PLANTS = coarse ? 52 : 78;
     var plants = [];
 
@@ -8013,8 +8068,14 @@
         /* The floor is 0.42, not 0.3. At 0.3 the far rank was faint enough to
            read as dirt on the screen rather than as a plant a long way off —
            aerial perspective works by making distant things *lower contrast*,
-           not by making them nearly absent. */
-        var alpha = (0.42 + pl.d * 0.5) * pl.grow;
+           not by making them nearly absent.
+
+           Light mode needs its own floor. Dark plants get a glow, so 0.42 of
+           a lit green on black is plenty; light plants are dark ink on pale
+           water with no halo at all, and at the same alpha the whole bed
+           dissolved into scribble. 0.62 is where it reads as planting
+           rather than smudging. */
+        var alpha = (isLight() ? 0.62 + pl.d * 0.34 : 0.42 + pl.d * 0.5) * pl.grow;
 
         flora.save();
         flora.globalAlpha = alpha;

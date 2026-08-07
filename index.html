@@ -1065,8 +1065,23 @@
       .film.is-gl canvas {
         opacity: 0.92;
       }
+      /* Dark footage laid over cream at a flat opacity is not a light
+         mode, it is a grey smear — the frame loses its hue and reads as
+         dirt on the page. Lifting the blacks first and then multiplying
+         keeps the cream showing through the highlights, so the film
+         reads as a pale print of itself instead of fog.
+
+         Tuned against the real footage in a real browser, not by eye:
+         raising saturation made the frame go warm and olive, which is
+         the one hue this site does not use. So the chroma is pulled
+         down and steered cool instead — sepia lays a single hue over
+         the whole frame and hue-rotate walks it round to the site's
+         blue. The result is a duotone plate in the accent family
+         rather than a colour photograph bleeding through the page. */
       html[data-theme="light"] .film.is-gl canvas {
-        opacity: 0.4;
+        opacity: 0.44;
+        mix-blend-mode: multiply;
+        filter: brightness(2.45) contrast(0.68) saturate(0.45) sepia(0.12) hue-rotate(165deg);
       }
       .film__still {
         object-fit: cover;
@@ -1077,7 +1092,9 @@
         opacity: 0.5;
       }
       html[data-theme="light"] .film.is-static .film__still {
-        opacity: 0.24;
+        opacity: 0.44;
+        mix-blend-mode: multiply;
+        filter: brightness(2.45) contrast(0.68) saturate(0.45) sepia(0.12) hue-rotate(165deg);
       }
       .film.is-static video,
       .film.is-static canvas {
@@ -1182,26 +1199,111 @@
           grid-template-columns: 1fr;
         }
       }
+      /* The portrait is a background-free cutout, so this slot has to
+         supply its own room: a dark plate, a calibration grid, and a
+         floor glow under the feet. Without a ground a transparent PNG
+         just floats on the page and the CRT wake-up reads as nothing. */
       .ide__photo {
         position: relative;
         overflow: hidden;
         border-radius: 14px;
         aspect-ratio: 4 / 5;
-        background: rgba(255, 255, 255, 0.03);
+        background:
+          linear-gradient(0deg, rgba(160, 200, 255, 0.09), rgba(160, 200, 255, 0) 46%),
+          radial-gradient(78% 50% at 50% 92%, rgba(160, 200, 255, 0.16), rgba(160, 200, 255, 0) 72%),
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0) 1px 34px),
+          repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.045) 0 1px, rgba(0, 0, 0, 0) 1px 34px),
+          linear-gradient(180deg, #0a0f1a 0%, #05080f 100%);
       }
-      .ide__photo img {
+      html[data-theme="light"] .ide__photo {
+        background:
+          linear-gradient(0deg, rgba(52, 92, 168, 0.1), rgba(52, 92, 168, 0) 46%),
+          radial-gradient(78% 50% at 50% 92%, rgba(52, 92, 168, 0.13), rgba(52, 92, 168, 0) 72%),
+          repeating-linear-gradient(90deg, rgba(22, 32, 52, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 34px),
+          repeating-linear-gradient(0deg, rgba(22, 32, 52, 0.05) 0 1px, rgba(0, 0, 0, 0) 1px 34px), linear-gradient(180deg, #e2e0d6 0%, #c9cac5 100%);
+      }
+      /* The point cloud (assets/js/how-portrait.js). It only appears
+         after the buffer is built, so the <img> underneath is the real
+         no-WebGL / reduced-motion / slow-network path, not a stub. */
+      .ide__cloud {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
         display: block;
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        filter: grayscale(1) contrast(1.14) brightness(0.68);
+        pointer-events: none;
+      }
+      .ide__photo.has-cloud {
+        cursor: pointer;
+      }
+      .ide__photo.has-cloud:focus-visible {
+        outline: 2px solid var(--accent, rgba(160, 200, 255, 1));
+        outline-offset: 3px;
+      }
+      .ide__photo.has-cloud img {
+        opacity: 0;
+        transition: opacity 500ms ease;
+      }
+      /* which law is currently drawing him. Sits in the plate's own
+         corner like a scope readout, not like a caption. */
+      .ide__mode {
+        position: absolute;
+        left: 14px;
+        bottom: 12px;
+        z-index: 4;
+        font-family: var(--mono, ui-monospace, monospace);
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        color: rgba(214, 230, 255, 0.78);
+        background: rgba(6, 10, 18, 0.42);
+        border: 1px solid rgba(160, 200, 255, 0.22);
+        border-radius: 999px;
+        padding: 4px 10px 3px;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 400ms ease;
+      }
+      .ide__photo.has-cloud .ide__mode {
+        opacity: 1;
+      }
+      html[data-theme="light"] .ide__mode {
+        color: rgba(24, 36, 58, 0.82);
+        background: rgba(255, 255, 255, 0.55);
+        border-color: rgba(52, 92, 168, 0.26);
+      }
+      .ide__mode.is-hit {
+        animation: ideModeHit 620ms ease 1;
+      }
+      @keyframes ideModeHit {
+        0% {
+          transform: translateY(3px);
+          box-shadow: 0 0 0 0 rgba(160, 200, 255, 0.5);
+        }
+        40% {
+          box-shadow: 0 0 0 7px rgba(160, 200, 255, 0);
+        }
+        100% {
+          transform: translateY(0);
+          box-shadow: 0 0 0 0 rgba(160, 200, 255, 0);
+        }
+      }
+      .ide__photo img {
+        display: block;
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: 50% 100%;
+        filter: grayscale(1) contrast(1.14) brightness(0.6) drop-shadow(0 14px 22px rgba(0, 0, 0, 0.34));
         transform: scale(1.045);
         transition:
           filter 900ms ease,
           transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       .ide.is-live .ide__photo img {
-        filter: grayscale(0) contrast(1.02) brightness(0.98);
+        filter: grayscale(0) contrast(1.02) brightness(1) drop-shadow(0 20px 30px rgba(0, 0, 0, 0.3));
         transform: scale(1);
       }
       /* the CRT pass: standing scanlines, plus one bar that sweeps down
@@ -1296,7 +1398,7 @@
         overflow: hidden;
         font-family: "DM Mono", monospace;
         font-size: clamp(0.76rem, 1.1vw, 1rem);
-        line-height: 2.05;
+        line-height: 1.9;
         white-space: pre-wrap;
         color: var(--home-muted);
       }
@@ -1309,11 +1411,20 @@
       .ide__code .v {
         color: #ff6f9c;
       }
+      .ide__code .f {
+        color: #7ee0c0;
+      }
+      .ide__code .c {
+        color: var(--home-faint);
+      }
       html[data-theme="light"] .ide__code .k {
         color: #2b4fc4;
       }
       html[data-theme="light"] .ide__code .v {
         color: #bd2c64;
+      }
+      html[data-theme="light"] .ide__code .f {
+        color: #0d6f5b;
       }
       .ide__code .cur::after {
         content: "";
@@ -1347,6 +1458,9 @@
         }
         .ide__photo img {
           transition: none;
+        }
+        .ide__mode.is-hit {
+          animation: none;
         }
       }
 
@@ -4006,17 +4120,17 @@
   html[data-theme="light"] .studio-links {
     background:
       radial-gradient(120px 70px at var(--gx) var(--gy), rgba(255, 255, 255, 0.95), transparent 66%),
-      linear-gradient(168deg, rgba(255, 255, 255, 0.84), rgba(206, 222, 238, 0.62));
+      linear-gradient(168deg, rgba(255, 253, 247, 0.86), rgba(227, 224, 214, 0.64));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 0 rgba(60, 104, 148, 0.1),
-      0 12px 32px rgba(30, 56, 84, 0.14);
+      inset 0 -1px 0 rgba(96, 88, 70, 0.12),
+      0 12px 32px rgba(84, 70, 48, 0.16);
     backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
   }
 
   html[data-theme="light"] .studio-links::before {
-    background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(120, 158, 196, 0.22) 40%, rgba(255, 255, 255, 0.5));
+    background: linear-gradient(150deg, rgba(255, 255, 255, 1), rgba(120, 158, 196, 0.34) 40%, rgba(255, 255, 255, 0.5));
   }
 
   /* Play opts back out — see the note beside `.play-page .studio-nav`. */
@@ -4093,12 +4207,12 @@
     border-color: rgba(24, 48, 78, 0.16);
     background:
       radial-gradient(90px 52px at 26% 6%, rgba(255, 255, 255, 0.9), transparent 70%),
-      linear-gradient(168deg, rgba(255, 255, 255, 0.88), rgba(206, 222, 238, 0.66));
+      linear-gradient(168deg, rgba(255, 253, 247, 0.9), rgba(227, 224, 214, 0.68));
     backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     -webkit-backdrop-filter: blur(32px) saturate(1.6) brightness(1.04);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 1),
-      0 12px 30px rgba(30, 56, 84, 0.14);
+      0 12px 30px rgba(84, 70, 48, 0.16);
   }
   html[data-theme="light"] .studio-mark::before {
     background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.1) 42%, rgba(190, 222, 255, 0.5));
@@ -5508,18 +5622,13 @@
 </div>
         <figure class="ide rv" id="ide">
           <div class="ide__photo">
-            <!-- This slot shipped al-folio's stock template portrait — a
-                 black-and-white photograph of Albert Einstein — under the
-                 filename sid_about_pf.webp and the alt text "Sid Mehta at
-                 his desk". It survived because the CSS starts the image at
-                 grayscale(1) brightness(0.68), so at rest it reads as a
-                 dim archival texture rather than as a face you recognise.
-                 The file now holds Sid: the same shoot /about/ already
-                 uses, rotated upright and cropped to the 4:5 slot. The
-                 hover payoff is better for it — grayscale(1) → grayscale(0)
-                 on a colour photograph is the screen actually switching on,
-                 which is what the caption below has always promised. -->
-            <img src="/assets/img/sid_about_pf.webp" alt="Sid Mehta" loading="lazy" decoding="async">
+            <!-- Central Park, blue jacket, blue cap, background removed.
+                 /about/ already spends the grey-backdrop studio shoot, and
+                 running the same frame twice on one scroll made the page
+                 feel shorter than it is. This one is a cutout standing in
+                 the plate above, so grayscale(1) → grayscale(0) reads as
+                 the screen finding him rather than a photo fading up. -->
+            <img src="/assets/img/home/sid-how.webp" alt="Sid Mehta in Central Park" width="1200" height="1500" loading="lazy" decoding="async">
           </div>
           <div class="ide__panel" aria-hidden="true">
             <div class="ide__bar">
@@ -5527,8 +5636,9 @@
 </div>
             <pre class="ide__code"><code id="ide-code"></code></pre>
           </div>
-          <figcaption class="ide__cap">Hover the photo — it starts working</figcaption>
+          <figcaption class="ide__cap">Hover to resolve him · click to redraw</figcaption>
         </figure>
+        <script defer src="/assets/js/how-portrait.js"></script>
       </section>
 
       <!-- ───────────────── 03 numbers ───────────────── -->
@@ -5946,7 +6056,12 @@
 
   .site-footer-colophon {
     margin: 0;
-    padding: 18px var(--gutter, clamp(20px, 4vw, 64px)) 22px;
+    /* The footer already carries the gutter, and this line is a direct child of
+       it. Repeating the gutter here indented the credit a second time, so it
+       sat 60px right of the divider rule, the name block, the quote and the
+       plot hint — every other left edge in the footer. Vertical padding only;
+       the horizontal plumb line is the footer's to set. */
+    padding: 18px 0 22px;
     font: 400 9px/1.5 var(--font-mono, "DM Mono", monospace);
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -6488,8 +6603,26 @@
        h(t+1) = 2h(t) − h(t−1) + c²∇²h, then damped. c² must stay under 0.5
        for a 2D grid or the whole thing detonates into noise on the third
        frame. 0.26 is springy without being unstable. The damping is close
-       enough to 1 that a ripple crosses the footer twice before it dies. */
-    var CELL = 11,
+       enough to 1 that a ripple crosses the footer twice before it dies.
+
+       The cell was 11px, and that was the single worst thing about this
+       footer: a 137x31 height field blown up to 1512px wide by bilinear
+       filtering does not read as water, it reads as a quilt. Every ripple
+       arrived wearing visible diamonds.
+
+       Halving the cell fixes it, but not for free -- the grid is the ruler
+       the physics is measured in. A wave moves sqrt(c2) CELLS per step, so
+       halving the cell halves the speed in pixels. Compensating with c2 is
+       not available: 0.5 is the hard 2D stability ceiling and 4x0.26 is
+       past it. So the compensation is two substeps per frame, which
+       restores the pixel speed exactly, and DAMP is square-rooted so the
+       per-frame decay is unchanged after those two substeps. Measured
+       offline against the old grid, the ripple front is within 1.5% at
+       every frame out to 140. The water moves the same. It just stopped
+       being made of squares. Cost is 0.43ms a frame. */
+    var CELL = 5.5,
+      RSCALE = 11 / CELL,
+      SUBSTEPS = 2,
       gw = 0,
       gh = 0,
       cur = null,
@@ -6499,11 +6632,11 @@
       causBuf = null,
       causBufCtx = null;
     var C2 = 0.26,
-      DAMP = 0.9955;
+      DAMP = 0.99775;
 
     function buildGrid() {
-      gw = Math.max(24, Math.min(180, Math.round(W / CELL)));
-      gh = Math.max(16, Math.min(90, Math.round(H / CELL)));
+      gw = Math.max(24, Math.min(320, Math.round(W / CELL)));
+      gh = Math.max(16, Math.min(130, Math.round(H / CELL)));
       cur = new Float32Array(gw * gh);
       prv = new Float32Array(gw * gh);
       nxt = new Float32Array(gw * gh);
@@ -6518,7 +6651,9 @@
       if (!cur) return;
       var cx = (x / W) * (gw - 1),
         cy = (y / H) * (gh - 1);
-      var r = radius || 2;
+      /* Splash radii at every call site are authored in the old 11px
+         cells, so they are converted rather than rewritten. */
+      var r = (radius || 2) * RSCALE;
       var i0 = Math.max(1, Math.floor(cx - r)),
         i1 = Math.min(gw - 2, Math.ceil(cx + r));
       var j0 = Math.max(1, Math.floor(cy - r)),
@@ -6549,19 +6684,23 @@
       return a * (1 - fy) + b * fy;
     }
 
+    /* The sample distance stays PHYSICAL. It used to be one grid cell, and
+       when the grid got finer that quietly halved every plant's tilt and
+       every pod's drift, because a slope measured over half the distance is
+       half the number. RSCALE holds the sampling arm at its old ~10px. */
     function slopeX(x, y) {
-      var s = (W / gw) * 0.9;
+      var s = (W / gw) * 0.9 * RSCALE;
       return heightAt(Math.min(W, x + s), y) - heightAt(Math.max(0, x - s), y);
     }
 
     function slopeY(x, y) {
-      var s = (H / gh) * 0.9;
+      var s = (H / gh) * 0.9 * RSCALE;
       return heightAt(x, Math.min(H, y + s)) - heightAt(x, Math.max(0, y - s));
     }
 
     function stepWater(step) {
       if (!cur) return;
-      var iterations = step > 1.6 ? 2 : 1;
+      var iterations = SUBSTEPS * (step > 1.6 ? 2 : 1);
       for (var n = 0; n < iterations; n++) {
         for (var j = 1; j < gh - 1; j++) {
           var row = j * gw;
@@ -6580,7 +6719,10 @@
     /* Surface-normal luminance. Where the surface tilts toward the light it
        brightens; where it tilts away it dims. That is the whole trick — no
        ray marching, no shader, just the gradient of the height field written
-       into a 180×90 image and scaled up with smoothing on. */
+       into a 275×62 image and scaled up with smoothing on. The gain is
+       170 rather than 140 because a gradient sampled across two cells
+       shrinks when the cells do; 170 was picked by matching mean caustic
+       brightness against the old grid at three points in a ripple's life. */
     function drawWater() {
       if (!causImg) return;
       var p = pal();
@@ -6594,7 +6736,7 @@
           var gx = i > 0 && i < gw - 1 ? cur[k + 1] - cur[k - 1] : 0;
           var gy = j > 0 && j < gh - 1 ? cur[k + gw] - cur[k - gw] : 0;
           var lum = gx * 0.72 + gy * 0.5;
-          var a = Math.min(190, Math.abs(lum) * 140);
+          var a = Math.min(190, Math.abs(lum) * 170);
           d[o] = c[0];
           d[o + 1] = c[1];
           d[o + 2] = c[2];
@@ -6695,8 +6837,12 @@
 
     /* Fewer and bigger. 150 twelve-pixel plants is a texture; 78 fifteen-pixel
        ones are a bed you can count. */
-    var FONT = 15,
-      ROW_H = 13,
+    /* 15px was legible and inconsequential: a bed of small marks at the
+       bottom of a 340px pond. 17 gives the planting enough body to be the
+       thing you look at, which is the point of a footer you are invited to
+       plant in. Row height rides with it. */
+    var FONT = 17,
+      ROW_H = 14.5,
       MAX_PLANTS = coarse ? 52 : 78;
     var plants = [];
 
@@ -6821,8 +6967,14 @@
         /* The floor is 0.42, not 0.3. At 0.3 the far rank was faint enough to
            read as dirt on the screen rather than as a plant a long way off —
            aerial perspective works by making distant things *lower contrast*,
-           not by making them nearly absent. */
-        var alpha = (0.42 + pl.d * 0.5) * pl.grow;
+           not by making them nearly absent.
+
+           Light mode needs its own floor. Dark plants get a glow, so 0.42 of
+           a lit green on black is plenty; light plants are dark ink on pale
+           water with no halo at all, and at the same alpha the whole bed
+           dissolved into scribble. 0.62 is where it reads as planting
+           rather than smudging. */
+        var alpha = (isLight() ? 0.62 + pl.d * 0.34 : 0.42 + pl.d * 0.5) * pl.grow;
 
         flora.save();
         flora.globalAlpha = alpha;
@@ -7792,10 +7944,47 @@
           while (t.length < n) t += " ";
           return t;
         };
+        var t = function (str, cls) {
+          toks.push([str, cls || ""]);
+        };
+
+        t("// Brooklyn. Six years. Fintech, spatial, health, AI.\n", "c");
+        t("\n");
         PAIRS.forEach(function (r) {
-          toks.push(["const ", "k"], [pad(r[0], 10), "n"], ["= ", ""], [r[1], "v"], ["\n", ""]);
+          t("const ", "k");
+          t(pad(r[0], 10), "n");
+          t("= ");
+          t(r[1], "v");
+          t("\n");
         });
-        toks.push(["\n", ""], ["export default ", "k"], ["trust", "v"]);
+        t("\n");
+        t("function ", "k");
+        t("design", "f");
+        t("(problem) {\n");
+        t("  const ", "k");
+        t("people ", "n");
+        t("= ");
+        t("listen", "f");
+        t("(problem)\n");
+        t("  let ", "k");
+        t("idea ", "n");
+        t("= ");
+        t("sketch", "f");
+        t("(people.tension)\n");
+        t("  while ", "k");
+        t("(!");
+        t("inevitable", "f");
+        t("(idea)) idea = ");
+        t("cut", "f");
+        t("(idea)\n");
+        t("  return ", "k");
+        t("build", "f");
+        t("(idea)\n");
+        t("}\n");
+        t("\n");
+        t("// then I build it myself, end to end\n", "c");
+        t("export default ", "k");
+        t("trust", "v");
         var total = toks.reduce(function (a, t) {
           return a + t[0].length;
         }, 0);
@@ -7827,12 +8016,13 @@
           fig.classList.add("is-live");
           if (reduce) return render(total);
           typing = true;
+          var chunk = Math.max(1, Math.round(total / 400));
           var n = 0,
             gate = 0;
           var step = function (now) {
             if (now < gate) return requestAnimationFrame(step);
-            gate = now + 14;
-            n++;
+            gate = now + 12;
+            n = Math.min(total, n + chunk);
             render(n);
             if (n < total) return requestAnimationFrame(step);
             typing = false;
