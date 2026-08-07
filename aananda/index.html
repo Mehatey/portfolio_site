@@ -1811,7 +1811,12 @@
         font-size: 10px;
         font-weight: 400;
         letter-spacing: 0.06em;
-        color: rgba(192, 213, 236, 0.6);
+        /* 0.6 painted at 2.12 -- the same 10px-mono shortfall as .g-label on
+           the about page, where the stated alpha and the alpha that reaches
+           the screen are different numbers because almost none of the glyph
+           is a whole pixel. Measured on /marriott/, which is the page with
+           the most of these. */
+        color: rgba(192, 213, 236, 0.82);
         font-variant-numeric: tabular-nums;
       }
       .decision__body {
@@ -2076,7 +2081,10 @@
         display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px;
         font-family: var(--font-mono); font-size: 10.5px;
         letter-spacing: 0.14em; text-transform: uppercase;
-        color: rgba(255,255,255,0.42);
+        /* 0.42 painted at 2.05 on dark -- the 10px-tracked-mono shortfall
+           again, third element in this file to have it. Measured on /mandala/
+           and /shot-on-iphone/. */
+        color: rgba(255,255,255,0.66);
       }
       .next-tags span + span::before { content: "\00b7"; margin-right: 14px; opacity: 0.5; }
       .next-visual::after {
@@ -2117,14 +2125,30 @@
         width: 40px; height: 40px; border-radius: 50%;
         border: 1px solid rgba(255,255,255,0.10);
         display: flex; align-items: center; justify-content: center;
-        font-size: 16px; flex-shrink: 0; color: rgba(255,255,255,0.35);
+        /* This is the affordance for the whole block -- the one thing on the
+           card that says it is a link -- and it was the faintest mark on it:
+           painted 1.21 on cream and 1.35 on dark, against a label beside it
+           at full ink. A ring you cannot see is not a button. The hover state
+           still has somewhere to go, at 0.85 and 0.95. */
+        font-size: 16px; flex-shrink: 0; color: rgba(255,255,255,0.62);
         margin-left: 16px;
         transition: border-color 0.4s var(--ease-out), transform 0.4s var(--ease-out), color 0.4s;
       }
       .proj-next:hover .next-arrow {
         border-color: rgba(255,255,255,0.40);
         transform: translateX(5px);
-        color: rgba(255,255,255,0.85);
+        color: rgba(255,255,255,0.95);
+      }
+      html[data-theme="light"] .next-arrow {
+        color: rgba(7, 9, 15, 0.8);
+        border-color: rgba(7, 9, 15, 0.16);
+      }
+      html[data-theme="light"] .proj-next:hover .next-arrow {
+        color: rgba(7, 9, 15, 0.95);
+        border-color: rgba(7, 9, 15, 0.4);
+      }
+      html[data-theme="light"] .next-tags {
+        color: rgba(7, 9, 15, 0.66);
       }
 
       /* ─── SCROLL REVEAL ─── */
@@ -2805,7 +2829,10 @@
       html[data-theme="light"] .proj-decisions__lede { color: rgba(7, 9, 15, 0.62); }
       html[data-theme="light"] .decision { border-bottom-color: rgba(7, 9, 15, 0.11); }
       html[data-theme="light"] .decision__choice { color: rgba(7, 9, 15, 0.86); }
-      html[data-theme="light"] .decision__n { color: rgba(30, 77, 123, 0.92); }
+      /* Darkened rather than opaqued, same call as .intro-label: this one
+         carries the accent hue and pushing a mid-blue to full alpha makes it
+         a wash instead of a colour. Painted 2.25 before, on cream. */
+      html[data-theme="light"] .decision__n { color: rgba(22, 58, 96, 0.95); }
       html[data-theme="light"] .decision__why,
       html[data-theme="light"] .proj-next-steps__body { color: rgba(7, 9, 15, 0.62); }
       html[data-theme="light"] .decision__tradeoff {
@@ -14162,9 +14189,35 @@
         let dpr = 1;
         const brushRadius = 80;
 
-        // Image starts hidden — canvas acts as a black mask over it
-        // Painting clears the mask to reveal the image underneath
+        // Image starts hidden — the canvas is a mask over it, and painting
+        // clears the mask to reveal the photograph underneath.
+        //
+        // The mask used to be #000 unconditionally, which is the same mistake
+        // as painting a scrim in one theme's colour: on the dark page a black
+        // fill is invisible and the section reads as page, which is the whole
+        // point. On cream it is a solid black rectangle covering the full
+        // width of the section -- and the light-mode ink inside it is
+        // rgba(7,9,15,0.74), so the quote sat at dark-on-black. Sampled the
+        // painted pixels across the quote's own box: luminance 0 to 7, a
+        // maximum possible contrast of 1.04:1. Sid's writing about the
+        // project, on all fifteen project pages, simply could not be read in
+        // light mode until you scrubbed the mask off with the cursor.
+        //
+        // The contrast auditor could not see it either, and that is worth
+        // recording: it walks ancestors looking for a background *colour*, and
+        // this backdrop is a canvas. It found the page's cream, composited
+        // dark ink against it, and reported a healthy ratio. The stylesheet
+        // was never wrong. The paint was.
+        //
+        // A mask is supposed to be the surface it is hiding something behind,
+        // so it takes the page's own --bg. Cream on cream, black on black,
+        // and the photograph is genuinely hidden in both.
         img.style.opacity = "0.4";
+
+        function maskColor() {
+          var v = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+          return v || "#000";
+        }
 
         function resize() {
           dpr = window.devicePixelRatio || 1;
@@ -14175,15 +14228,26 @@
           canvas.style.height = rect.height + "px";
           ctx.setTransform(1, 0, 0, 1, 0, 0);
           ctx.scale(dpr, dpr);
-          // Fill with black (hides the image)
+          // Fill with the page's own background, which is what hides the
+          // image in whichever theme is on.
           ctx.globalCompositeOperation = "source-over";
-          ctx.fillStyle = "#000";
+          ctx.fillStyle = maskColor();
           ctx.fillRect(0, 0, rect.width, rect.height);
         }
 
         img.addEventListener("load", resize);
         if (img.complete) resize();
         window.addEventListener("resize", resize, { passive: true });
+
+        /* Switching theme repaints the mask. It also discards whatever the
+           visitor had already scrubbed away, which is the right trade: a
+           half-erased mask in the wrong colour is worse than starting over,
+           and someone who has just changed theme is looking at the page, not
+           mid-gesture. */
+        new MutationObserver(resize).observe(document.documentElement, {
+          attributes: true,
+          attributeFilter: ["data-theme"],
+        });
 
         function paint(x, y) {
           const rect = section.getBoundingClientRect();

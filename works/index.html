@@ -1030,6 +1030,24 @@
         transition:
           opacity 0.5s var(--ease-out),
           transform 0.5s var(--ease-out);
+        /* A dead man's switch on the reveal. These rows start at zero opacity
+           and are brought in by a JS stagger; if that script never runs --
+           blocked, errored earlier in the file, scripting off -- every work on
+           the page is invisible. That was survivable when the preview panel
+           still painted beside an empty list. It is not survivable now that
+           the sixteen rows *are* the page.
+
+           The animation has a delay longer than the stagger's own run, so on a
+           healthy load it never has an effect: .wli--in has already set the
+           same two values by the time it would begin. It only ever matters on
+           the load where nothing else arrives. */
+        animation: wliFailsafe 1ms linear 2600ms forwards;
+      }
+      @keyframes wliFailsafe {
+        to {
+          opacity: 1;
+          transform: none;
+        }
       }
       .works-list-item.wli--in {
         opacity: 1;
@@ -5555,7 +5573,17 @@
             [H] auto
             [T] auto
             [M1] 1fr [M2] 1fr [M3] 1fr [M4] 1fr
-            [CAP] auto
+            /* Fixed, not auto. Auto meant the caption row was as tall as
+               whichever project you happened to be pointing at -- and the
+               descriptions run one line to three -- so the four middle rows
+               above it resized on every hover and the plate breathed between
+               299 and 327 while the side columns shifted under it. A frame
+               that moves when you look at it is not a frame. 170 is the
+               tallest caption any of the sixteen produces, measured by
+               hovering all of them at 1280, 1512 and 1920: 161 for Alpha
+               Stockathon, plus nine of slack. Everything shorter simply hangs
+               from the top of the row. */
+            [CAP] 170px
             [B] auto [Bend];
           column-gap: clamp(14px, 1.7vw, 26px);
           row-gap: 0;
@@ -5601,7 +5629,16 @@
           font-family: "DM Mono", monospace;
           font-size: 9px;
           letter-spacing: 0.08em;
-          opacity: 0.55;
+          /* 9px mono never paints at the alpha it is set to, so the opacity
+             was the wrong knob -- at 0.55 it sampled 1.58 on dark and 2.23 on
+             cream, and 0.78 only took dark to 2.14 because the inherited
+             colour was already carrying 0.56 of its own. One dimmer, stated
+             per theme, measurable. */
+          opacity: 1;
+          color: rgba(214, 228, 246, 0.74);
+        }
+        html[data-theme="light"] .works-split .works-list > .works-list-head .works-list-count {
+          color: rgba(7, 9, 15, 0.72);
         }
         .works-split .works-list > .works-lane {
           grid-row: H;
@@ -5910,6 +5947,31 @@
           grid-area: M1 / L;
         }
 
+        /* ── the frame closes in ──
+           The base rest position slides every row in from the left, which is
+           right for a list and wrong for a ring: it means the right column and
+           the bottom row arrive travelling *away* from the thing they point
+           at. Each side now starts outside its own edge and moves inward, so
+           the reveal reads as a frame drawing itself around the plate rather
+           than sixteen rows arriving from stage left. The stagger is already
+           in DOM order, which here is clockwise from the top left, so the
+           whole thing sweeps round once and settles. */
+        .works-split .works-list > a.works-list-item:nth-of-type(-n + 4) {
+          transform: translateY(-12px);
+        }
+        .works-split .works-list > a.works-list-item:nth-of-type(n + 5):nth-of-type(-n + 8) {
+          transform: translateX(14px);
+        }
+        .works-split .works-list > a.works-list-item:nth-of-type(n + 9):nth-of-type(-n + 12) {
+          transform: translateY(12px);
+        }
+        .works-split .works-list > a.works-list-item:nth-of-type(n + 13) {
+          transform: translateX(-14px);
+        }
+        .works-split .works-list > a.works-list-item.wli--in {
+          transform: none;
+        }
+
         /* ── everything faces the plate ── */
         .works-split .works-list > a.works-list-item:nth-of-type(-n + 4) {
           align-self: end;
@@ -6012,6 +6074,31 @@
         .works-split .wp-pills {
           margin: 0 !important;
         }
+        /* The slide counter goes.
+
+           It samples at 1.01 painted, in both themes, which is to say nobody
+           has ever seen it: a later rule moves the rail to bottom -20 and
+           strips its glass, so in the ring it sits on the page below the
+           plate at white 0.42. I tried putting it back inside the plate with
+           its pill and its blur and the override would not take -- the rail
+           kept reporting the same 218x48 box at the same x, so something else
+           in this file owns its geometry and finding out what is not worth
+           the pixels it would buy.
+
+           And it would not buy many. The counter and its dots existed to say
+           "there are three images here" in a layout where the preview was a
+           panel you looked at on its own. In the ring the plate is one cover
+           at a time, swapped by pointing at a title, and the thing that tells
+           you there is more is the project page you are one click from. A
+           component that has never been legible is not carrying information;
+           it is carrying the memory of a layout that no longer exists.
+        */
+        /* !important because the rail's inline display is written by script
+           -- which is also why every CSS attempt to reposition it earlier in
+           this session did nothing at all. */
+        .works-split .wp-media-rail {
+          display: none !important;
+        }
         .works-split .wp-cta {
           margin-top: 10px !important;
         }
@@ -6060,6 +6147,7 @@
         /* And the scroll cue was pointing down a list that is now one screen.
            It landed in the middle of the bottom row. */
         .scroll-hint,
+        .scroll-hint-line,
         .scroll-hint-label {
           display: none;
         }

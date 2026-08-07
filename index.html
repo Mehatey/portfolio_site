@@ -2562,6 +2562,20 @@
   #enter-3d-stage.is-on {
     opacity: 1;
   }
+  /* Set only when the model missed its deadline -- see the note beside the
+     timeout in the script below. The stage stops breathing and stops holding
+     320px of empty space, so the label rises to where the object would have
+     been rather than floating under a hole. */
+  #enter-3d-stage.is-model-absent {
+    height: 0;
+    animation: none;
+    filter: none;
+  }
+  #enter-buddha-wrap:has(.is-model-absent) #enter-label {
+    opacity: 1;
+    transform: none;
+    font-size: 13px;
+  }
   @keyframes buddhaBreathe {
     0%,
     100% {
@@ -3054,6 +3068,34 @@
       "load",
       function () {
         stage.classList.add("is-model-ready");
+      },
+      { once: true }
+    );
+
+    /* The portal ring is a placeholder that only ever gets removed by the
+       model's own load event, and that event has three ways of never firing:
+       the model-viewer module is a cross-origin script from a CDN, the model
+       itself is 1.8MB, and WebGL can be off. In any of those cases the front
+       door of this site is a pulsing empty circle above the words ENTER
+       PORTFOLIO, permanently -- which is what it renders as offline, and what
+       it will look like to anyone on a bad connection or a locked-down
+       browser. A placeholder that outlives the thing it is holding space for
+       is not a placeholder, it is the design.
+
+       So it gets a deadline. Three and a half seconds is long enough that a
+       normal load never sees this path and short enough that a failed one
+       does not sit there. The ring goes, the label comes up to full weight,
+       and the threshold becomes what it can actually be under those
+       conditions: a line of type you click. If the model turns up later it
+       still fades in over the top -- nothing here cancels it. */
+    var portalDeadline = setTimeout(function () {
+      if (stage.classList.contains("is-model-ready")) return;
+      stage.classList.add("is-model-ready", "is-model-absent");
+    }, 3500);
+    inst.addEventListener(
+      "load",
+      function () {
+        clearTimeout(portalDeadline);
       },
       { once: true }
     );

@@ -619,6 +619,15 @@
       .stage.has-fallback #orbit-canvas {
         display: none;
       }
+      /* When the scene is not coming, neither is anything these two describe.
+         "Drag to orbit, scroll to zoom" printed over an empty black field is
+         worse than silence: it tells you the page is working. */
+      .stage.has-fallback .imm-hint,
+      .stage.has-fallback .imm-caption,
+      .stage.has-fallback .rings-legend,
+      .stage.has-fallback .hud-top p {
+        display: none;
+      }
       .orbit-lightbox {
         position: fixed;
         inset: 0;
@@ -733,7 +742,31 @@
           display: none;
         }
       }
-    </style> </head> <body> <a class="skip-link" href="#orbit-stage">Skip to Orbit gallery</a> <main class="stage" id="orbit-stage"> <canvas id="orbit-canvas" aria-label="Orbital constellation of selected work in three rings. Drag to orbit, scroll or pinch to zoom, click a piece to focus and open it."></canvas> <div class="hud-top"> <h1>Play — Orbit</h1> <p>Drag to orbit. Scroll to move through the rings. Click a piece to focus, click again to open it.</p> </div> <a class="imm-back" href="/play/">← Grid view</a> <nav class="rings-legend" id="rings-legend" aria-label="Jump to a ring"> <button type="button" data-ring="0">Product Design</button> <button type="button" data-ring="1">AI + Creative Tech</button> <button type="button" data-ring="2">Cultural / Spatial / Visual</button> </nav> <div class="imm-caption" id="imm-cap"> <span id="imm-cap-tag">In focus</span><strong id="imm-cap-title">Loading</strong> </div> <p class="imm-hint">Drag to orbit · scroll to zoom · click a piece to focus</p> <div class="imm-fallback"> <p> Your browser couldn’t start the 3D scene. <a href="/play/">Return to the Play grid</a> to browse the same work as images and video. </p> </div> <nav class="orbit-access" aria-label="All pieces in this gallery, as a list"> <h2>Pieces in this gallery</h2> <ol id="orbit-access-list"></ol> </nav> </main> <div class="orbit-lightbox" id="orbit-lightbox" role="dialog" aria-modal="true" aria-labelledby="orbit-lightbox-title"> <button class="orbit-lightbox__close" id="orbit-lightbox-close" type="button" aria-label="Close">×</button> <div class="orbit-lightbox__media" id="orbit-lightbox-media"></div> <div class="orbit-lightbox__copy"> <span id="orbit-lightbox-tag">In focus</span> <strong id="orbit-lightbox-title">Selected work</strong> </div> </div> <script type="module">
+    </style> </head> <body> <!-- The watchdog. Everything on this page is drawn by one `<script type="module">`, and
+         that module's first line imports three from a CDN. If that import
+         fails -- offline, blocked, a corporate proxy, jsdelivr having a bad
+         afternoon -- the module never executes a single statement. Not the
+         try/catch around the renderer, not the fallback message, nothing. What
+         is left is a black screen with a heading, three filter chips and a
+         line of text reading "drag to orbit, scroll to zoom", over nothing.
+         That is the state this page renders in offline, and it is what any
+         locked-down browser gets.
+
+         The fallback markup already exists and already says the right thing
+         (go back to the Play grid and browse the same work as images). It just
+         had no way of being reached, because the only code that could reveal
+         it lived inside the thing that failed. So the check moves out here,
+         into a classic script that runs regardless, and the module signals
+         success by setting a flag. Three seconds, same reasoning as the
+         loader's portal deadline: long enough that a healthy load never sees
+         it, short enough that a broken one does not sit there. -->
+    <script>
+      setTimeout(function () {
+        if (window.__orbitReady) return;
+        var s = document.getElementById("orbit-stage");
+        if (s) s.classList.add("has-fallback");
+      }, 3000);
+    </script> <a class="skip-link" href="#orbit-stage">Skip to Orbit gallery</a> <main class="stage" id="orbit-stage"> <canvas id="orbit-canvas" aria-label="Orbital constellation of selected work in three rings. Drag to orbit, scroll or pinch to zoom, click a piece to focus and open it."></canvas> <div class="hud-top"> <h1>Play — Orbit</h1> <p>Drag to orbit. Scroll to move through the rings. Click a piece to focus, click again to open it.</p> </div> <a class="imm-back" href="/play/">← Grid view</a> <nav class="rings-legend" id="rings-legend" aria-label="Jump to a ring"> <button type="button" data-ring="0">Product Design</button> <button type="button" data-ring="1">AI + Creative Tech</button> <button type="button" data-ring="2">Cultural / Spatial / Visual</button> </nav> <div class="imm-caption" id="imm-cap"> <span id="imm-cap-tag">In focus</span><strong id="imm-cap-title">Loading</strong> </div> <p class="imm-hint">Drag to orbit · scroll to zoom · click a piece to focus</p> <div class="imm-fallback"> <p> Your browser couldn’t start the 3D scene. <a href="/play/">Return to the Play grid</a> to browse the same work as images and video. </p> </div> <nav class="orbit-access" aria-label="All pieces in this gallery, as a list"> <h2>Pieces in this gallery</h2> <ol id="orbit-access-list"></ol> </nav> </main> <div class="orbit-lightbox" id="orbit-lightbox" role="dialog" aria-modal="true" aria-labelledby="orbit-lightbox-title"> <button class="orbit-lightbox__close" id="orbit-lightbox-close" type="button" aria-label="Close">×</button> <div class="orbit-lightbox__media" id="orbit-lightbox-media"></div> <div class="orbit-lightbox__copy"> <span id="orbit-lightbox-tag">In focus</span> <strong id="orbit-lightbox-title">Selected work</strong> </div> </div> <script type="module">
       import * as THREE from "three";
 
       const base = "/play/assets";
@@ -804,6 +837,10 @@
       let renderer;
       try {
         renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+        /* Read by the watchdog in the classic script above. It has to be set
+           from in here, because the whole point of the watchdog is that it
+           cannot assume this module ever ran. */
+        window.__orbitReady = true;
       } catch (err) {
         stage.classList.add("has-fallback");
       }
