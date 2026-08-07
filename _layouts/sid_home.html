@@ -277,9 +277,18 @@
            longest line measures 345px at 27.2px type, so a 1.7rem floor wrapped
            two of the three lines into six. 1.5rem lands the longest line at
            305px and keeps the block three lines wide at every width down to 320. */
-        font-size: clamp(1.5rem, 5.1vw, 5.1rem);
-        line-height: 0.98;
-        letter-spacing: -0.042em;
+        /* Down again, from 5.1rem/5.1vw. At 1512 that computed to 77px and
+           the headline was three lines running 1289px wide -- it filled the
+           entire hero column and left the film with nothing but the dregs of
+           the right edge, which is why the portrait read as "barely visible".
+           The headline was not competing with the film, it was standing on it.
+
+           3.8rem lands the same three lines at 57px across roughly 960px, so
+           the block still opens the page but the frame has a right half again.
+           The floor and the line count are unchanged. */
+        font-size: clamp(1.5rem, 3.8vw, 3.8rem);
+        line-height: 1;
+        letter-spacing: -0.032em;
       }
 
       /* The reactive line. Sized deliberately far below the headline — it is
@@ -452,6 +461,14 @@
         font-weight: 500;
         line-height: 0.78;
         letter-spacing: -0.06em;
+        /* Optical, not metric. YEARS is a mono cap-row whose ink starts flush
+           with the block's content edge; the numeral's zero is a round glyph
+           carrying a left sidebearing of about six pixels at this size, so the
+           two were set to the same x and printed to different ones -- YEARS
+           visibly hanging left of the 06 above it. text-indent moves the
+           numeral's own line only, which is exactly the one thing that needed
+           moving, and it scales with the clamp because it is in em. */
+        text-indent: -0.025em;
         font-variant-numeric: tabular-nums;
         background: linear-gradient(180deg, var(--home-ink), var(--home-faint));
         -webkit-background-clip: text;
@@ -471,7 +488,17 @@
       }
       .hero__num span {
         max-width: 58ch;
-        padding-top: 0.4em;
+        /* Aligned to the numeral's cap-line rather than to the top of its line
+           box. The numeral sets 99px at line-height 0.78, so its box is 77px
+           and the glyph's cap sits about 9px down inside it; 0.4em of mono
+           padding was 5px and put the first line of copy a few pixels high of
+           the cap, which reads as a miss rather than as a deliberate offset.
+
+           Measured rather than guessed: with padding at zero the mono line's
+           half-leading still drops its cap six pixels below the numeral's, so
+           the correction is negative. Ink tops now read 704.9 and 704.9. */
+        padding-top: 0;
+        margin-top: -0.43em;
         color: var(--home-muted);
         font-family: "DM Mono", monospace;
         font-size: clamp(0.76rem, 0.98vw, 0.88rem);
@@ -554,7 +581,12 @@
       }
       .hero__links i {
         font-style: normal;
-        opacity: 0.45;
+        /* 0.45 multiplied into --home-muted, which is itself 0.66 dark and
+           0.68 light, so the arrow painted at 0.30 alpha -- 2.33:1 on cream at
+           15px. Two dimmers again. The arrival is carried by the 4px slide and
+           by the label, not by the arrow fading up from invisible, so the rest
+           state can afford to be legible. */
+        opacity: 0.86;
         transform: translate3d(-4px, 0, 0);
         transition:
           transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -1477,7 +1509,13 @@
 
   <body class="home-page">
     <a class="skip-link" href="#main">Skip to content</a>
-    {% include loader.html %} {% include studio_nav.html %}
+    <!-- The shared atmosphere. Every other route on this site paints it and
+         the home page did not, which is the whole of "the background is barely
+         visible" -- there was nothing behind the hero but --home-bg, so the
+         film's dark frame sat on flat black and had no field to separate from.
+         It is a fixed canvas at z-index -1 and the hero sections are all
+         transparent by design, so it costs nothing but the include. -->
+    {% include smoke_bg.html %} {% include loader.html %} {% include studio_nav.html %}
 
     <div class="hg-base" aria-hidden="true"></div>
     <canvas id="gl-stage" aria-hidden="true"></canvas>
@@ -1531,7 +1569,10 @@
           <div class="hero__foot rv">
             <p class="hero__num">
               <b>06<em>years</em></b>
-              <span>Fintech, spatial computing, AI tools.<br />I build the version people trust when it actually matters.</span>
+              <span
+                >Fintech, healthcare, hospitality, spatial computing, agentic AI.<br />I build the version people trust when it actually
+                matters.</span
+              >
             </p>
             <ul class="hero__links">
               <li>
