@@ -5304,7 +5304,18 @@
              larger than it looks like it needs to be because the theme toggle
              and the chat button are fixed in the lower right and the ring's
              bottom row runs the full width under them. */
-          padding: clamp(66px, 6.6vh, 82px) clamp(20px, 2.4vw, 44px) clamp(24px, 2.8vh, 36px);
+          /* Second pass at the vertical budget. Sid, on the rebuilt ring:
+             "the image preview needs to be bigger."
+
+             The plate is height-bound, so this padding is not whitespace, it
+             is picture. The top pad was clamp(66px, 6.6vh, 82px) -- 66px at
+             1000 tall -- and at 16:9 every one of those pixels costs 1.778px
+             of plate width. Halving the top and taking a few off the bottom
+             hands roughly 40 vertical pixels back to the middle rows, which
+             is about 70px of extra plate. The frame does not need 66px of air
+             above a row of 17px titles that already have a hairline over
+             them; the hairline is the separation. */
+          padding: clamp(30px, 3.2vh, 40px) clamp(20px, 2.4vw, 44px) clamp(18px, 2vh, 26px);
           /* Minus the nav band: .works-split's own top edge already sits at
              64px, so a full 100svh put its floor 64px past the fold and cut
              the bottom row in half. Measured: box was y64 h861 in an 861 tall
@@ -5580,12 +5591,78 @@
           letter-spacing: -0.008em;
           transform: none;
         }
+        /* THE TAGS COME OFF THE RESTING STATE.
+           Sid: "i just feel the text is too much."
+
+           Sixteen titles is an index. Sixteen titles each with two tags under
+           them is thirty-two extra strings set in 8.5px mono at wide tracking,
+           and at that size they do not read as information -- they read as
+           texture, evenly grey, wrapped around all four sides of the picture.
+           They were the single biggest contributor to the cluster.
+
+           Nothing is lost: they fade in on the item you are pointing at, which
+           is the only one whose tags you can actually use. Height is reserved
+           at rest (visibility, not display) so nothing reflows when they
+           arrive -- a frame that resizes on hover is the bug this ring was
+           built to fix in the first place. */
         .works-split .works-list > a.works-list-item .wli-pills {
           display: flex;
           flex-wrap: wrap;
           gap: 4px 8px;
-          opacity: 1;
+          opacity: 0;
+          visibility: hidden;
           transform: none;
+          transition:
+            opacity 260ms cubic-bezier(0.16, 1, 0.3, 1),
+            visibility 0s linear 260ms;
+        }
+        .works-split .works-list > a.works-list-item.is-active .wli-pills,
+        .works-split .works-list > a.works-list-item:hover .wli-pills,
+        .works-split .works-list > a.works-list-item:focus-visible .wli-pills {
+          opacity: 1;
+          visibility: visible;
+          transition-delay: 0s, 0s;
+        }
+
+        /* ── STRUCTURE ────────────────────────────────────────────────────
+           Sid: "a little structure to the list in the ring."
+
+           With the tags gone the ring is sixteen titles at one weight, which
+           is legible but shapeless -- nothing says where one practice ends
+           and the next begins, so the eye has sixteen equal places to land
+           and no route between them.
+
+           The structure is already in the data: the sixteen run in three
+           lanes (1-5 product, 6-11 AI and creative tech, 12-16 culture and
+           image), and each lane already owns a --lane-hue used by the
+           hairline above each item. Nothing new needs to be invented or
+           labelled -- the grouping just needs to be visible at rest.
+
+           Two changes, no added words. The ordinal takes its lane's hue
+           instead of flat grey, so the ring reads as three coloured runs
+           going clockwise rather than sixteen grey items. And the first item
+           of each lane carries a longer, brighter rule, so the three seams
+           are findable from across the page. The lane legend stays deleted;
+           a colour that has to be explained in a key is not doing its job. */
+        .works-split .works-list > a.works-list-item .wli-content::before {
+          color: var(--lane-hue, rgba(255, 255, 255, 0.55));
+          opacity: 0.72;
+          transition:
+            opacity 260ms ease,
+            color 320ms ease;
+        }
+        .works-split .works-list > a.works-list-item.is-active .wli-content::before,
+        .works-split .works-list > a.works-list-item:hover .wli-content::before {
+          color: var(--lane-hue, rgba(255, 255, 255, 0.9));
+          opacity: 1;
+        }
+        /* The three lane openers: 01 product, 06 AI, 12 culture. */
+        .works-split .works-list > a.works-list-item:nth-of-type(1)::before,
+        .works-split .works-list > a.works-list-item:nth-of-type(6)::before,
+        .works-split .works-list > a.works-list-item:nth-of-type(12)::before {
+          width: 46px;
+          opacity: 0.85;
+          height: 2px;
         }
         .works-split .works-list > a.works-list-item .wli-pill {
           font-family: "DM Mono", monospace;
@@ -5854,7 +5931,21 @@
           bottom: 0 !important;
           top: auto !important;
           z-index: 3 !important;
-          width: min(100%, calc(177.8vh - 704px)) !important;
+          /* Was calc(177.8vh - 704px): the plate's width re-derived from the
+             viewport height minus a hardcoded tally of every pixel of chrome
+             above and below it. That constant has now been wrong twice --
+             once when the caption row was removed, and again the moment the
+             ring's padding changed to grow the plate -- and each time the
+             label silently drifted out of alignment with the picture it
+             labels. A magic number that encodes the sum of a dozen other
+             rules is a number that will keep going stale.
+
+             --plate-w is written by a ResizeObserver watching the plate
+             itself (see the script near the ring's other measurements), so
+             the label is now the same width as the image by observation
+             rather than by arithmetic. The calc stays as the fallback for the
+             first frame before the observer fires, and for the no-JS case. */
+          width: min(100%, var(--plate-w, calc(177.8vh - 648px))) !important;
           max-width: none !important;
           display: grid !important;
           grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) !important;
@@ -7713,6 +7804,35 @@
           },
           { passive: true }
         );
+      })();
+
+      /* ── THE LABEL MEASURES THE PLATE ─────────────────────────────────
+         The overlay label under the preview has to be exactly as wide as the
+         picture, or it reads as a caption for something else. The plate is
+         height-bound -- 16:9, height:100%, width:auto -- so its width is a
+         consequence of however much vertical room the ring's rows happen to
+         leave, which in turn depends on the header, the padding and the
+         gaps. That was previously re-derived in CSS as calc(177.8vh - 704px),
+         and the constant went stale every time any of those rules moved: the
+         label sat 80px narrower than the plate at 1512 after the padding
+         change alone.
+
+         Observing the plate is both exact and immune to the next change. One
+         ResizeObserver, one custom property, no loop -- it fires on layout,
+         not on frames. */
+      (function () {
+        var plate = document.querySelector(".works-split .wp-media");
+        if (!plate || typeof ResizeObserver !== "function") return;
+        var root = plate.closest(".works-split") || document.documentElement;
+        var lastW = -1;
+        new ResizeObserver(function (entries) {
+          var w = Math.round(entries[0].contentRect.width);
+          /* Sub-pixel jitter on a resize drag would otherwise write the
+             property on every intermediate frame for no visible gain. */
+          if (w === lastW || w < 40) return;
+          lastW = w;
+          root.style.setProperty("--plate-w", w + "px");
+        }).observe(plate);
       })();
     </script>
   </body>
