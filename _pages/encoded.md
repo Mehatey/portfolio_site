@@ -105,6 +105,25 @@ next_project:
      tile becomes the positioning context; the span stays a DIRECT child of the
      <a> so the `:hover > .xarrow` rule in design_tokens still reaches it. */
   .enc-award-tile { position: relative; padding-right: 54px !important; }
+  /* The unlinked tile: same box, but nothing that implies it can be clicked.
+     Keeps the 54px right padding even though it has no corner arrow to clear.
+     Dropping it to 24px looked like the tidier choice and measured wrong: these
+     tiles are `flex: 1` over content-box, so grow splits the free space equally
+     and then each adds its own padding on top — the trimmed tile came out 446px
+     against the other's 476. Equal padding is what makes them equal boxes.
+     (No cursor rule here: the site paints its own cursor, so `cursor` computes
+     to `none` on both tiles regardless.) */
+  .enc-award-tile--static { padding-right: 54px !important; }
+  .enc-award-tile--static:hover,
+  .enc-award-tile--static:focus-visible {
+    border-color: rgba(255,255,255,0.08) !important;
+    background: transparent !important;
+  }
+  html[data-theme="light"] .enc-award-tile--static:hover,
+  html[data-theme="light"] .enc-award-tile--static:focus-visible {
+    border-color: rgba(7,9,15,0.12) !important;
+    background: transparent !important;
+  }
   .enc-award-tile .xarrow {
     position: absolute;
     top: 18px;
@@ -143,14 +162,25 @@ next_project:
   }
 </style>
 
-<!-- Awards -->
+<!-- Awards
+     Both tiles used to carry the SAME href — the Best Community Engagement
+     entry page — so a recruiter clicking "Best Use of Augmented Reality"
+     landed on a page headed Community Engagement. On a portfolio being read
+     by people checking whether the claims hold up, a link that contradicts
+     its own label is worse than no link.
+
+     The correct AR entry URL could not be established: winners.webbyawards.com
+     renders its listings client-side, so the category index returns nothing
+     fetchable. Rather than guess a slug, this tile keeps the claim and drops
+     the link until Sid pastes the real one. The --static variant is styled to
+     read as a statement rather than a dead control: no arrow, no hover, no
+     pointer. Swap it back to an <a> the moment the URL is known. -->
 <div style="padding:0 var(--gutter);margin-top:40px;display:flex;gap:16px;flex-wrap:wrap;">
-  <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="enc-award-tile" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;text-decoration:none;transition:border-color 0.2s,background 0.2s;">
+  <div class="enc-award-tile enc-award-tile--static" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;">
     <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
     <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Use of Augmented Reality</p>
     <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">Apps, Software & Immersive</p>
-    <span class="xarrow" aria-hidden="true"></span>
-  </a>
+  </div>
   <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="enc-award-tile" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;text-decoration:none;transition:border-color 0.2s,background 0.2s;">
     <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
     <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Community Engagement</p>
