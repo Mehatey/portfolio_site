@@ -1270,28 +1270,10 @@
       }
       .cs-bleed--no-fade::before { display: none; }
 
-      /* Meniscus edge overlay — see the module of the same name near the
-         bottom of this file. Sits above the media and above the frame's
-         own fade, and is deliberately NOT clipped, so the hairline draws
-         the whole curve rather than half of it. */
-      .mn-edge {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 4;
-        pointer-events: none;
-        overflow: visible;
-      }
-      @media (prefers-reduced-motion: reduce) { .mn-edge { display: none; } }
-      /* Stand the straight fade down wherever the meniscus is running. */
-      .mn-on::before,
-      .cs-grid:has(.mn-on)::before,
-      .cs-grid-3:has(.mn-on)::before {
-        background:
-          linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, transparent 22px),
-          linear-gradient(to top, rgba(0, 0, 0, 0.5) 0%, transparent 22px) !important;
-      }
+      /* The meniscus edge overlay used to live here — a chromatic hairline
+         bowing across the top and bottom of every plate, driven by scroll
+         velocity. Removed. See the note where its script used to be, near
+         the bottom of this file. */
       .cs-bleed-cap { display: none; }
 
       .cs-wide {
@@ -14576,210 +14558,35 @@
         });
       })();
 
-      /* ── MENISCUS: the top and bottom edges of every visual ───────────
-         A case page is a column of framed visuals, and until now each
-         frame's top and bottom edge was a rigid straight line that slid
-         past you at exactly the speed of the scroll. That is the one
-         thing a real surface never does. Push liquid down a tube and the
-         meniscus lags at the walls and bows in the middle; drag a sheet
-         and it trails behind your hand before catching up.
+      /* ── THE MENISCUS, AND WHY IT IS GONE ─────────────────────────────
+         This is where the curved edges lived.
 
-         So each frame's media is cut by a clip-path whose top and bottom
-         edges are pinned at the corners and bow in the centre, and the
-         bow is the position of a spring driven by scroll velocity.
-         Scrolling down drags both edges down, scrolling up lifts them,
-         and when you stop the spring overshoots once and settles. A
-         chromatic hairline rides the same curve — the site's warm/cool
-         pair, same language as the aberration elsewhere — so the edge
-         reads as the surface of something rather than as a mask.
+         The brief was Sid's: "some scrolling physics animation on the top
+         and bottom edges of the work images and vids, maybe a curved
+         shader or something." What got built was a meniscus — each plate
+         clipped by a polygon whose top and bottom bowed on a spring driven
+         by scroll velocity, with a warm/cool hairline pair riding the same
+         curve so the edge read as the surface of something rather than as
+         a mask.
 
-         Cost control: only frames the IntersectionObserver says are on
-         screen get touched, and the rAF loop parks itself when every
-         spring is asleep. */
-      (function () {
-        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        var SEL = ".cs-bleed, .cs-wide-inner, .cs-bleed-full, .cs-grid-item, .cs-split-media, .cs-pair-media, .cs-pair-media-grid";
-        var frames = [].slice.call(document.querySelectorAll(SEL)).filter(function (f) {
-          return f.querySelector(":scope > img, :scope > video");
-        });
-        if (!frames.length) return;
+         The idea survives the argument; the artefact did not. Two things
+         went wrong on the page. The hairline is a drawn line sitting on
+         top of a photograph, and a thin arc over someone's work does not
+         read as physics — it reads as a stray stroke, which is exactly how
+         Sid saw it. And the clip that gave the bow room to travel was
+         eating a baseline inset of 10–30px off the top and bottom of every
+         single plate, permanently, whether or not anything was moving. The
+         motion cost picture.
 
-        var SVGNS = "http://www.w3.org/2000/svg";
-        var N = 16; /* segments per edge — past ~12 the polygon reads as a curve */
-        var items = frames.map(function (f, i) {
-          var media = [].slice.call(f.querySelectorAll(":scope > img, :scope > video"));
-          var svg = document.createElementNS(SVGNS, "svg");
-          svg.setAttribute("class", "mn-edge");
-          svg.setAttribute("viewBox", "0 0 100 100");
-          svg.setAttribute("preserveAspectRatio", "none");
-          svg.setAttribute("aria-hidden", "true");
-          var paths = [];
-          /* Warm behind, cool in front, one hairline apart. Drawn as two
-             strokes rather than one white line so the edge picks up the
-             same split-channel feel as the rest of the site. */
-          [
-            ["rgba(255,168,120,0.62)", 2],
-            ["rgba(222,240,255,0.8)", 1],
-          ].forEach(function (spec) {
-            ["t", "b"].forEach(function () {
-              var p = document.createElementNS(SVGNS, "path");
-              p.setAttribute("fill", "none");
-              p.setAttribute("stroke", spec[0]);
-              p.setAttribute("stroke-width", String(spec[1]));
-              p.setAttribute("vector-effect", "non-scaling-stroke");
-              svg.appendChild(p);
-              paths.push(p);
-            });
-          });
-          if (getComputedStyle(f).position === "static") f.style.position = "relative";
-          /* The frame's own straight top/bottom fade is 70px of solid black.
-             Left alone it simply swallows the curve. Tagging the frame lets
-             the stylesheet pull that fade back to a hint, so the cut itself
-             becomes the edge treatment instead of hiding under one. */
-          f.classList.add("mn-on");
-          f.appendChild(svg);
-          /* Each frame gets its own weight so a stack of them ripples
-             rather than moving as one rigid block. */
-          return { el: f, media: media, svg: svg, paths: paths, w: 0.78 + ((i * 0.37) % 1) * 0.52, x: 0, v: 0, live: false };
-        });
-
-        var io = new IntersectionObserver(
-          function (es) {
-            es.forEach(function (e) {
-              for (var i = 0; i < items.length; i++)
-                if (items[i].el === e.target) {
-                  items[i].live = e.isIntersecting;
-                  break;
-                }
-            });
-            kick();
-          },
-          { rootMargin: "120px 0px 120px 0px" }
-        );
-        /* Media loads after this script runs, so most frames measure zero
-           on the first tick and their curve would never be drawn. Watch the
-           boxes and redraw whenever one actually resolves a height. */
-        var ro =
-          typeof ResizeObserver === "function"
-            ? new ResizeObserver(function (es) {
-                for (var i = 0; i < es.length; i++)
-                  for (var j = 0; j < items.length; j++)
-                    if (items[j].el === es[i].target) {
-                      items[j].done = false;
-                      break;
-                    }
-                kick();
-              })
-            : null;
-        items.forEach(function (it) {
-          io.observe(it.el);
-          if (ro) ro.observe(it.el);
-          it.media.forEach(function (m) {
-            m.addEventListener("load", kick, { once: true });
-            m.addEventListener("loadedmetadata", kick, { once: true });
-          });
-        });
-
-        var lastY = window.pageYOffset || 0,
-          vel = 0;
-        window.addEventListener(
-          "scroll",
-          function () {
-            var y = window.pageYOffset || 0;
-            vel += y - lastY;
-            lastY = y;
-            kick();
-          },
-          { passive: true }
-        );
-
-        /* Spring: stiff enough to feel taut, damped just under critical so
-           a hard stop gives you one overshoot and no more. */
-        var K = 0.16,
-          C = 0.34,
-          GAIN = 0.16,
-          MAXB = 0.85;
-
-        function shape(t) {
-          /* Pinned at 0 and 1, unity at the centre — a bow, not a slide. */
-          return 4 * t * (1 - t);
-        }
-
-        function apply(it) {
-          var r = it.el.getBoundingClientRect();
-          var H = r.height;
-          /* Nothing to cut yet — the media hasn't laid out. Report the
-             miss so the caller doesn't mark this frame done; a
-             ResizeObserver will call us back the moment it has height. */
-          if (H < 8) return false;
-          /* Baseline inset. The clip has to give the bow somewhere to
-             travel before it leaves the box, so the frame always sits a
-             little short of its own edges. */
-          var base = Math.max(10, Math.min(30, H * 0.055));
-          var b = it.x * base * 0.95;
-          var pts = [];
-          var i, t, y;
-          var dTop = [],
-            dBot = [];
-          for (i = 0; i <= N; i++) {
-            t = i / N;
-            y = (base + b * shape(t)) / H;
-            pts.push((t * 100).toFixed(3) + "% " + (y * 100).toFixed(3) + "%");
-            dTop.push((i ? "L" : "M") + (t * 100).toFixed(3) + " " + (y * 100).toFixed(3));
-          }
-          for (i = N; i >= 0; i--) {
-            t = i / N;
-            y = (H - base + b * shape(t)) / H;
-            pts.push((t * 100).toFixed(3) + "% " + (y * 100).toFixed(3) + "%");
-            dBot.push((i === N ? "M" : "L") + (t * 100).toFixed(3) + " " + (y * 100).toFixed(3));
-          }
-          var clip = "polygon(" + pts.join(",") + ")";
-          for (i = 0; i < it.media.length; i++) it.media[i].style.clipPath = clip;
-          var dt = dTop.join(" "),
-            db = dBot.join(" ");
-          it.paths[0].setAttribute("d", dt);
-          it.paths[1].setAttribute("d", db);
-          it.paths[2].setAttribute("d", dt);
-          it.paths[3].setAttribute("d", db);
-          return true;
-        }
-
-        var raf = 0;
-        function tick() {
-          raf = 0;
-          /* One velocity reading feeds every spring; the per-frame weight
-             is what keeps them from moving in lockstep. */
-          var target = Math.max(-MAXB, Math.min(MAXB, vel * GAIN * 0.06));
-          vel *= 0.82;
-          if (Math.abs(vel) < 0.05) vel = 0;
-          var awake = false;
-          for (var i = 0; i < items.length; i++) {
-            var it = items[i];
-            if (!it.live) {
-              /* Off-screen frames still need the curve drawn once, or they
-                 pop from a straight edge to a bowed one on entry. */
-              if (it.x !== 0 || !it.done) {
-                it.x = 0;
-                it.v = 0;
-                it.done = apply(it);
-              }
-              continue;
-            }
-            var d = target * it.w - it.x;
-            it.v += d * K;
-            it.v *= 1 - C;
-            it.x += it.v;
-            it.done = apply(it) || it.done;
-            if (Math.abs(it.v) > 0.0008 || Math.abs(it.x - target * it.w) > 0.0008) awake = true;
-          }
-          if (awake || vel !== 0) kick();
-        }
-        function kick() {
-          if (!raf) raf = requestAnimationFrame(tick);
-        }
-        window.addEventListener("resize", kick, { passive: true });
-        kick();
-      })();
+         So: no clip, no hairline, no rAF loop. The plates are whole again,
+         with the clean hard edge the case pages were designed around —
+         note that the fade this module claimed to be standing down was
+         already switched off here by `.case-story .cs-bleed::before
+         { display: none !important }`, which outranks it. Measured on five
+         case studies in both themes: 98 frames, feather painting on none
+         of them. The meniscus was drawing over nothing. If the
+         physics is wanted back, it belongs on the plate — a little lag and
+         settle on the frame as a whole — not carved into the image. */
     </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> <div class="scrolllen" aria-hidden="true"> <span class="scrolllen__track"><span class="scrolllen__fill" id="scrolllen-fill"></span></span> </div> <style>
   /* ── WHY THIS IS NO LONGER A PANEL ──────────────────────────────────────────
      This used to be a glass chip in the bottom-right corner: a rounded panel, a
