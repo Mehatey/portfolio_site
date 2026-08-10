@@ -1,47 +1,57 @@
-<!-- ── SID'S MARK ─────────────────────────────────────────────────────────────
-     Sid: "also the logo rethink."
+<!-- ── SID'S MARK: THE BLINKING CUBE FACE, RESTORED ──────────────────────────
+     Sid: "get my old blinking cube face logo back."
 
-     It was a rounded square with a second one peeking out behind it, two tall
-     pill "eyes" and a short line under them. Three things were wrong with it.
-     It read as a face, which is the same children's-drawing register the old
-     nav icons were in. At small sizes the two vertical pills read as a pause
-     button, so the most-clicked target in the header looked like a transport
-     control. And once the nav icons were rebuilt, the Work mark — two offset
-     rounded squares — became the logo's twin sitting 90px to its right.
+     I replaced this with a strict isometric cube and argued at length in the
+     comment that used to live here that the mark should be "the thing itself
+     rather than a reference to it" — a real hexagonal projection instead of a
+     square standing in for one. The reasoning was tidy and it threw away the
+     only thing on the site that looked back at you.
 
-     This is the actual cube instead. Not a square standing in for one: a real
-     isometric projection, hexagonal silhouette with the three-edge Y that
-     makes the eye resolve it into a solid. The cube is the site's motif — it
-     is on the home page in three dimensions and it is what /cube-guy/ is about
-     — so the mark should be the thing itself rather than a reference to it.
-     It also shares nothing with any nav icon: the set is monoline at 24px on
-     orthogonal and circular geometry, this is a filled solid at 42px on 60°
-     diagonals.
+     Two facts make the restore easy, and both say the face was never really
+     gone. `cursor_fluid.html` still carries `@keyframes sid-logo-blink`,
+     bound to `.logo-cube .logo-eye` with an `!important` — a blink animation
+     with nothing left to blink. And it still runs the eye-tracking loop that
+     writes `--eye-x` / `--eye-y` on every mousemove, for eyes that no longer
+     existed. So the choreography survived my redesign as dead code for days.
+     This file gives it back its subject.
 
-     The class names are unchanged on purpose. All the hover choreography —
-     the three faces fading up and sliding home, the scan drawn across the top,
-     the 360° turn under a 340px perspective — already lives in studio_nav.html
-     tuned to `.cube-face` / `.cube-top` / `.cube-right` / `.logo-scan`, and it
-     is choreography for assembling a cube. It was always describing this mark;
-     it just did not have it to work with.
-     ───────────────────────────────────────────────────────────────────────── -->
+     The class contract is exactly what that surviving code expects:
+
+       .cube-front   the body, filled dark with a currentColor stroke
+       .logo-eye     the two eyes — blink on the 8.4s cycle, and drift with
+                     the cursor through --eye-x / --eye-y
+       .logo-mouth   the short line under them
+       .cube-top     hover choreography, already tuned in studio_nav.html
+       .cube-right   ditto
+       .logo-scan    the line drawn across the mark on hover
+
+     The eyes are set as rounded rects rather than circles because that is
+     what made it read as pixel art rather than as a smiley, which is the
+     same register as the nav icons it now sits beside again.
+     ───────────────────────────────────────────────────────────────────── -->
 <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-  <!-- The silhouette, and the only part visible at rest. -->
-  <path class="cube-front" d="M18 6.7 L29 12.9 L29 24.1 L18 30.3 L7 24.1 L7 12.9 Z" />
-  <!-- The three near edges meeting at the centre vertex. Without these the
-       hexagon is a hexagon; with them it is a cube, and there is no third
-       reading available. In a true isometric projection the far vertex
-       projects exactly onto the near one, so these same three lines are also
-       the hidden edges — which is why the mark needs no ghosted back layer to
-       feel solid. -->
-  <path class="cube-edges" d="M18 18.5 L18 30.3 M18 18.5 L7 12.9 M18 18.5 L29 12.9" />
-  <!-- The three faces, held apart and invisible until hover, then fading up
-       and sliding home. Each one leaves along its own face normal, so the
-       cube comes apart the way a cube would rather than scattering. -->
-  <path class="cube-face cube-top" d="M18 6.7 L29 12.9 L18 18.5 L7 12.9 Z" />
-  <path class="cube-face cube-right" d="M29 12.9 L29 24.1 L18 30.3 L18 18.5 Z" />
-  <path class="cube-face cube-left" d="M7 12.9 L7 24.1 L18 30.3 L18 18.5 Z" />
-  <!-- Light crossing the top face along its long diagonal. Drawn with
-       dashoffset rather than faded in, so it sweeps. -->
-  <path class="logo-scan" d="M7 12.9 L29 12.9" />
+  <!-- The two faces behind, which slide home on hover. They sit first so the
+       body draws over them. -->
+  <rect class="cube-top" x="9" y="5.5" width="21" height="21" rx="4.5" />
+  <rect class="cube-right" x="6" y="9.5" width="21" height="21" rx="4.5" />
+
+  <!-- The body. -->
+  <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="4.5" />
+
+  <!-- The eyes. transform-box: fill-box and transform-origin: center are set
+       on .logo-eye in cursor_fluid.html, so the blink scales each eye about
+       its own centre rather than about the SVG origin. The translate below is
+       the cursor drift; the blink's scaleY composes on top of it. -->
+  <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))">
+    <rect class="logo-eye" x="12.4" y="13.6" width="2.6" height="5.4" rx="1.3" />
+    <rect class="logo-eye" x="21" y="13.6" width="2.6" height="5.4" rx="1.3" />
+  </g>
+
+  <!-- The mouth: one short line, deliberately not a curve. A smile would make
+       this a face; a line makes it a device that happens to have a face. -->
+  <rect class="logo-mouth" x="14.6" y="22" width="6.8" height="1.5" rx="0.75" />
+
+  <!-- Drawn across the mark on hover — dasharray and offset are already set
+       on .logo-scan in cursor_fluid.html. -->
+  <path class="logo-scan" d="M8.5 18 H27.5" />
 </svg>
