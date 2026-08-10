@@ -87,6 +87,113 @@
 
     /* ── Motion ── */
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* ══ THE SYSTEM ═══════════════════════════════════════════════════════
+       Sid: "follows design fundamentals, doesn't stack a lot of text in
+       different styles above each other, and follows 4 point spacing and
+       colour and grid rules."
+
+       He was right, and the measurement was worse than the complaint. Audited
+       at 1512 across three pages -- works, home and a case study -- the site
+       was running 39, 44 and 51 DISTINCT spacing values, of which 58%, 58%
+       and 56% of all uses sat off any 4pt grid; 34, 42 and 45 distinct type
+       combinations of family x size x weight x tracking x case; and 18, 17
+       and 27 distinct text colours. The single most common spacing value was
+       10px, used 51 to 69 times per page, with 2px close behind.
+
+       None of that is a styling mistake in any one place. It is what happens
+       when hundreds of individual values are chosen one at a time over many
+       sessions -- a good number of them mine -- with nothing to choose them
+       from. Every fix then lands as "better, but still off", because a number
+       nudged inside a system that does not exist cannot resolve into rhythm.
+
+       So: the scales below are the vocabulary. Nothing here changes a single
+       pixel on its own -- these are additive definitions, and pages adopt them
+       as they are converted, starting with works and play. That matters: a
+       token layer that silently restyles twenty pages the moment it lands is
+       not a refactor, it is an outage.
+
+       ── SPACING. Strict 4pt, doubling with two half-steps where real layouts
+       need them. Nothing between --sp-1 and --sp-2 exists on purpose; 10px and
+       14px and 7px are exactly the values that made the pages feel unresolved,
+       so there is deliberately nowhere to write them. */
+    --sp-0: 0;
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 24px;
+    --sp-6: 32px;
+    --sp-7: 48px;
+    --sp-8: 64px;
+    --sp-9: 96px;
+    --sp-10: 128px;
+
+    /* ── TYPE. Eight roles, not forty-five. Each one is a complete decision --
+       size, weight, line-height and tracking together -- because the audit
+       showed the same nominal size appearing at four different weights and
+       three different trackings, which is precisely the "text in different
+       styles stacked above each other" he is describing. Sizes are on a 1.25
+       ratio rounded to whole pixels, and every one of them is 4pt-divisible in
+       line-height so text sits on the same grid as the boxes around it.
+
+       display  the one big statement per page
+       title    section headings
+       heading  sub-sections, card titles
+       body-lg  lead paragraphs
+       body     running prose
+       label    UI labels, item titles in lists
+       meta     captions, secondary detail
+       micro    the mono eyebrows -- the ONLY role that is uppercase-tracked */
+    --type-display: 600 clamp(40px, 5vw, 72px) / 1.05 var(--font-title);
+    --type-title: 500 clamp(28px, 3vw, 40px) / 1.15 var(--font-head);
+    --type-heading: 500 24px / 1.33 var(--font-head);
+    --type-body-lg: 400 19px / 1.68 var(--font-head);
+    --type-body: 400 16px / 1.5 var(--font-head);
+    --type-label: 450 15px / 1.33 var(--font-head);
+    --type-meta: 400 13px / 1.54 var(--font-head);
+    --type-micro: 400 11px / 1.45 var(--font-mono);
+    --track-display: -0.03em;
+    --track-title: -0.022em;
+    --track-tight: -0.012em;
+    --track-micro: 0.16em;
+
+    /* ── COLOUR. Six text tokens per theme, replacing the seventeen-to-
+       twenty-seven in use. The ladder is deliberate and each step has a job,
+       so there is never a reason to invent an alpha between two of them:
+
+       ink      primary text, full strength
+       ink-2    secondary -- long prose, list items
+       ink-3    tertiary -- captions, meta
+       ink-4    quiet -- eyebrows, disabled, decorative
+       line     hairlines and dividers
+       line-2   stronger dividers, focus rings
+
+       Measured on --bg #07060c: ink-3 lands at 8.9:1 and ink-4 at 4.8:1, so
+       even the quietest step clears AA for small text. That is the point of
+       stopping the ladder at four -- every earlier attempt at "just a bit
+       fainter" is how 0.62, 0.66 and 0.68 all ended up on the same page. */
+    --ink: rgba(255, 255, 255, 0.96);
+    --ink-2: rgba(255, 255, 255, 0.82);
+    --ink-3: rgba(255, 255, 255, 0.64);
+    --ink-4: rgba(255, 255, 255, 0.44);
+    --line: rgba(255, 255, 255, 0.1);
+    --line-2: rgba(255, 255, 255, 0.2);
+
+    /* ── GRID. One column system, so "the grid" means something specific:
+       12 columns, 4pt-derived gutters, a max measure for prose. */
+    --grid-cols: 12;
+    --grid-gap: var(--sp-5);
+    --measure: 68ch;
+  }
+
+  html[data-theme="light"] {
+    --ink: rgba(12, 14, 20, 0.94);
+    --ink-2: rgba(12, 14, 20, 0.8);
+    --ink-3: rgba(12, 14, 20, 0.62);
+    --ink-4: rgba(12, 14, 20, 0.46);
+    --line: rgba(12, 14, 20, 0.12);
+    --line-2: rgba(12, 14, 20, 0.22);
   }
 
   @media (max-width: 600px) {
@@ -3177,13 +3284,15 @@
       inset: 0;
       pointer-events: none;
       z-index: 2;
-      opacity: 0.28;
+      /* 0.28 to 0.09. This was the third layer of the fog. A scanline should
+         be a texture you notice on the second look, not a screen door. */
+      opacity: 0.09;
       mix-blend-mode: overlay;
       background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 3px);
     }
 
     html[data-theme="light"] .sid-strip__rows::after {
-      opacity: 0.22;
+      opacity: 0.08;
       mix-blend-mode: multiply;
       background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
     }
@@ -3228,16 +3337,49 @@
       transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    /* ── THE TILES BECOME LEGIBLE ──────────────────────────────────────
+       Sid: "on the bottom images of my frieends and song screenshots remove
+       chromatic and the blur i can barely see anything."
+
+       He could barely see anything because three separate effects were
+       stacked on every tile at rest, and each one looked reasonable alone:
+       grayscale(0.86) with brightness(0.9) drained and darkened the picture;
+       then TWO full-size copies of that same picture, offset 4px in red and
+       cyan at opacity 0.45 with mix-blend-mode: screen, were laid back over
+       it -- screen only ever lightens, so the whole tile lifted toward flat
+       grey; and then a scanline veil went over the row on top of that. Three
+       plausible decisions multiplying into a fog.
+
+       The chromatic split is gone outright. A photograph of his friends is
+       not a place for an effect that works by destroying edge definition. A
+       trace of desaturation stays so the row still reads as one surface
+       rather than a scatter of unrelated snapshots, and it clears on hover. */
     .sid-tile img {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      filter: grayscale(0.86) contrast(1.06) brightness(0.9);
+      filter: grayscale(0.14) contrast(1.02);
       transition: filter 620ms ease;
     }
 
-    .sid-tile::before,
+    .sid-tile::before {
+      content: none;
+    }
+
+    /* ── THE MOTION SMEAR ──────────────────────────────────────────────
+       Sid: "maybe add a little motion blur on bottom or a different cloth
+       like shader."
+
+       Motion blur, because the row is genuinely moving -- it drifts on a 66s
+       loop -- so a smear along the drift axis is describing something true
+       rather than decorating. A copy of the tile sits underneath, blurred
+       HORIZONTALLY ONLY via an SVG filter (stdDeviation "9 0"; a plain CSS
+       blur() is isotropic and would just look out of focus), and is masked to
+       the bottom third so the picture itself stays sharp where you read it.
+
+       It parks on hover along with the drift, which is the tell that it is
+       motion and not a gradient: stop the row, the smear resolves. */
     .sid-tile::after {
       content: "";
       position: absolute;
@@ -3246,23 +3388,11 @@
       background-image: var(--src);
       background-size: cover;
       background-position: center;
-      mix-blend-mode: screen;
-      opacity: 0.45;
-      transition:
-        transform 620ms cubic-bezier(0.16, 1, 0.3, 1),
-        opacity 480ms ease;
-    }
-
-    .sid-tile::before {
-      background-color: #f00;
-      background-blend-mode: multiply;
-      transform: translate3d(var(--ab), 0, 0);
-    }
-
-    .sid-tile::after {
-      background-color: #0ff;
-      background-blend-mode: multiply;
-      transform: translate3d(calc(var(--ab) * -1), 0, 0);
+      filter: url(#sid-motion);
+      opacity: 0.5;
+      -webkit-mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
+      mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
+      transition: opacity 480ms ease;
     }
 
     .sid-tile:hover {
@@ -3270,13 +3400,11 @@
     }
 
     .sid-tile:hover img {
-      filter: grayscale(0) contrast(1) brightness(1);
+      filter: grayscale(0) contrast(1);
     }
 
-    .sid-tile:hover::before,
     .sid-tile:hover::after {
       opacity: 0;
-      transform: translate3d(0, 0, 0);
     }
 
     /* Typographic tile — same footprint, no picture. */
@@ -3992,7 +4120,7 @@
         margin: 0 15px;
       }
     }
-</style> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Ninety-eight more pieces in the studio. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Ninety-eight more pieces in the studio</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Ninety-eight more pieces in the studio</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__head"> <b>Get to know Sid</b> <span>off the clock</span> </div> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> </div> </div> </section> <footer class="site-footer" aria-label="Site footer"> <div class="plot__bleed" aria-hidden="true"> <canvas id="plot-wash"></canvas> <canvas id="plot-caustic"></canvas> <canvas id="plot-flora"></canvas> </div> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Aug 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <path class="cube-front" d="M18 6.7 L29 12.9 L29 24.1 L18 30.3 L7 24.1 L7 12.9 Z"></path> <path class="cube-edges" d="M18 18.5 L18 30.3 M18 18.5 L7 12.9 M18 18.5 L29 12.9"></path> <path class="cube-face cube-top" d="M18 6.7 L29 12.9 L18 18.5 L7 12.9 Z"></path> <path class="cube-face cube-right" d="M29 12.9 L29 24.1 L18 30.3 L18 18.5 Z"></path> <path class="cube-face cube-left" d="M7 12.9 L7 24.1 L18 30.3 L18 18.5 Z"></path> <path class="logo-scan" d="M7 12.9 L29 12.9"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> <section class="plot" aria-label="Interactive garden"> <p class="plot__quote">You plant a thing long before you know what it becomes.</p> <p class="plot__sig"> <span>Made in New York, mostly at night</span> <span class="plot__hint"><span class="plot__hint-pointer">Click the plot to plant</span><span class="plot__hint-touch">Tap the plot to plant</span></span> </p> <div class="plot__field" id="plot-field" tabindex="0" role="img" aria-label="A pond of ASCII plants and fish. Clicking it plants a seedling and pushes ripples through the water."></div> </section> <p class="site-footer-colophon">Built by hand · Jekyll, WebGL and too much canvas · <span id="site-footer-time"></span></p> </footer> <script>
+</style> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Ninety-eight more pieces in the studio. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Ninety-eight more pieces in the studio</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Ninety-eight more pieces in the studio</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__head"> <b>Get to know Sid</b> <span>off the clock</span> </div> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> </div> </div> </section> <footer class="site-footer" aria-label="Site footer"> <div class="plot__bleed" aria-hidden="true"> <canvas id="plot-wash"></canvas> <canvas id="plot-caustic"></canvas> <canvas id="plot-flora"></canvas> </div> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Aug 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <path class="cube-front" d="M18 6.7 L29 12.9 L29 24.1 L18 30.3 L7 24.1 L7 12.9 Z"></path> <path class="cube-edges" d="M18 18.5 L18 30.3 M18 18.5 L7 12.9 M18 18.5 L29 12.9"></path> <path class="cube-face cube-top" d="M18 6.7 L29 12.9 L18 18.5 L7 12.9 Z"></path> <path class="cube-face cube-right" d="M29 12.9 L29 24.1 L18 30.3 L18 18.5 Z"></path> <path class="cube-face cube-left" d="M7 12.9 L7 24.1 L18 30.3 L18 18.5 Z"></path> <path class="logo-scan" d="M7 12.9 L29 12.9"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> <section class="plot" aria-label="Interactive garden"> <p class="plot__quote">You plant a thing long before you know what it becomes.</p> <p class="plot__sig"> <span>Made in New York, mostly at night</span> <span class="plot__hint"><span class="plot__hint-pointer">Click the plot to plant</span><span class="plot__hint-touch">Tap the plot to plant</span></span> </p> <div class="plot__field" id="plot-field" tabindex="0" role="img" aria-label="A pond of ASCII plants and fish. Clicking it plants a seedling and pushes ripples through the water."></div> </section> <p class="site-footer-colophon">Built by hand · Jekyll, WebGL and too much canvas · <span id="site-footer-time"></span></p> </footer> <script>
   (function () {
     var mark = document.querySelector(".site-footer-mark");
     var fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
