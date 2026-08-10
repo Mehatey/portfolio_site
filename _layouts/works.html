@@ -5253,9 +5253,17 @@
              The frame is supposed to be four equal cells a side; zeroing the
              floor is what makes them equal. */
           grid-template-columns:
-            [L] minmax(164px, 204px)
+            /* Trimmed from minmax(164px, 204px). The plate is height-bound at
+               1512 and up, but at 1280x845 and 1440x900 it hits max-width
+               first -- measured aspect 1.571 and 1.703 against its native
+               1.778 -- which means at laptop sizes the side columns, not the
+               vertical chrome, are what is costing picture. 34px off each
+               side goes straight into the middle. The titles still fit: the
+               longest, "Broken and Beautiful", sets on one line at 19px in
+               168px. */
+            [L] minmax(150px, 170px)
             [C1] minmax(0, 1fr) [C2] minmax(0, 1fr) [C3] minmax(0, 1fr) [C4] minmax(0, 1fr)
-            [R] minmax(164px, 204px) [Rend];
+            [R] minmax(150px, 170px) [Rend];
           /* The caption gets its own row. It used to share M4 with the
              fourth item of each side column, and because `1fr` floors a track
              at its content, the caption's two lines of copy made M4 taller
@@ -5333,7 +5341,11 @@
           align-items: baseline;
           justify-content: flex-start;
           gap: 14px;
-          padding: 0 0 8px;
+          /* The masthead sits in its own auto row directly above the plate, so
+             its bottom padding is plate width at 1.778:1 like everything else
+             in this column. 8px bought nothing -- the row below it opens with
+             a hairline, which is already the separation. */
+          padding: 0;
           border-bottom: 0;
         }
         /* The masthead was set at display size for a page whose first screen
@@ -5530,7 +5542,9 @@
           min-width: 0;
           min-height: 0;
           margin: 0;
-          padding: 9px 0 0;
+          /* 9px to 6px. Sixteen items, but only the top and bottom rows are in
+             the plate's vertical path -- so this is 6px of picture, not 96. */
+          padding: 6px 0 0;
           border: 0;
           background: none;
           overflow: visible;
@@ -5585,10 +5599,16 @@
           /* 17, up from 14.5. Sixteen titles set at 14.5 across a 1728
              screen read as a caption sheet rather than as an index of work.
              They are the only words in the frame; they can carry it. */
-          font-size: 17px;
-          font-weight: 400;
-          line-height: 1.08;
-          letter-spacing: -0.008em;
+          /* 19/450, up from 17/400. With the tag row gone from the resting
+             state these titles are the only words in the frame, and at 17px
+             regular they still read as a caption sheet. The extra weight
+             matters more than the extra size: against a photograph the thin
+             cut was losing its stems at the edges of vision, which is a large
+             part of why the ring felt hard to read at a glance. */
+          font-size: 19px;
+          font-weight: 450;
+          line-height: 1.12;
+          letter-spacing: -0.012em;
           transform: none;
         }
         /* THE TAGS COME OFF THE RESTING STATE.
@@ -5800,14 +5820,29 @@
         .works-split .works-list > a.works-list-item:nth-of-type(n + 5):nth-of-type(-n + 8) {
           align-self: center;
         }
+        /* THE LEFT COLUMN STOPS BEING RAGGED-LEFT.
+           Sid: "easier to read the work titles."
+
+           Items 13-16 were mirrored onto the right edge of their column --
+           text-align: right, so the titles ran ragged down the LEFT. Mirroring
+           is the obvious thing to do with a frame and it is the one alignment
+           the eye cannot scan: every line starts at a different x, so finding
+           the start of "Cube of Creations" under "Shot on iPhone" is a search
+           rather than a saccade. Titles here run to twenty characters, which
+           is well past the length where that stops being free.
+
+           Left-aligned, all sixteen titles on the page now begin on a
+           predictable edge. The rule above each item still hangs from the
+           column's outer edge, so the frame keeps its symmetry -- the
+           symmetry just stops being paid for out of legibility. */
         .works-split .works-list > a.works-list-item:nth-of-type(n + 13) {
-          text-align: right;
-          align-items: flex-end;
+          text-align: left;
+          align-items: flex-start;
         }
         .works-split .works-list > a.works-list-item:nth-of-type(n + 13) .wli-content,
         .works-split .works-list > a.works-list-item:nth-of-type(n + 13) .wli-pills {
-          align-items: flex-end;
-          justify-content: flex-end;
+          align-items: flex-start;
+          justify-content: flex-start;
         }
         .works-split .works-list > a.works-list-item:nth-of-type(n + 13) .wli-right {
           right: auto;
@@ -7316,6 +7351,14 @@
           "uniform sampler2D texA;uniform sampler2D texB;",
           "uniform vec2 resA;uniform vec2 resB;uniform vec2 res;",
           "uniform vec2 cursor;uniform float time;uniform float mixT;uniform float hover;",
+          /* intro: 1 at the moment the first cover is uploaded, eased to 0.
+             Sid: "change entry animation for the preview image. lets have a
+             shader of some kind." The first project used to pop onto the
+             surface with no transition at all -- see the comment in
+             setProject -- which made the one genuinely cinematic object on
+             the page arrive like a swapped src attribute. The whole liquid
+             sheet is already here; the entry just needed to use it. */
+          "uniform float intro;",
           "vec2 coverUV(vec2 u,vec2 imgRes){",
           "  float ca=res.x/res.y;float ia=imgRes.x/imgRes.y;",
           "  vec2 s=ca>ia?vec2(1.0,ia/ca):vec2(ca/ia,1.0);",
@@ -7337,6 +7380,16 @@
           "  vec2 disp=warp+dir*ring;",
           "  float caStr=(abs(ring)*7.0+length(warp)*4.0)*(0.5+hover);",
           "  vec2 off=dir*caStr*0.006;",
+          /* The entry is the same sheet, briefly over-driven: the image
+             arrives molten and settles. Displacement is pushed with a
+             vertical shear so the picture appears to pour into register,
+             and the chromatic split widens so the channels visibly close --
+             the site's own language, not a new effect bolted on. */
+          "  float sh=noise(vec2(u.y*7.0,time*0.6))-0.5;",
+          "  disp+=vec2(sh*0.075,0.0)*intro*intro;",
+          "  disp*=1.0+intro*4.0;",
+          "  off*=1.0+intro*9.0;",
+          "  off+=vec2(0.010,0.0)*intro*intro;",
           "  vec2 uA=coverUV(u+disp,resA);vec2 uB=coverUV(u+disp,resB);",
           "  vec3 colA,colB;",
           "  colA.r=texture2D(texA,uA+off).r;colA.g=texture2D(texA,uA).g;colA.b=texture2D(texA,uA-off).b;",
@@ -7349,7 +7402,17 @@
           "  col+=vec3(0.35,0.5,0.85)*smoothstep(0.5,0.0,d)*hover*0.10;",
           "  float vig=smoothstep(1.15,0.35,length((u-0.5)*vec2(1.0,1.12)));",
           "  col*=0.82+0.18*vig;",
-          "  gl_FragColor=vec4(col,1.0);",
+          /* The reveal itself. A noise-broken front climbs the frame, and
+             the plate is uncovered behind it via alpha rather than by
+             fading toward a colour -- the canvas is alpha:true, so this
+             works over the dark shell and the cream one without either
+             theme needing its own constant. A thin emissive line rides the
+             front, the same warm/cool pair used everywhere else. */
+          "  float g=u.y*0.55+noise(u*3.5+7.0)*0.45;",
+          "  float m=smoothstep(intro-0.18,intro+0.18,g);",
+          "  float front=max(0.0,1.0-abs(g-intro)/0.18);",
+          "  col+=vec3(0.55,0.68,1.0)*front*front*intro*0.5;",
+          "  gl_FragColor=vec4(col,m);",
           "}",
         ].join("\n");
 
@@ -7381,7 +7444,7 @@
         gl.vertexAttribPointer(pLoc, 2, gl.FLOAT, false, 0, 0);
 
         const U = {};
-        ["texA", "texB", "resA", "resB", "res", "cursor", "time", "mixT", "hover"].forEach((n) => {
+        ["texA", "texB", "resA", "resB", "res", "cursor", "time", "mixT", "hover", "intro"].forEach((n) => {
           U[n] = gl.getUniformLocation(prog, n);
         });
 
@@ -7433,6 +7496,12 @@
         const pointerTarget = { x: 0.5, y: 0.5 };
         let hover = 0;
         let hoverTarget = 0;
+        /* 0 means "no intro pending or running". Driven off a timestamp
+           rather than a per-frame decrement so the settle takes the same
+           1.15s on a 60Hz panel and a 120Hz one. */
+        let introStart = 0;
+        const INTRO_MS = 1150;
+        let intro = 0;
 
         async function setProject(detail) {
           const images = (detail.images || []).filter(Boolean);
@@ -7447,11 +7516,13 @@
           }
           if (version !== requestVersion) return;
           mediaSurface.classList.add("has-webgl-cube");
-          // first project: pop straight onto the current surface
+          // First project. It used to pop straight onto the surface with no
+          // transition; it now arrives through the intro pass in the shader.
           if (texCur.w === 1 && texCur.h === 1) {
             uploadImage(texCur, img);
             mixT = 0;
             transitioning = false;
+            introStart = reduceMotion.matches ? 0 : performance.now();
             return;
           }
           uploadImage(texNext, img);
@@ -7514,6 +7585,17 @@
           pointer.y += (pointerTarget.y - pointer.y) * 0.08;
           hover += (hoverTarget - hover) * 0.06;
 
+          if (introStart) {
+            const k = Math.min(1, (now - introStart) / INTRO_MS);
+            // ease-out cubic: the sheet lurches in and settles rather than
+            // arriving at a constant rate, which reads as mechanical.
+            intro = Math.pow(1 - k, 3);
+            if (k >= 1) {
+              intro = 0;
+              introStart = 0;
+            }
+          }
+
           if (transitioning) {
             const speed = reduceMotion.matches ? 0.06 : 0.022;
             mixT = Math.min(1, mixT + speed);
@@ -7540,6 +7622,7 @@
           gl.uniform1f(U.time, reduceMotion.matches ? 0.0 : t);
           gl.uniform1f(U.mixT, transitioning ? mixT : 0.0);
           gl.uniform1f(U.hover, hover);
+          gl.uniform1f(U.intro, intro);
           gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         }
         requestAnimationFrame(frame);
