@@ -33,25 +33,37 @@ title: Play · Sid Mehta
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap" />
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-        }
-      }
-    </script>
+    <!-- The three.js importmap is gone with the carousel it fed. Play no
+         longer depends on a CDN module at all, which also retires the
+         fallback-timer machinery that existed only to survive that import
+         failing. -->
     {% include design_tokens.html %}
 
     <style>
       :root { color-scheme: dark; --play-ink: #f4f7fb; --play-muted: rgba(223, 231, 241, 0.62); }
       *, *::before, *::after { box-sizing: border-box; }
-      html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #020409; color: var(--play-ink); }
+      /* The page used to be a fixed, non-scrolling stage because the WebGL
+         carousel owned the viewport and moved the work past you. The archive
+         scrolls, so the document has to be allowed to. height:100% and
+         overflow:hidden are exactly what pinned scrollHeight to one viewport
+         and made the auto-scroll a no-op with nowhere to go. */
+      html, body { width: 100%; min-height: 100%; margin: 0; background: #020409; color: var(--play-ink); }
       body { font-family: "Figtree", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
       .skip-link { position: fixed; z-index: 10000; top: 8px; left: 50%; padding: 10px 14px; background: #fff; color: #05070b; transform: translate(-50%, -180%); }
       .skip-link:focus { transform: translate(-50%, 0); }
 
-      .play-stage { position: fixed; inset: 0; isolation: isolate; background: radial-gradient(circle at 50% 48%, #101c2d 0%, #050811 34%, #020409 74%); }
+      /* Was position: fixed; inset: 0 -- a full-viewport stage. Now a normal
+         block that grows with its contents; the atmosphere moves to a fixed
+         pseudo-element behind it so the gradient still sits still while the
+         pictures travel over it. */
+      .play-stage { position: relative; isolation: isolate; }
+      .play-page::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background: radial-gradient(circle at 50% 48%, #101c2d 0%, #050811 34%, #020409 74%);
+      }
       .play-stage::after { display: none; }
       /* ── A ground for the header, not an alpha on the type ──
          The gallery is a full-bleed field of photographs and the title block
@@ -89,30 +101,88 @@ title: Play · Sid Mehta
       }
       #play-canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
       #play-canvas:active { cursor: grabbing; }
+
+      /* ══ ARCHIVE GRID ══════════════════════════════════════════════════ */
+      .play-stage {
+        min-height: 100svh;
+        padding: calc(var(--nav-h, 64px) + var(--sp-8, 64px)) var(--sp-5, 24px) var(--sp-9, 96px);
+      }
       .play-header {
-        position: fixed;
-        z-index: 20;
-        top: 105px;
-        left: clamp(22px, 4vw, 66px);
-        width: min(270px, 21vw);
-        pointer-events: none;
+        position: static;
+        max-width: 46ch;
+        margin: 0 auto var(--sp-8, 64px);
+        text-align: center;
       }
-      .play-header h1 { margin: 0; font-size: clamp(46px, 5vw, 72px); font-weight: 390; line-height: 0.98; letter-spacing: -0.035em; }
-      .play-header p { max-width: 28ch; margin: 13px 0 0; color: rgba(228, 236, 246, 0.72); font-size: 14px; line-height: 1.5; text-wrap: pretty; }
-      .play-instruction,
-      .play-index {
-        position: fixed;
-        z-index: 20;
-        bottom: clamp(24px, 4vh, 42px);
-        color: rgba(225, 234, 244, 0.55);
-        font: 400 10px/1.4 "DM Mono", monospace;
-        letter-spacing: 0.07em;
-        pointer-events: none;
+      .play-header h1 {
+        margin: 0;
+        font: var(--type-display);
+        letter-spacing: var(--track-display);
+        color: var(--ink);
       }
-      .play-instruction { left: clamp(22px, 4vw, 66px); }
-      .play-index { right: clamp(22px, 4vw, 66px); display: flex; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; }
-      .play-index__bar { width: 86px; height: 1px; overflow: hidden; background: rgba(218, 232, 246, 0.17); }
-      .play-index__bar::after { content: ""; display: block; width: 100%; height: 100%; background: #e8f3ff; transform: scaleX(var(--progress, 0.03)); transform-origin: left; transition: transform 180ms ease-out; }
+      .play-header p {
+        max-width: 34ch;
+        margin: var(--sp-4, 16px) auto 0;
+        font: var(--type-body);
+        color: var(--ink-3);
+        text-wrap: pretty;
+      }
+      /* Columns, not grid -- see the note on the markup. column-fill: balance
+         is what keeps the last column from running short by half a screen. */
+      .play-grid {
+        column-width: 320px;
+        column-gap: var(--sp-4, 16px);
+        column-fill: balance;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      .play-grid img {
+        display: block;
+        width: 100%;
+        height: auto;
+        margin: 0 0 var(--sp-4, 16px);
+        border-radius: 2px;
+        background: var(--line);
+        cursor: zoom-in;
+        opacity: 0;
+        transform: translateY(var(--sp-3, 12px));
+        transition:
+          opacity 700ms var(--ease-out),
+          transform 700ms var(--ease-out),
+          filter 300ms ease;
+        /* break-inside is the whole reason columns work here: without it a
+           tall photograph is sliced across a column boundary. */
+        break-inside: avoid;
+      }
+      .play-grid img.is-in { opacity: 1; transform: none; }
+      .play-grid img:hover { filter: brightness(1.08); }
+      .play-instruction {
+        position: fixed;
+        left: 50%;
+        bottom: var(--sp-5, 24px);
+        transform: translateX(-50%);
+        z-index: 4;
+        margin: 0;
+        padding: var(--sp-2, 8px) var(--sp-4, 16px);
+        font: var(--type-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+        background: color-mix(in srgb, var(--bg) 82%, transparent);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        backdrop-filter: blur(8px);
+        transition: opacity 400ms ease;
+      }
+      .play-instruction.is-idle { opacity: 0; }
+      @media (max-width: 760px) {
+        .play-stage { padding: calc(var(--nav-h, 56px) + var(--sp-6, 32px)) var(--sp-4, 16px) var(--sp-8, 64px); }
+        .play-grid { column-width: 150px; column-gap: var(--sp-2, 8px); }
+        .play-grid img { margin-bottom: var(--sp-2, 8px); }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .play-grid img { opacity: 1; transform: none; transition: none; }
+      }
+
       .play-caption {
         position: fixed;
         z-index: 20;
@@ -168,25 +238,13 @@ title: Play · Sid Mehta
          stills straight under the "Play" title and the mode tabs. Clearing
          the header above and the caption/counter row below lets the grid be
          a real scrolling gallery instead of debris behind the chrome. */
-      .play-fallback { position: absolute; inset: 312px 18px 76px; z-index: 0; display: none; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 10px; overflow: auto; }
       /* contain, not cover — half of these are posters and interfaces that
          lose their point the moment you crop them. A 260px box left each
          still floating in a void, so the tile is shorter and carries a faint
          panel of its own: the letterboxing reads as a frame rather than as a
          hole in the page. */
-      .play-fallback img { display: block; width: 100%; height: 176px; padding: 6px; object-fit: contain; background: rgba(190, 214, 244, 0.045); border-radius: 7px; }
-      .play-stage.has-fallback .play-fallback {
-        display: grid;
-        /* The grid runs under the caption row, so the last visible row was
-           chopped on a hard horizontal edge. Fading the final 60px says
-           "keep scrolling" instead of "the page ends badly here". */
-        -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 60px), transparent 100%);
-        mask-image: linear-gradient(180deg, #000 calc(100% - 60px), transparent 100%);
-      }
-      .play-stage.has-fallback #play-canvas { display: none; }
       /* "Scroll, drag, or use arrow keys" describes the WebGL carousel. In
          the stills grid none of that is true but scrolling. */
-      .play-stage.has-fallback .play-instruction { display: none; }
       .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
       /* ── The wait ────────────────────────────────────────────────────
@@ -210,7 +268,6 @@ title: Play · Sid Mehta
          arc is legible here as data rather than buried in eighteen
          near-identical rules. */
       .play-skeleton { position: absolute; inset: 0; z-index: 2; pointer-events: none; transition: opacity 620ms ease, visibility 0s linear 620ms; }
-      .play-stage.is-ready .play-skeleton, .play-stage.has-fallback .play-skeleton { opacity: 0; visibility: hidden; }
       .play-skeleton i {
         position: absolute;
         left: var(--x);
@@ -263,36 +320,31 @@ title: Play · Sid Mehta
     <a class="skip-link" href="#play-stage">Skip to Play gallery</a>
     {% include studio_nav.html active="play" %}
 
+    <!-- ══ THE AUTO-SCROLL ARCHIVE ══════════════════════════════════════
+         Sid: "old play was simply an auto scroll with all the pics and
+         everything keep that itself."
+
+         So the WebGL carousel is gone, along with the three.js import, the
+         orbit, the mode tabs and the loading skeleton that existed only to
+         cover the wait for all of it. What remains is the thing the page was
+         always for: every still, laid out, moving on its own.
+
+         The stills are laid into CSS columns rather than a grid, because these
+         are 57 photographs of wildly different aspect ratios and a grid would
+         either crop them or leave ragged holes. Columns let each picture keep
+         its own proportions and simply stack.
+
+         Everything is on the 4pt scale from design_tokens: gutters, padding,
+         and the caption's type. -->
     <main class="play-stage" id="play-stage">
-      <canvas id="play-canvas" aria-label="Interactive spatial gallery. Drag or scroll to move through ninety eight pieces."></canvas>
       <header class="play-header">
         <h1>Play</h1>
         <p>A moving selection of experiments, installations, and prototypes.</p>
-        <!-- The mode tabs are gone. Sid: "i hate this orbit and different
-             modes to select." Play is one thing again, so there is nothing to
-             choose between; /play/immersive/ is simply no longer linked. -->
       </header>
-      <div class="play-skeleton" aria-hidden="true">
-        <i style="--x: 50%; --y: 52%; --w: 300px; --h: 188px; --d: 0s"></i>
-        <i style="--x: 31.5%; --y: 52%; --w: 232px; --h: 145px; --d: -0.35s"></i>
-        <i style="--x: 68.5%; --y: 52%; --w: 232px; --h: 145px; --d: -0.35s"></i>
-        <i style="--x: 17.5%; --y: 52%; --w: 172px; --h: 108px; --d: -0.7s"></i>
-        <i style="--x: 82.5%; --y: 52%; --w: 172px; --h: 108px; --d: -0.7s"></i>
-        <i style="--x: 7%; --y: 52%; --w: 124px; --h: 78px; --d: -1.05s"></i>
-        <i style="--x: 93%; --y: 52%; --w: 124px; --h: 78px; --d: -1.05s"></i>
-        <i style="--x: 0%; --y: 52%; --w: 92px; --h: 58px; --d: -1.4s"></i>
-        <i style="--x: 100%; --y: 52%; --w: 92px; --h: 58px; --d: -1.4s"></i>
-        <i style="--x: 50%; --y: 29%; --w: 150px; --h: 94px; --d: -1.9s"></i>
-        <i style="--x: 34%; --y: 29%; --w: 120px; --h: 75px; --d: -2.2s"></i>
-        <i style="--x: 66%; --y: 29%; --w: 120px; --h: 75px; --d: -2.05s"></i>
-        <i style="--x: 50%; --y: 77%; --w: 150px; --h: 94px; --d: -1.75s"></i>
-        <i style="--x: 34%; --y: 77%; --w: 120px; --h: 75px; --d: -2.4s"></i>
-        <i style="--x: 66%; --y: 77%; --w: 120px; --h: 75px; --d: -2.55s"></i>
-      </div>
-      <p class="play-instruction">Scroll, drag, or use arrow keys. Select any piece to open it.</p>
-      <div class="play-index" aria-hidden="true"><span id="play-count">01 / 98</span><span class="play-index__bar" id="play-progress"></span></div>
-      <div class="play-caption is-visible" id="play-caption" aria-live="polite"><span>In focus</span><strong id="play-caption-title">Loading archive</strong></div>
-      <div class="play-fallback" aria-label="Play gallery fallback"></div>
+
+      <div class="play-grid" id="play-grid" aria-label="Play archive"></div>
+
+      <p class="play-instruction" id="play-instruction">Scrolling on its own · scroll to take over · click any piece to open it</p>
       <ul class="sr-only" id="play-access-list" aria-label="Play pieces"></ul>
     </main>
 
@@ -361,313 +413,138 @@ title: Play · Sid Mehta
 
         window.PLAY_SOURCES = sources;
 
-        var fallback = document.querySelector(".play-fallback");
+        /* The lightbox used to live inside the WebGL module, so removing that
+           module took the only way of opening a picture with it. It is a
+           dozen lines; it belongs in the always-runs script. */
+        (function () {
+          var box = document.getElementById("play-lightbox");
+          if (!box) return;
+          var img = box.querySelector("img");
+          var title = document.getElementById("play-lightbox-title");
+          var closeBtn = box.querySelector("button");
+          var lastFocus = null;
+          window.playOpen = function (item) {
+            lastFocus = document.activeElement;
+            img.src = item.hi || item.src;
+            img.alt = item.title;
+            if (title) title.textContent = item.title;
+            box.classList.add("is-open");
+            if (closeBtn) closeBtn.focus();
+          };
+          function close() {
+            box.classList.remove("is-open");
+            /* Drop the source so a 1600px still is not held in memory behind
+               a closed dialog, but only after the fade -- clearing it during
+               the transition flashes an empty frame. */
+            setTimeout(function () { if (!box.classList.contains("is-open")) img.removeAttribute("src"); }, 400);
+            if (lastFocus && lastFocus.focus) lastFocus.focus();
+          }
+          if (closeBtn) closeBtn.addEventListener("click", close);
+          box.addEventListener("click", function (e) { if (e.target === box) close(); });
+          document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && box.classList.contains("is-open")) close();
+          });
+        })();
+
+        var grid = document.getElementById("play-grid");
         var accessList = document.getElementById("play-access-list");
         sources.forEach(function (item, index) {
           var image = document.createElement("img");
           image.src = item.src;
           image.alt = item.title;
-          image.loading = "lazy";
-          fallback.appendChild(image);
+          image.loading = index < 12 ? "eager" : "lazy";
+          image.decoding = "async";
+          image.addEventListener("click", function () {
+            if (window.playOpen) window.playOpen(item);
+          });
+          grid.appendChild(image);
           var li = document.createElement("li");
           li.textContent = index + 1 + ". " + item.title;
           accessList.appendChild(li);
         });
 
-        /* Module scripts are deferred, so they always run after this one and
-           the renderer marks .is-ready the moment it boots. A timer is the
-           only honest signal that the import never landed at all. */
-        setTimeout(function () {
-          var stage = document.getElementById("play-stage");
-          if (!stage || stage.classList.contains("is-ready") || stage.classList.contains("has-fallback")) return;
-          stage.classList.add("has-fallback");
-          var title = document.getElementById("play-caption-title");
-          if (title) title.textContent = "Showing stills";
-          /* 3500, not 9000. Three pages on this site guard a CDN module with a
-             timer -- the entry gate, the orbit gallery and this one -- and
-             they were using 3500, 3000 and 9000. Nine seconds is a long time
-             to look at "Loading archive" over ninety-eight empty rectangles,
-             and it is especially long here because the fallback is good:
-             every still is already in the DOM, built by this same classic
-             script that always runs, so the extra five and a half seconds buy
-             nothing but a chance the import lands late. Brought into line with
-             the other two. */
-        }, 3500);
+        /* Reveal on entry. The images arrive over a long scroll, and fading
+           each one in as it lands is what keeps a 57-picture column from
+           reading as a contact sheet dumped on the page. */
+        if (typeof IntersectionObserver === "function") {
+          var io = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (e) {
+                if (e.isIntersecting) {
+                  e.target.classList.add("is-in");
+                  io.unobserve(e.target);
+                }
+              });
+            },
+            { rootMargin: "0px 0px -8% 0px" }
+          );
+          grid.querySelectorAll("img").forEach(function (i) { io.observe(i); });
+        } else {
+          grid.querySelectorAll("img").forEach(function (i) { i.classList.add("is-in"); });
+        }
+
+        /* ── THE AUTO SCROLL ──────────────────────────────────────────────
+           The page moves on its own, and the whole trick is that it must
+           never fight the reader. Any real input -- wheel, touch, keys,
+           pointer down -- hands control back immediately and the drift only
+           resumes after four quiet seconds. Without that, an auto-scroll is
+           not ambient, it is an argument.
+
+           Speed is expressed in pixels per second and stepped by delta time,
+           not per frame, so it reads the same on a 60Hz panel and a 120Hz
+           one. At the bottom it eases back to the top rather than jumping,
+           because a hard jump in an auto-scrolling page looks like a crash. */
+        (function () {
+          var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          if (reduced) return;
+          var SPEED = 22;
+          var RESUME_MS = 4000;
+          var hint = document.getElementById("play-instruction");
+          var last = 0, idle = 0, auto = true, returning = false;
+          /* The drift position is kept as a float here and only handed to
+             scrollTo. Reading window.scrollY back each frame and adding to it
+             does not work: at 22px/s a 16ms frame advances 0.35px, scrollY
+             reports the rounded integer, and the page never moves at all --
+             which is exactly what the first version of this did. */
+          var pos = window.scrollY;
+
+          function interrupt() {
+            auto = false;
+            returning = false;
+            idle = performance.now();
+            pos = window.scrollY;
+            if (hint) hint.classList.remove("is-idle");
+          }
+          ["wheel", "touchstart", "pointerdown", "keydown"].forEach(function (ev) {
+            window.addEventListener(ev, interrupt, { passive: true });
+          });
+
+          function tick(now) {
+            requestAnimationFrame(tick);
+            var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+            last = now;
+            if (document.hidden) return;
+            if (!auto) {
+              if (now - idle > RESUME_MS) { auto = true; if (hint) hint.classList.add("is-idle"); }
+              return;
+            }
+            var max = document.documentElement.scrollHeight - window.innerHeight;
+            if (max <= 0) return;
+            if (returning) {
+              pos -= Math.max(24, pos * 0.06);
+              if (pos <= 1) { pos = 0; returning = false; }
+              window.scrollTo(0, pos);
+              return;
+            }
+            if (pos >= max - 1) { returning = true; return; }
+            pos += SPEED * dt;
+            window.scrollTo(0, pos);
+          }
+          requestAnimationFrame(tick);
+          if (hint) setTimeout(function () { hint.classList.add("is-idle"); }, 5200);
+        })();
       })();
     </script>
 
-    <script type="module">
-      import * as THREE from "three";
-      import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
-
-      const sources = window.PLAY_SOURCES;
-
-      const stage = document.getElementById("play-stage");
-      const canvas = document.getElementById("play-canvas");
-      const caption = document.getElementById("play-caption");
-      const captionTitle = document.getElementById("play-caption-title");
-      const countEl = document.getElementById("play-count");
-      const progressEl = document.getElementById("play-progress");
-      const lightbox = document.getElementById("play-lightbox");
-      const lightboxImage = lightbox.querySelector("img");
-      const lightboxTitle = document.getElementById("play-lightbox-title");
-      const lightboxClose = lightbox.querySelector("button");
-      const fallback = document.querySelector(".play-fallback");
-      const accessList = document.getElementById("play-access-list");
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-      let renderer;
-      try {
-        renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: "high-performance" });
-      } catch (error) {
-        stage.classList.add("has-fallback");
-      }
-
-      if (renderer) {
-        stage.classList.add("is-ready");
-        /* On a slow connection the bootstrap timer can fire before the CDN
-           import lands. If the gallery does eventually boot, take the stills
-           grid back down rather than stranding the page on the fallback. */
-        stage.classList.remove("has-fallback");
-        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-        renderer.setSize(innerWidth, innerHeight, false);
-        renderer.outputColorSpace = THREE.SRGBColorSpace;
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.22;
-
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x020409, 0.052);
-        const camera = new THREE.PerspectiveCamera(42, innerWidth / innerHeight, 0.1, 80);
-        camera.position.set(0, 0, 13.2);
-        const pmrem = new THREE.PMREMGenerator(renderer);
-        scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-        pmrem.dispose();
-        scene.add(new THREE.HemisphereLight(0xcce8ff, 0x040611, 2.2));
-        const cool = new THREE.PointLight(0x65b8ff, 44, 24, 1.6);
-        cool.position.set(-5, 4, 5);
-        scene.add(cool);
-        const warm = new THREE.PointLight(0xff9d70, 30, 22, 1.8);
-        warm.position.set(5, -3, 4);
-        scene.add(warm);
-
-        const gallery = new THREE.Group();
-        scene.add(gallery);
-        const loader = new THREE.TextureLoader();
-        const cards = [];
-
-        sources.forEach((item, index) => {
-          const material = new THREE.MeshBasicMaterial({ color: 0x101822, transparent: true, opacity: 0, side: THREE.DoubleSide });
-          const card = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 1.2), material);
-          card.userData = { index, src: item.src, hi: item.hi || item.src, title: item.title, loading: false, loaded: false };
-          gallery.add(card);
-          cards.push(card);
-        });
-
-        /* Every card is born at opacity 0 and only fades up once its texture
-           lands, so a batch of failed loads renders as an empty black stage
-           with "Loading archive" pinned under it forever — no art, no error,
-           nothing to click. WebGL construction had a fallback path; texture
-           failure had none. If nothing at all has decoded after a handful of
-           attempts, drop to the plain <img> grid that already exists for the
-           no-WebGL case and say so, rather than leaving the page a void. */
-        let texturesLoaded = 0;
-        let texturesFailed = 0;
-        function noteTextureFailure() {
-          texturesFailed += 1;
-          if (texturesLoaded === 0 && texturesFailed >= 6 && !stage.classList.contains("has-fallback")) {
-            stage.classList.add("has-fallback");
-            captionTitle.textContent = "Archive unavailable — showing stills";
-          }
-        }
-
-        function loadCardTexture(card) {
-          if (card.userData.loaded || card.userData.loading) return;
-          card.userData.loading = true;
-          loader.load(
-            card.userData.hi,
-            (texture) => {
-              texturesLoaded += 1;
-              texture.colorSpace = THREE.SRGBColorSpace;
-              texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-              const aspect = texture.image.width / texture.image.height;
-              const longSide = 6.2;
-              const width = aspect >= 1 ? longSide : longSide * aspect;
-              const height = aspect >= 1 ? longSide / aspect : longSide;
-              card.geometry.dispose();
-              card.geometry = new THREE.PlaneGeometry(width, height);
-              card.material.map = texture;
-              card.material.color.setHex(0xffffff);
-              card.material.needsUpdate = true;
-              card.userData.loading = false;
-              card.userData.loaded = true;
-            },
-            undefined,
-            () => {
-              card.userData.loading = false;
-              noteTextureFailure();
-            }
-          );
-        }
-
-        const starGeometry = new THREE.BufferGeometry();
-        const starPositions = new Float32Array(420 * 3);
-        for (let i = 0; i < 420; i += 1) {
-          starPositions[i * 3] = (Math.random() - 0.5) * 28;
-          starPositions[i * 3 + 1] = (Math.random() - 0.5) * 18;
-          starPositions[i * 3 + 2] = (Math.random() - 0.5) * 26;
-        }
-        starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-        scene.add(new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xbadfff, size: 0.025, transparent: true, opacity: 0.62 })));
-
-        const raycaster = new THREE.Raycaster();
-        const pointer = new THREE.Vector2(10, 10);
-        let hovered = null;
-        let phase = 0;
-        let targetPhase = 0;
-        let dragging = false;
-        let dragStart = 0;
-        let dragPhase = 0;
-
-        function layoutCards() {
-          const compact = innerWidth < 760;
-          const radiusX = compact ? 3 : 4.8;
-          const radiusY = compact ? 2.35 : 3.15;
-          const travel = phase / (Math.PI * 2);
-          let leadCard = null;
-          let leadPath = Infinity;
-          cards.forEach((card) => {
-            const index = card.userData.index;
-            const path = ((index / sources.length + travel) % 1 + 1) % 1;
-            const angle = path * Math.PI * 6.4 + 0.5;
-            const z = 5.1 - path * 18.5;
-            if (path < 0.24) loadCardTexture(card);
-            if (path < leadPath) {
-              leadPath = path;
-              leadCard = card;
-            }
-            card.position.set(
-              Math.cos(angle) * radiusX,
-              Math.sin(angle) * radiusY,
-              z
-            );
-            card.lookAt(camera.position.x * 0.08, card.position.y * 0.06, camera.position.z);
-            /* ── The falloff was tuned against the wrong extent ──
-               depthScale is clamp((z + 13.4) / 18.5) and z is 5.1 - path*18.5,
-               which reduces to exactly 1 - path. But nothing is ever drawn
-               beyond path 0.11, so across the entire viewing window depthScale
-               only ever moved between 0.89 and 1.00 — and the opacity clamp
-               then flattened even that to a constant 0.9. The 0.18 floor was
-               unreachable code. Every neighbour was therefore rendered at
-               nine tenths of the lead's brightness and four fifths of its
-               size, and the result on screen was not a carousel receding into
-               fog, it was a flat collage of eleven near-identical cards
-               running edge to edge behind the title with the focused piece
-               indistinguishable inside it.
-
-               The ladder below is measured against the window that actually
-               exists. `near` is 1 at the lead and 0 at the far lip, so the
-               curve has somewhere to travel: the card beside the lead sits at
-               about 0.47, the one past that at 0.17, and the lip at 0.06 —
-               present enough to promise more, faint enough to stay scenery.
-               The exponent does the work; a linear ramp reads as a dissolve,
-               2.2 reads as distance. Scale falls with it for the same reason,
-               from 1.08 at the lead down to 0.42 at the lip, so recession is
-               carried by size as well as light rather than by light alone. */
-            const windowSpan = compact ? 0.08 : 0.11;
-            const near = THREE.MathUtils.clamp(1 - path / windowSpan, 0, 1);
-            const recede = Math.pow(near, 2.2);
-            const inViewingWindow = path < windowSpan;
-            const targetScale = card === hovered ? 1.14 : (compact ? 0.38 : 0.42) + recede * (compact ? 0.3 : 0.34);
-            card.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
-            const targetOpacity = !card.userData.loaded || !inViewingWindow ? 0 : card === hovered ? 1 : 0.06 + recede * 0.52;
-            card.material.opacity += (targetOpacity - card.material.opacity) * 0.08;
-            card.visible = card.material.opacity > 0.012 || inViewingWindow;
-          });
-          if (leadCard && leadCard.userData.loaded) {
-            const leadScale = compact ? 0.98 : 1.08;
-            leadCard.scale.lerp(new THREE.Vector3(leadScale, leadScale, leadScale), 0.12);
-            leadCard.material.opacity += (1 - leadCard.material.opacity) * 0.12;
-            leadCard.position.set(0, compact ? 0.1 : 0.18, 4.72);
-            leadCard.lookAt(camera.position.x * 0.08, leadCard.position.y * 0.06, camera.position.z);
-            const position = leadCard.userData.index + 1;
-            countEl.textContent = `${String(position).padStart(2, "0")} / ${sources.length}`;
-            captionTitle.textContent = leadCard.userData.title;
-          }
-        }
-
-        function updateHover() {
-          raycaster.setFromCamera(pointer, camera);
-          const hits = raycaster.intersectObjects(cards, false);
-          const next = hits.length ? hits[0].object : null;
-          if (next !== hovered) {
-            hovered = next;
-            if (hovered) {
-              const position = hovered.userData.index + 1;
-              captionTitle.textContent = hovered.userData.title;
-              countEl.textContent = `${String(position).padStart(2, "0")} / ${sources.length}`;
-            }
-          }
-        }
-
-        function animate(time) {
-          phase += (targetPhase - phase) * (reducedMotion ? 0.2 : 0.07);
-          if (!dragging && !reducedMotion) targetPhase -= 0.00082;
-          layoutCards();
-          updateHover();
-          camera.position.x += (pointer.x * 0.24 - camera.position.x) * 0.022;
-          camera.position.y += (pointer.y * 0.16 - camera.position.y) * 0.022;
-          camera.lookAt(0, 0, 0);
-          const normalized = ((phase % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2) / (Math.PI * 2);
-          progressEl.style.setProperty("--progress", String(Math.max(0.03, normalized)));
-          renderer.render(scene, camera);
-          requestAnimationFrame(animate);
-        }
-
-        function setPointer(event) {
-          pointer.x = (event.clientX / innerWidth) * 2 - 1;
-          pointer.y = -(event.clientY / innerHeight) * 2 + 1;
-        }
-        canvas.addEventListener("pointermove", (event) => {
-          setPointer(event);
-          if (dragging) targetPhase = dragPhase + (event.clientX - dragStart) * 0.0045;
-        });
-        canvas.addEventListener("pointerdown", (event) => {
-          dragging = true;
-          dragStart = event.clientX;
-          dragPhase = targetPhase;
-          canvas.setPointerCapture(event.pointerId);
-        });
-        canvas.addEventListener("pointerup", (event) => {
-          dragging = false;
-          if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-          if (Math.abs(event.clientX - dragStart) < 5 && hovered) openLightbox(hovered);
-        });
-        canvas.addEventListener("pointerleave", () => { pointer.set(10, 10); dragging = false; });
-        canvas.addEventListener("wheel", (event) => { event.preventDefault(); targetPhase += (event.deltaY + event.deltaX) * 0.0012; }, { passive: false });
-
-        function openLightbox(card) {
-          lightboxImage.src = card.userData.hi || card.userData.src;
-          lightboxImage.alt = card.userData.title;
-          lightboxTitle.textContent = card.userData.title;
-          lightbox.classList.add("is-open");
-          lightboxClose.focus();
-        }
-        function closeLightbox() { lightbox.classList.remove("is-open"); }
-        lightboxClose.addEventListener("click", closeLightbox);
-        lightbox.addEventListener("click", (event) => { if (event.target === lightbox) closeLightbox(); });
-        addEventListener("keydown", (event) => {
-          if (event.key === "ArrowRight" || event.key === "ArrowDown") targetPhase += 0.42;
-          if (event.key === "ArrowLeft" || event.key === "ArrowUp") targetPhase -= 0.42;
-          if (event.key === "Escape") closeLightbox();
-        });
-        addEventListener("resize", () => {
-          camera.aspect = innerWidth / innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
-          renderer.setSize(innerWidth, innerHeight, false);
-        });
-        requestAnimationFrame(animate);
-      }
-    </script>
   </body>
 </html>
