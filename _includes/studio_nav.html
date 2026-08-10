@@ -635,12 +635,16 @@
      reads as blue / pink-green / orange / teal from across the page. Body and
      tail take the saturated tone; the three dots take the lighter one, which
      is the same figure-on-field split the plant and the old ripple used. */
-  .studio-link .nav-pixel--contact .nav-pixel__bubble,
-  .studio-link .nav-pixel--contact .nav-pixel__tail {
+  .studio-link .nav-pixel--contact .nav-pixel__ray {
     fill: #ef7d4e;
   }
-  .studio-link .nav-pixel--contact .nav-pixel__dot {
-    fill: #ffd8c4;
+  /* The corner sparks sit lighter than the rays on purpose: at 24px four
+     equal-weight diagonals turn the mark back into a sun. */
+  .studio-link .nav-pixel--contact .nav-pixel__spark {
+    fill: #ffb08a;
+  }
+  .studio-link .nav-pixel--contact .nav-pixel__ring {
+    stroke: #ff9a72;
   }
   .studio-link .nav-pixel--about .nav-pixel__tile {
     fill: #0ac0b2;
@@ -1169,6 +1173,85 @@
   @media (prefers-reduced-motion: reduce) {
     .studio-mark .logo-cube {
       animation: none;
+    }
+  }
+
+  /* ══ STATES ════════════════════════════════════════════════════════════
+     Sid: "check hover effects and when one is selected the other get duller
+     in opacity or idk i hope u have thought for and designed for different
+     states."
+
+     Fair, and no: I had inherited the states rather than designed them. What
+     was here was one rule -- everything at 0.94, hover and active both going
+     to 1.0 with the same 2px lift and the same underline. Which means the
+     row had effectively TWO states wearing three names: the page you are on
+     looked exactly like the link you happen to be pointing at, and neither
+     looked much different from the four at rest. A nav with 0.06 of opacity
+     between "you are here" and "everything else" is not signalling anything.
+
+     Four states now, each doing one job:
+
+       rest        0.62   quiet enough that the active one can lead
+       active      1.00   full strength, underline held at scaleX(1), and the
+                          only one that keeps its colour when the row is idle
+       hover       1.00   plus the 2px lift and the underline drawing in from
+                          the left -- the draw is what separates it from
+                          active, which is simply already there
+       dimmed      0.30   any sibling while another link is hovered
+
+     The dimming is the part he asked for and it is doing real work: with
+     four saturated marks in a row, pointing at one should quiet the other
+     three so the eye is not still choosing. The active link dims too when
+     you point elsewhere, but only to 0.5 rather than 0.3 -- losing your
+     place while browsing the nav is worse than a slightly uneven row.
+
+     Marks desaturate rather than fade at rest. Opacity alone on a coloured
+     glyph makes it muddy; pulling saturation keeps the shape crisp and lets
+     colour itself be the active signal. */
+  .studio-link {
+    opacity: 0.62;
+    transition:
+      opacity 200ms ease,
+      filter 240ms ease,
+      transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .studio-link .nav-pixel {
+    filter: saturate(0.45);
+    transition: filter 260ms ease;
+  }
+
+  .studio-link.is-active {
+    opacity: 1;
+  }
+  .studio-link.is-active .nav-pixel {
+    filter: saturate(1);
+  }
+
+  .studio-link:hover,
+  .studio-link:focus-visible {
+    opacity: 1;
+  }
+  .studio-link:hover .nav-pixel,
+  .studio-link:focus-visible .nav-pixel {
+    filter: saturate(1.15);
+  }
+
+  /* The row quiets around whatever you are pointing at. :has is why this can
+     be written as one rule instead of four nth-child permutations. */
+  .studio-links:has(.studio-link:hover) .studio-link:not(:hover) {
+    opacity: 0.3;
+  }
+  .studio-links:has(.studio-link:hover) .studio-link.is-active:not(:hover) {
+    opacity: 0.5;
+  }
+  .studio-links:has(.studio-link:hover) .studio-link:not(:hover) .nav-pixel {
+    filter: saturate(0.25);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .studio-link,
+    .studio-link .nav-pixel {
+      transition-duration: 1ms;
     }
   }
 </style>
