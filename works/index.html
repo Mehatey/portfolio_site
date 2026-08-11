@@ -542,6 +542,66 @@
       min-height: 44px;
     }
   }
+
+  /* ══ PRESS ═════════════════════════════════════════════════════════════
+     The site had focus-visible everywhere and :active almost nowhere -- two
+     rules in the nav, one on works, none at all on the case studies. So
+     hovering told you a thing was live and clicking it told you nothing: the
+     press vanished into the navigation. On a portfolio that is a conspicuous
+     gap, because a press is the one interaction a visitor performs
+     deliberately.
+
+     FIRST ATTEMPT USED transform: scale(0.985) AND WAS A NO-OP. Measured it:
+     pressing a contact link returned matrix(1,0,0,1,0,-1.53) -- the link's
+     own hover lift, not the press. Nearly every interactive thing on this
+     site already animates transform on hover, and a component rule beats a
+     bare element selector, so the one property I reached for was the one
+     property that was already taken. It would have shipped looking like it
+     worked, because it does work on the handful of elements with no hover
+     transform.
+
+     So the press drives brightness instead, which nothing else on the site
+     animates and which composes with any transform rather than fighting it.
+     40ms down, because a press is not an animation to admire -- it has to
+     land inside the same moment as the finger -- and a slower release so the
+     control settles rather than snapping. */
+  a,
+  button,
+  summary,
+  [role="button"] {
+    transition: filter 150ms var(--ease-out);
+  }
+  a:active,
+  button:active,
+  summary:active,
+  [role="button"]:active {
+    filter: brightness(0.82);
+    transition-duration: 40ms;
+  }
+  /* Light mode inverts it: on cream, dimming a control reads as disabled,
+     while a touch of extra contrast reads as pressed. */
+  html[data-theme="light"] a:active,
+  html[data-theme="light"] button:active,
+  html[data-theme="light"] summary:active,
+  html[data-theme="light"] [role="button"]:active {
+    filter: brightness(0.94) contrast(1.08);
+  }
+  /* Media keeps its own treatment: dimming a photograph on press looks like
+     a loading state, not an acknowledgement. */
+  .play-grid img:active,
+  .sid-tile:active,
+  .obj-face:active,
+  .works-list-item:active {
+    filter: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    a,
+    button,
+    summary,
+    [role="button"] {
+      transition: none;
+    }
+  }
 </style> <style>
       html {
         height: auto;
@@ -12321,6 +12381,40 @@
     }
   }
 
+  /* ══ THE FLOATING PAIR STOPS SITTING ON THE WORK ═══════════════════════
+     Measured at 390x844: the theme toggle and the cube companion are fixed
+     in the bottom-right corner, and on a phone that corner is inside the
+     text column rather than beside it. They were overlapping real content on
+     every page checked -- 40x25 over the "2026 AI Experiments" link on
+     /works/ (a link you therefore cannot tap), 32x14 over "Six sides of the
+     practice" on the home page, and on /bloom/ five separate hits including
+     42x46 over the project summary and 24x16 over "Client".
+
+     On a desktop this is fine: the corner is empty margin. On a 390 screen
+     there is no margin, so anything fixed there is on top of the reading.
+
+     They now retire while you are scrolling down and come back the moment
+     you stop or scroll up -- the standard phone behaviour, and the only one
+     that actually guarantees the content underneath is reachable rather than
+     merely legible. Shrinking them or fading them would have made the
+     overlap prettier without making the link tappable. */
+  @media (max-width: 760px) {
+    #theme-toggle,
+    #cube-chat-fab {
+      transition:
+        opacity 220ms ease,
+        transform 260ms cubic-bezier(0.16, 1, 0.3, 1),
+        background 0.25s ease,
+        border-color 0.25s ease;
+    }
+    html.fabs-away #theme-toggle,
+    html.fabs-away #cube-chat-fab {
+      opacity: 0;
+      transform: translateY(14px) scale(0.9);
+      pointer-events: none;
+    }
+  }
+
   /* ── CUBE CHAT ── floating companion bottom-right; opens to a small chat panel */
   #cube-chat-fab {
     position: fixed;
@@ -16352,6 +16446,33 @@
     badge.className = "meta-item meta-item--readtime";
     badge.innerHTML = '<p class="meta-k">Read</p><p class="meta-v">~' + minutes + " min</p>";
     main.appendChild(badge);
+  })();
+
+  /* ── FLOATING PAIR: out of the way while reading ──────────────────
+       See the note beside .fabs-away in the stylesheet. Only below 760,
+       because only there do these two sit inside the text column. */
+  (function () {
+    if (!window.matchMedia || !window.matchMedia("(max-width: 760px)").matches) return;
+    var root = document.documentElement;
+    var last = window.scrollY || 0;
+    var idle = null;
+    window.addEventListener(
+      "scroll",
+      function () {
+        var y = window.scrollY || 0;
+        var d = y - last;
+        /* 6px of slack so a thumb resting on the screen does not flicker
+             them in and out. */
+        if (d > 6 && y > 120) root.classList.add("fabs-away");
+        else if (d < -6) root.classList.remove("fabs-away");
+        last = y;
+        clearTimeout(idle);
+        idle = setTimeout(function () {
+          root.classList.remove("fabs-away");
+        }, 900);
+      },
+      { passive: true }
+    );
   })();
 </script> <script>
       // (The old ".nav" scroll-dimming block lived here. This page renders
