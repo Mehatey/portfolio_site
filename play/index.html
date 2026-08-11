@@ -647,7 +647,20 @@ title: Play · Sid Mehta
               if (now - idle > RESUME_MS) { auto = true; if (hint) hint.classList.add("is-idle"); }
               return;
             }
-            var max = document.documentElement.scrollHeight - window.innerHeight;
+            /* The drift is a tour of the pictures, so it ends where the
+               pictures end. This used to be the document height, which was the
+               same number while Play was the one page on the site with no
+               footer; now that it has one, an unbounded drift would carry the
+               reader out of the gallery and down through the marquee, the
+               pond and the coda on its own, which is not an invitation, it is
+               a hijack. Below the stage, scrolling is the visitor's again. */
+            var stage = document.getElementById("play-stage");
+            var docMax = document.documentElement.scrollHeight - window.innerHeight;
+            var max = docMax;
+            if (stage) {
+              var stageEnd = stage.offsetTop + stage.offsetHeight - window.innerHeight;
+              if (stageEnd > 0 && stageEnd < max) max = stageEnd;
+            }
             if (max <= 0) return;
             if (returning) {
               pos -= Math.max(24, pos * 0.06);
@@ -937,6 +950,11 @@ title: Play · Sid Mehta
     {% comment %} Play never included the cursor. Sid: "on play my cursor is nothing." It is the one page on the site built as a standalone document
     rather than through a layout, so it missed the include that adds the dot, the line trail, the theme switch and the command palette — everything
     that makes the rest of the site feel like one machine. {% endcomment %} {% include cursor_fluid.html %}
+
+    {% comment %} Play was also the one page left out of the "one footer" pass, for the same reason -- it is a standalone document rather than a
+    layout, so it never picked the include up. Every other page on the site ends with the marquee, the pond, the coda and, critically, a way to get in
+    touch; Play ended with 96px of padding and then nothing. This is the page a recruiter reaches *after* they already like the work, and it was the
+    one page that dead-ended. {% endcomment %} {% include site_footer.html %}
 
   </body>
 </html>
