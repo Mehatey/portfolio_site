@@ -285,7 +285,15 @@
     .site-footer {
       position: relative;
       z-index: 5;
-      overflow: hidden;
+      /* clip, not hidden. An `overflow: hidden` ancestor is a scroll container,
+         and a scroll container is what `position: sticky` resolves against — so
+         with `hidden` here the pinned water layer inside had a scrollport that
+         never scrolls and simply rode away with the page. `clip` does the same
+         visual job and is explicitly not a scroll container, which puts the
+         pin back on the viewport where it belongs. Measured: the wash canvas
+         sat at y −2147 at the bottom of the page under `hidden`, and at 0 under
+         `clip`. */
+      overflow: clip;
       isolation: isolate;
       /* Was clamp(76px, 9vw, 128px) on top. That pad existed to separate the
          footer from the page above it, and the know-me strip now does that job
@@ -307,11 +315,59 @@
        dissolves upward through a mask. There is no longer an edge where the
        page stops and the water starts; there is a depth at which the page
        becomes water. */
+    /* The water is sticky rather than absolute, and this is the load-bearing
+       decision in the whole footer.
+
+       Sid wants the pond behind the music panel too. That panel is a 280vh
+       scroll-scrub, so a canvas stretched over the footer would be roughly
+       three viewports tall — at devicePixelRatio 2 that is about eighteen
+       million pixels per canvas, times three canvases, repainted every frame.
+       Not a trade worth making for water nobody can see all of at once.
+
+       Sticky at top:0 with a height of one viewport and a matching negative
+       bottom margin gives the layer no height in the flow, so it takes up no
+       space, and pins it to the viewport for the entire scroll through the
+       footer. The canvases stay viewport-sized and the pond reads as ground the
+       page is descending past — which is what it should have read as anyway.
+
+       It also carries pointer events now, because the old .plot__field box that
+       used to catch clicks is gone. Content above it is later in the stacking
+       order, so a click on the music panel still hits the music panel; a click
+       on open water plants something. */
     .plot__bleed {
       position: absolute;
+      /* Bled out past the footer's gutter on both sides. Sid asked for water
+         across the *entire* footer; inset by the page gutter it was a 1392px
+         pool in a 1512px room, with two vertical seams where the pond stopped
+         and the page resumed. */
+      /* inset:0, not a negative gutter. An absolutely positioned child resolves
+         against the ancestor's *padding* box, which already includes the
+         footer's gutter — offsetting by another --gutter on each side pushed
+         the water 121px past the page on both sides and gave the document a
+         horizontal scrollbar. Measured 1633px wide in a 1512px viewport before
+         this; 1512 after. */
       inset: 0;
       z-index: 0;
       pointer-events: none;
+    }
+
+    .plot__pin {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      pointer-events: auto;
+      touch-action: pan-y;
+    }
+
+    /* A watering can, drawn rather than described. Only on real pointers —
+       a touch device has no cursor to change. */
+    @media (hover: hover) and (pointer: fine) {
+      .plot__pin {
+        cursor:
+          url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14h11a2 2 0 0 1 2 2v8a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-8a2 2 0 0 1 2-2z'/%3E%3Cpath d='M22 17l6-4-1 10'/%3E%3Cpath d='M11 14c0-3 2-5 4.5-5S20 11 20 14'/%3E%3Cpath d='M27.5 23.5l1.8 2.6M30 22l1.8 2.6M25 25l1.8 2.6'/%3E%3C/g%3E%3C/svg%3E")
+            6 6,
+          crosshair;
+      }
     }
 
     .plot__bleed canvas {
@@ -330,11 +386,145 @@
       mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.16) 14%, rgba(0, 0, 0, 0.62) 33%, #000 56%);
     }
 
-    .site-footer-inner,
-    .site-footer > .plot,
-    .site-footer-colophon {
+    /* Everything that is not the water sits one layer up. The strip, the
+       marquee and the music panel are all direct children of the footer now, so
+       this is stated once on the children rather than element by element. */
+    .site-footer > *:not(.plot__bleed) {
       position: relative;
       z-index: 1;
+    }
+
+    /* The strip stands on the bank, not in the pond.
+
+       The water layer is pinned to the viewport, so its surface line sits at a
+       fixed height on screen no matter where you are in the footer — which
+       meant that at the top of the footer the surface ran straight through the
+       photographs and the ASCII plants grew up over them. In dark that read as
+       atmosphere; in light it read as a pale teal haze someone had left on the
+       pictures by mistake.
+
+       So the marquee and the strip carry the page's own ground and occlude the
+       water, and the strip hands off to it with a fade rather than an edge. The
+       pond starts where the photographs end. */
+    /* Both bleed out past the footer's gutter, because a band of ground that
+       stops 60px short of the page edge is not ground, it is a card — and in
+       light mode the two seams where the cream stopped and the water resumed
+       were the most visible edges in the footer. */
+    .site-footer > .kts {
+      background: var(--bg);
+      margin-inline: calc(-1 * var(--gutter, max(24px, 4vw)));
+    }
+
+    .site-footer > .sid-strip {
+      background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 74%, transparent 100%);
+      margin-inline: calc(-1 * var(--gutter, max(24px, 4vw)));
+      padding-inline: var(--gutter, max(24px, 4vw));
+      padding-bottom: var(--sp-8);
+    }
+
+    /* The music panel used to paint itself #04070c edge to edge, which is
+       precisely why it read as a separate black slab bolted under the footer.
+       Transparent, it is the same room as everything else — the pond is what
+       you see behind the phone. */
+    .site-footer .coda,
+    html[data-theme="light"] .site-footer .coda {
+      background: transparent;
+    }
+
+    /* ── THE LAST TWO LINES ─────────────────────────────────────────────────
+       Left: what made it. Right: what to do about it. Nothing else.
+
+       They are deliberately the same size and the same weight. The old footer
+       tried to rank five pieces of text against each other with type scale and
+       ended up with five things all quietly shouting; two lines at one size,
+       pushed to opposite ends of the measure, need no ranking at all — position
+       does the work. Space-between rather than a grid so the pair collapses to
+       a stack on narrow screens without a second rule. */
+    .site-footer-base {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--sp-3) var(--sp-6);
+      /* No rule across the top. The colophon's shore veil already draws the
+         line where the water runs out, and a border on top of it would be the
+         same boundary stated twice.
+
+         The right pad is the floating pair. The theme toggle and the cube sit
+         fixed at the bottom-right of every page, and the sign-off is the last
+         thing on the page and pinned to the same corner — measured at 1512,
+         "Let's make something useful." ran to x1452 and the toggle starts at
+         x1440. 104px is the 44px control plus its inset plus air. */
+      padding: var(--sp-7) 104px var(--sp-6) 0;
+      position: relative;
+    }
+
+    /* The shore. The last two lines are the one run of text in the footer with
+       nothing but moving water behind them, and a plant passing under a 11px
+       mono credit is the difference between "quiet" and "unreadable". It fades
+       up from the bottom edge — where a bank would be anyway — and is full
+       bleed, because a rectangle of paper floating in a pond is a patch while
+       an edge the water runs out against is a shore. */
+    .site-footer-base::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      width: 100vw;
+      transform: translateX(-50%);
+      top: 0;
+      bottom: -200px;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(to top, var(--plot-shore, rgba(7, 6, 12, 0.97)) 0%, var(--plot-shore, rgba(7, 6, 12, 0.97)) 62%, transparent 100%);
+    }
+
+    html[data-theme="light"] .site-footer-base::before {
+      background: linear-gradient(to top, rgba(245, 243, 238, 0.98) 0%, rgba(245, 243, 238, 0.98) 62%, transparent 100%);
+    }
+
+    /* The old veil lived on the colophon alone, which was correct when the
+       colophon was the last thing in the flow and wrong the moment a sign-off
+       joined it on the same row. The row carries it now. */
+    .site-footer-colophon::before {
+      content: none;
+    }
+
+    .site-footer-base .site-footer-conversation {
+      position: relative;
+      /* nowrap plus a shrinkable flex item is a trap: the box shrank to 99px
+         while the text kept its full 243px and simply painted outside it, so
+         the sign-off ran back under the floating buttons even though its
+         measured right edge said it cleared them. Measuring the box and
+         looking at the page disagreed, and the page was right. */
+      flex: 0 0 auto;
+      /* The 15ch cap is a leftover from when this was a 34px display line that
+         wanted to break onto three. At 11px it clamped the box to 99px while
+         the text ran 243px, which is where the overflow actually came from. */
+      max-width: none;
+      padding-bottom: 0;
+      font: var(--type-micro);
+      letter-spacing: var(--track-micro);
+      text-transform: uppercase;
+      color: inherit;
+      opacity: 0.86;
+      /* The old sign-off was a 34px display line in the bottom-right corner —
+         the largest type in the footer, given to a link nobody came here to
+         read. At the colophon's size it is a door, not a billboard, and the
+         underline that wipes in from the left is enough to say so. */
+      white-space: nowrap;
+    }
+
+    @media (max-width: 700px) {
+      .site-footer-base {
+        justify-content: flex-start;
+        /* The two lines stack here, and the sign-off is the lower of them, so
+           it is the only one that has to clear the floating pair. Holding the
+           104px reserve on the row broke the credit into four lines for no
+           reason; the existing bottom reserve on .site-footer-colophon is what
+           keeps the stack off the buttons. */
+        padding-right: 0;
+        gap: var(--sp-5);
+      }
     }
 
     .site-footer-inner {
@@ -694,7 +884,11 @@
       width: 100vw;
       transform: translateX(-50%);
       top: -34px;
-      bottom: 0;
+      /* Runs past the line's own box to the bottom of the footer. The colophon
+         is no longer the last thing in the flow — the sign-off sits beside it
+         and the row carries padding under both — so a veil that stopped at the
+         paragraph's own edge left a strip of open water under the credit. */
+      bottom: -64px;
       z-index: -1;
       pointer-events: none;
       /* Held solid through the band the type actually occupies and only then
@@ -927,165 +1121,146 @@ Kyoorius~Design~Award~for~Mool; MIT~Reality~Hack~2026; Previously~Deloitte~Digit
 Writes~his~own~JavaScript; Draws~mandalas~by~hand; Ninety-eight~more~pieces~in~the~studio; Best~ideas~arrive~on~walks; Holds~strong~opinions~loosely;
 Open~to~remote,~hybrid,~or~relocating {% endcapture %} {% assign kts_items = kts_raw | split: ";" %}
 
-<section class="kts" aria-label="More about Sid">
-  <p class="sr-only">
-    Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality
-    Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand.
-    Ninety-eight more pieces in the studio. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating.
-  </p>
-  <div class="kts__mask">
-    <div class="kts__track" aria-hidden="true">
-      {% for pass in (1..2) %}{% for fact in kts_items %}<span class="kts__item">{{ fact | strip | replace: "~", " " }}</span
-      ><span class="kts__sep">◆</span>{% endfor %}{% endfor %}
+<!-- ── ONE FOOTER ────────────────────────────────────────────────────────────
+     Sid: "combine the three sections into one footer, which is get to know Sid
+     ... extend the water to make the complete footer such that the water is the
+     backdrop for the Apple Music video as well ... don't [need] so many text
+     layers on top of each other."
+
+     There were four bands stacked at the bottom of every page — the fact
+     marquee, the Get-to-know-Sid strip, a credits row (name, role, city, month,
+     two links, a cube mark with a live green dot, and a sign-off), and a pond
+     carrying a serif pull-quote plus its own signature line — and then the music
+     panel below all of that on its own opaque black slab. Nine separate pieces
+     of running text between the last project and the bottom of the page.
+
+     It is now one <footer>. The water is the ground the whole thing stands on,
+     the marquee and the strip and the music panel sit on it, and there are
+     exactly two lines of type at the bottom: what built it on the left, what to
+     do about it on the right.
+
+     What went, and why:
+       · the pull-quote and its signature — Sid named both
+       · the identity block — the nav says his name on every page, the contact
+         page says the rest, and About says it at length
+       · the cube mark with the status dot — "that looks like a new
+         notification", which is exactly what a small green disc on a dark
+         square reads as
+       · the coda's opaque background, so the pond shows through it
+     ─────────────────────────────────────────────────────────────────────── -->
+<footer class="site-footer" aria-label="Site footer">
+  <div class="plot__bleed" aria-hidden="true">
+    <!-- The pin is a separate element from the bleed on purpose. Sticky is
+         constrained by its containing block, so the thing that spans the whole
+         footer and the thing that stays one viewport tall cannot be the same
+         box: the bleed measures the footer, the pin rides inside it. -->
+    <div class="plot__pin" id="plot-field">
+      <canvas id="plot-wash"></canvas>
+      <canvas id="plot-caustic"></canvas>
+      <canvas id="plot-flora"></canvas>
     </div>
   </div>
-</section>
 
-<!-- Directional blur for the tile smear above. Horizontal only: stdDeviation
+  <section class="kts" aria-label="More about Sid">
+    <p class="sr-only">
+      Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT
+      Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws
+      mandalas by hand. Ninety-eight more pieces in the studio. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or
+      relocating.
+    </p>
+    <div class="kts__mask">
+      <div class="kts__track" aria-hidden="true">
+        {% for pass in (1..2) %}{% for fact in kts_items %}<span class="kts__item">{{ fact | strip | replace: "~", " " }}</span
+        ><span class="kts__sep">◆</span>{% endfor %}{% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- Directional blur for the tile smear above. Horizontal only: stdDeviation
      takes an x,y pair, and "9 0" blurs along the drift axis while leaving
      vertical detail intact, which is what separates motion blur from
      out-of-focus. -->
-<svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false">
-  <defs>
-    <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="9 0" />
-    </filter>
-  </defs>
-</svg>
+  <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="9 0" />
+      </filter>
+    </defs>
+  </svg>
 
-<section class="sid-strip" aria-label="Get to know Sid">
-  <div class="sid-strip__head">
-    <b>Get to know Sid</b>
-    <span>off the clock</span>
-  </div>
-  <div class="sid-strip__rows">
-    <div class="sid-row">
-      {% for dupe in (1..2) %}
-      <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url({{ site.baseurl }}/assets/img/sid-strip/film-requiem.webp)">
-        <img src="{{ site.baseurl }}/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url({{ site.baseurl }}/assets/img/sid-strip/cats.webp)">
-        <img src="{{ site.baseurl }}/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url({{ site.baseurl }}/assets/img/book_covers/the_godfather.jpg)">
-        <img src="{{ site.baseurl }}/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Last book</em><b>The Godfather &middot; Mario Puzo</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url({{ site.baseurl }}/assets/img/sid-strip/song-sky-i.webp)">
-        <img src="{{ site.baseurl }}/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>On repeat</em><b>Sky I &middot; Bby Eco</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url({{ site.baseurl }}/assets/img/work-previews/mool/cover.webp)">
-        <img src="{{ site.baseurl }}/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Last thing I designed</em><b>Mool &middot; money, made legible</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url({{ site.baseurl }}/assets/img/sid-strip/balcony.webp)">
-        <img src="{{ site.baseurl }}/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url({{ site.baseurl }}/assets/img/sid-strip/comic-bone.webp)">
-        <img src="{{ site.baseurl }}/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Comfort read</em><b>BONE &middot; Jeff Smith</b></figcaption>
-      </figure>
-      <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1">
-        <i>40.71&deg; N</i><i>&minus;74.01&deg; W</i><u>Last place I landed</u>
-        <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url({{ site.baseurl }}/4.mandala/cover.jpg)">
-        <img src="{{ site.baseurl }}/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Made for fun</em><b>Bloom &middot; TouchDesigner</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url({{ site.baseurl }}/assets/img/play-memory-wall.webp)">
-        <img src="{{ site.baseurl }}/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url({{ site.baseurl }}/15.bloom-vp/cover.jpg)">
-        <img src="{{ site.baseurl }}/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption>
-      </figure>
-      <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url({{ site.baseurl }}/assets/img/sid_about3.jpg)">
-        <img src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async" />
-        <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption>
-      </figure>
-      {% endfor %}
+  <section class="sid-strip" aria-label="Get to know Sid">
+    <div class="sid-strip__head">
+      <b>Get to know Sid</b>
+      <span>off the clock</span>
     </div>
-  </div>
-</section>
-
-<footer class="site-footer" aria-label="Site footer">
-  <div class="plot__bleed" aria-hidden="true">
-    <canvas id="plot-wash"></canvas>
-    <canvas id="plot-caustic"></canvas>
-    <canvas id="plot-flora"></canvas>
-  </div>
-
-  <div class="site-footer-inner">
-    <div class="site-footer-identity">
-      <strong>Siddharth Mehta</strong>
-      <span>Product designer and creative technologist in New York.</span>
-      <span class="site-footer-updated">Updated {{ site.time | date: "%b %Y" }}</span>
-      <nav class="site-footer-links" aria-label="Footer links">
-        <!-- Both of these leave the site, so both take the house ↗ (see .xarrow
-             in design_tokens). The third link in this footer — "Let's make
-             something useful." — stays on the site and deliberately does not,
-             which is the whole point of the mark: in a row of three links set
-             in the same 12px face, the arrow is the only thing telling you
-             which two open somewhere else. The wipe-in underline on ::after is
-             untouched and runs under the slot, so the two treatments read as
-             one gesture rather than two. -->
-        <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer"
-          >Resume<span class="xarrow" aria-hidden="true"></span></a
-        ><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer"
-          >LinkedIn<span class="xarrow" aria-hidden="true"></span
-        ></a>
-      </nav>
+    <div class="sid-strip__rows">
+      <div class="sid-row">
+        {% for dupe in (1..2) %}
+        <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url({{ site.baseurl }}/assets/img/sid-strip/film-requiem.webp)">
+          <img src="{{ site.baseurl }}/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url({{ site.baseurl }}/assets/img/sid-strip/cats.webp)">
+          <img src="{{ site.baseurl }}/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url({{ site.baseurl }}/assets/img/book_covers/the_godfather.jpg)">
+          <img src="{{ site.baseurl }}/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Last book</em><b>The Godfather &middot; Mario Puzo</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url({{ site.baseurl }}/assets/img/sid-strip/song-sky-i.webp)">
+          <img src="{{ site.baseurl }}/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>On repeat</em><b>Sky I &middot; Bby Eco</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url({{ site.baseurl }}/assets/img/work-previews/mool/cover.webp)">
+          <img src="{{ site.baseurl }}/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Last thing I designed</em><b>Mool &middot; money, made legible</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url({{ site.baseurl }}/assets/img/sid-strip/balcony.webp)">
+          <img src="{{ site.baseurl }}/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url({{ site.baseurl }}/assets/img/sid-strip/comic-bone.webp)">
+          <img src="{{ site.baseurl }}/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Comfort read</em><b>BONE &middot; Jeff Smith</b></figcaption>
+        </figure>
+        <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1">
+          <i>40.71&deg; N</i><i>&minus;74.01&deg; W</i><u>Last place I landed</u>
+          <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url({{ site.baseurl }}/4.mandala/cover.jpg)">
+          <img src="{{ site.baseurl }}/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Made for fun</em><b>Bloom &middot; TouchDesigner</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url({{ site.baseurl }}/assets/img/play-memory-wall.webp)">
+          <img src="{{ site.baseurl }}/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url({{ site.baseurl }}/15.bloom-vp/cover.jpg)">
+          <img src="{{ site.baseurl }}/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption>
+        </figure>
+        <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url({{ site.baseurl }}/assets/img/sid_about3.jpg)">
+          <img src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async" />
+          <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption>
+        </figure>
+        {% endfor %}
+      </div>
     </div>
-
-    <a class="site-footer-mark" href="{{ site.baseurl }}/" aria-label="Return to Sid Mehta home"> {% include site_logo.html %} </a>
-
-    <a class="site-footer-conversation" href="{{ site.baseurl }}/contact/">Let’s make something useful.</a>
-  </div>
-
-  <section class="plot" aria-label="Interactive garden">
-    <p class="plot__quote">You plant a thing long before you know what it becomes.</p>
-    <p class="plot__sig">
-      <span>Made in New York, mostly at night</span>
-      <span class="plot__hint"
-        ><span class="plot__hint-pointer">Click the plot to plant</span><span class="plot__hint-touch">Tap the plot to plant</span></span
-      >
-    </p>
-    <div
-      class="plot__field"
-      id="plot-field"
-      tabindex="0"
-      role="img"
-      aria-label="A pond of ASCII plants and fish. Clicking it plants a seedling and pushes ripples through the water."
-    ></div>
   </section>
 
-  <p class="site-footer-colophon">Built by hand · Jekyll, WebGL and too much canvas · <span id="site-footer-time"></span></p>
-</footer>
+  {% comment %} The music panel now lives inside the footer, over the water rather than on its own black slab. {% endcomment %} {% include
+  home_coda.html %}
 
-<script>
-  (function () {
-    var mark = document.querySelector(".site-footer-mark");
-    var fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    if (!mark || !fine) return;
-    mark.addEventListener("pointermove", function (event) {
-      var rect = mark.getBoundingClientRect();
-      var x = (event.clientX - rect.left) / rect.width - 0.5;
-      var y = (event.clientY - rect.top) / rect.height - 0.5;
-      mark.style.setProperty("--footer-tilt-x", (x * 8).toFixed(2) + "deg");
-      mark.style.setProperty("--footer-tilt-y", (y * -8).toFixed(2) + "deg");
-    });
-    mark.addEventListener("pointerleave", function () {
-      mark.style.removeProperty("--footer-tilt-x");
-      mark.style.removeProperty("--footer-tilt-y");
-    });
-  })();
-</script>
+  <!-- Two lines. Left says what made it, right says what to do about it. The
+       colophon is not a link and the sign-off is, which is the only hierarchy
+       this row needs — no size difference, no rule between them, no third
+       thing. -->
+  <div class="site-footer-base">
+    <p class="site-footer-colophon">Built by hand · Jekyll, WebGL and too much Canvas · <span id="site-footer-time"></span></p>
+    <a class="site-footer-conversation" href="{{ site.baseurl }}/contact/">Let’s make something useful.</a>
+  </div>
+</footer>
 
 <script>
   (function () {
@@ -1134,7 +1309,7 @@ Open~to~remote,~hybrid,~or~relocating {% endcapture %} {% assign kts_items = kts
      is animated on its own timeline pretending to be connected to the rest.
      ──────────────────────────────────────────────────────────────────────── */
   (function () {
-    var layer = document.querySelector(".plot__bleed");
+    var layer = document.querySelector(".plot__pin");
     var field = document.getElementById("plot-field");
     var footerEl = document.querySelector(".site-footer");
     var washCv = document.getElementById("plot-wash");
@@ -1979,9 +2154,14 @@ Open~to~remote,~hybrid,~or~relocating {% endcapture %} {% assign kts_items = kts
       W = Math.round(r.width);
       H = Math.round(r.height);
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      var fr = field.getBoundingClientRect();
-      live.top = Math.max(0, Math.min(H - 40, Math.round(fr.top - r.top)));
-      live.bot = Math.max(live.top + 40, Math.min(H, Math.round(fr.bottom - r.top)));
+      /* The water layer is now sticky and viewport-tall, so it *is* the frame —
+         there is no separate .plot__field box to measure against. The living
+         band is simply the bottom 56% of it: plants and fish belong in the
+         depth you are looking down into, not up at the surface where the strip
+         and the music panel sit. Everything downstream reads live.top/bot, so
+         this one line is the whole geometry change. */
+      live.top = Math.round(H * 0.44);
+      live.bot = H;
       sizeCanvas(washCv, wash);
       sizeCanvas(causCv, caus);
       sizeCanvas(floraCv, flora);
@@ -2037,9 +2217,3 @@ Open~to~remote,~hybrid,~or~relocating {% endcapture %} {% assign kts_items = kts
     resize();
   })();
 </script>
-
-{% comment %} THE CODA, NOW PART OF THE COMMON FOOTER. Sid: "have this common footer that we have on the homepage on every page." The music panel used
-to be included separately by sid_home.html, immediately after this file, which is why it only ever appeared on the homepage. Folding it in here makes
-the sign-off one unit -- strip, credits, pond, coda -- and every layout that already includes site_footer.html gets the whole thing without a second
-include to keep in sync. sid_home.html's own include is removed in the same commit so the homepage does not render it twice. {% endcomment %} {%
-include home_coda.html %}

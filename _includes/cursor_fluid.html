@@ -62,30 +62,60 @@
     cursor: text !important;
   }
 
+  /* THE DOT IS A DOT.
+
+     It used to be a 12px radial gradient that faded to nothing at its own edge,
+     with two box-shadow halos on top and a velocity stretch that took it to
+     2.7x its length. Sid's reading of that: "this looks like a blurred ellipse
+     when i move." He is right, and the reason is that the mark had no edge to
+     hold on to — everything in it was a gradient, so smearing a gradient just
+     produced more gradient.
+
+     So it is now a small, opaque core with one hairline ring and a single soft
+     halo well outside the body. The core stays legible at any speed because it
+     is a solid colour; the ring is what actually reads as motion when the
+     stretch pulls it, because a hard edge is the only thing that can. The
+     stretch itself is cut to roughly half of what it was (see the loop below)
+     — enough for weight, not enough to become a comet. */
   #cur-dot {
     position: fixed;
-    width: 12px;
-    height: 12px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 99999;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(160, 210, 255, 0.5) 40%, rgba(80, 150, 240, 0.15) 70%, transparent 100%);
+    background: rgba(233, 243, 255, 0.94);
     box-shadow:
-      0 0 8px 2px rgba(120, 180, 255, 0.3),
-      0 0 20px 4px rgba(80, 140, 240, 0.12);
+      0 0 0 1px rgba(150, 195, 255, 0.5),
+      0 0 12px 2px rgba(90, 150, 240, 0.16);
     will-change: left, top, transform;
     opacity: 0;
     /* transform is driven per-frame in JS (velocity stretch + eased hover scale); only fade opacity */
     transition: opacity 0.2s;
   }
+  html[data-theme="light"] #cur-dot {
+    background: rgba(18, 32, 56, 0.9);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.6),
+      0 0 10px 2px rgba(20, 40, 80, 0.14);
+  }
   /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons.
      The scale itself is handled in JS; this rule only swaps the look. */
+  /* Over something interactive the dot hollows out into a ring, so whatever it
+     is sitting on stays visible through the middle. A fill that merely got
+     fainter covered small icons; a ring never does. */
   #cur-dot.is-hover {
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(160, 220, 255, 0.2) 50%, transparent 90%);
+    background: rgba(190, 220, 255, 0.14);
     box-shadow:
-      0 0 10px 2px rgba(140, 200, 255, 0.18),
-      0 0 22px 4px rgba(100, 160, 240, 0.08);
+      0 0 0 1.2px rgba(190, 224, 255, 0.72),
+      0 0 14px 3px rgba(110, 170, 245, 0.14);
+  }
+  html[data-theme="light"] #cur-dot.is-hover {
+    background: rgba(20, 40, 80, 0.08);
+    box-shadow:
+      0 0 0 1.2px rgba(24, 44, 78, 0.66),
+      0 0 12px 3px rgba(20, 40, 80, 0.1);
   }
   /* Contextual cursor label — small mono pill that appears next to the dot over
      elements tagged [data-cursor-text] (e.g. "View", "Play"). Same visual language
@@ -4352,6 +4382,188 @@
 <div id="cur-dot"></div>
 <div id="cur-label" aria-hidden="true"></div>
 
+<!-- ── THE LINE TRAIL, BACK ───────────────────────────────────────────────────
+     Sid: "i like my old cursor where we had that physics line type movement",
+     and again: "bring back the cursor with the line trail and the nice physics."
+
+     It was added in ad600fe0 and then quietly killed in de72d861, a commit whose
+     stated job was retiring yellow from the nav icons — the trail went with it as
+     collateral, which is why nobody noticed it leaving.
+
+     This is the same idea rebuilt rather than reverted, because the original had
+     three specific problems worth fixing:
+
+       · Every one of its 22 nodes was a full spring — velocity plus damping —
+         chained head to tail. That is the obvious way to build this and it is
+         wrong, because each node's overshoot feeds the next one's, so the chain
+         rings. Simulated, the old constants take about a second to come to rest
+         after the pointer stops, and stiffening them to shorten the line makes
+         the ringing worse rather than better. The physics lives in the head
+         node only now: that one is a real spring with damping under 1, so it
+         carries weight and overshoots into a stop. The other twenty-five simply
+         chase the node ahead, which is unconditionally stable — the whole line
+         settles in about a quarter-second and the length stays proportional to
+         speed (roughly 60px strolling, 145px moving, 310px flung).
+
+       · It drew N-1 separate strokes with a quadratic that passed through its
+         own start point — effectively a polyline — so fast movement showed
+         facets. Now it is one path through the midpoints, which is the standard
+         way to get C1 continuity out of a point chain, drawn in a few tapered
+         passes so the width falls off toward the tail.
+
+       · mix-blend-mode: screen meant the line disappeared over anything already
+         bright. It composites normally now and picks its colour per theme.
+
+     It runs only where there is a real cursor and only when motion is welcome. -->
+<style>
+  #cur-trail {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99990;
+    opacity: 0;
+    transition: opacity 0.28s var(--ease-out, ease);
+  }
+</style>
+<canvas id="cur-trail" aria-hidden="true"></canvas>
+<script>
+  (function () {
+    var root = document.documentElement;
+    if (!root.classList.contains("has-custom-cursor")) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var cv = document.getElementById("cur-trail");
+    if (!cv) return;
+    var ctx = cv.getContext("2d");
+    if (!ctx) return;
+
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 0,
+      H = 0;
+    function size() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+      cv.style.width = W + "px";
+      cv.style.height = H + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    size();
+    window.addEventListener("resize", size, { passive: true });
+
+    // 26 nodes is long enough to read as a line and short enough that the whole
+    // chain settles inside about a third of a second.
+    var N = 26,
+      pts = [],
+      i;
+    for (i = 0; i < N; i++) pts.push({ x: -200, y: -200, vx: 0, vy: 0 });
+
+    var mx = -200,
+      my = -200,
+      seen = false;
+
+    window.addEventListener(
+      "mousemove",
+      function (e) {
+        mx = e.clientX;
+        my = e.clientY;
+        if (!seen) {
+          seen = true;
+          for (var j = 0; j < N; j++) {
+            pts[j].x = mx;
+            pts[j].y = my;
+          }
+          cv.style.opacity = "1";
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      "mouseleave",
+      function () {
+        cv.style.opacity = "0";
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      "mouseenter",
+      function () {
+        cv.style.opacity = "1";
+      },
+      { passive: true }
+    );
+
+    var isLight = function () {
+      return root.getAttribute("data-theme") === "light";
+    };
+
+    (function draw() {
+      requestAnimationFrame(draw);
+
+      // The head: a damped spring on the real pointer. 0.34 stiffness against
+      // 0.62 damping is under-damped, which is the point — it arrives slightly
+      // past where you stopped and comes back, and that half-pixel of overshoot
+      // is the entire difference between "follows the mouse" and "has weight".
+      var h = pts[0];
+      h.vx = (h.vx + (mx - h.x) * 0.34) * 0.62;
+      h.vy = (h.vy + (my - h.y) * 0.34) * 0.62;
+      h.x += h.vx;
+      h.y += h.vy;
+
+      // The body: each node chases the one ahead of it. No velocity term, so no
+      // node can overshoot, so the chain cannot ring. The follow rate loosens
+      // toward the tail, which is what tapers the curve's spacing and makes the
+      // end of the line trail off instead of stopping dead.
+      for (i = 1; i < N; i++) {
+        var a = 0.78 - (i / N) * 0.14;
+        pts[i].x += (pts[i - 1].x - pts[i].x) * a;
+        pts[i].y += (pts[i - 1].y - pts[i].y) * a;
+      }
+
+      ctx.clearRect(0, 0, W, H);
+      if (!seen) return;
+
+      // How stretched the chain is overall — the line only earns its ink while
+      // the pointer is actually travelling.
+      var span = Math.hypot(pts[N - 1].x - pts[0].x, pts[N - 1].y - pts[0].y);
+      var life = Math.min(span / 42, 1);
+      if (life < 0.01) return;
+
+      var light = isLight();
+      var rgb = light ? "26,44,74" : "158,200,255";
+      var base = (light ? 0.2 : 0.34) * life;
+
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      // Three tapered passes over decreasing spans of the chain. Overlapping
+      // strokes is what produces the width falloff without having to stroke each
+      // segment separately, which is what made the old one facet.
+      var passes = [
+        [N, 0.42, 1.0],
+        [Math.round(N * 0.62), 0.78, 0.62],
+        [Math.round(N * 0.3), 1.35, 0.38],
+      ];
+      for (var p = 0; p < passes.length; p++) {
+        var upto = passes[p][0],
+          w = passes[p][1],
+          a = passes[p][2];
+        if (upto < 3) continue;
+        ctx.strokeStyle = "rgba(" + rgb + "," + (base * a).toFixed(3) + ")";
+        ctx.lineWidth = w;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (i = 1; i < upto - 1; i++) {
+          var cxm = (pts[i].x + pts[i + 1].x) / 2,
+            cym = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, cxm, cym);
+        }
+        ctx.stroke();
+      }
+    })();
+  })();
+</script>
+
 <!-- GSAP is deliberately confined to the tiny navigation response below. It is
      vendored with the site so the motion is available in local, preview, and
      production builds without relying on a third-party CDN. -->
@@ -4827,11 +5039,14 @@
         ang = Math.atan2(dirY, dirX) * 57.2958;
 
         // Stretch follows speed: eases in quickly, springs back to a dot slowly
-        const target = Math.min(speed / 18, 1);
+        // Halved from where it was. The ribbon behind the dot now carries the
+        // sense of speed, so the dot itself no longer has to deform to show it —
+        // and a dot that deforms less stays a dot.
+        const target = Math.min(speed / 26, 1);
         stretch += (target - stretch) * (target > stretch ? 0.3 : 0.12);
 
-        sx = 1 + stretch * 1.7; // elongate along the direction of travel
-        sy = 1 - stretch * 0.5; // pinch perpendicular (squash-and-stretch)
+        sx = 1 + stretch * 0.82; // elongate along the direction of travel
+        sy = 1 - stretch * 0.26; // pinch perpendicular (squash-and-stretch)
       }
 
       // Eased hover growth (1.6x over interactive surfaces)
