@@ -155,7 +155,7 @@ Everything below is committed on local `main` and **not yet on `origin/main`** (
 5. **Tune the nav glass `scale`** (currently `16`) once Sid has judged the bend in real Chrome.
 6. **Dead code, safe to delete once Sid confirms he doesn't want v1 as a rollback:** `assets/js/home-enhance.js`, `_includes/home_cinema.html`, `_layouts/sid_home_v1.html`, `_layouts/about.liquid`, and the leftover `.hs-card` / `.hs-grid` CSS.
 7. **`works.html` CSS dedup** — deliberately deferred. A selector scan showed high counts, but most are legitimate duplicates inside media queries and theme blocks. A 4700-line single `<style>` block is high-risk / low-visible-reward to refactor unattended.
-8. **Housekeeping on the Mac:** `_to_delete/` (83M) and `_scratch/` (59M) need a local `rm -rf`; `.git/stale-locks/` is junk and can go too. The disk is at 100% (2.8G free of 461G) — the real pressure is outside this repo.
+8. **Housekeeping on the Mac:** `.git/stale-locks/` is junk and can go. `_scratch/` has been deleted. **Do NOT `rm -rf` `_to_delete/`** — see "Open" item 5 below; it still contains project media and it contained the entire Play archive until 11 Aug.
 9. **Untracked and not mine:** `_layouts/arcana.html`, `_pages/arcana.md`, `assets/css/arcana.css`, `assets/js/arcana.js`, `assets/tarot/`.
 
 ---
@@ -291,15 +291,28 @@ invisible to you.
    recordings, 8 screenshots) which still need transcoding to web-sized mp4/webp and
    folding into `play/index.html`'s `files` array. The rest are not in the repo — ask him
    which folder they live in.
-2. **A failing GitHub Actions job.** Prettier is clean repo-wide and the deploy workflow
-   succeeds; the likely culprit is the external link checker (lychee), which fails on rate
-   limits and does not block the deploy. Needs the failing job's name to confirm.
+2. ~~**A failing GitHub Actions job.**~~ **SOLVED, and the guess here was wrong.** It was
+   lychee, and it does not block the deploy — both true. It was _not_ rate limits. It was
+   reporting six genuinely missing files, correctly, for as long as it had been red:
+   `.gitignore` blocks `*.mp4` globally with a short allowlist, and six case-study demo
+   clips referenced by `/marriott/` and `/m-health-fairview/` were not on it. They existed
+   on this machine and on no deploy, so those pages shipped six broken `<video>` elements
+   while looking perfect in every local preview. Allowlisted and committed (1.49MB for all
+   six); the job is green. **A checker failing for a real reason and assumed to be noise is
+   worse than no checker** — that assumption cost this repo months of a red build.
 3. **Two unfinished sentences of his**, left alone deliberately: "when I hover on the cube,
    let it, uh—" and "on play, my cursor—" (the second is resolved: Play had no cursor at
    all, and now does).
 4. **Older, still true:** the caption worksheet (Encoded has 4 captions across 11 plates;
-   Shot on iPhone 21 images / 0 captions; Mool 22 / 0), 1.7GB `_to_delete/` and 499MB
-   `_scratch/` on his disk, and 41 unused `d##.webp` files under `play/assets/spatial/`.
+   Shot on iPhone 21 images / 0 captions; Mool 22 / 0), and 41 unused `d##.webp` files
+   under `play/assets/spatial/`.
+5. **`_to_delete/` IS NOT SAFE TO DELETE, whatever item 8 above says.** It still holds
+   `unreffed-toplevel/` and `unreferenced-masters/` — bloom-vp scenes, mandala masters,
+   `play-memory-wall.png`. On 11 Aug the full Play archive was found inside it and rescued:
+   `_to_delete/play-assets` → `~/Desktop/play-archive-raw`, 253 entries, `p1`..`p207`,
+   705MB (155 jpg, 46 png, 45 mp4, 6 gif, plus `tube/` with 16 webp). **That is the missing
+   ~200 pieces from item 1** — they still need transcoding and folding into the `files`
+   array. `_scratch/` was pure build scratch and has been deleted.
 
 ## Standing constraints he has stated
 
@@ -310,3 +323,107 @@ invisible to you.
 - He pushes himself — do not push to the remote, hand him the command.
 - He dislikes stock/generic marks intensely. Everything drawn on this site is hand-made,
   and a library glyph in that company reads as a placeholder nobody replaced.
+
+---
+
+# STATE AS OF 11 AUG 2026, EVENING — a QA + design pass, 22 commits, all pushed
+
+Read this with the 11 Aug section above; it does not replace it. Everything below
+was measured on the running site, not reasoned about.
+
+## Four traps that cost real time this session
+
+**1. A CSS rule aimed at a class that is not in the markup fails silently, and it
+failed twice on the same class.** `.contact-copy` does not exist anywhere in
+`_layouts/contact.html`; the wrappers are `.c-corner`, and the only near-match in
+the document is the `.contact-copybtn` button. Two separate rules were pointed at
+it. `.contact-copy { z-index: 4 }` was the rule keeping the email above the mobile
+scrim — so on every phone the email, the phone number and all four social links
+were painted under a 98%-opaque veil at contrast 1.09–1.73. And
+`.contact-copy > * { animation: contactRise }` was the entire seven-element entry
+stagger — exactly one element on the page ever animated, the footer timestamp.
+**Before trusting a rule, check at runtime that its selector matches something.**
+
+**2. Contrast tools that read CSS cannot see compositing.** On that contact page,
+`getComputedStyle` on the email returned `#f7f9fb`, opacity 1, no filter, and a
+clean ancestor chain — I walked it. The dimming came from a positioned _sibling_
+painting over it. The only way to see it was to read the painted pixels: ink at
+luminance 56 against a ground of 5. `pc/qa.js`-style checks and every contrast
+audit in this repo will report that page as fine. **Screenshot it and sample the
+box.**
+
+**3. Measuring a layout that does not exist yet returns confident nonsense.** On
+Play I tried setting `loading` by reading each image's `offsetTop` after a forced
+reflow. It marked 55 of 57 images eager: none had a `src` yet, an image with no
+intrinsic size has no height, so every element was collapsed to zero and every one
+looked like it was in the first viewport. The fix was arithmetic over the column
+count instead. Related: `column-fill: balance` redistributes as images load, so
+"which tiles are in view" drifts between runs — do not tune a number against a
+single measurement of it.
+
+**4. Two of three adversarial critiques contained confident, specific, false
+claims.** A critic asserted the homepage typewriter clips mid-word and reserves one
+line where it needs two; measured, mobile already reserves two lines and the host
+box is a constant 41px across all five phrases. Another asserted the About portrait
+is pushed below the fold on mobile; it starts at y≈505 of an 844 viewport with the
+face clearly visible. Both would have been real work spent making the site worse.
+**Verify every structural claim against the source or the browser before acting on
+it** — the critiques are still worth running, they found the mobile nav occlusion,
+the buried decisions section and the Play footer, but roughly one claim in six is
+wrong.
+
+## What changed
+
+- **Home**: chapter numbers were `03 → 01 → 02 → 03 → 04` with 03 used twice, now
+  01–05 in order; two "Scroll" cues rendered 6px apart, now one; the mobile nav had
+  no ground and its opaque marks ate the first character of `function` on the code
+  block, now a real plane with the labels restored; section rhythm 13vh → 8.5vh
+  (10211px → 9781px); the light-theme pixel portrait was a pale blob because
+  `brightness(2.45)` fights `mix-blend-mode: multiply` (white is multiply's
+  identity), exposure now near unity; the hero stat block carried the same "six
+  years" as the headline 340px above it and now carries the Met.
+- **Works**: the ring was gated behind `min-height: 840px`, which excludes a 13"
+  MBA (1280×745), a 14" with bookmarks (1440×790) and a 16" with a bookmarks bar
+  (1512×835) — and the same rule hid the ring/list toggle, so those visitors were
+  never told a ring existed. Floor is 760 now; measured, the lowest ring item bottoms
+  out at 742 in a 760 viewport. Three of sixteen projects now carry the outcome lines
+  that were already authored in `data-proof` and never rendered.
+- **Case studies**: the decisions section (the only writing that shows him thinking)
+  rendered _after_ the body — on `/mool/` that is twelve captionless images, so the
+  argument arrived at ~85% scroll depth. It opens at 10% now. Heroes carry
+  `Role · Studio for Client` instead of hiding attribution in a closed `<details>`.
+  `hero_mode: artifact` for covers that are screenshots, so the title stops sitting
+  on the product's own UI.
+- **Play**: was the one page with no footer (commit `65e6c6ca` was literally "one
+  footer" and missed it), so the page a recruiter reaches _after_ they like the work
+  dead-ended. It has one, and the ambient drift is now bounded to the gallery so it
+  cannot tour the footer on its own. The lightbox was unreadable in light theme —
+  dark ink on a near-black surface, contrast ~1.
+- **Contact**: `Updated Jul 2026` was hand-typed and already false; it is
+  `site.time` now and visible on mobile again.
+
+## Open, and Sid is the blocker
+
+1. **Play's captions.** Every title in that gallery is generated by bucketing the
+   filename number — `titleFor()` returns "Visual system 034" because 34 falls in a
+   range, so a graphite copy of Guernica is labelled a visual system. All 57 pieces
+   open to the same sentence about "ongoing practice", and `image.alt = item.title`
+   means a screen reader hears 57 fabricated descriptions, twice (the duplicate
+   `#play-access-list`). The `file >= 82` branch is dead — the highest file is 80.
+   This needs a real `{title, medium, year, tool}` per piece and **nobody but Sid can
+   write it**; inventing a medium and a year for his artwork is not an option.
+2. **`/mool/` has twelve images and no words.** Every `alt` is the string "Mool".
+   The template should not be able to render an uncaptioned `.cs-bleed`.
+3. **"PAST COLLABORATORS" on /about/** blends employers (Philips, Deloitte, EyeJack,
+   Leaf) with what are almost certainly Deloitte client brands (KFC, Pizza Hut, Taco
+   Bell, Del Taco) under one label, and the experience column 40 lines below lets a
+   reader do the subtraction. Relabelling costs one line.
+4. **The About claim is my draft of his voice.** "Most spatial and AI work demos
+   beautifully and falls apart the moment a real person uses it in a real room." Every
+   figure under it is from his resume and nothing is invented, but the sentence itself
+   should be read aloud by him before it stands as the first thing anyone reads.
+5. **Build noise:** `assets/img/fairview/10-caretypes.gif` is an animated GIF, and
+   the ImageMagick step logs three red "Invalid frame dimensions" errors per build
+   trying to make animated WebP variants of it. Non-breaking — the page uses a plain
+   `<img src=".gif">` with no srcset, and 0 srcset targets are missing site-wide — but
+   red errors on every build are how a real one gets ignored.
