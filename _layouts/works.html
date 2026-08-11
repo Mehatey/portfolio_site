@@ -5630,23 +5630,54 @@
            at rest (visibility, not display) so nothing reflows when they
            arrive -- a frame that resizes on hover is the bug this ring was
            built to fix in the first place. */
+        /* AND THEN HE ASKED FOR THEM BACK: "we can also have tags."
+
+           The reasoning above was sound and the conclusion was wrong, and it is
+           worth being precise about which part. Thirty-two strings at 8.5px in
+           wide tracking, wrapping to two lines, on all four sides of the
+           picture — that was texture. But the fix for that is not to hide them;
+           it is to make them cost less. One line, no wrap, a single hairline
+           separator instead of two boxed chips, and a third of the ink of the
+           title above. At that weight a tag is a caption, not a second row of
+           content, and the ring reads as sixteen named things with a discipline
+           attached rather than as thirty-two strings.
+
+           They are also load-bearing now. The list used to be sorted into three
+           disciplines with headers; it is sorted by importance instead, so the
+           tags are the only thing left saying what kind of work a piece is. */
         .works-split .works-list > a.works-list-item .wli-pills {
           display: flex;
-          flex-wrap: wrap;
-          gap: 4px 8px;
-          opacity: 0;
-          visibility: hidden;
+          flex-wrap: nowrap;
+          gap: 0 6px;
+          margin-top: 3px;
+          opacity: 0.42;
+          visibility: visible;
           transform: none;
-          transition:
-            opacity 260ms cubic-bezier(0.16, 1, 0.3, 1),
-            visibility 0s linear 260ms;
+          white-space: nowrap;
+          overflow: hidden;
+          transition: opacity 260ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .works-split .works-list > a.works-list-item .wli-pill {
+          padding: 0;
+          border: 0;
+          background: none;
+          font: var(--type-micro);
+          letter-spacing: var(--track-micro);
+          text-transform: uppercase;
+          color: inherit;
+        }
+        /* A middot between tags, never after the last one. Two boxed chips at
+           this size were four borders and eight paddings competing with the
+           title for a 170px column. */
+        .works-split .works-list > a.works-list-item .wli-pill + .wli-pill::before {
+          content: "·";
+          margin-right: 6px;
+          opacity: 0.7;
         }
         .works-split .works-list > a.works-list-item.is-active .wli-pills,
         .works-split .works-list > a.works-list-item:hover .wli-pills,
         .works-split .works-list > a.works-list-item:focus-visible .wli-pills {
-          opacity: 1;
-          visibility: visible;
-          transition-delay: 0s, 0s;
+          opacity: 0.92;
         }
 
         /* ── STRUCTURE ────────────────────────────────────────────────────
@@ -5669,8 +5700,19 @@
            of each lane carries a longer, brighter rule, so the three seams
            are findable from across the page. The lane legend stays deleted;
            a colour that has to be explained in a key is not doing its job. */
+        /* The lane hue is retired with the lanes. The ordinals ran in three
+           coloured groups because the ring ran in three disciplines; ordered by
+           importance instead, those colours would scatter across the ring in no
+           pattern at all — three hues shuffled sixteen ways, which is worse than
+           no colour because it looks like it means something. One quiet ink, and
+           the tags underneath carry the discipline. */
         .works-split .works-list > a.works-list-item .wli-content::before {
-          color: var(--lane-hue, rgba(255, 255, 255, 0.55));
+          /* Back through --lane-hue, which the second-pass block below now sets
+             to one theme-aware ink for every item. Hardcoding white here was the
+             fix's own bug: on cream it painted the ordinals at 0.5 white, which
+             is to say not at all — only "01" was visible, and that only because
+             it carries extra opacity as the opener. */
+          color: var(--lane-hue, rgba(255, 255, 255, 0.5));
           opacity: 0.72;
           transition:
             opacity 260ms ease,
@@ -5681,14 +5723,19 @@
           color: var(--lane-hue, rgba(255, 255, 255, 0.9));
           opacity: 1;
         }
-        /* The three lane openers: 01 product, 06 AI, 12 culture. */
-        .works-split .works-list > a.works-list-item:nth-of-type(1)::before,
-        .works-split .works-list > a.works-list-item:nth-of-type(6)::before,
-        .works-split .works-list > a.works-list-item:nth-of-type(12)::before {
-          width: 46px;
-          opacity: 0.85;
-          height: 2px;
+        /* The lane openers are retired with the lanes. These marked the first
+           item of each discipline with a longer, brighter rule so the three
+           seams were findable; ordered by importance there are no seams, and a
+           heavier rule at 01, 06 and 12 would be pointing at nothing. Item 01
+           keeps a touch of extra presence, because it is now the strongest
+           piece rather than merely the first one filed. */
+        .works-split .works-list > a.works-list-item:nth-of-type(1)::before {
+          width: 34px;
+          opacity: 0.8;
         }
+        /* Opacity lives on .wli-pills now, not on each pill — two nested
+           opacities multiplied to 0.42 x 0.52 = 0.22, which at 11px on a dark
+           plate measured under 2:1 and simply was not there. */
         .works-split .works-list > a.works-list-item .wli-pill {
           font: var(--type-micro);
           letter-spacing: var(--track-micro);
@@ -5696,11 +5743,11 @@
           padding: 0;
           border: 0;
           background: none;
-          opacity: 0.52;
+          opacity: 1;
         }
         .works-split .works-list > a.works-list-item.is-active .wli-pill,
         .works-split .works-list > a.works-list-item:hover .wli-pill {
-          opacity: 0.86;
+          opacity: 1;
           background: none;
           border: 0;
         }
@@ -6131,6 +6178,351 @@
         }
       }
 
+      /* ══ THE RING, SECOND PASS ══════════════════════════════════════════
+         Everything in this block is a correction to the block above, kept
+         separate and last on purpose: source order is what settles ties, and
+         several of these have to beat :nth-of-type selectors that are one
+         class longer than a plain item selector.
+
+         What changed underneath them: the sixteen are ordered by importance
+         now rather than sorted into three disciplines, so every rule that
+         encoded "which lane is this" is encoding a fact that no longer
+         exists. */
+      @media (min-width: 1220px) and (min-height: 840px) {
+        /* One ink for the rails and ordinals. The lane hues ran 01-05 blue,
+           06-11 amber, 12-16 rose because the ring ran in three lanes; against
+           an importance order they would land on 01, 06 and 12 for no reason a
+           reader could ever recover. Written through [data-title] so it
+           outweighs the :nth-of-type pairs above without touching them. */
+        .works-split .works-list > a.works-list-item[data-title] {
+          --lane-hue: rgba(255, 255, 255, 0.45);
+        }
+        html[data-theme="light"] .works-split .works-list > a.works-list-item[data-title] {
+          /* 0.42 measured under 2:1 on cream once the ordinal's own 0.72
+             opacity had multiplied it down — only "01" was legible and the
+             other fifteen numbers were decoration. */
+          --lane-hue: rgba(16, 26, 44, 0.72);
+        }
+
+        /* The right column grows the wrong way. Both side columns were set
+           left-aligned, so on the right the tag rows ran off the page — at 1512
+           "HEALTHCARE · ENTERPRISE UX" reached x1520 and was cut mid-word by the
+           viewport edge. Right-aligned, the text grows inward toward the
+           picture, which is also the direction the eye is already travelling. */
+        .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8) {
+          text-align: right;
+        }
+        .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8) .wli-content,
+        .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8) .wli-pills {
+          align-items: flex-end;
+          justify-content: flex-end;
+        }
+        .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8)::before {
+          left: auto;
+          right: 0;
+        }
+
+        /* One tag at rest, two on hover.
+
+           A 170px column cannot hold "ILLUSTRATION · VISUAL DIARY" at 11px
+           mono, and every way of fitting it is worse than not fitting it:
+           wrapping brings back the two-line texture the ring was rebuilt to
+           remove, ellipsis does not apply to a flex container, and a fade mask
+           — which I tried first — has the wrong failure on the right column,
+           where right-aligned content overflows leftward and the mask eats the
+           *first* tag rather than the last.
+
+           The honest fix is to show less. The first tag is the discipline and
+           the second is the qualifier; at a glance you need the discipline. The
+           qualifier arrives on the item you are pointing at, which is the only
+           one whose second tag you were ever going to read. The column is a
+           fixed width, so the item growing costs nothing outside itself. */
+        .works-split .works-list > a.works-list-item[data-title] .wli-pill + .wli-pill {
+          display: none;
+        }
+        .works-split .works-list > a.works-list-item[data-title].is-active .wli-pill + .wli-pill,
+        .works-split .works-list > a.works-list-item[data-title]:hover .wli-pill + .wli-pill,
+        .works-split .works-list > a.works-list-item[data-title]:focus-visible .wli-pill + .wli-pill {
+          display: inline;
+        }
+
+        /* ══ THE OTHER VIEW ═══════════════════════════════════════════════
+           Sid: "so it can be two views. One could be a list view where we have
+           left all the titles, and then on the right, we have the preview image
+           like we had it earlier. And you can also have this type of view."
+
+           The list view is not a new layout — it is the layout this page had
+           before the ring, and it still exists intact below 1220px, which is
+           where the ring's media query stops. So this block does not build
+           anything; it switches the ring off above that floor, and everything
+           the old rules say comes back on its own.
+
+           Switching it off is the awkward part, because a media query cannot
+           test a class. Every ring rule that has to be beaten is beaten by
+           specificity: prefixing with html.wv-list adds a type and a class, so
+           these outrank their counterparts above even where those carry
+           !important — which most of the plate rules do, since the plate had to
+           win against the pre-ring layout in the first place.
+
+           The choice is remembered, because a view preference that resets on
+           every navigation is not a preference, it is a toy. */
+        html.wv-list .works-split {
+          display: grid !important;
+          grid-template-columns: minmax(320px, 0.86fr) minmax(0, 1.72fr) !important;
+          grid-template-rows: auto !important;
+          column-gap: clamp(28px, 3.4vw, 68px) !important;
+          row-gap: 0 !important;
+          align-items: start !important;
+          height: auto !important;
+          min-height: 0 !important;
+          overflow: visible !important;
+          padding: clamp(30px, 3.2vh, 44px) clamp(20px, 3vw, 56px) clamp(64px, 8vh, 120px) !important;
+          width: min(1600px, 100%) !important;
+        }
+        /* display:contents is what dissolved the list so its children could be
+           placed around the ring. It has to become a box again. */
+        html.wv-list .works-split > .works-list {
+          display: block !important;
+          grid-column: 1 !important;
+          grid-row: auto !important;
+        }
+        html.wv-list .works-split .works-list > .works-list-head {
+          grid-column: auto !important;
+          grid-row: auto !important;
+          display: flex !important;
+          margin-bottom: var(--sp-6) !important;
+        }
+        html.wv-list .works-split .works-list > a.works-list-item[data-title] {
+          grid-column: auto !important;
+          grid-row: auto !important;
+          /* The ordinal is a ::before on .wli-content, not a grid child, so a
+             34px first track handed that column to .wli-content itself and every
+             title wrapped inside 34 pixels — "M / Health / Fairview". The two
+             real children are the content and the year. */
+          display: grid !important;
+          grid-template-columns: minmax(0, 1fr) auto !important;
+          align-items: baseline !important;
+          column-gap: var(--sp-5) !important;
+          text-align: left !important;
+          padding: var(--sp-4) 0 var(--sp-4) !important;
+          animation: none !important;
+          transform: none !important;
+        }
+        html.wv-list .works-split .works-list > a.works-list-item[data-title] .wli-name {
+          white-space: normal !important;
+          font-size: 24px !important;
+          line-height: 1.2 !important;
+        }
+        /* Both tags in the list view. There is a full column of width here and
+           no picture to crowd — the reason for showing one was the 170px rail
+           in the ring, and that reason is gone. */
+        html.wv-list .works-split .works-list > a.works-list-item[data-title] .wli-pill + .wli-pill {
+          display: inline !important;
+        }
+        html.wv-list .works-split .works-list > a.works-list-item[data-title] .wli-pills {
+          opacity: 0.55 !important;
+        }
+        html.wv-list .works-split .works-list > a.works-list-item[data-title]:hover .wli-pills,
+        html.wv-list .works-split .works-list > a.works-list-item[data-title].is-active .wli-pills {
+          opacity: 0.95 !important;
+        }
+        /* Undo the ring's right column. Four of the sixteen are right-aligned
+           up there so they grow inward toward the picture; in a single left-hand
+           list that makes items 05 to 08 hang off the wrong edge. The item rule
+           alone was not enough — the alignment lives on .wli-content and
+           .wli-pills as flex-end, which nothing above touches. */
+        html.wv-list .works-split .works-list > a.works-list-item[data-title],
+        html.wv-list .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8) {
+          text-align: left !important;
+        }
+        html.wv-list .works-split .works-list > a.works-list-item[data-title] .wli-content,
+        html.wv-list .works-split .works-list > a.works-list-item[data-title] .wli-pills,
+        html.wv-list .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8) .wli-content,
+        html.wv-list .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8) .wli-pills {
+          align-items: flex-start !important;
+          justify-content: flex-start !important;
+        }
+        html.wv-list .works-split .works-list > a.works-list-item[data-title]::before,
+        html.wv-list .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8)::before {
+          left: 0 !important;
+          right: auto !important;
+        }
+
+        /* The preview goes back to being a sticky panel in the right column,
+           which is what "like we had it earlier" means: the titles scroll, the
+           picture stays. */
+        html.wv-list .works-split > .works-preview {
+          grid-column: 2 !important;
+          grid-row: 1 !important;
+          position: sticky !important;
+          top: calc(var(--nav-h, 64px) + var(--sp-5)) !important;
+          display: block !important;
+          height: auto !important;
+          align-self: start !important;
+        }
+        html.wv-list .works-split .wp-media {
+          width: 100% !important;
+          height: auto !important;
+          aspect-ratio: 16 / 9 !important;
+          max-height: none !important;
+        }
+        /* The caption is absolutely positioned onto the plate in the ring —
+           that is where the overlay lives. Setting position:static was not
+           enough on its own: the inset values survive and Chromium keeps
+           resolving them, so the block landed at x97 in the middle of the title
+           column. inset:auto is the part that actually detaches it. */
+        html.wv-list .works-split .wp-body {
+          position: static !important;
+          inset: auto !important;
+          top: auto !important;
+          right: auto !important;
+          bottom: auto !important;
+          left: auto !important;
+          transform: none !important;
+          width: 100% !important;
+          max-width: none !important;
+          margin: var(--sp-5) 0 0 !important;
+          padding: 0 !important;
+          background: none !important;
+          backdrop-filter: none !important;
+        }
+
+        /* The caption comes off the picture and onto the page.
+
+           In the ring the title, description and call to action are an overlay
+           printed on the plate, so they are set in near-white constants — the
+           right choice over a photograph in either theme. In list view they sit
+           under the plate on the page's own ground, where near-white on cream
+           measured about 1.3:1. Theme ink, not constants, and the pills lose the
+           on-media treatment with them. */
+        html.wv-list .works-split .wp-title {
+          color: var(--ink) !important;
+        }
+        html.wv-list .works-split .wp-desc {
+          color: rgba(255, 255, 255, var(--ink-2, 0.82)) !important;
+        }
+        html[data-theme="light"].wv-list .works-split .wp-desc {
+          color: rgba(16, 22, 34, 0.82) !important;
+        }
+        html.wv-list .works-split .wp-pill,
+        html.wv-list .works-split .wp-cta {
+          color: rgba(255, 255, 255, var(--ink-3, 0.64)) !important;
+          text-shadow: none !important;
+        }
+        html[data-theme="light"].wv-list .works-split .wp-pill,
+        html[data-theme="light"].wv-list .works-split .wp-cta {
+          color: rgba(16, 22, 34, 0.72) !important;
+        }
+
+        /* ── THE SWITCH ────────────────────────────────────────────────────
+           Two words and a hairline under the live one. Deliberately not a pair
+           of icon buttons in a segmented control: the masthead is a 21px label
+           and a 9px count, and a bordered widget beside them would be the
+           heaviest object in the row — on a page whose complaint was that the
+           chrome was eating the picture. */
+        .works-view {
+          display: flex;
+          align-items: baseline;
+          gap: var(--sp-3);
+          margin-left: auto;
+        }
+        .works-view button {
+          appearance: none;
+          border: 0;
+          background: none;
+          padding: 0 0 3px;
+          font: var(--type-micro);
+          letter-spacing: var(--track-micro);
+          text-transform: uppercase;
+          color: inherit;
+          opacity: 0.44;
+          cursor: pointer;
+          border-bottom: 1px solid transparent;
+          transition:
+            opacity 240ms ease,
+            border-color 240ms ease;
+        }
+        .works-view button:hover {
+          opacity: 0.78;
+        }
+        .works-view button[aria-pressed="true"] {
+          opacity: 0.96;
+          border-bottom-color: currentColor;
+        }
+
+        /* ── THE RING TURNS ───────────────────────────────────────────────
+           Sid: "you can make the things rotate slowly, all the names."
+
+           Not a rotation of the grid — turning the whole frame would tilt the
+           type off the horizontal and put a 16-item index at an angle nobody
+           can read, and it would take the picture with it. What turns is each
+           name's *position on its own rail*: every item drifts a few pixels
+           around the ring on a long, slow cycle, in the direction that item
+           sits relative to the picture. Top row travels right, bottom row left,
+           left column down, right column up — so the sixteen read as one slow
+           circulation around the plate rather than sixteen things wobbling.
+
+           68 seconds for a full cycle and a maximum of 7px of travel. It should
+           register as "this page is breathing" on a second look, not as motion
+           on the first. Transform only, so nothing reflows and nothing repaints
+           beyond a composited layer. */
+        @keyframes wli-orbit-x {
+          0%,
+          100% {
+            transform: translate3d(calc(var(--orb, 1) * -7px), 0, 0);
+          }
+          50% {
+            transform: translate3d(calc(var(--orb, 1) * 7px), 0, 0);
+          }
+        }
+        @keyframes wli-orbit-y {
+          0%,
+          100% {
+            transform: translate3d(0, calc(var(--orb, 1) * -6px), 0);
+          }
+          50% {
+            transform: translate3d(0, calc(var(--orb, 1) * 6px), 0);
+          }
+        }
+        .works-split .works-list > a.works-list-item[data-title] {
+          animation: wli-orbit-x 68s ease-in-out infinite;
+          animation-delay: calc(var(--wli-i, 0) * -4.25s);
+        }
+        /* The two side columns travel vertically instead, which is what makes
+           the set read as a circuit rather than as a row sliding. */
+        .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 5):nth-of-type(-n + 8),
+        .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 13) {
+          animation-name: wli-orbit-y;
+        }
+        /* Bottom row and left column run the cycle inverted, so opposite sides
+           of the ring are always moving in opposite directions. */
+        .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 9):nth-of-type(-n + 12),
+        .works-split .works-list > a.works-list-item[data-title]:nth-of-type(n + 13) {
+          --orb: -1;
+        }
+        /* Pointing at something stops it. A name that keeps drifting while you
+           are trying to click it is a moving target, and the whole ring pauses
+           rather than just the one item, because one still name among fifteen
+           moving ones is more distracting than either state on its own. */
+        .works-split .works-list:hover > a.works-list-item[data-title],
+        .works-split .works-list:focus-within > a.works-list-item[data-title] {
+          animation-play-state: paused;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .works-split .works-list > a.works-list-item[data-title] {
+            animation: none;
+          }
+        }
+      }
+
+      /* Below the ring's floor there is only one layout, so there is nothing
+         to switch between and the control would be a lie. */
+      @media (max-width: 1219px), (max-height: 839px) {
+        .works-view {
+          display: none;
+        }
+      }
+
       /* Below the ring's floor the page is still the list-and-panel layout it
          was, unchanged: `display: contents` is inside the query, so the list
          goes back to being a real box and every rule above this block applies
@@ -6152,35 +6544,33 @@
           <div class="works-list-head">
             <p class="works-list-title">Selected work</p>
             <p class="works-list-count">16 works</p>
-          </div>
-          <div class="works-product-path" aria-label="Recruiter fast lane">
-            <p class="works-product-path__label">Recruiter fast lane</p>
-            <div class="works-product-path__links">
-              <a href="{{ site.baseurl }}/mool/">Mool</a>
-              <a href="{{ site.baseurl }}/ai-prototypes/">2026 AI Experiments</a>
-              <a href="{{ site.baseurl }}/encoded/">Encoded</a>
+            <div class="works-view" role="group" aria-label="Layout">
+              <button type="button" data-view="ring" aria-pressed="true">Ring</button>
+              <button type="button" data-view="list" aria-pressed="false">List</button>
             </div>
-            <p class="works-product-path__note">
-              If you only read three: product thinking, coded interaction, and shipped proof. The lanes below are the full practice.
-            </p>
           </div>
-          <div class="works-lane" data-pillar="product">
-            <div class="works-lane__row">
-              <h2 class="works-lane__name"><span class="works-lane__idx">01</span>Product design</h2>
-              <span class="works-lane__count">5 works</span>
-            </div>
-            <p class="works-lane__note">Interfaces and systems shipped for fintech, healthcare and hospitality teams.</p>
-          </div>
+          <!-- ── ORDER OF IMPORTANCE ────────────────────────────────────────────
+               Sid: "Recruiter Fastlane also is not making sense. Let's just
+               arrange the names in order of importance."
 
-          <!-- Every other stage in this list is a near-black tint of its own
-               project's hue: #1a1500, #0d0d1a, #3a0d16, #0d1535. Mool alone was
-               #1a237e, a fully saturated indigo roughly three times brighter and
-               five times more chromatic than any sibling. Because Mool is first,
-               that outlier was the default preview and therefore the first
-               impression of the whole stage — a bright blue rectangle on a cream
-               page rather than a dark theatre a cover hangs inside. Kept the
-               bluest reading of the set, since Mool is the trust-and-banking
-               story, but brought it into the same register as the rest. -->
+               Two structures went to make room for one. The fast lane was a
+               separate block above the list naming three projects and then
+               saying "the lanes below are the full practice" — so the page
+               ranked the work twice, once explicitly and once by discipline,
+               and the two rankings disagreed. And the three lane headers
+               (Product design / AI / Culture) sorted sixteen projects into
+               buckets nobody asked for: a visitor does not arrive wanting the
+               AI shelf, they arrive wanting the best thing first.
+
+               So there is one list in one order, and the order is an argument:
+               shipped product with numbers on it, then the current coded work,
+               then the awarded work, then explorations, then craft. Mool leads
+               because it is the only piece here with a hundred thousand users
+               and a Kyoorius behind it. Illustrations closes because it is the
+               truest and the least hireable.
+
+               The ordinals in the ring now mean something they did not before —
+               01 is the strongest piece, not the first one filed. -->
           <a
             class="works-list-item"
             href="{{ site.baseurl }}/mool/"
@@ -6207,45 +6597,68 @@
 
           <a
             class="works-list-item"
-            href="{{ site.baseurl }}/aananda/"
-            data-cat="branding"
-            data-title="Aananda"
-            data-desc="Jain philosophy for younger audiences across a mobile app, temple-inspired book, and QR installations."
-            data-year="2020"
-            data-bg="radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)"
-            data-img="{{ site.baseurl }}/9.aananda/cover.webp"
-            data-preview="image:{{ site.baseurl }}/9.aananda/cover.webp|image:{{ site.baseurl }}/9.aananda/24.1.webp|image:{{ site.baseurl }}/9.aananda/8.webp"
-            data-role="Designer"
-            data-proof="App · book · print identity system"
+            href="{{ site.baseurl }}/ai-prototypes/"
+            data-cat="research xr ui"
+            data-title="2026 AI Experiments"
+            data-desc="Prototyping how local AI can feel understandable, controllable, and useful in an interface."
+            data-year="2025"
+            data-bg="radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)"
+            data-img="{{ site.baseurl }}/assets/img/ai-proto-cover.jpg"
+            data-preview="image:{{ site.baseurl }}/assets/img/ai-proto-cover.jpg|image:{{ site.baseurl }}/ai-prototypes/latent-atlas/assets/cover-iHsdcUBA.png"
+            data-role="Designer · Developer · Researcher"
+            data-proof="11 live in-browser AI experiments"
           >
             <div class="wli-content">
-              <span class="wli-name">Aananda</span>
-              <div class="wli-pills"><span class="wli-pill">Branding</span><span class="wli-pill">App Design</span></div>
+              <span class="wli-name">2026 AI Experiments</span>
+              <div class="wli-pills"><span class="wli-pill">WebGPU</span><span class="wli-pill">In-browser AI</span></div>
             </div>
             <div class="wli-right">
-              <span class="wli-year"><b data-roll="2020">2020</b></span>
+              <span class="wli-year"><b data-roll="2025">2025</b></span>
             </div>
           </a>
 
           <a
             class="works-list-item"
-            href="{{ site.baseurl }}/alpha-stockathon/"
-            data-cat="ui game"
-            data-title="Alpha Stockathon"
-            data-desc="Gamified desktop app teaching the stock market through a pixel-art world, one concept per level."
-            data-year="2021"
-            data-bg="radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)"
-            data-img="{{ site.baseurl }}/10.alpha/cover.webp"
-            data-preview="image:{{ site.baseurl }}/10.alpha/cover.webp|image:{{ site.baseurl }}/10.alpha/24.1.png|image:{{ site.baseurl }}/10.alpha/27.1.webp"
-            data-role="Designer"
-            data-proof="3-day learning game prototype"
+            href="{{ site.baseurl }}/encoded/"
+            data-cat="xr"
+            data-title="Encoded"
+            data-desc="Making 25 works at the Met discoverable through a location-aware AR experience."
+            data-year="2025"
+            data-bg="radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
+            data-img="{{ site.baseurl }}/1.met/0.webp"
+            data-preview="image:{{ site.baseurl }}/1.met/0.webp|image:{{ site.baseurl }}/1.met/12.webp|image:{{ site.baseurl }}/1.met/1.webp"
+            data-role="Creative Technologist"
+            data-proof="25 artworks · 2,000+ activations"
+            data-badge-img="{{ site.baseurl }}/assets/img/badge_webby.webp"
+            data-badge-label="Webby × 2 · 2026"
           >
             <div class="wli-content">
-              <span class="wli-name">Alpha Stockathon</span>
-              <div class="wli-pills"><span class="wli-pill">UI</span><span class="wli-pill">Gamification</span></div>
+              <span class="wli-name">Encoded</span>
+              <div class="wli-pills"><span class="wli-pill">AR</span><span class="wli-pill">Exhibition</span></div>
             </div>
             <div class="wli-right">
-              <span class="wli-year"><b data-roll="2021">2021</b></span>
+              <span class="wli-year"><b data-roll="2025">2025</b></span>
+            </div>
+          </a>
+
+          <a
+            class="works-list-item"
+            href="{{ site.baseurl }}/mandalas/"
+            data-cat="installation"
+            data-title="Bloom; who are you"
+            data-desc="Generative mandalas, layered audio, and a darkened room designed for stillness."
+            data-year="2025"
+            data-bg="radial-gradient(ellipse at 50% 50%, #1a0d24 0%, #0d0518 50%, #030108 100%)"
+            data-preview="image:{{ site.baseurl }}/4.mandala/cover.jpg|image:{{ site.baseurl }}/4.mandala/j.webp|image:{{ site.baseurl }}/4.mandala/13.1.webp"
+            data-role="Solo designer · developer"
+            data-proof="Generative thesis installation"
+          >
+            <div class="wli-content">
+              <span class="wli-name">Bloom; who are you</span>
+              <div class="wli-pills"><span class="wli-pill">Installation</span><span class="wli-pill">TouchDesigner</span></div>
+            </div>
+            <div class="wli-right">
+              <span class="wli-year"><b data-roll="2025">2025</b></span>
             </div>
           </a>
 
@@ -6293,79 +6706,69 @@
             </div>
           </a>
 
-          <div class="works-lane" data-pillar="ai">
-            <div class="works-lane__row">
-              <h2 class="works-lane__name"><span class="works-lane__idx">02</span>AI &amp; creative tech</h2>
-              <span class="works-lane__count">6 works</span>
-            </div>
-            <p class="works-lane__note">Spatial, AR and in-browser AI work, designed and built by the same person.</p>
-          </div>
-
           <a
             class="works-list-item"
-            href="{{ site.baseurl }}/encoded/"
-            data-cat="xr"
-            data-title="Encoded"
-            data-desc="Making 25 works at the Met discoverable through a location-aware AR experience."
-            data-year="2025"
-            data-bg="radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
-            data-img="{{ site.baseurl }}/1.met/0.webp"
-            data-preview="image:{{ site.baseurl }}/1.met/0.webp|image:{{ site.baseurl }}/1.met/12.webp|image:{{ site.baseurl }}/1.met/1.webp"
-            data-role="Creative Technologist"
-            data-proof="25 artworks · 2,000+ activations"
-            data-badge-img="{{ site.baseurl }}/assets/img/badge_webby.webp"
-            data-badge-label="Webby × 2 · 2026"
+            href="{{ site.baseurl }}/alpha-stockathon/"
+            data-cat="ui game"
+            data-title="Alpha Stockathon"
+            data-desc="Gamified desktop app teaching the stock market through a pixel-art world, one concept per level."
+            data-year="2021"
+            data-bg="radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)"
+            data-img="{{ site.baseurl }}/10.alpha/cover.webp"
+            data-preview="image:{{ site.baseurl }}/10.alpha/cover.webp|image:{{ site.baseurl }}/10.alpha/24.1.png|image:{{ site.baseurl }}/10.alpha/27.1.webp"
+            data-role="Designer"
+            data-proof="3-day learning game prototype"
           >
             <div class="wli-content">
-              <span class="wli-name">Encoded</span>
-              <div class="wli-pills"><span class="wli-pill">AR</span><span class="wli-pill">Exhibition</span></div>
+              <span class="wli-name">Alpha Stockathon</span>
+              <div class="wli-pills"><span class="wli-pill">UI</span><span class="wli-pill">Gamification</span></div>
             </div>
             <div class="wli-right">
-              <span class="wli-year"><b data-roll="2025">2025</b></span>
+              <span class="wli-year"><b data-roll="2021">2021</b></span>
             </div>
           </a>
 
           <a
             class="works-list-item"
-            href="{{ site.baseurl }}/ai-prototypes/"
-            data-cat="research xr ui"
-            data-title="2026 AI Experiments"
-            data-desc="Prototyping how local AI can feel understandable, controllable, and useful in an interface."
-            data-year="2025"
-            data-bg="radial-gradient(ellipse at 50% 42%, #0d0a12 0%, #07040c 55%, #030109 100%)"
-            data-img="{{ site.baseurl }}/assets/img/ai-proto-cover.jpg"
-            data-preview="image:{{ site.baseurl }}/assets/img/ai-proto-cover.jpg|image:{{ site.baseurl }}/ai-prototypes/latent-atlas/assets/cover-iHsdcUBA.png"
-            data-role="Designer · Developer · Researcher"
-            data-proof="11 live in-browser AI experiments"
+            href="{{ site.baseurl }}/aananda/"
+            data-cat="branding"
+            data-title="Aananda"
+            data-desc="Jain philosophy for younger audiences across a mobile app, temple-inspired book, and QR installations."
+            data-year="2020"
+            data-bg="radial-gradient(ellipse at 35% 65%, #1a1500 0%, #0d0b00 50%, #050400 100%)"
+            data-img="{{ site.baseurl }}/9.aananda/cover.webp"
+            data-preview="image:{{ site.baseurl }}/9.aananda/cover.webp|image:{{ site.baseurl }}/9.aananda/24.1.webp|image:{{ site.baseurl }}/9.aananda/8.webp"
+            data-role="Designer"
+            data-proof="App · book · print identity system"
           >
             <div class="wli-content">
-              <span class="wli-name">2026 AI Experiments</span>
-              <div class="wli-pills"><span class="wli-pill">WebGPU</span><span class="wli-pill">In-browser AI</span></div>
+              <span class="wli-name">Aananda</span>
+              <div class="wli-pills"><span class="wli-pill">Branding</span><span class="wli-pill">App Design</span></div>
             </div>
             <div class="wli-right">
-              <span class="wli-year"><b data-roll="2025">2025</b></span>
+              <span class="wli-year"><b data-roll="2020">2020</b></span>
             </div>
           </a>
 
           <a
             class="works-list-item"
-            href="{{ site.baseurl }}/bloom/"
-            data-cat="xr installation"
-            data-title="Bodhi"
-            data-desc="A Vision Pro app placing an AI-inhabited bodhi tree in your room, asking who you are."
-            data-year="2025-26"
-            data-bg="radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)"
-            data-img="{{ site.baseurl }}/15.bloom-vp/cover.jpg"
-            data-preview="image:{{ site.baseurl }}/15.bloom-vp/poster.jpg|image:{{ site.baseurl }}/15.bloom-vp/cover.jpg|image:{{ site.baseurl }}/15.bloom-vp/altar.jpg"
-            data-role="Designer · Developer · Researcher"
-            data-proof="Solo MFA thesis · visionOS"
+            href="{{ site.baseurl }}/naavo/"
+            data-cat="branding"
+            data-title="Naavo"
+            data-desc="Ayurveda for a modern audience: rooted but fresh, not clinical, not traditional."
+            data-year="2020"
+            data-bg="radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)"
+            data-img="{{ site.baseurl }}/7.naavo/cover.webp"
+            data-preview="image:{{ site.baseurl }}/7.naavo/cover.webp|image:{{ site.baseurl }}/7.naavo/13.3%20solo.webp|image:{{ site.baseurl }}/7.naavo/20.1.webp"
+            data-role="Branding · logo · packaging"
+            data-proof="8-week identity & packaging system"
           >
             <div class="wli-content">
-              <span class="wli-name">Bodhi</span>
-              <div class="wli-pills"><span class="wli-pill">visionOS</span><span class="wli-pill">Spatial AI</span></div>
+              <span class="wli-name">Naavo</span>
+              <div class="wli-pills"><span class="wli-pill">Branding</span><span class="wli-pill">Packaging</span></div>
             </div>
             <div class="wli-right">
-              <span class="wli-year"><b data-roll="2025-26">2025-26</b></span>
+              <span class="wli-year"><b data-roll="2020">2020</b></span>
             </div>
           </a>
 
@@ -6393,27 +6796,6 @@
 
           <a
             class="works-list-item"
-            href="{{ site.baseurl }}/mandalas/"
-            data-cat="installation"
-            data-title="Bloom; who are you"
-            data-desc="Generative mandalas, layered audio, and a darkened room designed for stillness."
-            data-year="2025"
-            data-bg="radial-gradient(ellipse at 50% 50%, #1a0d24 0%, #0d0518 50%, #030108 100%)"
-            data-preview="image:{{ site.baseurl }}/4.mandala/cover.jpg|image:{{ site.baseurl }}/4.mandala/j.webp|image:{{ site.baseurl }}/4.mandala/13.1.webp"
-            data-role="Solo designer · developer"
-            data-proof="Generative thesis installation"
-          >
-            <div class="wli-content">
-              <span class="wli-name">Bloom; who are you</span>
-              <div class="wli-pills"><span class="wli-pill">Installation</span><span class="wli-pill">TouchDesigner</span></div>
-            </div>
-            <div class="wli-right">
-              <span class="wli-year"><b data-roll="2025">2025</b></span>
-            </div>
-          </a>
-
-          <a
-            class="works-list-item"
             href="{{ site.baseurl }}/ai-self/"
             data-cat="xr research"
             data-title="AI Self"
@@ -6432,14 +6814,6 @@
               <span class="wli-year"><b data-roll="2024-25">2024-25</b></span>
             </div>
           </a>
-
-          <div class="works-lane" data-pillar="culture">
-            <div class="works-lane__row">
-              <h2 class="works-lane__name"><span class="works-lane__idx">03</span>Culture, space &amp; image</h2>
-              <span class="works-lane__count">5 works</span>
-            </div>
-            <p class="works-lane__note">Public art, brand and a visual practice that keeps feeding the work above.</p>
-          </div>
 
           <a
             class="works-list-item"
@@ -6465,6 +6839,28 @@
 
           <a
             class="works-list-item"
+            href="{{ site.baseurl }}/bloom/"
+            data-cat="xr installation"
+            data-title="Bodhi"
+            data-desc="A Vision Pro app placing an AI-inhabited bodhi tree in your room, asking who you are."
+            data-year="2025-26"
+            data-bg="radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 100%)"
+            data-img="{{ site.baseurl }}/15.bloom-vp/cover.jpg"
+            data-preview="image:{{ site.baseurl }}/15.bloom-vp/poster.jpg|image:{{ site.baseurl }}/15.bloom-vp/cover.jpg|image:{{ site.baseurl }}/15.bloom-vp/altar.jpg"
+            data-role="Designer · Developer · Researcher"
+            data-proof="Solo MFA thesis · visionOS"
+          >
+            <div class="wli-content">
+              <span class="wli-name">Bodhi</span>
+              <div class="wli-pills"><span class="wli-pill">visionOS</span><span class="wli-pill">Spatial AI</span></div>
+            </div>
+            <div class="wli-right">
+              <span class="wli-year"><b data-roll="2025-26">2025-26</b></span>
+            </div>
+          </a>
+
+          <a
+            class="works-list-item"
             href="{{ site.baseurl }}/cube-guy/"
             data-cat="game"
             data-title="Cube of Creations"
@@ -6481,28 +6877,6 @@
             </div>
             <div class="wli-right">
               <span class="wli-year"><b data-roll="2018-25">2018-25</b></span>
-            </div>
-          </a>
-
-          <a
-            class="works-list-item"
-            href="{{ site.baseurl }}/naavo/"
-            data-cat="branding"
-            data-title="Naavo"
-            data-desc="Ayurveda for a modern audience: rooted but fresh, not clinical, not traditional."
-            data-year="2020"
-            data-bg="radial-gradient(ellipse at 45% 55%, #1a1c14 0%, #0d0e0a 50%, #030302 100%)"
-            data-img="{{ site.baseurl }}/7.naavo/cover.webp"
-            data-preview="image:{{ site.baseurl }}/7.naavo/cover.webp|image:{{ site.baseurl }}/7.naavo/13.3%20solo.webp|image:{{ site.baseurl }}/7.naavo/20.1.webp"
-            data-role="Branding · logo · packaging"
-            data-proof="8-week identity & packaging system"
-          >
-            <div class="wli-content">
-              <span class="wli-name">Naavo</span>
-              <div class="wli-pills"><span class="wli-pill">Branding</span><span class="wli-pill">Packaging</span></div>
-            </div>
-            <div class="wli-right">
-              <span class="wli-year"><b data-roll="2020">2020</b></span>
             </div>
           </a>
 
@@ -6600,17 +6974,86 @@
                 ><span id="wp-cta-label">View project</span><span class="xarrow xarrow--right" aria-hidden="true"></span
               ></a>
             </div>
-            <div class="wp-facts" aria-label="Project quick facts">
-              <div class="wp-fact"><span class="wp-fact-label">Role</span><span class="wp-fact-value" id="wp-role">Visual Designer</span></div>
-              <div class="wp-fact">
-                <span class="wp-fact-label">Proof</span><span class="wp-fact-value" id="wp-proof">100k+ downloads · Kyoorius winner</span>
-              </div>
-            </div>
+            <!-- Role and Proof are gone. Sid: "I don't want to show role
+                 designer proof. Let's just have, like, a simple title."
+
+                 They were a two-row fact table pinned to the right of the
+                 overlay, which meant that at any moment the plate carried a
+                 title, a description, two tag pills, a call to action, a media
+                 counter, an award note and then two more labelled fields — nine
+                 pieces of type over one photograph. And the answer was the same
+                 every time on the pieces that matter: Designer. A field whose
+                 value never varies is not information.
+
+                 The values still ride on the list items as data-role and
+                 data-proof; nothing reads them now, and they are left in place
+                 because the case-study pages are the right home for that kind
+                 of claim if it comes back. -->
           </div>
         </div>
         <!-- /works-preview -->
       </div>
       <!-- /works-split -->
+
+      <script>
+        /* The view switch. The class goes on <html> rather than on the split,
+           because the CSS that has to be outranked is written against
+           .works-split and beating it needs an ancestor the ring rules do not
+           mention. Remembered in localStorage — a view preference that resets
+           on every navigation is not a preference.
+
+           Applied as early as this script runs rather than on DOMContentLoaded,
+           so a reader who chose the list does not watch the ring assemble and
+           then collapse. */
+        (function () {
+          var root = document.documentElement;
+          var KEY = "sid:works-view";
+          var buttons = document.querySelectorAll(".works-view button");
+          if (!buttons.length) return;
+
+          function apply(view, persist) {
+            root.classList.toggle("wv-list", view === "list");
+            for (var i = 0; i < buttons.length; i++) {
+              buttons[i].setAttribute("aria-pressed", String(buttons[i].dataset.view === view));
+            }
+            if (persist) {
+              try {
+                localStorage.setItem(KEY, view);
+              } catch (e) {}
+            }
+            /* The plate measures itself off its own box, and in list view that
+               box is a different shape. The ResizeObserver that drives --plate-w
+               fires on its own, but the WebGL surface needs a resize event to
+               re-read the canvas backing store. */
+            window.dispatchEvent(new Event("resize"));
+          }
+
+          var saved = null;
+          try {
+            saved = localStorage.getItem(KEY);
+          } catch (e) {}
+          if (saved === "list") apply("list", false);
+
+          for (var i = 0; i < buttons.length; i++) {
+            buttons[i].addEventListener("click", function () {
+              apply(this.dataset.view, true);
+            });
+          }
+        })();
+
+        /* Each item's place in the ring, handed to CSS as --wli-i so the orbit
+           animation can offset its delay. Sixteen items over a 68s cycle at
+           -4.25s a step means the ring is never in phase with itself: at any
+           moment the sixteen are spread evenly around the loop, which is what
+           makes it read as circulation rather than as everything sliding one
+           way and then back. Written from script rather than sixteen inline
+           styles because the value is just the index, and an index that has to
+           be maintained by hand is an index that will drift from the DOM. */
+        (function () {
+          var items = document.querySelectorAll(".works-list .works-list-item");
+          for (var i = 0; i < items.length; i++) items[i].style.setProperty("--wli-i", i);
+        })();
+      </script>
 
       <!-- (End-of-list "Got something to make?" CTA removed — footer's "Get in touch" already handles
            the closing CTA; back-to-back hero-sized type was clashing. Also kills the small vertical
@@ -7005,6 +7448,10 @@
         var wpPills = document.getElementById("wp-pills");
         var wpTitle = document.getElementById("wp-title");
         var wpDesc = document.getElementById("wp-desc");
+        /* The two fact fields were removed from the overlay; these lookups
+           return null now and every write below is guarded, so the preview
+           updater keeps its shape without a null-dereference the first time a
+           card is hovered. */
         var wpRole = document.getElementById("wp-role");
         var wpProof = document.getElementById("wp-proof");
         var wpCta = document.getElementById("wp-cta");
@@ -7035,8 +7482,8 @@
         if (animate) {
           wpTitle.textContent = title;
           wpDesc.textContent = desc;
-          wpRole.textContent = role;
-          wpProof.textContent = proof;
+          if (wpRole) wpRole.textContent = role;
+          if (wpProof) wpProof.textContent = proof;
         }
 
         function doSwap() {
@@ -7099,8 +7546,8 @@
 
           wpTitle.textContent = title;
           wpDesc.textContent = desc;
-          wpRole.textContent = role;
-          wpProof.textContent = proof;
+          if (wpRole) wpRole.textContent = role;
+          if (wpProof) wpProof.textContent = proof;
 
           if (isNda) {
             wpCta.href = "{{ site.baseurl }}/contact/";
@@ -7503,7 +7950,12 @@
            rather than a per-frame decrement so the settle takes the same
            1.15s on a 60Hz panel and a 120Hz one. */
         let introStart = 0;
-        const INTRO_MS = 1150;
+        /* Two durations. The first cover has the page's whole attention and can
+           afford a long materialise; a switch between projects is a response to
+           a hover and has to feel like one, so it runs at about half. */
+        const INTRO_FIRST_MS = 1150;
+        const INTRO_SWAP_MS = 620;
+        let introMs = INTRO_FIRST_MS;
         let intro = 0;
 
         async function setProject(detail) {
@@ -7525,12 +7977,30 @@
             uploadImage(texCur, img);
             mixT = 0;
             transitioning = false;
+            introMs = INTRO_FIRST_MS;
             introStart = reduceMotion.matches ? 0 : performance.now();
             return;
           }
           uploadImage(texNext, img);
           mixT = 0;
           transitioning = true; // animation loop drives mixT 0 -> 1, then swaps
+
+          /* Sid: "you haven't changed the animation for any of the things, like,
+             of how the images show up on the work page."
+
+             He was right and the reason is worth writing down. The intro pass —
+             the shear, the pushed chromatic offset and the noise-driven alpha
+             reveal — only ever fired on the very first cover. Every switch after
+             that was a plain linear crossfade between two textures, which is the
+             one transition that reads as nothing happening: two pictures at 50%
+             opacity are just a blurry picture.
+
+             Running intro on the swap too means the incoming frame materialises
+             through the same reveal it arrived with — the shader blends A into B
+             and then dissolves the result in on a noise gradient, so a change of
+             project reads as the plate re-forming rather than as a dip to grey. */
+          introMs = INTRO_SWAP_MS;
+          introStart = reduceMotion.matches ? 0 : performance.now();
         }
 
         document.addEventListener("works:preview-change", (e) => setProject(e.detail));
@@ -7589,7 +8059,7 @@
           hover += (hoverTarget - hover) * 0.06;
 
           if (introStart) {
-            const k = Math.min(1, (now - introStart) / INTRO_MS);
+            const k = Math.min(1, (now - introStart) / introMs);
             // ease-out cubic: the sheet lurches in and settles rather than
             // arriving at a constant rate, which reads as mechanical.
             intro = Math.pow(1 - k, 3);
