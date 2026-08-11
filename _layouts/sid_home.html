@@ -480,8 +480,28 @@
         gap: clamp(14px, 2.2vw, 30px);
         margin: 0;
       }
+      /* Label above, figure and unit on one baseline below.
+
+         The old block stacked YEARS under 06 and needed a hand-tuned
+         text-indent to stop the mono cap-row hanging left of the numeral's
+         round zero — a correction for a problem the arrangement created. Set
+         side by side on a shared baseline there is nothing to correct: the
+         numeral sits on the baseline, "years" sits on the same baseline, and
+         the label above them starts at the same left edge as both. Sid's word
+         for what was wrong with it was "aligned", and this is what alignment
+         means here — one left edge, one baseline, no optical fudge. */
       .hero__num b {
-        display: block;
+        display: grid;
+        grid-template-areas:
+          "label label"
+          "fig unit";
+        justify-content: start;
+        align-items: baseline;
+        /* 0.16em, not 0.42. The numeral already carries its own right
+           sidebearing — measured, "06" occupies a 112px box for 99px of ink —
+           so a generous gap on top of that set "years" 42px clear of it and the
+           pair stopped reading as one phrase. */
+        column-gap: 0.16em;
         font-size: clamp(3.2rem, 7.4vw, 6.2rem);
         font-weight: 500;
         line-height: 0.78;
@@ -493,22 +513,34 @@
            visibly hanging left of the 06 above it. text-indent moves the
            numeral's own line only, which is exactly the one thing that needed
            moving, and it scales with the clamp because it is in em. */
-        text-indent: -0.025em;
         font-variant-numeric: tabular-nums;
+      }
+      .hero__num b i {
+        grid-area: label;
+        margin-bottom: 0.9em;
+        font-style: normal;
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--home-faint);
+      }
+      .hero__num b u {
+        grid-area: fig;
+        text-decoration: none;
+        line-height: 0.78;
         background: linear-gradient(180deg, var(--home-ink), var(--home-faint));
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
       }
       .hero__num b em {
-        display: block;
-        margin-top: 0.32em;
+        grid-area: unit;
         font-style: normal;
         font-family: "DM Mono", monospace;
         font-size: 10px;
         letter-spacing: 0.2em;
         text-transform: uppercase;
-        -webkit-text-fill-color: var(--home-faint);
         color: var(--home-faint);
       }
       .hero__num span {
@@ -522,8 +554,12 @@
            Measured rather than guessed: with padding at zero the mono line's
            half-leading still drops its cap six pixels below the numeral's, so
            the correction is negative. Ink tops now read 704.9 and 704.9. */
+        /* Aligned to the label above the figure, not to the numeral's cap.
+           With the block now three rows deep on the left, hanging the copy off
+           the numeral put it two-thirds of the way down the group; sitting it
+           on the label's line reads as two columns of one thing. */
         padding-top: 0;
-        margin-top: -0.43em;
+        margin-top: 0;
         color: var(--home-muted);
         font-family: "DM Mono", monospace;
         font-size: clamp(0.76rem, 0.98vw, 0.88rem);
@@ -1374,6 +1410,15 @@
         position: relative;
         border-top: 1px solid var(--home-hair);
         padding-top: 16px;
+        /* --p is written by the scroll handler on .nums and runs -1 → +1 as the
+           row crosses the viewport; --k is this column's rate. */
+        transform: translate3d(0, calc(var(--p, 0) * var(--k, 0) * -1px), 0);
+        will-change: transform;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .num {
+          transform: none;
+        }
       }
 
       /* The hairline above each figure is the only structure this section
@@ -1399,39 +1444,120 @@
         transform: scaleX(1);
       }
 
-      /* A hairline glyph per figure, at the same 1px weight as every rule
-         on this page so it reads as part of the drawing rather than as an
-         icon set bolted on. Each one strokes itself in behind its own
-         column's delay, so the row draws in sequence instead of blinking
-         on. dasharray is set longer than any of these paths, which makes
-         a full offset mean "not yet drawn" whatever the path length. */
+      /* ── HOW THE MARKS BEHAVE ───────────────────────────────────────────
+         Filled pixels, not hairline strokes. The old glyphs were 1px outlines
+         drawn with a dasharray sweep, which is a lovely effect on a signature
+         and the wrong one here: a stroke that draws itself says "this is being
+         written", and these figures are meant to say "this many exist".
+
+         So each pixel scales up from nothing on its own step. --i is the pixel's
+         index within its mark, set in the markup, so the build follows the
+         reading order of the figure — the years climb, the cells fill row by
+         row, the wall hangs top-left to bottom-right. 42ms a step is fast
+         enough that sixteen cells take under 700ms and slow enough that you can
+         see it counting. */
       .num__ico {
         display: block;
-        width: 20px;
-        height: 20px;
+        width: 30px;
+        height: 30px;
         margin-bottom: 16px;
-        color: var(--home-faint);
-        transition:
-          color 400ms ease,
-          transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+        overflow: visible;
+        color: rgb(var(--hue, 108, 182, 255));
+        transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .num__ico path,
-      .num__ico circle,
+      /* Each mark carries two hues, not one dimmed. These colours sit on
+         near-black in dark and on cream in light, and a tint chosen to glow
+         against #07060c is by definition close to white — measured on cream the
+         blue steps and the orange wall were barely separable from the paper.
+         The light pair is the same hue family taken down into ink. */
+      html[data-theme="light"] .num__ico {
+        color: rgb(var(--hue-l, 32, 86, 150));
+      }
+      html[data-theme="light"] .num__ico rect {
+        opacity: 0.86;
+      }
+      html[data-theme="light"] .num__ico rect.is-open,
+      html[data-theme="light"] .num__ico rect.is-frame {
+        opacity: 0.46;
+      }
       .num__ico rect {
+        fill: currentColor;
+        stroke: none;
+        opacity: 0.72;
+        transform: scale(0);
+        transform-box: fill-box;
+        transform-origin: center;
+        transition:
+          transform 520ms cubic-bezier(0.34, 1.56, 0.64, 1),
+          opacity 300ms ease;
+        transition-delay: calc(var(--d, 0ms) + 260ms + var(--i, 0) * 42ms);
+      }
+      .num.in .num__ico rect {
+        transform: scale(1);
+      }
+      /* The two unshipped cells and the picture frame are outlines: present,
+         counted, not filled in. */
+      .num__ico rect.is-open,
+      .num__ico rect.is-frame {
         fill: none;
         stroke: currentColor;
-        stroke-width: 1;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        stroke-dasharray: 90;
-        stroke-dashoffset: 90;
-        transition: stroke-dashoffset 1200ms cubic-bezier(0.16, 1, 0.3, 1);
-        transition-delay: calc(var(--d, 0ms) + 280ms);
+        stroke-width: 1.2;
+        opacity: 0.34;
       }
-      .num.in .num__ico path,
-      .num.in .num__ico circle,
-      .num.in .num__ico rect {
-        stroke-dashoffset: 0;
+
+      /* The rain is the one mark that keeps going. It builds like the others
+         and then loops, each lane on its own phase so it never reads as five
+         things moving together. The tray does not move. */
+      @keyframes num-fall {
+        0% {
+          transform: translateY(0) scale(1);
+          opacity: 0;
+        }
+        12% {
+          opacity: 0.85;
+        }
+        76% {
+          opacity: 0.85;
+        }
+        100% {
+          transform: translateY(15px) scale(0.72);
+          opacity: 0;
+        }
+      }
+      .num.in .num__ico--rain rect.is-drop {
+        animation: num-fall 2.6s linear infinite;
+        animation-delay: calc(var(--d, 0ms) + 700ms + var(--lane, 0) * 520ms);
+      }
+
+      /* A cursor wandering the grid of shipped work, one cell at a time. It is
+         the same idea as the blink on the logo: a mark that is finished but not
+         asleep. Only the filled cells take it. */
+      @keyframes num-scan {
+        0%,
+        88% {
+          opacity: 0.72;
+        }
+        92% {
+          opacity: 1;
+        }
+        96% {
+          opacity: 0.72;
+        }
+      }
+      .num.in .num__ico--cells rect:not(.is-open) {
+        animation: num-scan 5.6s linear infinite;
+        animation-delay: calc(1.4s + var(--i, 0) * 260ms);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .num__ico rect {
+          transition: none;
+          transform: scale(1);
+        }
+        .num.in .num__ico--rain rect.is-drop,
+        .num.in .num__ico--cells rect:not(.is-open) {
+          animation: none;
+        }
       }
 
       /* Hovering a figure has no destination — nothing here is a link — so
@@ -1439,8 +1565,10 @@
          and the whole column comes forward one value in the ink scale. */
       @media (hover: hover) {
         .num:hover .num__ico {
-          color: var(--home-ink);
-          transform: translateY(-3px);
+          transform: translateY(-3px) scale(1.06);
+        }
+        .num:hover .num__ico rect {
+          opacity: 1;
         }
         .num:hover span {
           color: var(--home-ink);
@@ -1522,11 +1650,11 @@
           transition: none !important;
           transform: scaleX(1) !important;
         }
-        .num__ico path,
-        .num__ico circle,
+        /* stroke-dashoffset was the old hairline sweep and there is no stroke
+           to sweep any more. The pixels simply arrive already built. */
         .num__ico rect {
           transition: none !important;
-          stroke-dashoffset: 0 !important;
+          transform: scale(1) !important;
         }
       }
     </style>
@@ -1560,10 +1688,15 @@
         </div>
 
         <div class="hero__inner">
-          <p class="hero__eyebrow">
-            <span class="dot" aria-hidden="true"></span>
-            <span>Sid Mehta &nbsp;·&nbsp; Product designer &nbsp;·&nbsp; New York</span>
-          </p>
+          <!-- The eyebrow is gone. Sid: "Sid Mehta the product designer in New
+               York, we don't need to say that again. We're repeating
+               information." It said his name, his role and his city directly
+               above a headline whose first three words are "Product designer,
+               six years", under a nav that carries his mark on every page, on a
+               site with an About page and a Contact page that both say the rest
+               at length. Four statements of the same fact inside one viewport.
+               The pulsing dot went with it: an availability indicator attached
+               to a line nobody needed to read. -->
 
           <!-- The headline used to be a mood — "I make hard software feel
                obvious." True, and it told a recruiter skimming for eight
@@ -1592,12 +1725,22 @@
           </p>
 
           <div class="hero__foot rv">
+            <!-- Sid: "that zero six years needs to be aligned, and needs to
+                 say experience zero six and years and make it in just two lines
+                 in my spaces of working."
+
+                 It was a stacked 06 with YEARS hanging under it and two lines of
+                 copy beside — the second of which ("I build the version people
+                 trust when it actually matters") he asked to cut, and which was
+                 doing the same job as the rotating line four elements above it.
+
+                 So: a label, then the figure and its unit on one baseline, then
+                 exactly two lines naming the rooms he has worked in. Nothing in
+                 the block claims anything about how good the work is; the work
+                 is one scroll down. -->
             <p class="hero__num">
-              <b>06<em>years</em></b>
-              <span
-                >Fintech, healthcare, hospitality, spatial computing, agentic AI.<br />I build the version people trust when it actually
-                matters.</span
-              >
+              <b><i>Experience</i><u>06</u><em>years</em></b>
+              <span>Fintech, healthcare, hospitality.<br />Spatial computing and agentic AI.</span>
             </p>
             <ul class="hero__links">
               <li>
@@ -1751,45 +1894,175 @@
       <section class="sec wrap" aria-labelledby="nums-h">
         <div class="sec-head rv"><span>03</span><span class="rule"></span><span id="nums-h">By the numbers</span></div>
         <div class="nums">
-          <div class="num rv" style="--d: 0ms">
-            <svg class="num__ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-              <path d="M1.5 15.5h17" />
-              <path d="M3.5 12.5l4-5 3.5 3 5.5-7" /></svg
-            ><b data-count="6">6</b><span>Years shipping</span>
+          <!-- ── THE MARKS COUNT ─────────────────────────────────────────────
+               Sid: "this by the numbers icons looks weak af and not aligned
+               with my site art direction and no animations."
+
+               He is right on both counts and they are the same fault. What was
+               here was a line chart, a stack, a picture frame and a download
+               arrow — four 1px glyphs that could have come out of any icon set,
+               sitting on a page whose whole visual argument is that everything
+               was drawn by hand: pixel marks in the nav, ASCII plants in the
+               pond, a cube with a face. A stock glyph in that company does not
+               read as restraint, it reads as a placeholder nobody replaced.
+
+               So each mark is now built from the same rounded pixels as the nav
+               icons — and each one *is* its number. Six blocks for six years.
+               Sixteen cells with fourteen filled. Twenty-five pixels in a
+               frame. You can count them. That is the difference between an icon
+               that labels a statistic and a mark that states it, and it is the
+               only idea here worth having.
+
+               They build rather than appear: each pixel scales up from nothing
+               on its own step, in the reading order of the figure, timed off
+               the column's existing --d so the row still draws left to right.
+               And the whole section drifts on scroll — see --p below. -->
+          <div class="num rv" style="--d: 0ms; --k: 26; --hue: 108, 182, 255; --hue-l: 32, 86, 150">
+            <svg class="num__ico num__ico--steps" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <!-- One block a year, climbing. -->
+              <rect style="--i: 0" x="0.9" y="18.6" width="3.4" height="3.4" rx="1.1" />
+              <rect style="--i: 1" x="4.8" y="15.6" width="3.4" height="3.4" rx="1.1" />
+              <rect style="--i: 2" x="8.7" y="12.6" width="3.4" height="3.4" rx="1.1" />
+              <rect style="--i: 3" x="12.6" y="9.6" width="3.4" height="3.4" rx="1.1" />
+              <rect style="--i: 4" x="16.5" y="6.6" width="3.4" height="3.4" rx="1.1" />
+              <rect style="--i: 5" x="20.4" y="3.6" width="3.4" height="3.4" rx="1.1" />
+            </svg>
+            <b data-count="6">6</b><span>Years shipping</span>
           </div>
-          <div class="num rv" style="--d: 90ms">
-            <svg class="num__ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-              <path d="M2.5 6.5l7.5-4 7.5 4-7.5 4z" />
-              <path d="M2.5 10l7.5 4 7.5-4" /></svg
-            ><b data-count="14">14</b><span>Public projects</span>
+
+          <div class="num rv" style="--d: 90ms; --k: 15; --hue: 127, 216, 168; --hue-l: 24, 108, 72">
+            <!-- Sixteen cells, fourteen of them shipped. The two that are only
+                 outlined are the point of the mark: it is a count with a
+                 remainder, which is what a body of work actually looks like. -->
+            <svg class="num__ico num__ico--cells" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect style="--i: 0" x="1.4" y="1.4" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 1" x="7" y="1.4" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 2" x="12.6" y="1.4" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 3" x="18.2" y="1.4" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 4" x="1.4" y="7" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 5" x="7" y="7" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 6" x="12.6" y="7" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 7" x="18.2" y="7" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 8" x="1.4" y="12.6" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 9" x="7" y="12.6" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 10" x="12.6" y="12.6" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 11" x="18.2" y="12.6" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 12" x="1.4" y="18.2" width="4.4" height="4.4" rx="1.1" />
+              <rect style="--i: 13" x="7" y="18.2" width="4.4" height="4.4" rx="1.1" />
+              <rect class="is-open" style="--i: 14" x="12.6" y="18.2" width="4.4" height="4.4" rx="1.1" />
+              <rect class="is-open" style="--i: 15" x="18.2" y="18.2" width="4.4" height="4.4" rx="1.1" />
+            </svg>
+            <b data-count="14">14</b><span>Public projects</span>
           </div>
-          <div class="num rv" style="--d: 180ms">
-            <svg class="num__ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-              <rect x="2.5" y="2.5" width="15" height="15" rx="1" />
-              <path d="M2.5 13.5l4.5-4 4 3.5 3-2.5 3 2.5" /></svg
-            ><b data-count="25">25</b><span>Artworks · The Met</span>
+
+          <div class="num rv" style="--d: 180ms; --k: 34; --hue: 255, 154, 114; --hue-l: 166, 64, 32">
+            <!-- Twenty-five pixels hung inside a frame. -->
+            <svg class="num__ico num__ico--wall" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect class="is-frame" x="0.8" y="0.8" width="22.4" height="22.4" rx="1.6" />
+              <g class="num__ico-grid"></g>
+            </svg>
+            <b data-count="25">25</b><span>Artworks · The Met</span>
           </div>
-          <div class="num rv" style="--d: 270ms">
-            <svg class="num__ico" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-              <path d="M10 2.5v9" />
-              <path d="M6.5 8l3.5 3.5L13.5 8" />
-              <path d="M2.5 14v2.5h15V14" /></svg
-            ><b data-count="100" data-suffix="k+">100k+</b><span>Mool downloads</span>
+
+          <div class="num rv" style="--d: 270ms; --k: 22; --hue: 183, 166, 255; --hue-l: 76, 58, 156">
+            <!-- Rain into a tray. The only one of the four that keeps moving
+                 after it has built, because it is the only figure still going
+                 up while you look at it. -->
+            <svg class="num__ico num__ico--rain" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect class="is-drop" style="--i: 0; --lane: 0" x="3.4" y="1" width="2.6" height="2.6" rx="1.3" />
+              <rect class="is-drop" style="--i: 1; --lane: 1" x="10.7" y="1" width="2.6" height="2.6" rx="1.3" />
+              <rect class="is-drop" style="--i: 2; --lane: 2" x="18" y="1" width="2.6" height="2.6" rx="1.3" />
+              <rect class="is-drop" style="--i: 3; --lane: 3" x="7" y="1" width="2.6" height="2.6" rx="1.3" />
+              <rect class="is-drop" style="--i: 4; --lane: 4" x="14.4" y="1" width="2.6" height="2.6" rx="1.3" />
+              <rect class="is-tray" style="--i: 5" x="1.2" y="19" width="21.6" height="3.4" rx="1.2" />
+            </svg>
+            <b data-count="100" data-suffix="k+">100k+</b><span>Mool downloads</span>
           </div>
         </div>
       </section>
+
+      <script>
+        (function () {
+          /* Twenty-five pixels, written rather than typed. Five rows of five
+             inside the frame, each carrying its own --i so the wall hangs in
+             reading order. Hand-authoring twenty-five <rect>s would have been
+             twenty-five chances to fat-finger a coordinate, and the whole point
+             of the mark is that the count is exactly right. */
+          var wall = document.querySelector(".num__ico--wall .num__ico-grid");
+          if (wall) {
+            var NS = "http://www.w3.org/2000/svg";
+            var frag = document.createDocumentFragment();
+            for (var r = 0; r < 5; r++) {
+              for (var c = 0; c < 5; c++) {
+                var px = document.createElementNS(NS, "rect");
+                px.setAttribute("x", (3.6 + c * 3.5).toFixed(2));
+                px.setAttribute("y", (3.6 + r * 3.5).toFixed(2));
+                px.setAttribute("width", "2.3");
+                px.setAttribute("height", "2.3");
+                px.setAttribute("rx", "0.7");
+                px.style.setProperty("--i", r * 5 + c + 1);
+                frag.appendChild(px);
+              }
+            }
+            wall.appendChild(frag);
+          }
+
+          /* Sid: "why dont we make them animated and maybe scroll effect or
+             something idk."
+
+             The four columns drift at different rates as the section crosses
+             the viewport. --k is set per column in the markup (26, 15, 34, 22)
+             and is deliberately unpatterned — a rising or alternating sequence
+             reads as a mechanism, four unrelated numbers read as four objects
+             at four distances. Total travel is under 40px, which is enough to
+             feel and not enough to break the row's alignment on the hairlines.
+
+             Driven off a scroll listener writing one custom property rather
+             than animation-timeline, which Safari did not ship until recently
+             and which would silently do nothing on the machines most likely to
+             be looking at this. */
+          var sec = document.querySelector(".nums");
+          if (!sec) return;
+          if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+          var raf = 0;
+          function measure() {
+            raf = 0;
+            var r = sec.getBoundingClientRect();
+            var h = window.innerHeight || 1;
+            // -1 well below the fold, 0 dead centre, +1 well above it.
+            var p = (h / 2 - (r.top + r.height / 2)) / (h / 2 + r.height / 2);
+            sec.style.setProperty("--p", Math.max(-1, Math.min(1, p)).toFixed(4));
+          }
+          function onScroll() {
+            if (!raf) raf = requestAnimationFrame(measure);
+          }
+          window.addEventListener("scroll", onScroll, { passive: true });
+          window.addEventListener("resize", onScroll, { passive: true });
+          measure();
+        })();
+      </script>
 
       <!-- ───────────────── 04 the door ───────────────── -->
       <section class="sec wrap door" aria-labelledby="door-h">
         <div class="sec-head rv" style="justify-content: center">
           <span>04</span><span class="rule" style="max-width: 60px"></span><span id="door-h">The studio</span>
         </div>
-        <h2 class="rv">Ninety-eight more pieces float in the studio.</h2>
+        <!-- Sid: "dont link the play page from the bottom which says 98. there
+             were like 220 include photos and vids too."
+
+             Two problems in one line. The number was wrong — and worse, it was
+             a number the page could not check, so it would go on being wrong
+             every time he added something. The claim is gone rather than
+             corrected, because the honest version of this sentence does not
+             have a figure in it. Play stays one click away in the nav on every
+             page, which is where a section of the site belongs; it does not
+             also need a door at the bottom of the home page. -->
+        <h2 class="rv">The rest of it is still on the studio floor.</h2>
         <div class="btns rv" style="--d: 120ms">
-          <a class="btn btn--solid" data-magnetic href="{{ site.baseurl }}/play/"
-            >Step into the universe<span class="xarrow xarrow--right" aria-hidden="true"></span
+          <a class="btn btn--solid" data-magnetic href="{{ site.baseurl }}/contact/"
+            >Start a conversation<span class="xarrow xarrow--right" aria-hidden="true"></span
           ></a>
-          <a class="btn" href="{{ site.baseurl }}/contact/">Start a conversation</a>
         </div>
       </section>
     </main>
