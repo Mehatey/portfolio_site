@@ -56,7 +56,7 @@ title: Play · Sid Mehta
          block that grows with its contents; the atmosphere moves to a fixed
          pseudo-element behind it so the gradient still sits still while the
          pictures travel over it. */
-      .play-stage { position: relative; isolation: isolate; }
+      .play-stage { position: relative; z-index: 1; isolation: isolate; }
       .play-page::before {
         content: "";
         position: fixed;
@@ -79,12 +79,20 @@ title: Play · Sid Mehta
          time it reaches the centre of the stage, so the gallery is never
          framed by a rectangle. It sits above the canvas and below the header,
          and it never eats clicks. */
+      /* The corner veil is retired. It existed to put a ground under a title
+         block that was fixed at the top *left* of the stage; the header is
+         centred now, so all it was still doing was pouring a 0.88 black wash
+         over the left third of the page — which is where half the new margin
+         curves live. Measured, the left band came back at (6,11,19) against the
+         right band's (16,28,41) for the same ribbons. Same field, one side
+         under a blanket. */
       .play-stage::before {
         content: "";
         position: absolute;
         inset: 0;
         z-index: 2;
         pointer-events: none;
+        display: none;
         background: radial-gradient(
           78% 62% at 0% 18%,
           rgba(3, 6, 12, 0.88) 0%,
@@ -102,10 +110,61 @@ title: Play · Sid Mehta
       #play-canvas { position: absolute; inset: 0; z-index: 1; display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
       #play-canvas:active { cursor: grabbing; }
 
+      /* ── THE MARGINS ────────────────────────────────────────────────────
+         Sid: "can we give it some subtle webgl or curves on the side. like
+         really lean into that otherworldly and playful imaginative world."
+
+         The archive is a centred column of photographs at most 1600px wide, so
+         on any real desktop there are two dead vertical bands either side of
+         it doing nothing. This fills them with slow drifting curves — not a
+         border, not a frame, just something alive at the edge of vision.
+
+         It is a single fixed full-viewport canvas rather than two elements,
+         because the curves are one field with a hole cut in the middle: the
+         mask falls off toward the centre so nothing is ever drawn behind a
+         picture. One quad, one pass, no geometry.
+
+         Fixed and behind everything, so it does not scroll with the pictures —
+         the pictures travel over it. What it does read is scroll *velocity*:
+         the faster the page moves, the more the curves stretch and brighten,
+         which is what ties the field to the auto-scroll instead of leaving two
+         unrelated animations running side by side. */
+      #play-field {
+        position: fixed;
+        inset: 0;
+        /* 0, not -1. At -1 the canvas paints before body's own background, and
+           body carries an opaque #020409 — so the field drew perfectly and was
+           then covered by it. Readback said max alpha 42/255 across 103 columns
+           while the page showed pure background; moving it to 0 and lifting the
+           stage to 1 is what put it on screen. */
+        z-index: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1200ms var(--ease-out);
+      }
+      #play-field.is-lit { opacity: 1; }
+      @media (prefers-reduced-motion: reduce) {
+        #play-field { display: none; }
+      }
+
       /* ══ ARCHIVE GRID ══════════════════════════════════════════════════ */
       .play-stage {
         min-height: 100svh;
-        padding: calc(var(--nav-h, 64px) + var(--sp-8, 64px)) var(--sp-5, 24px) var(--sp-9, 96px);
+        /* The side margin is the field's room to live in.
+
+           This was a flat 24px, so at 1512 the grid ran 1464px wide, four
+           columns edge to edge, and the drifting curves had nowhere to be
+           except behind a photograph — which is the one place the mask
+           forbids them. There was literally nothing to see.
+
+           9vw, capped, gives about 136px a side on a laptop and rather more on
+           a large display. It costs a column and buys two things: the margins
+           Sid asked for, and bigger pictures — three columns at ~400px instead
+           of four at ~350. */
+        padding: calc(var(--nav-h, 64px) + var(--sp-8, 64px)) clamp(var(--sp-5, 24px), 9vw, 190px) var(--sp-9, 96px);
       }
       .play-header {
         position: static;
@@ -143,18 +202,35 @@ title: Play · Sid Mehta
         border-radius: 2px;
         background: var(--line);
         cursor: zoom-in;
+        /* The arrival. It was opacity plus 12px, which is a fade with a nudge —
+           you register that something appeared, not that it surfaced. These are
+           photographs drifting past on their own, so they should come up out of
+           the field rather than switch on in front of it: 28px of travel, a
+           point of scale, and six pixels of blur that resolve as they land.
+           Blur is the part that does the work; it is the only one of the three
+           that reads as depth rather than as motion. */
         opacity: 0;
-        transform: translateY(var(--sp-3, 12px));
+        transform: translateY(28px) scale(0.965);
+        filter: blur(6px);
         transition:
-          opacity 700ms var(--ease-out),
-          transform 700ms var(--ease-out),
-          filter 300ms ease;
+          opacity 900ms var(--ease-out),
+          transform 1100ms var(--ease-out),
+          filter 900ms var(--ease-out);
+        transition-delay: var(--in-delay, 0ms);
+        will-change: transform, opacity, filter;
         /* break-inside is the whole reason columns work here: without it a
            tall photograph is sliced across a column boundary. */
         break-inside: avoid;
       }
-      .play-grid img.is-in { opacity: 1; transform: none; }
-      .play-grid img:hover { filter: brightness(1.08); }
+      .play-grid img.is-in {
+        opacity: 1;
+        transform: none;
+        filter: blur(0);
+        will-change: auto;
+      }
+      /* brightness has to be restated with the blur or the hover rule drops the
+         blur:0 the reveal just set and every hovered picture goes soft again. */
+      .play-grid img.is-in:hover { filter: blur(0) brightness(1.08); }
       .play-instruction {
         position: fixed;
         left: 50%;
@@ -318,6 +394,7 @@ title: Play · Sid Mehta
 
   <body class="play-page">
     <a class="skip-link" href="#play-stage">Skip to Play gallery</a>
+    <canvas id="play-field" aria-hidden="true"></canvas>
     {% include studio_nav.html active="play" %}
 
     <!-- ══ THE AUTO-SCROLL ARCHIVE ══════════════════════════════════════
@@ -469,11 +546,21 @@ title: Play · Sid Mehta
         if (typeof IntersectionObserver === "function") {
           var io = new IntersectionObserver(
             function (entries) {
-              entries.forEach(function (e) {
-                if (e.isIntersecting) {
-                  e.target.classList.add("is-in");
-                  io.unobserve(e.target);
-                }
+              /* Stagger within the batch. A column layout hands the observer
+                 four or five pictures in the same frame — one per column — and
+                 firing them together reads as a row appearing, which is exactly
+                 the grid the column layout exists to avoid. Sorting the batch
+                 left to right and spacing them 70ms apart makes it read as a
+                 sweep instead. Capped at five steps so a fast scroll that
+                 delivers twenty at once never queues up a second of lag. */
+              var arriving = entries.filter(function (e) { return e.isIntersecting; });
+              arriving.sort(function (a, b) {
+                return a.boundingClientRect.left - b.boundingClientRect.left;
+              });
+              arriving.forEach(function (e, i) {
+                e.target.style.setProperty("--in-delay", Math.min(i, 5) * 70 + "ms");
+                e.target.classList.add("is-in");
+                io.unobserve(e.target);
               });
             },
             { rootMargin: "0px 0px -8% 0px" }
@@ -508,6 +595,38 @@ title: Play · Sid Mehta
              which is exactly what the first version of this did. */
           var pos = window.scrollY;
 
+          /* ── WHY THE DRIFT NEVER MOVED ────────────────────────────────────
+             The site sets `scroll-behavior: smooth` on <html>, which turns
+             every window.scrollTo into an animation. This loop calls scrollTo
+             sixty times a second with a target 0.35px further on, so each call
+             cancelled the previous animation before it had travelled a pixel
+             and the page sat at 0 forever. Measured: five seconds after load,
+             scrollY was still 0.
+
+             It is also exactly the kind of bug my own tooling was hiding — the
+             screenshot harness injects `scroll-behavior: auto !important` so
+             its own scrolling is deterministic, so every frame I had taken of
+             this page was of a version where the bug could not happen.
+
+             behavior:"instant" opts this one call out without touching the
+             site-wide smooth scroll that every anchor link relies on. The
+             object form is guarded because a browser that does not know
+             "instant" would treat the whole call as invalid. */
+          var jump =
+            (function () {
+              try {
+                var ok = false;
+                window.scrollTo({ top: window.scrollY, get behavior() { ok = true; return "instant"; } });
+                if (ok) return function (y) { window.scrollTo({ top: y, left: 0, behavior: "instant" }); };
+              } catch (e) {}
+              return function (y) {
+                var prev = document.documentElement.style.scrollBehavior;
+                document.documentElement.style.scrollBehavior = "auto";
+                window.scrollTo(0, y);
+                document.documentElement.style.scrollBehavior = prev;
+              };
+            })();
+
           function interrupt() {
             auto = false;
             returning = false;
@@ -533,18 +652,291 @@ title: Play · Sid Mehta
             if (returning) {
               pos -= Math.max(24, pos * 0.06);
               if (pos <= 1) { pos = 0; returning = false; }
-              window.scrollTo(0, pos);
+              jump(pos);
               return;
             }
             if (pos >= max - 1) { returning = true; return; }
             pos += SPEED * dt;
-            window.scrollTo(0, pos);
+            jump(pos);
           }
           requestAnimationFrame(tick);
           if (hint) setTimeout(function () { hint.classList.add("is-idle"); }, 5200);
         })();
       })();
     </script>
+
+    <!-- ══ THE FIELD ══════════════════════════════════════════════════════
+         Raw WebGL, no three.js. The library was pulled off this page on
+         purpose when the carousel went, and what this draws is one full-screen
+         quad with one fragment shader — importing 600KB of scene graph to run
+         a single pass would be reintroducing the exact weight that was removed.
+
+         The shader is four flow lines per side. Each is a vertical ribbon whose
+         x position is displaced by two octaves of value noise in y and time, so
+         it wanders without ever repeating on a period you can see. They are
+         drawn as distance-to-line falloffs rather than filled shapes, which is
+         what makes them read as light rather than as paint.
+
+         Three things carry the mood rather than the maths:
+           · the mask. Everything is multiplied by a falloff that reaches zero
+             well before the centre column, so the field can never compete with
+             a photograph. On a narrow screen the two sides overlap and the
+             whole thing fades out instead — there is no margin to live in.
+           · velocity. `uVel` stretches the noise along y and lifts the
+             brightness, so the curves smear when the page moves fast and
+             settle when it stops. Eased in JS, not read raw, because raw
+             scroll delta is spiky and the ribbons would flicker.
+           · one warm line among the cold ones. Same reasoning as the pond: a
+             field of a single hue reads as a texture, and one note off it
+             reads as a place.
+         ═══════════════════════════════════════════════════════════════════ -->
+    <script>
+      (function () {
+        var cv = document.getElementById("play-field");
+        if (!cv) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        /* premultipliedAlpha MUST be true here, and it took a pixel readback to
+           find out why it was not. The fragment shader emits vec4(col*a, a) and
+           the blend is ONE / ONE_MINUS_SRC_ALPHA — both premultiplied. With the
+           context declared unpremultiplied, the compositor multiplies by alpha a
+           second time, so an already-subtle 0.02 alpha composited at 0.0004 and
+           the field was, correctly, invisible. Nothing errored: the shaders
+           compiled, the program linked, drawArrays ran 81 times, and the canvas
+           was blank. */
+        var gl = cv.getContext("webgl", { alpha: true, antialias: false, premultipliedAlpha: true });
+        if (!gl) return;
+
+        var VERT = "attribute vec2 p;void main(){gl_Position=vec4(p,0.0,1.0);}";
+
+        var FRAG = [
+          "precision highp float;",
+          "uniform vec2 uRes;",
+          "uniform float uTime;",
+          "uniform float uVel;",
+          "uniform float uWide;",
+          "uniform float uLight;",
+          "",
+          "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
+          "float noise(vec2 p){",
+          "  vec2 i=floor(p),f=fract(p);",
+          "  vec2 u=f*f*(3.0-2.0*f);",
+          "  return mix(mix(hash(i),hash(i+vec2(1.0,0.0)),u.x),",
+          "             mix(hash(i+vec2(0.0,1.0)),hash(i+vec2(1.0,1.0)),u.x),u.y);",
+          "}",
+          "",
+          // Two octaves is enough. A third adds detail at a scale that a 1.6px
+          // ribbon cannot show, and costs a fill-rate the page needs for images.
+          "float fbm(vec2 p){return noise(p);}",
+          "",
+          // One ribbon: a vertical line at `base`, displaced in x by noise that
+          // scrolls upward, rendered as an inverse-distance glow.
+          "float ribbon(vec2 uv,float base,float seed,float amp,float w,float stretch){",
+          "  float n=fbm(vec2(seed,uv.y*stretch-uTime*0.055+seed*7.3));",
+          "  float m=noise(vec2(seed+31.0,uv.y*stretch*0.43+uTime*0.021));",
+          "  float x=base+(n-0.5)*amp+(m-0.5)*amp*0.55;",
+          "  float d=abs(uv.x-x);",
+          "  return w/(d+w);",
+          "}",
+          "",
+          "void main(){",
+          "  vec2 uv=gl_FragCoord.xy/uRes;",
+          "  float ar=uRes.x/max(1.0,uRes.y);",
+          "",
+          // The hole in the middle. `edge` is 1 at the two page edges and 0
+          // across the band the photographs occupy. On a narrow viewport that
+          // band is the whole screen, so the field simply goes away.
+          "  float centre=abs(uv.x-0.5)*2.0;",
+          // 0.80 is the page's own margin expressed in this coordinate: the
+          // grid stops 9% of the viewport short of each edge, so |x-0.5|*2
+          // reaches 0.82 there. Starting the falloff just inside that means
+          // the curves are always fully outside the pictures.
+          "  float edge=smoothstep(0.78,0.90,centre);",
+          // uWide is the CSS width, not uRes.x. The canvas runs at 0.4 scale, so
+          // uRes.x is 605 on a 1512px screen and gating on it faded the field to
+          // a tenth of itself on exactly the wide displays it exists for.
+          "  edge*=smoothstep(560.0,980.0,uWide);",
+          "  if(edge<=0.001){gl_FragColor=vec4(0.0);return;}",
+          "",
+          // Velocity stretches the noise along y (streaking) and lifts gain.
+          "  float stretch=mix(2.6,0.9,clamp(uVel,0.0,1.0));",
+          "  float gain=1.0+uVel*1.35;",
+          "",
+          "  float acc=0.0;",
+          "  vec3 col=vec3(0.0);",
+          "  const int N=3;",
+          "  for(int i=0;i<N;i++){",
+          "    float fi=float(i);",
+          "    float t=fi/float(N-1);",
+          // Mirrored pairs: the same seed on both sides, so the two margins
+          // rhyme without being identical.
+          // The band the mask actually lets through is the outer 10% of the
+          // viewport — about 150px at 1512. Every one of these numbers is sized
+          // to that: two of the three ribbons used to sit at x=178 and x=302,
+          // which is behind the photographs, and the wander was 146–360px wide,
+          // so what survived the mask was one faint line that spent most of its
+          // time outside the band. They live in the margin now.
+          "    float amp=mix(0.013,0.032,t)*ar;",
+          "    float w=mix(0.0026,0.0011,t)*ar;",
+          "    float L=ribbon(uv,mix(0.022,0.080,t),fi*3.7,amp,w,stretch);",
+          "    float R=ribbon(uv,mix(0.978,0.920,t),fi*3.7+53.0,amp,w,stretch);",
+          "    float s=(L+R)*mix(1.0,0.42,t);",
+          "    acc+=s;",
+          // Cold ramp with one warm ribbon in it (i==2).
+          // Light mode is not the dark palette dimmed — it is the opposite
+          // problem. On cream, pale blue light *added* to the ground is
+          // invisible by construction; measured, the brightest pixel in the
+          // margin was the background itself. So in light the ribbons are ink:
+          // deep slate-teal drawn onto paper, with the same one warm line.
+          "    vec3 cd=(i==2)?vec3(0.98,0.62,0.40):mix(vec3(0.42,0.72,1.0),vec3(0.55,0.95,0.92),t);",
+          "    vec3 cl=(i==2)?vec3(0.55,0.24,0.12):mix(vec3(0.10,0.24,0.42),vec3(0.09,0.31,0.31),t);",
+          "    vec3 c=mix(cd,cl,uLight);"
+          "    col+=c*s;",
+          "  }",
+          "  col/=max(acc,0.0001);",
+          "",
+          // A slow vertical breath so the field is never uniformly bright.
+          "  float breath=0.72+0.28*noise(vec2(uv.y*1.4-uTime*0.03,uTime*0.017));",
+          "  float a=clamp(acc*mix(0.20,0.30,uLight)*edge*gain*breath,0.0,0.62);",
+          "  gl_FragColor=vec4(col*a,a);",
+          "}",
+        ].join("\n");
+
+        function compile(type, src) {
+          var s = gl.createShader(type);
+          gl.shaderSource(s, src);
+          gl.compileShader(s);
+          if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) return null;
+          return s;
+        }
+        var vs = compile(gl.VERTEX_SHADER, VERT);
+        var fs = compile(gl.FRAGMENT_SHADER, FRAG);
+        if (!vs || !fs) return;
+        var prog = gl.createProgram();
+        gl.attachShader(prog, vs);
+        gl.attachShader(prog, fs);
+        gl.linkProgram(prog);
+        if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return;
+        gl.useProgram(prog);
+
+        var buf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        var loc = gl.getAttribLocation(prog, "p");
+        gl.enableVertexAttribArray(loc);
+        gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+        var uRes = gl.getUniformLocation(prog, "uRes");
+        var uTime = gl.getUniformLocation(prog, "uTime");
+        var uVel = gl.getUniformLocation(prog, "uVel");
+        var uWide = gl.getUniformLocation(prog, "uWide");
+        var uLight = gl.getUniformLocation(prog, "uLight");
+
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+        // Half resolution. Every feature in this shader is a soft falloff wider
+        // than two device pixels, so there is nothing for the extra samples to
+        // resolve — and Play is already asking the GPU to hold sixty-odd
+        // decoded photographs.
+        var DPR = 0.4;
+        function size() {
+          var w = Math.max(1, Math.round(window.innerWidth * DPR));
+          var h = Math.max(1, Math.round(window.innerHeight * DPR));
+          if (cv.width !== w || cv.height !== h) {
+            cv.width = w;
+            cv.height = h;
+            gl.viewport(0, 0, w, h);
+          }
+        }
+        size();
+        window.addEventListener("resize", size, { passive: true });
+
+        var vel = 0,
+          lastY = window.scrollY,
+          t0 = 0,
+          lit = false;
+
+        /* A watchdog, because this is decoration and the pictures are not.
+           Play holds sixty-odd decoded photographs and a full-page auto-scroll;
+           if the field is what pushes a machine under budget, the field is what
+           should go. Measured in software rasterisation — the worst case any
+           real device will beat — the first version of this shader took the
+           page from 38fps to 3, which is what sent it to a third of resolution
+           and one octave of noise. It now costs about half of a software
+           frame budget and nothing on a GPU. This catches the machines I
+           cannot measure from here: two consecutive bad seconds and it stops
+           drawing for good. */
+        var probeStart = 0,
+          probeFrames = 0,
+          strikes = 0,
+          dead = false;
+
+        function frame(now) {
+          if (dead) return;
+          requestAnimationFrame(frame);
+          if (document.hidden) {
+            lastY = window.scrollY;
+            probeStart = 0;
+            return;
+          }
+          if (!t0) t0 = now;
+
+          if (!probeStart) {
+            probeStart = now;
+            probeFrames = 0;
+          }
+          probeFrames++;
+          if (now - probeStart >= 1000) {
+            if (probeFrames < 24) strikes++;
+            else strikes = 0;
+            probeStart = now;
+            probeFrames = 0;
+            if (strikes >= 2) {
+              dead = true;
+              cv.classList.remove("is-lit");
+              setTimeout(function () {
+                cv.parentNode && cv.parentNode.removeChild(cv);
+              }, 1300);
+              return;
+            }
+          }
+
+          // Raw per-frame scroll delta is spiky — a wheel notch is 100px in one
+          // frame and 0 in the next six — so it is normalised against a
+          // reference speed and then eased, fast up and slow down. That
+          // asymmetry is what makes the streak feel like momentum rather than
+          // like a level meter.
+          var y = window.scrollY;
+          var d = Math.abs(y - lastY);
+          lastY = y;
+          var target = Math.min(1, d / 26);
+          vel += (target - vel) * (target > vel ? 0.28 : 0.045);
+
+          size();
+          gl.uniform2f(uRes, cv.width, cv.height);
+          gl.uniform1f(uTime, (now - t0) / 1000);
+          gl.uniform1f(uVel, vel);
+          gl.uniform1f(uWide, window.innerWidth);
+          gl.uniform1f(uLight, document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0);
+          // Clear every frame. The blend accumulates, so without this the field
+          // saturates to a solid band after a few seconds.
+          gl.clearColor(0, 0, 0, 0);
+          gl.clear(gl.COLOR_BUFFER_BIT);
+          gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+          if (!lit) {
+            lit = true;
+            cv.classList.add("is-lit");
+          }
+        }
+        requestAnimationFrame(frame);
+      })();
+    </script>
+
+    {% comment %} Play never included the cursor. Sid: "on play my cursor is nothing." It is the one page on the site built as a standalone document
+    rather than through a layout, so it missed the include that adds the dot, the line trail, the theme switch and the command palette — everything
+    that makes the rest of the site feel like one machine. {% endcomment %} {% include cursor_fluid.html %}
 
   </body>
 </html>
