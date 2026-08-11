@@ -460,6 +460,11 @@
       .hero-brief-label { display: none; }
       .hero-brief-fact { margin: 0 0 10px; }
       .hero-brief-key { display: none; }
+      /* The answer to the reader's actual question gets the weight. */
+      .hero-brief-fact--role .hero-brief-value {
+        color: #fff;
+        font-weight: 500;
+      }
       /* ── ON-IMAGE TEXT DOES NOT USE THEME-FLIPPING TOKENS ─────────────
          Caught by the painted-contrast auditor, not by looking: the colour
          remap swept these onto --ink-2 / --ink-3, which is right for text on
@@ -4344,9 +4349,29 @@
             {% if page.category %}
             <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">{{ page.category }}</span></p>
             {% endif %} {% if page.meta %}
-            <p class="hero-brief-fact">
+            <!-- Role now carries who it was made with.
+
+                 It used to render the Role value alone — "Visual Designer" —
+                 while "Team: Leaf Design Studio" and "Partner: Deloitte
+                 Digital" sat inside the collapsed <details> drawer below.
+                 Nobody assumes agency work was solo; what a hiring manager
+                 wants is the shape of the room it was made in, and hiding it
+                 behind a click reads as concealment even when nothing is being
+                 concealed. Every project already carries the data, so the
+                 credit is assembled from it rather than authored per page.
+
+                 Role is also the one fact in this brief a hiring manager is
+                 actually looking for, and all three lines were set identically.
+                 It gets the ink now; Scope and Proof stay quiet. -->
+            {% assign _role = "" %}{% assign _org = "" %}{% assign _client = "" %}{% for item in page.meta %}{% if item.label == 'Role' %}{% assign
+            _role = item.value %}{% elsif item.label == 'Team' or item.label == 'Partner' or item.label == 'Studio' %}{% assign _org = item.value %}{%
+            elsif item.label == 'Client' %}{% assign _client = item.value %}{% endif %}{% endfor %}
+            <p class="hero-brief-fact hero-brief-fact--role">
               <span class="hero-brief-key">Role</span
-              ><span class="hero-brief-value">{% for item in page.meta %}{% if item.label == 'Role' %}{{ item.value }}{% endif %}{% endfor %}</span>
+              ><span class="hero-brief-value"
+                >{{ _role }}{% if _org != "" %} · {{ _org }}{% if _client != "" %} for {{ _client }}{% endif %}{% elsif _client != "" %} · {{ _client
+                }}{% endif %}</span
+              >
             </p>
             {% endif %} {% if page.highlights %}
             <p class="hero-brief-fact">
