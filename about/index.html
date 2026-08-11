@@ -871,7 +871,15 @@
            shrinks with whatever the portrait's height turns out to be, instead
            of being tuned to one viewport and drifting at every other. */
         .about-hero > .hero-bio-col > .about-actions {
+          /* auto still pushes the actions to the column floor so they line up
+             with the base of the portrait. It used to resolve to 152px of slack
+             because the column was two short paragraphs; now that the column
+             carries a claim and two pieces of proof it resolves to nothing, and
+             the last line of copy was landing 33px off the call to action.
+             The padding is the floor under that: auto for the alignment, a
+             guaranteed gap regardless of how much the copy grows. */
           margin-top: auto;
+          padding-top: 30px;
           padding-bottom: 4px;
         }
       }
@@ -1027,6 +1035,48 @@
         padding-top: clamp(12px, 3vw, 42px);
         align-self: start;
       }
+      /* The argument, at the scale of an argument. The biggest type in this
+         column was the name — a word the nav, the tab title and the URL have
+         all already said — while the one sentence with a position in it was
+         set at body size. */
+      .about-claim {
+        font-family: var(--font-head);
+        font-size: clamp(21px, 2.05vw, 29px);
+        line-height: 1.26;
+        letter-spacing: -0.015em;
+        color: var(--ink-1);
+        max-width: 20ch;
+        margin: 0 0 26px;
+        text-wrap: pretty;
+      }
+      html[data-theme="light"] .about-claim {
+        color: #07090f;
+      }
+      /* Proof sits under the claim at body size and steps back in colour, so
+         the order of reading is position first, evidence second. The lead-in
+         is the only bold on the page and it is doing wayfinding, not emphasis:
+         it lets the two blocks be scanned as "the Met" and "Deloitte" without
+         reading either sentence. */
+      .about-proof {
+        display: grid;
+        gap: 14px;
+        max-width: 560px;
+        margin: 0 0 24px;
+      }
+      .about-proof p {
+        margin: 0;
+        font-family: var(--font-head);
+        font-size: clamp(14px, 1.12vw, 15.5px);
+        line-height: 1.62;
+        color: var(--ink-3);
+      }
+      .about-proof b {
+        font-weight: 500;
+        color: var(--ink-2);
+      }
+      html[data-theme="light"] .about-proof b {
+        color: #07090f;
+      }
       .about-bio {
         font-family: var(--font-head);
         font-size: clamp(16px, 1.45vw, 19px);
@@ -1068,6 +1118,50 @@
       .about-action:hover {
         color: #fff;
         border-color: var(--ink-3);
+      }
+
+      /* ── the two actions were not peers and were styled as twins ─────────
+         "Selected work" is the thing this page exists to get clicked, and
+         "Resume" is a PDF. Both were 10px DM Mono at the same weight, the same
+         rgba(255,255,255,0.64) and the same hairline — measured identical on
+         every property that carries emphasis.
+
+         They also sit a long way from the copy that motivates them: the hero
+         column pins them to its floor so they line up with the base of the
+         portrait, which is a deliberate diagonal frame and worth keeping, but
+         it leaves 152px between the last line of the bio and the first thing
+         to click. A 10px muted link cannot hold a gap that size. Making the
+         primary carry its own weight is the fix that keeps the composition.
+
+         Still a rule and not a filled button — nothing on this site is a
+         filled button, and a solid pill here would be the one library-looking
+         object on a page of hand-drawn marks. It gets scale, full ink and a
+         rule at full strength; Resume keeps the quiet treatment, which is now
+         a hierarchy rather than a coincidence. */
+      .about-action--primary {
+        font-size: 13px;
+        /* Explicit, not var(--ink-1). That token resolves to rgba(12,14,20,0.8)
+           in light theme while .about-action's --ink-3 resolves to
+           rgba(7,9,15,0.92), so borrowing it made the secondary link darker
+           than the primary and inverted the hierarchy this rule exists to
+           create — measured, not guessed. Full-strength ink in both themes is
+           the only value that is reliably stronger than the quiet one. */
+        color: #fff;
+        border-bottom-width: 1px;
+        border-bottom-color: currentColor;
+        padding-bottom: 6px;
+      }
+      /* .about-actions in the selector is load-bearing. The light-theme rule
+         for .about-action further down the file is (0,2,1), the same weight as
+         a bare html[data-theme] prefix here, and it is declared later — so
+         source order handed the secondary link a darker ink than the primary
+         and inverted the hierarchy a second time. The extra class outranks it
+         instead of racing it. */
+      html[data-theme="light"] .about-actions .about-action--primary {
+        color: #07090f;
+      }
+      .about-action--primary .xarrow {
+        margin-left: 2px;
       }
 
       /* ── Generic scroll reveal — used by .gcol, .exp-item, .faq-item, .cap-tag, etc.
@@ -2476,6 +2570,10 @@
      covers the whole band, only the objects are on the measure. */
   .studio-nav {
     --nav-ink: #f5f7fb;
+    /* The plane the mobile top band is painted on. Same ink the scrim
+       gradient already used, promoted to a token so the light theme can swap
+       it in one place instead of restating the gradient. */
+    --nav-ground: rgba(3, 6, 11, 0.92);
     position: fixed;
     z-index: 9000;
     inset: 22px clamp(18px, 2.5vw, 40px) auto;
@@ -2548,33 +2646,25 @@
     );
   }
 
-  /* Play paints a dark stage at every theme — `play/index.html` has no
-     data-theme rule anywhere, just `:root { color-scheme: dark }` and a
-     hardcoded #020409 body. A cream scrim there would be a pale bar across
-     the top of a black room.
+  /* Play used to be the one exception here, on the premise that it "paints a
+     dark stage at every theme": `play/index.html` sets `color-scheme: dark`
+     and a hardcoded `#020409` on html,body, so a cream scrim would have been
+     a pale bar across the top of a black room.
 
-     Home used to be in this list on the same premise, and the premise had
-     expired. The home rebuild gave it `--home-bg: #f2efe8` under
-     html[data-theme="light"], so the page beneath this bar is cream like
-     every other one — measured, not assumed: body background computes to
-     rgb(245, 243, 238). Two things followed from leaving the exception in.
+     That premise has now expired the same way home's did. Play is no longer a
+     standalone dark document — it picks up the site-wide includes, and those
+     paint it cream in light theme. Measured, not assumed: on /play/ with
+     data-theme="light", body background computes to rgb(245, 243, 238), the
+     same paper as every other page. The #020409 on line 50 of that file is
+     still in the source but is overridden and never reaches the screen.
 
-     The scrim itself became a near-black 0.86 veil fading down over 104px
-     of paper, which is the grey smear across the top of the light home
-     page. And it was doing that while the labels under it were dark: the
-     comment claimed home "pins --nav-ink light below", but that pin is
-     `.home-page .studio-nav` at 0-2-0, and it loses to
-     `html[data-theme="light"] .studio-nav` at 0-2-1 a dozen lines above
-     it. --nav-ink computes to #0a1727. So the veil was not lifting a pale
-     wordmark off a dark stage, it was dropping shade behind an already
-     dark wordmark on cream — costing contrast in the one place a scrim
-     exists to buy it.
+     Left in, the exception did exactly what it did on home: laid a near-black
+     0.86 veil down over 104px of cream, which read as a grey smear across the
+     top of the page — and the "Play" wordmark is dark ink, so the top third of
+     the heading was dark-on-dark. The scrim was costing contrast in the one
+     place a scrim exists to buy it.
 
-     Home now inherits the cream scrim, which is the shape this page has
-     actually needed since the rebuild. Judge by what is painted. */
-  html[data-theme="light"] .play-page .studio-nav::before {
-    background: linear-gradient(180deg, rgba(3, 6, 11, 0.86) 0%, rgba(3, 6, 11, 0.68) 34%, rgba(3, 6, 11, 0.32) 64%, rgba(3, 6, 11, 0) 100%);
-  }
+     Play now inherits the cream scrim above. Judge by what is painted. */
 
   .studio-mark,
   .studio-link {
@@ -3058,6 +3148,7 @@
 
   html[data-theme="light"] .studio-nav {
     --nav-ink: #0a1727;
+    --nav-ground: rgba(244, 241, 235, 0.92);
   }
   /* No light-theme face override here. `cursor_fluid.html` paints the mark as
      a dark face (#172a4c) with light eyes (#f8f5ee) in light theme, and that
@@ -3087,52 +3178,29 @@
      Contact followed. Judge by what is painted, not by what the root
      computes to.
 
-     Play was removed too, and that one was a mistake — the note left
-     behind claimed "the home rebuild gave it a real light palette
-     (--home-bg: #f2efe8)" and that it "carries its own nav, so it never
-     included this partial". Neither is true of Play: `play/index.html`
-     includes this file at the top of its body, and it contains no
-     `data-theme` rule anywhere — `:root { color-scheme: dark }` and a
-     hardcoded #020409 body, full stop. Both sentences describe the home
-     page; they were attached to the wrong one.
+     Play was the last page holding an exception, and it has now met the
+     exit condition the previous note wrote for it: "if it ever does gain a
+     daylight palette, delete these five blocks and it will inherit the
+     shared treatment."
 
-     Applying that same test to what Play actually paints: the light
-     treatment put a bright silver capsule and near-black labels on a
-     pure black spatial stage — legible, and completely wrong, a chrome
-     bar dropped into a dark room. So Play gets its exception back below,
-     on the honest premise this time.
+     It has. Play is no longer the standalone dark document those blocks
+     were written against. It picks up the site-wide includes now, and they
+     paint it cream in light theme — measured on /play/ with
+     data-theme="light", body background computes to rgb(245, 243, 238),
+     the same paper as every other page. The `color-scheme: dark` and the
+     hardcoded #020409 on html,body are still in `play/index.html`, which
+     is what made the old premise look true from the source; both are
+     overridden and neither reaches the screen.
 
-     Unlike contact, this one is not obviously temporary. Contact was a
-     page of type and a cut-out that had simply never been lit; Play is a
-     black-box gallery whose scene background, fog and card lighting are
-     all built for a void. If it ever does gain a daylight palette, delete
-     these five blocks and it will inherit the shared treatment. Until
-     then they are load-bearing.
+     Left in, the five blocks pinned --nav-ink to #f5f7fb and hung a dark
+     text-shadow behind it, so once the matching near-black top scrim was
+     removed the labels were pale-on-cream with a black halo — the same
+     light-theme nav blackout this file has now regressed into three times,
+     just inverted. Deleted, Play inherits the shared light treatment.
 
-     What remains below is the shared light treatment, which contact now
-     simply inherits. */
-  html[data-theme="light"] .play-page .studio-nav {
-    --nav-ink: #f5f7fb;
-  }
-  html[data-theme="light"] .play-page .studio-mark .cube-front {
-    fill: rgba(5, 12, 23, 0.82);
-  }
-  html[data-theme="light"] .play-page .studio-mark-label,
-  html[data-theme="light"] .play-page .studio-link > span {
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
-  }
-  html[data-theme="light"] .play-page .studio-hire {
-    border-color: rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.05);
-  }
-  html[data-theme="light"] .play-page .studio-hire:hover,
-  html[data-theme="light"] .play-page .studio-hire:focus-visible {
-    border-color: rgba(255, 255, 255, 0.42);
-    background: rgba(255, 255, 255, 0.1);
-  }
-  html[data-theme="light"] .play-page .studio-hire__label {
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
-  }
+     Every page now takes the same path; there are no per-page nav colour
+     exceptions left. Judge by what is painted, not by what the source of a
+     standalone file says it sets. */
   /* noth.in keeps a "let's chat" affordance visible on every screen rather than
      parking it behind a contact page. Same idea, stated as availability instead
      of a sales button: a live dot and four words, present on every page, one
@@ -3243,9 +3311,29 @@
        its underside lands at 61 instead of 70. Scaling the scrim to match
        keeps the ratio of covered band to falloff identical; leaving it at
        104 would put a third of the fade below the nav on a screen that has
-       far less room to spend on it. */
+       far less room to spend on it.
+
+       The gradient alone was not enough ground. A fade that reaches zero has
+       no plane in it, so on a phone the nav read as loose parts floating over
+       whatever scrolled beneath — and the parts are opaque. On the section
+       titled "How I think" the logo tile sat on the code block and ate the
+       first character of `function`, and the spiral landed inside
+       `design(problem)`. Type was not passing under a bar, it was being
+       covered by a mark.
+
+       So the top band is now a real plane: a flat ground held at full opacity
+       to the nav's underside, blurred so the page reads as continuing behind
+       it rather than being clipped, then the existing gradient carries the
+       last 27px to nothing. Content passes beneath a surface instead of
+       colliding with floating glyphs. Chromium gets the blur; everywhere else
+       the flat ground alone already fixes the occlusion. */
     .studio-nav::before {
       height: 88px;
+      background: linear-gradient(180deg, var(--nav-ground) 0%, var(--nav-ground) 61px, transparent 100%), var(--nav-ground);
+      -webkit-backdrop-filter: blur(14px) saturate(1.1);
+      backdrop-filter: blur(14px) saturate(1.1);
+      -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 69%, transparent 100%);
+      mask-image: linear-gradient(180deg, #000 0%, #000 69%, transparent 100%);
     }
     /* Narrow screens keep the signal, drop the words: the pill collapses to the
        live dot, which is still a tap target to the same mailto. */
@@ -3282,24 +3370,43 @@
       width: 34px;
       height: 34px;
     }
-    .studio-mark-label,
-    .studio-link > span {
+    /* The wordmark label still goes: it is the one label whose glyph already
+       says the same thing, and it is the widest thing competing for the row. */
+    .studio-mark-label {
       display: none;
     }
+    /* The nav labels come back.
+       Dropping them left four hand-drawn glyphs — a spiral, a flower, a sun, a
+       pixel face — carrying the entire information architecture. They are good
+       marks and they are not a menu: nothing in them says "the work is here",
+       and a phone is where a link from LinkedIn lands. Measured at 390 the row
+       fits with the tightening below, so there is no reason to make a recruiter
+       guess which glyph is the portfolio. */
+    .studio-link > span {
+      display: inline;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
     .studio-links {
-      gap: 4px;
-      padding: 4px 8px;
+      gap: 0;
+      padding: 4px 6px;
     }
     .studio-mark {
       padding: 4px;
     }
     .studio-link {
-      width: 42px;
+      width: auto;
+      gap: 3px;
+      padding: 0 5px;
       justify-content: center;
     }
+    .studio-link svg {
+      width: 18px;
+      height: 18px;
+    }
     .studio-link::after {
-      left: 9px;
-      right: 9px;
+      left: 5px;
+      right: 5px;
     }
   }
 
@@ -3838,7 +3945,7 @@
       })(labels[i]);
     }
   })();
-</script> <main class="about-page" id="main"> <section class="about-hero"> <div class="hero-bio-col"> <p class="about-eyebrow">New York, NY</p> <h1 class="about-name">Sid Mehta</h1> <p class="about-role">Product designer &amp; creative technologist</p> <p class="about-bio"> I design product systems and spatial experiences that make complex technology feel clear, useful, and human.<br><br> Previously at Deloitte Digital, EyeJack, and Philips; recognized by the Webby Awards, Kyoorius, and MIT Reality Hack. </p> <div class="about-actions"> <a href="/works/" class="about-action">Selected work<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer" class="about-action about-resume-link">Resume<span class="xarrow" aria-hidden="true"></span><span class="sr-only"> (opens in a new tab)</span></a> </div> </div> <div class="hero-ident"> <div class="about-profile-card" id="about-profile-card" tabindex="0" role="button" aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."> <img class="about-photo active" src="/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta"> <img class="about-photo" src="/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta"> <div class="about-card-meta" aria-hidden="true"> <strong>Sid Mehta</strong><span>New York<br>Open to roles</span> </div> </div> </div> </section> <section class="marquee marquee--companies" aria-labelledby="collaborators-heading"> <h2 class="marquee-kicker" id="collaborators-heading">Past collaborators</h2> <p class="sr-only"> Past collaborators include Deloitte, EyeJack, Philips, Marriott, M Health Fairview, Leaf Design Studio, Dabur, KFC, Google, Pizza Hut, Taco Bell, and Del Taco. </p> <div class="marquee-mask"> <div class="marquee-track" aria-hidden="true"> <span class="m-logo" style="--h: 28px; --ar: 450/84" title="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94" title="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200" title="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136" title="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200" title="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195" title="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42" title="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200" title="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148" title="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200" title="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200" title="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200" title="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 28px; --ar: 450/84" title="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94" title="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200" title="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136" title="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200" title="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195" title="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42" title="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200" title="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148" title="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200" title="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200" title="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200" title="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span> </div> </div> </section> <div class="about-grid" id="about-grid"> <div class="gcol" data-reveal> <h2 class="g-label">Experience</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Senior UX Designer</span> <span class="exp-co">Deloitte Digital</span> </div> <span class="exp-yr">2022–23</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Product Designer</span> <span class="exp-co">EyeJack</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Visual Designer</span> <span class="exp-co">Leaf Design Studio</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">UX Designer</span> <span class="exp-co">Philips</span> </div> <span class="exp-yr">2020</span> </li> </ul> <h2 class="g-label" style="margin-top: 36px">Education</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">MFA Design &amp; Technology</span> <span class="exp-co">Parsons · The New School</span> </div> <span class="exp-yr">2024–2026</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">BDes Communication Design</span> <span class="exp-co">Indian School of Design and Innovation, Mumbai</span> </div> <span class="exp-yr">2019</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Recognition</h2> <ul class="recog-list"> <li class="recog-item"> <span class="recog-name">Webby Award · Best Use of AR, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Webby Award · Best Community Engagement, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">MIT Reality Hack</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Kyoorius Design Award, Mool</span> <span class="recog-yr">2021</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Capabilities</h2> <div class="cap-tags"> <span class="cap-tag" data-reveal>Product Design</span> <span class="cap-tag" data-reveal>UX Research</span> <span class="cap-tag" data-reveal>AR / XR</span> <span class="cap-tag" data-reveal>Unity</span> <span class="cap-tag" data-reveal>Figma</span> <span class="cap-tag" data-reveal>TouchDesigner</span> <span class="cap-tag" data-reveal>Unreal Engine</span> <span class="cap-tag" data-reveal>JavaScript</span> <span class="cap-tag" data-reveal>Python</span> <span class="cap-tag" data-reveal>Branding</span> <span class="cap-tag" data-reveal>Arduino</span> <span class="cap-tag" data-reveal>Premiere Pro</span> </div> <h2 class="g-label">Currently</h2> <dl class="now-list"> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 1.6c-2.4 0-4.3 1.9-4.3 4.3 0 3.2 4.3 8.5 4.3 8.5s4.3-5.3 4.3-8.5c0-2.4-1.9-4.3-4.3-4.3z"></path> <circle class="now-dot" cx="8" cy="5.9" r="1.6"></circle> </svg> <span class="sr-only">Based in</span> </dt> <dd>Brooklyn, New York</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <circle cx="8" cy="8" r="6.1"></circle> <path class="now-hand" d="M8 4.4V8l2.6 1.6"></path> </svg> <span class="sr-only">Local time</span> </dt> <dd><span id="now-clock">Eastern Time</span></dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M2 5.4h12v8H2z"></path> <path class="now-hand" d="M6 5.4V3.4h4v2"></path> </svg> <span class="sr-only">Availability</span> </dt> <dd>Open to remote, hybrid, or relocating</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 2.4 14.4 5.8 8 9.2 1.6 5.8z"></path> <path class="now-hand" d="M4.4 7.4v3.2c0 1 1.6 1.9 3.6 1.9s3.6-.9 3.6-1.9V7.4"></path> </svg> <span class="sr-only">Studying</span> </dt> <dd>MFA Design &amp; Technology, Parsons</dd> </div> </dl> </div> </div> <div class="faq-section"> <h2 class="g-label">Working together</h2> <div class="faq-list"> <details class="faq-item" data-reveal> <summary>Which project taught you the most?</summary> <div class="faq-panel"> <div> <p> Mool. Designing a banking app for users new to digital meant unlearning every shortcut I'd taken in design. Every interaction had to earn its place. It rewired how I think about clarity. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What kind of team brings out your best work?</summary> <div class="faq-panel"> <div> <p> Small. Curious. People who can hold strong opinions loosely. I do my best work when there's room to prototype before there's a brief, and a team that treats design as part of the thinking, not the polish at the end. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What do you do when you're stuck?</summary> <div class="faq-panel"> <div> <p> I leave the screen. Most of my best ideas have come on a walk, in the shower, or while drawing in a sketchbook. The wall is usually a sign I haven't gone wide enough on the inputs yet. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What's the one thing you wish people asked more?</summary> <div class="faq-panel"> <div> <p> Why I make. Cube, mandalas, the AR work, the bank, the small daily illustrations. They all come from the same place: a curiosity about how design can shift the way people feel about themselves and the world. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Lead end-to-end or join mid-sprint?</summary> <div class="faq-panel"> <div> <p> Both. I've shipped solo projects from concept to install, and I've joined product teams to translate research into flows. Async-friendly, comfortable across timezones, fast at finding the shape of a problem. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Where are you based?</summary> <div class="faq-panel"> <div><p>Brooklyn, NYC. Eastern Time. Open to remote, hybrid, or relocating for the right team.</p></div> </div> </details> </div> </div> </main> <style>
+</script> <main class="about-page" id="main"> <section class="about-hero"> <div class="hero-bio-col"> <p class="about-eyebrow">New York, NY</p> <h1 class="about-name">Sid Mehta</h1> <p class="about-role">Product designer &amp; creative technologist</p> <p class="about-claim">Most spatial and AI work demos beautifully and falls apart the moment a real person uses it in a real room.</p> <div class="about-proof"> <p> <b>ENCODED, at the Metropolitan Museum.</b> 25 artworks opened up through AR, 2,000+ activations, two 2026 Webby Awards. I owned the scanning, the prototyping and the QA — the unglamorous half that decides whether it survives museum light and a moving crowd. </p> <p> <b>Deloitte Digital, before that.</b> Enterprise UX across 9,000+ Marriott properties and 100+ franchise stores, inventory accuracy up 17%. </p> </div> <p class="about-bio">I design it and I build it. Research through to shipped code, which is why the demos hold.</p> <div class="about-actions"> <a href="/works/" class="about-action about-action--primary">Selected work<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer" class="about-action about-resume-link">Resume<span class="xarrow" aria-hidden="true"></span><span class="sr-only"> (opens in a new tab)</span></a> </div> </div> <div class="hero-ident"> <div class="about-profile-card" id="about-profile-card" tabindex="0" role="button" aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."> <img class="about-photo active" src="/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta"> <img class="about-photo" src="/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta"> <div class="about-card-meta" aria-hidden="true"> <strong>Sid Mehta</strong><span>New York<br>Open to roles</span> </div> </div> </div> </section> <section class="marquee marquee--companies" aria-labelledby="collaborators-heading"> <h2 class="marquee-kicker" id="collaborators-heading">Past collaborators</h2> <p class="sr-only"> Past collaborators include Deloitte, EyeJack, Philips, Marriott, M Health Fairview, Leaf Design Studio, Dabur, KFC, Google, Pizza Hut, Taco Bell, and Del Taco. </p> <div class="marquee-mask"> <div class="marquee-track" aria-hidden="true"> <span class="m-logo" style="--h: 28px; --ar: 450/84" title="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94" title="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200" title="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136" title="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200" title="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195" title="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42" title="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200" title="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148" title="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200" title="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200" title="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200" title="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 28px; --ar: 450/84" title="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94" title="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200" title="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136" title="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200" title="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195" title="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42" title="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200" title="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148" title="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200" title="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200" title="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200" title="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span> </div> </div> </section> <div class="about-grid" id="about-grid"> <div class="gcol" data-reveal> <h2 class="g-label">Experience</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Senior UX Designer</span> <span class="exp-co">Deloitte Digital</span> </div> <span class="exp-yr">2022–23</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Product Designer</span> <span class="exp-co">EyeJack</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Visual Designer</span> <span class="exp-co">Leaf Design Studio</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">UX Designer</span> <span class="exp-co">Philips</span> </div> <span class="exp-yr">2020</span> </li> </ul> <h2 class="g-label" style="margin-top: 36px">Education</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">MFA Design &amp; Technology</span> <span class="exp-co">Parsons · The New School</span> </div> <span class="exp-yr">2024–2026</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">BDes Communication Design</span> <span class="exp-co">Indian School of Design and Innovation, Mumbai</span> </div> <span class="exp-yr">2019</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Recognition</h2> <ul class="recog-list"> <li class="recog-item"> <span class="recog-name">Webby Award · Best Use of AR, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Webby Award · Best Community Engagement, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">MIT Reality Hack</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Kyoorius Design Award, Mool</span> <span class="recog-yr">2021</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Capabilities</h2> <div class="cap-tags"> <span class="cap-tag" data-reveal>Product Design</span> <span class="cap-tag" data-reveal>UX Research</span> <span class="cap-tag" data-reveal>AR / XR</span> <span class="cap-tag" data-reveal>Unity</span> <span class="cap-tag" data-reveal>Figma</span> <span class="cap-tag" data-reveal>TouchDesigner</span> <span class="cap-tag" data-reveal>Unreal Engine</span> <span class="cap-tag" data-reveal>JavaScript</span> <span class="cap-tag" data-reveal>Python</span> <span class="cap-tag" data-reveal>Branding</span> <span class="cap-tag" data-reveal>Arduino</span> <span class="cap-tag" data-reveal>Premiere Pro</span> </div> <h2 class="g-label">Currently</h2> <dl class="now-list"> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 1.6c-2.4 0-4.3 1.9-4.3 4.3 0 3.2 4.3 8.5 4.3 8.5s4.3-5.3 4.3-8.5c0-2.4-1.9-4.3-4.3-4.3z"></path> <circle class="now-dot" cx="8" cy="5.9" r="1.6"></circle> </svg> <span class="sr-only">Based in</span> </dt> <dd>Brooklyn, New York</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <circle cx="8" cy="8" r="6.1"></circle> <path class="now-hand" d="M8 4.4V8l2.6 1.6"></path> </svg> <span class="sr-only">Local time</span> </dt> <dd><span id="now-clock">Eastern Time</span></dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M2 5.4h12v8H2z"></path> <path class="now-hand" d="M6 5.4V3.4h4v2"></path> </svg> <span class="sr-only">Availability</span> </dt> <dd>Open to remote, hybrid, or relocating</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 2.4 14.4 5.8 8 9.2 1.6 5.8z"></path> <path class="now-hand" d="M4.4 7.4v3.2c0 1 1.6 1.9 3.6 1.9s3.6-.9 3.6-1.9V7.4"></path> </svg> <span class="sr-only">Studying</span> </dt> <dd>MFA Design &amp; Technology, Parsons</dd> </div> </dl> </div> </div> <div class="faq-section"> <h2 class="g-label">Working together</h2> <div class="faq-list"> <details class="faq-item" data-reveal> <summary>Which project taught you the most?</summary> <div class="faq-panel"> <div> <p> Mool. Designing a banking app for users new to digital meant unlearning every shortcut I'd taken in design. Every interaction had to earn its place. It rewired how I think about clarity. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What kind of team brings out your best work?</summary> <div class="faq-panel"> <div> <p> Small. Curious. People who can hold strong opinions loosely. I do my best work when there's room to prototype before there's a brief, and a team that treats design as part of the thinking, not the polish at the end. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What do you do when you're stuck?</summary> <div class="faq-panel"> <div> <p> I leave the screen. Most of my best ideas have come on a walk, in the shower, or while drawing in a sketchbook. The wall is usually a sign I haven't gone wide enough on the inputs yet. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What's the one thing you wish people asked more?</summary> <div class="faq-panel"> <div> <p> Why I make. Cube, mandalas, the AR work, the bank, the small daily illustrations. They all come from the same place: a curiosity about how design can shift the way people feel about themselves and the world. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Lead end-to-end or join mid-sprint?</summary> <div class="faq-panel"> <div> <p> Both. I've shipped solo projects from concept to install, and I've joined product teams to translate research into flows. Async-friendly, comfortable across timezones, fast at finding the shape of a problem. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Where are you based?</summary> <div class="faq-panel"> <div><p>Brooklyn, NYC. Eastern Time. Open to remote, hybrid, or relocating for the right team.</p></div> </div> </details> </div> </div> </main> <style>
     /* ── GET TO KNOW SID ────────────────────────────────────────────────
        Restored. This strip was removed wholesale by ba26a361, the commit that
        put The Plot in the footer's place -- so the song screenshot, the cats,
@@ -4928,7 +5035,7 @@
         margin: 0 15px;
       }
     }
-</style> <footer class="site-footer" aria-label="Site footer"> <div class="plot__bleed" aria-hidden="true"> <div class="plot__pin" id="plot-field"> <canvas id="plot-wash"></canvas> <canvas id="plot-caustic"></canvas> <canvas id="plot-flora"></canvas> </div> </div> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Still more in the studio than on the site. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__head"> <b>Get to know Sid</b> <span>off the clock</span> </div> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> </div> </div> </section> <section class="coda" id="coda" aria-labelledby="coda-title"> <div class="coda__runway"> <div class="coda__stage"> <p class="coda__eyebrow">Coda · 00:00–00:10</p> <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2> <div class="coda__device"> <canvas class="coda__screen" id="coda-screen" width="360" height="780" role="img" aria-label="A phone scrolling through Sid’s music library"></canvas> <span class="coda__glare" aria-hidden="true"></span> </div> <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div> <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p> </div> </div> </section> <style>
+</style> <footer class="site-footer" aria-label="Site footer"> <div class="plot__bleed" aria-hidden="true"> <div class="plot__pin" id="plot-field"> <canvas id="plot-wash"></canvas> <canvas id="plot-caustic"></canvas> <canvas id="plot-flora"></canvas> </div> </div> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__head"> <b>Get to know Sid</b> <span>off the clock</span> </div> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> </div> </div> </section> <section class="coda" id="coda" aria-labelledby="coda-title"> <div class="coda__runway"> <div class="coda__stage"> <p class="coda__eyebrow">Coda · 00:00–00:10</p> <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2> <div class="coda__device"> <canvas class="coda__screen" id="coda-screen" width="360" height="780" role="img" aria-label="A phone scrolling through Sid’s music library"></canvas> <span class="coda__glare" aria-hidden="true"></span> </div> <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div> <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p> </div> </div> </section> <style>
   .coda {
     position: relative;
     z-index: 1;
@@ -4936,12 +5043,19 @@
     color: rgba(240, 246, 252, 0.92);
   }
 
-  /* The runway is the duration. 280vh gives the ten seconds about two and a
-     half screens of scroll to spend, which lands each of the thirty frames on
-     roughly 84px of travel — slow enough to feel like a hand moving a list,
-     fast enough that nobody gets stranded in it. */
+  /* The runway is the duration, and it is also a toll. This section sits in
+     the shared footer, so its height is charged to the bottom of every page on
+     the site — measured on /works/, the footer came to 3108px against 780px of
+     actual page content, and 2363px of that was this runway. A recruiter who
+     finishes the work index then scrolls nearly three screens of a mostly
+     empty room to reach the colophon and the one link at the end.
+
+     280vh was chosen to give thirty frames about 84px of travel each. 150vh
+     still gives them 45px, which is under a single wheel notch on most mice —
+     the scrub stays continuous, it just stops charging two and a half screens
+     for ten seconds of Apple Music. */
   .coda__runway {
-    height: 280vh;
+    height: 150vh;
   }
 
   .coda__stage {
@@ -5101,8 +5215,10 @@
   }
 
   @media (max-width: 760px) {
+    /* Same trade on a phone, where a screen of scroll costs more: 230vh was
+       1941px of the 2635px footer. */
     .coda__runway {
-      height: 230vh;
+      height: 130vh;
     }
     .coda__title {
       position: static;
@@ -11324,6 +11440,17 @@
       const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
       const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (prefersReduced) return;
+      /* If the page already ships its own scroll affordance, this one is not a
+         second opinion, it is the same sentence printed twice. The home hero
+         has `.scroll-cue` — a bar and the word "Scroll" — and on desktop this
+         hint landed 6px below it, two identical words stacked on each other.
+
+         The geometric occlusion test below does not catch it: it samples for
+         content under the hint's own box, and at 1512 the two cues are near
+         enough to be adjacent rather than overlapping, so nothing registers as
+         underneath. Asking "does this page already say this?" is the question
+         that actually applies, and it is one selector. */
+      if (document.querySelector(".scroll-cue")) return;
       const hint = document.createElement("div");
       hint.id = "scroll-hint";
       hint.setAttribute("aria-hidden", "true");

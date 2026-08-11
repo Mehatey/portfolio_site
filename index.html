@@ -1408,21 +1408,34 @@
       }
       /* Dark footage laid over cream at a flat opacity is not a light
          mode, it is a grey smear — the frame loses its hue and reads as
-         dirt on the page. Lifting the blacks first and then multiplying
-         keeps the cream showing through the highlights, so the film
-         reads as a pale print of itself instead of fog.
+         dirt on the page. Multiplying keeps the cream showing through
+         the highlights, so the film reads as a pale print of itself.
 
-         Tuned against the real footage in a real browser, not by eye:
+         The chroma is pulled down and steered cool rather than raised:
          raising saturation made the frame go warm and olive, which is
-         the one hue this site does not use. So the chroma is pulled
-         down and steered cool instead — sepia lays a single hue over
-         the whole frame and hue-rotate walks it round to the site's
-         blue. The result is a duotone plate in the accent family
-         rather than a colour photograph bleeding through the page. */
+         the one hue this site does not use. Sepia lays a single hue
+         over the whole frame and hue-rotate walks it round to the
+         site's blue, so the result is a duotone plate in the accent
+         family rather than a colour photograph bleeding through.
+
+         What was wrong was the exposure, and it was fighting the blend
+         mode. This lifted the blacks first — brightness(2.45) — and then
+         multiplied, but white is the identity under multiply, so lifting
+         the frame toward white is instructing it to disappear. At 0.44
+         opacity on top of that, the pixel-sorted portrait was a pale
+         blob: the one effect on this page that says the work is built
+         rather than templated did not exist for anyone in light theme.
+
+         So the exposure stays near unity and lets multiply do what it is
+         for — the darks land as ink on the paper and the highlights drop
+         out. Compared against the current values and two heavier
+         variants on the real footage: at 0.78 the frame goes grey and
+         crowds the headline, at 0.62 the mosaic grid, the figure and the
+         foliage all read while the type keeps the field to itself. */
       html[data-theme="light"] .film.is-gl canvas {
-        opacity: 0.44;
+        opacity: 0.62;
         mix-blend-mode: multiply;
-        filter: brightness(2.45) contrast(0.68) saturate(0.45) sepia(0.12) hue-rotate(165deg);
+        filter: brightness(1.12) contrast(1.05) saturate(0.55) sepia(0.1) hue-rotate(170deg);
       }
       .film__still {
         object-fit: cover;
@@ -1433,9 +1446,9 @@
         opacity: 0.5;
       }
       html[data-theme="light"] .film.is-static .film__still {
-        opacity: 0.44;
+        opacity: 0.62;
         mix-blend-mode: multiply;
-        filter: brightness(2.45) contrast(0.68) saturate(0.45) sepia(0.12) hue-rotate(165deg);
+        filter: brightness(1.12) contrast(1.05) saturate(0.55) sepia(0.1) hue-rotate(170deg);
       }
       .film.is-static video,
       .film.is-static canvas {
@@ -1715,13 +1728,6 @@
         letter-spacing: 0.12em;
         color: var(--home-faint);
       }
-      .ide__bar b {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--home-hair);
-        transition: background 500ms ease;
-      }
       .ide.is-live .ide__bar b:first-child {
         background: #ff6f9c;
       }
@@ -1729,12 +1735,21 @@
         background: #7aa2ff;
       }
       .ide__bar em {
-        margin-left: 8px;
         font-style: normal;
+        text-transform: uppercase;
       }
       .ide__code {
         flex: 1;
         margin: 0;
+        /* The passage got shorter when it stopped being fake TypeScript — the
+           function body and the export were most of its length — so top-
+           aligned it left the bottom third of the plate empty beside a
+           full-height portrait. Centring the block in the plate is what the
+           shorter text wants; the plate's height is set by the portrait next
+           to it and is not going to shrink to meet it. */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
         padding: clamp(18px, 2.6vw, 36px);
         overflow: hidden;
         font-family: "DM Mono", monospace;
@@ -1814,8 +1829,20 @@
            sheet at equal specificity, so a shorthand here silently zeroed that
            gutter: the numbers row, the section rails and the gallery all ran
            edge to edge, clipping the first stat and the 01/02 index glyphs.
-           Set the block axis only and leave the inline gutter to .wrap. */
-        padding-block: clamp(70px, 13vh, 170px);
+           Set the block axis only and leave the inline gutter to .wrap.
+
+           13vh was 13vh on each side, and section padding does not meet the
+           next section's padding, it stacks with it: at 900px tall that is
+           117 + 117 = 234px of air at every seam, before the gallery adds its
+           own 11vh gap on top. Measured, the band between the last project
+           card and the next rule ran 423px, and in light theme — where there
+           is no shader texture to fill it — that is a flat unbroken cream
+           rectangle that reads as a page that failed to render rather than as
+           breathing room.
+
+           8.5vh keeps the section feeling unhurried and stops the stacking
+           from compounding into a blank frame. */
+        padding-block: clamp(56px, 8.5vh, 120px);
         background: transparent;
       }
       .sec-head {
@@ -1840,7 +1867,11 @@
       .gal {
         display: flex;
         flex-direction: column;
-        gap: clamp(72px, 11vh, 132px);
+        /* Was 11vh. Between two project cards this is the only separator, so
+           it can be generous; what it cannot do is add itself to the section
+           padding above and below and turn a seam into a blank screen. 8vh
+           still reads as a deliberate pause between projects. */
+        gap: clamp(56px, 8vh, 104px);
       }
       .gal-item {
         display: grid;
@@ -1997,7 +2028,7 @@
           left: -0.06em;
         }
         .gal {
-          gap: clamp(64px, 11vh, 110px);
+          gap: clamp(48px, 7.5vh, 88px);
         }
       }
 
@@ -3368,6 +3399,57 @@
       transform: scale(1.7);
     }
   }
+
+  /* ---- Light theme -------------------------------------------------------
+     The entry gate was authored dark-only: every colour above is a near-white
+     tuned for black, and the gate itself is transparent, so in light theme the
+     cream page ground shows through and the whole first screen — name, role,
+     ENTER PORTFOLIO, the recruiter links — lands at a measured contrast ratio
+     of 1.02. That is not "low contrast", it is invisible: the first thing a
+     recruiter sees in light mode was a sculpture floating over blank paper.
+
+     These are ink-on-cream counterparts, not the dark values dimmed. The blue
+     glows come off entirely — a halo tuned to bloom against black reads as
+     smudge against paper — and the relative hierarchy is preserved by opacity
+     the same way the dark set does it. Specificity: html[data-theme] adds an
+     attribute + element to each selector, so these beat the base rules above
+     without !important, including the #enter-label ID rule. */
+  html[data-theme="light"] .entry-identity {
+    text-shadow: none;
+  }
+  html[data-theme="light"] .entry-name {
+    color: rgba(7, 9, 15, 0.72);
+  }
+  html[data-theme="light"] .entry-role {
+    color: rgba(7, 9, 15, 0.92);
+  }
+  html[data-theme="light"] .entry-scope {
+    color: rgba(7, 9, 15, 0.58);
+  }
+  html[data-theme="light"] #enter-label {
+    color: rgba(7, 9, 15, 0.9);
+    text-shadow: none;
+    /* The dark gate rests this at 0.62 and lets the glow carry it. With no glow
+       on cream, 0.62 would drop it back under the contrast floor, so the resting
+       state is raised and the hover still has somewhere to travel. */
+    opacity: 0.82;
+  }
+  html[data-theme="light"] #enter-label:focus-visible {
+    outline-color: rgba(7, 9, 15, 0.55);
+  }
+  html[data-theme="light"] .enter-quick-links a {
+    color: rgba(7, 9, 15, 0.72);
+    border-bottom-color: rgba(7, 9, 15, 0.28);
+  }
+  html[data-theme="light"] .enter-quick-links a:hover,
+  html[data-theme="light"] .enter-quick-links a:focus-visible {
+    color: rgba(7, 9, 15, 0.98);
+    border-bottom-color: rgba(7, 9, 15, 0.7);
+  }
+  /* Screen-blend bloom is a no-op on a light ground and only greys the paper. */
+  html[data-theme="light"] #enter-flash {
+    display: none;
+  }
 </style>
 
 <!-- Keep the loader compatible with Meshopt-compressed GLB files as well. -->
@@ -4379,6 +4461,10 @@
      covers the whole band, only the objects are on the measure. */
   .studio-nav {
     --nav-ink: #f5f7fb;
+    /* The plane the mobile top band is painted on. Same ink the scrim
+       gradient already used, promoted to a token so the light theme can swap
+       it in one place instead of restating the gradient. */
+    --nav-ground: rgba(3, 6, 11, 0.92);
     position: fixed;
     z-index: 9000;
     inset: 22px clamp(18px, 2.5vw, 40px) auto;
@@ -4451,33 +4537,25 @@
     );
   }
 
-  /* Play paints a dark stage at every theme — `play/index.html` has no
-     data-theme rule anywhere, just `:root { color-scheme: dark }` and a
-     hardcoded #020409 body. A cream scrim there would be a pale bar across
-     the top of a black room.
+  /* Play used to be the one exception here, on the premise that it "paints a
+     dark stage at every theme": `play/index.html` sets `color-scheme: dark`
+     and a hardcoded `#020409` on html,body, so a cream scrim would have been
+     a pale bar across the top of a black room.
 
-     Home used to be in this list on the same premise, and the premise had
-     expired. The home rebuild gave it `--home-bg: #f2efe8` under
-     html[data-theme="light"], so the page beneath this bar is cream like
-     every other one — measured, not assumed: body background computes to
-     rgb(245, 243, 238). Two things followed from leaving the exception in.
+     That premise has now expired the same way home's did. Play is no longer a
+     standalone dark document — it picks up the site-wide includes, and those
+     paint it cream in light theme. Measured, not assumed: on /play/ with
+     data-theme="light", body background computes to rgb(245, 243, 238), the
+     same paper as every other page. The #020409 on line 50 of that file is
+     still in the source but is overridden and never reaches the screen.
 
-     The scrim itself became a near-black 0.86 veil fading down over 104px
-     of paper, which is the grey smear across the top of the light home
-     page. And it was doing that while the labels under it were dark: the
-     comment claimed home "pins --nav-ink light below", but that pin is
-     `.home-page .studio-nav` at 0-2-0, and it loses to
-     `html[data-theme="light"] .studio-nav` at 0-2-1 a dozen lines above
-     it. --nav-ink computes to #0a1727. So the veil was not lifting a pale
-     wordmark off a dark stage, it was dropping shade behind an already
-     dark wordmark on cream — costing contrast in the one place a scrim
-     exists to buy it.
+     Left in, the exception did exactly what it did on home: laid a near-black
+     0.86 veil down over 104px of cream, which read as a grey smear across the
+     top of the page — and the "Play" wordmark is dark ink, so the top third of
+     the heading was dark-on-dark. The scrim was costing contrast in the one
+     place a scrim exists to buy it.
 
-     Home now inherits the cream scrim, which is the shape this page has
-     actually needed since the rebuild. Judge by what is painted. */
-  html[data-theme="light"] .play-page .studio-nav::before {
-    background: linear-gradient(180deg, rgba(3, 6, 11, 0.86) 0%, rgba(3, 6, 11, 0.68) 34%, rgba(3, 6, 11, 0.32) 64%, rgba(3, 6, 11, 0) 100%);
-  }
+     Play now inherits the cream scrim above. Judge by what is painted. */
 
   .studio-mark,
   .studio-link {
@@ -4961,6 +5039,7 @@
 
   html[data-theme="light"] .studio-nav {
     --nav-ink: #0a1727;
+    --nav-ground: rgba(244, 241, 235, 0.92);
   }
   /* No light-theme face override here. `cursor_fluid.html` paints the mark as
      a dark face (#172a4c) with light eyes (#f8f5ee) in light theme, and that
@@ -4990,52 +5069,29 @@
      Contact followed. Judge by what is painted, not by what the root
      computes to.
 
-     Play was removed too, and that one was a mistake — the note left
-     behind claimed "the home rebuild gave it a real light palette
-     (--home-bg: #f2efe8)" and that it "carries its own nav, so it never
-     included this partial". Neither is true of Play: `play/index.html`
-     includes this file at the top of its body, and it contains no
-     `data-theme` rule anywhere — `:root { color-scheme: dark }` and a
-     hardcoded #020409 body, full stop. Both sentences describe the home
-     page; they were attached to the wrong one.
+     Play was the last page holding an exception, and it has now met the
+     exit condition the previous note wrote for it: "if it ever does gain a
+     daylight palette, delete these five blocks and it will inherit the
+     shared treatment."
 
-     Applying that same test to what Play actually paints: the light
-     treatment put a bright silver capsule and near-black labels on a
-     pure black spatial stage — legible, and completely wrong, a chrome
-     bar dropped into a dark room. So Play gets its exception back below,
-     on the honest premise this time.
+     It has. Play is no longer the standalone dark document those blocks
+     were written against. It picks up the site-wide includes now, and they
+     paint it cream in light theme — measured on /play/ with
+     data-theme="light", body background computes to rgb(245, 243, 238),
+     the same paper as every other page. The `color-scheme: dark` and the
+     hardcoded #020409 on html,body are still in `play/index.html`, which
+     is what made the old premise look true from the source; both are
+     overridden and neither reaches the screen.
 
-     Unlike contact, this one is not obviously temporary. Contact was a
-     page of type and a cut-out that had simply never been lit; Play is a
-     black-box gallery whose scene background, fog and card lighting are
-     all built for a void. If it ever does gain a daylight palette, delete
-     these five blocks and it will inherit the shared treatment. Until
-     then they are load-bearing.
+     Left in, the five blocks pinned --nav-ink to #f5f7fb and hung a dark
+     text-shadow behind it, so once the matching near-black top scrim was
+     removed the labels were pale-on-cream with a black halo — the same
+     light-theme nav blackout this file has now regressed into three times,
+     just inverted. Deleted, Play inherits the shared light treatment.
 
-     What remains below is the shared light treatment, which contact now
-     simply inherits. */
-  html[data-theme="light"] .play-page .studio-nav {
-    --nav-ink: #f5f7fb;
-  }
-  html[data-theme="light"] .play-page .studio-mark .cube-front {
-    fill: rgba(5, 12, 23, 0.82);
-  }
-  html[data-theme="light"] .play-page .studio-mark-label,
-  html[data-theme="light"] .play-page .studio-link > span {
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
-  }
-  html[data-theme="light"] .play-page .studio-hire {
-    border-color: rgba(255, 255, 255, 0.18);
-    background: rgba(255, 255, 255, 0.05);
-  }
-  html[data-theme="light"] .play-page .studio-hire:hover,
-  html[data-theme="light"] .play-page .studio-hire:focus-visible {
-    border-color: rgba(255, 255, 255, 0.42);
-    background: rgba(255, 255, 255, 0.1);
-  }
-  html[data-theme="light"] .play-page .studio-hire__label {
-    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75);
-  }
+     Every page now takes the same path; there are no per-page nav colour
+     exceptions left. Judge by what is painted, not by what the source of a
+     standalone file says it sets. */
   /* noth.in keeps a "let's chat" affordance visible on every screen rather than
      parking it behind a contact page. Same idea, stated as availability instead
      of a sales button: a live dot and four words, present on every page, one
@@ -5146,9 +5202,29 @@
        its underside lands at 61 instead of 70. Scaling the scrim to match
        keeps the ratio of covered band to falloff identical; leaving it at
        104 would put a third of the fade below the nav on a screen that has
-       far less room to spend on it. */
+       far less room to spend on it.
+
+       The gradient alone was not enough ground. A fade that reaches zero has
+       no plane in it, so on a phone the nav read as loose parts floating over
+       whatever scrolled beneath — and the parts are opaque. On the section
+       titled "How I think" the logo tile sat on the code block and ate the
+       first character of `function`, and the spiral landed inside
+       `design(problem)`. Type was not passing under a bar, it was being
+       covered by a mark.
+
+       So the top band is now a real plane: a flat ground held at full opacity
+       to the nav's underside, blurred so the page reads as continuing behind
+       it rather than being clipped, then the existing gradient carries the
+       last 27px to nothing. Content passes beneath a surface instead of
+       colliding with floating glyphs. Chromium gets the blur; everywhere else
+       the flat ground alone already fixes the occlusion. */
     .studio-nav::before {
       height: 88px;
+      background: linear-gradient(180deg, var(--nav-ground) 0%, var(--nav-ground) 61px, transparent 100%), var(--nav-ground);
+      -webkit-backdrop-filter: blur(14px) saturate(1.1);
+      backdrop-filter: blur(14px) saturate(1.1);
+      -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 69%, transparent 100%);
+      mask-image: linear-gradient(180deg, #000 0%, #000 69%, transparent 100%);
     }
     /* Narrow screens keep the signal, drop the words: the pill collapses to the
        live dot, which is still a tap target to the same mailto. */
@@ -5185,24 +5261,43 @@
       width: 34px;
       height: 34px;
     }
-    .studio-mark-label,
-    .studio-link > span {
+    /* The wordmark label still goes: it is the one label whose glyph already
+       says the same thing, and it is the widest thing competing for the row. */
+    .studio-mark-label {
       display: none;
     }
+    /* The nav labels come back.
+       Dropping them left four hand-drawn glyphs — a spiral, a flower, a sun, a
+       pixel face — carrying the entire information architecture. They are good
+       marks and they are not a menu: nothing in them says "the work is here",
+       and a phone is where a link from LinkedIn lands. Measured at 390 the row
+       fits with the tightening below, so there is no reason to make a recruiter
+       guess which glyph is the portfolio. */
+    .studio-link > span {
+      display: inline;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
     .studio-links {
-      gap: 4px;
-      padding: 4px 8px;
+      gap: 0;
+      padding: 4px 6px;
     }
     .studio-mark {
       padding: 4px;
     }
     .studio-link {
-      width: 42px;
+      width: auto;
+      gap: 3px;
+      padding: 0 5px;
       justify-content: center;
     }
+    .studio-link svg {
+      width: 18px;
+      height: 18px;
+    }
     .studio-link::after {
-      left: 9px;
-      right: 9px;
+      left: 5px;
+      right: 5px;
     }
   }
 
@@ -5814,12 +5909,40 @@
                  the block claims anything about how good the work is; the work
                  is one scroll down. -->
             <p class="hero__num">
-              <b><i>Experience</i><u>06</u><em>years</em></b>
+              <!-- This block used to read EXPERIENCE / 06 / YEARS, at Sid's
+                   explicit request, and the form is his: a label, then the
+                   figure and its unit on one baseline. The form stays. What
+                   changed is which fact it carries, on his call.
+
+                   The headline 340px above it already says "Product designer,
+                   six years", so a 96px numeral restating it put the page's
+                   loudest object and its first sentence on the same fact — the
+                   eye read the big grey 06 first and then found the headline
+                   had already told it. It was the fourth of four "six years"
+                   on this page, against a single mention of the Met in 11px
+                   mono inside a marquee that scrolls away.
+
+                   So the slot carries the fact nobody else applying has: 25
+                   artworks at the Metropolitan Museum. The full set still
+                   lives in chapter 04, which is the ordinary hero-to-detail
+                   relationship rather than an echo of the line above. -->
+              <b><i>At the Met</i><u>25</u><em>artworks</em></b>
               <span>Fintech, healthcare, hospitality.<br>Spatial computing and agentic AI.</span>
             </p>
             <ul class="hero__links">
               <li>
-                <a href="/works/"><em>01</em><b>Selected work</b><i aria-hidden="true">→</i></a>
+                <!-- This row used to read "01 Selected work", which collided twice.
+                     The numeral competed with the chapter rail below it — the page
+                     counted 01 at the cube and 01 here — and the label was the same
+                     two words as chapter 02, while pointing somewhere else: this
+                     link goes to /works/, the full set, and chapter 02 is the six
+                     on-page highlights. Same name, two destinations.
+
+                     The numeral column is load-bearing (3.4em of the grid), so it
+                     keeps its slot and earns it instead: the count. "16 · All work"
+                     says what is behind the click, and no longer pretends to be a
+                     chapter. -->
+                <a href="/works/"><em>16</em><b>All work</b><i aria-hidden="true">→</i></a>
               </li>
               <li class="hero__links--note">
                 <button type="button" id="reel-open" aria-haspopup="dialog" aria-controls="reel-modal">
@@ -6061,8 +6184,12 @@
 </style>
 
 <section class="hs-object" id="hs-object" aria-label="The work as an object">
+  <!-- 01: the cube is the first chapter after the hero. It carried "03" from
+       the layout it was built for, where the order was work → numbers → cube;
+       the home rebuild moved it to the front and the number stayed behind, so
+       the page counted 03 → 01 → 02 → 03 → 04 with 03 used twice. -->
   <div class="obj-head">
-<span>03</span><span class="cine-rule"></span><span>Six sides of the practice</span>
+<span>01</span><span class="cine-rule"></span><span>Six sides of the practice</span>
 </div>
   <div class="obj-stage" id="obj-stage">
     <div class="obj-cube" id="obj-cube">
@@ -6205,7 +6332,7 @@
       <!-- ───────────────── 01 work ───────────────── -->
       <section class="sec wrap" id="work" aria-labelledby="work-h">
         <div class="sec-head rv">
-<span>01</span><span class="rule"></span><span id="work-h">Selected work</span>
+<span>02</span><span class="rule"></span><span id="work-h">Selected work</span>
 </div>
 
         <ol class="gal">
@@ -6304,7 +6431,7 @@
       <!-- ───────────────── 02 how I think ───────────────── -->
       <section class="sec wrap" id="how" aria-labelledby="how-h">
         <div class="sec-head rv">
-<span>02</span><span class="rule"></span><span id="how-h">How I think</span>
+<span>03</span><span class="rule"></span><span id="how-h">How I think</span>
 </div>
         <figure class="ide rv" id="ide">
           <div class="ide__photo">
@@ -6318,8 +6445,13 @@
           </div>
           <div class="ide__panel" aria-hidden="true">
             <div class="ide__bar">
-<b></b><b></b><b></b><em>design.principles.ts</em>
-</div>
+              <!-- This was three traffic-light dots and "design.principles.ts":
+                   a drawn picture of an IDE, on the page of someone whose
+                   stated position is real effects over fakes. The panel is not
+                   an editor and there is no such file. It is a plate with
+                   type on it, so it is labelled as one. -->
+              <em>How the work gets made</em>
+            </div>
             <pre class="ide__code"><code id="ide-code"></code></pre>
           </div>
           <figcaption class="ide__cap">Hover to resolve him · click to redraw</figcaption>
@@ -6330,7 +6462,7 @@
       <!-- ───────────────── 03 numbers ───────────────── -->
       <section class="sec wrap" aria-labelledby="nums-h">
         <div class="sec-head rv">
-<span>03</span><span class="rule"></span><span id="nums-h">By the numbers</span>
+<span>04</span><span class="rule"></span><span id="nums-h">By the numbers</span>
 </div>
         <div class="nums">
           <!-- ── THE MARKS COUNT ─────────────────────────────────────────────
@@ -6482,10 +6614,10 @@
         })();
       </script>
 
-      <!-- ───────────────── 04 the door ───────────────── -->
+      <!-- ───────────────── 05 the door ───────────────── -->
       <section class="sec wrap door" aria-labelledby="door-h">
         <div class="sec-head rv" style="justify-content: center">
-          <span>04</span><span class="rule" style="max-width: 60px"></span><span id="door-h">The studio</span>
+          <span>05</span><span class="rule" style="max-width: 60px"></span><span id="door-h">The studio</span>
         </div>
         <!-- Sid: "dont link the play page from the bottom which says 98. there
              were like 220 include photos and vids too."
@@ -7671,6 +7803,7 @@
     </div>
   </div>
 
+   
   <section class="kts" aria-label="More about Sid">
     <p class="sr-only">
       Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT
@@ -7684,6 +7817,7 @@
       </div>
     </div>
   </section>
+  
 
   <!-- Directional blur for the tile smear above. Horizontal only: stdDeviation
      takes an x,y pair, and "9 0" blurs along the drift axis while leaving
@@ -7721,10 +7855,7 @@
           <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption>
         </figure>
-        <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)">
-          <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption>
-        </figure>
+        
         <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)">
           <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption>
@@ -7770,10 +7901,7 @@
           <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption>
         </figure>
-        <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)">
-          <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption>
-        </figure>
+        
         <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)">
           <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption>
@@ -7880,12 +8008,19 @@
     color: rgba(240, 246, 252, 0.92);
   }
 
-  /* The runway is the duration. 280vh gives the ten seconds about two and a
-     half screens of scroll to spend, which lands each of the thirty frames on
-     roughly 84px of travel — slow enough to feel like a hand moving a list,
-     fast enough that nobody gets stranded in it. */
+  /* The runway is the duration, and it is also a toll. This section sits in
+     the shared footer, so its height is charged to the bottom of every page on
+     the site — measured on /works/, the footer came to 3108px against 780px of
+     actual page content, and 2363px of that was this runway. A recruiter who
+     finishes the work index then scrolls nearly three screens of a mostly
+     empty room to reach the colophon and the one link at the end.
+
+     280vh was chosen to give thirty frames about 84px of travel each. 150vh
+     still gives them 45px, which is under a single wheel notch on most mice —
+     the scrub stays continuous, it just stops charging two and a half screens
+     for ten seconds of Apple Music. */
   .coda__runway {
-    height: 280vh;
+    height: 150vh;
   }
 
   .coda__stage {
@@ -8045,8 +8180,10 @@
   }
 
   @media (max-width: 760px) {
+    /* Same trade on a phone, where a screen of scroll costs more: 230vh was
+       1941px of the 2635px footer. */
     .coda__runway {
-      height: 230vh;
+      height: 130vh;
     }
     .coda__title {
       position: static;
@@ -9351,43 +9488,35 @@
           toks.push([str, cls || ""]);
         };
 
-        t("// Brooklyn. Six years. Fintech, spatial, health, AI.\n", "c");
+        /* This was written as TypeScript: `const emotion = storytelling`,
+           a `function design(problem)` with a while-loop, and
+           `export default trust`. None of it computes, and none of it was
+           meant to — they are aphorisms wearing syntax. That register is
+           exactly the voice this site is trying not to have, and it was
+           sitting under a heading that promises the opposite.
+
+           Every phrase below is the one that was already here. What is gone
+           is the pretence that it is a language: the pairs are a spec sheet,
+           which is what they always were, and the process is the sentence it
+           always was. "Six years" is gone from the first line as well — the
+           page said it four times and now says it once. */
+        t("Brooklyn. Fintech, spatial, health, AI.\n", "c");
         t("\n");
         PAIRS.forEach(function (r) {
-          t("const ", "k");
-          t(pad(r[0], 10), "n");
-          t("= ");
-          t(r[1], "v");
-          t("\n");
+          t(pad(r[0], 11), "n");
+          t(r[1] + "\n", "v");
         });
         t("\n");
-        t("function ", "k");
-        t("design", "f");
-        t("(problem) {\n");
-        t("  const ", "k");
-        t("people ", "n");
-        t("= ");
-        t("listen", "f");
-        t("(problem)\n");
-        t("  let ", "k");
-        t("idea ", "n");
-        t("= ");
-        t("sketch", "f");
-        t("(people.tension)\n");
-        t("  while ", "k");
-        t("(!");
-        t("inevitable", "f");
-        t("(idea)) idea = ");
-        t("cut", "f");
-        t("(idea)\n");
-        t("  return ", "k");
-        t("build", "f");
-        t("(idea)\n");
-        t("}\n");
+        t("I listen for the tension in the problem,\n");
+        t("sketch until an idea feels ");
+        t("inevitable", "v");
+        t(",\n");
+        t("cut everything that is not,\n");
+        t("and build it myself, end to end.\n");
         t("\n");
-        t("// then I build it myself, end to end\n", "c");
-        t("export default ", "k");
+        t("What is left is ", "c");
         t("trust", "v");
+        t(".", "c");
         var total = toks.reduce(function (a, t) {
           return a + t[0].length;
         }, 0);
@@ -14908,6 +15037,17 @@
       const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
       const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (prefersReduced) return;
+      /* If the page already ships its own scroll affordance, this one is not a
+         second opinion, it is the same sentence printed twice. The home hero
+         has `.scroll-cue` — a bar and the word "Scroll" — and on desktop this
+         hint landed 6px below it, two identical words stacked on each other.
+
+         The geometric occlusion test below does not catch it: it samples for
+         content under the hint's own box, and at 1512 the two cues are near
+         enough to be adjacent rather than overlapping, so nothing registers as
+         underneath. Asking "does this page already say this?" is the question
+         that actually applies, and it is one selector. */
+      if (document.querySelector(".scroll-cue")) return;
       const hint = document.createElement("div");
       hint.id = "scroll-hint";
       hint.setAttribute("aria-hidden", "true");
