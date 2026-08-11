@@ -559,11 +559,27 @@ title: Play · Sid Mehta
 
         var grid = document.getElementById("play-grid");
         var accessList = document.getElementById("play-access-list");
-        sources.forEach(function (item, index) {
+        /* Built in two passes, for two reasons.
+
+           `image.src` used to be assigned before `image.loading`, which is the
+           wrong order: the fetch can start the moment src lands, so the hint
+           was being set on a request that had already left. Attributes first,
+           src last, in both passes below.
+
+           And `index < 12` was picking the wrong twelve. This is a CSS
+           `columns` layout, so content flows all the way down column one
+           before it starts column two — DOM indices 0-18 are the entire left
+           column. Measured at 1512 before this change: of the twelve images
+           marked eager, three were in the first viewport and nine were below
+           the fold, while four images that were on screen were marked lazy.
+           The page was prioritising the pictures you cannot see and competing
+           with the ones you can.
+
+           So the elements go in without src, the browser lays them out once,
+           and eagerness is decided on where each picture actually is. */
+        var built = sources.map(function (item, index) {
           var image = document.createElement("img");
-          image.src = item.src;
           image.alt = item.title;
-          image.loading = index < 12 ? "eager" : "lazy";
           image.decoding = "async";
           image.addEventListener("click", function () {
             if (window.playOpen) window.playOpen(item);
@@ -572,6 +588,44 @@ title: Play · Sid Mehta
           var li = document.createElement("li");
           li.textContent = index + 1 + ". " + item.title;
           accessList.appendChild(li);
+          return image;
+        });
+        /* Which pictures are on screen is a question about columns, not about
+           DOM order — and it cannot be answered by measuring, because none of
+           these images has a src yet and an image with no intrinsic size has
+           no height. (Measuring offsetTop here was my first attempt and it
+           marked 55 of 57 eager: every element was collapsed to zero, so every
+           element looked like it was in the first viewport.)
+
+           It can be answered by arithmetic. `column-fill: balance` splits N
+           items across C equal columns, so the top of column k is at index
+           round(k * N / C), and the first pictures a visitor sees are the
+           first few of each column. C comes from the CSS column-width against
+           the grid's own width, which needs no image to have loaded. */
+        var gridStyle = getComputedStyle(grid);
+        var colW = parseFloat(gridStyle.columnWidth) || 320;
+        var colGap = parseFloat(gridStyle.columnGap) || 0;
+        var cols = Math.max(1, Math.floor((grid.clientWidth + colGap) / (colW + colGap)));
+        var perCol = sources.length / cols;
+        var eager = {};
+        for (var c = 0; c < cols; c++) {
+          var top = Math.round(c * perCol);
+          /* Three deep. Four was tried and measured worse on desktop, which
+             is a warning about the measurement rather than about the number:
+             `column-fill: balance` redistributes items as images load, so
+             which tiles are in the first viewport shifts run to run and the
+             exact counts drift. Three is the conservative choice — it is
+             roughly one screenful per column at 1512, and an in-viewport
+             `lazy` image is fetched promptly by the browser anyway, so the
+             cost of under-marking is far smaller than the cost of the original
+             bug, which was fetching nine off-screen pictures at high priority
+             while on-screen ones waited. */
+          for (var n = 0; n < 3; n++) eager[top + n] = true;
+        }
+        built.forEach(function (image, index) {
+          image.loading = eager[index] ? "eager" : "lazy";
+          if (eager[index]) image.setAttribute("fetchpriority", "high");
+          image.src = sources[index].src;
         });
 
         /* Reveal on entry. The images arrive over a long scroll, and fading
