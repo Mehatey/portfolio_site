@@ -5323,6 +5323,17 @@
       const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
       const prefersReduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (prefersReduced) return;
+      /* If the page already ships its own scroll affordance, this one is not a
+         second opinion, it is the same sentence printed twice. The home hero
+         has `.scroll-cue` — a bar and the word "Scroll" — and on desktop this
+         hint landed 6px below it, two identical words stacked on each other.
+
+         The geometric occlusion test below does not catch it: it samples for
+         content under the hint's own box, and at 1512 the two cues are near
+         enough to be adjacent rather than overlapping, so nothing registers as
+         underneath. Asking "does this page already say this?" is the question
+         that actually applies, and it is one selector. */
+      if (document.querySelector(".scroll-cue")) return;
       const hint = document.createElement("div");
       hint.id = "scroll-hint";
       hint.setAttribute("aria-hidden", "true");

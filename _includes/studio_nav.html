@@ -74,6 +74,10 @@
      covers the whole band, only the objects are on the measure. */
   .studio-nav {
     --nav-ink: #f5f7fb;
+    /* The plane the mobile top band is painted on. Same ink the scrim
+       gradient already used, promoted to a token so the light theme can swap
+       it in one place instead of restating the gradient. */
+    --nav-ground: rgba(3, 6, 11, 0.92);
     position: fixed;
     z-index: 9000;
     inset: 22px clamp(18px, 2.5vw, 40px) auto;
@@ -648,6 +652,7 @@
 
   html[data-theme="light"] .studio-nav {
     --nav-ink: #0a1727;
+    --nav-ground: rgba(244, 241, 235, 0.92);
   }
   /* No light-theme face override here. `cursor_fluid.html` paints the mark as
      a dark face (#172a4c) with light eyes (#f8f5ee) in light theme, and that
@@ -810,9 +815,29 @@
        its underside lands at 61 instead of 70. Scaling the scrim to match
        keeps the ratio of covered band to falloff identical; leaving it at
        104 would put a third of the fade below the nav on a screen that has
-       far less room to spend on it. */
+       far less room to spend on it.
+
+       The gradient alone was not enough ground. A fade that reaches zero has
+       no plane in it, so on a phone the nav read as loose parts floating over
+       whatever scrolled beneath — and the parts are opaque. On the section
+       titled "How I think" the logo tile sat on the code block and ate the
+       first character of `function`, and the spiral landed inside
+       `design(problem)`. Type was not passing under a bar, it was being
+       covered by a mark.
+
+       So the top band is now a real plane: a flat ground held at full opacity
+       to the nav's underside, blurred so the page reads as continuing behind
+       it rather than being clipped, then the existing gradient carries the
+       last 27px to nothing. Content passes beneath a surface instead of
+       colliding with floating glyphs. Chromium gets the blur; everywhere else
+       the flat ground alone already fixes the occlusion. */
     .studio-nav::before {
       height: 88px;
+      background: linear-gradient(180deg, var(--nav-ground) 0%, var(--nav-ground) 61px, transparent 100%), var(--nav-ground);
+      -webkit-backdrop-filter: blur(14px) saturate(1.1);
+      backdrop-filter: blur(14px) saturate(1.1);
+      -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 69%, transparent 100%);
+      mask-image: linear-gradient(180deg, #000 0%, #000 69%, transparent 100%);
     }
     /* Narrow screens keep the signal, drop the words: the pill collapses to the
        live dot, which is still a tap target to the same mailto. */
@@ -849,24 +874,43 @@
       width: 34px;
       height: 34px;
     }
-    .studio-mark-label,
-    .studio-link > span {
+    /* The wordmark label still goes: it is the one label whose glyph already
+       says the same thing, and it is the widest thing competing for the row. */
+    .studio-mark-label {
       display: none;
     }
+    /* The nav labels come back.
+       Dropping them left four hand-drawn glyphs — a spiral, a flower, a sun, a
+       pixel face — carrying the entire information architecture. They are good
+       marks and they are not a menu: nothing in them says "the work is here",
+       and a phone is where a link from LinkedIn lands. Measured at 390 the row
+       fits with the tightening below, so there is no reason to make a recruiter
+       guess which glyph is the portfolio. */
+    .studio-link > span {
+      display: inline;
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
     .studio-links {
-      gap: 4px;
-      padding: 4px 8px;
+      gap: 0;
+      padding: 4px 6px;
     }
     .studio-mark {
       padding: 4px;
     }
     .studio-link {
-      width: 42px;
+      width: auto;
+      gap: 3px;
+      padding: 0 5px;
       justify-content: center;
     }
+    .studio-link svg {
+      width: 18px;
+      height: 18px;
+    }
     .studio-link::after {
-      left: 9px;
-      right: 9px;
+      left: 5px;
+      right: 5px;
     }
   }
 
