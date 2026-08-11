@@ -2096,25 +2096,64 @@
           fig.classList.add("is-live");
           if (reduce) return render(total);
           typing = true;
-          var chunk = Math.max(1, Math.round(total / 400));
-          var n = 0,
-            gate = 0;
+          /* THE PANEL MUST NEVER BE EMPTY.
+             Found in the full-page visual pass: at 400 steps of 12ms this took
+             about five seconds to fill, and it only started once the figure was
+             40% in view. At any normal scroll speed you arrive at this screen,
+             see a black window with a single cursor in it, and leave before it
+             has said anything -- so a whole viewport of the home page reads as
+             a broken panel next to a photograph.
+
+             Two changes. It opens with the first fifth already on screen, so
+             there is never a frame where the window is blank; typing then
+             continues from there, which is also how a real editor looks when
+             you tab back into it. And the whole run is now about 1.7s instead
+             of five, which is long enough to read as writing and short enough
+             to finish while you are still looking at it. */
+          var n = Math.round(total * 0.18);
+          render(n);
+          var chunk = Math.max(1, Math.round(total / 150));
+          var gate = 0;
           var step = function (now) {
             if (now < gate) return requestAnimationFrame(step);
-            gate = now + 12;
+            gate = now + 11;
             n = Math.min(total, n + chunk);
             render(n);
             if (n < total) return requestAnimationFrame(step);
             typing = false;
           };
           requestAnimationFrame(function (now) {
-            gate = now + 260; /* let the screen come on before it writes */
+            gate = now + 90;
             step(now);
           });
         };
 
         fig.addEventListener("pointerenter", run);
         fig.addEventListener("focusin", run);
+
+        /* THE TRIGGER THAT ACTUALLY FIRES.
+           Measured: with only the IntersectionObserver below, scrolling this
+           panel to the centre of the viewport and waiting 2.5s left it at
+           ZERO characters, while dispatching pointerenter filled it at once.
+           So on a phone -- which never hovers -- and on any desktop visit
+           where you scroll past rather than park the cursor on it, the panel
+           was permanently blank: a whole screen of the home page, half of it
+           an empty black window beside a photograph.
+
+           The observer stays, because when it fires it fires at the right
+           moment. It is just no longer the only way in. */
+        var fired = false;
+        var onScroll = function () {
+          var r = fig.getBoundingClientRect();
+          if (r.top < window.innerHeight + 240 && r.bottom > -240) {
+            if (fired) return;
+            fired = true;
+            window.removeEventListener("scroll", onScroll);
+            run();
+          }
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        onScroll();
 
         /* Touch never hovers, so run it once when it arrives on screen. */
         if ("IntersectionObserver" in window) {
@@ -2126,7 +2165,10 @@
                 run();
               });
             },
-            { threshold: 0.4 }
+            /* 0.4 meant the panel waited until it was nearly centred before
+               it began. 0.12 with a 220px bottom margin starts it as the top
+               edge comes up, so it is already writing when you get to it. */
+            { threshold: 0.12, rootMargin: "0px 0px 220px 0px" }
           );
           io.observe(fig);
         } else {
