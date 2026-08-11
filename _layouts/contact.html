@@ -163,14 +163,36 @@
 
       /* Entry stagger. Each block rises through its own blur, so the page
          assembles rather than snapping in. Pure CSS — no layout thrash. */
-      .contact-copy > *,
+      /* This used to read `.contact-copy > *, .contact-meta`, and .contact-copy
+         is not in the markup — the wrappers are .c-corner, and the only
+         near-match in the document is the .contact-copybtn button. So of the
+         seven elements this stagger was written for, exactly one ever moved:
+         the footer trivia row, at the end of its own 760ms delay. Verified at
+         runtime, not read off the sheet — one element on the page computed an
+         animation-name of contactRise, and it was FOOTER.contact-meta.
+
+         Forty lines of entry motion, a reduced-motion guard around it, and a
+         comment promising the page "assembles rather than snapping in", on a
+         page that snapped in flat. Every delay target below existed and was
+         unique the whole time; only the shorthand that carries the animation
+         was pointed at nothing.
+
+         So the animation now rides the same named elements the delays do,
+         rather than a parent-child relationship a rename can quietly sever.
+         The list is longer to read and cannot be orphaned by markup drift. */
+      .contact-status,
+      .c-corner h1,
+      .contact-intro,
+      .contact-primary,
+      .contact-links,
+      .contact-hint,
       .contact-meta {
         animation: contactRise 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
       }
       .contact-status {
         animation-delay: 90ms;
       }
-      .contact-copy h1 {
+      .c-corner h1 {
         animation-delay: 190ms;
       }
       .contact-intro {
@@ -934,7 +956,16 @@
         .contact-copybtn {
           transition-duration: 1ms !important;
         }
-        .contact-copy > *,
+        /* Same dead selector as the stagger it guards. It cost nothing while
+           the animation was also pointed at nothing; now that the stagger
+           actually runs, this list has to match it or reduced-motion users
+           would be the only people who ever received the motion. */
+        .contact-status,
+        .c-corner h1,
+        .contact-intro,
+        .contact-primary,
+        .contact-links,
+        .contact-hint,
         .contact-meta,
         .contact-status::before {
           animation: none !important;
