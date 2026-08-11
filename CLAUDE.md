@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Read First
+
+`HANDOFF.md` at the repo root is the working guide for this site: how Sid thinks about
+design, the current state, the open items, and a list of traps that have already cost
+previous sessions real time. Read it before touching a layout. The section at the bottom,
+"STATE AS OF 11 AUG 2026", is the most current.
+
 ## What This Repo Is
 
 **al-folio** is a Jekyll static site theme for academics. It is both a deployable personal site and a shared community template. Changes here affect all users who fork it, so prefer conservative, backwards-compatible edits.
