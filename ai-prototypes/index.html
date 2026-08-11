@@ -3834,7 +3834,15 @@
     .site-footer {
       position: relative;
       z-index: 5;
-      overflow: hidden;
+      /* clip, not hidden. An `overflow: hidden` ancestor is a scroll container,
+         and a scroll container is what `position: sticky` resolves against — so
+         with `hidden` here the pinned water layer inside had a scrollport that
+         never scrolls and simply rode away with the page. `clip` does the same
+         visual job and is explicitly not a scroll container, which puts the
+         pin back on the viewport where it belongs. Measured: the wash canvas
+         sat at y −2147 at the bottom of the page under `hidden`, and at 0 under
+         `clip`. */
+      overflow: clip;
       isolation: isolate;
       /* Was clamp(76px, 9vw, 128px) on top. That pad existed to separate the
          footer from the page above it, and the know-me strip now does that job
@@ -3856,11 +3864,59 @@
        dissolves upward through a mask. There is no longer an edge where the
        page stops and the water starts; there is a depth at which the page
        becomes water. */
+    /* The water is sticky rather than absolute, and this is the load-bearing
+       decision in the whole footer.
+
+       Sid wants the pond behind the music panel too. That panel is a 280vh
+       scroll-scrub, so a canvas stretched over the footer would be roughly
+       three viewports tall — at devicePixelRatio 2 that is about eighteen
+       million pixels per canvas, times three canvases, repainted every frame.
+       Not a trade worth making for water nobody can see all of at once.
+
+       Sticky at top:0 with a height of one viewport and a matching negative
+       bottom margin gives the layer no height in the flow, so it takes up no
+       space, and pins it to the viewport for the entire scroll through the
+       footer. The canvases stay viewport-sized and the pond reads as ground the
+       page is descending past — which is what it should have read as anyway.
+
+       It also carries pointer events now, because the old .plot__field box that
+       used to catch clicks is gone. Content above it is later in the stacking
+       order, so a click on the music panel still hits the music panel; a click
+       on open water plants something. */
     .plot__bleed {
       position: absolute;
+      /* Bled out past the footer's gutter on both sides. Sid asked for water
+         across the *entire* footer; inset by the page gutter it was a 1392px
+         pool in a 1512px room, with two vertical seams where the pond stopped
+         and the page resumed. */
+      /* inset:0, not a negative gutter. An absolutely positioned child resolves
+         against the ancestor's *padding* box, which already includes the
+         footer's gutter — offsetting by another --gutter on each side pushed
+         the water 121px past the page on both sides and gave the document a
+         horizontal scrollbar. Measured 1633px wide in a 1512px viewport before
+         this; 1512 after. */
       inset: 0;
       z-index: 0;
       pointer-events: none;
+    }
+
+    .plot__pin {
+      position: sticky;
+      top: 0;
+      height: 100svh;
+      pointer-events: auto;
+      touch-action: pan-y;
+    }
+
+    /* A watering can, drawn rather than described. Only on real pointers —
+       a touch device has no cursor to change. */
+    @media (hover: hover) and (pointer: fine) {
+      .plot__pin {
+        cursor:
+          url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14h11a2 2 0 0 1 2 2v8a3 3 0 0 1-3 3h-9a3 3 0 0 1-3-3v-8a2 2 0 0 1 2-2z'/%3E%3Cpath d='M22 17l6-4-1 10'/%3E%3Cpath d='M11 14c0-3 2-5 4.5-5S20 11 20 14'/%3E%3Cpath d='M27.5 23.5l1.8 2.6M30 22l1.8 2.6M25 25l1.8 2.6'/%3E%3C/g%3E%3C/svg%3E")
+            6 6,
+          crosshair;
+      }
     }
 
     .plot__bleed canvas {
@@ -3879,11 +3935,145 @@
       mask-image: linear-gradient(to bottom, transparent 0%, rgba(0, 0, 0, 0.16) 14%, rgba(0, 0, 0, 0.62) 33%, #000 56%);
     }
 
-    .site-footer-inner,
-    .site-footer > .plot,
-    .site-footer-colophon {
+    /* Everything that is not the water sits one layer up. The strip, the
+       marquee and the music panel are all direct children of the footer now, so
+       this is stated once on the children rather than element by element. */
+    .site-footer > *:not(.plot__bleed) {
       position: relative;
       z-index: 1;
+    }
+
+    /* The strip stands on the bank, not in the pond.
+
+       The water layer is pinned to the viewport, so its surface line sits at a
+       fixed height on screen no matter where you are in the footer — which
+       meant that at the top of the footer the surface ran straight through the
+       photographs and the ASCII plants grew up over them. In dark that read as
+       atmosphere; in light it read as a pale teal haze someone had left on the
+       pictures by mistake.
+
+       So the marquee and the strip carry the page's own ground and occlude the
+       water, and the strip hands off to it with a fade rather than an edge. The
+       pond starts where the photographs end. */
+    /* Both bleed out past the footer's gutter, because a band of ground that
+       stops 60px short of the page edge is not ground, it is a card — and in
+       light mode the two seams where the cream stopped and the water resumed
+       were the most visible edges in the footer. */
+    .site-footer > .kts {
+      background: var(--bg);
+      margin-inline: calc(-1 * var(--gutter, max(24px, 4vw)));
+    }
+
+    .site-footer > .sid-strip {
+      background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 74%, transparent 100%);
+      margin-inline: calc(-1 * var(--gutter, max(24px, 4vw)));
+      padding-inline: var(--gutter, max(24px, 4vw));
+      padding-bottom: var(--sp-8);
+    }
+
+    /* The music panel used to paint itself #04070c edge to edge, which is
+       precisely why it read as a separate black slab bolted under the footer.
+       Transparent, it is the same room as everything else — the pond is what
+       you see behind the phone. */
+    .site-footer .coda,
+    html[data-theme="light"] .site-footer .coda {
+      background: transparent;
+    }
+
+    /* ── THE LAST TWO LINES ─────────────────────────────────────────────────
+       Left: what made it. Right: what to do about it. Nothing else.
+
+       They are deliberately the same size and the same weight. The old footer
+       tried to rank five pieces of text against each other with type scale and
+       ended up with five things all quietly shouting; two lines at one size,
+       pushed to opposite ends of the measure, need no ranking at all — position
+       does the work. Space-between rather than a grid so the pair collapses to
+       a stack on narrow screens without a second rule. */
+    .site-footer-base {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: var(--sp-3) var(--sp-6);
+      /* No rule across the top. The colophon's shore veil already draws the
+         line where the water runs out, and a border on top of it would be the
+         same boundary stated twice.
+
+         The right pad is the floating pair. The theme toggle and the cube sit
+         fixed at the bottom-right of every page, and the sign-off is the last
+         thing on the page and pinned to the same corner — measured at 1512,
+         "Let's make something useful." ran to x1452 and the toggle starts at
+         x1440. 104px is the 44px control plus its inset plus air. */
+      padding: var(--sp-7) 104px var(--sp-6) 0;
+      position: relative;
+    }
+
+    /* The shore. The last two lines are the one run of text in the footer with
+       nothing but moving water behind them, and a plant passing under a 11px
+       mono credit is the difference between "quiet" and "unreadable". It fades
+       up from the bottom edge — where a bank would be anyway — and is full
+       bleed, because a rectangle of paper floating in a pond is a patch while
+       an edge the water runs out against is a shore. */
+    .site-footer-base::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      width: 100vw;
+      transform: translateX(-50%);
+      top: 0;
+      bottom: -200px;
+      z-index: -1;
+      pointer-events: none;
+      background: linear-gradient(to top, var(--plot-shore, rgba(7, 6, 12, 0.97)) 0%, var(--plot-shore, rgba(7, 6, 12, 0.97)) 62%, transparent 100%);
+    }
+
+    html[data-theme="light"] .site-footer-base::before {
+      background: linear-gradient(to top, rgba(245, 243, 238, 0.98) 0%, rgba(245, 243, 238, 0.98) 62%, transparent 100%);
+    }
+
+    /* The old veil lived on the colophon alone, which was correct when the
+       colophon was the last thing in the flow and wrong the moment a sign-off
+       joined it on the same row. The row carries it now. */
+    .site-footer-colophon::before {
+      content: none;
+    }
+
+    .site-footer-base .site-footer-conversation {
+      position: relative;
+      /* nowrap plus a shrinkable flex item is a trap: the box shrank to 99px
+         while the text kept its full 243px and simply painted outside it, so
+         the sign-off ran back under the floating buttons even though its
+         measured right edge said it cleared them. Measuring the box and
+         looking at the page disagreed, and the page was right. */
+      flex: 0 0 auto;
+      /* The 15ch cap is a leftover from when this was a 34px display line that
+         wanted to break onto three. At 11px it clamped the box to 99px while
+         the text ran 243px, which is where the overflow actually came from. */
+      max-width: none;
+      padding-bottom: 0;
+      font: var(--type-micro);
+      letter-spacing: var(--track-micro);
+      text-transform: uppercase;
+      color: inherit;
+      opacity: 0.86;
+      /* The old sign-off was a 34px display line in the bottom-right corner —
+         the largest type in the footer, given to a link nobody came here to
+         read. At the colophon's size it is a door, not a billboard, and the
+         underline that wipes in from the left is enough to say so. */
+      white-space: nowrap;
+    }
+
+    @media (max-width: 700px) {
+      .site-footer-base {
+        justify-content: flex-start;
+        /* The two lines stack here, and the sign-off is the lower of them, so
+           it is the only one that has to clear the floating pair. Holding the
+           104px reserve on the row broke the credit into four lines for no
+           reason; the existing bottom reserve on .site-footer-colophon is what
+           keeps the stack off the buttons. */
+        padding-right: 0;
+        gap: var(--sp-5);
+      }
     }
 
     .site-footer-inner {
@@ -4243,7 +4433,11 @@
       width: 100vw;
       transform: translateX(-50%);
       top: -34px;
-      bottom: 0;
+      /* Runs past the line's own box to the bottom of the footer. The colophon
+         is no longer the last thing in the flow — the sign-off sits beside it
+         and the row carries padding under both — so a veil that stopped at the
+         paragraph's own edge left a strip of open water under the credit. */
+      bottom: -64px;
       z-index: -1;
       pointer-events: none;
       /* Held solid through the band the type actually occupies and only then
@@ -4460,24 +4654,297 @@
         margin: 0 15px;
       }
     }
-</style> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Ninety-eight more pieces in the studio. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Ninety-eight more pieces in the studio</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Ninety-eight more pieces in the studio</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__head"> <b>Get to know Sid</b> <span>off the clock</span> </div> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> </div> </div> </section> <footer class="site-footer" aria-label="Site footer"> <div class="plot__bleed" aria-hidden="true"> <canvas id="plot-wash"></canvas> <canvas id="plot-caustic"></canvas> <canvas id="plot-flora"></canvas> </div> <div class="site-footer-inner"> <div class="site-footer-identity"> <strong>Siddharth Mehta</strong> <span>Product designer and creative technologist in New York.</span> <span class="site-footer-updated">Updated Aug 2026</span> <nav class="site-footer-links" aria-label="Footer links"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a><a href="https://www.linkedin.com/in/siddharth-mehta-design/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> <a class="site-footer-mark" href="/" aria-label="Return to Sid Mehta home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-face cube-top" x="9" y="5.5" width="21" height="21" rx="4.5"></rect> <rect class="cube-face cube-right" x="6" y="9.5" width="21" height="21" rx="4.5"></rect> <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="4.5"></rect> <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))"> <rect class="logo-eye" x="12.4" y="13.6" width="2.6" height="5.4" rx="1.3"></rect> <rect class="logo-eye" x="21" y="13.6" width="2.6" height="5.4" rx="1.3"></rect> </g> <rect class="logo-mouth" x="14.6" y="22" width="6.8" height="1.5" rx="0.75"></rect> <path class="logo-scan" d="M8.5 18 H27.5"></path> </svg> </a> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> <section class="plot" aria-label="Interactive garden"> <p class="plot__quote">You plant a thing long before you know what it becomes.</p> <p class="plot__sig"> <span>Made in New York, mostly at night</span> <span class="plot__hint"><span class="plot__hint-pointer">Click the plot to plant</span><span class="plot__hint-touch">Tap the plot to plant</span></span> </p> <div class="plot__field" id="plot-field" tabindex="0" role="img" aria-label="A pond of ASCII plants and fish. Clicking it plants a seedling and pushes ripples through the water."></div> </section> <p class="site-footer-colophon">Built by hand · Jekyll, WebGL and too much canvas · <span id="site-footer-time"></span></p> </footer> <script>
+</style> <footer class="site-footer" aria-label="Site footer"> <div class="plot__bleed" aria-hidden="true"> <div class="plot__pin" id="plot-field"> <canvas id="plot-wash"></canvas> <canvas id="plot-caustic"></canvas> <canvas id="plot-flora"></canvas> </div> </div> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Still more in the studio than on the site. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__head"> <b>Get to know Sid</b> <span>off the clock</span> </div> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 1.33; --src: url(/assets/img/work-previews/mool/cover.webp)"> <img src="/assets/img/work-previews/mool/cover.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last thing I designed</em><b>Mool · money, made legible</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> </div> </div> </section> <section class="coda" id="coda" aria-labelledby="coda-title"> <div class="coda__runway"> <div class="coda__stage"> <p class="coda__eyebrow">Coda · 00:00–00:10</p> <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2> <div class="coda__device"> <canvas class="coda__screen" id="coda-screen" width="360" height="780" role="img" aria-label="A phone scrolling through Sid’s music library"></canvas> <span class="coda__glare" aria-hidden="true"></span> </div> <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div> <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p> </div> </div> </section> <style>
+  .coda {
+    position: relative;
+    z-index: 1;
+    background: #04070c;
+    color: rgba(240, 246, 252, 0.92);
+  }
+
+  /* The runway is the duration. 280vh gives the ten seconds about two and a
+     half screens of scroll to spend, which lands each of the thirty frames on
+     roughly 84px of travel — slow enough to feel like a hand moving a list,
+     fast enough that nobody gets stranded in it. */
+  .coda__runway {
+    height: 280vh;
+  }
+
+  .coda__stage {
+    position: sticky;
+    top: 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto auto;
+    justify-items: center;
+    height: 100svh;
+    /* The top pad clears the fixed nav rather than approximating it. At
+       default sizes the logo pill bottoms out at y=73 and the nav pill at
+       y=73; an eyebrow set at 63 lands *behind* the logo. Both annotations
+       start below 104 so the plate label reads as the stage's, not as
+       something the chrome is sitting on. */
+    padding: clamp(104px, 13vh, 132px) clamp(24px, 5vw, 80px) clamp(34px, 5vh, 60px);
+    overflow: hidden;
+  }
+
+  /* ── The coda's annotations were hushed past the point of speech ──
+     This sequence is deliberately quiet — it is the last thing the page
+     says and it says it under its breath — but the three labels here had
+     been tuned by eye against a black field and measured 3.52, 2.83 and
+     1.81 to 1. The last of those is not restraint, it is an invisible
+     line: "Apple Music, 11:02pm" is the caption that tells you the phone
+     on screen is Sid's own, at the hour he was actually listening, and
+     nobody could read it. The values below are the lowest that clear 4.5
+     at 9.5–10px while keeping the three steps of hierarchy the block was
+     drawn with — eyebrow brightest, then the note, then its trailing
+     detail. Light-mode twins directly below carry the same intent. */
+  .coda__eyebrow {
+    justify-self: start;
+    margin: 0;
+    color: rgba(240, 246, 252, 0.56); /* was 0.4  — 3.52:1 */
+    font:
+      400 10px/1.2 "DM Mono",
+      monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  /* Sits on the same top line as the eyebrow, pulled up out of the flow, so
+     the two annotations bracket the frame rather than stacking above it. */
+  .coda__title {
+    position: absolute;
+    top: clamp(102px, 13vh, 130px);
+    right: clamp(24px, 5vw, 80px);
+    max-width: 15ch;
+    margin: 0;
+    font-size: clamp(17px, 1.5vw, 22px);
+    font-weight: 400;
+    line-height: 1.26;
+    letter-spacing: -0.02em;
+    text-align: right;
+    text-wrap: balance;
+  }
+
+  .coda__device {
+    position: relative;
+    align-self: center;
+    /* Sized off the viewport height, not its width: this is a portrait object
+       in a landscape frame, so height is the constraint that actually binds.
+       aspect-ratio does the rest, which keeps the canvas from ever being
+       letterboxed inside its own box. */
+    height: min(62svh, 560px);
+    aspect-ratio: 360 / 780;
+    border-radius: clamp(20px, 3.4svh, 34px);
+    overflow: hidden;
+    background: #0a0d12;
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.07) inset,
+      0 40px 90px -30px rgba(0, 0, 0, 0.9),
+      0 0 0 1px rgba(240, 246, 252, 0.09);
+  }
+
+  .coda__screen {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .coda__glare {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(196deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 17%, transparent 38%);
+    pointer-events: none;
+  }
+
+  .coda__track {
+    width: min(360px, 46vw);
+    height: 1px;
+    margin-top: clamp(20px, 3vh, 30px);
+    background: rgba(240, 246, 252, 0.14);
+  }
+
+  .coda__fill {
+    display: block;
+    width: 0%;
+    height: 100%;
+    background: rgba(240, 246, 252, 0.72);
+  }
+
+  .coda__note {
+    margin: 14px 0 0;
+    color: rgba(240, 246, 252, 0.52); /* was 0.34 — 2.83:1 */
+    font:
+      400 9.5px/1.2 "DM Mono",
+      monospace;
+    letter-spacing: 0.07em;
+  }
+
+  .coda__note span {
+    color: rgba(240, 246, 252, 0.48); /* was 0.22 — 1.81:1 */
+  }
+
+  html[data-theme="light"] .coda {
+    background: #efece4;
+    color: rgba(20, 27, 36, 0.9);
+  }
+  html[data-theme="light"] .coda__eyebrow {
+    color: rgba(20, 27, 36, 0.68); /* was 0.44 — 2.71:1 on #efece4 */
+  }
+  html[data-theme="light"] .coda__note {
+    color: rgba(20, 27, 36, 0.64); /* was 0.42 — 2.57:1 */
+  }
+  html[data-theme="light"] .coda__note span {
+    color: rgba(20, 27, 36, 0.62); /* was 0.3  — 1.90:1 */
+  }
+  html[data-theme="light"] .coda__track {
+    background: rgba(20, 27, 36, 0.16);
+  }
+  html[data-theme="light"] .coda__fill {
+    background: rgba(20, 27, 36, 0.66);
+  }
+  /* The recording is a dark-mode phone screen. On cream it needs a shadow that
+     reads as an object resting on paper rather than a hole cut in it. */
+  html[data-theme="light"] .coda__device {
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.07) inset,
+      0 34px 70px -34px rgba(28, 22, 12, 0.55),
+      0 0 0 1px rgba(20, 27, 36, 0.12);
+  }
+  html[data-theme="light"] .coda__glare {
+    background: linear-gradient(196deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 17%, transparent 38%);
+  }
+
+  /* Reduced motion gets the object and no runway: one screen tall, one frame,
+     no scrub. The section still says the thing it is there to say. */
+  @media (prefers-reduced-motion: reduce) {
+    .coda__runway {
+      height: auto;
+    }
+    .coda__stage {
+      position: static;
+      height: auto;
+      min-height: 86svh;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .coda__runway {
+      height: 230vh;
+    }
+    .coda__title {
+      position: static;
+      justify-self: start;
+      max-width: 22ch;
+      margin-top: 10px;
+      text-align: left;
+    }
+    .coda__stage {
+      justify-items: start;
+    }
+    .coda__device {
+      align-self: center;
+      justify-self: center;
+      height: min(54svh, 460px);
+    }
+    .coda__track {
+      width: 100%;
+    }
+  }
+</style> <script>
   (function () {
-    var mark = document.querySelector(".site-footer-mark");
-    var fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-    if (!mark || !fine) return;
-    mark.addEventListener("pointermove", function (event) {
-      var rect = mark.getBoundingClientRect();
-      var x = (event.clientX - rect.left) / rect.width - 0.5;
-      var y = (event.clientY - rect.top) / rect.height - 0.5;
-      mark.style.setProperty("--footer-tilt-x", (x * 8).toFixed(2) + "deg");
-      mark.style.setProperty("--footer-tilt-y", (y * -8).toFixed(2) + "deg");
-    });
-    mark.addEventListener("pointerleave", function () {
-      mark.style.removeProperty("--footer-tilt-x");
-      mark.style.removeProperty("--footer-tilt-y");
-    });
+    var sec = document.getElementById("coda");
+    var cv = document.getElementById("coda-screen");
+    var fill = document.getElementById("coda-fill");
+    if (!sec || !cv || !cv.getContext) return;
+
+    var COUNT = 30;
+    var BASE = "/assets/img/coda/";
+    var ctx = cv.getContext("2d", { alpha: false });
+    var frames = new Array(COUNT);
+    var ready = 0;
+    var drawn = -1;
+    var wanted = 0;
+    var raf = 0;
+
+    /* Paint whatever is nearest to the frame we want. Early in the load the
+       later frames do not exist yet, so walking backwards to the last decoded
+       one keeps the panel showing the right *kind* of thing instead of going
+       black — a scrub that degrades into a slower scrub rather than into a
+       hole. */
+    function draw(i) {
+      var j = i;
+      while (j >= 0 && !frames[j]) j--;
+      if (j < 0 || j === drawn) return;
+      ctx.drawImage(frames[j], 0, 0, cv.width, cv.height);
+      drawn = j;
+    }
+
+    function frame() {
+      raf = 0;
+      var box = sec.getBoundingClientRect();
+      var span = box.height - window.innerHeight;
+      /* 0 while the section is still below the fold, 1 once its runway is
+         spent. Clamped at both ends so overscroll on a trackpad cannot push
+         the playhead past the last frame and snap it back. */
+      var t = span > 0 ? Math.min(1, Math.max(0, -box.top / span)) : 0;
+      wanted = Math.min(COUNT - 1, Math.floor(t * COUNT));
+      draw(wanted);
+      if (fill) fill.style.width = (t * 100).toFixed(2) + "%";
+    }
+
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(frame);
+    }
+
+    function load() {
+      for (var i = 0; i < COUNT; i++) {
+        (function (i) {
+          var im = new Image();
+          im.decoding = "async";
+          /* Eager, but explicitly at the bottom of the queue: by the time this
+             runs the visitor is already near the section, so lazy would stall
+             the first frames behind the observer a second time — and nothing
+             above this on the page is still waiting for bandwidth. */
+          im.fetchPriority = "low";
+          im.onload = function () {
+            frames[i] = im;
+            ready++;
+            /* The first arrival paints immediately so the panel is never a
+               blank rectangle; after that only repaint if this frame is the
+               one the playhead is actually sitting on. */
+            if (ready === 1 || i === wanted) {
+              drawn = -1;
+              draw(wanted);
+            }
+          };
+          im.src = BASE + "g" + (i + 1 < 10 ? "0" : "") + (i + 1) + ".jpg";
+        })(i);
+      }
+    }
+
+    var io = new IntersectionObserver(
+      function (entries) {
+        if (entries[0].isIntersecting) {
+          io.disconnect();
+          load();
+        }
+      },
+      { rootMargin: "900px 0px" }
+    );
+    io.observe(sec);
+
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      /* No runway to scrub. Show the middle of the recording — the densest
+         part of the grid — and leave it. */
+      wanted = 14;
+      if (fill) fill.style.width = "100%";
+      return;
+    }
+
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    frame();
   })();
-</script> <script>
+</script> <div class="site-footer-base"> <p class="site-footer-colophon">Built by hand · Jekyll, WebGL and too much Canvas · <span id="site-footer-time"></span></p> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> </footer> <script>
   (function () {
     var time = document.getElementById("site-footer-time");
 
@@ -4522,7 +4989,7 @@
      is animated on its own timeline pretending to be connected to the rest.
      ──────────────────────────────────────────────────────────────────────── */
   (function () {
-    var layer = document.querySelector(".plot__bleed");
+    var layer = document.querySelector(".plot__pin");
     var field = document.getElementById("plot-field");
     var footerEl = document.querySelector(".site-footer");
     var washCv = document.getElementById("plot-wash");
@@ -5367,9 +5834,14 @@
       W = Math.round(r.width);
       H = Math.round(r.height);
       dpr = Math.min(2, window.devicePixelRatio || 1);
-      var fr = field.getBoundingClientRect();
-      live.top = Math.max(0, Math.min(H - 40, Math.round(fr.top - r.top)));
-      live.bot = Math.max(live.top + 40, Math.min(H, Math.round(fr.bottom - r.top)));
+      /* The water layer is now sticky and viewport-tall, so it *is* the frame —
+         there is no separate .plot__field box to measure against. The living
+         band is simply the bottom 56% of it: plants and fish belong in the
+         depth you are looking down into, not up at the surface where the strip
+         and the music panel sit. Everything downstream reads live.top/bot, so
+         this one line is the whole geometry change. */
+      live.top = Math.round(H * 0.44);
+      live.bot = H;
       sizeCanvas(washCv, wash);
       sizeCanvas(causCv, caus);
       sizeCanvas(floraCv, flora);
@@ -5423,296 +5895,6 @@
     });
 
     resize();
-  })();
-</script> <section class="coda" id="coda" aria-labelledby="coda-title"> <div class="coda__runway"> <div class="coda__stage"> <p class="coda__eyebrow">Coda · 00:00–00:10</p> <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2> <div class="coda__device"> <canvas class="coda__screen" id="coda-screen" width="360" height="780" role="img" aria-label="A phone scrolling through Sid’s music library"></canvas> <span class="coda__glare" aria-hidden="true"></span> </div> <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div> <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p> </div> </div> </section> <style>
-  .coda {
-    position: relative;
-    z-index: 1;
-    background: #04070c;
-    color: rgba(240, 246, 252, 0.92);
-  }
-
-  /* The runway is the duration. 280vh gives the ten seconds about two and a
-     half screens of scroll to spend, which lands each of the thirty frames on
-     roughly 84px of travel — slow enough to feel like a hand moving a list,
-     fast enough that nobody gets stranded in it. */
-  .coda__runway {
-    height: 280vh;
-  }
-
-  .coda__stage {
-    position: sticky;
-    top: 0;
-    display: grid;
-    grid-template-rows: auto 1fr auto auto;
-    justify-items: center;
-    height: 100svh;
-    /* The top pad clears the fixed nav rather than approximating it. At
-       default sizes the logo pill bottoms out at y=73 and the nav pill at
-       y=73; an eyebrow set at 63 lands *behind* the logo. Both annotations
-       start below 104 so the plate label reads as the stage's, not as
-       something the chrome is sitting on. */
-    padding: clamp(104px, 13vh, 132px) clamp(24px, 5vw, 80px) clamp(34px, 5vh, 60px);
-    overflow: hidden;
-  }
-
-  /* ── The coda's annotations were hushed past the point of speech ──
-     This sequence is deliberately quiet — it is the last thing the page
-     says and it says it under its breath — but the three labels here had
-     been tuned by eye against a black field and measured 3.52, 2.83 and
-     1.81 to 1. The last of those is not restraint, it is an invisible
-     line: "Apple Music, 11:02pm" is the caption that tells you the phone
-     on screen is Sid's own, at the hour he was actually listening, and
-     nobody could read it. The values below are the lowest that clear 4.5
-     at 9.5–10px while keeping the three steps of hierarchy the block was
-     drawn with — eyebrow brightest, then the note, then its trailing
-     detail. Light-mode twins directly below carry the same intent. */
-  .coda__eyebrow {
-    justify-self: start;
-    margin: 0;
-    color: rgba(240, 246, 252, 0.56); /* was 0.4  — 3.52:1 */
-    font:
-      400 10px/1.2 "DM Mono",
-      monospace;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  /* Sits on the same top line as the eyebrow, pulled up out of the flow, so
-     the two annotations bracket the frame rather than stacking above it. */
-  .coda__title {
-    position: absolute;
-    top: clamp(102px, 13vh, 130px);
-    right: clamp(24px, 5vw, 80px);
-    max-width: 15ch;
-    margin: 0;
-    font-size: clamp(17px, 1.5vw, 22px);
-    font-weight: 400;
-    line-height: 1.26;
-    letter-spacing: -0.02em;
-    text-align: right;
-    text-wrap: balance;
-  }
-
-  .coda__device {
-    position: relative;
-    align-self: center;
-    /* Sized off the viewport height, not its width: this is a portrait object
-       in a landscape frame, so height is the constraint that actually binds.
-       aspect-ratio does the rest, which keeps the canvas from ever being
-       letterboxed inside its own box. */
-    height: min(62svh, 560px);
-    aspect-ratio: 360 / 780;
-    border-radius: clamp(20px, 3.4svh, 34px);
-    overflow: hidden;
-    background: #0a0d12;
-    box-shadow:
-      0 2px 0 rgba(255, 255, 255, 0.07) inset,
-      0 40px 90px -30px rgba(0, 0, 0, 0.9),
-      0 0 0 1px rgba(240, 246, 252, 0.09);
-  }
-
-  .coda__screen {
-    display: block;
-    width: 100%;
-    height: 100%;
-  }
-
-  .coda__glare {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(196deg, rgba(255, 255, 255, 0.11) 0%, rgba(255, 255, 255, 0.03) 17%, transparent 38%);
-    pointer-events: none;
-  }
-
-  .coda__track {
-    width: min(360px, 46vw);
-    height: 1px;
-    margin-top: clamp(20px, 3vh, 30px);
-    background: rgba(240, 246, 252, 0.14);
-  }
-
-  .coda__fill {
-    display: block;
-    width: 0%;
-    height: 100%;
-    background: rgba(240, 246, 252, 0.72);
-  }
-
-  .coda__note {
-    margin: 14px 0 0;
-    color: rgba(240, 246, 252, 0.52); /* was 0.34 — 2.83:1 */
-    font:
-      400 9.5px/1.2 "DM Mono",
-      monospace;
-    letter-spacing: 0.07em;
-  }
-
-  .coda__note span {
-    color: rgba(240, 246, 252, 0.48); /* was 0.22 — 1.81:1 */
-  }
-
-  html[data-theme="light"] .coda {
-    background: #efece4;
-    color: rgba(20, 27, 36, 0.9);
-  }
-  html[data-theme="light"] .coda__eyebrow {
-    color: rgba(20, 27, 36, 0.68); /* was 0.44 — 2.71:1 on #efece4 */
-  }
-  html[data-theme="light"] .coda__note {
-    color: rgba(20, 27, 36, 0.64); /* was 0.42 — 2.57:1 */
-  }
-  html[data-theme="light"] .coda__note span {
-    color: rgba(20, 27, 36, 0.62); /* was 0.3  — 1.90:1 */
-  }
-  html[data-theme="light"] .coda__track {
-    background: rgba(20, 27, 36, 0.16);
-  }
-  html[data-theme="light"] .coda__fill {
-    background: rgba(20, 27, 36, 0.66);
-  }
-  /* The recording is a dark-mode phone screen. On cream it needs a shadow that
-     reads as an object resting on paper rather than a hole cut in it. */
-  html[data-theme="light"] .coda__device {
-    box-shadow:
-      0 2px 0 rgba(255, 255, 255, 0.07) inset,
-      0 34px 70px -34px rgba(28, 22, 12, 0.55),
-      0 0 0 1px rgba(20, 27, 36, 0.12);
-  }
-  html[data-theme="light"] .coda__glare {
-    background: linear-gradient(196deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 17%, transparent 38%);
-  }
-
-  /* Reduced motion gets the object and no runway: one screen tall, one frame,
-     no scrub. The section still says the thing it is there to say. */
-  @media (prefers-reduced-motion: reduce) {
-    .coda__runway {
-      height: auto;
-    }
-    .coda__stage {
-      position: static;
-      height: auto;
-      min-height: 86svh;
-    }
-  }
-
-  @media (max-width: 760px) {
-    .coda__runway {
-      height: 230vh;
-    }
-    .coda__title {
-      position: static;
-      justify-self: start;
-      max-width: 22ch;
-      margin-top: 10px;
-      text-align: left;
-    }
-    .coda__stage {
-      justify-items: start;
-    }
-    .coda__device {
-      align-self: center;
-      justify-self: center;
-      height: min(54svh, 460px);
-    }
-    .coda__track {
-      width: 100%;
-    }
-  }
-</style> <script>
-  (function () {
-    var sec = document.getElementById("coda");
-    var cv = document.getElementById("coda-screen");
-    var fill = document.getElementById("coda-fill");
-    if (!sec || !cv || !cv.getContext) return;
-
-    var COUNT = 30;
-    var BASE = "/assets/img/coda/";
-    var ctx = cv.getContext("2d", { alpha: false });
-    var frames = new Array(COUNT);
-    var ready = 0;
-    var drawn = -1;
-    var wanted = 0;
-    var raf = 0;
-
-    /* Paint whatever is nearest to the frame we want. Early in the load the
-       later frames do not exist yet, so walking backwards to the last decoded
-       one keeps the panel showing the right *kind* of thing instead of going
-       black — a scrub that degrades into a slower scrub rather than into a
-       hole. */
-    function draw(i) {
-      var j = i;
-      while (j >= 0 && !frames[j]) j--;
-      if (j < 0 || j === drawn) return;
-      ctx.drawImage(frames[j], 0, 0, cv.width, cv.height);
-      drawn = j;
-    }
-
-    function frame() {
-      raf = 0;
-      var box = sec.getBoundingClientRect();
-      var span = box.height - window.innerHeight;
-      /* 0 while the section is still below the fold, 1 once its runway is
-         spent. Clamped at both ends so overscroll on a trackpad cannot push
-         the playhead past the last frame and snap it back. */
-      var t = span > 0 ? Math.min(1, Math.max(0, -box.top / span)) : 0;
-      wanted = Math.min(COUNT - 1, Math.floor(t * COUNT));
-      draw(wanted);
-      if (fill) fill.style.width = (t * 100).toFixed(2) + "%";
-    }
-
-    function onScroll() {
-      if (!raf) raf = requestAnimationFrame(frame);
-    }
-
-    function load() {
-      for (var i = 0; i < COUNT; i++) {
-        (function (i) {
-          var im = new Image();
-          im.decoding = "async";
-          /* Eager, but explicitly at the bottom of the queue: by the time this
-             runs the visitor is already near the section, so lazy would stall
-             the first frames behind the observer a second time — and nothing
-             above this on the page is still waiting for bandwidth. */
-          im.fetchPriority = "low";
-          im.onload = function () {
-            frames[i] = im;
-            ready++;
-            /* The first arrival paints immediately so the panel is never a
-               blank rectangle; after that only repaint if this frame is the
-               one the playhead is actually sitting on. */
-            if (ready === 1 || i === wanted) {
-              drawn = -1;
-              draw(wanted);
-            }
-          };
-          im.src = BASE + "g" + (i + 1 < 10 ? "0" : "") + (i + 1) + ".jpg";
-        })(i);
-      }
-    }
-
-    var io = new IntersectionObserver(
-      function (entries) {
-        if (entries[0].isIntersecting) {
-          io.disconnect();
-          load();
-        }
-      },
-      { rootMargin: "900px 0px" }
-    );
-    io.observe(sec);
-
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      /* No runway to scrub. Show the middle of the recording — the densest
-         part of the grid — and leave it. */
-      wanted = 14;
-      if (fill) fill.style.width = "100%";
-      return;
-    }
-
-    addEventListener("scroll", onScroll, { passive: true });
-    addEventListener("resize", onScroll);
-    frame();
   })();
 </script> <script>
   // Theme bootstrap — applies saved theme only. Default is dark (the site's identity).
@@ -5777,30 +5959,60 @@
     cursor: text !important;
   }
 
+  /* THE DOT IS A DOT.
+
+     It used to be a 12px radial gradient that faded to nothing at its own edge,
+     with two box-shadow halos on top and a velocity stretch that took it to
+     2.7x its length. Sid's reading of that: "this looks like a blurred ellipse
+     when i move." He is right, and the reason is that the mark had no edge to
+     hold on to — everything in it was a gradient, so smearing a gradient just
+     produced more gradient.
+
+     So it is now a small, opaque core with one hairline ring and a single soft
+     halo well outside the body. The core stays legible at any speed because it
+     is a solid colour; the ring is what actually reads as motion when the
+     stretch pulls it, because a hard edge is the only thing that can. The
+     stretch itself is cut to roughly half of what it was (see the loop below)
+     — enough for weight, not enough to become a comet. */
   #cur-dot {
     position: fixed;
-    width: 12px;
-    height: 12px;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 99999;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(160, 210, 255, 0.5) 40%, rgba(80, 150, 240, 0.15) 70%, transparent 100%);
+    background: rgba(233, 243, 255, 0.94);
     box-shadow:
-      0 0 8px 2px rgba(120, 180, 255, 0.3),
-      0 0 20px 4px rgba(80, 140, 240, 0.12);
+      0 0 0 1px rgba(150, 195, 255, 0.5),
+      0 0 12px 2px rgba(90, 150, 240, 0.16);
     will-change: left, top, transform;
     opacity: 0;
     /* transform is driven per-frame in JS (velocity stretch + eased hover scale); only fade opacity */
     transition: opacity 0.2s;
   }
+  html[data-theme="light"] #cur-dot {
+    background: rgba(18, 32, 56, 0.9);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.6),
+      0 0 10px 2px rgba(20, 40, 80, 0.14);
+  }
   /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons.
      The scale itself is handled in JS; this rule only swaps the look. */
+  /* Over something interactive the dot hollows out into a ring, so whatever it
+     is sitting on stays visible through the middle. A fill that merely got
+     fainter covered small icons; a ring never does. */
   #cur-dot.is-hover {
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, rgba(160, 220, 255, 0.2) 50%, transparent 90%);
+    background: rgba(190, 220, 255, 0.14);
     box-shadow:
-      0 0 10px 2px rgba(140, 200, 255, 0.18),
-      0 0 22px 4px rgba(100, 160, 240, 0.08);
+      0 0 0 1.2px rgba(190, 224, 255, 0.72),
+      0 0 14px 3px rgba(110, 170, 245, 0.14);
+  }
+  html[data-theme="light"] #cur-dot.is-hover {
+    background: rgba(20, 40, 80, 0.08);
+    box-shadow:
+      0 0 0 1.2px rgba(24, 44, 78, 0.66),
+      0 0 12px 3px rgba(20, 40, 80, 0.1);
   }
   /* Contextual cursor label — small mono pill that appears next to the dot over
      elements tagged [data-cursor-text] (e.g. "View", "Play"). Same visual language
@@ -10057,7 +10269,152 @@
       rgba(4, 7, 13, 0) 78%
     );
   }
-</style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <div id="cur-dot"></div> <div id="cur-label" aria-hidden="true"></div> <script src="/assets/js/gsap.min.js"></script> <script>
+</style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <div id="cur-dot"></div> <div id="cur-label" aria-hidden="true"></div> <style>
+  #cur-trail {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99990;
+    opacity: 0;
+    transition: opacity 0.28s var(--ease-out, ease);
+  }
+</style> <canvas id="cur-trail" aria-hidden="true"></canvas> <script>
+  (function () {
+    var root = document.documentElement;
+    if (!root.classList.contains("has-custom-cursor")) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var cv = document.getElementById("cur-trail");
+    if (!cv) return;
+    var ctx = cv.getContext("2d");
+    if (!ctx) return;
+
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var W = 0,
+      H = 0;
+    function size() {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+      cv.style.width = W + "px";
+      cv.style.height = H + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    size();
+    window.addEventListener("resize", size, { passive: true });
+
+    // 26 nodes is long enough to read as a line and short enough that the whole
+    // chain settles inside about a third of a second.
+    var N = 26,
+      pts = [],
+      i;
+    for (i = 0; i < N; i++) pts.push({ x: -200, y: -200, vx: 0, vy: 0 });
+
+    var mx = -200,
+      my = -200,
+      seen = false;
+
+    window.addEventListener(
+      "mousemove",
+      function (e) {
+        mx = e.clientX;
+        my = e.clientY;
+        if (!seen) {
+          seen = true;
+          for (var j = 0; j < N; j++) {
+            pts[j].x = mx;
+            pts[j].y = my;
+          }
+          cv.style.opacity = "1";
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      "mouseleave",
+      function () {
+        cv.style.opacity = "0";
+      },
+      { passive: true }
+    );
+    window.addEventListener(
+      "mouseenter",
+      function () {
+        cv.style.opacity = "1";
+      },
+      { passive: true }
+    );
+
+    var isLight = function () {
+      return root.getAttribute("data-theme") === "light";
+    };
+
+    (function draw() {
+      requestAnimationFrame(draw);
+
+      // The head: a damped spring on the real pointer. 0.34 stiffness against
+      // 0.62 damping is under-damped, which is the point — it arrives slightly
+      // past where you stopped and comes back, and that half-pixel of overshoot
+      // is the entire difference between "follows the mouse" and "has weight".
+      var h = pts[0];
+      h.vx = (h.vx + (mx - h.x) * 0.34) * 0.62;
+      h.vy = (h.vy + (my - h.y) * 0.34) * 0.62;
+      h.x += h.vx;
+      h.y += h.vy;
+
+      // The body: each node chases the one ahead of it. No velocity term, so no
+      // node can overshoot, so the chain cannot ring. The follow rate loosens
+      // toward the tail, which is what tapers the curve's spacing and makes the
+      // end of the line trail off instead of stopping dead.
+      for (i = 1; i < N; i++) {
+        var a = 0.78 - (i / N) * 0.14;
+        pts[i].x += (pts[i - 1].x - pts[i].x) * a;
+        pts[i].y += (pts[i - 1].y - pts[i].y) * a;
+      }
+
+      ctx.clearRect(0, 0, W, H);
+      if (!seen) return;
+
+      // How stretched the chain is overall — the line only earns its ink while
+      // the pointer is actually travelling.
+      var span = Math.hypot(pts[N - 1].x - pts[0].x, pts[N - 1].y - pts[0].y);
+      var life = Math.min(span / 42, 1);
+      if (life < 0.01) return;
+
+      var light = isLight();
+      var rgb = light ? "26,44,74" : "158,200,255";
+      var base = (light ? 0.2 : 0.34) * life;
+
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      // Three tapered passes over decreasing spans of the chain. Overlapping
+      // strokes is what produces the width falloff without having to stroke each
+      // segment separately, which is what made the old one facet.
+      var passes = [
+        [N, 0.42, 1.0],
+        [Math.round(N * 0.62), 0.78, 0.62],
+        [Math.round(N * 0.3), 1.35, 0.38],
+      ];
+      for (var p = 0; p < passes.length; p++) {
+        var upto = passes[p][0],
+          w = passes[p][1],
+          a = passes[p][2];
+        if (upto < 3) continue;
+        ctx.strokeStyle = "rgba(" + rgb + "," + (base * a).toFixed(3) + ")";
+        ctx.lineWidth = w;
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        for (i = 1; i < upto - 1; i++) {
+          var cxm = (pts[i].x + pts[i + 1].x) / 2,
+            cym = (pts[i].y + pts[i + 1].y) / 2;
+          ctx.quadraticCurveTo(pts[i].x, pts[i].y, cxm, cym);
+        }
+        ctx.stroke();
+      }
+    })();
+  })();
+</script> <script src="/assets/js/gsap.min.js"></script> <script>
   // Let the navigation lens carry a moving highlight without moving the
   // controls themselves. This makes the glass feel optical, not decorative.
   (function () {
@@ -10409,11 +10766,14 @@
         ang = Math.atan2(dirY, dirX) * 57.2958;
 
         // Stretch follows speed: eases in quickly, springs back to a dot slowly
-        const target = Math.min(speed / 18, 1);
+        // Halved from where it was. The ribbon behind the dot now carries the
+        // sense of speed, so the dot itself no longer has to deform to show it —
+        // and a dot that deforms less stays a dot.
+        const target = Math.min(speed / 26, 1);
         stretch += (target - stretch) * (target > stretch ? 0.3 : 0.12);
 
-        sx = 1 + stretch * 1.7; // elongate along the direction of travel
-        sy = 1 - stretch * 0.5; // pinch perpendicular (squash-and-stretch)
+        sx = 1 + stretch * 0.82; // elongate along the direction of travel
+        sy = 1 - stretch * 0.26; // pinch perpendicular (squash-and-stretch)
       }
 
       // Eased hover growth (1.6x over interactive surfaces)
