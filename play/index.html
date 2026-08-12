@@ -194,7 +194,14 @@ title: Play · Sid Mehta
         max-width: 1600px;
         margin: 0 auto;
       }
-      .play-grid img {
+      /* The one moving card shares every rule the stills have — the same
+         reveal, the same column behaviour, the same radius — because it is
+         meant to be a piece in the archive rather than a feature box that
+         happens to sit in it. Only two things differ, below the shared block:
+         it is not zoomable, and it does not brighten on hover, since it is
+         already the brightest thing in its column. */
+      .play-grid img,
+      .play-grid video {
         display: block;
         width: 100%;
         height: auto;
@@ -222,7 +229,8 @@ title: Play · Sid Mehta
            tall photograph is sliced across a column boundary. */
         break-inside: avoid;
       }
-      .play-grid img.is-in {
+      .play-grid img.is-in,
+      .play-grid video.is-in {
         opacity: 1;
         transform: none;
         filter: blur(0);
@@ -231,6 +239,10 @@ title: Play · Sid Mehta
       /* brightness has to be restated with the blur or the hover rule drops the
          blur:0 the reveal just set and every hovered picture goes soft again. */
       .play-grid img.is-in:hover { filter: blur(0) brightness(1.08); }
+      .play-grid video {
+        cursor: default;
+      }
+      .play-grid video.is-in:hover { filter: blur(0); }
       .play-instruction {
         position: fixed;
         left: 50%;
@@ -253,10 +265,12 @@ title: Play · Sid Mehta
       @media (max-width: 760px) {
         .play-stage { padding: calc(var(--nav-h, 56px) + var(--sp-6, 32px)) var(--sp-4, 16px) var(--sp-8, 64px); }
         .play-grid { column-width: 150px; column-gap: var(--sp-2, 8px); }
-        .play-grid img { margin-bottom: var(--sp-2, 8px); }
+        .play-grid img,
+        .play-grid video { margin-bottom: var(--sp-2, 8px); }
       }
       @media (prefers-reduced-motion: reduce) {
-        .play-grid img { opacity: 1; transform: none; transition: none; }
+        .play-grid img,
+        .play-grid video { opacity: 1; transform: none; transition: none; filter: none; }
       }
 
       .play-caption {
@@ -509,6 +523,30 @@ title: Play · Sid Mehta
         if (file >= 13) return "Creative technology study";
         return "Field observation";
       }
+      /* ── THE MOVING ONE ─────────────────────────────────────────────────
+         Sid asked for his Kinect projection work to sit in the first quarter
+         of the scroll. Everything else on Play is a still, and a still cannot
+         show an interaction — the whole point of this piece is a hand entering
+         a projected particle field and the field answering, which is a fact
+         about time.
+
+         It is spliced in at a quarter of the way down the list rather than
+         appended, because Play is a column layout: an item at the end of the
+         array lands at the bottom of the last column, which is the least seen
+         position on the page, and this is the opposite of a footnote.
+
+         `type: "video"` is the only thing that distinguishes it. The renderer
+         below builds a <video> instead of an <img> for that, and the poster
+         is a real frame from the clip, so the card looks identical to its
+         neighbours until it starts. */
+      const kinect = {
+        type: "video",
+        src: `{{ site.baseurl }}/play/assets/spatial/kinect-projection.webp`,
+        hi: `{{ site.baseurl }}/play/assets/hi/kinect-projection.webp`,
+        video: `{{ site.baseurl }}/assets/video/play/kinect-projection.mp4`,
+        title: "Kinect projection · depth-tracked particle field",
+      };
+
       const sources = (
         files.map((file) => ({
           src: `{{ site.baseurl }}/play/assets/spatial/p${file}.webp`,
@@ -521,6 +559,28 @@ title: Play · Sid Mehta
           title: `${titleFor(file)} ${String(file).padStart(3, "0")}`,
         }))
       );
+
+      /* ── WHERE A QUARTER OF THE WAY DOWN ACTUALLY IS ─────────────────────
+         Splicing at a quarter of the ARRAY put this at 48% of the scroll, and
+         the reason is the layout: Play is a CSS `columns` grid, so the array
+         runs down column one, then down column two, and the page's height is
+         the height of ONE column. Index 14 of 58 is not a quarter of the way
+         down the page, it is near the bottom of the first column.
+
+         What a reader experiences as "a quarter of the way down" is a quarter
+         of the way down whichever column an item is in. So the index is a
+         fraction of the per-column count, not of the total: at 1512 that is
+         four columns of about fourteen, and 22% of fourteen is index three.
+
+         The column count is estimated from the viewport the same way the
+         renderer measures it further down (column-width against the grid's
+         own width) — it has to be, because this runs before anything has
+         been laid out. */
+      const estCols = (function () {
+        const w = Math.min(1600, (window.innerWidth || 1200) - 64);
+        return Math.max(1, Math.floor((w + 16) / (320 + 16)));
+      })();
+      sources.splice(Math.max(1, Math.round(((files.length + 1) / estCols) * 0.22)), 0, kinect);
 
         window.PLAY_SOURCES = sources;
 
@@ -578,7 +638,39 @@ title: Play · Sid Mehta
            So the elements go in without src, the browser lays them out once,
            and eagerness is decided on where each picture actually is. */
         var built = sources.map(function (item, index) {
-          var image = document.createElement("img");
+          var image;
+          if (item.type === "video") {
+            /* Muted, looping, inline and autoplaying: the same contract every
+               other silent background clip on the site runs under, which is
+               what lets it play without a gesture on iOS. The poster is the
+               frame the card shows until the first decode lands, so the
+               column never reflows around an element with no height.
+
+               No click handler. The lightbox is built for a still and would
+               open a photograph of a video, which is worse than not opening —
+               the card is already playing the thing you would have clicked
+               for. */
+            image = document.createElement("video");
+            image.muted = true;
+            image.loop = true;
+            image.playsInline = true;
+            image.setAttribute("playsinline", "");
+            image.setAttribute("muted", "");
+            image.autoplay = true;
+            image.preload = "metadata";
+            image.poster = item.src;
+            image.setAttribute("aria-label", item.title);
+            grid.appendChild(image);
+            /* It still gets its line in the screen-reader index — the early
+               return below skips the shared path, and a piece that is missing
+               from the list is a piece a non-visual reader is told does not
+               exist. */
+            var vli = document.createElement("li");
+            vli.textContent = index + 1 + ". " + item.title;
+            accessList.appendChild(vli);
+            return image;
+          }
+          image = document.createElement("img");
           image.alt = item.title;
           image.decoding = "async";
           image.addEventListener("click", function () {
@@ -623,6 +715,14 @@ title: Play · Sid Mehta
           for (var n = 0; n < 3; n++) eager[top + n] = true;
         }
         built.forEach(function (image, index) {
+          /* A <video> has no `loading` attribute and its src is the clip, not
+             the poster — assigning the still to it would leave the element
+             trying to decode a webp as a movie. */
+          if (sources[index].type === "video") {
+            image.src = sources[index].video;
+            image.play().catch(function () {});
+            return;
+          }
           image.loading = eager[index] ? "eager" : "lazy";
           if (eager[index]) image.setAttribute("fetchpriority", "high");
           image.src = sources[index].src;
@@ -653,9 +753,11 @@ title: Play · Sid Mehta
             },
             { rootMargin: "0px 0px -8% 0px" }
           );
-          grid.querySelectorAll("img").forEach(function (i) { io.observe(i); });
+          /* "img, video" rather than "img" — the observer is what adds .is-in,
+             and a card that never gets it stays at opacity 0 forever. */
+          grid.querySelectorAll("img, video").forEach(function (i) { io.observe(i); });
         } else {
-          grid.querySelectorAll("img").forEach(function (i) { i.classList.add("is-in"); });
+          grid.querySelectorAll("img, video").forEach(function (i) { i.classList.add("is-in"); });
         }
 
         /* ── THE AUTO SCROLL ──────────────────────────────────────────────
