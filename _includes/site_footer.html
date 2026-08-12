@@ -84,26 +84,65 @@
       background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
     }
 
+    /* ── THE RAIL ────────────────────────────────────────────────────────
+       Sid: "i shud be able to move horizontally through them with mouse and
+       nice hover effects ... how the images show up from the edges."
+
+       This was a CSS keyframe — translate3d(0) to translate3d(-50%) over 66
+       seconds, paused on hover. That is a poster of movement: it goes one way
+       at one speed forever, and the only control the visitor has is to stop
+       it. Hovering to freeze a thing you wanted to look *through* is exactly
+       backwards.
+
+       So the transform is driven from script now (see the rail block at the
+       foot of this file) and the animation is gone. Three inputs, one
+       position: the pointer's horizontal position steers speed, a drag scrubs
+       it directly, and the wheel throws it. It keeps drifting when nobody is
+       touching it, so it still reads as alive rather than as a control panel.
+
+       The row keeps its duplicate copy — the loop wraps at exactly half the
+       row's width, which only works because the second half is identical to
+       the first. */
     .sid-row {
       display: flex;
       align-items: flex-end;
       width: max-content;
       gap: clamp(18px, 2.2vw, 34px);
       padding: 0 clamp(18px, 2.2vw, 34px);
-      animation: sidDrift 66s linear infinite;
+      will-change: transform;
+      cursor: grab;
+    }
+    .sid-row.is-dragging {
+      cursor: grabbing;
+    }
+    .sid-row.is-dragging .sid-tile {
+      /* A drag is a direct manipulation: the tiles must not lag behind the
+         finger with a 620ms ease, or the rail feels like it is on elastic. */
+      transition: none;
     }
 
-    .sid-strip:hover .sid-row,
-    .sid-strip:focus-within .sid-row {
-      animation-play-state: paused;
+    /* ── THE EDGES ───────────────────────────────────────────────────────
+       "how the images show up from the edges."
+
+       The rail used to end at a hard vertical cut on both sides, so a tile
+       arrived by being sliced in half by an invisible knife. The mask
+       dissolves the last 12% of each side, and the per-tile ramp in the rail
+       script fades, desaturates and shrinks each tile as it approaches that
+       band — so a picture resolves out of the dark as it comes in and returns
+       to it as it leaves, rather than appearing and disappearing.
+
+       Two effects, deliberately: the mask alone dissolves the *pixels* at the
+       edge, which on a tile that is mostly one flat colour is nearly
+       invisible. The ramp acts on the tile as an object. Together they read
+       as depth of field. */
+    .sid-strip__rows {
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
     }
 
-    @keyframes sidDrift {
-      from {
-        transform: translate3d(0, 0, 0);
-      }
-      to {
-        transform: translate3d(-50%, 0, 0);
+    @media (prefers-reduced-motion: reduce) {
+      .sid-row {
+        cursor: default;
       }
     }
 
@@ -1238,18 +1277,18 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
           <i>40.71&deg; N</i><i>&minus;74.01&deg; W</i><u>Last place I landed</u>
           <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption>
         </figure>
-        <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url({{ site.baseurl }}/4.mandala/cover.jpg)">
-          <img src="{{ site.baseurl }}/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async" />
-          <figcaption><em>Made for fun</em><b>Bloom &middot; TouchDesigner</b></figcaption>
-        </figure>
         <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url({{ site.baseurl }}/assets/img/play-memory-wall.webp)">
           <img src="{{ site.baseurl }}/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async" />
           <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption>
         </figure>
-        <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url({{ site.baseurl }}/15.bloom-vp/cover.jpg)">
-          <img src="{{ site.baseurl }}/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async" />
-          <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption>
-        </figure>
+        {% comment %} Two project covers used to sit in this row: 4.mandala/cover.jpg captioned "Made for fun · Bloom · TouchDesigner", and
+        15.bloom-vp/cover.jpg captioned "Last rabbit hole · Spatial UI on Vision Pro". Sid: "remove any project images from the bottom get to know
+        sid." They are both real answers to the questions they were asked — he did make Bloom for fun, and Vision Pro UI was a rabbit hole — but a
+        strip headed "off the clock" that contains portfolio covers is doing two jobs at once, and the portfolio one it does badly: a case-study cover
+        shrunk to 180px beside a photograph of two cats is a worse argument for the work than the work's own page, while making the personal half read
+        as a portfolio in disguise. This is the third tile removed on the same reasoning (see the Mool note above). Nothing replaced them — the row
+        loops fine at nine, and inventing an off-the-clock artifact to fill a slot would be the same mistake wearing different clothes. {% endcomment
+        %}
         <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url({{ site.baseurl }}/assets/img/sid_about3.jpg)">
           <img src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async" />
           <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption>
@@ -1258,6 +1297,236 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
       </div>
     </div>
   </section>
+
+  <script>
+    /* ══ THE RAIL ═══════════════════════════════════════════════════════════
+       "Get to know Sid" is a rail you move through rather than a marquee you
+       watch. One position, `x`, advanced every frame; everything else is an
+       input to its velocity or a consequence of where it ended up.
+
+       INPUTS
+
+         drift    a constant. The rail is never truly still, because a strip
+                  that only moves when touched looks broken until touched.
+         steer    the pointer's horizontal position, remapped so the middle
+                  third is dead and the outer thirds accelerate toward their
+                  own edge. This is the "move horizontally through them with
+                  mouse" behaviour: you push into the side you want to travel.
+         drag     one-to-one while the button is down, then the velocity you
+                  released at, decayed. A drag that stops dead on release
+                  feels like a scrollbar.
+         wheel    horizontal wheel deltas (trackpad swipes) thrown straight in.
+
+       THE WRAP
+
+       The row contains two identical copies of the tiles, so half its scroll
+       width is one full cycle. `x` is kept inside [-half, 0) with a modulo
+       rather than a reset, which is what makes the loop seamless in both
+       directions — a reset only works going one way, which is all the old CSS
+       animation ever had to do.
+
+       THE RAMP
+
+       Each tile is scored on how close it is to the edges of the viewport
+       band, and that score drives scale, opacity and saturation together.
+       Reading every tile's rect each frame would be a layout thrash, so the
+       tile widths are measured once (and on resize) and the position is
+       computed from `x` arithmetically.
+
+       Reduced motion gets no drift, no steer and no ramp — but keeps drag and
+       wheel, because those are navigation, not decoration. */
+    (function () {
+      var strip = document.querySelector(".sid-strip");
+      var rows = document.querySelector(".sid-strip__rows");
+      var row = document.querySelector(".sid-row");
+      if (!strip || !rows || !row) return;
+
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var tiles = [].slice.call(row.children);
+      if (!tiles.length) return;
+
+      var half = 0,
+        bandW = 0,
+        offs = [],
+        widths = [];
+
+      function measure() {
+        half = row.scrollWidth / 2;
+        bandW = rows.clientWidth;
+        offs = [];
+        widths = [];
+        for (var i = 0; i < tiles.length; i++) {
+          offs.push(tiles[i].offsetLeft);
+          widths.push(tiles[i].offsetWidth);
+        }
+      }
+      measure();
+      window.addEventListener("resize", measure, { passive: true });
+      /* Tile widths depend on images that may not have loaded when this runs. */
+      window.addEventListener("load", measure, { once: true });
+
+      var x = 0,
+        vel = 0,
+        steer = 0,
+        drift = reduce ? 0 : -0.42,
+        dragging = false,
+        lastPx = 0,
+        raf = 0,
+        visible = true;
+
+      /* ── steer ────────────────────────────────────────────────────────── */
+      if (!reduce) {
+        strip.addEventListener(
+          "pointermove",
+          function (e) {
+            if (dragging) return;
+            var r = rows.getBoundingClientRect();
+            var t = (e.clientX - r.left) / Math.max(1, r.width); /* 0..1 */
+            var d = (t - 0.5) * 2; /* -1..1 */
+            /* Dead middle third, then a squared ramp so the far edge is
+               decisively faster than the near one rather than linearly so. */
+            var mag = Math.max(0, Math.abs(d) - 0.33) / 0.67;
+            steer = -Math.sign(d) * mag * mag * 5.2;
+          },
+          { passive: true }
+        );
+        strip.addEventListener(
+          "pointerleave",
+          function () {
+            steer = 0;
+          },
+          { passive: true }
+        );
+      }
+
+      /* ── drag ─────────────────────────────────────────────────────────── */
+      row.addEventListener("pointerdown", function (e) {
+        if (e.button !== undefined && e.button !== 0) return;
+        dragging = true;
+        lastPx = e.clientX;
+        vel = 0;
+        steer = 0;
+        row.classList.add("is-dragging");
+        try {
+          row.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      });
+      row.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        var dx = e.clientX - lastPx;
+        lastPx = e.clientX;
+        x += dx;
+        /* Remembered so the release has something to throw. Blended rather
+           than assigned so one jittery frame cannot define the throw. */
+        vel = vel * 0.6 + dx * 0.4;
+      });
+      function endDrag(e) {
+        if (!dragging) return;
+        dragging = false;
+        row.classList.remove("is-dragging");
+        try {
+          if (e && e.pointerId != null) row.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+      row.addEventListener("pointerup", endDrag);
+      row.addEventListener("pointercancel", endDrag);
+      /* A drag that leaves the window entirely still has to end. */
+      window.addEventListener("blur", endDrag);
+
+      /* A drag and a click are the same gesture until the finger moves, so
+         swallow the click that follows a real drag — otherwise scrubbing the
+         rail and letting go on top of a tile triggers whatever that tile
+         does. */
+      var moved = 0;
+      row.addEventListener(
+        "pointermove",
+        function () {
+          if (dragging) moved++;
+        },
+        { passive: true }
+      );
+      row.addEventListener(
+        "click",
+        function (e) {
+          if (moved > 3) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          moved = 0;
+        },
+        true
+      );
+
+      /* ── wheel ────────────────────────────────────────────────────────── */
+      rows.addEventListener(
+        "wheel",
+        function (e) {
+          /* Only horizontal intent. Claiming vertical wheel here would trap
+             the page scroll inside a decorative strip, which is the single
+             rudest thing a component like this can do. */
+          if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+          vel -= e.deltaX * 0.5;
+        },
+        { passive: true }
+      );
+
+      if (window.IntersectionObserver) {
+        new IntersectionObserver(
+          function (es) {
+            visible = es[0].isIntersecting;
+            if (visible && !raf) raf = requestAnimationFrame(frame);
+          },
+          { threshold: 0.01 }
+        ).observe(strip);
+      }
+
+      var lastT = 0;
+      function frame(now) {
+        raf = 0;
+        if (!visible) return;
+        var dt = lastT ? Math.min(2.5, (now - lastT) / 16.667) : 1;
+        lastT = now;
+
+        if (!dragging) {
+          x += (drift + steer) * dt + vel;
+          vel *= Math.pow(0.94, dt);
+          if (Math.abs(vel) < 0.02) vel = 0;
+        }
+
+        if (half > 0) {
+          /* Modulo into [-half, 0). JS % keeps the sign of the dividend, so
+             the extra add-and-mod is what makes this correct for positive x
+             (dragging the rail backwards) as well as negative. */
+          x = ((x % half) + half) % half; /* [0, half) */
+          x -= half; /* [-half, 0) */
+        }
+
+        row.style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)";
+
+        /* ── the edge ramp ─────────────────────────────────────────────── */
+        if (!reduce && bandW > 0) {
+          var fade = bandW * 0.22;
+          for (var i = 0; i < tiles.length; i++) {
+            var left = offs[i] + x;
+            var mid = left + widths[i] / 2;
+            /* 0 at the very edge of the band, 1 once fully inside it. */
+            var near = Math.min(mid, bandW - mid);
+            var k = Math.max(0, Math.min(1, near / fade));
+            /* Eased so the middle of the rail is flat and all of the change
+               happens in the outer band, where it is the point. */
+            k = k * k * (3 - 2 * k);
+            var st = tiles[i].style;
+            st.opacity = (0.16 + 0.84 * k).toFixed(3);
+            st.transform = "scale(" + (0.9 + 0.1 * k).toFixed(3) + ")";
+            st.filter = "saturate(" + (0.3 + 0.7 * k).toFixed(2) + ")";
+          }
+        }
+
+        raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
+    })();
+  </script>
 
   {% comment %} The music panel now lives inside the footer, over the water rather than on its own black slab. {% endcomment %} {% include
   home_coda.html %}

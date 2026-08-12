@@ -67,6 +67,8 @@
     "uniform float u_burst;", // 1 right after a click, decays to 0
     "uniform float u_px;", // one sampling pitch, in point-size units
     "uniform float u_light;", // 1 on the cream theme, 0 on the dark one
+    "uniform vec2 u_ptr;", // pointer, in the same 0..1 space as a_uv
+    "uniform float u_ptrOn;", // 0 when the pointer is away, 1 when it is on the plate
     "varying vec3 v_rgb;",
     "varying float v_fade;",
 
@@ -138,6 +140,56 @@
     "    col = mix(vec3(0.74, 0.87, 1.0), vec3(0.07, 0.2, 0.48), u_light);",
     "    s = 1.05;",
     "    extra = on;",
+    "  }",
+
+    /* --- THE LENS -------------------------------------------------- */
+    /* Sid: "make my particle images more hover interactive and cooler."
+
+       Before this the pointer was a switch: entering the plate set reveal
+       to 1 and leaving set it to 0, so the whole cloud resolved or
+       dispersed as one object and the cursor's position carried no
+       meaning at all. You could hover the top-left corner and the
+       bottom-right corner and get identical frames.
+
+       Now the pointer is a place. Points within about a fifth of the
+       plate of it are pushed outward along the radius, swirled slightly
+       around it, grown and brightened — a bulge that travels with the
+       cursor, strongest at the centre and gone by the edge of its reach.
+
+       The falloff is a gaussian rather than a linear ramp because a
+       linear one has a visible boundary circle, and a circle is exactly
+       what a lens must not have. The y term is scaled by 1.25 to undo the
+       source's 4:5 aspect, or the "circle" of influence is an ellipse.
+
+       It runs in every mode, and each mode answers differently for free:
+       DUST bulges, HALFTONE's dots fatten into a blown-out highlight,
+       SLIT's bands bow around it, TOPO's contour lines part. One rule,
+       four behaviours, because the rule acts on the position and size the
+       mode has already chosen rather than replacing them. */
+    "  vec2 pd = pos - u_ptr;",
+    "  vec2 pda = pd * vec2(1.0, 1.25);",
+    "  float pl2 = dot(pda, pda);",
+    "  float infl = u_ptrOn * exp(-pl2 * 24.0);",
+    "  if (infl > 0.002) {",
+    "    float pr = sqrt(pl2);",
+    "    vec2 dir = pda / max(0.0001, pr);",
+    /* The push has to go to zero AT the cursor, not peak there. Scaling by
+       the radius (saturating at 0.1) is what makes this a bulge rather than
+       a hole: the first version displaced every point by the full amount
+       including the ones directly under the pointer, so the centre emptied
+       out and left a black disc with a hard ring of piled-up points around
+       it — a puncture, not a lens. Zero at the centre, strongest at the
+       shoulder, gone by the edge of the falloff. */
+    "    float ring = min(pr / 0.1, 1.0);",
+    /* A little rotation with the push, so the cloud turns around the cursor
+       instead of only fleeing it. */
+    "    float sw = infl * 0.8;",
+    "    vec2 rot = vec2(dir.x * cos(sw) - dir.y * sin(sw), dir.x * sin(sw) + dir.y * cos(sw));",
+    "    pos += rot * vec2(1.0, 0.8) * infl * ring * 0.042;",
+    /* Size and light do peak at the centre — that is the part that reads as
+       magnification, and it is what fills the middle the push vacates. */
+    "    s *= 1.0 + infl * 2.3;",
+    "    col += vec3(0.2, 0.26, 0.34) * infl;",
     "  }",
 
     /* --- the scatter ---------------------------------------------- */
@@ -304,7 +356,7 @@
     buf(data.lum, "a_lum", 1);
 
     var U = {};
-    ["u_reveal", "u_time", "u_mode", "u_burst", "u_px", "u_light"].forEach(function (k) {
+    ["u_reveal", "u_time", "u_mode", "u_burst", "u_px", "u_light", "u_ptr", "u_ptrOn"].forEach(function (k) {
       U[k] = gl.getUniformLocation(pr, k);
     });
 
@@ -367,11 +419,46 @@
       label.classList.add("is-hit");
     }
 
+    /* Where the pointer is on the plate, in the same 0..1 space the shader
+       samples the photograph in, plus how much of it is currently applied.
+
+       Both are eased rather than written straight through. A pointermove
+       fires at whatever rate the mouse reports, which is not the frame rate,
+       so assigning the raw value makes the lens stutter on any pointer
+       polling below 120Hz; and switching u_ptrOn between 0 and 1 on
+       enter/leave would pop the bulge in and out. The easing happens in the
+       frame loop, against dt, for the same reason the reveal does. */
+    var pxTo = 0.5,
+      pyTo = 0.5,
+      px = 0.5,
+      py = 0.5,
+      lensTo = 0,
+      lens = 0;
+
+    host.addEventListener(
+      "pointermove",
+      function (e) {
+        var r = host.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        pxTo = (e.clientX - r.left) / r.width;
+        pyTo = (e.clientY - r.top) / r.height;
+        /* First contact should not drag the lens across the plate from
+           wherever it was left; put it where the pointer actually is. */
+        if (!lensTo) {
+          px = pxTo;
+          py = pyTo;
+        }
+        lensTo = 1;
+      },
+      { passive: true }
+    );
+
     host.addEventListener("pointerenter", function () {
       want = 1;
     });
     host.addEventListener("pointerleave", function () {
       want = 0;
+      lensTo = 0;
     });
     host.addEventListener("pointerdown", function () {
       want = 1;
@@ -387,9 +474,16 @@
     });
     host.addEventListener("focus", function () {
       want = 1;
+      /* No pointer to follow, so the lens sits in the middle of the plate.
+         Better than leaving a keyboard user with a resolved-but-inert
+         picture that a mouse user sees moving. */
+      pxTo = px = 0.5;
+      pyTo = py = 0.5;
+      lensTo = 1;
     });
     host.addEventListener("blur", function () {
       want = 0;
+      lensTo = 0;
     });
 
     if (window.IntersectionObserver) {
@@ -413,6 +507,12 @@
       var dt = Math.min(0.25, (now - last) / 1000);
       last = now;
       reveal += (want - reveal) * (1 - Math.exp(-dt / 0.19));
+      /* The lens chases faster than the reveal — it is tracking a hand, not
+         a state change — but not instantly, which is what gives the bulge
+         its slight weight behind the cursor. */
+      px += (pxTo - px) * (1 - Math.exp(-dt / 0.055));
+      py += (pyTo - py) * (1 - Math.exp(-dt / 0.055));
+      lens += (lensTo - lens) * (1 - Math.exp(-dt / 0.13));
       burst *= Math.exp(-dt / 0.28);
       if (burst < 0.002) burst = 0;
 
@@ -424,6 +524,8 @@
       gl.uniform1f(U.u_burst, burst);
       gl.uniform1f(U.u_px, W / GRID_W);
       gl.uniform1f(U.u_light, light);
+      gl.uniform2f(U.u_ptr, px, py);
+      gl.uniform1f(U.u_ptrOn, lens);
       gl.drawArrays(gl.POINTS, 0, data.n);
       raf = requestAnimationFrame(frame);
     }
