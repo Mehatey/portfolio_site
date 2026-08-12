@@ -1,0 +1,405 @@
+<!-- ══════════════════════════════════════════════════════════════════════════
+     THE MOTION LAYER
+
+     Sid: "i want a lot more subtle animations to text and general animations
+     and scroll effects. really take my site to next level."
+
+     One description of how things arrive, included by the layouts that carry
+     long-form content. Before this the only page on the site with any arrival
+     behaviour was the homepage, which has its own `.rv` class defined inline;
+     the fifteen case studies, the about page and the prototypes index all
+     simply appeared. This does not replace `.rv` — it deliberately steps
+     around anything already carrying it, because two systems animating the
+     same element is how you get a flicker nobody can debug.
+
+     WHAT IT DOES
+
+       rise      blocks fade up 18px as they enter, once, never again
+       words     headings arrive a word at a time on a short stagger
+       drift     full-bleed media parallaxes against the scroll
+       hover     a small set of shared responses, in CSS, no script
+
+     WHAT IT REFUSES TO DO
+
+     No scroll-jacking, no pinning, no horizontal takeovers, no elements that
+     animate every time they re-enter. A page you have already read should not
+     perform for you on the way back up, which is why every reveal unobserves
+     itself the moment it fires.
+
+     Nothing here is decorative-only in the sense that it can be wrong: with
+     JavaScript off, with reduced motion on, or if the observer never fires,
+     every element ends in its final state. The `.mo` class is added by script
+     as the very first thing it does, so the opacity:0 rules below can only
+     ever apply on a page where something is running to undo them. A CSS-only
+     visitor sees a finished page, not a blank one.
+     ══════════════════════════════════════════════════════════════════════ -->
+<style>
+  /* Gated on .mo — see the note above. Without the class none of this exists,
+     so a failed script cannot leave the page invisible. */
+  .mo [data-mo="rise"],
+  .mo [data-mo="settle"] {
+    opacity: 0;
+    will-change: opacity, transform;
+    transition:
+      opacity 780ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 780ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--mo-d, 0ms);
+  }
+  .mo [data-mo="rise"] {
+    transform: translate3d(0, 18px, 0);
+  }
+  /* Media gets a scale rather than a slide. A photograph that slides looks
+     like a slide transition; a photograph that settles the last two percent
+     of its size looks like it is being placed. */
+  .mo [data-mo="settle"] {
+    transform: scale(1.02);
+  }
+  .mo [data-mo].mo-in {
+    opacity: 1;
+    transform: none;
+  }
+  /* A word-split heading carries no opacity of its own — its words do. Marked
+     with data-mo purely so the rise pass below knows it is already spoken
+     for; without that it would fade the block up AND stagger the words inside
+     it, which is two arrivals for one heading and reads as a stutter. */
+  .mo [data-mo="words"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── words ──────────────────────────────────────────────────────────────
+     Headings arrive a word at a time. The span is inline-block so it can
+     carry a transform, which means each word is its own line-breaking unit —
+     fine, because a word was already the unit the browser breaks on. The
+     wrapper keeps `white-space: normal` so the heading still wraps exactly
+     where it did before it was split. */
+  .mo .mo-word {
+    display: inline-block;
+    opacity: 0;
+    transform: translate3d(0, 0.42em, 0);
+    transition:
+      opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--mo-d, 0ms);
+  }
+  .mo .mo-words.mo-in .mo-word {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── hover ──────────────────────────────────────────────────────────────
+     Three responses, shared, all of them in CSS so they cost nothing and
+     cannot fall out of sync with the scroll work above.
+
+     1. Prose links draw their underline in from the left instead of carrying
+        a permanent one. A body of text with six underlined phrases in it
+        reads as a page of links; the same text with six phrases that underline
+        when you reach them reads as prose that happens to be connected. */
+  .proj-body p > a,
+  .cs-intro a,
+  .about-proof a,
+  .about-bio a {
+    position: relative;
+    text-decoration: none;
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    background-size: 0% 1px;
+    transition: background-size 420ms cubic-bezier(0.16, 1, 0.3, 1);
+    padding-bottom: 1px;
+  }
+  .proj-body p > a:hover,
+  .proj-body p > a:focus-visible,
+  .cs-intro a:hover,
+  .cs-intro a:focus-visible,
+  .about-proof a:hover,
+  .about-proof a:focus-visible,
+  .about-bio a:hover,
+  .about-bio a:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /* 2. Case-study media lifts a hair and un-dims.
+
+        A scale would have been the obvious choice and it is the wrong one
+        here. The case-study pages do not agree with each other about whether
+        a grid item clips: cube-guy.md sets `overflow: visible !important` in
+        one block and `overflow: hidden !important` in another, and several
+        pages already run their own infinite `driftRight` keyframes on
+        alternating items. A scale inside a visible container spills over its
+        neighbour, and any transform I set here loses to a running animation
+        anyway.
+
+        A 3px lift and a brightness change survive both: the lift is small
+        enough that it cannot overlap anything at these gaps, and `filter` is
+        a separate property from `transform`, so an item already animating its
+        position still answers the pointer. */
+  .cs-grid-item img,
+  .cs-grid-item video {
+    transition:
+      translate 620ms cubic-bezier(0.16, 1, 0.3, 1),
+      filter 520ms ease;
+  }
+  .cs-grid-item:hover img,
+  .cs-grid-item:hover video {
+    translate: 0 -3px;
+    filter: brightness(1.07) saturate(1.05);
+  }
+
+  /* 3. Section labels get a rule that grows out of them. Same gesture as the
+        works grid's cover sweep, so the two pages share a vocabulary. */
+  .cs-section-label {
+    position: relative;
+  }
+  .cs-section-label::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    height: 1px;
+    width: 100%;
+    background: currentColor;
+    opacity: 0.35;
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+    transition: transform 760ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--mo-d, 0ms);
+  }
+  .mo .cs-section-label.mo-in::after,
+  html:not(.mo) .cs-section-label::after {
+    transform: scaleX(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mo [data-mo],
+    .mo .mo-word {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    .cs-grid-item img,
+    .cs-grid-item video,
+    .cs-section-label::after,
+    .proj-body p > a {
+      transition: none !important;
+    }
+    .cs-section-label::after {
+      transform: scaleX(1) !important;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    "use strict";
+
+    var root = document.documentElement;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* Zones that already animate themselves. Anything inside one of these is
+       left alone: the hero film paints its own reveal, the pond and the rail
+       run their own loops, the homepage has `.rv`, and the works grid was
+       explicitly stripped of entry animation at Sid's request — putting one
+       back through a shared include would be the same mistake arriving by a
+       different route. */
+    var SKIP =
+      ".film, .plot__pin, .sid-strip, .site-footer, .nav, .works-cube-stage, .wk-grid, #gl-stage, .refl-water-canvas, .refl-reveal-canvas, .hero-video, .loader, .cursor-layer";
+
+    /* What rises, in the order a reader meets it. Media is listed separately
+       because it settles rather than rises. */
+    var RISE = [
+      ".proj-body > *",
+      ".cs-section",
+      ".cs-intro",
+      ".cs-section-label",
+      ".about-proof p",
+      ".about-bio",
+      ".about-actions",
+      ".exp-item",
+      ".recog-item",
+      ".ai-card",
+      ".hero-brief-fact",
+    ];
+    /* Bleeds only. Grid items are deliberately absent: several case studies
+       run their own infinite keyframes on alternating items, and a transform
+       set here would be silently overridden by them — leaving a reveal that
+       fades in without moving on some pages and not others. The grid arrives
+       as a unit via its wrapper in RISE, which is the better read anyway. */
+    var SETTLE = [".cs-bleed"];
+    /* The statements, not the labels. The first pass pointed this at
+       `.cs-section > h2`, which is a chapter marker reading "Film" or
+       "Process" — a single word, so the splitter skipped it anyway, and even
+       at two words a staggered chapter label is fussy rather than considered.
+       These four are the sentences a reader actually stops on. */
+    var WORDS = [".proj-title", ".about-claim", ".coda__title", ".cs-intro > h2"];
+
+    function ok(el) {
+      if (!el || el.closest(SKIP)) return false;
+      /* `.rv` is the homepage's own system. */
+      if (el.classList.contains("rv") || el.hasAttribute("data-mo")) return false;
+      /* An element with no text and no media in it is a spacer, and animating
+         a spacer is animating nothing. */
+      if (!el.textContent.trim() && !el.querySelector("img, video, canvas, svg, picture")) return false;
+      return true;
+    }
+
+    function collect(list, kind, out) {
+      for (var i = 0; i < list.length; i++) {
+        var found = document.querySelectorAll(list[i]);
+        for (var j = 0; j < found.length; j++) {
+          if (ok(found[j])) {
+            found[j].setAttribute("data-mo", kind);
+            out.push(found[j]);
+          }
+        }
+      }
+    }
+
+    var targets = [];
+
+    /* ── words ────────────────────────────────────────────────────────────
+       Only headings that are a single run of plain text get split. Anything
+       carrying inline markup — a link, an <em>, a <br> — is left whole,
+       because rebuilding arbitrary inline structure as word spans is how a
+       heading quietly loses its link. */
+    if (!reduce) {
+      for (var w = 0; w < WORDS.length; w++) {
+        var hs = document.querySelectorAll(WORDS[w]);
+        for (var h = 0; h < hs.length; h++) {
+          var el2 = hs[h];
+          if (!ok(el2)) continue;
+          if (el2.children.length) continue;
+          var text = el2.textContent.trim();
+          if (!text || text.length > 140) continue;
+          var parts = text.split(/\s+/);
+          if (parts.length < 2 || parts.length > 24) continue;
+          el2.textContent = "";
+          el2.classList.add("mo-words");
+          el2.setAttribute("data-mo", "words");
+          for (var k = 0; k < parts.length; k++) {
+            var sp = document.createElement("span");
+            sp.className = "mo-word";
+            sp.style.setProperty("--mo-d", k * 38 + "ms");
+            sp.textContent = parts[k];
+            el2.appendChild(sp);
+            if (k < parts.length - 1) el2.appendChild(document.createTextNode(" "));
+          }
+          targets.push(el2);
+        }
+      }
+    }
+
+    collect(RISE, "rise", targets);
+    collect(SETTLE, "settle", targets);
+
+    /* ── the stagger ──────────────────────────────────────────────────────
+       Delay comes from an element's position among its own siblings, not from
+       its position in the document — a global counter would give the last
+       block on a long case study a delay measured in seconds. Capped at four
+       steps, because past about a quarter of a second a stagger stops reading
+       as a group arriving together and starts reading as a queue. */
+    var seen = new Map() ? new Map() : null;
+    for (var i = 0; i < targets.length; i++) {
+      var el = targets[i];
+      var parent = el.parentNode;
+      var n = 0;
+      if (seen) {
+        n = seen.get(parent) || 0;
+        seen.set(parent, n + 1);
+      }
+      el.style.setProperty("--mo-d", Math.min(n, 4) * 55 + "ms");
+    }
+
+    /* The gate. Added before anything is observed, so the opacity:0 rules come
+       into force and are undone in the same frame the observer resolves. */
+    root.classList.add("mo");
+
+    function revealAll() {
+      for (var i = 0; i < targets.length; i++) targets[i].classList.add("mo-in");
+    }
+
+    if (reduce || !("IntersectionObserver" in window)) {
+      revealAll();
+      return;
+    }
+
+    /* rootMargin pulls the trigger line 12% up from the bottom of the
+       viewport: an element that reveals the instant its first pixel appears
+       is still moving when you reach it, which reads as lag rather than as
+       arrival. -12% means it has begun by the time it is properly on screen. */
+    var io = new IntersectionObserver(
+      function (entries) {
+        for (var i = 0; i < entries.length; i++) {
+          if (!entries[i].isIntersecting) continue;
+          entries[i].target.classList.add("mo-in");
+          io.unobserve(entries[i].target);
+        }
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.01 }
+    );
+
+    for (var t = 0; t < targets.length; t++) {
+      /* Anything already above the fold on load reveals immediately rather
+         than waiting for a scroll that may never come. */
+      var r = targets[t].getBoundingClientRect();
+      if (r.top < window.innerHeight * 0.9) targets[t].classList.add("mo-in");
+      else io.observe(targets[t]);
+    }
+
+    /* ── drift ────────────────────────────────────────────────────────────
+       Full-bleed media moves against the scroll, at a tenth of its speed and
+       clamped to 26px either way. Two rules make this safe rather than
+       fashionable: the movement is small enough that it never opens a gap at
+       the edge of a bleed, and the rects are cached rather than measured per
+       frame, so a page of forty images does not force forty layouts every
+       time the wheel turns.
+
+       It is skipped entirely on coarse pointers. Parallax on a touch device
+       fights the momentum scroller and loses. */
+    var coarse = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    if (reduce || coarse) return;
+
+    var drifters = [];
+    var bleeds = document.querySelectorAll(".cs-bleed img, .cs-bleed video, .refl-bg-img");
+    for (var d = 0; d < bleeds.length; d++) {
+      if (bleeds[d].closest(SKIP)) continue;
+      drifters.push({ el: bleeds[d], top: 0, h: 0 });
+    }
+    if (!drifters.length) return;
+
+    var vh = window.innerHeight;
+    function remeasure() {
+      vh = window.innerHeight;
+      var sy = window.pageYOffset;
+      for (var i = 0; i < drifters.length; i++) {
+        var r = drifters[i].el.getBoundingClientRect();
+        drifters[i].top = r.top + sy;
+        drifters[i].h = r.height;
+      }
+    }
+    remeasure();
+    window.addEventListener("resize", remeasure, { passive: true });
+    window.addEventListener("load", remeasure, { once: true });
+
+    var ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        var sy = window.pageYOffset;
+        for (var i = 0; i < drifters.length; i++) {
+          var it = drifters[i];
+          /* Only pay for what is on screen. */
+          if (it.top + it.h < sy - vh || it.top > sy + vh * 2) continue;
+          /* -1 above the viewport, 0 centred, +1 below. */
+          var p = (it.top + it.h / 2 - (sy + vh / 2)) / vh;
+          var y = Math.max(-26, Math.min(26, p * -26));
+          it.el.style.transform = "translate3d(0," + y.toFixed(1) + "px,0)";
+        }
+      });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  })();
+</script>
