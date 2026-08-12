@@ -523,29 +523,61 @@ title: Play · Sid Mehta
         if (file >= 13) return "Creative technology study";
         return "Field observation";
       }
-      /* ── THE MOVING ONE ─────────────────────────────────────────────────
-         Sid asked for his Kinect projection work to sit in the first quarter
-         of the scroll. Everything else on Play is a still, and a still cannot
-         show an interaction — the whole point of this piece is a hand entering
-         a projected particle field and the field answering, which is a fact
-         about time.
+      /* ── PLAY MOVES AGAIN ───────────────────────────────────────────────
+         Sid: "why can't play play videos it was playing videos earlier."
 
-         It is spliced in at a quarter of the way down the list rather than
-         appended, because Play is a column layout: an item at the end of the
-         array lands at the bottom of the last column, which is the least seen
-         position on the page, and this is the opposite of a footnote.
+         It could, and it did. Commit 6901ccf8 injected five clips through the
+         grid — vp-scene4, brainscan, final-walking, myc, stop-sign-spiral —
+         each a lazily-sourced <video> in a card. A later rewrite rebuilt the
+         page around a WebGL carousel and then around this column grid, and
+         the video branch did not survive either pass. The clips stayed on
+         disk the whole time. So did twelve more in play/assets/video, each
+         already beside its own .jpg poster.
 
-         `type: "video"` is the only thing that distinguishes it. The renderer
-         below builds a <video> instead of an <img> for that, and the poster
-         is a real frame from the clip, so the card looks identical to its
-         neighbours until it starts. */
-      const kinect = {
-        type: "video",
-        src: `{{ site.baseurl }}/play/assets/spatial/kinect-projection.webp`,
-        hi: `{{ site.baseurl }}/play/assets/hi/kinect-projection.webp`,
-        video: `{{ site.baseurl }}/assets/video/play/kinect-projection.mp4`,
-        title: "Kinect projection · depth-tracked particle field",
-      };
+         Those twelve were worse than missing: their POSTERS were tracked in
+         git and the .mp4 files were not, because the repo ignores *.mp4 and
+         the whitelist only covered assets/video/play. They played perfectly on
+         this machine and would have been twelve 404s on the deployed site.
+         The .gitignore now whitelists them; that is the actual reason Play
+         stopped moving in production.
+
+         Eighteen clips, all short, all silent, all looping. They are spread
+         evenly through the archive rather than grouped, because a block of
+         video reads as a showreel and the point of Play is that everything
+         here sits at the same rank.
+
+         Two are placed rather than spread — the Kinect projection and the
+         Arduino controller — because Sid asked for the physical-computing
+         work to land in the first quarter of the scroll. */
+      const V = `{{ site.baseurl }}/play/assets/video`;
+      const AV = `{{ site.baseurl }}/assets/video/play`;
+      const SP = `{{ site.baseurl }}/play/assets/spatial`;
+      const HI = `{{ site.baseurl }}/play/assets/hi`;
+
+      const vid = (src, poster, hi, title) => ({ type: "video", video: src, src: poster, hi: hi || poster, title });
+
+      /* The two that carry the hardware story, held for the first quarter. */
+      const anchors = [
+        vid(`${AV}/kinect-projection.mp4`, `${SP}/kinect-projection.webp`, `${HI}/kinect-projection.webp`, "Kinect projection · depth-tracked particle field"),
+      ];
+      const anchorStills = [
+        { src: `${SP}/arduino-controller.webp`, hi: `${HI}/arduino-controller.webp`, title: "Arduino climate controller · temperature, humidity, fan speed" },
+      ];
+
+      /* Everything else, spread. The v-clips carry .jpg posters already; the
+         five older ones needed frames pulled, which now sit beside the stills
+         as .webp so every card in the grid loads the same kind of image. */
+      const spread = [
+        vid(`${AV}/vp-scene4.mp4`, `${SP}/vp-scene4.webp`, `${HI}/vp-scene4.webp`, "Vision Pro scene study"),
+        vid(`${AV}/brainscan.mp4`, `${SP}/brainscan.webp`, `${HI}/brainscan.webp`, "Brain scan study"),
+        vid(`${AV}/final-walking.mp4`, `${SP}/final-walking.webp`, `${HI}/final-walking.webp`, "Walk cycle test"),
+        vid(`${AV}/myc.mp4`, `${SP}/myc.webp`, `${HI}/myc.webp`, "Mycelium growth study"),
+        vid(`${AV}/stop-sign-spiral.mp4`, `${SP}/stop-sign-spiral.webp`, `${HI}/stop-sign-spiral.webp`, "Stop sign spiral"),
+      ].concat(
+        [1, 7, 8, 11, 16, 22, 23, 25, 27, 30, 34, 46].map(function (n) {
+          return vid(`${V}/v${n}.mp4`, `${V}/v${n}.jpg`, `${V}/v${n}.jpg`, `Motion study ${String(n).padStart(3, "0")}`);
+        })
+      );
 
       const sources = (
         files.map((file) => ({
@@ -561,26 +593,36 @@ title: Play · Sid Mehta
       );
 
       /* ── WHERE A QUARTER OF THE WAY DOWN ACTUALLY IS ─────────────────────
-         Splicing at a quarter of the ARRAY put this at 48% of the scroll, and
-         the reason is the layout: Play is a CSS `columns` grid, so the array
-         runs down column one, then down column two, and the page's height is
-         the height of ONE column. Index 14 of 58 is not a quarter of the way
-         down the page, it is near the bottom of the first column.
+         Splicing at a quarter of the ARRAY put the first clip at 48% of the
+         scroll, and the reason is the layout: Play is a CSS `columns` grid, so
+         the array runs down column one, then down column two, and the page's
+         height is the height of ONE column. Index 14 of 58 is not a quarter of
+         the way down the page, it is near the bottom of the first column.
 
          What a reader experiences as "a quarter of the way down" is a quarter
          of the way down whichever column an item is in. So the index is a
-         fraction of the per-column count, not of the total: at 1512 that is
-         four columns of about fourteen, and 22% of fourteen is index three.
-
-         The column count is estimated from the viewport the same way the
-         renderer measures it further down (column-width against the grid's
-         own width) — it has to be, because this runs before anything has
+         fraction of the per-column count, not of the total. The column count
+         is estimated from the viewport the same way the renderer measures it
+         further down — it has to be, because this runs before anything has
          been laid out. */
       const estCols = (function () {
         const w = Math.min(1600, (window.innerWidth || 1200) - 64);
         return Math.max(1, Math.floor((w + 16) / (320 + 16)));
       })();
-      sources.splice(Math.max(1, Math.round(((files.length + 1) / estCols) * 0.22)), 0, kinect);
+      const perColEst = (sources.length + spread.length + anchors.length + anchorStills.length) / estCols;
+
+      /* The two anchors first, near the top of column one, adjacent so the
+         Kinect rig and the Arduino box read as one line of thought. */
+      sources.splice(Math.max(1, Math.round(perColEst * 0.2)), 0, anchors[0], anchorStills[0]);
+
+      /* Then the rest, at even intervals across what is left. Walking
+         backwards so each splice cannot shift the index of the next one. */
+      (function () {
+        const step = sources.length / (spread.length + 1);
+        for (let i = spread.length - 1; i >= 0; i--) {
+          sources.splice(Math.round(step * (i + 1)), 0, spread[i]);
+        }
+      })();
 
         window.PLAY_SOURCES = sources;
 
@@ -656,9 +698,15 @@ title: Play · Sid Mehta
             image.playsInline = true;
             image.setAttribute("playsinline", "");
             image.setAttribute("muted", "");
-            image.autoplay = true;
-            image.preload = "metadata";
+            /* preload="none" and NO src yet. Eighteen clips fetching metadata
+               at load is the mistake the original video version of this page
+               made and then fixed; the src is attached by the reveal observer
+               when the card is about to be seen, which is also the moment it
+               should start. The poster holds the card's shape until then, so
+               the column never reflows around an element with no height. */
+            image.preload = "none";
             image.poster = item.src;
+            image.dataset.clip = item.video;
             image.setAttribute("aria-label", item.title);
             grid.appendChild(image);
             /* It still gets its line in the screen-reader index — the early
@@ -715,14 +763,9 @@ title: Play · Sid Mehta
           for (var n = 0; n < 3; n++) eager[top + n] = true;
         }
         built.forEach(function (image, index) {
-          /* A <video> has no `loading` attribute and its src is the clip, not
-             the poster — assigning the still to it would leave the element
-             trying to decode a webp as a movie. */
-          if (sources[index].type === "video") {
-            image.src = sources[index].video;
-            image.play().catch(function () {});
-            return;
-          }
+          /* A <video> has no `loading` attribute, and its source is attached
+             on reveal rather than here — see the observer below. */
+          if (sources[index].type === "video") return;
           image.loading = eager[index] ? "eager" : "lazy";
           if (eager[index]) image.setAttribute("fetchpriority", "high");
           image.src = sources[index].src;
@@ -746,8 +789,34 @@ title: Play · Sid Mehta
                 return a.boundingClientRect.left - b.boundingClientRect.left;
               });
               arriving.forEach(function (e, i) {
+                /* ── THE ZERO-HEIGHT GUARD ────────────────────────────────
+                   This observer is created immediately after the src
+                   assignments above, which means none of the images has
+                   decoded yet — and an <img> with no intrinsic size has no
+                   height. Every card in the grid is therefore stacked at the
+                   same y, every one of them intersects, and the observer
+                   fires for all seventy-six in the first callback.
+
+                   Two consequences, both invisible until measured. The
+                   staggered reveal this whole block exists to produce was
+                   being spent in one frame at load. And once video cards
+                   joined the grid it meant all eighteen clips fetched
+                   immediately: 8MB of movie for a page you have not scrolled.
+
+                   An element with no height has not been laid out, so it is
+                   not really on screen and is skipped — without unobserving,
+                   so it gets its turn once the layout settles. */
+                if (e.boundingClientRect.height < 4) return;
                 e.target.style.setProperty("--in-delay", Math.min(i, 5) * 70 + "ms");
                 e.target.classList.add("is-in");
+                /* A clip gets its bytes at the moment it is about to be seen,
+                   and starts. `play()` returns a promise that rejects on any
+                   browser still refusing muted autoplay; the poster is already
+                   on screen, so a rejection costs a still rather than a hole. */
+                if (e.target.tagName === "VIDEO" && !e.target.src) {
+                  e.target.src = e.target.dataset.clip;
+                  e.target.play().catch(function () {});
+                }
                 io.unobserve(e.target);
               });
             },
@@ -756,8 +825,29 @@ title: Play · Sid Mehta
           /* "img, video" rather than "img" — the observer is what adds .is-in,
              and a card that never gets it stays at opacity 0 forever. */
           grid.querySelectorAll("img, video").forEach(function (i) { io.observe(i); });
+          /* Re-observing forces a fresh callback with real rectangles. By
+             `load` the pictures have decoded and the columns have their true
+             heights, so this is the pass that actually reveals the cards a
+             visitor can see — and only those. */
+          window.addEventListener(
+            "load",
+            function () {
+              grid.querySelectorAll("img, video").forEach(function (el) {
+                if (el.classList.contains("is-in")) return;
+                io.unobserve(el);
+                io.observe(el);
+              });
+            },
+            { once: true }
+          );
         } else {
-          grid.querySelectorAll("img, video").forEach(function (i) { i.classList.add("is-in"); });
+          grid.querySelectorAll("img, video").forEach(function (i) {
+            i.classList.add("is-in");
+            if (i.tagName === "VIDEO" && !i.src) {
+              i.src = i.dataset.clip;
+              i.play().catch(function () {});
+            }
+          });
         }
 
         /* ── THE AUTO SCROLL ──────────────────────────────────────────────
