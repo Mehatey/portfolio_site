@@ -1188,14 +1188,28 @@
 
          All spacing on the 4pt scale. */
       @media (min-width: 901px) {
+        /* Tightened on Sid's note: "you can make this more compact ... desk can
+           be bigger."
+
+           Three numbers do that work and they are the same move seen three
+           ways. The side columns drop from 1fr to 0.82fr and their floor from
+           268px to 244px, which is still wider than the longest string that has
+           to sit in one ("sidmehtadesign@gmail.com" at --type-body-lg). The
+           middle column goes from 2.8fr to 4.4fr. And the frame loses a step of
+           padding on every side. Net: the desk gains roughly a fifth of its
+           width and the copy loses none of its measure — the air between them
+           is what got spent.
+
+           The row template lost its fourth track along with the meta row it
+           was holding. */
         .contact-shell {
           display: grid;
-          grid-template-columns: minmax(268px, 1fr) minmax(0, 2.8fr) minmax(268px, 1fr);
+          grid-template-columns: minmax(244px, 0.82fr) minmax(0, 4.4fr) minmax(244px, 0.82fr);
           grid-template-rows: auto minmax(0, 1fr) auto;
           align-content: stretch;
-          column-gap: var(--sp-7);
-          row-gap: var(--sp-5);
-          padding: calc(var(--nav-h, 64px) + var(--sp-7)) var(--sp-7) var(--sp-8);
+          column-gap: var(--sp-6);
+          row-gap: var(--sp-4);
+          padding: calc(var(--nav-h, 64px) + var(--sp-5)) var(--sp-6) var(--sp-6);
           overflow: hidden;
         }
 
@@ -1223,6 +1237,17 @@
           align-items: flex-end;
           text-align: right;
           justify-content: flex-end;
+          /* The theme toggle and the cube chat are fixed to the bottom-right of
+             every page, and this corner is the only block on the site that
+             tries to occupy the same rectangle. Ragged right-aligned text got
+             away with it because its ink stopped short of the controls; a ruled
+             block runs the full column width and ran straight underneath them,
+             so the last two rules came out from behind a floating button.
+
+             The lift is the height of that control stack plus a gap. It is
+             stated here rather than as a global inset because this is the only
+             layout with anything in that corner. */
+          padding-bottom: 104px;
         }
 
         /* The desk stops bleeding. It was width: min(104vw, 1720px) at
@@ -1289,24 +1314,73 @@
           letter-spacing: var(--track-tight);
           white-space: nowrap;
         }
+        /* ── THE LINK COLUMN ────────────────────────────────────────────────
+           Sid: "align the links on right properly with elements."
+
+           They were right-aligned text in a column, each link only as wide as
+           its own word, and each carrying a bottom rule the width of that word.
+           So four links produced four rules of four different lengths — 46px
+           under "Resume", 74px under "Instagram" — stacked in a ragged left
+           edge that read as a mistake rather than as a rag. Nothing lined up
+           with anything, including the email and phone block directly opposite
+           it on the same floor.
+
+           Now each link is a full-width row inside the corner: the word sits
+           on the right edge, the rule runs the entire column width, and the
+           four rules stack into a single ruled block whose left edge is
+           straight and whose right edge shares the page margin with the intro
+           above it and the nav above that. The arrow gets the far right and the
+           word is pushed off it on hover, which is only possible now that the
+           row is wider than its text.
+
+           `justify-content: flex-end` rather than `text-align: right` because
+           the row is a flex container holding the label and the arrow, and the
+           two need to stay a pair when the label moves. */
         .c-corner .contact-links {
           display: flex;
           flex-direction: column;
-          align-items: flex-end;
+          align-items: stretch;
+          gap: 0;
+          width: 100%;
+          margin-top: 0;
+        }
+        .c-corner .contact-links a {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
           gap: var(--sp-2);
+          width: 100%;
+          min-height: 34px;
+          padding: 0 0 2px;
+          border-bottom: 1px solid rgba(226, 236, 246, 0.14);
+        }
+        .c-corner .contact-links a:first-child {
+          border-top: 1px solid rgba(226, 236, 246, 0.14);
+        }
+        /* The lift is gone with the ragged edge that made it legible. A row in
+           a ruled block that jumps 2px on hover drags its own rule away from
+           the rules above and below it, which is the one thing this block is
+           now built not to do. The label slides instead. */
+        .c-corner .contact-links a:hover,
+        .c-corner .contact-links a:focus-visible {
+          transform: none;
+        }
+        .c-corner .contact-links a > span.xarrow {
+          transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .c-corner .contact-links a:hover > span.xarrow,
+        .c-corner .contact-links a:focus-visible > span.xarrow {
+          transform: translate(3px, -3px);
+        }
+        html[data-theme="light"] .c-corner .contact-links a,
+        html[data-theme="light"] .c-corner .contact-links a:first-child {
+          border-color: rgba(20, 30, 44, 0.16);
         }
         .c-corner .contact-hint {
           margin: var(--sp-3) 0 0;
         }
 
-        .contact-meta {
-          position: static;
-          grid-area: 4 / 1 / 5 / 4;
-          display: flex;
-          justify-content: center;
-          gap: var(--sp-5);
-          margin-top: var(--sp-5);
-        }
+        /* (The .contact-meta rule that sat here went with the element.) */
         .contact-shell {
           grid-template-rows: auto minmax(0, 1fr) auto auto;
         }
@@ -1439,19 +1513,22 @@
         </nav>
       </div>
 
-      <footer class="contact-meta" aria-label="Contact footer">
-        <span>New York, NY</span><!-- Was the literal string "Updated Jul 2026", hand-typed, and by August it was
-            already a lie -- a stale recency claim sitting six pixels from a clock that
-            repaints itself every minute. The one number on this page whose whole job is to
-            say "this is current" was the only one that could rot. site.time is the build
-            timestamp, so it cannot. --><span>Updated {{ site.time | date: "%b %Y" }}</span><span id="contact-time">--:-- NYC</span>
-      </footer>
+      <!-- The meta row is gone. It read "New York, NY · Updated Aug 2026 ·
+           22:08 NYC", centred on the floor of the page above a hairline, which
+           is the exact shape of a site footer — so the page appeared to end
+           there, and the real footer below it read as a second one. Sid: "remove
+           bottom new york text it looks like that is the footer."
+
+           Nothing in it was load-bearing. "New York, NY" is already the second
+           word of the intro in the top-right corner; the build date was a
+           recency claim nobody asked for; the clock was a clock. The site
+           footer underneath carries the location and the contact routes
+           properly. -->
     </main>
 
     <script>
       (() => {
         const desk = document.getElementById("contact-desk");
-        const time = document.getElementById("contact-time");
 
         const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
         const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -1577,22 +1654,10 @@
           }
         });
 
-        function tick() {
-          try {
-            time.textContent =
-              new Intl.DateTimeFormat("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-                timeZone: "America/New_York",
-              }).format(new Date()) + " NYC";
-          } catch (_) {
-            time.hidden = true;
-          }
-        }
-
-        tick();
-        setInterval(tick, 30000);
+        /* The New York clock went with the meta row it was written for. It
+           repainted every 30 seconds for the whole time the tab was open to
+           tell a visitor what time it is where Sid lives, which is a fact the
+           intro already implies and nobody was waiting on. */
       })();
     </script>
     <!-- The shared interaction layer. This page was the one route on the site

@@ -1148,7 +1148,11 @@ Holds~strong~opinions~loosely; Open~to~remote,~hybrid,~or~relocating {% endcaptu
          square reads as
        · the coda's opaque background, so the pond shows through it
      ─────────────────────────────────────────────────────────────────────── -->
-<footer class="site-footer" aria-label="Site footer">
+{% comment %} Which biome this page's field runs. Derived from the URL rather than declared in each layout's front matter, because three of the four
+pages that would have to declare it are standalone HTML layouts with no front matter to declare it in. `include.biome` still wins if a caller wants to
+be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains "/contact" %}{% assign _biome = "meadow" %}{% elsif page.url contains
+"/about" %}{% assign _biome = "canopy" %}{% endif %}
+<footer class="site-footer" aria-label="Site footer" data-biome="{{ include.biome | default: _biome }}">
   <div class="plot__bleed" aria-hidden="true">
     <!-- The pin is a separate element from the bleed on purpose. Sticky is
          constrained by its containing block, so the thing that spans the whole
@@ -1421,6 +1425,141 @@ Holds~strong~opinions~loosely; Open~to~remote,~hybrid,~or~relocating {% endcaptu
       }
     }
 
+    /* ══ BIOMES ═══════════════════════════════════════════════════════════
+       Sid: "change the animals or the background like instead of water do some
+       other nature interactive theme even for contact", and then, on the
+       proposal to reuse this simulation rather than build three of them:
+       "yeah fine retheme the water per page."
+
+       So there is one simulation and three skins. Nothing below touches the
+       physics: the wave equation, the fish steering, the pod collisions, the
+       plant growth and the pointer coupling are the same code on every page.
+       What changes is the palette, the glyph sets, and therefore the name of
+       what you are looking at.
+
+       That is the honest version of "a different theme per page". Three
+       separate nature simulations would be three things to maintain and three
+       unrelated toys to meet while moving between pages. One system wearing
+       three coats reads as one place with three rooms in it, which is what a
+       portfolio is.
+
+         pond    the default, everywhere else. Fish, seed pods, reeds.
+         meadow  contact. Warm ground haze instead of water, fireflies instead
+                 of fish, dandelion clocks instead of pods, grasses and
+                 seedheads instead of reeds. The surface the wave equation
+                 solves is now wind crossing a field: same maths, different
+                 noun.
+         canopy  about. Forest floor at dusk — moss and bark values, moths
+                 instead of fish, falling leaves instead of pods, ferns and
+                 fungi instead of reeds.
+
+       The page picks one with data-biome on the footer element; anything
+       unrecognised falls back to pond. */
+    var BIOMES = {
+      pond: {
+        species: [
+          { rows: ["<~>"], w: 13, bloom: 0 },
+          { rows: ["\\|/", "^^"], w: 20, bloom: 0 },
+          { rows: ["(o)", "\\|/", "^^^"], w: 17, bloom: 1 },
+          { rows: ["|", "|", "|", "^^^"], w: 15, bloom: 0 },
+          { rows: ["*", "\\|", " |", "^^^"], w: 9, bloom: 1 },
+        ],
+        swimGlyph: ["><>", "><\u00b0>", "\u2022\u2022\u2022>"],
+        swimBack: ["<><", "<\u00b0><", "<\u2022\u2022\u2022"],
+        podGlyph: ["(o)", "<*>", "{~}", "(\u00b7)"],
+        dark: {},
+        light: {},
+      },
+
+      meadow: {
+        species: [
+          { rows: ["\\|/"], w: 16, bloom: 0 },
+          { rows: ["*", "|", "^"], w: 18, bloom: 1 },
+          { rows: ["///", "|"], w: 20, bloom: 0 },
+          { rows: ["o", "|", "|", "^^"], w: 13, bloom: 1 },
+          { rows: [".:.", "\\|/", " | "], w: 10, bloom: 1 },
+        ],
+        /* Fireflies. A firefly has no front, which is why the forward and
+           backward sets are identical and the direction flip in stepFish
+           quietly becomes a no-op here. */
+        swimGlyph: ["\u00b7", "*", "\u00b0"],
+        swimBack: ["\u00b7", "*", "\u00b0"],
+        podGlyph: ["(\u00b7)", "-*-", "\u00b7\u00b7\u00b7", "\u00b0"],
+        dark: {
+          body: ["rgba(28,20,10,0)", "rgba(38,28,14,0.6)", "rgba(26,19,10,0.9)"],
+          shelf: "rgba(214,178,110,0.14)",
+          caustic: [255, 226, 168],
+          causticAlpha: 0.4,
+          flora: ["#4a4526", "#5d5730", "#736b39", "#8d8246", "#a89a55"],
+          bloom: "#ffd27a",
+          fish: "#ffe9a8",
+          pod: "#d9c48f",
+          glow: 9,
+        },
+        light: {
+          body: ["rgba(232,222,198,0)", "rgba(212,198,160,0.6)", "rgba(176,158,116,0.86)"],
+          shelf: "rgba(120,98,54,0.24)",
+          caustic: [255, 250, 232],
+          causticAlpha: 0.5,
+          flora: ["#a89a6a", "#8b7d4e", "#6d6138", "#514727", "#38301a"],
+          bloom: "#c07a26",
+          fish: "#6b5220",
+          pod: "#7a6534",
+        },
+      },
+
+      canopy: {
+        species: [
+          { rows: ["\\|/", "/|\\"], w: 20, bloom: 0 },
+          { rows: ["(", "|", "^^"], w: 12, bloom: 1 },
+          { rows: ["}{", "||"], w: 16, bloom: 0 },
+          { rows: ["~", "|", "|", "^^^"], w: 15, bloom: 0 },
+          { rows: ["\u00b0", "/\\", "||"], w: 11, bloom: 1 },
+        ],
+        /* Moths, which do have a front. */
+        swimGlyph: ["\u2022<", "\u00d7", ">\u2022<"],
+        swimBack: [">\u2022", "\u00d7", ">\u2022<"],
+        podGlyph: ["\u2740", "\u00ac", "\u2022", "\u00b0"],
+        dark: {
+          body: ["rgba(10,20,14,0)", "rgba(14,30,20,0.7)", "rgba(9,21,14,0.94)"],
+          shelf: "rgba(126,196,150,0.14)",
+          caustic: [186, 240, 200],
+          causticAlpha: 0.5,
+          flora: ["#264a2c", "#2f5c33", "#3d7340", "#4f8c4b", "#66a55c"],
+          bloom: "#e0a463",
+          fish: "#dff0d0",
+          pod: "#c08a5a",
+        },
+        light: {
+          body: ["rgba(214,222,206,0)", "rgba(178,196,168,0.66)", "rgba(126,150,118,0.9)"],
+          shelf: "rgba(58,86,54,0.24)",
+          caustic: [255, 255, 245],
+          causticAlpha: 0.55,
+          flora: ["#8ba07f", "#6c8462", "#4e6746", "#374c30", "#22301d"],
+          bloom: "#a55c2c",
+          fish: "#2c4429",
+          pod: "#6b4a2c",
+        },
+      },
+    };
+
+    var BIOME_KEY = (footerEl.getAttribute("data-biome") || "pond").toLowerCase();
+    if (!BIOMES[BIOME_KEY]) BIOME_KEY = "pond";
+    var BIOME = BIOMES[BIOME_KEY];
+
+    /* Skin the base palettes in place. A biome states only the keys it
+       changes — everything it leaves out keeps the pond's value, which is why
+       `canopy` can say nothing about `cast` and still get a correct daylight
+       shadow, and why `pond` itself is two empty objects. */
+    (function skin() {
+      ["dark", "light"].forEach(function (k) {
+        var over = BIOME[k] || {};
+        for (var prop in over) {
+          if (Object.prototype.hasOwnProperty.call(over, prop)) PAL[k][prop] = over[prop];
+        }
+      });
+    })();
+
     function pal() {
       return isLight() ? PAL.light : PAL.dark;
     }
@@ -1665,13 +1804,8 @@ Holds~strong~opinions~loosely; Open~to~remote,~hybrid,~or~relocating {% endcaptu
        everything — so the bed has a skyline instead of a texture. `bloom: 1`
        means the top row is a flower head and gets the warm accent; everything
        else in the plant is stem. */
-    var SPECIES = [
-      { rows: ["<~>"], w: 13, bloom: 0 },
-      { rows: ["\\|/", "^^"], w: 20, bloom: 0 },
-      { rows: ["(o)", "\\|/", "^^^"], w: 17, bloom: 1 },
-      { rows: ["|", "|", "|", "^^^"], w: 15, bloom: 0 },
-      { rows: ["*", "\\|", " |", "^^^"], w: 9, bloom: 1 },
-    ];
+    /* The planting is the biome's, not this file's. See BIOMES above. */
+    var SPECIES = BIOME.species;
     var TOTAL_W = 0;
     for (var s = 0; s < SPECIES.length; s++) TOTAL_W += SPECIES[s].w;
 
@@ -1844,8 +1978,11 @@ Holds~strong~opinions~loosely; Open~to~remote,~hybrid,~or~relocating {% endcaptu
        banks, and they bolt from the pointer. Every one of them drags a
        continuous negative wake through the height field, so the water is
        never still even when nobody is touching it. */
-    var FISH_GLYPH = ["><>", "><°>", "•••>"];
-    var FISH_BACK = ["<><", "<°><", "<•••"];
+    /* Fish in the pond, fireflies in the meadow, moths under the canopy. The
+       steering, the startle and the wake are identical for all three; only the
+       characters being drawn change. */
+    var FISH_GLYPH = BIOME.swimGlyph;
+    var FISH_BACK = BIOME.swimBack;
     var fish = [];
 
     function seedFish() {
@@ -1934,7 +2071,7 @@ Holds~strong~opinions~loosely; Open~to~remote,~hybrid,~or~relocating {% endcaptu
        your pointer make. When two of them knock together — and they do —
        the collision puts a fresh ripple back into the field. That is the bit
        worth building: the pond starts talking to itself. */
-    var POD_GLYPH = ["(o)", "<*>", "{~}", "(·)"];
+    var POD_GLYPH = BIOME.podGlyph;
     var pods = [];
 
     function seedPods() {
