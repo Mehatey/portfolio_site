@@ -461,8 +461,28 @@
           <li>
             <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}">
               <div class="wk-cover">
+                <!-- ── SIZES ────────────────────────────────────────────────
+                     The covers are 1500 to 1920px wide and this grid draws
+                     them at about 450 device pixels, so the page was shipping
+                     4.7MB to paint sixteen thumbnails. al-folio's imagemagick
+                     plugin does not help here: it only walks assets/img/ and
+                     only takes jpg/png/tiff/gif as input, and most of these
+                     covers are .webp or live outside that tree. So the two
+                     rungs are generated beside each original.
+
+                     `sizes` describes the grid rather than the viewport: three
+                     columns above 1080, two above 640, one below, inside a
+                     container capped at 1560. Getting this wrong is worse than
+                     omitting srcset, because the browser trusts it. -->
+                {%- comment -%} `w.img | split: "." | first` looked right and was wrong: these paths carry dots in their DIRECTORY names —
+                /1.met/0.webp, /6.mindu/cover2.webp, /10.alpha/cover.webp — so splitting on "." returned "/1", "/6", "/10" and the page requested
+                /1-900.webp. Three 404s on the works grid, invisible because the browser fell back to the plain src in the srcset list. Removing the
+                known extensions touches only the end of the string. {%- endcomment -%} {% assign img_base = w.img | remove: ".webp" | remove: ".jpg"
+                | remove: ".jpeg" | remove: ".png" %}
                 <img
-                  src="{{ site.baseurl }}{{ w.img }}"
+                  src="{{ site.baseurl }}{{ img_base }}-900.webp"
+                  srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} 1600w"
+                  sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)"
                   alt="{{ w.title }}"
                   loading="{% if forloop.index <= 6 %}eager{% else %}lazy{% endif %}"
                   decoding="async"
