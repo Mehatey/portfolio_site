@@ -142,7 +142,7 @@
     "precision highp float; varying vec2 v;",
     "uniform sampler2D u_base, u_clear, u_mask;",
     "uniform vec2 u_res;",
-    "uniform float u_time, u_fade, u_fx, u_boot, u_flash;",
+    "uniform float u_time, u_fade, u_fx, u_boot, u_flash, u_light;",
     "uniform vec2 u_cover;",
 
     "float lum(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }",
@@ -173,12 +173,25 @@
        the ramp now runs to near-white so the highlights have somewhere to go.
        The pre-rendered encode this replaces was graded; this one has to grade
        itself. */
-    "  float lift = pow(clamp(l * 1.35, 0.0, 1.0), 0.72);",
+    /* Theme-aware, because the two themes need opposite corrections and the
+       first version only had the dark one. On the near-black page the footage
+       is a dim room and its shadows have to be opened or the veil is a black
+       plate. On cream, that same lift pushed every cell into the top of the
+       range and the mosaic vanished into the paper — a wash of pale grey with
+       a person somewhere in it. Light mode gets a gamma above 1 instead,
+       which deepens the midtones so the cells read as marks ON paper rather
+       than as paper. */
+    "  float lift = mix(pow(clamp(l * 1.35, 0.0, 1.0), 0.72), pow(clamp(l * 1.04, 0.0, 1.0), 1.55), u_light);",
     /* Quantise to seven tones through the dither threshold, then re-tint with
        the cell's own colour so it is not a grey plate. */
     "  float q = floor(lift * 7.0 + bayer4(sc * u_res * 0.25)) / 7.0;",
-    "  vec3 tone = mix(vec3(0.06, 0.08, 0.14), vec3(0.88, 0.93, 1.0), q);",
-    "  return mix(tone, tone * 0.5 + c * 1.15, 0.42);",
+    /* Same direction in both themes — dark cells stay dark, bright cells go
+       to the page — but the light ramp stops well short of the paper colour
+       so the lightest cells still have an edge against it. */
+    "  vec3 dk = mix(vec3(0.06, 0.08, 0.14), vec3(0.88, 0.93, 1.0), q);",
+    "  vec3 lt = mix(vec3(0.09, 0.10, 0.13), vec3(0.80, 0.79, 0.76), q);",
+    "  vec3 tone = mix(dk, lt, u_light);",
+    "  return mix(tone, tone * 0.5 + c * mix(1.15, 0.85, u_light), 0.42);",
     "}",
 
     /* ── the processes ──────────────────────────────────────────────────── */
@@ -562,6 +575,13 @@
     return [0.5 + Math.sin(t * 0.36) * 0.26, 0.52 + Math.sin(t * 0.53) * 0.16];
   }
 
+  /* Which theme the page is wearing, watched rather than read once — the
+     toggle is a button on every page and the film has to answer it. */
+  var light = document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0;
+  new MutationObserver(function () {
+    light = document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0;
+  }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
   var t0 = performance.now(),
     last = t0,
     fade = 0;
@@ -651,6 +671,7 @@
     gl.uniform1f(pComp.u.u_fx, fx);
     gl.uniform1f(pComp.u.u_boot, boot);
     gl.uniform1f(pComp.u.u_flash, flash);
+    gl.uniform1f(pComp.u.u_light, light);
     // cover: shrink uv on whichever axis has slack, so the film fills the
     // stage by cropping. Sampling a narrower slice of the source is what
     // crops it; the axis that already matches is left at 1.
