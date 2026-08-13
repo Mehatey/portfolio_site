@@ -3336,18 +3336,51 @@
      the loudest thing on screen and the line behind it reads as an accessory;
      an empty ring is quiet enough that the line becomes the gesture, which is
      the "physics" Sid keeps asking for. */
+  /* ── THE CORE ────────────────────────────────────────────────────────────
+     A 3px dot under the pointer at all times, unsmoothed and undeformed. It
+     is what you aim with. The ring below is what carries the weight: it eases
+     toward the pointer rather than tracking it, so the gap between the two
+     IS the speed. Nothing has to stretch for movement to read, which is the
+     whole point — the previous cursor expressed speed by deforming into an
+     egg, and a pointer that changes shape as you move is a worse pointer.
+
+     This pairing is the convention on the portfolios that do it well, and it
+     is the convention for a reason: precision and weight are two jobs and one
+     shape cannot do both. */
+  #cur-core {
+    position: fixed;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 100000;
+    background: rgba(236, 245, 255, 0.95);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  html[data-theme="light"] #cur-core {
+    background: rgba(16, 24, 40, 0.9);
+  }
+  /* Over something interactive the ring opens up and the core steps back, so
+     the two never read as a target reticle sitting on a link. */
+  #cur-dot.is-hover ~ #cur-core,
+  html.cur-hover #cur-core {
+    opacity: 0.35;
+  }
+
   #cur-dot {
     position: fixed;
-    width: 7px;
-    height: 7px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 99999;
-    background: rgba(190, 220, 255, 0.1);
+    background: transparent;
     box-shadow:
-      0 0 0 1.1px rgba(214, 234, 255, 0.86),
-      0 0 10px 2px rgba(90, 150, 240, 0.14);
+      0 0 0 1px rgba(214, 234, 255, 0.7),
+      0 0 12px 1px rgba(90, 150, 240, 0.1);
     will-change: left, top, transform;
     opacity: 0;
     /* transform is driven per-frame in JS (velocity stretch + eased hover scale); only fade opacity */
@@ -3357,10 +3390,10 @@
       background 0.24s ease;
   }
   html[data-theme="light"] #cur-dot {
-    background: rgba(20, 40, 80, 0.06);
+    background: transparent;
     box-shadow:
-      0 0 0 1.1px rgba(22, 40, 72, 0.8),
-      0 0 9px 2px rgba(20, 40, 80, 0.12);
+      0 0 0 1px rgba(22, 40, 72, 0.62),
+      0 0 10px 1px rgba(20, 40, 80, 0.08);
   }
   /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons.
      The scale itself is handled in JS; this rule only swaps the look. */
@@ -3368,10 +3401,10 @@
      is sitting on stays visible through the middle. A fill that merely got
      fainter covered small icons; a ring never does. */
   #cur-dot.is-hover {
-    background: rgba(190, 220, 255, 0.16);
+    background: rgba(190, 220, 255, 0.08);
     box-shadow:
-      0 0 0 1.45px rgba(226, 240, 255, 0.95),
-      0 0 18px 4px rgba(110, 170, 245, 0.2);
+      0 0 0 1px rgba(230, 242, 255, 0.95),
+      0 0 20px 3px rgba(110, 170, 245, 0.16);
   }
   html[data-theme="light"] #cur-dot.is-hover {
     background: rgba(20, 40, 80, 0.1);
@@ -7672,7 +7705,7 @@
     // honest lever: the settle time is set by the chase rate below, not by the
     // node count, so a longer chain draws more line at the same speed without
     // taking any longer to come to rest.
-    var N = 34,
+    var N = 14,
       pts = [],
       i;
     for (i = 0; i < N; i++) pts.push({ x: -200, y: -200, vx: 0, vy: 0 });
@@ -7738,7 +7771,7 @@
       // tail keeps moving for a beat after the head has stopped — the part
       // that actually reads as weight.
       for (i = 1; i < N; i++) {
-        var a = 0.62 - (i / N) * 0.2;
+        var a = 0.82 - (i / N) * 0.12;
         pts[i].x += (pts[i - 1].x - pts[i].x) * a;
         pts[i].y += (pts[i - 1].y - pts[i].y) * a;
       }
@@ -7749,12 +7782,12 @@
       // How stretched the chain is overall — the line only earns its ink while
       // the pointer is actually travelling.
       var span = Math.hypot(pts[N - 1].x - pts[0].x, pts[N - 1].y - pts[0].y);
-      var life = Math.min(span / 30, 1);
+      var life = Math.min(span / 46, 1);
       if (life < 0.01) return;
 
       var light = isLight();
       var rgb = light ? "26,44,74" : "158,200,255";
-      var base = (light ? 0.26 : 0.42) * life;
+      var base = (light ? 0.14 : 0.2) * life;
 
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -7767,11 +7800,15 @@
       // invisible, but it stops the head of the trail from meeting the ring
       // as a hard 1px edge, which is what made the old line look drawn on
       // rather than left behind.
+      /* ── LESS ─────────────────────────────────────────────────────────
+         Sid: "the cursor has too much trail". It was 34 nodes on a slack
+         chase through four tapered passes, which at speed drew a ribbon most
+         of a screen long. Now it is 14 nodes chased tightly, two passes, at
+         roughly half the alpha: a short wake behind the ring rather than a
+         streamer, and it disappears almost immediately once you stop. */
       var passes = [
-        [N, 0.4, 1.0],
-        [Math.round(N * 0.66), 0.8, 0.66],
-        [Math.round(N * 0.34), 1.5, 0.42],
-        [Math.round(N * 0.22), 4.5, 0.12],
+        [N, 0.5, 1.0],
+        [Math.round(N * 0.5), 1.1, 0.5],
       ];
       for (var p = 0; p < passes.length; p++) {
         var upto = passes[p][0],
@@ -8122,6 +8159,17 @@
   (function () {
     const dot = document.getElementById("cur-dot");
     if (!dot) return;
+    /* The second half of the cursor. The ring lags and carries the weight;
+       this sits exactly under the pointer and carries the aim. Built here
+       rather than in the markup so every page that already includes the
+       cursor gets it without touching ten layouts. */
+    var core = document.getElementById("cur-core");
+    if (!core) {
+      core = document.createElement("div");
+      core.id = "cur-core";
+      core.setAttribute("aria-hidden", "true");
+      document.body.appendChild(core);
+    }
     const label = document.getElementById("cur-label");
 
     let mx = -100,
@@ -8154,6 +8202,7 @@
           rx = px = mx;
           ry = py = my;
           dot.style.opacity = "1";
+          if (core) core.style.opacity = "1";
         }
       },
       { passive: true }
@@ -8162,6 +8211,7 @@
     document.addEventListener("mouseleave", () => {
       alive = false;
       dot.style.opacity = "0";
+      if (core) core.style.opacity = "0";
     });
     document.addEventListener("mouseenter", () => {
       alive = true;
@@ -8195,15 +8245,27 @@
         }
         ang = Math.atan2(dirY, dirX) * 57.2958;
 
-        // Stretch follows speed: eases in quickly, springs back to a dot slowly
-        // Halved from where it was. The ribbon behind the dot now carries the
-        // sense of speed, so the dot itself no longer has to deform to show it —
-        // and a dot that deforms less stays a dot.
-        const target = Math.min(speed / 26, 1);
-        stretch += (target - stretch) * (target > stretch ? 0.3 : 0.12);
+        /* ── NO STRETCH ────────────────────────────────────────────────────
+           This used to elongate the ring to 1.82x along its direction of
+           travel and pinch it to 0.74 across. Sid: "i dont like the egg like
+           shape."
 
-        sx = 1 + stretch * 0.82; // elongate along the direction of travel
-        sy = 1 - stretch * 0.26; // pinch perpendicular (squash-and-stretch)
+           He is describing exactly what squash-and-stretch does to a circle,
+           and the reason it was here was to express speed. But a ring that
+           deforms stops being a cursor and becomes a comet: the thing you are
+           meant to be aiming with changes shape depending on how fast you
+           moved, which is the opposite of a precision instrument.
+
+           Speed is expressed by the LAG instead, which is what the ring
+           already had and what the core below makes legible: the core sits
+           exactly under the pointer, the ring trails a little behind it, and
+           the distance between them is the velocity. Nothing has to deform
+           for that to read.
+
+           Kept as variables at 1 rather than deleted, because the transform
+           below is shared with the hover scale. */
+        sx = 1;
+        sy = 1;
       }
 
       // Eased hover growth (1.6x over interactive surfaces)
@@ -8212,7 +8274,16 @@
 
       dot.style.left = rx + "px";
       dot.style.top = ry + "px";
-      dot.style.transform = "translate(-50%, -50%) rotate(" + ang + "deg) scale(" + sx * hoverScale + ", " + sy * hoverScale + ")";
+      /* No rotation: a circle has none to show, and rotating one was only
+         ever in service of the elongation that has gone. */
+      dot.style.transform = "translate(-50%, -50%) scale(" + sx * hoverScale + ", " + sy * hoverScale + ")";
+      if (core) {
+        /* The core is the precise one. It takes the raw pointer position, not
+           the eased one, so what you are aiming with is never behind where
+           you actually are. */
+        core.style.left = mx + "px";
+        core.style.top = my + "px";
+      }
 
       if (label) {
         label.style.left = rx + "px";
