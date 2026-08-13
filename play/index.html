@@ -9522,6 +9522,19 @@
     .sid-row.is-dragging {
       cursor: grabbing;
     }
+    /* The row is focusable now (see the rail script). Without a ring, a
+       keyboard visitor would be moving something with no indication of what
+       they had hold of. Inset rather than outset because the row is wider
+       than the viewport by design and an outset ring would be drawn off
+       both edges of the screen. */
+    .sid-row:focus-visible {
+      outline: 2px solid rgba(226, 240, 255, 0.85);
+      outline-offset: -3px;
+      border-radius: 3px;
+    }
+    html[data-theme="light"] .sid-row:focus-visible {
+      outline-color: rgba(20, 34, 60, 0.85);
+    }
     .sid-row.is-dragging .sid-tile {
       /* A drag is a direct manipulation: the tiles must not lag behind the
          finger with a 620ms ease, or the rail feels like it is on elastic. */
@@ -10708,6 +10721,38 @@
         },
         true
       );
+
+      /* ── keys ─────────────────────────────────────────────────────────────
+         The rail had three inputs and all three were pointer inputs: steer,
+         drag and wheel. A keyboard user could reach the tiles' own links by
+         tabbing, but could not move the rail itself, which on a strip that is
+         mostly off-screen at any moment means most of it was unreachable.
+
+         The row takes focus and answers the arrow keys, Home and End. It is
+         given a role and a label so it announces as one thing rather than as
+         a run of loose images, and the delta is a whole tile-ish 180px so a
+         few presses actually get somewhere — matching the wheel, which is the
+         gesture it stands in for. */
+      row.setAttribute("tabindex", "0");
+      row.setAttribute("role", "group");
+      row.setAttribute("aria-label", "Get to know Sid. Use the left and right arrow keys to move through the strip.");
+      row.addEventListener("keydown", function (e) {
+        var step = 180;
+        /* Arrows only. Home and End were here and were removed after testing:
+           the rail is a seamless loop whose position is wrapped into
+           [-half, 0), so "go to the start" resolves to the wrap boundary,
+           which renders identically to every other point on the loop. Two
+           keys that look like they do nothing are worse than two keys that
+           are not bound. */
+        if (e.key === "ArrowLeft") vel += step * 0.35;
+        else if (e.key === "ArrowRight") vel -= step * 0.35;
+        else return;
+        e.preventDefault();
+        /* Steering would fight the keys the moment the pointer happened to be
+           resting over the strip. */
+        steer = 0;
+        if (!raf) raf = requestAnimationFrame(frame);
+      });
 
       /* ── wheel ────────────────────────────────────────────────────────── */
       rows.addEventListener(
