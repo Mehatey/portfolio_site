@@ -289,6 +289,39 @@
     }
   }
 
+  /* ── THE THEME WIPE ──────────────────────────────────────────────────────
+     The page-scene keyframes above are for NAVIGATION. A theme change is a
+     same-document transition and wants the opposite treatment: the two
+     snapshots are the identical layout in two palettes, so fading or blurring
+     them against each other just produces mud in the middle of the sweep.
+
+     So during a theme change both roots hold still at full opacity and the
+     only thing that moves is the circular clip on the incoming one, animated
+     from the toggle's position by the script in cursor_fluid.html. The old
+     snapshot stays put underneath and is revealed away.
+
+     Scoped behind .is-theme-wipe so navigation keeps its own animation. */
+  html.is-theme-wipe::view-transition-old(root),
+  html.is-theme-wipe::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  html.is-theme-wipe::view-transition-old(root) {
+    z-index: 0;
+  }
+  html.is-theme-wipe::view-transition-new(root) {
+    z-index: 1;
+  }
+  /* The nav and the cube carry their own transition names, which would make
+     them separate groups floating above the wipe and travelling on their own
+     while the palette changes underneath. For this one transition they belong
+     to the page. */
+  html.is-theme-wipe .nav,
+  html.is-theme-wipe .sid-cube,
+  html.is-theme-wipe [style*="view-transition-name"] {
+    view-transition-name: none !important;
+  }
+
   /* ── VIDEO CHROME ──────────────────────────────────────────────────────
      Every frame on this site is composed. The covers are cropped, the media
      blocks have a curved leading edge, the reels have their own counters and
@@ -751,10 +784,62 @@
       .wk-cover img.is-in {
         opacity: 1;
       }
+      /* ── THE COVER ANSWERS THE POINTER ─────────────────────────────────
+         Hover used to be a single state change: the picture scaled to 1.045
+         and stopped. Sixteen covers doing the identical thing meant the grid
+         responded to WHETHER you were on a card but never to WHERE, so
+         crossing a cover slowly and crossing it at the corner produced the
+         same frame.
+
+         Now the scale carries a translation taken from the pointer's position
+         inside the card, so the image leans toward the cursor by a few pixels
+         and the crop shifts as you move — parallax at a scale you feel rather
+         than notice. The numbers are deliberately small: 1.055 of scale
+         against a maximum 10px of travel, which is inside the overscan the
+         scale already bought, so the picture can never expose an edge of its
+         own frame no matter where the pointer sits.
+
+         --mx and --my come from the script at the foot of this file and are
+         -1..1 from the centre of each card. */
       .wk-card:hover .wk-cover img,
       .wk-card:focus-visible .wk-cover img {
-        transform: scale(1.045);
+        transform: scale(1.055) translate3d(calc(var(--mx, 0) * 10px), calc(var(--my, 0) * 10px), 0);
         filter: saturate(1) brightness(1);
+      }
+
+      /* ── THE LIGHT ─────────────────────────────────────────────────────
+         A soft highlight that rides the cursor across the cover, in screen
+         blend so it lifts what it passes over instead of laying a grey disc
+         on top of it. Same device as the contact desk's lens, which is the
+         point: the two pages should feel like they were made by the same
+         hand. It sits under the sweep rule and the corner marks (z-index 1
+         against their 2) so it can never wash out type. */
+      .wk-cover::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: radial-gradient(circle 38% at var(--px, 50%) var(--py, 50%), rgba(190, 220, 255, 0.22), transparent 70%);
+        mix-blend-mode: screen;
+        opacity: 0;
+        transition: opacity 420ms ease;
+      }
+      .wk-card:hover .wk-cover::before,
+      .wk-card:focus-visible .wk-cover::before {
+        opacity: 1;
+      }
+      html[data-theme="light"] .wk-cover::before {
+        background: radial-gradient(circle 38% at var(--px, 50%) var(--py, 50%), rgba(255, 255, 255, 0.5), transparent 70%);
+      }
+      @media (hover: none), (prefers-reduced-motion: reduce) {
+        .wk-cover::before {
+          display: none;
+        }
+        .wk-card:hover .wk-cover img,
+        .wk-card:focus-visible .wk-cover img {
+          transform: scale(1.03);
+        }
       }
 
       /* The sweep. A 1px rule that draws from the left edge on hover and
@@ -2537,6 +2622,54 @@
            The catch matters. decode() rejects on a broken or cross-origin image
            and an unhandled rejection would leave that cover invisible forever,
            so failure falls through to showing it. */
+        /* ── POINTER TRACKING ─────────────────────────────────────────────
+           One listener on the grid rather than sixteen on the cards, and the
+           work per event is a single getBoundingClientRect on the card under
+           the pointer plus two custom properties. Everything else — the
+           parallax, the light, the easing — is CSS, so this never touches
+           layout or paint itself.
+
+           Rects are read live rather than cached: this grid is three columns
+           of lazily-decoded images, so a cached rect would be wrong for any
+           card below one that had just finished loading. One rect per
+           pointermove on one element is cheap; sixteen cached ones that go
+           stale are a bug. */
+        (function () {
+          var grid = document.querySelector(".wk-grid");
+          if (!grid) return;
+          if (window.matchMedia && window.matchMedia("(hover: none), (prefers-reduced-motion: reduce)").matches) return;
+          grid.addEventListener(
+            "pointermove",
+            function (e) {
+              var card = e.target.closest && e.target.closest(".wk-card");
+              if (!card) return;
+              var r = card.getBoundingClientRect();
+              if (!r.width || !r.height) return;
+              var fx = (e.clientX - r.left) / r.width;
+              var fy = (e.clientY - r.top) / r.height;
+              card.style.setProperty("--px", (fx * 100).toFixed(1) + "%");
+              card.style.setProperty("--py", (fy * 100).toFixed(1) + "%");
+              /* Inverted, so the picture leans INTO the cursor rather than
+                 fleeing it — the same instinct as a spotlight rather than a
+                 repulsion field. */
+              card.style.setProperty("--mx", (0.5 - fx).toFixed(3));
+              card.style.setProperty("--my", (0.5 - fy).toFixed(3));
+            },
+            { passive: true }
+          );
+          grid.addEventListener(
+            "pointerleave",
+            function () {
+              var cards = grid.querySelectorAll(".wk-card");
+              for (var i = 0; i < cards.length; i++) {
+                cards[i].style.removeProperty("--mx");
+                cards[i].style.removeProperty("--my");
+              }
+            },
+            { passive: true }
+          );
+        })();
+
         (function () {
           var imgs = document.querySelectorAll(".wk-cover img");
           for (var i = 0; i < imgs.length; i++) {
@@ -2555,7 +2688,56 @@
             })(imgs[i]);
           }
         })();
-      </script> </main> <style>
+      </script> </main> <script>
+  (function () {
+    "use strict";
+    if (!document.startViewTransition) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var NAME = "project-hero";
+
+    /* Every element that could be the thing you leave through. The selector
+       list is deliberately explicit rather than "any link with an image in
+       it" — the footer strip, the nav and the chapter map all contain images
+       inside links and none of them leads to a case-study hero. */
+    var SOURCES = ".wk-card, .gal-link, .proj-next";
+
+    function clearAll() {
+      var marked = document.querySelectorAll("[data-vt-marked]");
+      for (var i = 0; i < marked.length; i++) {
+        marked[i].style.viewTransitionName = "";
+        marked[i].removeAttribute("data-vt-marked");
+      }
+    }
+
+    document.addEventListener(
+      "click",
+      function (e) {
+        var link = e.target.closest && e.target.closest(SOURCES);
+        if (!link) return;
+        /* A modified click opens a new tab; the current document is not going
+           anywhere and marking it would leave a stray name behind. */
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+        var media = link.querySelector("img, video");
+        if (!media) return;
+
+        clearAll();
+        media.style.viewTransitionName = NAME;
+        media.setAttribute("data-vt-marked", "");
+      },
+      true
+    );
+
+    /* Coming back through the bfcache restores the document exactly as it was
+       left — including the inline name on whichever cover was clicked. The
+       next click would then be the second element asking for it, which
+       invalidates both. Clearing on restore is what makes the effect survive
+       a Back button. */
+    window.addEventListener("pageshow", clearAll);
+    window.addEventListener("pagehide", clearAll);
+  })();
+</script> <style>
     /* ── GET TO KNOW SID ────────────────────────────────────────────────
        Restored. This strip was removed wholesale by ba26a361, the commit that
        put The Plot in the footer's place -- so the song screenshot, the cats,
@@ -10143,14 +10325,67 @@
     document.body.appendChild(live);
     var btn = document.getElementById("theme-toggle");
     if (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
         var cur = html.getAttribute("data-theme") || "dark";
         var next = cur === "light" ? "dark" : "light";
-        apply(next);
-        try {
-          localStorage.setItem(KEY, next);
-        } catch (_) {}
-        live.textContent = "Theme switched to " + next;
+
+        var commit = function () {
+          apply(next);
+          try {
+            localStorage.setItem(KEY, next);
+          } catch (_) {}
+          live.textContent = "Theme switched to " + next;
+        };
+
+        /* ── THE NEW THEME ARRIVES FROM THE BUTTON ────────────────────────
+           Switching used to be instantaneous: every colour on the page swapped
+           between two frames. On a site this dark that is a flash, and it
+           gives no sense that the control you pressed caused it.
+
+           A same-document View Transition turns it into a circle opening from
+           the toggle. The incoming snapshot is clipped to a growing circle
+           centred on the button and rising to a radius that reaches the
+           furthest corner of the viewport, so the new theme sweeps across the
+           page from the thing you clicked.
+
+           The geometry is computed here rather than in CSS because it depends
+           on where the button is, which moves with the viewport. `clip-path`
+           on ::view-transition-new(root) is the whole effect; everything else
+           is the platform.
+
+           Falls back to the plain swap wherever startViewTransition is absent
+           or motion is unwelcome — `commit` is the same function either way,
+           so the theme itself can never fail to change. */
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!document.startViewTransition || reduce) {
+          commit();
+          return;
+        }
+
+        var r = btn.getBoundingClientRect();
+        var cx = r.left + r.width / 2;
+        var cy = r.top + r.height / 2;
+        /* The far corner from the button, so the circle always finishes by
+           covering the screen rather than stopping short of a corner. */
+        var far = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy));
+
+        html.classList.add("is-theme-wipe");
+        var vt = document.startViewTransition(commit);
+        vt.ready
+          .then(function () {
+            document.documentElement.animate(
+              { clipPath: ["circle(0px at " + cx + "px " + cy + "px)", "circle(" + far + "px at " + cx + "px " + cy + "px)"] },
+              { duration: 620, easing: "cubic-bezier(0.16, 1, 0.3, 1)", pseudoElement: "::view-transition-new(root)" }
+            );
+          })
+          .catch(function () {});
+        vt.finished
+          .then(function () {
+            html.classList.remove("is-theme-wipe");
+          })
+          .catch(function () {
+            html.classList.remove("is-theme-wipe");
+          });
       });
     }
     // Also expose a global so Cmd+K can call it

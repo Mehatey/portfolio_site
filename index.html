@@ -323,6 +323,39 @@
     }
   }
 
+  /* ── THE THEME WIPE ──────────────────────────────────────────────────────
+     The page-scene keyframes above are for NAVIGATION. A theme change is a
+     same-document transition and wants the opposite treatment: the two
+     snapshots are the identical layout in two palettes, so fading or blurring
+     them against each other just produces mud in the middle of the sweep.
+
+     So during a theme change both roots hold still at full opacity and the
+     only thing that moves is the circular clip on the incoming one, animated
+     from the toggle's position by the script in cursor_fluid.html. The old
+     snapshot stays put underneath and is revealed away.
+
+     Scoped behind .is-theme-wipe so navigation keeps its own animation. */
+  html.is-theme-wipe::view-transition-old(root),
+  html.is-theme-wipe::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  html.is-theme-wipe::view-transition-old(root) {
+    z-index: 0;
+  }
+  html.is-theme-wipe::view-transition-new(root) {
+    z-index: 1;
+  }
+  /* The nav and the cube carry their own transition names, which would make
+     them separate groups floating above the wipe and travelling on their own
+     while the palette changes underneath. For this one transition they belong
+     to the page. */
+  html.is-theme-wipe .nav,
+  html.is-theme-wipe .sid-cube,
+  html.is-theme-wipe [style*="view-transition-name"] {
+    view-transition-name: none !important;
+  }
+
   /* ── VIDEO CHROME ──────────────────────────────────────────────────────
      Every frame on this site is composed. The covers are cropped, the media
      blocks have a curved leading edge, the reels have their own counters and
@@ -6845,7 +6878,92 @@
          always appeared here -- the footer is the last thing the site asks of
          you, the coda is the last thing it tells you. Removing the second
          include is what stops the homepage rendering it twice. -->
-    <!-- ══ CONVERTED ONTO THE TOKEN SYSTEM ═══════════════════════════════════
+    <!-- ══════════════════════════════════════════════════════════════════════════
+     THE COVER TRAVELS
+
+     The site already runs cross-document View Transitions: design_tokens.html
+     declares `@view-transition { navigation: auto }` and every page fades and
+     unblurs into the next. And project.html already puts
+     `view-transition-name: project-hero` on its hero plate.
+
+     But nothing on the pages you arrive FROM carried that name, so the hero
+     had no counterpart to travel from and every navigation resolved to the
+     same generic crossfade. The most cinematic move the platform gives you
+     for free — the picture you clicked growing into the picture you landed on
+     — was one attribute away and never wired up.
+
+     This is that wire. A cover is given the name at the moment it is clicked,
+     which is early enough: the outgoing snapshot is taken when navigation
+     starts, after the click handler has run.
+
+     WHY IT IS ASSIGNED ON CLICK RATHER THAN IN CSS
+
+     A view-transition-name must be unique in the document. There are sixteen
+     covers on /works/ and six on the homepage; naming them all `project-hero`
+     in a stylesheet would make every one of them invalid and the transition
+     would silently degrade to the plain crossfade. Exactly one element can
+     hold the name, and the only one that should is the one you are leaving
+     through.
+
+     THE TWO PICTURES ARE OFTEN DIFFERENT
+
+     A grid cover and a case-study hero are not always the same file. That is
+     fine and is what the transition is for: the old snapshot morphs its
+     geometry to the new element's box while cross-fading its pixels, so a
+     different crop of the same project reads as the camera moving rather than
+     as a cut. Where they ARE the same file it is seamless.
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+  (function () {
+    "use strict";
+    if (!document.startViewTransition) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var NAME = "project-hero";
+
+    /* Every element that could be the thing you leave through. The selector
+       list is deliberately explicit rather than "any link with an image in
+       it" — the footer strip, the nav and the chapter map all contain images
+       inside links and none of them leads to a case-study hero. */
+    var SOURCES = ".wk-card, .gal-link, .proj-next";
+
+    function clearAll() {
+      var marked = document.querySelectorAll("[data-vt-marked]");
+      for (var i = 0; i < marked.length; i++) {
+        marked[i].style.viewTransitionName = "";
+        marked[i].removeAttribute("data-vt-marked");
+      }
+    }
+
+    document.addEventListener(
+      "click",
+      function (e) {
+        var link = e.target.closest && e.target.closest(SOURCES);
+        if (!link) return;
+        /* A modified click opens a new tab; the current document is not going
+           anywhere and marking it would leave a stray name behind. */
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+        var media = link.querySelector("img, video");
+        if (!media) return;
+
+        clearAll();
+        media.style.viewTransitionName = NAME;
+        media.setAttribute("data-vt-marked", "");
+      },
+      true
+    );
+
+    /* Coming back through the bfcache restores the document exactly as it was
+       left — including the inline name on whichever cover was clicked. The
+       next click would then be the second element asking for it, which
+       invalidates both. Clearing on restore is what makes the effect survive
+       a Back button. */
+    window.addEventListener("pageshow", clearAll);
+    window.addEventListener("pagehide", clearAll);
+  })();
+</script>
+ <!-- ══ CONVERTED ONTO THE TOKEN SYSTEM ═══════════════════════════════════
      This file was the single biggest contributor to the problem Sid named:
      measured on /works/, sixteen of the page's thirty-six distinct type
      styles came from this one include -- and because the footer ships on
@@ -15493,14 +15611,67 @@
     document.body.appendChild(live);
     var btn = document.getElementById("theme-toggle");
     if (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
         var cur = html.getAttribute("data-theme") || "dark";
         var next = cur === "light" ? "dark" : "light";
-        apply(next);
-        try {
-          localStorage.setItem(KEY, next);
-        } catch (_) {}
-        live.textContent = "Theme switched to " + next;
+
+        var commit = function () {
+          apply(next);
+          try {
+            localStorage.setItem(KEY, next);
+          } catch (_) {}
+          live.textContent = "Theme switched to " + next;
+        };
+
+        /* ── THE NEW THEME ARRIVES FROM THE BUTTON ────────────────────────
+           Switching used to be instantaneous: every colour on the page swapped
+           between two frames. On a site this dark that is a flash, and it
+           gives no sense that the control you pressed caused it.
+
+           A same-document View Transition turns it into a circle opening from
+           the toggle. The incoming snapshot is clipped to a growing circle
+           centred on the button and rising to a radius that reaches the
+           furthest corner of the viewport, so the new theme sweeps across the
+           page from the thing you clicked.
+
+           The geometry is computed here rather than in CSS because it depends
+           on where the button is, which moves with the viewport. `clip-path`
+           on ::view-transition-new(root) is the whole effect; everything else
+           is the platform.
+
+           Falls back to the plain swap wherever startViewTransition is absent
+           or motion is unwelcome — `commit` is the same function either way,
+           so the theme itself can never fail to change. */
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!document.startViewTransition || reduce) {
+          commit();
+          return;
+        }
+
+        var r = btn.getBoundingClientRect();
+        var cx = r.left + r.width / 2;
+        var cy = r.top + r.height / 2;
+        /* The far corner from the button, so the circle always finishes by
+           covering the screen rather than stopping short of a corner. */
+        var far = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy));
+
+        html.classList.add("is-theme-wipe");
+        var vt = document.startViewTransition(commit);
+        vt.ready
+          .then(function () {
+            document.documentElement.animate(
+              { clipPath: ["circle(0px at " + cx + "px " + cy + "px)", "circle(" + far + "px at " + cx + "px " + cy + "px)"] },
+              { duration: 620, easing: "cubic-bezier(0.16, 1, 0.3, 1)", pseudoElement: "::view-transition-new(root)" }
+            );
+          })
+          .catch(function () {});
+        vt.finished
+          .then(function () {
+            html.classList.remove("is-theme-wipe");
+          })
+          .catch(function () {
+            html.classList.remove("is-theme-wipe");
+          });
       });
     }
     // Also expose a global so Cmd+K can call it

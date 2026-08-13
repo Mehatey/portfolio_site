@@ -320,6 +320,39 @@
     }
   }
 
+  /* ── THE THEME WIPE ──────────────────────────────────────────────────────
+     The page-scene keyframes above are for NAVIGATION. A theme change is a
+     same-document transition and wants the opposite treatment: the two
+     snapshots are the identical layout in two palettes, so fading or blurring
+     them against each other just produces mud in the middle of the sweep.
+
+     So during a theme change both roots hold still at full opacity and the
+     only thing that moves is the circular clip on the incoming one, animated
+     from the toggle's position by the script in cursor_fluid.html. The old
+     snapshot stays put underneath and is revealed away.
+
+     Scoped behind .is-theme-wipe so navigation keeps its own animation. */
+  html.is-theme-wipe::view-transition-old(root),
+  html.is-theme-wipe::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  html.is-theme-wipe::view-transition-old(root) {
+    z-index: 0;
+  }
+  html.is-theme-wipe::view-transition-new(root) {
+    z-index: 1;
+  }
+  /* The nav and the cube carry their own transition names, which would make
+     them separate groups floating above the wipe and travelling on their own
+     while the palette changes underneath. For this one transition they belong
+     to the page. */
+  html.is-theme-wipe .nav,
+  html.is-theme-wipe .sid-cube,
+  html.is-theme-wipe [style*="view-transition-name"] {
+    view-transition-name: none !important;
+  }
+
   /* ── VIDEO CHROME ──────────────────────────────────────────────────────
      Every frame on this site is composed. The covers are cropped, the media
      blocks have a curved leading edge, the reels have their own counters and
@@ -4029,7 +4062,13 @@
   .proj-body p > a,
   .cs-intro a,
   .about-proof a,
-  .about-bio a {
+  .about-bio a,
+  /* The metadata panel's links were the one place on a case study where a
+     link neither looked like one nor answered the pointer: no underline, no
+     colour separation from the label beside it, no hover rule anywhere. Found
+     by auditing every interactive element on six pages for a :hover or
+     :focus rule and listing the ones with none. */
+  .project-details .meta-v a {
     position: relative;
     text-decoration: none;
     background-image: linear-gradient(currentColor, currentColor);
@@ -4046,7 +4085,9 @@
   .about-proof a:hover,
   .about-proof a:focus-visible,
   .about-bio a:hover,
-  .about-bio a:focus-visible {
+  .about-bio a:focus-visible,
+  .project-details .meta-v a:hover,
+  .project-details .meta-v a:focus-visible {
     background-size: 100% 1px;
   }
 
@@ -11919,14 +11960,67 @@
     document.body.appendChild(live);
     var btn = document.getElementById("theme-toggle");
     if (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
         var cur = html.getAttribute("data-theme") || "dark";
         var next = cur === "light" ? "dark" : "light";
-        apply(next);
-        try {
-          localStorage.setItem(KEY, next);
-        } catch (_) {}
-        live.textContent = "Theme switched to " + next;
+
+        var commit = function () {
+          apply(next);
+          try {
+            localStorage.setItem(KEY, next);
+          } catch (_) {}
+          live.textContent = "Theme switched to " + next;
+        };
+
+        /* ── THE NEW THEME ARRIVES FROM THE BUTTON ────────────────────────
+           Switching used to be instantaneous: every colour on the page swapped
+           between two frames. On a site this dark that is a flash, and it
+           gives no sense that the control you pressed caused it.
+
+           A same-document View Transition turns it into a circle opening from
+           the toggle. The incoming snapshot is clipped to a growing circle
+           centred on the button and rising to a radius that reaches the
+           furthest corner of the viewport, so the new theme sweeps across the
+           page from the thing you clicked.
+
+           The geometry is computed here rather than in CSS because it depends
+           on where the button is, which moves with the viewport. `clip-path`
+           on ::view-transition-new(root) is the whole effect; everything else
+           is the platform.
+
+           Falls back to the plain swap wherever startViewTransition is absent
+           or motion is unwelcome — `commit` is the same function either way,
+           so the theme itself can never fail to change. */
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!document.startViewTransition || reduce) {
+          commit();
+          return;
+        }
+
+        var r = btn.getBoundingClientRect();
+        var cx = r.left + r.width / 2;
+        var cy = r.top + r.height / 2;
+        /* The far corner from the button, so the circle always finishes by
+           covering the screen rather than stopping short of a corner. */
+        var far = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy));
+
+        html.classList.add("is-theme-wipe");
+        var vt = document.startViewTransition(commit);
+        vt.ready
+          .then(function () {
+            document.documentElement.animate(
+              { clipPath: ["circle(0px at " + cx + "px " + cy + "px)", "circle(" + far + "px at " + cx + "px " + cy + "px)"] },
+              { duration: 620, easing: "cubic-bezier(0.16, 1, 0.3, 1)", pseudoElement: "::view-transition-new(root)" }
+            );
+          })
+          .catch(function () {});
+        vt.finished
+          .then(function () {
+            html.classList.remove("is-theme-wipe");
+          })
+          .catch(function () {
+            html.classList.remove("is-theme-wipe");
+          });
       });
     }
     // Also expose a global so Cmd+K can call it
