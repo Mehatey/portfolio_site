@@ -1749,14 +1749,28 @@
 
          All spacing on the 4pt scale. */
       @media (min-width: 901px) {
+        /* Tightened on Sid's note: "you can make this more compact ... desk can
+           be bigger."
+
+           Three numbers do that work and they are the same move seen three
+           ways. The side columns drop from 1fr to 0.82fr and their floor from
+           268px to 244px, which is still wider than the longest string that has
+           to sit in one ("sidmehtadesign@gmail.com" at --type-body-lg). The
+           middle column goes from 2.8fr to 4.4fr. And the frame loses a step of
+           padding on every side. Net: the desk gains roughly a fifth of its
+           width and the copy loses none of its measure — the air between them
+           is what got spent.
+
+           The row template lost its fourth track along with the meta row it
+           was holding. */
         .contact-shell {
           display: grid;
-          grid-template-columns: minmax(268px, 1fr) minmax(0, 2.8fr) minmax(268px, 1fr);
+          grid-template-columns: minmax(244px, 0.82fr) minmax(0, 4.4fr) minmax(244px, 0.82fr);
           grid-template-rows: auto minmax(0, 1fr) auto;
           align-content: stretch;
-          column-gap: var(--sp-7);
-          row-gap: var(--sp-5);
-          padding: calc(var(--nav-h, 64px) + var(--sp-7)) var(--sp-7) var(--sp-8);
+          column-gap: var(--sp-6);
+          row-gap: var(--sp-4);
+          padding: calc(var(--nav-h, 64px) + var(--sp-5)) var(--sp-6) var(--sp-6);
           overflow: hidden;
         }
 
@@ -1784,6 +1798,17 @@
           align-items: flex-end;
           text-align: right;
           justify-content: flex-end;
+          /* The theme toggle and the cube chat are fixed to the bottom-right of
+             every page, and this corner is the only block on the site that
+             tries to occupy the same rectangle. Ragged right-aligned text got
+             away with it because its ink stopped short of the controls; a ruled
+             block runs the full column width and ran straight underneath them,
+             so the last two rules came out from behind a floating button.
+
+             The lift is the height of that control stack plus a gap. It is
+             stated here rather than as a global inset because this is the only
+             layout with anything in that corner. */
+          padding-bottom: 104px;
         }
 
         /* The desk stops bleeding. It was width: min(104vw, 1720px) at
@@ -1850,24 +1875,73 @@
           letter-spacing: var(--track-tight);
           white-space: nowrap;
         }
+        /* ── THE LINK COLUMN ────────────────────────────────────────────────
+           Sid: "align the links on right properly with elements."
+
+           They were right-aligned text in a column, each link only as wide as
+           its own word, and each carrying a bottom rule the width of that word.
+           So four links produced four rules of four different lengths — 46px
+           under "Resume", 74px under "Instagram" — stacked in a ragged left
+           edge that read as a mistake rather than as a rag. Nothing lined up
+           with anything, including the email and phone block directly opposite
+           it on the same floor.
+
+           Now each link is a full-width row inside the corner: the word sits
+           on the right edge, the rule runs the entire column width, and the
+           four rules stack into a single ruled block whose left edge is
+           straight and whose right edge shares the page margin with the intro
+           above it and the nav above that. The arrow gets the far right and the
+           word is pushed off it on hover, which is only possible now that the
+           row is wider than its text.
+
+           `justify-content: flex-end` rather than `text-align: right` because
+           the row is a flex container holding the label and the arrow, and the
+           two need to stay a pair when the label moves. */
         .c-corner .contact-links {
           display: flex;
           flex-direction: column;
-          align-items: flex-end;
+          align-items: stretch;
+          gap: 0;
+          width: 100%;
+          margin-top: 0;
+        }
+        .c-corner .contact-links a {
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
           gap: var(--sp-2);
+          width: 100%;
+          min-height: 34px;
+          padding: 0 0 2px;
+          border-bottom: 1px solid rgba(226, 236, 246, 0.14);
+        }
+        .c-corner .contact-links a:first-child {
+          border-top: 1px solid rgba(226, 236, 246, 0.14);
+        }
+        /* The lift is gone with the ragged edge that made it legible. A row in
+           a ruled block that jumps 2px on hover drags its own rule away from
+           the rules above and below it, which is the one thing this block is
+           now built not to do. The label slides instead. */
+        .c-corner .contact-links a:hover,
+        .c-corner .contact-links a:focus-visible {
+          transform: none;
+        }
+        .c-corner .contact-links a > span.xarrow {
+          transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .c-corner .contact-links a:hover > span.xarrow,
+        .c-corner .contact-links a:focus-visible > span.xarrow {
+          transform: translate(3px, -3px);
+        }
+        html[data-theme="light"] .c-corner .contact-links a,
+        html[data-theme="light"] .c-corner .contact-links a:first-child {
+          border-color: rgba(20, 30, 44, 0.16);
         }
         .c-corner .contact-hint {
           margin: var(--sp-3) 0 0;
         }
 
-        .contact-meta {
-          position: static;
-          grid-area: 4 / 1 / 5 / 4;
-          display: flex;
-          justify-content: center;
-          gap: var(--sp-5);
-          margin-top: var(--sp-5);
-        }
+        /* (The .contact-meta rule that sat here went with the element.) */
         .contact-shell {
           grid-template-rows: auto minmax(0, 1fr) auto auto;
         }
@@ -1892,12 +1966,72 @@
           overflow: visible;
           padding: calc(var(--nav-h, 56px) + var(--sp-6)) var(--sp-5) var(--sp-8) !important;
         }
+        /* ── THE DESK ON A PHONE ────────────────────────────────────────
+           It was a 390x217 box holding a `contain`-fitted 1200x669 plate,
+           with the floor gradient fading roughly 30px off the top and bottom
+           of that — so the artwork ended up a ~110px strip of letterboxed
+           picture floating in the middle of the column, with the page's
+           largest block of empty space above it. On the one page whose whole
+           subject is a photograph of where he works, the photograph was the
+           smallest thing on screen.
+
+           Taller box, and `cover` instead of `contain`: at 4:3 the plate is
+           292px on a 390 phone and fills its frame edge to edge. Anchored to
+           the bottom right because that is where the desk, the lamp and the
+           headset are; cropping off the top left loses empty wall. */
         .contact-shell > .contact-desk {
           position: relative;
           right: auto;
           bottom: auto;
           width: 100%;
           order: 2;
+          /* ── WHY THIS IS A HEIGHT AND NOT AN ASPECT-RATIO ──────────────
+             `aspect-ratio: 4/3` was the obvious way to write this and it
+             laid out wrong: the intro paragraph underneath climbed 40px
+             INTO the picture.
+
+             In a column flex container the main size is the height, and the
+             browser resolves it before `align-items: stretch` has given the
+             item a definite width. The desk's children are all absolutely
+             positioned, so its content height is zero and the ratio has no
+             width to work from — the flex line was computed as if the plate
+             were 0px tall, and then it painted at 257px over whatever had
+             been placed under it.
+
+             A definite height sidesteps the ordering entirely. 75vw is the
+             same 4:3 at any phone width, and the cap stops it eating a
+             tablet's screen. */
+          height: 75vw;
+          max-height: 340px;
+          /* A rule from the previous mobile composition is still live further
+             up this file: it made the desk `position: absolute` at
+             `right: -22vw; top: 64px; width: 122vw; opacity: 0.85` — a
+             122vw crop bleeding off the right edge. The block below overrides
+             position, right, width and height, and for a while missed `top`
+             and `opacity`, which is the actual reason the plate sat 64 pixels
+             lower than the space reserved for it and the paragraph underneath
+             appeared to climb into the picture. A relative element still
+             answers to `top`. */
+          top: auto;
+          opacity: 1;
+        }
+        .contact-shell > .contact-desk img {
+          object-fit: cover;
+          object-position: right bottom;
+        }
+        /* The floor gradient is tuned for a wide plate with room to sink into.
+           On a tall crop it was eating a fifth of the picture, so it is pulled
+           back to a hint at each edge. */
+        .contact-shell > .contact-desk {
+          --desk-floor: linear-gradient(
+            to top,
+            transparent 0%,
+            rgba(0, 0, 0, 0.55) 4%,
+            #000 10%,
+            #000 88%,
+            rgba(0, 0, 0, 0.72) 95%,
+            transparent 100%
+          );
         }
         .c-corner--tl {
           order: 1;
@@ -3331,10 +3465,9 @@
       })(labels[i]);
     }
   })();
-</script> <main class="contact-shell" id="main"> <div class="c-corner c-corner--tl"> <p class="contact-status">Open to product design roles</p> <h1 id="contact-title">Start a conversation.</h1> </div> <div class="c-corner c-corner--tr"> <p class="contact-intro"> Based in New York. Best reached by email for product design roles, creative technology teams, and thoughtful collaborations. </p> </div> <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk"> <img class="contact-desk__pixel" src="/assets/img/tnew2.png" alt="Sid’s pixelated desk filled with sketches, devices, and experiments"> <img class="contact-desk__real" src="/assets/img/table_new.png" alt="" aria-hidden="true"> <span class="contact-desk__fade" aria-hidden="true"></span> </div> <div class="c-corner c-corner--bl"> <div class="contact-primary"> <div class="contact-row"> <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a> <button class="contact-copybtn" type="button" data-copy="sidmehtadesign@gmail.com" aria-label="Copy email address">Copy</button> </div> <div class="contact-row"> <a href="tel:+16462877550">+1 646 287 7550</a> <button class="contact-copybtn" type="button" data-copy="+16462877550" aria-label="Copy phone number">Copy</button> </div> </div> <p class="contact-hint" id="contact-hint" aria-hidden="true"> <span class="chint-lens"></span> <span class="chint-text">Move across the plate to bring the desk into focus <span class="chint-sep">·</span> click to hold it</span> </p> </div> <div class="c-corner c-corner--br"> <nav class="contact-links" aria-label="Contact links"> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.behance.net/mehatey" target="_blank" rel="noopener noreferrer">Behance<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> <footer class="contact-meta" aria-label="Contact footer"> <span>New York, NY</span><span>Updated Aug 2026</span><span id="contact-time">--:-- NYC</span> </footer> </main> <script>
+</script> <main class="contact-shell" id="main"> <div class="c-corner c-corner--tl"> <p class="contact-status">Open to product design roles</p> <h1 id="contact-title">Start a conversation.</h1> </div> <div class="c-corner c-corner--tr"> <p class="contact-intro"> Based in New York. Best reached by email for product design roles, creative technology teams, and thoughtful collaborations. </p> </div> <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk"> <img class="contact-desk__pixel" src="/assets/img/tnew2.png" alt="Sid’s pixelated desk filled with sketches, devices, and experiments"> <img class="contact-desk__real" src="/assets/img/table_new.png" alt="" aria-hidden="true"> <span class="contact-desk__fade" aria-hidden="true"></span> </div> <div class="c-corner c-corner--bl"> <div class="contact-primary"> <div class="contact-row"> <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a> <button class="contact-copybtn" type="button" data-copy="sidmehtadesign@gmail.com" aria-label="Copy email address">Copy</button> </div> <div class="contact-row"> <a href="tel:+16462877550">+1 646 287 7550</a> <button class="contact-copybtn" type="button" data-copy="+16462877550" aria-label="Copy phone number">Copy</button> </div> </div> <p class="contact-hint" id="contact-hint" aria-hidden="true"> <span class="chint-lens"></span> <span class="chint-text">Move across the plate to bring the desk into focus <span class="chint-sep">·</span> click to hold it</span> </p> </div> <div class="c-corner c-corner--br"> <nav class="contact-links" aria-label="Contact links"> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.behance.net/mehatey" target="_blank" rel="noopener noreferrer">Behance<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> </main> <script>
       (() => {
         const desk = document.getElementById("contact-desk");
-        const time = document.getElementById("contact-time");
 
         const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
         const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
@@ -3460,22 +3593,10 @@
           }
         });
 
-        function tick() {
-          try {
-            time.textContent =
-              new Intl.DateTimeFormat("en-US", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-                timeZone: "America/New_York",
-              }).format(new Date()) + " NYC";
-          } catch (_) {
-            time.hidden = true;
-          }
-        }
-
-        tick();
-        setInterval(tick, 30000);
+        /* The New York clock went with the meta row it was written for. It
+           repainted every 30 seconds for the whole time the tab was open to
+           tell a visitor what time it is where Sid lives, which is a fact the
+           intro already implies and nobody was waiting on. */
       })();
     </script> <style>
     /* ── GET TO KNOW SID ────────────────────────────────────────────────
@@ -3547,26 +3668,65 @@
       background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
     }
 
+    /* ── THE RAIL ────────────────────────────────────────────────────────
+       Sid: "i shud be able to move horizontally through them with mouse and
+       nice hover effects ... how the images show up from the edges."
+
+       This was a CSS keyframe — translate3d(0) to translate3d(-50%) over 66
+       seconds, paused on hover. That is a poster of movement: it goes one way
+       at one speed forever, and the only control the visitor has is to stop
+       it. Hovering to freeze a thing you wanted to look *through* is exactly
+       backwards.
+
+       So the transform is driven from script now (see the rail block at the
+       foot of this file) and the animation is gone. Three inputs, one
+       position: the pointer's horizontal position steers speed, a drag scrubs
+       it directly, and the wheel throws it. It keeps drifting when nobody is
+       touching it, so it still reads as alive rather than as a control panel.
+
+       The row keeps its duplicate copy — the loop wraps at exactly half the
+       row's width, which only works because the second half is identical to
+       the first. */
     .sid-row {
       display: flex;
       align-items: flex-end;
       width: max-content;
       gap: clamp(18px, 2.2vw, 34px);
       padding: 0 clamp(18px, 2.2vw, 34px);
-      animation: sidDrift 66s linear infinite;
+      will-change: transform;
+      cursor: grab;
+    }
+    .sid-row.is-dragging {
+      cursor: grabbing;
+    }
+    .sid-row.is-dragging .sid-tile {
+      /* A drag is a direct manipulation: the tiles must not lag behind the
+         finger with a 620ms ease, or the rail feels like it is on elastic. */
+      transition: none;
     }
 
-    .sid-strip:hover .sid-row,
-    .sid-strip:focus-within .sid-row {
-      animation-play-state: paused;
+    /* ── THE EDGES ───────────────────────────────────────────────────────
+       "how the images show up from the edges."
+
+       The rail used to end at a hard vertical cut on both sides, so a tile
+       arrived by being sliced in half by an invisible knife. The mask
+       dissolves the last 12% of each side, and the per-tile ramp in the rail
+       script fades, desaturates and shrinks each tile as it approaches that
+       band — so a picture resolves out of the dark as it comes in and returns
+       to it as it leaves, rather than appearing and disappearing.
+
+       Two effects, deliberately: the mask alone dissolves the *pixels* at the
+       edge, which on a tile that is mostly one flat colour is nearly
+       invisible. The ramp acts on the tile as an object. Together they read
+       as depth of field. */
+    .sid-strip__rows {
+      -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
+      mask-image: linear-gradient(to right, transparent 0%, #000 12%, #000 88%, transparent 100%);
     }
 
-    @keyframes sidDrift {
-      from {
-        transform: translate3d(0, 0, 0);
-      }
-      to {
-        transform: translate3d(-50%, 0, 0);
+    @media (prefers-reduced-motion: reduce) {
+      .sid-row {
+        cursor: default;
       }
     }
 
@@ -4567,7 +4727,235 @@
         margin: 0 15px;
       }
     }
-</style> <footer class="site-footer" aria-label="Site footer"> <div class="plot__bleed" aria-hidden="true"> <div class="plot__pin" id="plot-field"> <canvas id="plot-wash"></canvas> <canvas id="plot-caustic"></canvas> <canvas id="plot-flora"></canvas> </div> </div> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Still more in the studio than on the site. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__head"> <b>Get to know Sid</b> <span>off the clock</span> </div> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/4.mandala/cover.jpg)"> <img src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Made for fun</em><b>Bloom · TouchDesigner</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/play-memory-wall.webp)"> <img src="/assets/img/play-memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.08; --ar: 1.4; --src: url(/15.bloom-vp/cover.jpg)"> <img src="/15.bloom-vp/cover.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last rabbit hole</em><b>Spatial UI on Vision Pro</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.33; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> </div> </div> </section> <section class="coda" id="coda" aria-labelledby="coda-title"> <div class="coda__runway"> <div class="coda__stage"> <p class="coda__eyebrow">Coda · 00:00–00:10</p> <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2> <div class="coda__device"> <canvas class="coda__screen" id="coda-screen" width="360" height="780" role="img" aria-label="A phone scrolling through Sid’s music library"></canvas> <span class="coda__glare" aria-hidden="true"></span> </div> <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div> <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p> </div> </div> </section> <style>
+</style> <footer class="site-footer" aria-label="Site footer" data-biome="meadow"> <div class="plot__bleed" aria-hidden="true"> <div class="plot__pin" id="plot-field"> <canvas id="plot-wash"></canvas> <canvas id="plot-caustic"></canvas> <canvas id="plot-flora"></canvas> </div> </div> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Still more in the studio than on the site. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__head"> <b>Get to know Sid</b> <span>off the clock</span> </div> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/sid-strip/memory-wall.webp)"> <img src="/assets/img/sid-strip/memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.06; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)"> <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.12; --ar: 1.33; --src: url(/assets/img/sid-strip/balcony.webp)"> <img src="/assets/img/sid-strip/balcony.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last late night</em><b>A balcony, somewhere east</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.82; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.74; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.9; --ar: 1.5; --src: url(/assets/img/sid-strip/memory-wall.webp)"> <img src="/assets/img/sid-strip/memory-wall.webp" alt="" loading="lazy" decoding="async"> <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid_about3.jpg)"> <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async"> <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption> </figure> </div> </div> </section> <script>
+    /* ══ THE RAIL ═══════════════════════════════════════════════════════════
+       "Get to know Sid" is a rail you move through rather than a marquee you
+       watch. One position, `x`, advanced every frame; everything else is an
+       input to its velocity or a consequence of where it ended up.
+
+       INPUTS
+
+         drift    a constant. The rail is never truly still, because a strip
+                  that only moves when touched looks broken until touched.
+         steer    the pointer's horizontal position, remapped so the middle
+                  third is dead and the outer thirds accelerate toward their
+                  own edge. This is the "move horizontally through them with
+                  mouse" behaviour: you push into the side you want to travel.
+         drag     one-to-one while the button is down, then the velocity you
+                  released at, decayed. A drag that stops dead on release
+                  feels like a scrollbar.
+         wheel    horizontal wheel deltas (trackpad swipes) thrown straight in.
+
+       THE WRAP
+
+       The row contains two identical copies of the tiles, so half its scroll
+       width is one full cycle. `x` is kept inside [-half, 0) with a modulo
+       rather than a reset, which is what makes the loop seamless in both
+       directions — a reset only works going one way, which is all the old CSS
+       animation ever had to do.
+
+       THE RAMP
+
+       Each tile is scored on how close it is to the edges of the viewport
+       band, and that score drives scale, opacity and saturation together.
+       Reading every tile's rect each frame would be a layout thrash, so the
+       tile widths are measured once (and on resize) and the position is
+       computed from `x` arithmetically.
+
+       Reduced motion gets no drift, no steer and no ramp — but keeps drag and
+       wheel, because those are navigation, not decoration. */
+    (function () {
+      var strip = document.querySelector(".sid-strip");
+      var rows = document.querySelector(".sid-strip__rows");
+      var row = document.querySelector(".sid-row");
+      if (!strip || !rows || !row) return;
+
+      var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var tiles = [].slice.call(row.children);
+      if (!tiles.length) return;
+
+      var half = 0,
+        bandW = 0,
+        offs = [],
+        widths = [];
+
+      function measure() {
+        half = row.scrollWidth / 2;
+        bandW = rows.clientWidth;
+        offs = [];
+        widths = [];
+        for (var i = 0; i < tiles.length; i++) {
+          offs.push(tiles[i].offsetLeft);
+          widths.push(tiles[i].offsetWidth);
+        }
+      }
+      measure();
+      window.addEventListener("resize", measure, { passive: true });
+      /* Tile widths depend on images that may not have loaded when this runs. */
+      window.addEventListener("load", measure, { once: true });
+
+      var x = 0,
+        vel = 0,
+        steer = 0,
+        drift = reduce ? 0 : -0.42,
+        dragging = false,
+        lastPx = 0,
+        raf = 0,
+        visible = true;
+
+      /* ── steer ────────────────────────────────────────────────────────── */
+      if (!reduce) {
+        strip.addEventListener(
+          "pointermove",
+          function (e) {
+            if (dragging) return;
+            var r = rows.getBoundingClientRect();
+            var t = (e.clientX - r.left) / Math.max(1, r.width); /* 0..1 */
+            var d = (t - 0.5) * 2; /* -1..1 */
+            /* Dead middle third, then a squared ramp so the far edge is
+               decisively faster than the near one rather than linearly so. */
+            var mag = Math.max(0, Math.abs(d) - 0.33) / 0.67;
+            steer = -Math.sign(d) * mag * mag * 5.2;
+          },
+          { passive: true }
+        );
+        strip.addEventListener(
+          "pointerleave",
+          function () {
+            steer = 0;
+          },
+          { passive: true }
+        );
+      }
+
+      /* ── drag ─────────────────────────────────────────────────────────── */
+      row.addEventListener("pointerdown", function (e) {
+        if (e.button !== undefined && e.button !== 0) return;
+        dragging = true;
+        lastPx = e.clientX;
+        vel = 0;
+        steer = 0;
+        row.classList.add("is-dragging");
+        try {
+          row.setPointerCapture(e.pointerId);
+        } catch (_) {}
+      });
+      row.addEventListener("pointermove", function (e) {
+        if (!dragging) return;
+        var dx = e.clientX - lastPx;
+        lastPx = e.clientX;
+        x += dx;
+        /* Remembered so the release has something to throw. Blended rather
+           than assigned so one jittery frame cannot define the throw. */
+        vel = vel * 0.6 + dx * 0.4;
+      });
+      function endDrag(e) {
+        if (!dragging) return;
+        dragging = false;
+        row.classList.remove("is-dragging");
+        try {
+          if (e && e.pointerId != null) row.releasePointerCapture(e.pointerId);
+        } catch (_) {}
+      }
+      row.addEventListener("pointerup", endDrag);
+      row.addEventListener("pointercancel", endDrag);
+      /* A drag that leaves the window entirely still has to end. */
+      window.addEventListener("blur", endDrag);
+
+      /* A drag and a click are the same gesture until the finger moves, so
+         swallow the click that follows a real drag — otherwise scrubbing the
+         rail and letting go on top of a tile triggers whatever that tile
+         does. */
+      var moved = 0;
+      row.addEventListener(
+        "pointermove",
+        function () {
+          if (dragging) moved++;
+        },
+        { passive: true }
+      );
+      row.addEventListener(
+        "click",
+        function (e) {
+          if (moved > 3) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+          moved = 0;
+        },
+        true
+      );
+
+      /* ── wheel ────────────────────────────────────────────────────────── */
+      rows.addEventListener(
+        "wheel",
+        function (e) {
+          /* Only horizontal intent. Claiming vertical wheel here would trap
+             the page scroll inside a decorative strip, which is the single
+             rudest thing a component like this can do. */
+          if (Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+          vel -= e.deltaX * 0.5;
+        },
+        { passive: true }
+      );
+
+      if (window.IntersectionObserver) {
+        new IntersectionObserver(
+          function (es) {
+            visible = es[0].isIntersecting;
+            if (visible && !raf) raf = requestAnimationFrame(frame);
+          },
+          { threshold: 0.01 }
+        ).observe(strip);
+      }
+
+      var lastT = 0;
+      function frame(now) {
+        raf = 0;
+        if (!visible) return;
+        var dt = lastT ? Math.min(2.5, (now - lastT) / 16.667) : 1;
+        lastT = now;
+
+        if (!dragging) {
+          x += (drift + steer) * dt + vel;
+          vel *= Math.pow(0.94, dt);
+          if (Math.abs(vel) < 0.02) vel = 0;
+        }
+
+        if (half > 0) {
+          /* Modulo into [-half, 0). JS % keeps the sign of the dividend, so
+             the extra add-and-mod is what makes this correct for positive x
+             (dragging the rail backwards) as well as negative. */
+          x = ((x % half) + half) % half; /* [0, half) */
+          x -= half; /* [-half, 0) */
+        }
+
+        row.style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)";
+
+        /* ── the edge ramp ─────────────────────────────────────────────── */
+        if (!reduce && bandW > 0) {
+          var fade = bandW * 0.22;
+          for (var i = 0; i < tiles.length; i++) {
+            var left = offs[i] + x;
+            var mid = left + widths[i] / 2;
+            /* 0 at the very edge of the band, 1 once fully inside it. */
+            var near = Math.min(mid, bandW - mid);
+            var k = Math.max(0, Math.min(1, near / fade));
+            /* Eased so the middle of the rail is flat and all of the change
+               happens in the outer band, where it is the point. */
+            k = k * k * (3 - 2 * k);
+            var st = tiles[i].style;
+            st.opacity = (0.16 + 0.84 * k).toFixed(3);
+            st.transform = "scale(" + (0.9 + 0.1 * k).toFixed(3) + ")";
+            st.filter = "saturate(" + (0.3 + 0.7 * k).toFixed(2) + ")";
+          }
+        }
+
+        raf = requestAnimationFrame(frame);
+      }
+      raf = requestAnimationFrame(frame);
+    })();
+  </script> <section class="coda" id="coda" aria-labelledby="coda-title"> <div class="coda__runway"> <div class="coda__stage"> <p class="coda__eyebrow">Coda · 00:00–00:10</p> <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2> <div class="coda__device"> <canvas class="coda__screen" id="coda-screen" width="360" height="780" role="img" aria-label="A phone scrolling through Sid’s music library"></canvas> <span class="coda__glare" aria-hidden="true"></span> </div> <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div> <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p> </div> </div> </section> <style>
   .coda {
     position: relative;
     z-index: 1;
@@ -5017,6 +5405,141 @@
       }
     }
 
+    /* ══ BIOMES ═══════════════════════════════════════════════════════════
+       Sid: "change the animals or the background like instead of water do some
+       other nature interactive theme even for contact", and then, on the
+       proposal to reuse this simulation rather than build three of them:
+       "yeah fine retheme the water per page."
+
+       So there is one simulation and three skins. Nothing below touches the
+       physics: the wave equation, the fish steering, the pod collisions, the
+       plant growth and the pointer coupling are the same code on every page.
+       What changes is the palette, the glyph sets, and therefore the name of
+       what you are looking at.
+
+       That is the honest version of "a different theme per page". Three
+       separate nature simulations would be three things to maintain and three
+       unrelated toys to meet while moving between pages. One system wearing
+       three coats reads as one place with three rooms in it, which is what a
+       portfolio is.
+
+         pond    the default, everywhere else. Fish, seed pods, reeds.
+         meadow  contact. Warm ground haze instead of water, fireflies instead
+                 of fish, dandelion clocks instead of pods, grasses and
+                 seedheads instead of reeds. The surface the wave equation
+                 solves is now wind crossing a field: same maths, different
+                 noun.
+         canopy  about. Forest floor at dusk — moss and bark values, moths
+                 instead of fish, falling leaves instead of pods, ferns and
+                 fungi instead of reeds.
+
+       The page picks one with data-biome on the footer element; anything
+       unrecognised falls back to pond. */
+    var BIOMES = {
+      pond: {
+        species: [
+          { rows: ["<~>"], w: 13, bloom: 0 },
+          { rows: ["\\|/", "^^"], w: 20, bloom: 0 },
+          { rows: ["(o)", "\\|/", "^^^"], w: 17, bloom: 1 },
+          { rows: ["|", "|", "|", "^^^"], w: 15, bloom: 0 },
+          { rows: ["*", "\\|", " |", "^^^"], w: 9, bloom: 1 },
+        ],
+        swimGlyph: ["><>", "><\u00b0>", "\u2022\u2022\u2022>"],
+        swimBack: ["<><", "<\u00b0><", "<\u2022\u2022\u2022"],
+        podGlyph: ["(o)", "<*>", "{~}", "(\u00b7)"],
+        dark: {},
+        light: {},
+      },
+
+      meadow: {
+        species: [
+          { rows: ["\\|/"], w: 16, bloom: 0 },
+          { rows: ["*", "|", "^"], w: 18, bloom: 1 },
+          { rows: ["///", "|"], w: 20, bloom: 0 },
+          { rows: ["o", "|", "|", "^^"], w: 13, bloom: 1 },
+          { rows: [".:.", "\\|/", " | "], w: 10, bloom: 1 },
+        ],
+        /* Fireflies. A firefly has no front, which is why the forward and
+           backward sets are identical and the direction flip in stepFish
+           quietly becomes a no-op here. */
+        swimGlyph: ["\u00b7", "*", "\u00b0"],
+        swimBack: ["\u00b7", "*", "\u00b0"],
+        podGlyph: ["(\u00b7)", "-*-", "\u00b7\u00b7\u00b7", "\u00b0"],
+        dark: {
+          body: ["rgba(28,20,10,0)", "rgba(38,28,14,0.6)", "rgba(26,19,10,0.9)"],
+          shelf: "rgba(214,178,110,0.14)",
+          caustic: [255, 226, 168],
+          causticAlpha: 0.4,
+          flora: ["#4a4526", "#5d5730", "#736b39", "#8d8246", "#a89a55"],
+          bloom: "#ffd27a",
+          fish: "#ffe9a8",
+          pod: "#d9c48f",
+          glow: 9,
+        },
+        light: {
+          body: ["rgba(232,222,198,0)", "rgba(212,198,160,0.6)", "rgba(176,158,116,0.86)"],
+          shelf: "rgba(120,98,54,0.24)",
+          caustic: [255, 250, 232],
+          causticAlpha: 0.5,
+          flora: ["#a89a6a", "#8b7d4e", "#6d6138", "#514727", "#38301a"],
+          bloom: "#c07a26",
+          fish: "#6b5220",
+          pod: "#7a6534",
+        },
+      },
+
+      canopy: {
+        species: [
+          { rows: ["\\|/", "/|\\"], w: 20, bloom: 0 },
+          { rows: ["(", "|", "^^"], w: 12, bloom: 1 },
+          { rows: ["}{", "||"], w: 16, bloom: 0 },
+          { rows: ["~", "|", "|", "^^^"], w: 15, bloom: 0 },
+          { rows: ["\u00b0", "/\\", "||"], w: 11, bloom: 1 },
+        ],
+        /* Moths, which do have a front. */
+        swimGlyph: ["\u2022<", "\u00d7", ">\u2022<"],
+        swimBack: [">\u2022", "\u00d7", ">\u2022<"],
+        podGlyph: ["\u2740", "\u00ac", "\u2022", "\u00b0"],
+        dark: {
+          body: ["rgba(10,20,14,0)", "rgba(14,30,20,0.7)", "rgba(9,21,14,0.94)"],
+          shelf: "rgba(126,196,150,0.14)",
+          caustic: [186, 240, 200],
+          causticAlpha: 0.5,
+          flora: ["#264a2c", "#2f5c33", "#3d7340", "#4f8c4b", "#66a55c"],
+          bloom: "#e0a463",
+          fish: "#dff0d0",
+          pod: "#c08a5a",
+        },
+        light: {
+          body: ["rgba(214,222,206,0)", "rgba(178,196,168,0.66)", "rgba(126,150,118,0.9)"],
+          shelf: "rgba(58,86,54,0.24)",
+          caustic: [255, 255, 245],
+          causticAlpha: 0.55,
+          flora: ["#8ba07f", "#6c8462", "#4e6746", "#374c30", "#22301d"],
+          bloom: "#a55c2c",
+          fish: "#2c4429",
+          pod: "#6b4a2c",
+        },
+      },
+    };
+
+    var BIOME_KEY = (footerEl.getAttribute("data-biome") || "pond").toLowerCase();
+    if (!BIOMES[BIOME_KEY]) BIOME_KEY = "pond";
+    var BIOME = BIOMES[BIOME_KEY];
+
+    /* Skin the base palettes in place. A biome states only the keys it
+       changes — everything it leaves out keeps the pond's value, which is why
+       `canopy` can say nothing about `cast` and still get a correct daylight
+       shadow, and why `pond` itself is two empty objects. */
+    (function skin() {
+      ["dark", "light"].forEach(function (k) {
+        var over = BIOME[k] || {};
+        for (var prop in over) {
+          if (Object.prototype.hasOwnProperty.call(over, prop)) PAL[k][prop] = over[prop];
+        }
+      });
+    })();
+
     function pal() {
       return isLight() ? PAL.light : PAL.dark;
     }
@@ -5261,13 +5784,8 @@
        everything — so the bed has a skyline instead of a texture. `bloom: 1`
        means the top row is a flower head and gets the warm accent; everything
        else in the plant is stem. */
-    var SPECIES = [
-      { rows: ["<~>"], w: 13, bloom: 0 },
-      { rows: ["\\|/", "^^"], w: 20, bloom: 0 },
-      { rows: ["(o)", "\\|/", "^^^"], w: 17, bloom: 1 },
-      { rows: ["|", "|", "|", "^^^"], w: 15, bloom: 0 },
-      { rows: ["*", "\\|", " |", "^^^"], w: 9, bloom: 1 },
-    ];
+    /* The planting is the biome's, not this file's. See BIOMES above. */
+    var SPECIES = BIOME.species;
     var TOTAL_W = 0;
     for (var s = 0; s < SPECIES.length; s++) TOTAL_W += SPECIES[s].w;
 
@@ -5440,8 +5958,11 @@
        banks, and they bolt from the pointer. Every one of them drags a
        continuous negative wake through the height field, so the water is
        never still even when nobody is touching it. */
-    var FISH_GLYPH = ["><>", "><°>", "•••>"];
-    var FISH_BACK = ["<><", "<°><", "<•••"];
+    /* Fish in the pond, fireflies in the meadow, moths under the canopy. The
+       steering, the startle and the wake are identical for all three; only the
+       characters being drawn change. */
+    var FISH_GLYPH = BIOME.swimGlyph;
+    var FISH_BACK = BIOME.swimBack;
     var fish = [];
 
     function seedFish() {
@@ -5530,7 +6051,7 @@
        your pointer make. When two of them knock together — and they do —
        the collision puts a fresh ripple back into the field. That is the bit
        worth building: the pond starts talking to itself. */
-    var POD_GLYPH = ["(o)", "<*>", "{~}", "(·)"];
+    var POD_GLYPH = BIOME.podGlyph;
     var pods = [];
 
     function seedPods() {
@@ -5896,28 +6417,52 @@
      stretch pulls it, because a hard edge is the only thing that can. The
      stretch itself is cut to roughly half of what it was (see the loop below)
      — enough for weight, not enough to become a comet. */
+  /* ── OUTLINE, EVERYWHERE ────────────────────────────────────────────────
+     Sid: "i like the cursor with the stroke and no fill, the cursor changes
+     to fill in certain pages ... see if we can make it a little smaller."
+
+     The mark used to be a solid core that only hollowed into a ring while it
+     was over something interactive, so the cursor's resting state changed
+     identity from page to page depending on how much of the page was
+     clickable — on /works/, where nearly everything is a link, it read as a
+     ring; on a case study it read as a dot. One pointer, two marks, and no
+     rule a visitor could learn.
+
+     So the outline IS the cursor now, at every moment, on every page. It is
+     7px rather than 9 and carries no fill at all beyond the faintest wash
+     needed to keep it visible against a mid-grey photograph. What hover
+     changes is weight and light, not species: the ring brightens, thickens a
+     third of a pixel and scales up. That is a state, not a different object.
+
+     Dropping the fill also gives the trail something to do. A solid dot is
+     the loudest thing on screen and the line behind it reads as an accessory;
+     an empty ring is quiet enough that the line becomes the gesture, which is
+     the "physics" Sid keeps asking for. */
   #cur-dot {
     position: fixed;
-    width: 9px;
-    height: 9px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 99999;
-    background: rgba(233, 243, 255, 0.94);
+    background: rgba(190, 220, 255, 0.1);
     box-shadow:
-      0 0 0 1px rgba(150, 195, 255, 0.5),
-      0 0 12px 2px rgba(90, 150, 240, 0.16);
+      0 0 0 1.1px rgba(214, 234, 255, 0.86),
+      0 0 10px 2px rgba(90, 150, 240, 0.14);
     will-change: left, top, transform;
     opacity: 0;
     /* transform is driven per-frame in JS (velocity stretch + eased hover scale); only fade opacity */
-    transition: opacity 0.2s;
+    transition:
+      opacity 0.2s,
+      box-shadow 0.24s ease,
+      background 0.24s ease;
   }
   html[data-theme="light"] #cur-dot {
-    background: rgba(18, 32, 56, 0.9);
+    background: rgba(20, 40, 80, 0.06);
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.6),
-      0 0 10px 2px rgba(20, 40, 80, 0.14);
+      0 0 0 1.1px rgba(22, 40, 72, 0.8),
+      0 0 9px 2px rgba(20, 40, 80, 0.12);
   }
   /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons.
      The scale itself is handled in JS; this rule only swaps the look. */
@@ -5925,16 +6470,16 @@
      is sitting on stays visible through the middle. A fill that merely got
      fainter covered small icons; a ring never does. */
   #cur-dot.is-hover {
-    background: rgba(190, 220, 255, 0.14);
+    background: rgba(190, 220, 255, 0.16);
     box-shadow:
-      0 0 0 1.2px rgba(190, 224, 255, 0.72),
-      0 0 14px 3px rgba(110, 170, 245, 0.14);
+      0 0 0 1.45px rgba(226, 240, 255, 0.95),
+      0 0 18px 4px rgba(110, 170, 245, 0.2);
   }
   html[data-theme="light"] #cur-dot.is-hover {
-    background: rgba(20, 40, 80, 0.08);
+    background: rgba(20, 40, 80, 0.1);
     box-shadow:
-      0 0 0 1.2px rgba(24, 44, 78, 0.66),
-      0 0 12px 3px rgba(20, 40, 80, 0.1);
+      0 0 0 1.45px rgba(18, 34, 62, 0.92),
+      0 0 15px 4px rgba(20, 40, 80, 0.14);
   }
   /* Contextual cursor label — small mono pill that appears next to the dot over
      elements tagged [data-cursor-text] (e.g. "View", "Play"). Same visual language
@@ -10225,9 +10770,11 @@
     size();
     window.addEventListener("resize", size, { passive: true });
 
-    // 26 nodes is long enough to read as a line and short enough that the whole
-    // chain settles inside about a third of a second.
-    var N = 26,
+    // 34 nodes. Sid asked for "more of a physics trail", and length is the
+    // honest lever: the settle time is set by the chase rate below, not by the
+    // node count, so a longer chain draws more line at the same speed without
+    // taking any longer to come to rest.
+    var N = 34,
       pts = [],
       i;
     for (i = 0; i < N; i++) pts.push({ x: -200, y: -200, vx: 0, vy: 0 });
@@ -10288,8 +10835,12 @@
       // node can overshoot, so the chain cannot ring. The follow rate loosens
       // toward the tail, which is what tapers the curve's spacing and makes the
       // end of the line trail off instead of stopping dead.
+      // Loosened from 0.78/0.14. A slacker chase means each node lags further
+      // behind the one ahead, so the same gesture pays out more line and the
+      // tail keeps moving for a beat after the head has stopped — the part
+      // that actually reads as weight.
       for (i = 1; i < N; i++) {
-        var a = 0.78 - (i / N) * 0.14;
+        var a = 0.62 - (i / N) * 0.2;
         pts[i].x += (pts[i - 1].x - pts[i].x) * a;
         pts[i].y += (pts[i - 1].y - pts[i].y) * a;
       }
@@ -10300,12 +10851,12 @@
       // How stretched the chain is overall — the line only earns its ink while
       // the pointer is actually travelling.
       var span = Math.hypot(pts[N - 1].x - pts[0].x, pts[N - 1].y - pts[0].y);
-      var life = Math.min(span / 42, 1);
+      var life = Math.min(span / 30, 1);
       if (life < 0.01) return;
 
       var light = isLight();
       var rgb = light ? "26,44,74" : "158,200,255";
-      var base = (light ? 0.2 : 0.34) * life;
+      var base = (light ? 0.26 : 0.42) * life;
 
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
@@ -10313,10 +10864,16 @@
       // Three tapered passes over decreasing spans of the chain. Overlapping
       // strokes is what produces the width falloff without having to stroke each
       // segment separately, which is what made the old one facet.
+      // A fourth, very wide, very faint pass over the first third of the chain.
+      // It is the atmosphere the line moves through: on its own it is almost
+      // invisible, but it stops the head of the trail from meeting the ring
+      // as a hard 1px edge, which is what made the old line look drawn on
+      // rather than left behind.
       var passes = [
-        [N, 0.42, 1.0],
-        [Math.round(N * 0.62), 0.78, 0.62],
-        [Math.round(N * 0.3), 1.35, 0.38],
+        [N, 0.4, 1.0],
+        [Math.round(N * 0.66), 0.8, 0.66],
+        [Math.round(N * 0.34), 1.5, 0.42],
+        [Math.round(N * 0.22), 4.5, 0.12],
       ];
       for (var p = 0; p < passes.length; p++) {
         var upto = passes[p][0],
