@@ -1,0 +1,172 @@
+<!-- ══════════════════════════════════════════════════════════════════════════
+     TYPE THAT ANSWERS THE HAND
+
+     Sid asked for a cursor effect around the hero headline, and then: "think
+     creatively across the whole website."
+
+     The obvious version of the first request is a glow behind the words, which
+     is a rectangle of light with type sitting in it. This uses the type
+     itself. Figtree is loaded as a variable font across 300 to 900, so each
+     character's weight is driven by how close the pointer is to it: the line
+     thickens under your hand and thins again behind it. The effect surrounds
+     the CURSOR rather than the text, which is the way round that reads as the
+     words responding to you rather than as a highlight following you.
+
+     And the answer to the second request is that it should not be a homepage
+     trick. One implementation, applied to the largest piece of type on each of
+     the pages that has one, so the response is a property of the site's voice
+     rather than a feature of its front page. Anything carrying
+     `data-livetype` gets it.
+
+     WHAT KEEPS IT CHEAP
+
+       · Characters are split once, on load.
+       · Their positions are measured on load, on resize and on scroll —
+         never per frame. A headline does not move between those events.
+       · The loop runs only while the pointer is inside the element's own
+         region, then eases every character home and stops.
+       · Each character carries its own eased value, so a fast sweep leaves a
+         wake that settles rather than an edge that snaps.
+
+     It is off entirely for coarse pointers and reduced motion: there is no
+     cursor to answer, and the whole effect is motion.
+     ══════════════════════════════════════════════════════════════════════ -->
+<style>
+  /* Inline-block so each character can carry its own weight. No transition:
+     the per-frame values come from script and the easing already lives in the
+     loop, so a CSS transition on top would fight it. `will-change` is
+     deliberately absent — promoting sixty layers for a headline costs more
+     than it saves. */
+  [data-livetype] .lt-c {
+    display: inline-block;
+    font-variation-settings: "wght" var(--lt-base, 500);
+  }
+</style>
+<script>
+  (function () {
+    "use strict";
+    if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
+
+    var hosts = document.querySelectorAll("[data-livetype]");
+    if (!hosts.length) return;
+
+    /* Some of these headings are written by script rather than shipped in the
+       markup — the homepage hero builds its lines in its own IIFE — so a host
+       can legitimately be empty at the moment this runs. Measured: the home
+       headline split zero characters because it had none yet. Each host is
+       attempted now, again on load, and once more shortly after; `setup`
+       marks what it has already claimed so no host is ever split twice. */
+    function pass() {
+      for (var h = 0; h < hosts.length; h++) setup(hosts[h]);
+    }
+    pass();
+    window.addEventListener("load", pass);
+    setTimeout(pass, 1000);
+
+    function setup(host) {
+      if (host.hasAttribute("data-livetype-on")) return;
+      /* The region the pointer has to be inside for this block to be live.
+         On the homepage that is the whole hero, so the headline reacts while
+         you are anywhere near it rather than only when you are on the glyphs
+         themselves; elsewhere it is the element's own box. */
+      var zone = host.closest(host.getAttribute("data-livetype-zone") || "section") || host;
+
+      var base = parseInt(host.getAttribute("data-livetype-base") || "500", 10);
+      var peak = parseInt(host.getAttribute("data-livetype-peak") || "860", 10);
+      var R = parseInt(host.getAttribute("data-livetype-radius") || "150", 10);
+      host.style.setProperty("--lt-base", base);
+
+      /* Split the deepest text-bearing elements rather than the host, so a
+         heading that has already been split into words by the motion layer
+         keeps its words and gains characters inside them. */
+      var leaves = [];
+      (function walk(node) {
+        for (var i = 0; i < node.childNodes.length; i++) {
+          var n = node.childNodes[i];
+          if (n.nodeType === 3 && n.textContent.trim()) leaves.push(n);
+          else if (n.nodeType === 1 && !n.classList.contains("lt-c")) walk(n);
+        }
+      })(host);
+      if (!leaves.length) return;
+      host.setAttribute("data-livetype-on", "");
+
+      var chars = [];
+      for (var l = 0; l < leaves.length; l++) {
+        var node = leaves[l];
+        var text = node.textContent;
+        var frag = document.createDocumentFragment();
+        for (var c = 0; c < text.length; c++) {
+          var sp = document.createElement("span");
+          sp.className = "lt-c";
+          /* A space cannot carry a weight and must not be allowed to
+             collapse once it is inside an inline-block. */
+          sp.textContent = text[c] === " " ? " " : text[c];
+          frag.appendChild(sp);
+          chars.push({ el: sp, x: 0, y: 0, w: 0, t: 0 });
+        }
+        node.parentNode.replaceChild(frag, node);
+      }
+
+      function measure() {
+        for (var i = 0; i < chars.length; i++) {
+          var r = chars[i].el.getBoundingClientRect();
+          chars[i].x = r.left + r.width / 2;
+          chars[i].y = r.top + r.height / 2;
+        }
+      }
+      /* Late enough that any entrance animation has landed, or the rects are
+         of characters still on their way in. */
+      setTimeout(measure, 1400);
+      window.addEventListener("resize", measure, { passive: true });
+      window.addEventListener("scroll", measure, { passive: true });
+
+      var mx = -9999,
+        my = -9999,
+        raf = 0,
+        alive = false;
+
+      function frame() {
+        raf = 0;
+        var moving = false;
+        for (var i = 0; i < chars.length; i++) {
+          var ch = chars[i];
+          var d = Math.hypot(ch.x - mx, ch.y - my);
+          var target = d > R ? 0 : 1 - d / R;
+          target = target * target * (3 - 2 * target);
+          ch.t += (target - ch.t) * 0.18;
+          if (Math.abs(ch.t - target) > 0.002 || ch.t > 0.002) moving = true;
+          var w = Math.round(base + (peak - base) * ch.t);
+          if (w !== ch.w) {
+            ch.w = w;
+            ch.el.style.fontVariationSettings = '"wght" ' + w;
+          }
+        }
+        if (alive || moving) raf = requestAnimationFrame(frame);
+      }
+
+      zone.addEventListener(
+        "pointermove",
+        function (e) {
+          mx = e.clientX;
+          my = e.clientY;
+          alive = true;
+          if (!raf) raf = requestAnimationFrame(frame);
+        },
+        { passive: true }
+      );
+      zone.addEventListener(
+        "pointerleave",
+        function () {
+          /* Park the pointer far away and let the same easing carry every
+             character home, so leaving is the same motion as arriving rather
+             than a reset. */
+          mx = -9999;
+          my = -9999;
+          alive = false;
+          if (!raf) raf = requestAnimationFrame(frame);
+        },
+        { passive: true }
+      );
+    }
+  })();
+</script>
