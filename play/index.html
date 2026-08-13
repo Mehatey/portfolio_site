@@ -239,6 +239,65 @@ title: Play · Sid Mehta
       /* brightness has to be restated with the blur or the hover rule drops the
          blur:0 the reveal just set and every hovered picture goes soft again. */
       .play-grid img.is-in:hover { filter: blur(0) brightness(1.08); }
+
+      /* ── THE TILT ────────────────────────────────────────────────────────
+         Play is fifty-seven photographs and eighteen clips drifting past on
+         their own. Hovering one used to brighten it by eight percent, which
+         is the least a picture can do when you reach for it.
+
+         Now the card lifts off the page and turns a couple of degrees toward
+         the cursor. Two things make it read as a physical object rather than
+         a CSS trick: the rotation axis follows the pointer, so the corner you
+         approach is the corner that dips; and the shadow grows with the lift,
+         which is the only cue that actually says "off the page" rather than
+         "bigger".
+
+         The perspective lives on the column container, not on the tile, so
+         every card in a column shares one vanishing point and the wall reads
+         as one plane being disturbed rather than as separate cards each with
+         their own camera.
+
+         --tx and --ty are set by the pointer handler at the foot of the page
+         and are -1..1 from the centre of the tile. 5deg is the ceiling: past
+         about six the picture starts to distort and a photograph is not a
+         card in a game. */
+      .play-grid {
+        perspective: 1400px;
+      }
+      .play-grid img,
+      .play-grid video {
+        transform-origin: 50% 50%;
+      }
+      .play-grid img.is-in:hover,
+      .play-grid video.is-in:hover {
+        transform: perspective(1400px) rotateX(calc(var(--ty, 0) * -5deg)) rotateY(calc(var(--tx, 0) * 5deg)) translateZ(18px);
+        box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5);
+        z-index: 3;
+        position: relative;
+      }
+      html[data-theme="light"] .play-grid img.is-in:hover,
+      html[data-theme="light"] .play-grid video.is-in:hover {
+        box-shadow: 0 22px 44px rgba(24, 34, 52, 0.28);
+      }
+      /* The reveal transition sets transform over 1100ms, which is right for
+         a card surfacing out of the field and far too slow for one answering
+         a cursor. Hover gets its own, shorter, and a matching one on the
+         shadow so the two arrive together. */
+      .play-grid img.is-in,
+      .play-grid video.is-in {
+        transition:
+          opacity 900ms var(--ease-out),
+          transform 420ms var(--ease-out),
+          box-shadow 420ms var(--ease-out),
+          filter 900ms var(--ease-out);
+      }
+      @media (hover: none), (prefers-reduced-motion: reduce) {
+        .play-grid img.is-in:hover,
+        .play-grid video.is-in:hover {
+          transform: none;
+          box-shadow: none;
+        }
+      }
       .play-grid video {
         cursor: default;
       }
@@ -862,6 +921,30 @@ title: Play · Sid Mehta
             }
           });
         }
+
+        /* ── WHICH WAY THE CARD TURNS ─────────────────────────────────────
+           One listener on the grid, one rect on the tile under the pointer,
+           two custom properties. The tilt itself is CSS; this only says where
+           the cursor is inside the card.
+
+           Videos are included: they are pieces in the archive like everything
+           else, and a strip where the stills respond and the clips do not
+           would read as the clips being broken. */
+        (function () {
+          if (window.matchMedia && window.matchMedia("(hover: none), (prefers-reduced-motion: reduce)").matches) return;
+          grid.addEventListener(
+            "pointermove",
+            function (e) {
+              var el = e.target;
+              if (!el || (el.tagName !== "IMG" && el.tagName !== "VIDEO")) return;
+              var r = el.getBoundingClientRect();
+              if (!r.width || !r.height) return;
+              el.style.setProperty("--tx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
+              el.style.setProperty("--ty", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+            },
+            { passive: true }
+          );
+        })();
 
         /* ── THE AUTO SCROLL ──────────────────────────────────────────────
            The page moves on its own, and the whole trick is that it must

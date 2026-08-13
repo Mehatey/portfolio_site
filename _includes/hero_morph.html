@@ -1,0 +1,85 @@
+<!-- ══════════════════════════════════════════════════════════════════════════
+     THE COVER TRAVELS
+
+     The site already runs cross-document View Transitions: design_tokens.html
+     declares `@view-transition { navigation: auto }` and every page fades and
+     unblurs into the next. And project.html already puts
+     `view-transition-name: project-hero` on its hero plate.
+
+     But nothing on the pages you arrive FROM carried that name, so the hero
+     had no counterpart to travel from and every navigation resolved to the
+     same generic crossfade. The most cinematic move the platform gives you
+     for free — the picture you clicked growing into the picture you landed on
+     — was one attribute away and never wired up.
+
+     This is that wire. A cover is given the name at the moment it is clicked,
+     which is early enough: the outgoing snapshot is taken when navigation
+     starts, after the click handler has run.
+
+     WHY IT IS ASSIGNED ON CLICK RATHER THAN IN CSS
+
+     A view-transition-name must be unique in the document. There are sixteen
+     covers on /works/ and six on the homepage; naming them all `project-hero`
+     in a stylesheet would make every one of them invalid and the transition
+     would silently degrade to the plain crossfade. Exactly one element can
+     hold the name, and the only one that should is the one you are leaving
+     through.
+
+     THE TWO PICTURES ARE OFTEN DIFFERENT
+
+     A grid cover and a case-study hero are not always the same file. That is
+     fine and is what the transition is for: the old snapshot morphs its
+     geometry to the new element's box while cross-fading its pixels, so a
+     different crop of the same project reads as the camera moving rather than
+     as a cut. Where they ARE the same file it is seamless.
+     ══════════════════════════════════════════════════════════════════════ -->
+<script>
+  (function () {
+    "use strict";
+    if (!document.startViewTransition) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var NAME = "project-hero";
+
+    /* Every element that could be the thing you leave through. The selector
+       list is deliberately explicit rather than "any link with an image in
+       it" — the footer strip, the nav and the chapter map all contain images
+       inside links and none of them leads to a case-study hero. */
+    var SOURCES = ".wk-card, .gal-link, .proj-next";
+
+    function clearAll() {
+      var marked = document.querySelectorAll("[data-vt-marked]");
+      for (var i = 0; i < marked.length; i++) {
+        marked[i].style.viewTransitionName = "";
+        marked[i].removeAttribute("data-vt-marked");
+      }
+    }
+
+    document.addEventListener(
+      "click",
+      function (e) {
+        var link = e.target.closest && e.target.closest(SOURCES);
+        if (!link) return;
+        /* A modified click opens a new tab; the current document is not going
+           anywhere and marking it would leave a stray name behind. */
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+        var media = link.querySelector("img, video");
+        if (!media) return;
+
+        clearAll();
+        media.style.viewTransitionName = NAME;
+        media.setAttribute("data-vt-marked", "");
+      },
+      true
+    );
+
+    /* Coming back through the bfcache restores the document exactly as it was
+       left — including the inline name on whichever cover was clicked. The
+       next click would then be the second element asking for it, which
+       invalidates both. Clearing on restore is what makes the effect survive
+       a Back button. */
+    window.addEventListener("pageshow", clearAll);
+    window.addEventListener("pagehide", clearAll);
+  })();
+</script>

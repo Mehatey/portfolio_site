@@ -240,10 +240,62 @@
       .wk-cover img.is-in {
         opacity: 1;
       }
+      /* ── THE COVER ANSWERS THE POINTER ─────────────────────────────────
+         Hover used to be a single state change: the picture scaled to 1.045
+         and stopped. Sixteen covers doing the identical thing meant the grid
+         responded to WHETHER you were on a card but never to WHERE, so
+         crossing a cover slowly and crossing it at the corner produced the
+         same frame.
+
+         Now the scale carries a translation taken from the pointer's position
+         inside the card, so the image leans toward the cursor by a few pixels
+         and the crop shifts as you move — parallax at a scale you feel rather
+         than notice. The numbers are deliberately small: 1.055 of scale
+         against a maximum 10px of travel, which is inside the overscan the
+         scale already bought, so the picture can never expose an edge of its
+         own frame no matter where the pointer sits.
+
+         --mx and --my come from the script at the foot of this file and are
+         -1..1 from the centre of each card. */
       .wk-card:hover .wk-cover img,
       .wk-card:focus-visible .wk-cover img {
-        transform: scale(1.045);
+        transform: scale(1.055) translate3d(calc(var(--mx, 0) * 10px), calc(var(--my, 0) * 10px), 0);
         filter: saturate(1) brightness(1);
+      }
+
+      /* ── THE LIGHT ─────────────────────────────────────────────────────
+         A soft highlight that rides the cursor across the cover, in screen
+         blend so it lifts what it passes over instead of laying a grey disc
+         on top of it. Same device as the contact desk's lens, which is the
+         point: the two pages should feel like they were made by the same
+         hand. It sits under the sweep rule and the corner marks (z-index 1
+         against their 2) so it can never wash out type. */
+      .wk-cover::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        background: radial-gradient(circle 38% at var(--px, 50%) var(--py, 50%), rgba(190, 220, 255, 0.22), transparent 70%);
+        mix-blend-mode: screen;
+        opacity: 0;
+        transition: opacity 420ms ease;
+      }
+      .wk-card:hover .wk-cover::before,
+      .wk-card:focus-visible .wk-cover::before {
+        opacity: 1;
+      }
+      html[data-theme="light"] .wk-cover::before {
+        background: radial-gradient(circle 38% at var(--px, 50%) var(--py, 50%), rgba(255, 255, 255, 0.5), transparent 70%);
+      }
+      @media (hover: none), (prefers-reduced-motion: reduce) {
+        .wk-cover::before {
+          display: none;
+        }
+        .wk-card:hover .wk-cover img,
+        .wk-card:focus-visible .wk-cover img {
+          transform: scale(1.03);
+        }
       }
 
       /* The sweep. A 1px rule that draws from the left edge on hover and
@@ -524,6 +576,54 @@
            The catch matters. decode() rejects on a broken or cross-origin image
            and an unhandled rejection would leave that cover invisible forever,
            so failure falls through to showing it. */
+        /* ── POINTER TRACKING ─────────────────────────────────────────────
+           One listener on the grid rather than sixteen on the cards, and the
+           work per event is a single getBoundingClientRect on the card under
+           the pointer plus two custom properties. Everything else — the
+           parallax, the light, the easing — is CSS, so this never touches
+           layout or paint itself.
+
+           Rects are read live rather than cached: this grid is three columns
+           of lazily-decoded images, so a cached rect would be wrong for any
+           card below one that had just finished loading. One rect per
+           pointermove on one element is cheap; sixteen cached ones that go
+           stale are a bug. */
+        (function () {
+          var grid = document.querySelector(".wk-grid");
+          if (!grid) return;
+          if (window.matchMedia && window.matchMedia("(hover: none), (prefers-reduced-motion: reduce)").matches) return;
+          grid.addEventListener(
+            "pointermove",
+            function (e) {
+              var card = e.target.closest && e.target.closest(".wk-card");
+              if (!card) return;
+              var r = card.getBoundingClientRect();
+              if (!r.width || !r.height) return;
+              var fx = (e.clientX - r.left) / r.width;
+              var fy = (e.clientY - r.top) / r.height;
+              card.style.setProperty("--px", (fx * 100).toFixed(1) + "%");
+              card.style.setProperty("--py", (fy * 100).toFixed(1) + "%");
+              /* Inverted, so the picture leans INTO the cursor rather than
+                 fleeing it — the same instinct as a spotlight rather than a
+                 repulsion field. */
+              card.style.setProperty("--mx", (0.5 - fx).toFixed(3));
+              card.style.setProperty("--my", (0.5 - fy).toFixed(3));
+            },
+            { passive: true }
+          );
+          grid.addEventListener(
+            "pointerleave",
+            function () {
+              var cards = grid.querySelectorAll(".wk-card");
+              for (var i = 0; i < cards.length; i++) {
+                cards[i].style.removeProperty("--mx");
+                cards[i].style.removeProperty("--my");
+              }
+            },
+            { passive: true }
+          );
+        })();
+
         (function () {
           var imgs = document.querySelectorAll(".wk-cover img");
           for (var i = 0; i < imgs.length; i++) {
@@ -545,6 +645,6 @@
       </script>
     </main>
 
-    {% include site_footer.html %} {% include cursor_fluid.html %} {% include scroll_length.html %}
+    {% include hero_morph.html %} {% include site_footer.html %} {% include cursor_fluid.html %} {% include scroll_length.html %}
   </body>
 </html>
