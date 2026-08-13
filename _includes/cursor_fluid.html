@@ -4928,14 +4928,67 @@
     document.body.appendChild(live);
     var btn = document.getElementById("theme-toggle");
     if (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
         var cur = html.getAttribute("data-theme") || "dark";
         var next = cur === "light" ? "dark" : "light";
-        apply(next);
-        try {
-          localStorage.setItem(KEY, next);
-        } catch (_) {}
-        live.textContent = "Theme switched to " + next;
+
+        var commit = function () {
+          apply(next);
+          try {
+            localStorage.setItem(KEY, next);
+          } catch (_) {}
+          live.textContent = "Theme switched to " + next;
+        };
+
+        /* ── THE NEW THEME ARRIVES FROM THE BUTTON ────────────────────────
+           Switching used to be instantaneous: every colour on the page swapped
+           between two frames. On a site this dark that is a flash, and it
+           gives no sense that the control you pressed caused it.
+
+           A same-document View Transition turns it into a circle opening from
+           the toggle. The incoming snapshot is clipped to a growing circle
+           centred on the button and rising to a radius that reaches the
+           furthest corner of the viewport, so the new theme sweeps across the
+           page from the thing you clicked.
+
+           The geometry is computed here rather than in CSS because it depends
+           on where the button is, which moves with the viewport. `clip-path`
+           on ::view-transition-new(root) is the whole effect; everything else
+           is the platform.
+
+           Falls back to the plain swap wherever startViewTransition is absent
+           or motion is unwelcome — `commit` is the same function either way,
+           so the theme itself can never fail to change. */
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (!document.startViewTransition || reduce) {
+          commit();
+          return;
+        }
+
+        var r = btn.getBoundingClientRect();
+        var cx = r.left + r.width / 2;
+        var cy = r.top + r.height / 2;
+        /* The far corner from the button, so the circle always finishes by
+           covering the screen rather than stopping short of a corner. */
+        var far = Math.hypot(Math.max(cx, window.innerWidth - cx), Math.max(cy, window.innerHeight - cy));
+
+        html.classList.add("is-theme-wipe");
+        var vt = document.startViewTransition(commit);
+        vt.ready
+          .then(function () {
+            document.documentElement.animate(
+              { clipPath: ["circle(0px at " + cx + "px " + cy + "px)", "circle(" + far + "px at " + cx + "px " + cy + "px)"] },
+              { duration: 620, easing: "cubic-bezier(0.16, 1, 0.3, 1)", pseudoElement: "::view-transition-new(root)" }
+            );
+          })
+          .catch(function () {});
+        vt.finished
+          .then(function () {
+            html.classList.remove("is-theme-wipe");
+          })
+          .catch(function () {
+            html.classList.remove("is-theme-wipe");
+          });
       });
     }
     // Also expose a global so Cmd+K can call it
