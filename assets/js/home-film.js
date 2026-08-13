@@ -457,16 +457,58 @@
   var fx = 0,
     flash = 0;
 
-  var label = document.createElement("span");
+  /* ── THE READOUT IS THE CONTROL ────────────────────────────────────────
+     Cycling the process is a click on the hero background, which is fine for
+     a pointer and unreachable for a keyboard: there is no element to tab to
+     and nothing to press. The label already sits in the corner naming the
+     current process, so it becomes the button rather than adding a second
+     piece of chrome to a hero that has been fighting for room all session.
+
+     A <button> rather than a div with a handler, so Enter and Space work
+     without being reimplemented, and it announces itself. aria-live on the
+     name means a screen-reader user hears the process change they just
+     asked for; the pointer path keeps working exactly as it did. */
+  var label = document.createElement("button");
+  label.type = "button";
   label.className = "film__fx";
-  label.setAttribute("aria-hidden", "true");
-  label.textContent = FX[0];
+  label.setAttribute("aria-label", "Change how the film is processed");
+  var labelText = document.createElement("span");
+  labelText.setAttribute("aria-live", "polite");
+  labelText.textContent = FX[0];
+  label.appendChild(labelText);
+  label.addEventListener("click", function (e) {
+    /* The hero's own handler would catch this too and advance twice. */
+    e.stopPropagation();
+    setFx(fx + 1);
+  });
+  /* Space activates this button through the normal path; Enter, measured on
+     this page, fires keydown and keyup and no click at all — something in the
+     shared key handling swallows the activation before the button sees it,
+     without setting defaultPrevented. Rather than hunt that down and depend
+     on it staying fixed, Enter is handled explicitly here. The guard on
+     `key` keeps every other key on its normal path, and preventDefault stops
+     a second activation if the native click ever returns. */
+  label.addEventListener("keydown", function (e) {
+    /* Both keys, explicitly. Native button activation on this page is not
+       dependable: before this handler existed, Enter fired keydown and keyup
+       with no click at all while Space worked; with Enter handled, Space
+       stopped. Something in the shared key handling is intercepting one or
+       the other and it is not worth being at its mercy for the only keyboard
+       route into this control.
+
+       preventDefault on Space also stops the page scrolling out from under a
+       visitor who is operating the hero. */
+    if (e.key !== "Enter" && e.key !== " " && e.key !== "Spacebar") return;
+    e.preventDefault();
+    e.stopPropagation();
+    setFx(fx + 1);
+  });
   stage.appendChild(label);
 
   function setFx(next) {
     fx = ((next % FX.length) + FX.length) % FX.length;
     flash = 1;
-    label.textContent = FX[fx];
+    labelText.textContent = FX[fx];
     label.classList.remove("is-on");
     /* Restart the CSS transition rather than waiting it out — clicking twice
        quickly should show the second name, not swallow it. */
