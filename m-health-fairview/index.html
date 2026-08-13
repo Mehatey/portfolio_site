@@ -7064,6 +7064,44 @@
       if (i >= 0) open(i);
     });
 
+    /* ── TOUCH ─────────────────────────────────────────────────────────────
+       Arrow keys are the only way to move between images, which on a phone
+       means there is none: you can open a picture and then only close it.
+       A horizontal drag steps, the same gesture the rest of the site already
+       uses on the footer rail.
+
+       The vertical guard matters. A phone gallery that steps on any drag
+       fights the reader's attempt to scroll, so the gesture only counts when
+       it is decisively horizontal — more than 48px across and at least
+       twice as far across as it travelled down. */
+    var tx0 = 0,
+      ty0 = 0,
+      touching = false;
+    box.addEventListener(
+      "touchstart",
+      function (e) {
+        if (e.touches.length !== 1) return;
+        touching = true;
+        tx0 = e.touches[0].clientX;
+        ty0 = e.touches[0].clientY;
+      },
+      { passive: true }
+    );
+    box.addEventListener(
+      "touchend",
+      function (e) {
+        if (!touching) return;
+        touching = false;
+        var t = e.changedTouches && e.changedTouches[0];
+        if (!t) return;
+        var dx = t.clientX - tx0;
+        var dy = t.clientY - ty0;
+        if (Math.abs(dx) < 48 || Math.abs(dx) < Math.abs(dy) * 2) return;
+        step(dx < 0 ? 1 : -1);
+      },
+      { passive: true }
+    );
+
     closeBtn.addEventListener("click", close);
     box.addEventListener("click", function (e) {
       if (e.target === box) close();
