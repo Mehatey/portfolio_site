@@ -6995,7 +6995,16 @@
       var chars = [];
       for (var l = 0; l < leaves.length; l++) {
         var node = leaves[l];
-        var text = node.textContent;
+        /* Collapse the markup's own indentation before splitting. A heading
+           written across three lines of HTML carries its leading newline and
+           spaces in the same text node as its words — measured, the works
+           heading split 37 characters for a title of 13 — and every one of
+           those became an inline-block that occupies width. Inner spacing is
+           preserved; only the edges go. */
+        var text = node.textContent.replace(/^\s+|\s+$/g, function (m) {
+          return m.indexOf("\n") > -1 ? "" : " ";
+        });
+        if (!text) continue;
         var frag = document.createDocumentFragment();
         for (var c = 0; c < text.length; c++) {
           var sp = document.createElement("span");
