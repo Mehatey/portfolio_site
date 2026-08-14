@@ -427,3 +427,62 @@ wrong.
    trying to make animated WebP variants of it. Non-breaking — the page uses a plain
    `<img src=".gif">` with no srcset, and 0 srcset targets are missing site-wide — but
    red errors on every build are how a real one gets ignored.
+
+---
+
+# STATE AS OF 14 AUG 2026 — the intro is back, and the checker tells the truth again
+
+Short session after a machine restart. Everything below was measured on a real dev
+server (`bundle exec jekyll serve --port 4123`), not reasoned about.
+
+## Running the verification loop on this machine
+
+Playwright's own chromium is not installed and its download is a separate ~130MB.
+It does not need to be: `bin/portfolio-qa.cjs` now honours `PORTFOLIO_CHROME`, so
+point it at the puppeteer cache already on disk and the whole suite runs:
+
+```bash
+bundle exec jekyll serve --port 4123
+PORTFOLIO_CHROME="$HOME/.cache/puppeteer/chrome/mac_arm-149.0.7827.22/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" \
+  node bin/portfolio-qa.cjs http://localhost:4123
+```
+
+`git` needs `DEVELOPER_DIR=/Library/Developer/CommandLineTools` exported or every
+invocation dies in `xcrun`. Xcode proper is not installed; do not point it at
+`/Applications/Xcode.app`.
+
+## What changed
+
+- **The mark's features thinned.** Eyes were 2.6×5.4 and the mouth 1.5 tall on a
+  36px glyph, which at nav size read as three bars. Now 1.9×5 and 1.1, centres and
+  radii scaled with them. Geometry lives in exactly one place, `_includes/site_logo.html`.
+- **`/bloom/` no longer runs off a phone.** Body scrolled 626px wide at 390. The
+  opening story grid collapses to one column below 760px but the track was `1fr`,
+  and a track's automatic minimum is min-content — `.cs-bleed` carries
+  `contain-intrinsic-size: auto 600px` for `content-visibility`, so while the image
+  is skipped that placeholder measures 600px and the column floored there.
+  `minmax(0, 1fr)` fixes it. **Any `.cs-bleed` dropped into a grid column will do
+  this again unless the track is written `minmax(0, …)`.**
+- **The QA run is honest again.** It was reporting 9 failures and 8 were the checker
+  being stale: three Play assertions looked for `#play-canvas`, a `.play-fallback`
+  grid and a page that never scrolled past one viewport, none of which have existed
+  since Play became a masonry gallery with a footer — the last one asserted the
+  opposite of what the page should now do. The work-index check grepped for "view
+  project" / "quick case" copy that is nowhere on the site, because the index makes
+  the whole row the target and hangs an arrow off the title. Both rewritten against
+  what the pages actually have to do. 628/628 green.
+
+## Two things the old notes get wrong now
+
+- **Item 5 of the 11 Aug evening list (the GIF build noise) is fixed.** A full build
+  on 14 Aug emits no "Invalid frame dimensions" and exits 0. All four GIFs in
+  `assets/img/` are animated and all four convert cleanly.
+- **The hover turn on the cube is not broken, whatever a computed-style read says.**
+  `getComputedStyle` returns the identity matrix on hover because the transform is
+  `rotateY(360deg)`, and 360° _is_ identity. Screenshot it; the turn is there.
+
+## Still open, and Sid is the blocker
+
+Unchanged from the lists above: Play's per-piece captions, `/mool/`'s twelve
+images with `alt="Mool"` and no words, the "PAST COLLABORATORS" label on /about/,
+and the About claim written in his voice. The disk is at 99% (6.7GB free).
