@@ -94,11 +94,11 @@
   var FS = [
     "precision highp float;",
     "varying vec2 v;",
-    "uniform sampler2D u_atlas;",
+    "uniform sampler2D u_atlas, u_video, u_real;",
     "uniform vec2 u_res;",
     "uniform float u_time, u_n, u_mode, u_next, u_blend, u_light, u_fade, u_sys, u_sysNext, u_sysBlend;",
-    "uniform vec2 u_ptr;",
-    "uniform float u_ptrOn;",
+    "uniform vec2 u_ptr, u_cover;",
+    "uniform float u_ptrOn, u_pal;",
 
     /* Value noise. Cheap, and its softness suits a field that is going to be
        quantised to sixteen steps anyway — gradient noise would spend detail
@@ -131,15 +131,32 @@
     "  return fbm(p * 3.4 + vec2(-t * 0.12, t * 0.08)) * 0.7 + noise(p * 9.0 + t * 0.6) * 0.4;",
     "}",
 
+    /* ── THE FIELD IS HIM, NOT NOISE ──────────────────────────────────────
+       Sid: "it looks terrible and not personal to me at all nothing about it
+       feels like me it feels like a generic fintech bg."
+
+       He is right, and the fault is structural rather than a matter of taste.
+       A field driven by fbm is the same field on anybody's site — swap the
+       palette and it could sell insurance. The marks were his; the thing they
+       were drawing was nobody's.
+
+       So the density is the FOOTAGE now. Every cell reads the luminance of
+       the video underneath and draws that, which means the glyphs, the
+       halftone, the contours and the blocks are all portraits: it is his room
+       and his face, rendered four ways. The flow noise survives only as a
+       small perturbation, enough to keep the grid from looking like a print
+       of a still, nowhere near enough to be the subject. */
     "float sampleField(vec2 p, float t){",
-    "  float a = 0.0, b = 0.0;",
-    "  int m0 = int(u_mode); int m1 = int(u_next);",
-    "  if (m0 == 0) a = fieldFor(0, p, t); else if (m0 == 1) a = fieldFor(1, p, t); else if (m0 == 2) a = fieldFor(2, p, t); else a = fieldFor(3, p, t);",
-    "  if (u_blend > 0.001) {",
-    "    if (m1 == 0) b = fieldFor(0, p, t); else if (m1 == 1) b = fieldFor(1, p, t); else if (m1 == 2) b = fieldFor(2, p, t); else b = fieldFor(3, p, t);",
-    "    return mix(a, b, u_blend);",
-    "  }",
-    "  return a;",
+    "  vec2 uv = (p - 0.5) * u_cover + 0.5;",
+    "  uv.y = 1.0 - uv.y;",
+    "  vec3 c = texture2D(u_video, uv).rgb;",
+    "  float lum = dot(c, vec3(0.299, 0.587, 0.114));",
+    /* The source is a dim room, so it is lifted here rather than in a grade
+       downstream: the ramp has sixteen steps and a signal that only ever uses
+       the bottom four of them is a waste of all four systems. */
+    "  lum = pow(clamp(lum * 1.9, 0.0, 1.0), 0.72);",
+    "  float drift = fbm(p * 2.6 + vec2(t * 0.05, -t * 0.035));",
+    "  return clamp(lum * 0.82 + drift * 0.24, 0.0, 1.0);",
     "}",
 
     /* One value in, one amount of ink out. Kept in a single function so the
@@ -221,25 +238,46 @@
        Two systems are evaluated and mixed whenever the clock is mid-change,
        so it morphs between them rather than cutting. */
     "  float sys = u_sysBlend > 0.001 ? -1.0 : u_sys;",
-    "  float ink = 0.0;",
+    "  float inkAmt = 0.0;",
     "  float inkA = drawSystem(int(u_sys), d, cuv, cid);",
     "  if (u_sysBlend > 0.001) {",
     "    float inkB = drawSystem(int(u_sysNext), d, cuv, cid);",
-    "    ink = mix(inkA, inkB, u_sysBlend);",
-    "  } else { ink = inkA; }",
+    "    inkAmt = mix(inkA, inkB, u_sysBlend);",
+    "  } else { inkAmt = inkA; }",
 
     /* Colour is a uniform, not an exposure. This is the whole reason the
        field can live on both themes: dark page gets cool light ink on
        nothing, cream page gets deep ink on nothing, and neither can wash out
        because neither is a photograph. */
-    "  vec3 warmDark = vec3(0.58, 0.72, 0.95);",
-    "  vec3 warmLight = vec3(0.10, 0.13, 0.20);",
-    "  vec3 tint = mix(warmDark, warmLight, u_light);",
-    "  tint = mix(tint, tint * vec3(1.15, 0.92, 1.05), smoothstep(0.55, 1.0, d));",
+    /* ── FIVE VIBES ───────────────────────────────────────────────────────
+       "everyclick let it change the styling and the vibe." A click advances
+       both the drawing system and the palette, so the change is a change of
+       register rather than the same picture in a different hue. */
+    "  vec3 ink;",
+    "  if (u_pal < 0.5)      ink = mix(vec3(0.62, 0.76, 0.98), vec3(0.08, 0.11, 0.18), u_light);",
+    "  else if (u_pal < 1.5) ink = mix(vec3(1.00, 0.52, 0.30), vec3(0.42, 0.13, 0.02), u_light);",
+    "  else if (u_pal < 2.5) ink = mix(vec3(0.52, 0.98, 0.72), vec3(0.02, 0.30, 0.16), u_light);",
+    "  else if (u_pal < 3.5) ink = mix(vec3(0.98, 0.45, 0.78), vec3(0.38, 0.05, 0.24), u_light);",
+    "  else                  ink = mix(vec3(0.94, 0.92, 0.86), vec3(0.10, 0.10, 0.10), u_light);",
+    "  vec3 tint = ink;",
+    "  tint = mix(tint, tint * vec3(1.12, 0.94, 1.04), smoothstep(0.55, 1.0, d));",
 
-    "  float alpha = ink * mix(0.62, 0.66, u_light) * u_fade;",
-    "  alpha *= 0.35 + 0.65 * d;",
-    "  gl_FragColor = vec4(tint, alpha);",
+    "  float alpha = inkAmt * mix(0.72, 0.7, u_light) * u_fade;",
+    "  alpha *= 0.3 + 0.7 * d;",
+
+    /* ── THE WINDOW ───────────────────────────────────────────────────────
+       "on hover show the real video". Under the pointer the glyph layer gives
+       way and the footage itself shows through, full colour and unscreened —
+       a hole cut in the print rather than a brightening of it. Soft-edged, so
+       it reads as the film surfacing rather than as a circular mask. */
+    "  vec2 ruv = (v - 0.5) * u_cover + 0.5;",
+    "  ruv.y = 1.0 - ruv.y;",
+    "  vec3 real = texture2D(u_real, ruv).rgb;",
+    "  real = clamp((pow(real, vec3(0.78)) - 0.5) * 1.12 + 0.5, 0.0, 1.0);",
+    "  float win = u_ptrOn * smoothstep(0.30, 0.05, pd);",
+    "  vec3 outCol = mix(tint, real, win);",
+    "  float outA = mix(alpha, u_fade * 0.98, win);",
+    "  gl_FragColor = vec4(outCol, outA);",
     "}",
   ].join("\n");
 
@@ -282,6 +320,83 @@
   ].forEach(function (k) {
     U[k] = gl.getUniformLocation(prog, k);
   });
+
+  /* ── THE FOOTAGE ───────────────────────────────────────────────────────
+     Sid: "i want my video to play once the pixel one and on hover show the
+     real video and also have the overlay bg and once its done playing once it
+     doesnt show up again."
+
+     So there are two plates and a rule. The pixelated encode plays exactly
+     once, on a first visit, and the field draws itself from it; the moment it
+     ends the source swaps to the clear footage and the pixel plate is never
+     mounted again, remembered in localStorage so it does not return tomorrow
+     either. Under the pointer the glyph layer opens and the clear plate shows
+     through as itself.
+
+     Both are decode sources only — nothing here is ever painted to the page
+     directly, the shader reads them as textures. */
+  var PIX_KEY = "sid_pixel_seen";
+  var pixSeen = false;
+  try {
+    pixSeen = !!localStorage.getItem(PIX_KEY);
+  } catch (e) {}
+
+  function mkVideo(src, loop) {
+    var v = document.createElement("video");
+    v.src = src;
+    v.muted = true;
+    v.playsInline = true;
+    v.setAttribute("playsinline", "");
+    v.setAttribute("muted", "");
+    v.loop = !!loop;
+    v.preload = "auto";
+    v.style.cssText = "position:absolute;width:1px;height:1px;opacity:0;pointer-events:none";
+    stage.appendChild(v);
+    v.play().catch(function () {});
+    return v;
+  }
+
+  var base = stage.getAttribute("data-base") || "";
+  var vClear = mkVideo(base + "/assets/video/sid_sitting.mp4", true);
+  var vPix = pixSeen ? null : mkVideo(base + "/assets/video/sid_pixelated.mp4", false);
+  if (vPix) {
+    vPix.addEventListener("ended", function () {
+      try {
+        localStorage.setItem(PIX_KEY, "1");
+      } catch (e) {}
+      /* Dropped from the DOM as well as from the draw, so a visitor who has
+         seen it once is not decoding it for the rest of the session. */
+      if (vPix.parentNode) vPix.parentNode.removeChild(vPix);
+      vPix = null;
+    });
+  }
+
+  var vidAspect = 16 / 9;
+  function upload(t, video) {
+    if (!video || video.readyState < 2) return false;
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    try {
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, video);
+    } catch (e) {
+      return false;
+    }
+    if (video.videoWidth) vidAspect = video.videoWidth / video.videoHeight;
+    return true;
+  }
+
+  function newTex() {
+    var t = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, t);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([10, 12, 18, 255]));
+    return t;
+  }
+  var texVideo = newTex(),
+    texReal = newTex();
 
   var tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -364,6 +479,7 @@
      The weather underneath runs on its own slower clock, so the two are
      almost never in phase: a given combination of system and weather comes
      round about every four minutes. */
+  var pal = Math.floor(Math.random() * 5);
   var sys = Math.floor(Math.random() * 4),
     sysNext = sys,
     sysBlend = 0,
@@ -442,6 +558,21 @@
     gl.uniform1f(U.u_sys, sys);
     gl.uniform1f(U.u_sysNext, sysNext);
     gl.uniform1f(U.u_sysBlend, sysBlend > 0 ? Math.min(1, sysBlend) : 0);
+    gl.uniform1f(U.u_pal, pal);
+
+    /* object-fit: cover in uv, so the footage crops rather than stretching. */
+    var stageAspect = canvas.width / Math.max(1, canvas.height);
+    if (vidAspect > stageAspect) gl.uniform2f(U.u_cover, stageAspect / vidAspect, 1.0);
+    else gl.uniform2f(U.u_cover, 1.0, vidAspect / stageAspect);
+
+    upload(texVideo, vPix || vClear);
+    upload(texReal, vClear);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, texVideo);
+    gl.uniform1i(U.u_video, 1);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, texReal);
+    gl.uniform1i(U.u_real, 2);
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -464,6 +595,22 @@
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlasCv);
   }
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(boot).catch(function () {});
+
+  /* ── EVERY CLICK CHANGES THE REGISTER ──────────────────────────────────
+     "everyclick let it change the styling and the vibe." Both advance: a new
+     drawing system and a new palette, so it is a different piece of work
+     rather than a recolour. Clicks on real controls are left alone. */
+  var heroEl = stage.closest("section") || stage.parentElement;
+  if (heroEl) {
+    heroEl.addEventListener("pointerdown", function (e) {
+      if (e.button !== undefined && e.button !== 0) return;
+      var t = e.target;
+      if (t && t.closest && t.closest('a, button, select, input, textarea, label, [role="button"], [role="listbox"], .pgram')) return;
+      sysNext = (sys + 1 + Math.floor(Math.random() * 2)) % 4;
+      sysBlend = 0.0001;
+      pal = (pal + 1) % 5;
+    });
+  }
 
   raf = requestAnimationFrame(frame);
 })();
