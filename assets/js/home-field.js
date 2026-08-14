@@ -276,9 +276,24 @@
     "    d -= smoothstep(0.16, 0.42, pd) * infl * 0.12;",
     "  }",
 
-    /* Vertical falloff. The headline sits in the lower half, so the field
-       gives that band back: full weather at the top, quiet under the type. */
-    "  d *= mix(0.42, 1.0, smoothstep(0.86, 0.16, v.y));",
+    /* ── THE FALLOFF WAS UPSIDE DOWN ──────────────────────────────────────
+       This has always read "full weather at the top, quiet under the type",
+       and it has always done the opposite. `v` comes from the clip-space
+       quad, so v.y is 0 at the BOTTOM of the screen — and smoothstep(0.86,
+       0.16, v.y) returns 1 there. The field was running at full strength
+       across the bottom third and at 0.42 across the top: loudest exactly
+       where the headline and the sentence sit, quietest across the empty sky
+       above the figure.
+
+       It was survivable while every state was a sparse grid of marks. It
+       stopped being survivable the moment three of the five treatments
+       started printing the plate itself — at which point the copy was sitting
+       on a full-contrast line drawing of a chain-link fence.
+
+       Both ends corrected: quiet at the bottom, and quieter than before,
+       because what it is holding back now is a photograph rather than a
+       scattering of glyphs. */
+    "  d *= mix(0.22, 1.0, smoothstep(0.16, 0.86, v.y));",
     "  d = clamp(d, 0.0, 1.0);",
 
     /* ── THE CLOCK ────────────────────────────────────────────────────────
@@ -306,8 +321,10 @@
 
     /* The three plate-handling treatments would otherwise print the footage
        at full strength straight through the headline. Same vertical falloff
-       the density already gets, applied to their alpha instead. */
-    "  float quiet = mix(0.42, 1.0, smoothstep(0.86, 0.16, v.y)) * u_fade;",
+       the density gets — and the same correction, see above. Lower floor
+       again, because these carry the photograph rather than a mark derived
+       from it. */
+    "  float quiet = mix(0.14, 1.0, smoothstep(0.20, 0.82, v.y)) * u_fade;",
 
     "  vec4 A = treat(int(u_sys), uvP, cuv, d, tint, filmA, inkAmt, u_time, quiet);",
     "  vec4 outv = A;",
