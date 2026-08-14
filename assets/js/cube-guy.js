@@ -96,6 +96,7 @@
     "varying float v_rand;",
     "varying float v_brush;",
     "varying float v_lit;",
+    "varying vec2 v_scr;",
 
     /* One hash per point, off its own position, so the scatter is stable
        between frames — a per-frame random would boil rather than drift. */
@@ -164,6 +165,12 @@
        to be a real number, not 0. Mapped to roughly the volume the figure
        occupies. */
     "  gl_Position = vec4(ndc, clamp((z - 1.8) / 2.6, -0.99, 0.99), 1.0);",
+    /* Screen-space uv for the reveal's texture. Sampling the plate where the
+       point LANDS rather than by any model uv means the footage sits still in
+       the frame while he turns through it — the surface reads as a window cut
+       into the film, which is the effect Sid is after, and it costs one
+       varying. */
+    "  v_scr = ndc * 0.5 + 0.5;",
 
     /* Inside the brush the points grow until they overlap into a surface.
        That is the whole trick: no mesh is shipped, the solid is 55,843 points
@@ -177,11 +184,14 @@
   var FS = [
     "precision highp float;",
     "uniform vec3 u_near, u_far;",
-    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll;",
+    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll, u_texMode, u_hasTex, u_time;",
+    "uniform sampler2D u_tex;",
+    "uniform vec2 u_texCover;",
     "varying float v_depth;",
     "varying float v_rand;",
     "varying float v_brush;",
     "varying float v_lit;",
+    "varying vec2 v_scr;",
     "void main() {",
     "  vec2 c = gl_PointCoord - 0.5;",
     "  float d = dot(c, c);",
@@ -197,6 +207,46 @@
     "    if (v_brush < 0.02) discard;",
     "    vec3 lit = mix(u_far * 0.9, u_near, clamp(t * 0.24 + v_lit * 0.86 - 0.06, 0.0, 1.0));",
     "    lit *= 0.66 + 0.52 * v_lit;",
+
+    /* ── THE REVEAL IS TEXTURED ────────────────────────────────────────────
+       Sid: "when i hover over the cube guy, it should show with the proper
+       texture of the image, not just grayness. every time i hover, it should
+       show a different type of texture on it."
+
+       The grey was a lambert term over a two-colour depth ramp — a clay
+       render, which is the right way to show FORM and says nothing about what
+       the thing is made of. The surface now takes his footage as its albedo,
+       sampled in screen space so the film holds still while he turns through
+       it, with the lighting kept as a multiplier so the form survives.
+
+       Five ways of treating that albedo, advanced once per hover (see
+       u_texMode), so leaving and coming back is never the same material
+       twice. */
+    "    if (u_hasTex > 0.5) {",
+    "      vec2 tuv = (v_scr - 0.5) * u_texCover + 0.5;",
+    "      vec3 tex = texture2D(u_tex, vec2(tuv.x, 1.0 - tuv.y)).rgb;",
+    "      float m = u_texMode;",
+    "      if (m < 0.5) {",
+    /* 0 — the plate, graded. */
+    "        tex = clamp((pow(tex, vec3(0.8)) - 0.5) * 1.18 + 0.5, 0.0, 1.0);",
+    "      } else if (m < 1.5) {",
+    /* 1 — posterised to six steps: the film as screen-print. */
+    "        tex = floor(tex * 6.0 + 0.5) / 6.0;",
+    "      } else if (m < 2.5) {",
+    /* 2 — luminance only, but the FILM's luminance, so it is a silver print
+       of his room rather than flat grey. */
+    "        float l = dot(tex, vec3(0.299, 0.587, 0.114));",
+    "        tex = vec3(pow(l, 0.8)) * vec3(1.02, 1.0, 0.94);",
+    "      } else if (m < 3.5) {",
+    /* 3 — channels pulled apart across the surface. */
+    "        float o = 0.006 + 0.004 * sin(u_time * 0.6);",
+    "        tex = vec3(texture2D(u_tex, vec2(tuv.x + o, 1.0 - tuv.y)).r, tex.g, texture2D(u_tex, vec2(tuv.x - o, 1.0 - tuv.y)).b);",
+    "      } else {",
+    /* 4 — inverted and cooled: the plate as a negative. */
+    "        tex = mix(1.0 - tex, tex, 0.18) * vec3(0.86, 0.94, 1.08);",
+    "      }",
+    "      lit = mix(lit, tex * (0.42 + 0.9 * v_lit), 0.82);",
+    "    }",
     "    float a = smoothstep(0.25, 0.19, d) * smoothstep(0.01, 0.16, v_brush) * u_fade * (1.0 - smoothstep(0.55, 0.95, u_scroll));",
     "    gl_FragColor = vec4(lit, a);",
     "    return;",
@@ -257,6 +307,10 @@
     "u_brushR",
     "u_scroll",
     "u_grow",
+    "u_tex",
+    "u_texMode",
+    "u_hasTex",
+    "u_texCover",
   ].forEach(function (k) {
     U[k] = gl.getUniformLocation(prog, k);
   });
@@ -295,6 +349,38 @@
     }
     setBlend();
   }
+  /* ── THE PLATE, BORROWED ────────────────────────────────────────────────
+     home-field already has his footage decoding in a <video> for the hero
+     background. Reusing that element rather than mounting a second one means
+     the reveal costs a texture upload and not another 2.2MB decode — two
+     contexts can read the same video element, they just cannot share the
+     texture object. If the field is not running (no WebGL there, or the
+     element has not appeared yet) the reveal falls back to the clay render,
+     which is what it was before. */
+  var plate = null;
+  var plateTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, plateTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([20, 24, 32, 255]));
+
+  function findPlate() {
+    if (plate && plate.readyState >= 2) return plate;
+    var vids = document.querySelectorAll("#field-stage video");
+    for (var i = 0; i < vids.length; i++) {
+      if (vids[i].readyState >= 2 && vids[i].videoWidth) {
+        plate = vids[i];
+        return plate;
+      }
+    }
+    return null;
+  }
+
+  /* A different material every time you come back to him. */
+  var texMode = Math.floor(Math.random() * 5);
+
   readTheme();
   new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
@@ -384,6 +470,9 @@
   host.addEventListener("pointerenter", function (e) {
     if (e.pointerType === "touch") return;
     hovTarget = 1;
+    /* Advanced on the way in rather than on the way out, so the material has
+       already changed by the time the brush opens. */
+    texMode = (texMode + 1 + Math.floor(Math.random() * 2)) % 5;
   });
   host.addEventListener("pointermove", function (e) {
     if (e.pointerType === "touch") return;
@@ -489,7 +578,18 @@
        transition because it drives a shader, and Sid asked for slow. */
     var target = REDUCED ? 0 : hovTarget;
     hov += (target - hov) * 0.018;
-    fade += (1 - fade) * 0.04;
+    /* ── HE ARRIVES SECOND ────────────────────────────────────────────────
+       The field opens on Sid's pixelated plate with the frame to itself
+       (phase 0), then the clear take (phase 1), and only then does the figure
+       fade up. Sid: "basically, i want a little hierarchy in how we show
+       information on the homepage."
+
+       Guarded so that if home-field never runs — no WebGL there, or the file
+       fails — __fieldPhase stays undefined and he simply appears, rather than
+       waiting forever for a sequence that is not coming. */
+    var fp = window.__fieldPhase;
+    var welcome = fp === undefined || fp >= 1;
+    fade += ((welcome ? 1 : 0) - fade) * 0.03;
 
     setRot(yaw, pitch);
     gl.uniformMatrix3fv(U.u_rot, false, rot);
@@ -497,6 +597,30 @@
     gl.uniform1f(U.u_hov, hov);
     gl.uniform2f(U.u_ptr, ptrX, ptrY);
     gl.uniform1f(U.u_brushR, 0.46);
+
+    /* Uploaded only while the reveal is actually open — at rest this is a
+       point cloud and there is nothing to texture. */
+    var v = hov > 0.01 ? findPlate() : null;
+    if (v) {
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, plateTex);
+      try {
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v);
+        gl.uniform1i(U.u_tex, 0);
+        gl.uniform1f(U.u_hasTex, 1);
+      } catch (e) {
+        gl.uniform1f(U.u_hasTex, 0);
+      }
+      /* cover, so the plate is not stretched across a tall stage */
+      var va = v.videoWidth / Math.max(1, v.videoHeight);
+      var sa = canvas.width / Math.max(1, canvas.height);
+      if (va > sa) gl.uniform2f(U.u_texCover, sa / va, 1);
+      else gl.uniform2f(U.u_texCover, 1, va / sa);
+    } else {
+      gl.uniform1f(U.u_hasTex, 0);
+    }
+    gl.uniform1f(U.u_texMode, texMode);
 
     /* Progress through the hero, 0 at rest and 1 once it has scrolled by. The
        stage is absolutely positioned inside the hero, so it is already

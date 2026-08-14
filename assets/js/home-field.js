@@ -98,7 +98,7 @@
     "uniform vec2 u_res;",
     "uniform float u_time, u_n, u_mode, u_next, u_blend, u_light, u_fade, u_sys, u_sysNext, u_sysBlend;",
     "uniform vec2 u_ptr, u_cover;",
-    "uniform float u_shift;",
+    "uniform float u_shift, u_raw;",
     "uniform float u_ptrOn, u_pal;",
 
     /* Value noise. Cheap, and its softness suits a field that is going to be
@@ -334,6 +334,23 @@
     "  }",
     "  vec3 outCol = outv.rgb;",
     "  float outA = outv.a;",
+
+    /* ── PHASE 0 AND 1: THE PLATE, PLAINLY ────────────────────────────────
+       No glyphs, no halftone, no pointer window, no vertical falloff — the
+       footage full frame, which is the only state in which a viewer can
+       simply watch it. u_raw cross-fades this out over 1.5s as the field
+       takes over, so the treatments arrive as something that happens TO the
+       picture rather than as the picture.
+
+       The copy still has to be readable over it, so the plate carries the
+       same bottom-weighted scrim the type has always needed — a gradient in
+       the alpha, not a black box drawn over the film. */
+    "  if (u_raw > 0.001) {",
+    "    vec3 plain = plate(uvP);",
+    "    float scrim = mix(0.34, 1.0, smoothstep(0.10, 0.62, v.y));",
+    "    outCol = mix(outCol, plain, u_raw);",
+    "    outA = mix(outA, u_fade * scrim, u_raw);",
+    "  }",
     "  gl_FragColor = vec4(outCol, outA);",
     "}",
   ].join("\n");
@@ -398,6 +415,7 @@
     "u_ptr",
     "u_cover",
     "u_shift",
+    "u_raw",
     "u_ptrOn",
     "u_pal",
     "u_sys",
@@ -421,11 +439,27 @@
 
      Both are decode sources only — nothing here is ever painted to the page
      directly, the shader reads them as textures. */
-  var PIX_KEY = "sid_pixel_seen";
-  var pixSeen = false;
-  try {
-    pixSeen = !!localStorage.getItem(PIX_KEY);
-  } catch (e) {}
+  /* ── THE OPENING IS A SEQUENCE NOW ──────────────────────────────────────
+     Sid: "can we start with the pixelated video, the actual pixelated video?
+     ... let that video play once, and then play the proper video without
+     isolation and all the other effects that you have. basically, i want a
+     little hierarchy in how we show information on the homepage."
+
+     Three phases, and each one earns the next:
+
+       0 PLATE     his own pixelated encode, full frame, no treatment at all.
+                   It plays once and it is the first thing anyone sees.
+       1 FILM      the clear take, also full frame, also untreated, for one
+                   playthrough. The picture resolves.
+       2 FIELD     only now do the five treatments come in, cross-fading over
+                   1.5s, and only now does clicking change anything.
+
+     The localStorage gate that made phase 0 a once-ever event is gone. It is
+     the opening of the page; a page that opens differently depending on
+     whether you have been before does not have an opening. */
+  var phase = 0;
+  var raw = 1; // 1 = the plate as itself, 0 = the treatments
+  var filmDeadline = 0;
 
   function mkVideo(src, loop) {
     var v = document.createElement("video");
@@ -444,12 +478,14 @@
 
   var base = stage.getAttribute("data-base") || "";
   var vClear = mkVideo(base + "/assets/video/sid_sitting.mp4", true);
-  var vPix = pixSeen ? null : mkVideo(base + "/assets/video/sid_pixelated.mp4", false);
+  var vPix = mkVideo(base + "/assets/video/sid_pixelated.mp4", false);
   if (vPix) {
     vPix.addEventListener("ended", function () {
-      try {
-        localStorage.setItem(PIX_KEY, "1");
-      } catch (e) {}
+      /* Phase 0 → 1. The clear take gets one full pass before anything is
+         drawn over it; duration is read off the element, with a floor so a
+         stalled metadata read cannot skip the phase entirely. */
+      phase = 1;
+      filmDeadline = performance.now() + Math.max(6000, (vClear.duration || 10) * 1000);
       /* Dropped from the DOM as well as from the draw, so a visitor who has
          seen it once is not decoding it for the rest of the session. */
       if (vPix.parentNode) vPix.parentNode.removeChild(vPix);
@@ -692,8 +728,18 @@
     }
     gl.uniform2f(U.u_cover, cx, cy);
 
+    /* Phase 1 → 2 once the clear take has had its pass. */
+    if (phase === 1 && filmDeadline && now > filmDeadline) phase = 2;
+    /* Published so the cube guy can hold off until the plate has had the
+       frame to itself. One number on window, read once a frame; the two
+       canvases stay otherwise independent. */
+    window.__fieldPhase = phase;
+    /* 1.5s cross-fade from the plate into the treatments. */
+    raw += ((phase === 2 ? 0 : 1) - raw) * 0.011;
+    gl.uniform1f(U.u_raw, raw);
+
     upload(texVideo, vPix || vClear);
-    upload(texReal, vClear);
+    upload(texReal, phase === 0 && vPix ? vPix : vClear);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texVideo);
     gl.uniform1i(U.u_video, 1);

@@ -2592,20 +2592,72 @@
         var host = document.querySelector(".tw");
         var hero = document.getElementById("hero");
         if (!host) return;
+        /* ── IT TYPES AFTER ALL ───────────────────────────────────────────
+           Sid, twice: "the product designer six years show up in a nice
+           typewriter fashion", and then "i want the product designer text to
+           appear through a typewriter animation, and then the next text."
+
+           A previous pass took the typewriter OUT, and the argument it left
+           behind is worth keeping on the record because it was his own: a
+           character-by-character reveal is the single most-copied "AI
+           website" gesture there is, and nothing here is supposed to read as
+           slop. That objection was answered by the sequence around it rather
+           than by refusing the request — this line now types over his own
+           footage, as the second beat of an opening that starts with his
+           pixelated plate, which is not a gesture anyone else can copy.
+
+           28ms a character with a 420ms beat between lines: the first line is
+           legible in under a second and both are home in about two, which is
+           inside the window a hero gets. Reduced motion skips straight to the
+           full text — a headline that withholds itself is the exact thing
+           that switch exists to stop. */
         var lines = (host.getAttribute("data-tw") || "").split("|");
-        lines.forEach(function (txt, i) {
+        var LESS = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var inks = lines.map(function (txt, i) {
           var el = document.createElement("span");
           el.className = "tw__line";
           var ink = document.createElement("span");
           ink.className = "tw__ink";
+          /* The full string is written first and then emptied, so the block
+             reserves its final height immediately. Typing into an empty
+             element reflows the hero on every character and drags the copy
+             under it up and down for two seconds. */
           ink.textContent = txt;
-          /* 110ms apart. Wide enough that the three lines read as a sequence
-             rather than one block sliding, tight enough that the last one is
-             home before the eye has finished the first. */
           ink.style.animationDelay = 240 + i * 110 + "ms";
           el.appendChild(ink);
           host.appendChild(el);
+          return { ink: ink, txt: txt };
         });
+
+        if (!LESS) {
+          inks.forEach(function (o) {
+            o.ink.style.visibility = "hidden";
+          });
+          var line = 0;
+          var pos = 0;
+          var startAt = performance.now() + 520;
+          (function type(now) {
+            if (line >= inks.length) return;
+            if (now < startAt) {
+              requestAnimationFrame(type);
+              return;
+            }
+            var o = inks[line];
+            o.ink.style.visibility = "visible";
+            pos += 1;
+            /* A hair space holds the line's box open where the text has not
+               arrived yet, so nothing under it moves. */
+            o.ink.textContent = o.txt.slice(0, pos);
+            if (pos >= o.txt.length) {
+              line += 1;
+              pos = 0;
+              startAt = now + 420;
+            } else {
+              startAt = now + 28;
+            }
+            requestAnimationFrame(type);
+          })(performance.now());
+        }
         if (hero) hero.classList.add("in");
 
         /* The per-character cursor response that used to live here is now
