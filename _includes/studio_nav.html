@@ -984,6 +984,45 @@
     transform: translateX(-1.8px);
   }
 
+  /* ── THE HOVER BUILDS A SOLID ────────────────────────────────────────────
+     Sid: "on hover let it do cooler stuff and become 3d."
+
+     The old hover span the flat mark through rotateY(360deg) under a
+     perspective. It is a nice turn and it is not three-dimensional: a full
+     revolution starts and ends at the identity matrix, and what happens in
+     between is one flat card showing you its back. The mark was never a
+     solid at any frame of it.
+
+     This builds one. The two spare faces are the same 21×21 box as the body,
+     so each can be skewed about the edge it shares with it:
+
+       · the top face scales to a quarter height and skews so its far edge
+         runs 10.5 units right and 5.25 up — the standard 2:1 construction —
+         and lands exactly on the body's top edge;
+       · the right face scales to half width and skews down the same slope,
+         landing exactly on the body's right edge.
+
+     Two parallelograms and a square, meeting at real corners: an isometric
+     cube, drawn rather than faked with a squash. The faces also take a fill
+     so it reads as a solid with a lit face rather than as wireframe.
+
+     What makes it feel three-dimensional is that it then answers the hand.
+     `--mx` / `--my` come from the pointer's position across the mark (see the
+     script below) and tilt the whole glyph under a 300px camera, so the
+     nearest corner really does come at you. That part is on the <svg>
+     element, which is an ordinary HTML box and takes 3D transforms happily —
+     SVG children do not, which is why the faces are built in 2D. */
+  .studio-mark:hover .logo-cube .cube-top,
+  .studio-mark:focus-visible .logo-cube .cube-top {
+    transform-origin: 0 100%;
+    transform: translateY(-21px) skewX(-63.435deg) scaleY(0.25);
+  }
+  .studio-mark:hover .logo-cube .cube-right,
+  .studio-mark:focus-visible .logo-cube .cube-right {
+    transform-origin: 0 0;
+    transform: translateX(21px) skewY(-26.565deg) scaleX(0.5);
+  }
+
   /* Drawn, not faded: dashoffset runs the stroke across the face from one
      side, which is what makes it read as something sweeping rather than
      something appearing. */
@@ -1002,22 +1041,26 @@
 
   .studio-mark:hover .logo-cube,
   .studio-mark:focus-visible .logo-cube {
-    transform: perspective(340px) translateY(-1px) rotateY(360deg) scale(1.075);
+    /* --mx / --my are the pointer's position across the mark, -1 to 1, set by
+       the script at the foot of this file. They default to 0, so a keyboard
+       focus gets a still, slightly turned cube rather than nothing. */
+    transform: perspective(300px) rotateY(calc(var(--mx, 0) * 26deg)) rotateX(calc(var(--my, 0) * -22deg)) translateZ(6px) scale(1.06);
     color: rgba(206, 228, 255, 0.98);
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.34)) drop-shadow(0 0 16px rgba(150, 200, 255, 0.42));
   }
+  /* Tracking a pointer through a 560ms ease is a lag, not a follow. While the
+     mark is under the hand the tilt is nearly immediate; the settle back to
+     rest keeps the long curve. */
+  .studio-mark:hover .logo-cube {
+    transition:
+      transform 120ms linear,
+      color 300ms ease,
+      filter 300ms ease;
+  }
   .studio-mark:hover .logo-cube .cube-face,
   .studio-mark:focus-visible .logo-cube .cube-face {
-    opacity: 0.82;
-    fill-opacity: 0.16;
-  }
-  .studio-mark:hover .logo-cube .cube-top,
-  .studio-mark:focus-visible .logo-cube .cube-top {
-    transform: translateY(0);
-  }
-  .studio-mark:hover .logo-cube .cube-right,
-  .studio-mark:focus-visible .logo-cube .cube-right {
-    transform: translateX(0);
+    opacity: 0.9;
+    fill-opacity: 0.14;
   }
   .studio-mark:hover .logo-cube .logo-scan,
   .studio-mark:focus-visible .logo-cube .logo-scan {
@@ -1025,9 +1068,9 @@
     stroke-dashoffset: 0;
   }
 
-  /* A full turn is exactly the kind of motion this switch exists for. Hold
-     the assembled faces and the drawn scan — those are information, not
-     decoration — and drop only the spin and the lift. */
+  /* Hold the assembled solid — that is what the mark turns into, and it is
+     information rather than decoration — and drop the tilt that chases the
+     pointer, which is the part that moves without being asked to. */
   @media (prefers-reduced-motion: reduce) {
     .studio-mark .logo-cube .logo-scan {
       transition-duration: 1ms !important;
@@ -1035,6 +1078,7 @@
     .studio-mark:hover .logo-cube,
     .studio-mark:focus-visible .logo-cube {
       transform: none;
+      transition: none;
     }
   }
 
@@ -1485,6 +1529,59 @@
         link.addEventListener("pointerenter", go);
         link.addEventListener("focus", go);
       })(labels[i]);
+    }
+  })();
+</script>
+
+<script>
+  /* ── THE MARK ANSWERS THE HAND ────────────────────────────────────────────
+     Sid: "on hover let it do cooler stuff and become 3d."
+
+     The CSS builds the solid; this gives it a camera. --mx and --my are the
+     pointer's position across the mark normalised to -1..1, read off the
+     mark's own box, and the tilt is applied in CSS so the whole thing stays
+     one composited transform.
+
+     Written against `.studio-mark` rather than `.logo-cube` because the
+     pointer target is the link — the glyph inside it is 36px and a tilt that
+     only starts once you are dead on it never gets found. */
+  (function () {
+    var marks = document.querySelectorAll(".studio-mark");
+    if (!marks.length) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia && !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    for (var i = 0; i < marks.length; i++) {
+      (function (mark) {
+        var cube = mark.querySelector(".logo-cube");
+        if (!cube) return;
+        var raf = 0;
+        var px = 0;
+        var py = 0;
+
+        var write = function () {
+          raf = 0;
+          cube.style.setProperty("--mx", px.toFixed(3));
+          cube.style.setProperty("--my", py.toFixed(3));
+        };
+
+        mark.addEventListener("pointermove", function (e) {
+          if (e.pointerType === "touch") return;
+          var b = mark.getBoundingClientRect();
+          /* Clamped because the link box is wider than the glyph — without
+             it the wordmark end of the target drives the tilt past its
+             hinge and the cube reads as broken rather than turned. */
+          px = Math.max(-1, Math.min(1, ((e.clientX - b.left) / b.width) * 2 - 1));
+          py = Math.max(-1, Math.min(1, ((e.clientY - b.top) / b.height) * 2 - 1));
+          if (!raf) raf = requestAnimationFrame(write);
+        });
+
+        mark.addEventListener("pointerleave", function () {
+          px = 0;
+          py = 0;
+          if (!raf) raf = requestAnimationFrame(write);
+        });
+      })(marks[i]);
     }
   })();
 </script>

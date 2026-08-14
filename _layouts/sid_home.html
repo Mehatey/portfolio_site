@@ -563,32 +563,39 @@
         display: inline-flex;
         align-items: baseline;
       }
-      /* ── NOT A DROPDOWN ──────────────────────────────────────────────────
-         This was a native <select>, chosen so the phone would get its own
-         picker and the keyboard would work for free. Sid: "i hate this drop
-         down ui implementation of the concept."
+      /* ── NOT A DROPDOWN, AND NOW NOT A MENU EITHER ──────────────────────
+         This was a native <select>, then a hand-drawn listbox. Sid, on the
+         second one: "i still dont like drop down. it changes answers based on
+         what is selected ... also going out of bounds ... and the click
+         doesnt change the style."
 
-         He is right, and the reason is that a <select> is the one control a
-         browser refuses to let you draw. Everything else on this page is set
-         in the site's own type on the site's own palette, and then the
-         sentence at the centre of the hero opened a rounded black OS panel in
-         the system font, with a system tick, at a size nothing else on the
-         page uses. It read as a form dropped onto a film.
+         Three separate faults, and only the last one was cosmetic.
 
-         So the word is a button and the options are a list, both drawn here.
-         The list is a column of words on a hairline rule, in the same face
-         and colour as the sentence they belong to, over the same blurred
-         plate as the rest of the site's chrome. No panel, no tick, no chevron
-         column, no rounded box.
+         A menu anchored to a word in the bottom-right corner of a full-height
+         hero has nowhere to go. Flipping it upward bought one viewport's worth
+         of room and then it ran off the top instead; at 14 options it cannot
+         fit in that corner in any direction. Any popup here is going out of
+         bounds eventually, so the popup is gone rather than repositioned.
 
-         The button keeps the semantics the <select> gave away for free —
-         aria-haspopup, aria-expanded, role="listbox" and aria-selected — and
-         the script below implements the keys the browser used to. */
-      .pgram__val {
+         The second list rebuilding itself from the first was a deliberate
+         decision — it guaranteed every sentence had work behind it — and it
+         was the wrong one. From the reader's side the control silently edits
+         the answers while they are looking at them, so the range they think
+         they are being shown is smaller than the range that exists, and it
+         reads as the page second-guessing them. The lists are independent
+         now, and the result count that made empty pairings a problem is not
+         rendered any more, so nothing can come back empty.
+
+         What replaces it is a reel: one word visible, the others behind it,
+         swapped in place. It cycles on its own so the range is legible
+         without touching anything, faster under the pointer, and a click
+         holds the word you want — which is the state that had no style
+         before. It cannot overflow anything, because nothing ever opens. */
+      .pgram__slot {
         appearance: none;
         -webkit-appearance: none;
         margin: 0;
-        padding: 0 0.72em 0.06em 0;
+        padding: 0 0 0.06em;
         border: 0;
         background: none;
         font: inherit;
@@ -598,14 +605,29 @@
         position: relative;
         display: inline-flex;
         align-items: baseline;
-        gap: 0.1em;
         outline: none;
       }
-      .pgram__word {
+      /* The window is sized from an invisible in-flow copy of the live word
+         rather than from the widest option, so the sentence closes up around
+         short words instead of sitting with a hole in it. The copy is also
+         what gives the inline box its baseline — the visible words are
+         absolutely positioned and have none to give. */
+      .pgram__win {
+        position: relative;
         display: inline-block;
+        transition: width 420ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-      /* The hairline is on the wrapper so it spans the chevron and stays put
-         while the word changes width under it. */
+      .pgram__size {
+        visibility: hidden;
+        white-space: nowrap;
+        pointer-events: none;
+      }
+      .pgram__stack {
+        display: block;
+      }
+      /* The rule under the word. On the button rather than the window so it
+         spans the full blank and stays put while the word changes width
+         under it. */
       .pgram__slot::after {
         content: "";
         position: absolute;
@@ -614,124 +636,57 @@
         bottom: -0.04em;
         height: 1px;
         background: var(--home-hair);
-        transition: background 0.24s ease;
+        transition:
+          background 0.24s ease,
+          height 0.24s ease;
       }
       .pgram__slot:hover::after,
-      .pgram__slot:focus-within::after,
-      .pgram__slot.is-open::after {
+      .pgram__slot:focus-visible::after {
         background: var(--home-ink);
       }
-      .pgram__val i {
+      .pgram__opt {
         position: absolute;
-        right: 0.04em;
-        bottom: 0.34em;
-        width: 0.36em;
-        height: 0.36em;
-        border-right: 1.5px solid var(--home-faint);
-        border-bottom: 1.5px solid var(--home-faint);
-        transform: rotate(45deg);
+        left: 0;
+        top: 0;
+        white-space: nowrap;
+        opacity: 0;
+        transform: translateY(0.34em);
         transition:
-          transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-          border-color 0.24s ease;
+          opacity 240ms ease,
+          transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
         pointer-events: none;
       }
-      .pgram__slot:hover .pgram__val i,
-      .pgram__slot:focus-within .pgram__val i {
-        border-color: var(--home-ink);
+      .pgram__opt.is-on {
+        opacity: 1;
+        transform: none;
       }
-      /* Points up while the list is open, which is the only state cue the
-         control needs. */
-      .pgram__slot.is-open .pgram__val i {
-        transform: rotate(-135deg) translate(-0.06em, -0.06em);
-        border-color: var(--home-ink);
+      /* The word leaving goes up while the word arriving comes from below, so
+         the reel has a direction and the two are never mistaken for a
+         cross-fade of the same word. */
+      .pgram__opt.is-out {
+        opacity: 0;
+        transform: translateY(-0.34em);
       }
-      .pgram__val:focus-visible {
+
+      /* Held. This is the state Sid could not see: the rule under a held word
+         doubles and goes to full ink, and the word itself stops being muted.
+         Nothing else on the line changes weight, so a held blank reads as the
+         one deliberate word in a sentence that is otherwise still moving. */
+      .pgram__slot.is-held {
+        color: var(--home-ink);
+      }
+      .pgram__slot.is-held::after {
+        height: 2px;
+        background: var(--home-ink);
+      }
+      .pgram__slot:focus-visible {
         outline: 2px solid var(--home-accent);
         outline-offset: 4px;
         border-radius: 2px;
       }
-
-      .pgram__menu.is-up {
-        top: auto;
-        bottom: calc(100% + 14px);
-        transform-origin: 0 100%;
-      }
-      .pgram__menu {
-        position: absolute;
-        right: -0.5em;
-        left: auto;
-        text-align: left;
-        top: calc(100% + 12px);
-        left: -0.5em;
-        z-index: 6;
-        margin: 0;
-        padding: 6px 0;
-        list-style: none;
-        min-width: calc(100% + 1em);
-        background: rgba(8, 11, 17, 0.72);
-        -webkit-backdrop-filter: blur(16px) saturate(1.4);
-        backdrop-filter: blur(16px) saturate(1.4);
-        border: 1px solid var(--home-hair);
-        border-radius: 3px;
-        /* Arrives rather than appears: it grows out of the word it belongs
-           to, which is why the origin is the top-left corner. */
-        transform-origin: 0 0;
-        animation: pgMenuIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
-      }
-      html[data-theme="light"] .pgram__menu {
-        background: rgba(246, 244, 239, 0.82);
-      }
-      @keyframes pgMenuIn {
-        from {
-          opacity: 0;
-          transform: translateY(-6px) scale(0.98);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      .pgram__menu li {
-        /* Deliberately smaller than the sentence. The list is a way of
-           changing the line, not a second headline. */
-        font-size: clamp(0.84rem, 1.05vw, 0.98rem);
-        line-height: 1.25;
-        letter-spacing: -0.01em;
-        color: var(--home-muted);
-        padding: 7px clamp(14px, 1.4vw, 20px);
-        cursor: pointer;
-        white-space: nowrap;
-        transition:
-          color 0.18s ease,
-          background 0.18s ease;
-      }
-      .pgram__menu li:hover,
-      .pgram__menu li.is-active {
-        color: var(--home-ink);
-        background: rgba(255, 255, 255, 0.06);
-      }
-      html[data-theme="light"] .pgram__menu li:hover,
-      html[data-theme="light"] .pgram__menu li.is-active {
-        background: rgba(20, 22, 27, 0.06);
-      }
-      .pgram__menu li[aria-selected="true"] {
-        color: var(--home-ink);
-      }
-      @media (max-width: 560px) {
-        .pgram__menu {
-          left: -0.5em;
-          right: auto;
-          max-width: min(84vw, 340px);
-        }
-        .pgram__menu li {
-          white-space: normal;
-        }
-      }
       @media (prefers-reduced-motion: reduce) {
-        .pgram__menu {
-          animation: none;
-        }
-        .pgram__val i {
+        .pgram__win,
+        .pgram__opt {
           transition: none;
         }
       }
@@ -2088,19 +2043,16 @@
                    markup was. -->
           <div class="pgram" id="pgram">
             <span class="pgram__lead">I design</span>
-            <span class="pgram__slot" id="pg-slot-what">
-              <button type="button" class="pgram__val" id="pg-what" aria-haspopup="listbox" aria-expanded="false" aria-label="What I design">
-                <span class="pgram__word"></span><i aria-hidden="true"></i>
-              </button>
-              <ul class="pgram__menu" id="pg-menu-what" role="listbox" aria-label="What I design" hidden></ul>
-            </span>
+            <!-- Buttons, not spans with listboxes hanging off them. There is
+                 no popup to own any more: the word is the control, and the
+                 only thing a click can do is hold it. -->
+            <button type="button" class="pgram__slot" id="pg-what">
+              <span class="pgram__win"><span class="pgram__size"></span><span class="pgram__stack"></span></span>
+            </button>
             <span class="pgram__lead">for</span>
-            <span class="pgram__slot" id="pg-slot-who">
-              <button type="button" class="pgram__val" id="pg-who" aria-haspopup="listbox" aria-expanded="false" aria-label="Who I design it for">
-                <span class="pgram__word"></span><i aria-hidden="true"></i>
-              </button>
-              <ul class="pgram__menu" id="pg-menu-who" role="listbox" aria-label="Who I design it for" hidden></ul>
-            </span>
+            <button type="button" class="pgram__slot" id="pg-who">
+              <span class="pgram__win"><span class="pgram__size"></span><span class="pgram__stack"></span></span>
+            </button>
           </div>
           <!-- The "2 PROJECTS · Mool / Alpha Stockathon" line that sat here
                  is gone at Sid's request: the sentence above is a claim about
@@ -2704,319 +2656,268 @@
       })();
 
       /* ── the sentence you operate ────────────────────────────────────────
-         "I design ___ for ___", both blanks live, the matching work listed
-         underneath. Pentagram's device, at the scale of sixteen projects.
+         "I design ___ for ___", both blanks live. Pentagram's device, at the
+         scale of everything he has actually shipped.
 
-         The one design decision that matters here is that the second list is
-         rebuilt from the first. With seven disciplines and six sectors there
-         are forty-two sentences a visitor can write and only about twenty of
-         them are true, so a free pairing would hand out empty results most of
-         the time — the control would be teaching you what he has NOT done.
-         Narrowing the "for" list to sectors that actually have work in the
-         chosen discipline means every sentence on offer is one he can back,
-         which is the entire point of putting it in the hero.
+         The listbox this replaces is described at length in the CSS above.
+         What matters here: the two lists no longer talk to each other. The
+         old version narrowed the sectors to those with work in the chosen
+         discipline, which meant the range on offer quietly shrank while you
+         were reading it. Sid asked for the opposite — "dont limit me to just 4
+         fields like healthcare fintech and such include as many as possible"
+         — so both lists are full, independent, and long.
 
-         The table is the site's own taxonomy, not a new one: every project
-         below is a row on /works/ and the labels are its pills. */
+         These two arrays are the claim the top of his site makes about him.
+         They are his to edit and nobody else's: anything added here has to be
+         something he can be asked about in an interview. */
       (function () {
-        var out = document.getElementById("pg-out");
-        var mk = function (id) {
-          var btn = document.getElementById(id);
-          if (!btn) return null;
-          return {
-            btn: btn,
-            slot: btn.parentNode,
-            word: btn.querySelector(".pgram__word"),
-            list: document.getElementById("pg-menu-" + id.replace("pg-", "")),
-            rows: [],
-            value: "",
-            onchange: function () {},
-          };
-        };
-        var what = mk("pg-what");
-        var who = mk("pg-who");
-        if (!what || !who || !out || !what.list || !who.list) return;
-        var base = "{{ site.baseurl }}";
+        var slotWhat = document.getElementById("pg-what");
+        var slotWho = document.getElementById("pg-who");
+        if (!slotWhat || !slotWho) return;
 
-        /* title, url, disciplines, sectors */
-        var WORK = [
-          ["Mool", "/mool/", ["product", "brand"], ["fintech"]],
-          ["M Health Fairview", "/m-health-fairview/", ["product"], ["health"]],
-          ["Marriott", "/marriott/", ["product"], ["hospitality"]],
-          ["Alpha Stockathon", "/alpha-stockathon/", ["product", "games"], ["fintech"]],
-          ["Aananda", "/aananda/", ["product", "brand", "install"], ["culture"]],
-          ["Encoded", "/encoded/", ["spatial"], ["culture"]],
-          ["Bodhi", "/bloom/", ["spatial", "ai"], ["wellness", "emerging"]],
-          ["AI Self", "/ai-self/", ["spatial", "ai"], ["emerging"]],
-          ["2026 AI Experiments", "/ai-prototypes/", ["ai"], ["emerging"]],
-          ["Bloom; who are you", "/mandalas/", ["install"], ["culture", "wellness"]],
-          ["Mind Your Feelings", "/mind-your-feelings/", ["install"], ["health"]],
-          ["Broken and Beautiful", "/b-plus-b/", ["install"], ["culture"]],
-          ["Naavo", "/naavo/", ["brand"], ["wellness"]],
-          ["Cube of Creations", "/cube-guy/", ["games"], ["culture"]],
-          ["Illustrations", "/illustrations/", ["images"], ["culture"]],
-          ["Shot on iPhone", "/shot-on-iphone/", ["images"], ["culture"]],
-        ];
         var DISC = [
-          ["product", "product interfaces"],
-          ["spatial", "spatial computing"],
-          ["ai", "AI interfaces"],
-          ["install", "installations"],
-          ["brand", "brand identity"],
-          ["games", "games and characters"],
-          ["images", "images"],
+          "product interfaces",
+          "design systems",
+          "AI interfaces",
+          "spatial computing",
+          "visionOS apps",
+          "augmented reality",
+          "installations",
+          "generative systems",
+          "real-time shaders",
+          "brand identity",
+          "illustration",
+          "games and characters",
+          "exhibitions",
+          "prototypes",
+          "editorial and print",
+          "photography",
+          "design research",
         ];
         var SECT = [
-          ["fintech", "fintech"],
-          ["health", "healthcare"],
-          ["hospitality", "hospitality"],
-          ["culture", "museums and culture"],
-          ["wellness", "wellness"],
-          ["emerging", "emerging tech"],
+          "fintech",
+          "healthcare",
+          "hospitality",
+          "museums and culture",
+          "wellness and meditation",
+          "emerging tech",
+          "enterprise teams",
+          "restaurant groups",
+          "consumer hardware",
+          "artists and studios",
+          "education",
+          "public space",
+          "startups",
+          "hardware not built yet",
         ];
 
-        /* ── THE CONTROL ────────────────────────────────────────────────────
-           A <select> hands you the keyboard, the mobile picker and the roles
-           for nothing, and takes your typography in exchange. That trade was
-           wrong for the centre of this hero, so everything it gave away is
-           rebuilt here: Enter and Space and Down open the list, Up and Down
-           walk it, Enter and Space choose, Escape closes and returns focus to
-           the word, Tab closes on the way past, and a click anywhere else
-           dismisses it. aria-expanded and aria-selected are kept in step so
-           the control still announces what it is and what it holds. */
-        var openMenu = null;
+        var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        var closeMenu = function (focusBack) {
-          if (!openMenu) return;
-          var m = openMenu;
-          openMenu = null;
-          m.list.hidden = true;
-          m.btn.setAttribute("aria-expanded", "false");
-          m.slot.classList.remove("is-open");
-          if (focusBack) m.btn.focus();
-        };
-
-        var buildMenu = function (ctl, rows) {
-          ctl.list.innerHTML = "";
-          rows.forEach(function (r) {
-            var li = document.createElement("li");
-            li.setAttribute("role", "option");
-            li.setAttribute("data-value", r[0]);
-            li.textContent = r[1];
-            li.setAttribute("aria-selected", String(r[0] === ctl.value));
-            li.addEventListener("click", function () {
-              select(ctl, r[0]);
-              closeMenu(true);
-            });
-            li.addEventListener("mouseenter", function () {
-              var all = ctl.list.querySelectorAll("li");
-              for (var i = 0; i < all.length; i++) all[i].classList.remove("is-active");
-              li.classList.add("is-active");
-              /* Resting on an option IS choosing it. The list stays open so
-                 the reader can keep moving along it and watch the sentence
-                 change under their hand. */
-              if (r[0] !== ctl.value) select(ctl, r[0]);
-            });
-            ctl.list.appendChild(li);
+        function Roller(slot, words, name) {
+          var win = slot.querySelector(".pgram__win");
+          var size = slot.querySelector(".pgram__size");
+          var stack = slot.querySelector(".pgram__stack");
+          var nodes = words.map(function (w, n) {
+            var s = document.createElement("span");
+            s.className = "pgram__opt" + (n === 0 ? " is-on" : "");
+            s.textContent = w;
+            stack.appendChild(s);
+            return s;
           });
-        };
+          var i = 0;
+          var held = false;
+          var clearOut = null;
 
-        var label = function (rows, v) {
-          for (var i = 0; i < rows.length; i++) if (rows[i][0] === v) return rows[i][1];
-          return rows.length ? rows[0][1] : "";
-        };
+          size.textContent = words[0];
 
-        var select = function (ctl, v) {
-          ctl.value = v;
-          ctl.word.textContent = label(ctl.rows, v);
-          var lis = ctl.list.querySelectorAll("li");
-          for (var i = 0; i < lis.length; i++) {
-            lis[i].setAttribute("aria-selected", String(lis[i].getAttribute("data-value") === v));
-          }
-          ctl.onchange();
-        };
+          /* Measured off the invisible copy, and only after the webfont has
+             landed — measuring during the fallback face sets every width to
+             the wrong number and the sentence never corrects itself. */
+          var wide = 0;
+          var measure = function () {
+            /* Always the fitted width, never the widest option. Padding the
+               blank out to fit "games and characters" is exactly the hole the
+               old <select> left in the line, and it is the reason the reel
+               reads as typography rather than as a form field.
 
-        var fill = function (ctl, rows, keep) {
-          ctl.rows = rows;
-          var has = rows.some(function (r) {
-            return r[0] === keep;
-          });
-          ctl.value = has ? keep : rows.length ? rows[0][0] : "";
-          ctl.word.textContent = label(rows, ctl.value);
-          buildMenu(ctl, rows);
-        };
-
-        var toggle = function (ctl) {
-          if (openMenu && openMenu.btn === ctl.btn) {
-            closeMenu(true);
-            return;
-          }
-          closeMenu(false);
-          buildMenu(ctl, ctl.rows);
-          ctl.list.hidden = false;
-          ctl.btn.setAttribute("aria-expanded", "true");
-          ctl.slot.classList.add("is-open");
-          openMenu = ctl;
-
-          /* ── WHICH WAY IT OPENS ────────────────────────────────────────
-             The sentence sits in the lower third of a full-height hero, so a
-             seven-item list opening downward runs straight off the fold and
-             the last options cannot be reached. Measured after the list is
-             visible — it has no height before that — and flipped above the
-             word when there is more room up than down. */
-          ctl.list.classList.remove("is-up");
-          var br = ctl.btn.getBoundingClientRect();
-          var lh = ctl.list.offsetHeight;
-          var below = window.innerHeight - br.bottom;
-          if (lh + 24 > below && br.top > below) ctl.list.classList.add("is-up");
-          var cur = ctl.list.querySelector('li[aria-selected="true"]') || ctl.list.firstChild;
-          if (cur) cur.classList.add("is-active");
-        };
-
-        var walk = function (ctl, d) {
-          var lis = [].slice.call(ctl.list.querySelectorAll("li"));
-          if (!lis.length) return;
-          var i = lis.findIndex(function (el) {
-            return el.classList.contains("is-active");
-          });
-          if (i < 0) i = 0;
-          lis[i].classList.remove("is-active");
-          var n = (i + d + lis.length) % lis.length;
-          lis[n].classList.add("is-active");
-          lis[n].scrollIntoView({ block: "nearest" });
-        };
-
-        var wire = function (ctl) {
-          /* ── HOVER, NOT CLICK ──────────────────────────────────────────
-             Sid: "let the drop down be not drop down and a hover there is no
-             point in clicking and selecting."
-
-             He is right about the gesture. This is not a form being filled
-             in, it is a sentence being read — the reader is browsing a range,
-             not committing to a choice, and asking for a click and then a
-             second click to pick an option makes a two-step transaction out
-             of something that should cost nothing.
-
-             So the list opens on approach and an option takes effect the
-             moment the pointer rests on it: you read the sentence by moving
-             along it. Click still works, because a control that opens on
-             hover and does nothing when clicked feels broken, and the whole
-             keyboard path is untouched — that one genuinely does need a
-             deliberate action.
-
-             The close is delayed by 260ms so travelling from the word down to
-             the list does not dismiss it in the gap between them. */
-          var shutTimer = null;
-          var hold = function () {
-            if (shutTimer) {
-              clearTimeout(shutTimer);
-              shutTimer = null;
-            }
+               The obvious problem with that — the line is right-aligned, so a
+               blank that changes width drags the words to its left along with
+               it, and can slide out from under the pointer that is browsing
+               it — is handled by holding the hover on the whole sentence
+               instead of on one word. See the pointer wiring below. */
+            var fit = size.getBoundingClientRect().width;
+            if (fit > wide) wide = fit;
+            win.style.width = fit.toFixed(2) + "px";
           };
-          var release = function () {
-            hold();
-            shutTimer = setTimeout(function () {
-              if (openMenu && openMenu.btn === ctl.btn) closeMenu(false);
-            }, 260);
+          var gauge = function () {
+            /* One pass over the list so the hover width is known before the
+               first hover rather than growing to fit as options are seen. */
+            var keep = size.textContent;
+            wide = 0;
+            words.forEach(function (w) {
+              size.textContent = w;
+              var x = size.getBoundingClientRect().width;
+              if (x > wide) wide = x;
+            });
+            size.textContent = keep;
+            measure();
           };
-          ctl.slot.addEventListener("pointerenter", function (e) {
-            if (e.pointerType === "touch") return;
-            hold();
-            if (!openMenu || openMenu.btn !== ctl.btn) toggle(ctl);
-          });
-          ctl.slot.addEventListener("pointerleave", function (e) {
-            if (e.pointerType === "touch") return;
-            release();
-          });
-          ctl.btn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            toggle(ctl);
-          });
-          ctl.btn.addEventListener("keydown", function (e) {
-            if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-              e.preventDefault();
-              if (!openMenu || openMenu.btn !== ctl.btn) toggle(ctl);
-              else walk(ctl, 1);
-            } else if (e.key === "ArrowUp") {
-              e.preventDefault();
-              if (openMenu && openMenu.btn === ctl.btn) walk(ctl, -1);
-            } else if (e.key === "Escape") {
-              closeMenu(true);
-            } else if (e.key === "Tab") {
-              closeMenu(false);
-            }
-          });
+          if (document.fonts && document.fonts.ready) document.fonts.ready.then(gauge);
+          gauge();
+          window.addEventListener("resize", gauge);
+
+          var api = {
+            held: function () {
+              return held;
+            },
+            step: function (d) {
+              var n = (i + d + words.length) % words.length;
+              if (n === i) return;
+              var prev = i;
+              nodes[prev].classList.remove("is-on");
+              nodes[prev].classList.add("is-out");
+              if (clearOut) clearTimeout(clearOut);
+              clearOut = setTimeout(function () {
+                nodes[prev].classList.remove("is-out");
+              }, 440);
+              i = n;
+              nodes[i].classList.add("is-on");
+              size.textContent = words[i];
+              measure();
+              slot.setAttribute("aria-label", name + ": " + words[i] + ". Hold with Enter.");
+            },
+            hold: function (v) {
+              held = v;
+              slot.classList.toggle("is-held", held);
+              slot.setAttribute("aria-pressed", String(held));
+            },
+          };
+
+          slot.setAttribute("aria-pressed", "false");
+          slot.setAttribute("aria-label", name + ": " + words[0] + ". Hold with Enter.");
+          return api;
+        }
+
+        var what = Roller(slotWhat, DISC, "What I design");
+        var who = Roller(slotWho, SECT, "Who I design it for");
+        var rolls = [what, who];
+
+        /* ── HOW IT MOVES ───────────────────────────────────────────────────
+           Untouched, it alternates blanks every 3.2s: slow enough to read a
+           whole sentence before either half changes, quick enough that the
+           range is obvious inside the few seconds a visitor gives a hero.
+           Under the pointer, that blank alone speeds up to 620ms — near the
+           limit of what stays readable — so pointing at a word is how you
+           browse it. Held blanks sit out of both loops. */
+        var turn = 0;
+        var idle = null;
+        var fast = null;
+
+        var stopIdle = function () {
+          if (idle) clearInterval(idle);
+          idle = null;
+        };
+        var startIdle = function () {
+          if (REDUCED || idle) return;
+          idle = setInterval(function () {
+            var live = rolls.filter(function (r) {
+              return !r.held();
+            });
+            if (!live.length) return;
+            live[turn++ % live.length].step(1);
+          }, 3200);
         };
 
-        /* Choosing happens on keyup for Space so the keydown that opened the
-           list cannot also pick its first item. */
-        document.addEventListener("keydown", function (e) {
-          if (!openMenu) return;
-          if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-            var act = openMenu.list.querySelector("li.is-active");
-            if (act) {
-              e.preventDefault();
-              select(openMenu, act.getAttribute("data-value"));
-              closeMenu(true);
+        rolls.forEach(function (r, n) {
+          var slot = n === 0 ? slotWhat : slotWho;
+
+          /* ── THE HOVER IS ON THE SENTENCE, NOT ON THE WORD ────────────────
+             Entering a blank starts it browsing, but leaving one does not
+             stop it — only leaving the whole line does (wired once, below).
+
+             That asymmetry is the fix for a real problem: the words are
+             different lengths and the line is right-aligned, so cycling from
+             "illustration" to "games and characters" moves the blank 113px
+             left, out from under the pointer that asked for it. Bound to the
+             word, that ends the hover and stops the reel a third of a second
+             after it started, which reads as the control refusing to work.
+             Bound to the sentence, the pointer is still inside the box that
+             matters and the reel keeps turning. */
+          slot.addEventListener("pointerenter", function (e) {
+            if (e.pointerType === "touch" || REDUCED) return;
+            stopIdle();
+            if (fast) clearInterval(fast);
+            if (r.held()) return;
+            fast = setInterval(function () {
+              r.step(1);
+            }, 620);
+          });
+
+          slot.addEventListener("click", function (e) {
+            /* No hover on a phone, so there is no browsing gesture to hold
+               against: a tap advances the word and keeps it. On a pointer
+               device the browsing already happened under the cursor and the
+               click is the commitment. */
+            var touch = e.detail === 0 ? false : !window.matchMedia("(hover: hover)").matches;
+            if (touch) {
+              r.hold(true);
+              r.step(1);
+              return;
             }
-          } else if (e.key === "Escape") {
-            e.preventDefault();
-            closeMenu(true);
-          }
-        });
-        document.addEventListener("click", function () {
-          closeMenu(false);
+            r.hold(!r.held());
+            if (r.held()) {
+              if (fast) clearInterval(fast);
+              fast = null;
+            }
+          });
+
+          slot.addEventListener("keydown", function (e) {
+            if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+              e.preventDefault();
+              r.step(1);
+            } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+              e.preventDefault();
+              r.step(-1);
+            } else if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+              e.preventDefault();
+              r.hold(!r.held());
+            }
+          });
         });
 
-        var matches = function () {
-          var d = what.value,
-            s = who.value;
-          return WORK.filter(function (w) {
-            return w[2].indexOf(d) > -1 && w[3].indexOf(s) > -1;
+        /* The other half of that asymmetry: the reel stops when the pointer
+           leaves the sentence, not when it leaves a word. The line is padded
+           out to a comfortable target so travelling between the two blanks
+           never falls out of it. */
+        var line = document.getElementById("pgram");
+        if (line) {
+          line.addEventListener("pointerleave", function (e) {
+            if (e.pointerType === "touch") return;
+            if (fast) clearInterval(fast);
+            fast = null;
+            startIdle();
           });
-        };
+        }
 
-        var draw = function () {
-          var hits = matches();
-          var html = "<em>" + hits.length + (hits.length === 1 ? " project" : " projects") + "</em>";
-          html += hits
-            .map(function (w) {
-              return '<a href="' + base + w[1] + '">' + w[0] + "</a>";
-            })
-            .join("<span>/</span>");
-          out.classList.add("is-swap");
-          setTimeout(function () {
-            out.innerHTML = html;
-            out.classList.remove("is-swap");
-          }, 140);
-        };
+        /* An interval that keeps firing on a hidden tab is a battery bug that
+           nobody ever sees happen. */
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            stopIdle();
+            if (fast) clearInterval(fast);
+            fast = null;
+          } else startIdle();
+        });
 
-        /* the sectors that have work in the currently chosen discipline */
-        var refreshSectors = function () {
-          var d = what.value;
-          var live = SECT.filter(function (s) {
-            return WORK.some(function (w) {
-              return w[2].indexOf(d) > -1 && w[3].indexOf(s[0]) > -1;
-            });
-          });
-          fill(who, live, who.value);
+        /* Start somewhere different every visit. The first word a visitor
+           reads should not always be "product interfaces for fintech" — the
+           whole argument of the line is that the range is wide. */
+        var jump = function (r, len) {
+          r.step(1 + Math.floor(Math.random() * (len - 1)));
         };
-
-        /* The width measuring that used to live here is gone with the
-           <select> that needed it. A button is as wide as its own text, so
-           the sentence sets itself and there is nothing to keep in step with
-           the webfont. */
-        what.onchange = function () {
-          refreshSectors();
-          draw();
-        };
-        who.onchange = draw;
-
-        wire(what);
-        wire(who);
-        fill(what, DISC);
-        refreshSectors();
-        draw();
+        jump(what, DISC.length);
+        jump(who, SECT.length);
+        startIdle();
       })();
 
       /* ── the portrait that starts working ────────────────────────
