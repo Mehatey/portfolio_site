@@ -110,21 +110,53 @@
     /* Blender is Z-up and WebGL is Y-up. Swapping here rather than in the
        exported data keeps the .bin in the model's own frame, so a re-export
        does not need this file changed. */
-    /* ── THE HANDOFF ─────────────────────────────────────────────────────
-       Sid: "when you scroll, i was thinking maybe the cube can get bigger and
-       rotate, then sort of dissolve into the cube we have below."
+    /* ── THE GENIE ────────────────────────────────────────────────────────
+       Sid: "i want the cube guy to actually animate and maybe sort of slide
+       and twirl and come towards the right and increase in size, like the
+       genie-in-the-bottle type thing ... have you not looked at professional
+       paid scroll transitions and such, where you scroll and that enables it
+       to be linked by the scroll?"
 
-       u_scroll is 0 while the hero is at rest and 1 by the time the cube
-       section is arriving. Three things ride it: the camera pushes in
-       (u_grow), the idle turn accelerates (in JS, so the drag inertia still
-       composes with it), and the figure is squared off — every point is
-       pulled toward the surface of a box, so he does not shrink away or
-       explode, he BECOMES a cube, and hands the shape to the real one
-       underneath as it comes up the page. */
+       The old version rode one number into a grow, a spin and a squaring-off,
+       all at once, over the length of the hero — which is why it read as
+       "gets a little bigger" and nothing else. This is a timeline. u_scroll
+       runs 0 → 1 across a pinned range (see the JS), and each move owns a
+       slice of it, so they happen in an order you can watch:
+
+         .00–.18  he stands. The hero is still the hero.
+         .18–.52  he lifts off the floor, starts turning, and travels RIGHT
+                  while the camera pushes in. This is the "slide and twirl".
+         .45–.85  the funnel. Every point spirals about the axis — harder the
+                  lower it sits, which is what makes a tail rather than a
+                  spin — and is drawn down toward a single point beneath him,
+                  the way a genie goes into a bottle. The cube section is
+                  arriving underneath exactly here.
+         .78–1.0  gone.
+
+       The overlap between the slices is deliberate: he is still travelling
+       when the funnel starts, so the two read as one move. */
     "  vec3 pos = vec3(p.x, p.z, p.y);",
-    "  float sq = smoothstep(0.30, 0.92, u_scroll);",
-    "  vec3 boxed = clamp(pos * 1.35, vec3(-0.34), vec3(0.34));",
-    "  pos = mix(pos, boxed, sq);",
+
+    "  float lift = smoothstep(0.18, 0.52, u_scroll);",
+    "  float funnel = smoothstep(0.45, 0.85, u_scroll);",
+
+    /* THE TWIST. Angle grows toward the feet, so he wrings out from the
+       bottom like something being poured. */
+    "  float hgt = clamp(pos.y * 0.5 + 0.5, 0.0, 1.0);",
+    "  float tw = funnel * (1.35 - hgt) * 7.5;",
+    "  float cw = cos(tw), sw = sin(tw);",
+    "  pos.xz = mat2(cw, -sw, sw, cw) * pos.xz;",
+
+    /* THE DRAW-DOWN. Toward a point below and slightly right of him — the
+       neck of the bottle. Squared before it is applied so nothing moves for
+       the first half of the funnel and then it goes quickly. */
+    "  float f2 = funnel * funnel;",
+    "  vec3 spout = vec3(0.34, -1.55, 0.0);",
+    "  pos = mix(pos, spout, f2 * 0.92);",
+    "  pos.xz *= mix(1.0, 0.14, f2);",
+
+    /* THE LIFT AND THE TRAVEL. Rises as he goes, so the arc is not flat. */
+    "  pos.y += lift * 0.30;",
     "  vec3 nor = normalize(vec3(nrm.x, nrm.z, nrm.y) + 0.0001);",
     "  float n = hash(p);",
     "  v_rand = n;",
@@ -137,7 +169,10 @@
 
     "  vec3 r = u_rot * pos;",
     "  vec3 rn = u_rot * nor;",
-    "  float z = r.z + 3.1;",
+    /* Travel is applied after the rotation so it is a move across the SCREEN
+       rather than a translation he then spins around. */
+    "  r.x += lift * 0.62;",
+    "  float z = r.z + 3.1 - lift * 0.55;",
     /* 2.28 rather than 2.62: the figure sits inside its own canvas with air
        under the feet, so the hero's overflow:hidden has nothing of him to
        cut. */
@@ -276,7 +311,7 @@
     /* Hard-edged disc — the overlap between neighbours does the smoothing;
        a soft one leaves the surface looking like felt. Faded out by the
        brush at its edge and by the scroll handoff at the end. */
-    "    float a = smoothstep(0.25, 0.19, d) * smoothstep(0.01, 0.16, v_brush) * u_fade * (1.0 - smoothstep(0.55, 0.95, u_scroll));",
+    "    float a = smoothstep(0.25, 0.19, d) * smoothstep(0.01, 0.16, v_brush) * u_fade * (1.0 - smoothstep(0.70, 0.95, u_scroll));",
     "    gl_FragColor = vec4(lit, a);",
     "    return;",
     "  }",
@@ -289,7 +324,7 @@
     "  a *= mix(1.0, 0.86, u_hov) * (1.0 - v_brush);",
     /* Gone by the time the real cube is on screen, so the two are never both
        claiming to be the object. */
-    "  a *= 1.0 - smoothstep(0.62, 1.0, u_scroll);",
+    "  a *= 1.0 - smoothstep(0.78, 1.0, u_scroll);",
     "  gl_FragColor = vec4(col, a);",
     "}",
   ].join("\n");
@@ -523,6 +558,8 @@
   var hov = 0;
   var hovTarget = 0;
   var scrollP = 0;
+  var pinned = false;
+  var lastPub = -1;
   var hero = host.closest("section") || host.parentElement;
 
   /* The brush needs the pointer in the same clip space the vertex shader
@@ -690,12 +727,55 @@
     gl.uniform1f(U.u_hasSkin, hasSkin);
     gl.uniform1f(U.u_texMode, texMode);
 
-    /* Progress through the hero, 0 at rest and 1 once it has scrolled by. The
-       stage is absolutely positioned inside the hero, so it is already
-       travelling up the page — this is what happens to him on the way. */
+    /* ── PINNED, SO THE TIMELINE HAS SOMEWHERE TO PLAY ─────────────────────
+       An absolutely-positioned stage scrolls away with the hero, which gives
+       the choreography about half a second of screen before it is gone —
+       which is why the old version could only ever be "he gets a bit bigger".
+
+       So the stage pins. From the moment the hero's top passes the viewport
+       top until one further viewport-height of scroll, .cg-stage goes fixed
+       at the exact box it already occupied, the page keeps moving underneath
+       it, and u_scroll runs 0 → 1 across that distance. That is the whole
+       mechanism behind the scroll transitions he is describing: the element
+       stops moving and its STATE is what the scroll drives.
+
+       Released at both ends — above, so he sits in the hero normally; below,
+       so he does not hang over the rest of the page. */
     var heroH = Math.max(1, hero ? hero.offsetHeight : window.innerHeight);
-    var prog = Math.max(0, Math.min(1, (window.scrollY || 0) / heroH));
-    scrollP += (prog - scrollP) * 0.12;
+    var y = window.scrollY || 0;
+    var runway = heroH * 0.92;
+    var prog = Math.max(0, Math.min(1, y / runway));
+
+    var wantPin = prog > 0.001 && prog < 0.999;
+    if (wantPin !== pinned) {
+      pinned = wantPin;
+      host.classList.toggle("is-pinned", pinned);
+      if (pinned) {
+        /* The box it already had, frozen. Read once on the way in so the
+           fixed element lands exactly where the absolute one was — no jump
+           at the moment of pinning, which is the tell that gives these away. */
+        var r = host.getBoundingClientRect();
+        host.style.top = Math.round(r.top) + "px";
+        host.style.left = Math.round(r.left) + "px";
+        host.style.width = Math.round(r.width) + "px";
+        host.style.height = Math.round(r.height) + "px";
+      } else {
+        host.style.top = "";
+        host.style.left = "";
+        host.style.width = "";
+        host.style.height = "";
+      }
+    }
+
+    /* Lightly smoothed. Enough to take the stutter out of a trackpad without
+       the figure lagging behind the scroll, which would break the link. */
+    scrollP += (prog - scrollP) * 0.16;
+    /* Published to CSS so the hero copy can break away on the same clock.
+       One custom property, written only when it has actually moved. */
+    if (hero && Math.abs(scrollP - lastPub) > 0.002) {
+      lastPub = scrollP;
+      hero.style.setProperty("--hero-p", scrollP.toFixed(3));
+    }
     gl.uniform1f(U.u_scroll, scrollP);
     gl.uniform1f(U.u_grow, 1 + 0.55 * scrollP);
     gl.uniform1f(U.u_fade, fade);
