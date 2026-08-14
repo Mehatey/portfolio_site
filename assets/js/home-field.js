@@ -262,7 +262,7 @@
     "  vec3 tint = ink;",
     "  tint = mix(tint, tint * vec3(1.12, 0.94, 1.04), smoothstep(0.55, 1.0, d));",
 
-    "  float alpha = inkAmt * mix(0.72, 0.7, u_light) * u_fade;",
+    "  float alpha = inkAmt * mix(0.40, 0.22, u_light) * u_fade;",
     "  alpha *= 0.3 + 0.7 * d;",
 
     /* ── THE WINDOW ───────────────────────────────────────────────────────
@@ -274,9 +274,44 @@
     "  ruv.y = 1.0 - ruv.y;",
     "  vec3 real = texture2D(u_real, ruv).rgb;",
     "  real = clamp((pow(real, vec3(0.78)) - 0.5) * 1.12 + 0.5, 0.0, 1.0);",
-    "  float win = u_ptrOn * smoothstep(0.30, 0.05, pd);",
-    "  vec3 outCol = mix(tint, real, win);",
-    "  float outA = mix(alpha, u_fade * 0.98, win);",
+    /* ── WHY THERE IS A FLOOR UNDER THIS ──────────────────────────────────
+       Sid: "i dont see my video."
+
+       He was right and the reason is here. The footage only ever existed
+       inside a disc of radius 0.30 that followed the pointer, so the film was
+       invisible unless you happened to move the mouse across the hero — and
+       the pixelated take, the one that announces itself, plays once ever and
+       is then remembered in localStorage forever. On his own machine that
+       flag was set weeks ago. There was no path left on which he could see
+       his own film.
+
+       The peephole was the wrong shape for the job anyway: a hard 0.30 disc
+       reads as a spotlight cut into a print, which is a nice effect and a
+       poor way to show someone footage. So there is a floor now — the film is
+       always a quarter present, under the glyphs, the way a plate shows
+       through ink — and the pointer opens it the rest of the way over a much
+       softer, wider falloff. Move across it and the picture develops instead
+       of switching on. */
+    /* ── THE FILM IS A LAYER NOW, NOT A MIX ───────────────────────────────
+       The film and the ink used to be crossfaded by one number: the colour
+       mixed toward the footage by `win`, and the alpha mixed toward opaque by
+       the same `win`. Put a floor under that and the two multiply — a quarter
+       of the way to the film, at a third of the opacity the ink was carrying,
+       is the film at eight percent. Measured on a bright daylight plate over
+       a near-black page, that is nothing at all, which is exactly what Sid
+       was looking at.
+
+       So they are two layers, composited the way they actually relate: the
+       film is the ground, the glyphs are ink on top of it, and each carries
+       its own alpha. `filmA` is what is showing of the plate — a third at
+       rest, nearly all of it under the pointer — and the ink adds to it
+       rather than diluting it. */
+    /* Cream has nowhere to go but down, so the same film sits heavier on the
+       light page than on the dark one at identical strength. */
+    "  float filmA = (0.13 + 0.62 * u_ptrOn * smoothstep(0.50, 0.03, pd)) * mix(1.0, 0.62, u_light);",
+    "  filmA *= u_fade;",
+    "  float outA = clamp(filmA + alpha, 0.0, 1.0);",
+    "  vec3 outCol = mix(real, tint, clamp(alpha / max(outA, 0.001), 0.0, 1.0));",
     "  gl_FragColor = vec4(outCol, outA);",
     "}",
   ].join("\n");
@@ -301,9 +336,35 @@
   gl.enableVertexAttribArray(aLoc);
   gl.vertexAttribPointer(aLoc, 2, gl.FLOAT, false, 0, 0);
 
+  /* ── WHY SID COULD NOT SEE HIS VIDEO ───────────────────────────────────
+     Four names were missing from this list: u_video, u_real, u_cover and
+     u_pal. Every one of them is declared in the shader, written every frame,
+     and was never once received.
+
+     `gl.getUniformLocation` returns null for a name that is not in the list,
+     and every `gl.uniform*` call with a null location is a silent no-op —
+     WebGL's one genuinely dangerous piece of API design. So:
+
+       · u_video and u_real kept their default sampler value of 0, which is
+         the texture unit the glyph ATLAS is bound to. The field was not
+         drawing itself from the footage, it was drawing itself from its own
+         character sheet, and the hover window opened onto the same. That is
+         the whole of "i dont see my video": there has been no path on which
+         the film reached the screen since this file was written.
+       · u_cover stayed (0, 0), so the aspect correction collapsed every
+         sample to a single texel at the centre of the image.
+       · u_pal stayed 0, so "everyclick let it change the styling and the
+         vibe" advanced the drawing system and never the palette. Four of the
+         five colourways have never been seen.
+
+     Nothing errored, nothing warned, and every screenshot of this page for
+     weeks looked plausible, because a field drawing itself from its own
+     atlas still looks like a field. */
   var U = {};
   [
     "u_atlas",
+    "u_video",
+    "u_real",
     "u_res",
     "u_time",
     "u_n",
@@ -313,7 +374,9 @@
     "u_light",
     "u_fade",
     "u_ptr",
+    "u_cover",
     "u_ptrOn",
+    "u_pal",
     "u_sys",
     "u_sysNext",
     "u_sysBlend",
