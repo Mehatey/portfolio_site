@@ -1526,13 +1526,36 @@
 
       function proceed() {
         if (enterGate) enterGate.remove();
-        // The threshold is now the whole opening. Do not make a visitor pass
-        // through a second video scene with a black matte and tiny work cards
-        // before they can reach the site. The portal resolves straight into the
-        // portfolio; the main home scene supplies the cinematic continuation.
-        if (loader && loader.parentNode) loader.remove();
-        window.__loaderInstantDone = true;
-        window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: true } }));
+        /* ── THE OPENING IS BACK ────────────────────────────────────────────
+           This used to remove the loader here and hand straight to the site,
+           on the reasoning left in place by e8c24b20 (14 Jul): "the threshold
+           is now the whole opening ... do not make a visitor pass through a
+           second video scene."
+
+           Sid: "bring back cube getting up intro sequence." The whole thing
+           was still in this file — startLoader() below runs the cube waking
+           up, the brain-and-eyes phase, the Hello and the collage, and it was
+           simply never being called. Nothing had to be rebuilt; it had to be
+           reconnected.
+
+           startLoader() owns its own ending: it removes the loader and fires
+           loaderDone with instant:false when the sequence finishes, and it
+           carries a 25 second failsafe that tears everything down if a video
+           never arrives, so a visitor can never be stranded in it. */
+        /* Reduced motion goes straight in. The sequence is sixteen seconds of
+           video with a scrambling type effect over it, which is precisely
+           what somebody who has asked for less motion is asking not to sit
+           through — and unlike a decorative flourish they cannot scroll past
+           it, because it is the door. */
+        var lessMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (lessMotion) {
+          if (loader && loader.parentNode) loader.remove();
+          window.__loaderInstantDone = true;
+          window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: true } }));
+          return;
+        }
+        window.__loaderInstantDone = false;
+        startLoader();
       }
 
       // The Buddha resolves into the portfolio with one brief, contained motion.
