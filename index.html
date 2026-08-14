@@ -945,7 +945,12 @@
            3.8rem lands the same three lines at 57px across roughly 960px, so
            the block still opens the page but the frame has a right half again.
            The floor and the line count are unchanged. */
-        font-size: clamp(1.5rem, 3.8vw, 3.8rem);
+        /* Down from 3.8vw/3.8rem. Sid: "somehow reduce the text hierarchy in
+           ur face in the beginning." Three claims stack in this hero — this,
+           the rotating line, and the sentence — and this one was set loud
+           enough that the other two read as its footnotes rather than as
+           their own thoughts. */
+        font-size: clamp(1.3rem, 2.7vw, 2.7rem);
         line-height: 1;
         letter-spacing: -0.032em;
       }
@@ -1047,6 +1052,27 @@
         }
       }
       .tw__line.is-typing::after,
+      /* Each character carries its own blur and lift. `filter` and
+         `transform` are both compositor properties, so a five-word line
+         animating every glyph costs one layer, not thirty. */
+      .rot-c {
+        display: inline-block;
+        transition:
+          opacity 520ms cubic-bezier(0.16, 1, 0.3, 1),
+          filter 520ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+        transition-delay: inherit;
+      }
+      .hero__rot-val.is-out .rot-c {
+        opacity: 0;
+        filter: blur(7px);
+        transform: translateY(-0.14em);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .rot-c {
+          transition: none;
+        }
+      }
       .hero__rot-val.is-typing::after {
         content: "";
         display: inline-block;
@@ -1581,22 +1607,23 @@
          so the browser will decode them; WebGL reads both and paints the
          pixelated one, then lets the pointer develop the clear one back
          in. Everything here is presentation — no copy depends on it. */
-      .film {
+      /* Full-bleed behind the hero, inert to the pointer so every control
+         on top of it stays reachable. */
+      .field {
         position: absolute;
         inset: 0;
         z-index: 0;
         overflow: hidden;
         pointer-events: none;
       }
-      .film canvas,
-      .film video,
-      .film__still {
+      .field canvas {
         position: absolute;
         inset: 0;
         display: block;
         width: 100%;
         height: 100%;
       }
+
       /* The <video> elements are decode sources, never pixels on screen.
          They stay in layout (display:none would stop decoding in several
          browsers) and are simply invisible. */
@@ -6068,12 +6095,26 @@
         <!-- The film. Two takes of one shot: pixelated is what you are given,
              clear is what you develop by moving through it. The <video> tags
              exist only so the browser decodes frames — WebGL draws both. -->
-        <div class="film" id="film-stage" aria-hidden="true">
-          <video id="film-pixel" src="/assets/video/sid_pixelated.mp4" muted loop playsinline preload="auto"></video>
-          <video id="film-clear" src="/assets/video/sid_sitting.mp4" muted loop playsinline preload="auto"></video>
-          <canvas id="film-gl"></canvas>
-          <img class="film__still" src="/assets/img/sid_pixel_freeze.webp" alt="" decoding="async">
-          <p class="film__hint"><b></b>Move to develop the frame</p>
+        <!-- ── THE FIELD ──────────────────────────────────────────────────
+             Two videos used to live here, a pixelated plate and a clear one,
+             crossfaded by a painted mask. Sid: "u can remove that video and
+             both and have an auto switching reactive cursor new shader and
+             coool webgl bg."
+
+             Beyond him asking, the footage had three problems. It was 2.8MB
+             to draw something nobody could read — measured at mean luminance
+             19 of 255. It could not be themed, because a photograph carries
+             its own exposure: the same plate sank to mud on the dark page and
+             washed to near-white on the cream one, which is the light-mode
+             failure he screenshotted. And it was a picture of a room, which
+             says nothing about what he makes.
+
+             What is here now is generated and carries no media at all: a
+             field that draws itself four different ways, changes every twenty
+             seconds, starts somewhere different every visit, and answers the
+             pointer. See assets/js/home-field.js. -->
+        <div class="field" id="field-stage" aria-hidden="true">
+          <canvas id="field-gl"></canvas>
         </div>
 
         <div class="hero__inner">
@@ -6164,7 +6205,18 @@
                   <ul class="pgram__menu" id="pg-menu-who" role="listbox" aria-label="Who I design it for" hidden></ul>
                 </span>
               </div>
-              <p class="pgram__out" id="pg-out" aria-live="polite"></p>
+              <!-- The "2 PROJECTS · Mool / Alpha Stockathon" line that sat here
+                 is gone at Sid's request: the sentence above is a claim about
+                 range, and answering it with two links turned it into a filter
+                 widget arguing with /works/ instead of pointing at it.
+
+                 It is left in the DOM as an empty live region rather than
+                 deleted, because the control's script announces its result
+                 through it. Removing the element outright is exactly what
+                 broke the dropdown the first time — the script guards on
+                 `out` and returned early, so the words stopped opening at
+                 all. -->
+              <p class="pgram__out" id="pg-out" aria-live="polite" hidden></p>
             </div>
             <ul class="hero__links">
               <li>
@@ -10289,7 +10341,7 @@
     </style>
 
     <script src="/assets/js/home-gl.js" defer></script>
-    <script src="/assets/js/home-film.js" defer></script>
+    <script src="/assets/js/home-field.js" defer></script>
 
     <script>
       /* ── headline arrival ────────────────────────────────────────
@@ -10330,99 +10382,96 @@
            site rather than a homepage-only trick. */
       })();
 
-      /* ── the reactive tail ───────────────────────────────────────
-         Only the segment after "Building" rewrites itself. It types, holds,
-         backspaces, and moves on — backspacing at roughly half the typing
-         interval, because deleting reads as fast in life and a symmetric
-         rate reads as a stutter.
+      /* ── THE LINE THAT REFORMS ───────────────────────────────────────
+         Sid: "maybe we have a text animation which keeps dissolving and
+         unbluring and forming different avenues."
 
-         Three things stop it: reduced motion (first phrase, printed, no
-         loop), a hidden tab, and the hero leaving the viewport. The last is
-         the one that matters — this line sits at the top of a long page and
-         without the observer it would keep waking the compositor for the
-         entire scroll, for a sentence nobody can see. */
+         This used to type and backspace, which is a typewriter — a device
+         that says "someone is writing this now". The claim underneath it is
+         not being written now; it is one of five things that are all
+         permanently true, and a phrase that deletes itself letter by letter
+         to admit the next one reads as indecision.
+
+         So the phrases dissolve into each other instead. Every character
+         blurs and lifts on its own small delay, the line resolves out of that
+         blur as the next phrase, and the stagger runs from both ends toward
+         the middle rather than left to right — so it reads as a phrase
+         re-forming rather than as a cursor travelling.
+
+         The blur is on a filter and the lift on a transform, both compositor
+         properties, so a five-word line costs nothing to animate. The DOM is
+         rebuilt once per phrase, not per frame. */
       (function () {
         var el = document.querySelector(".hero__rot-val");
         if (!el) return;
         var list = (el.getAttribute("data-rot") || "").split("|").filter(Boolean);
         if (!list.length) return;
 
-        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (reduce) {
           el.textContent = list[0];
           return;
         }
 
-        var TYPE = 46,
-          ERASE = 24,
-          HOLD = 2400,
-          BREATH = 340;
         var i = 0,
-          c = 0,
-          erasing = false,
-          gate = 0,
           live = true,
-          running = false;
+          inView = true;
 
-        var step = function (now) {
-          if (!live) {
-            running = false;
-            return;
+        function paint(text, dir) {
+          el.textContent = "";
+          var chars = text.split("");
+          var mid = (chars.length - 1) / 2;
+          for (var c = 0; c < chars.length; c++) {
+            var sp = document.createElement("span");
+            sp.className = "rot-c";
+            sp.textContent = chars[c] === " " ? "\u00a0" : chars[c];
+            /* Distance from the centre, so both ends move first and the
+               middle lands last. */
+            var d = Math.abs(c - mid) / Math.max(1, mid);
+            sp.style.transitionDelay = Math.round((dir > 0 ? 1 - d : d) * 260) + "ms";
+            el.appendChild(sp);
           }
-          running = true;
-          if (now < gate) return requestAnimationFrame(step);
-          var txt = list[i];
-          if (!erasing) {
-            c++;
-            el.textContent = txt.slice(0, c);
-            if (c >= txt.length) {
-              erasing = true;
-              gate = now + HOLD;
-              el.classList.remove("is-typing");
-            } else {
-              gate = now + TYPE;
-              el.classList.add("is-typing");
-            }
-          } else {
-            el.classList.add("is-typing");
-            c--;
-            el.textContent = txt.slice(0, Math.max(0, c));
-            if (c <= 0) {
-              erasing = false;
-              i = (i + 1) % list.length;
-              gate = now + BREATH;
-            } else {
-              gate = now + ERASE;
-            }
-          }
-          requestAnimationFrame(step);
-        };
-
-        var start = function () {
-          if (running) return;
-          requestAnimationFrame(function (now) {
-            gate = now;
-            step(now);
-          });
-        };
-        var setLive = function (v) {
-          live = v;
-          if (v) start();
-        };
-
-        var inView = true;
-        document.addEventListener("visibilitychange", function () {
-          setLive(!document.hidden && inView);
-        });
-
-        if ("IntersectionObserver" in window) {
-          var host = document.querySelector(".hero__rot");
-          new IntersectionObserver(function (es) {
-            inView = es[0].isIntersecting;
-            setLive(inView && !document.hidden);
-          }).observe(host);
+          return el.querySelectorAll(".rot-c");
         }
 
-        setTimeout(start, 1900); /* after the headline has finished writing */
+        function show(text) {
+          var chars = paint(text, 1);
+          /* One frame at the dissolved state, then release. Without the
+             reflow the browser coalesces both states and nothing animates. */
+          el.classList.add("is-out");
+          void el.offsetWidth;
+          el.classList.remove("is-out");
+          return chars;
+        }
+
+        function cycle() {
+          if (!live || !inView) return;
+          show(list[i]);
+          setTimeout(function () {
+            if (!live || !inView) return;
+            el.classList.add("is-out");
+            setTimeout(function () {
+              i = (i + 1) % list.length;
+              cycle();
+            }, 620);
+          }, 3200);
+        }
+
+        document.addEventListener("visibilitychange", function () {
+          live = !document.hidden;
+          if (live) cycle();
+        });
+        if ("IntersectionObserver" in window) {
+          var host = document.querySelector(".hero__rot");
+          if (host)
+            new IntersectionObserver(function (es) {
+              var was = inView;
+              inView = es[0].isIntersecting;
+              if (inView && !was) cycle();
+            }).observe(host);
+        }
+
+        setTimeout(cycle, 1500);
       })();
 
       /* ── the sentence you operate ────────────────────────────────────────
@@ -11148,8 +11197,12 @@
 
   #cur-dot {
     position: fixed;
-    width: 22px;
-    height: 22px;
+    /* 18, down from 22. Sid: "cursor can be a little smaller." A ring this
+       size still reads as an object rather than a dot, and at 1.6x over an
+       interactive surface it now opens to 29 rather than 35 — which was
+       starting to look like a target reticle on small links. */
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
