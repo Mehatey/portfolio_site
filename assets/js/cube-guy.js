@@ -46,7 +46,7 @@
     gl = canvas.getContext("webgl", {
       alpha: true,
       antialias: false,
-      depth: false,
+      depth: true,
       premultipliedAlpha: false,
       powerPreference: "low-power",
     });
@@ -57,13 +57,45 @@
      him. Nothing else on the page depends on this running. */
   if (!gl) return;
 
+  /* ── ONE BUFFER, TWO PASSES ──────────────────────────────────────────────
+     Sid: "i was mentioning hover on the cube, and then it shows only that
+     area in a cool, flowy brush shader type shit. It reveals the actual
+     model below it."
+
+     So the hover is no longer something that happens to the whole figure. A
+     brush follows the pointer across him, and inside it the cloud closes into
+     the model itself — lit, solid, opaque — while everything outside stays
+     the sparse depth map. Wiping the pointer across his chest paints the
+     surface in and lets it fade out behind you.
+
+     That needs the two halves composited differently, and no single draw call
+     can do both: a surface wants alpha over the nearest fragment, a point
+     cloud wants additive accumulation, and a cloud drawn additively over a
+     surface is a fog. So the same buffer is drawn twice.
+
+       PASS 1  the solid. Alpha blended, depth written, alpha faded to zero
+               outside the brush so the rest of the figure never enters the
+               depth buffer at all.
+       PASS 2  the cloud. Additive, depth TESTED but not written, so particles
+               behind the revealed surface are correctly hidden by it, and
+               faded out inside the brush where the solid has taken over.
+
+     Which is also why the context now asks for a depth buffer and why
+     gl_Position.z carries real view depth rather than 0.
+
+     The brush edge is warped by the point's own hash and by a slow sine, so
+     it is a wet edge that crawls rather than a circle — the "flowy" part. */
   var VS = [
     "precision highp float;",
     "attribute vec3 p;",
+    "attribute vec3 nrm;",
     "uniform mat3 u_rot;",
-    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan;",
+    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow;",
+    "uniform vec2 u_ptr;",
     "varying float v_depth;",
     "varying float v_rand;",
+    "varying float v_brush;",
+    "varying float v_lit;",
 
     /* One hash per point, off its own position, so the scatter is stable
        between frames — a per-frame random would boil rather than drift. */
@@ -75,32 +107,69 @@
     /* Blender is Z-up and WebGL is Y-up. Swapping here rather than in the
        exported data keeps the .bin in the model's own frame, so a re-export
        does not need this file changed. */
+    /* ── THE HANDOFF ─────────────────────────────────────────────────────
+       Sid: "when you scroll, i was thinking maybe the cube can get bigger and
+       rotate, then sort of dissolve into the cube we have below."
+
+       u_scroll is 0 while the hero is at rest and 1 by the time the cube
+       section is arriving. Three things ride it: the camera pushes in
+       (u_grow), the idle turn accelerates (in JS, so the drag inertia still
+       composes with it), and the figure is squared off — every point is
+       pulled toward the surface of a box, so he does not shrink away or
+       explode, he BECOMES a cube, and hands the shape to the real one
+       underneath as it comes up the page. */
     "  vec3 pos = vec3(p.x, p.z, p.y);",
+    "  float sq = smoothstep(0.30, 0.92, u_scroll);",
+    "  vec3 boxed = clamp(pos * 1.35, vec3(-0.34), vec3(0.34));",
+    "  pos = mix(pos, boxed, sq);",
+    "  vec3 nor = normalize(vec3(nrm.x, nrm.z, nrm.y) + 0.0001);",
     "  float n = hash(p);",
     "  v_rand = n;",
 
-    /* THE COMING APART. Each point drifts along its own fixed direction, at
-       its own rate, so the cloud loosens instead of inflating. */
-    "  vec3 dir = normalize(vec3(sin(n * 41.3) , cos(n * 27.7), sin(n * 13.1)) + 0.0001);",
+    /* The idle loosening. Small, and now only OUTSIDE the brush — it is what
+       the revealed surface is being revealed out of. */
+    "  vec3 dir = normalize(vec3(sin(n * 41.3), cos(n * 27.7), sin(n * 13.1)) + 0.0001);",
     "  float breathe = 0.55 + 0.45 * sin(u_time * 0.7 + n * 24.0);",
-    "  pos += dir * u_hov * (0.018 + 0.085 * n) * breathe;",
-
-    /* THE BAND. A thin horizontal sweep that pushes what it touches outward
-       from the axis — the thing that makes it read as being scanned rather
-       than as simply expanding. */
     "  float band = smoothstep(0.10, 0.0, abs(pos.y - u_scan));",
-    "  pos += normalize(pos + 0.0001) * band * u_hov * 0.07;",
 
     "  vec3 r = u_rot * pos;",
-    /* Camera at z = 3.1. A real divide, not an orthographic squash: the
-        near shoulder has to actually be bigger than the far one or none of
-        this reads as depth. */
+    "  vec3 rn = u_rot * nor;",
     "  float z = r.z + 3.1;",
-    "  float f = 2.62;",
-    "  gl_Position = vec4((r.x * f / z) / u_aspect, (r.y * f / z), 0.0, 1.0);",
-    "  gl_PointSize = u_size * u_dpr * (2.15 / z) * (0.72 + 0.56 * n);",
-    /* 1 at the nearest surface, 0 at the furthest. This single number is the
-       whole image. */
+    "  float f = 2.62 * u_grow;",
+    "  vec2 ndc = vec2((r.x * f / z) / u_aspect, r.y * f / z);",
+
+    /* ── THE BRUSH ────────────────────────────────────────────────────────
+       Distance from the pointer in screen space, warped per point so the
+       boundary is a wet edge rather than a circle. u_hov eases the radius
+       from nothing, so it opens under the hand instead of snapping on. */
+    "  float bd = length((ndc - u_ptr) * vec2(u_aspect, 1.0));",
+    "  bd += (n - 0.5) * 0.17 + sin(pos.y * 9.0 + u_time * 0.9) * 0.055 + sin(pos.x * 13.0 - u_time * 0.7) * 0.045 + sin(pos.z * 7.0 + u_time * 0.5) * 0.03;",
+    "  float R = u_brushR * u_hov;",
+    "  float brush = R > 0.001 ? smoothstep(R, R * 0.35, bd) : 0.0;",
+    "  v_brush = brush;",
+
+    /* Loosen only what the brush has not claimed. */
+    "  float loose = (1.0 - brush) * u_hov;",
+    "  pos += dir * loose * (0.018 + 0.085 * n) * breathe;",
+    "  pos += normalize(pos + 0.0001) * band * loose * 0.07;",
+    "  r = u_rot * pos;",
+    "  z = r.z + 3.1;",
+    "  ndc = vec2((r.x * f / z) / u_aspect, r.y * f / z);",
+
+    /* One key light, fixed in view space so turning him turns the shading
+       rather than dragging the light around with him. */
+    "  v_lit = 0.16 + 0.84 * max(0.0, dot(rn, normalize(vec3(-0.52, 0.55, 0.66))));",
+
+    /* Depth is written by the solid pass and tested by the cloud, so it has
+       to be a real number, not 0. Mapped to roughly the volume the figure
+       occupies. */
+    "  gl_Position = vec4(ndc, clamp((z - 1.8) / 2.6, -0.99, 0.99), 1.0);",
+
+    /* Inside the brush the points grow until they overlap into a surface.
+       That is the whole trick: no mesh is shipped, the solid is 55,843 points
+       drawn large enough to close. */
+    "  float grow = 1.0 + 3.6 * brush;",
+    "  gl_PointSize = u_size * u_dpr * (2.15 / z) * (0.72 + 0.56 * n) * grow;",
     "  v_depth = clamp((4.1 - z) / 2.0, 0.0, 1.0);",
     "}",
   ].join("\n");
@@ -108,25 +177,40 @@
   var FS = [
     "precision highp float;",
     "uniform vec3 u_near, u_far;",
-    "uniform float u_hov, u_fade, u_light;",
+    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll;",
     "varying float v_depth;",
     "varying float v_rand;",
+    "varying float v_brush;",
+    "varying float v_lit;",
     "void main() {",
-    /* Round points with a soft edge. Square points at this size read as a
-       screen door over the figure. */
     "  vec2 c = gl_PointCoord - 0.5;",
     "  float d = dot(c, c);",
     "  if (d > 0.25) discard;",
-    "  float soft = smoothstep(0.25, 0.02, d);",
 
     "  float t = pow(v_depth, 1.35);",
-    "  vec3 col = mix(u_far, u_near, t);",
-    /* Coming apart splits the palette: the points that have travelled
-       furthest go coldest, so the cloud reads as losing its surface. */
-    "  col = mix(col, mix(col, u_near, 0.75), u_hov * v_rand);",
 
+    "  if (u_pass > 0.5) {",
+    /* THE SOLID. A hard-edged disc, because a soft one leaves the surface
+       looking like felt; the overlap between neighbours does the smoothing.
+       Lit by the normal, with the depth map still tinting it so the revealed
+       figure belongs to the same picture as the cloud around it. */
+    "    if (v_brush < 0.02) discard;",
+    "    vec3 lit = mix(u_far * 0.9, u_near, clamp(t * 0.24 + v_lit * 0.86 - 0.06, 0.0, 1.0));",
+    "    lit *= 0.66 + 0.52 * v_lit;",
+    "    float a = smoothstep(0.25, 0.19, d) * smoothstep(0.01, 0.16, v_brush) * u_fade * (1.0 - smoothstep(0.55, 0.95, u_scroll));",
+    "    gl_FragColor = vec4(lit, a);",
+    "    return;",
+    "  }",
+
+    /* THE CLOUD. As before, minus whatever the brush has taken. */
+    "  float soft = smoothstep(0.25, 0.02, d);",
+    "  vec3 col = mix(u_far, u_near, t);",
+    "  col = mix(col, mix(col, u_near, 0.75), u_hov * v_rand * (1.0 - v_brush));",
     "  float a = soft * u_fade * mix(0.50 + 0.50 * t, 0.66 + 0.34 * t, u_light);",
-    "  a *= mix(1.0, 0.86, u_hov);",
+    "  a *= mix(1.0, 0.86, u_hov) * (1.0 - v_brush);",
+    /* Gone by the time the real cube is on screen, so the two are never both
+       claiming to be the object. */
+    "  a *= 1.0 - smoothstep(0.62, 1.0, u_scroll);",
     "  gl_FragColor = vec4(col, a);",
     "}",
   ].join("\n");
@@ -156,16 +240,33 @@
   gl.useProgram(prog);
 
   var U = {};
-  ["u_rot", "u_time", "u_hov", "u_size", "u_aspect", "u_dpr", "u_scan", "u_near", "u_far", "u_fade", "u_light"].forEach(function (k) {
+  [
+    "u_rot",
+    "u_time",
+    "u_hov",
+    "u_size",
+    "u_aspect",
+    "u_dpr",
+    "u_scan",
+    "u_near",
+    "u_far",
+    "u_fade",
+    "u_light",
+    "u_pass",
+    "u_ptr",
+    "u_brushR",
+    "u_scroll",
+    "u_grow",
+  ].forEach(function (k) {
     U[k] = gl.getUniformLocation(prog, k);
   });
   var aP = gl.getAttribLocation(prog, "p");
+  var aN = gl.getAttribLocation(prog, "nrm");
 
   var buf = gl.createBuffer();
   var count = 0;
   var ready = false;
 
-  gl.disable(gl.DEPTH_TEST);
   gl.enable(gl.BLEND);
 
   /* ── theme ────────────────────────────────────────────────────────────
@@ -174,19 +275,25 @@
      cream page into a white rectangle, so the light theme composites
      normally and paints dark points instead. */
   var light = false;
+  /* The cloud's blend mode, pulled out of readTheme because the solid pass
+     sets its own and the cloud has to be able to put this one back every
+     frame. */
+  function setBlend() {
+    if (light) gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    else gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+  }
   function readTheme() {
     light = document.documentElement.getAttribute("data-theme") === "light";
     if (light) {
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
       gl.uniform3f(U.u_near, 0.05, 0.06, 0.09);
       gl.uniform3f(U.u_far, 0.62, 0.64, 0.68);
       gl.uniform1f(U.u_light, 1);
     } else {
-      gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
       gl.uniform3f(U.u_near, 0.72, 0.83, 1.0);
       gl.uniform3f(U.u_far, 0.11, 0.17, 0.32);
       gl.uniform1f(U.u_light, 0);
     }
+    setBlend();
   }
   readTheme();
   new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -221,17 +328,32 @@
       return r.arrayBuffer();
     })
     .then(function (ab) {
-      var raw = new Int16Array(ab);
-      count = (raw.length / 3) | 0;
-      /* Uploaded as int16 and scaled in the shader would save the copy, but
-         WebGL1 has no integer attributes to normalise from, so the expansion
-         happens once here rather than per frame. */
-      var f = new Float32Array(raw.length);
-      for (var i = 0; i < raw.length; i++) f[i] = raw[i] / 32767;
+      /* The file is positions then normals: N*3 int16, then N*3 int8. Nine
+         bytes a point against twenty-four for two float32 triples, which is
+         the difference between 503KB and 1.3MB. */
+      var n = (ab.byteLength / 9) | 0;
+      count = n;
+      var pos = new Int16Array(ab, 0, n * 3);
+      var nor = new Int8Array(ab, n * 6, n * 3);
+
+      /* Interleaved, so both attributes come off one buffer and one bind.
+         Expanded to float once here rather than per frame — WebGL1 has no
+         integer attribute to normalise from. */
+      var f = new Float32Array(n * 6);
+      for (var i = 0; i < n; i++) {
+        f[i * 6] = pos[i * 3] / 32767;
+        f[i * 6 + 1] = pos[i * 3 + 1] / 32767;
+        f[i * 6 + 2] = pos[i * 3 + 2] / 32767;
+        f[i * 6 + 3] = nor[i * 3] / 127;
+        f[i * 6 + 4] = nor[i * 3 + 1] / 127;
+        f[i * 6 + 5] = nor[i * 3 + 2] / 127;
+      }
       gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, f, gl.STATIC_DRAW);
       gl.enableVertexAttribArray(aP);
-      gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 0, 0);
+      gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 24, 0);
+      gl.enableVertexAttribArray(aN);
+      gl.vertexAttribPointer(aN, 3, gl.FLOAT, false, 24, 12);
       ready = true;
       host.classList.add("is-live");
       resize();
@@ -250,10 +372,24 @@
   var lastY = 0;
   var hov = 0;
   var hovTarget = 0;
+  var scrollP = 0;
+  var hero = host.closest("section") || host.parentElement;
+
+  /* The brush needs the pointer in the same clip space the vertex shader
+     projects into, so it is normalised against the stage's own box: -1..1
+     across, +1 at the top. */
+  var ptrX = 0;
+  var ptrY = 0;
 
   host.addEventListener("pointerenter", function (e) {
     if (e.pointerType === "touch") return;
     hovTarget = 1;
+  });
+  host.addEventListener("pointermove", function (e) {
+    if (e.pointerType === "touch") return;
+    var b = host.getBoundingClientRect();
+    ptrX = ((e.clientX - b.left) / Math.max(1, b.width)) * 2 - 1;
+    ptrY = 1 - ((e.clientY - b.top) / Math.max(1, b.height)) * 2;
   });
   host.addEventListener("pointerleave", function () {
     hovTarget = 0;
@@ -344,7 +480,7 @@
         yaw += velY;
         velY *= 0.955;
       } else if (!REDUCED) {
-        yaw += 0.0016;
+        yaw += 0.0016 + 0.026 * scrollP * scrollP;
       }
       pitch += (0.05 - pitch) * 0.012;
     }
@@ -359,14 +495,47 @@
     gl.uniformMatrix3fv(U.u_rot, false, rot);
     gl.uniform1f(U.u_time, t);
     gl.uniform1f(U.u_hov, hov);
+    gl.uniform2f(U.u_ptr, ptrX, ptrY);
+    gl.uniform1f(U.u_brushR, 0.46);
+
+    /* Progress through the hero, 0 at rest and 1 once it has scrolled by. The
+       stage is absolutely positioned inside the hero, so it is already
+       travelling up the page — this is what happens to him on the way. */
+    var heroH = Math.max(1, hero ? hero.offsetHeight : window.innerHeight);
+    var prog = Math.max(0, Math.min(1, (window.scrollY || 0) / heroH));
+    scrollP += (prog - scrollP) * 0.12;
+    gl.uniform1f(U.u_scroll, scrollP);
+    gl.uniform1f(U.u_grow, 1 + 0.55 * scrollP);
     gl.uniform1f(U.u_fade, fade);
     /* The band travels the height of the figure and wraps, a shade slower
        than the drift so the two never lock into a rhythm. */
     gl.uniform1f(U.u_scan, ((t * 0.24) % 2.4) - 1.2);
 
     gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    /* PASS 1 — the solid, where the brush has claimed him. Alpha over, depth
+       written, so the nearest surface wins and the cloud behind it cannot
+       shine through. Skipped entirely when nothing is hovered, which is the
+       common case and the whole cost of the feature. */
+    if (hov > 0.004) {
+      gl.uniform1f(U.u_pass, 1);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthMask(true);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.drawArrays(gl.POINTS, 0, count);
+    }
+
+    /* PASS 2 — the cloud. Depth TESTED against what the solid just wrote but
+       not written to, so particles behind the revealed surface are hidden by
+       it while particles in front still accumulate. Blend mode is the
+       theme's: additive glows on the dark page, normal composites on cream. */
+    gl.uniform1f(U.u_pass, 0);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthMask(false);
+    setBlend();
     gl.drawArrays(gl.POINTS, 0, count);
+    gl.depthMask(true);
   }
   requestAnimationFrame(frame);
 })();

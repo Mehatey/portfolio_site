@@ -71,14 +71,24 @@ mesh_node = next(i for i, n in enumerate(j["nodes"]) if "mesh" in n)
 M = world[mesh_node]
 
 prim = j["meshes"][j["nodes"][mesh_node]["mesh"]]["primitives"][0]
-acc = j["accessors"][prim["attributes"]["POSITION"]]
-bv = j["bufferViews"][acc["bufferView"]]
-start = bin_off + bv.get("byteOffset", 0) + acc.get("byteOffset", 0)
-stride = bv.get("byteStride") or 12
-count = acc["count"]
+
+
+def reader(attr):
+    acc = j["accessors"][prim["attributes"][attr]]
+    bv = j["bufferViews"][acc["bufferView"]]
+    return (
+        bin_off + bv.get("byteOffset", 0) + acc.get("byteOffset", 0),
+        bv.get("byteStride") or 12,
+        acc["count"],
+    )
+
+
+start, stride, count = reader("POSITION")
+n_start, n_stride, _ = reader("NORMAL")
 
 step = max(1, count // TARGET)
 pts = []
+nrm = []
 for i in range(0, count, step):
     o = start + i * stride
     x, y, z = struct.unpack_from("<fff", d, o)
@@ -86,6 +96,17 @@ for i in range(0, count, step):
     wy = M[1] * x + M[5] * y + M[9] * z + M[13]
     wz = M[2] * x + M[6] * y + M[10] * z + M[14]
     pts.append((wx, wy, wz))
+
+    # Normals take the rotation but not the translation. The mesh transform
+    # here has no shear and uniform scale, so the upper 3x3 is its own inverse
+    # transpose up to a factor the normalise below removes anyway.
+    o = n_start + i * n_stride
+    nx, ny, nz = struct.unpack_from("<fff", d, o)
+    rx = M[0] * nx + M[4] * ny + M[8] * nz
+    ry = M[1] * nx + M[5] * ny + M[9] * nz
+    rz = M[2] * nx + M[6] * ny + M[10] * nz
+    ln = (rx * rx + ry * ry + rz * rz) ** 0.5 or 1.0
+    nrm.append((rx / ln, ry / ln, rz / ln))
 
 xs = [p[0] for p in pts]
 ys = [p[1] for p in pts]
@@ -133,10 +154,14 @@ view(OUT + "cg-front.png", 0, 1)
 view(OUT + "cg-side.png", 2, 1)
 view(OUT + "cg-top.png", 0, 2)
 
-# int16, so 6 bytes a point instead of 12
+# Positions int16 (6 bytes) then normals int8 (3 bytes): 9 a point, against
+# 24 for two float32 triples. The normals are what let the hover reveal light
+# the surface as a solid instead of as a cloud of dots.
 out = bytearray()
 for p in norm:
     out += struct.pack("<hhh", *[max(-32767, min(32767, int(round(c * 32767)))) for c in p])
+for n in nrm:
+    out += struct.pack("<bbb", *[max(-127, min(127, int(round(c * 127)))) for c in n])
 dst = "/Users/siddharthmehta/Desktop/al-folio/assets/models/cube-guy-points.bin"
 import os
 
