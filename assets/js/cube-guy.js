@@ -91,7 +91,7 @@
     "attribute vec3 nrm;",
     "attribute vec2 uv;",
     "uniform mat3 u_rot;",
-    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow;",
+    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break;",
     "uniform vec2 u_ptr;",
     "varying float v_depth;",
     "varying float v_rand;",
@@ -157,6 +157,49 @@
 
     /* THE LIFT AND THE TRAVEL. Rises as he goes, so the arc is not flat. */
     "  pos.y += lift * 0.30;",
+
+    /* ── THE SHATTER ──────────────────────────────────────────────────────
+       Sid: "when i click on the cube, i thought there was going to be some
+       sort of shattering animation or something cool happened to it."
+
+       u_break is a one-shot 0 → 1 → 0 fired by a click. It is not a scatter:
+       a cloud that simply flies apart reads as an explosion of dust, and he
+       is a solid. So the cloud is broken into SHARDS first — points are
+       grouped by a coarse hash of their position, about 90 cells, and every
+       point in a cell moves as one piece. Each shard takes its own direction
+       out from the body, its own tumble about its own centre, and its own
+       amount of gravity, so what comes apart is a figure made of plates
+       rather than a fog.
+
+       The reassembly is the same curve run backwards and it is slower than
+       the break: 0.9s out, 1.6s back. Things fall apart faster than they go
+       together, and a shatter that snaps back at the same rate reads as a
+       loop rather than as a recovery. */
+    "  if (u_break > 0.0001) {",
+    "    vec3 cell = floor(pos * 4.5);",
+    "    float cs = fract(sin(dot(cell, vec3(41.3, 289.1, 77.7))) * 24571.13);",
+    "    vec3 cc = (cell + 0.5) / 4.5;",
+    /* direction: away from the body's axis, biased outward and up */
+    /* A direction per shard on a full sphere, biased upward — NOT the cell's
+       offset from the origin. The first pass used the latter and the figure
+       is a tall thin thing, so cc.y dominated, every piece went almost
+       straight up, and the gravity term below cancelled it: measured mid
+       break at 0.8 the silhouette was still intact. */
+    "    float a1 = cs * 6.28318;",
+    "    float a2 = fract(cs * 71.7) * 3.14159;",
+    "    vec3 dirS = vec3(sin(a2) * cos(a1), cos(a2) * 0.55 + 0.42, sin(a2) * sin(a1));",
+    "    float k = u_break * (0.55 + 0.9 * cs);",
+    /* the piece tumbles about its own centre */
+    "    float ang = u_break * (cs - 0.5) * 7.0;",
+    "    float cbk = cos(ang), sbk = sin(ang);",
+    "    vec3 rel = pos - cc;",
+    "    rel.xy = mat2(cbk, -sbk, sbk, cbk) * rel.xy;",
+    "    rel.yz = mat2(cbk, -sbk, sbk, cbk) * rel.yz;",
+    "    pos = cc + rel;",
+    /* thrown out, then pulled down — gravity on the way, so the pieces arc */
+    "    pos += dirS * k * 1.15;",
+    "    pos.y -= u_break * u_break * (0.35 + 0.5 * cs);",
+    "  }",
     "  vec3 nor = normalize(vec3(nrm.x, nrm.z, nrm.y) + 0.0001);",
     "  float n = hash(p);",
     "  v_rand = n;",
@@ -225,7 +268,7 @@
   var FS = [
     "precision highp float;",
     "uniform vec3 u_near, u_far;",
-    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll, u_texMode, u_hasTex, u_hasSkin, u_time;",
+    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll, u_texMode, u_hasTex, u_hasSkin, u_time, u_break;",
     "uniform sampler2D u_tex, u_skin;",
     "uniform vec2 u_texCover;",
     "varying float v_depth;",
@@ -325,6 +368,10 @@
     /* Gone by the time the real cube is on screen, so the two are never both
        claiming to be the object. */
     "  a *= 1.0 - smoothstep(0.78, 1.0, u_scroll);",
+    /* The break lights the cloud from inside — brightest at the instant of
+       impact, gone as the pieces settle back. */
+    "  col += u_near * u_break * (0.35 + 0.5 * v_rand);",
+    "  a *= 1.0 + u_break * 0.5;",
     "  gl_FragColor = vec4(col, a);",
     "}",
   ].join("\n");
@@ -371,6 +418,7 @@
     "u_brushR",
     "u_scroll",
     "u_grow",
+    "u_break",
     "u_tex",
     "u_texMode",
     "u_hasTex",
@@ -585,7 +633,28 @@
     hovTarget = 0;
   });
 
+  /* ── THE CLICK ──────────────────────────────────────────────────────────
+     A click that is not a drag shatters him. The distinction matters: he is
+     also grabbable, and a drag that ends in a click would blow him apart
+     every time you turned him. So the shatter fires on pointerup, only if
+     the pointer travelled less than 6px and was down for under 400ms.
+
+     0.9s out, 1.6s back, on curves that are not each other's mirror. */
+  var breakV = 0;
+  var breakAt = 0;
+  var downAt = 0;
+  var downX = 0;
+  var downY = 0;
+
+  host.addEventListener("pointerup", function (e) {
+    var moved = Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY);
+    if (moved < 6 && performance.now() - downAt < 400) breakAt = performance.now();
+  });
+
   host.addEventListener("pointerdown", function (e) {
+    downAt = performance.now();
+    downX = e.clientX;
+    downY = e.clientY;
     dragging = true;
     lastX = e.clientX;
     lastY = e.clientY;
@@ -725,6 +794,22 @@
     gl.bindTexture(gl.TEXTURE_2D, skinTex);
     gl.uniform1i(U.u_skin, 1);
     gl.uniform1f(U.u_hasSkin, hasSkin);
+    /* Out fast on a curve that leaves quickly, back slow on one that eases
+       in — so the pieces leap and then drift home. */
+    if (breakAt) {
+      var el = (now - breakAt) / 1000;
+      if (el < 0.9) {
+        var o = el / 0.9;
+        breakV = 1 - (1 - o) * (1 - o);
+      } else if (el < 2.5) {
+        var i2 = (el - 0.9) / 1.6;
+        breakV = 1 - i2 * i2 * (3 - 2 * i2);
+      } else {
+        breakV = 0;
+        breakAt = 0;
+      }
+    }
+    gl.uniform1f(U.u_break, breakV);
     gl.uniform1f(U.u_texMode, texMode);
 
     /* ── PINNED, SO THE TIMELINE HAS SOMEWHERE TO PLAY ─────────────────────
@@ -813,6 +898,14 @@
      because of it; it lets a headless run hold each material still and
      screenshot it, which is the only way to check that five materials look
      like five materials rather than trusting the code. */
+  /* Verification hooks. Nothing on the page calls these. */
+  window.__cgBreak = function () {
+    breakAt = performance.now();
+  };
+  window.__cgState = function () {
+    return { breakV: breakV, breakAt: breakAt, hov: hov, scrollP: scrollP };
+  };
+
   window.__cgSetMat = function (m) {
     texMode = (((m | 0) % 5) + 5) % 5;
   };
