@@ -1840,26 +1840,195 @@
         background: transparent !important;
       }
 
+      /* ── THE REEL SEAL ───────────────────────────────────────────────────
+         Sid: "the play reel button needs to be way cooler with maybe a flowy
+         changing state."
+
+         It was ten-pixel mono caps reading WATCH THE REEL — the same
+         treatment as every micro-label on the site, sitting directly under
+         the one object on the page you are meant to reach out and touch. The
+         page's single loudest invitation was its quietest mark.
+
+         So it is a seal: a glass disc with something moving inside it. Two
+         gradient fields counter-rotate behind a circular clip at different
+         speeds and different scales, which is what makes it read as liquid
+         rather than as a spinning texture — nothing in there ever returns to
+         the same arrangement. The type runs round the rim on a path, the
+         triangle sits in the middle, and hovering brings the fluid up,
+         doubles the rim's speed and pushes the triangle a hair to the right,
+         the way a play head leans into a cut.
+
+         All CSS. No canvas, no context to lose, nothing to load. */
       .reel-cue {
         margin: clamp(18px, 3vh, 34px) 0 0;
         text-align: center;
       }
-      .reel-cue button {
+      .reel-seal {
         appearance: none;
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        width: clamp(108px, 11vw, 136px);
+        aspect-ratio: 1;
+        padding: 0;
         border: 0;
+        border-radius: 50%;
         background: none;
-        cursor: pointer;
-        font-family: "DM Mono", monospace;
-        font-size: 10px;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--home-faint);
-        padding: 8px 2px;
-        transition: color 0.24s ease;
-      }
-      .reel-cue button:hover,
-      .reel-cue button:focus-visible {
         color: var(--home-ink);
+        cursor: pointer;
+        isolation: isolate;
+        transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reel-seal:hover {
+        transform: scale(1.045);
+      }
+      /* The glass. Its own element rather than the button's background so the
+         backdrop blur has something to sit against without also blurring the
+         type and the triangle above it. */
+      .reel-seal::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid var(--home-hair);
+        -webkit-backdrop-filter: blur(9px) saturate(1.25);
+        backdrop-filter: blur(9px) saturate(1.25);
+        transition:
+          border-color 300ms ease,
+          background 300ms ease;
+      }
+      .reel-seal:hover::before,
+      .reel-seal:focus-visible::before {
+        border-color: rgba(180, 210, 255, 0.5);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .reel-seal__flow {
+        position: absolute;
+        inset: 5px;
+        border-radius: 50%;
+        overflow: hidden;
+        opacity: 0.5;
+        transition: opacity 420ms ease;
+        pointer-events: none;
+      }
+      .reel-seal:hover .reel-seal__flow {
+        opacity: 0.86;
+      }
+      /* Two fields, opposite directions, different periods and different
+         centres of rotation. Their overlap is what moves.
+
+         The first pass blurred these to 14px across a box 40% larger than
+         the disc, which averaged the whole thing to one flat wash — pretty,
+         and completely still to look at, because a gradient with no dark
+         between its blobs has nothing to show you moving. Tighter falloffs
+         and half the blur leave real ground between them, and `screen` makes
+         them read as light in the glass rather than as paint on it. */
+      .reel-seal__flow::before,
+      .reel-seal__flow::after {
+        content: "";
+        position: absolute;
+        inset: -22%;
+        border-radius: 50%;
+        filter: blur(9px);
+        mix-blend-mode: screen;
+      }
+      .reel-seal__flow::before {
+        background:
+          radial-gradient(30% 30% at 36% 34%, rgba(110, 168, 255, 0.95), transparent 60%),
+          radial-gradient(26% 26% at 68% 64%, rgba(185, 140, 255, 0.8), transparent 62%);
+        animation: reelFlowA 13s linear infinite;
+      }
+      .reel-seal__flow::after {
+        background:
+          radial-gradient(24% 24% at 64% 30%, rgba(120, 255, 214, 0.6), transparent 62%),
+          radial-gradient(28% 28% at 32% 70%, rgba(255, 150, 190, 0.5), transparent 62%);
+        animation: reelFlowB 19s linear infinite reverse;
+      }
+      /* Screen on cream is white on white. The light page gets the same
+         fields multiplied instead, so they darken the glass the way ink in
+         water would. */
+      html[data-theme="light"] .reel-seal__flow::before,
+      html[data-theme="light"] .reel-seal__flow::after {
+        mix-blend-mode: multiply;
+      }
+      @keyframes reelFlowA {
+        to {
+          transform: rotate(360deg) scale(1.08);
+        }
+      }
+      @keyframes reelFlowB {
+        to {
+          transform: rotate(360deg) scale(0.92);
+        }
+      }
+      .reel-seal__ring {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        fill: var(--home-muted);
+        font-family: "DM Mono", monospace;
+        font-size: 7.4px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        animation: reelSpin 26s linear infinite;
+        transition: fill 300ms ease;
+        pointer-events: none;
+      }
+      .reel-seal:hover .reel-seal__ring,
+      .reel-seal:focus-visible .reel-seal__ring {
+        animation-duration: 13s;
+        fill: var(--home-ink);
+      }
+      @keyframes reelSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      /* The triangle, drawn rather than typed: a ▶ glyph carries the font's
+         own idea of a play button and sits off its own optical centre. */
+      .reel-seal__play {
+        position: relative;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 8px 0 8px 13px;
+        border-color: transparent transparent transparent var(--home-ink);
+        transform: translateX(1px);
+        transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+      }
+      .reel-seal:hover .reel-seal__play {
+        transform: translateX(3px);
+      }
+      .reel-seal:focus-visible {
+        outline: 2px solid var(--home-accent);
+        outline-offset: 6px;
+      }
+      html[data-theme="light"] .reel-seal::before {
+        background: rgba(20, 22, 27, 0.03);
+      }
+      html[data-theme="light"] .reel-seal__flow {
+        opacity: 0.46;
+      }
+      html[data-theme="light"] .reel-seal:hover .reel-seal__flow {
+        opacity: 0.7;
+      }
+      /* The whole thing is motion for its own sake, which is exactly what
+         this switch is for. It keeps the glass, the type and the triangle —
+         still a legible, obvious control — and stops moving. */
+      @media (prefers-reduced-motion: reduce) {
+        .reel-seal__ring,
+        .reel-seal__flow::before,
+        .reel-seal__flow::after {
+          animation: none;
+        }
+        .reel-seal,
+        .reel-seal__play {
+          transition: none;
+        }
       }
 
       /* ── door ───────────────────────────────────────────────────── */
@@ -2080,8 +2249,21 @@
            beside the object it is a reel of, and down here it is the one
            thing asking for a click rather than the fifth. -->
       <p class="reel-cue rv">
-        <button type="button" id="reel-open" aria-haspopup="dialog" aria-controls="reel-modal">
-          Watch the reel<span class="xarrow" aria-hidden="true"></span>
+        <button type="button" id="reel-open" class="reel-seal" aria-haspopup="dialog" aria-controls="reel-modal" aria-label="Watch the showreel">
+          <span class="reel-seal__flow" aria-hidden="true"></span>
+          <svg class="reel-seal__ring" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+            <defs>
+              <!-- Two arcs rather than a <circle>, because a circle has no
+                   start point for a textPath to run from. Drawn clockwise
+                   from the left so the type reads left to right across the
+                   top of the seal. -->
+              <path id="reel-ring-path" fill="none" d="M50,50 m-37,0 a37,37 0 1,1 74,0 a37,37 0 1,1 -74,0" />
+            </defs>
+            <text>
+              <textPath href="#reel-ring-path" startOffset="0">watch the reel · watch the reel ·</textPath>
+            </text>
+          </svg>
+          <span class="reel-seal__play" aria-hidden="true"></span>
         </button>
       </p>
 
