@@ -164,13 +164,22 @@ async function checkWorkIndex(results, viewport, route, page) {
         )
       );
 
-    const ctas = Array.from(document.querySelectorAll("a, button"))
-      .map((item) => item.textContent.trim().replace(/\s+/g, " "))
-      .filter((text) => /view project|quick case|start here|product/i.test(text));
+    /* This used to grep every link and button for "view project" / "quick
+       case" / "start here" / "product". That copy is nowhere on the page and
+       has not been for a long time: the index makes the whole row the target
+       and hangs an arrow off the title, so a separate button would be a second
+       control for the same job. The check was failing on a deliberate design.
+       What must stay true is that a row announces itself as a way in, and that
+       the page ends somewhere a recruiter can act on. */
+    const rowsWithAffordance = projectLinks.filter((link) => link.visible && /[→↗]/.test(link.text)).length;
+    const contactCta = Array.from(document.querySelectorAll('a[href*="/contact/"]')).some(
+      (a) => a.textContent.trim().length > 0 && (a.offsetWidth || a.offsetHeight || a.getClientRects().length)
+    );
 
     return {
       visibleProjectLinks: projectLinks.filter((link) => link.visible).length,
-      ctas,
+      rowsWithAffordance,
+      contactCta,
     };
   });
 
@@ -182,32 +191,55 @@ async function checkWorkIndex(results, viewport, route, page) {
     "work index exposes visible project links",
     `${workHealth.visibleProjectLinks} visible project links`
   );
-  record(results, viewport, route, workHealth.ctas.length > 0, "work index exposes recruiter CTA copy", workHealth.ctas.slice(0, 6).join(" | "));
-}
-
-async function checkPlay(results, viewport, route, page) {
-  const playHealth = await page.evaluate(() => {
-    const canvas = document.getElementById("play-canvas");
-    const stage = document.querySelector(".play-stage");
-    const fallback = document.querySelector(".play-fallback");
-    return {
-      canvasVisible: Boolean(canvas && canvas.getBoundingClientRect().width > 0 && canvas.getBoundingClientRect().height > 0),
-      rendererReady: Boolean(canvas && (stage?.classList.contains("is-ready") || stage?.classList.contains("has-fallback"))),
-      fallbackImages: fallback?.querySelectorAll("img").length || 0,
-      viewportLocked: document.documentElement.scrollHeight <= window.innerHeight + 2,
-    };
-  });
-
-  record(results, viewport, route, playHealth.canvasVisible, "play exposes a full-viewport spatial canvas");
   record(
     results,
     viewport,
     route,
-    playHealth.rendererReady || playHealth.fallbackImages >= 3,
-    "play initializes its spatial gallery or accessible fallback",
-    `rendererReady=${playHealth.rendererReady}; fallbackImages=${playHealth.fallbackImages}`
+    workHealth.rowsWithAffordance >= workHealth.visibleProjectLinks,
+    "every work row carries its way-in affordance",
+    `${workHealth.rowsWithAffordance} of ${workHealth.visibleProjectLinks}`
   );
-  record(results, viewport, route, playHealth.viewportLocked, "play remains a single-viewport experience");
+  record(results, viewport, route, workHealth.contactCta, "work index ends on a reachable contact CTA");
+}
+
+/* These three checks used to look for `#play-canvas`, a `.play-fallback` grid
+   and a page whose scrollHeight never exceeded the viewport. None of those
+   exist any more: Play was rebuilt as a scrolling masonry gallery with a
+   lightbox and, deliberately, the site footer — so "single viewport" is now
+   the opposite of what the page should do. They had been failing 6 checks a
+   run against a page that had been gone for weeks, which is the fastest way
+   to teach everyone to ignore the run. Replaced with assertions about what
+   the gallery actually has to do. */
+async function checkPlay(results, viewport, route, page) {
+  const playHealth = await page.evaluate(() => {
+    const grid = document.getElementById("play-grid");
+    const tiles = grid ? grid.querySelectorAll("img, video").length : 0;
+    const firstImg = grid ? grid.querySelector("img") : null;
+    return {
+      tiles,
+      // The gallery is the page; an empty grid is a dead page even though
+      // nothing errors.
+      firstTilePainted: Boolean(firstImg && firstImg.complete && firstImg.naturalWidth > 0),
+      accessItems: document.querySelectorAll("#play-access-list li, #play-access-list a").length,
+      hasLightbox: Boolean(document.querySelector(".play-lightbox")),
+      // Play is where a recruiter lands after they like the work. Without the
+      // footer that path dead-ends — it has been missing once already.
+      hasFooter: Boolean(document.querySelector("footer.site-footer")),
+    };
+  });
+
+  record(results, viewport, route, playHealth.tiles >= 40, "play renders its gallery", `${playHealth.tiles} tiles`);
+  record(results, viewport, route, playHealth.firstTilePainted, "play's first tile actually decodes");
+  record(
+    results,
+    viewport,
+    route,
+    playHealth.accessItems >= playHealth.tiles,
+    "play mirrors every tile in its accessible list",
+    `${playHealth.accessItems} listed for ${playHealth.tiles} tiles`
+  );
+  record(results, viewport, route, playHealth.hasLightbox, "play can open a piece full size");
+  record(results, viewport, route, playHealth.hasFooter, "play carries the site footer");
 }
 
 async function checkProject(results, viewport, route, page) {
@@ -257,7 +289,14 @@ async function checkProject(results, viewport, route, page) {
 
 async function run() {
   const results = [];
-  const browser = await chromium.launch({ headless: true });
+  // Playwright's own chromium is a separate ~130MB download that this machine
+  // does not always have. Any Chromium-family binary already on disk works —
+  // point PORTFOLIO_CHROME at one (e.g. a puppeteer cache, or Chrome itself)
+  // and the run needs no install at all.
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.env.PORTFOLIO_CHROME ? { executablePath: process.env.PORTFOLIO_CHROME } : {}),
+  });
 
   for (const viewport of viewports) {
     const context = await browser.newContext({
