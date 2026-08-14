@@ -133,12 +133,13 @@
 
   #cur-dot {
     position: fixed;
-    /* 18, down from 22. Sid: "cursor can be a little smaller." A ring this
-       size still reads as an object rather than a dot, and at 1.6x over an
-       interactive surface it now opens to 29 rather than 35 — which was
-       starting to look like a target reticle on small links. */
-    width: 18px;
-    height: 18px;
+    /* 13, down from 18 and originally 22. Sid, twice: "i want my cursor to be
+       a little smaller." At 13 the ring reads as a pointer rather than as a
+       reticle, and over an interactive surface it opens to 21 instead of 29 —
+       small enough that it stops covering the thing it is pointing at, which
+       is the actual complaint underneath the size one. */
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
@@ -166,6 +167,57 @@
   /* Over something interactive the dot hollows out into a ring, so whatever it
      is sitting on stays visible through the middle. A fill that merely got
      fainter covered small icons; a ring never does. */
+  /* ── OVER THE MARK, GET OUT OF THE WAY ──────────────────────────────────
+     Sid: "with the cursor i cant even see the 3d cube animating."
+
+     Literally true: the mark is 36px, the ring at hover scale was 29, and it
+     sat dead centre on the one thing on the page whose whole point is to be
+     watched. Over .studio-mark the ring drops to a third of its opacity and
+     shrinks rather than growing, and the trail stops paying out — so what you
+     are looking at is the cube, not a circle on top of it. */
+  #cur-dot.is-mark {
+    opacity: 0.28 !important;
+    background: transparent;
+    box-shadow: 0 0 0 1px rgba(214, 234, 255, 0.5);
+  }
+  html.cur-on-mark #cur-trail {
+    opacity: 0 !important;
+    transition: opacity 220ms ease;
+  }
+
+  /* The dot in the middle. Sid: "when i hover to change color or shape or
+     maybe a dot in the center." It only exists over something interactive, so
+     the resting cursor stays one clean ring and the hover state is a real
+     change of form rather than a change of size. */
+  #cur-dot.is-hover::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    margin: -1.5px 0 0 -1.5px;
+    border-radius: 50%;
+    background: rgba(236, 245, 255, 0.95);
+    animation: curCore 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  html[data-theme="light"] #cur-dot.is-hover::after {
+    background: rgba(16, 24, 40, 0.92);
+  }
+  #cur-dot.is-mark::after {
+    display: none;
+  }
+  @keyframes curCore {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
   #cur-dot.is-hover {
     background: rgba(190, 220, 255, 0.08);
     box-shadow:
@@ -5205,7 +5257,7 @@
       }
 
       // Eased hover growth (1.6x over interactive surfaces)
-      const targetHover = dot.classList.contains("is-hover") ? 1.6 : 1;
+      const targetHover = dot.classList.contains("is-mark") ? 0.62 : dot.classList.contains("is-hover") ? 1.6 : 1;
       hoverScale += (targetHover - hoverScale) * 0.18;
 
       dot.style.left = rx + "px";
@@ -5246,6 +5298,10 @@
         "mouseover",
         (e) => {
           if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
+          if (e.target.closest && e.target.closest(".studio-mark")) {
+            dot.classList.add("is-mark");
+            document.documentElement.classList.add("cur-on-mark");
+          }
           if (label) {
             const labeled = e.target.closest && e.target.closest(LABEL_SELECTOR);
             if (labeled) {
@@ -5263,6 +5319,13 @@
             // Only remove if we're really leaving the hover surface (not just moving to a child)
             const to = e.relatedTarget;
             if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
+          }
+          if (e.target.closest && e.target.closest(".studio-mark")) {
+            const away = e.relatedTarget;
+            if (!away || !(away.closest && away.closest(".studio-mark"))) {
+              dot.classList.remove("is-mark");
+              document.documentElement.classList.remove("cur-on-mark");
+            }
           }
           if (label) {
             const leaving = e.target.closest && e.target.closest(LABEL_SELECTOR);
