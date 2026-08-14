@@ -183,7 +183,14 @@ next_project:
   html[data-theme="light"] .bl-story-open-copy p { color: rgba(7,9,15,0.72); }
 
   @media (max-width: 760px) {
-    .bl-story-open { grid-template-columns: 1fr; }
+    /* minmax(0, 1fr), not 1fr. A grid track's automatic minimum is min-content,
+       and .cs-bleed carries `contain-intrinsic-size: auto 600px` for
+       content-visibility — so while it is skipped its placeholder measures
+       600px wide and the column floors there. On a 390px phone that pushed
+       this whole section 236px off the right edge, headline and all. The two
+       desktop tracks were already written minmax(0, …); the collapsed one was
+       the only place the floor could reach. */
+    .bl-story-open { grid-template-columns: minmax(0, 1fr); }
     .bl-story-open-copy { padding-top: 0; }
   }
 
