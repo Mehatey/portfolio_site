@@ -89,6 +89,7 @@
     "precision highp float;",
     "attribute vec3 p;",
     "attribute vec3 nrm;",
+    "attribute vec2 uv;",
     "uniform mat3 u_rot;",
     "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow;",
     "uniform vec2 u_ptr;",
@@ -97,6 +98,7 @@
     "varying float v_brush;",
     "varying float v_lit;",
     "varying vec2 v_scr;",
+    "varying vec2 v_uv;",
 
     /* One hash per point, off its own position, so the scatter is stable
        between frames — a per-frame random would boil rather than drift. */
@@ -136,7 +138,10 @@
     "  vec3 r = u_rot * pos;",
     "  vec3 rn = u_rot * nor;",
     "  float z = r.z + 3.1;",
-    "  float f = 2.62 * u_grow;",
+    /* 2.28 rather than 2.62: the figure sits inside its own canvas with air
+       under the feet, so the hero's overflow:hidden has nothing of him to
+       cut. */
+    "  float f = 2.28 * u_grow;",
     "  vec2 ndc = vec2((r.x * f / z) / u_aspect, r.y * f / z);",
 
     /* ── THE BRUSH ────────────────────────────────────────────────────────
@@ -171,6 +176,7 @@
        into the film, which is the effect Sid is after, and it costs one
        varying. */
     "  v_scr = ndc * 0.5 + 0.5;",
+    "  v_uv = uv;",
 
     /* Inside the brush the points grow until they overlap into a surface.
        That is the whole trick: no mesh is shipped, the solid is 55,843 points
@@ -184,14 +190,15 @@
   var FS = [
     "precision highp float;",
     "uniform vec3 u_near, u_far;",
-    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll, u_texMode, u_hasTex, u_time;",
-    "uniform sampler2D u_tex;",
+    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll, u_texMode, u_hasTex, u_hasSkin, u_time;",
+    "uniform sampler2D u_tex, u_skin;",
     "uniform vec2 u_texCover;",
     "varying float v_depth;",
     "varying float v_rand;",
     "varying float v_brush;",
     "varying float v_lit;",
     "varying vec2 v_scr;",
+    "varying vec2 v_uv;",
     "void main() {",
     "  vec2 c = gl_PointCoord - 0.5;",
     "  float d = dot(c, c);",
@@ -208,45 +215,67 @@
     "    vec3 lit = mix(u_far * 0.9, u_near, clamp(t * 0.24 + v_lit * 0.86 - 0.06, 0.0, 1.0));",
     "    lit *= 0.66 + 0.52 * v_lit;",
 
-    /* ── THE REVEAL IS TEXTURED ────────────────────────────────────────────
-       Sid: "when i hover over the cube guy, it should show with the proper
-       texture of the image, not just grayness. every time i hover, it should
-       show a different type of texture on it."
+    /* ── FIVE MATERIALS, NOT FIVE FILTERS ────────────────────────────────
+       Sid: "doesnt the cube have some material of its own. also all the
+       materials other than the gray one kind of just look like glass and
+       reflect my video ... i told u no chromatic aberration ... every hover
+       once i leave and back should be a vividly different cube texture and
+       material."
 
-       The grey was a lambert term over a two-colour depth ramp — a clay
-       render, which is the right way to show FORM and says nothing about what
-       the thing is made of. The surface now takes his footage as its albedo,
-       sampled in screen space so the film holds still while he turns through
-       it, with the lighting kept as a multiplier so the form survives.
+       Every one of them was the SAME operation — his footage sampled in
+       screen space and tinted — which is exactly why they all read as glass:
+       a surface that shows you what is behind it is glass, whatever you do to
+       the pixels afterwards. Four filters over one reflection is not four
+       materials.
 
-       Five ways of treating that albedo, advanced once per hover (see
-       u_texMode), so leaving and coming back is never the same material
-       twice. */
-    "    if (u_hasTex > 0.5) {",
+       So the first thing that had to exist is the model's own skin. The GLB
+       ships a 4096 base-colour texture and the extractor was throwing it away
+       along with the UVs; both are here now (1024 JPEG, 157KB, and 4 bytes of
+       uv a point), so his actual painted surface is material 0 and the
+       default.
+
+       The other four are lit surfaces with their own optical behaviour, not
+       screen-space samples:
+
+         0 SKIN     the model's own texture, lit. What he is actually made of.
+         1 CHALK    matte, unlit-looking, dusty. No specular at all.
+         2 METAL    hard fresnel rim, dark body, no texture — a cast object.
+         3 IRIDESCENT  hue rotates with the viewing angle, like oil or beetle
+                    shell. Reads as coloured without sampling anything.
+         4 FILM     the one that DOES take his footage, kept because it is a
+                    good idea once rather than five times.
+
+       Chromatic aberration is gone. */
+    "    vec3 mat;",
+    "    float m = u_texMode;",
+    "    float fres = pow(1.0 - clamp(v_lit, 0.0, 1.0), 2.2);",
+    "    if (m < 0.5 && u_hasSkin > 0.5) {",
+    "      vec3 skin = texture2D(u_skin, vec2(v_uv.x, 1.0 - v_uv.y)).rgb;",
+    "      mat = skin * (0.34 + 1.05 * v_lit);",
+    "    } else if (m < 1.5) {",
+    /* chalk: heavy ambient, no highlight, a little grain off the point hash */
+    "      float ch = 0.62 + 0.38 * v_lit;",
+    "      mat = vec3(0.82, 0.80, 0.76) * ch * (0.9 + 0.2 * v_rand);",
+    "    } else if (m < 2.5) {",
+    /* metal: dark body, bright rim, tight highlight */
+    "      float spec = pow(clamp(v_lit, 0.0, 1.0), 9.0);",
+    "      mat = mix(vec3(0.06, 0.07, 0.09), vec3(0.62, 0.68, 0.78), fres * 0.9) + spec * 0.85;",
+    "    } else if (m < 3.5) {",
+    /* iridescent: angle-driven hue, no sampling at all */
+    "      float a2 = fres * 3.4 + v_lit * 1.6;",
+    "      mat = 0.5 + 0.5 * cos(vec3(a2, a2 + 2.09, a2 + 4.19));",
+    "      mat *= 0.42 + 0.72 * v_lit;",
+    "    } else if (u_hasTex > 0.5) {",
     "      vec2 tuv = (v_scr - 0.5) * u_texCover + 0.5;",
     "      vec3 tex = texture2D(u_tex, vec2(tuv.x, 1.0 - tuv.y)).rgb;",
-    "      float m = u_texMode;",
-    "      if (m < 0.5) {",
-    /* 0 — the plate, graded. */
-    "        tex = clamp((pow(tex, vec3(0.8)) - 0.5) * 1.18 + 0.5, 0.0, 1.0);",
-    "      } else if (m < 1.5) {",
-    /* 1 — posterised to six steps: the film as screen-print. */
-    "        tex = floor(tex * 6.0 + 0.5) / 6.0;",
-    "      } else if (m < 2.5) {",
-    /* 2 — luminance only, but the FILM's luminance, so it is a silver print
-       of his room rather than flat grey. */
-    "        float l = dot(tex, vec3(0.299, 0.587, 0.114));",
-    "        tex = vec3(pow(l, 0.8)) * vec3(1.02, 1.0, 0.94);",
-    "      } else if (m < 3.5) {",
-    /* 3 — channels pulled apart across the surface. */
-    "        float o = 0.006 + 0.004 * sin(u_time * 0.6);",
-    "        tex = vec3(texture2D(u_tex, vec2(tuv.x + o, 1.0 - tuv.y)).r, tex.g, texture2D(u_tex, vec2(tuv.x - o, 1.0 - tuv.y)).b);",
-    "      } else {",
-    /* 4 — inverted and cooled: the plate as a negative. */
-    "        tex = mix(1.0 - tex, tex, 0.18) * vec3(0.86, 0.94, 1.08);",
-    "      }",
-    "      lit = mix(lit, tex * (0.42 + 0.9 * v_lit), 0.82);",
+    "      mat = clamp((pow(tex, vec3(0.8)) - 0.5) * 1.2 + 0.5, 0.0, 1.0) * (0.5 + 0.85 * v_lit);",
+    "    } else {",
+    "      mat = vec3(0.74, 0.78, 0.86) * (0.4 + 0.9 * v_lit);",
     "    }",
+    "    lit = mix(lit, mat, 0.9);",
+    /* Hard-edged disc — the overlap between neighbours does the smoothing;
+       a soft one leaves the surface looking like felt. Faded out by the
+       brush at its edge and by the scroll handoff at the end. */
     "    float a = smoothstep(0.25, 0.19, d) * smoothstep(0.01, 0.16, v_brush) * u_fade * (1.0 - smoothstep(0.55, 0.95, u_scroll));",
     "    gl_FragColor = vec4(lit, a);",
     "    return;",
@@ -311,11 +340,14 @@
     "u_texMode",
     "u_hasTex",
     "u_texCover",
+    "u_skin",
+    "u_hasSkin",
   ].forEach(function (k) {
     U[k] = gl.getUniformLocation(prog, k);
   });
   var aP = gl.getAttribLocation(prog, "p");
   var aN = gl.getAttribLocation(prog, "nrm");
+  var aUV = gl.getAttribLocation(prog, "uv");
 
   var buf = gl.createBuffer();
   var count = 0;
@@ -378,8 +410,30 @@
     return null;
   }
 
-  /* A different material every time you come back to him. */
-  var texMode = Math.floor(Math.random() * 5);
+  /* The model's own base colour, downscaled from the GLB's 4096 to 1024. */
+  var skinTex = gl.createTexture();
+  var hasSkin = 0;
+  gl.bindTexture(gl.TEXTURE_2D, skinTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([120, 120, 124, 255]));
+  (function () {
+    var img = new Image();
+    img.onload = function () {
+      gl.bindTexture(gl.TEXTURE_2D, skinTex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+      hasSkin = 1;
+    };
+    img.src = (canvas.getAttribute("data-base") || "") + "/assets/models/cube-guy-albedo.jpg";
+  })();
+
+  /* Material 0 is his own skin, and it is where he starts. After that every
+     arrival steps to a different one — never the same twice running, which
+     is what "vividly different" needs more than any amount of contrast. */
+  var texMode = 0;
 
   readTheme();
   new MutationObserver(readTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -417,29 +471,39 @@
       /* The file is positions then normals: N*3 int16, then N*3 int8. Nine
          bytes a point against twenty-four for two float32 triples, which is
          the difference between 503KB and 1.3MB. */
-      var n = (ab.byteLength / 9) | 0;
+      var n = (ab.byteLength / 13) | 0;
       count = n;
       var pos = new Int16Array(ab, 0, n * 3);
       var nor = new Int8Array(ab, n * 6, n * 3);
+      /* sliced rather than viewed: a Uint16Array cannot start at an odd byte
+         offset, and positions+normals come to n*9 bytes, which is odd for any
+         odd n. The copy is 223KB once, at load. */
+      var tex = new Uint16Array(ab.slice(n * 9, n * 9 + n * 4));
 
       /* Interleaved, so both attributes come off one buffer and one bind.
          Expanded to float once here rather than per frame — WebGL1 has no
          integer attribute to normalise from. */
-      var f = new Float32Array(n * 6);
+      var f = new Float32Array(n * 8);
       for (var i = 0; i < n; i++) {
-        f[i * 6] = pos[i * 3] / 32767;
-        f[i * 6 + 1] = pos[i * 3 + 1] / 32767;
-        f[i * 6 + 2] = pos[i * 3 + 2] / 32767;
-        f[i * 6 + 3] = nor[i * 3] / 127;
-        f[i * 6 + 4] = nor[i * 3 + 1] / 127;
-        f[i * 6 + 5] = nor[i * 3 + 2] / 127;
+        f[i * 8] = pos[i * 3] / 32767;
+        f[i * 8 + 1] = pos[i * 3 + 1] / 32767;
+        f[i * 8 + 2] = pos[i * 3 + 2] / 32767;
+        f[i * 8 + 3] = nor[i * 3] / 127;
+        f[i * 8 + 4] = nor[i * 3 + 1] / 127;
+        f[i * 8 + 5] = nor[i * 3 + 2] / 127;
+        f[i * 8 + 6] = tex[i * 2] / 65535;
+        f[i * 8 + 7] = tex[i * 2 + 1] / 65535;
       }
       gl.bindBuffer(gl.ARRAY_BUFFER, buf);
       gl.bufferData(gl.ARRAY_BUFFER, f, gl.STATIC_DRAW);
       gl.enableVertexAttribArray(aP);
-      gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 24, 0);
+      gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 32, 0);
       gl.enableVertexAttribArray(aN);
-      gl.vertexAttribPointer(aN, 3, gl.FLOAT, false, 24, 12);
+      gl.vertexAttribPointer(aN, 3, gl.FLOAT, false, 32, 12);
+      if (aUV >= 0) {
+        gl.enableVertexAttribArray(aUV);
+        gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 32, 24);
+      }
       ready = true;
       host.classList.add("is-live");
       resize();
@@ -472,7 +536,7 @@
     hovTarget = 1;
     /* Advanced on the way in rather than on the way out, so the material has
        already changed by the time the brush opens. */
-    texMode = (texMode + 1 + Math.floor(Math.random() * 2)) % 5;
+    texMode = (texMode + 1 + Math.floor(Math.random() * 4)) % 5;
   });
   host.addEventListener("pointermove", function (e) {
     if (e.pointerType === "touch") return;
@@ -620,6 +684,10 @@
     } else {
       gl.uniform1f(U.u_hasTex, 0);
     }
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, skinTex);
+    gl.uniform1i(U.u_skin, 1);
+    gl.uniform1f(U.u_hasSkin, hasSkin);
     gl.uniform1f(U.u_texMode, texMode);
 
     /* Progress through the hero, 0 at rest and 1 once it has scrolled by. The
@@ -661,5 +729,13 @@
     gl.drawArrays(gl.POINTS, 0, count);
     gl.depthMask(true);
   }
+  /* A verification hook, not a feature. Nothing calls it and nothing renders
+     because of it; it lets a headless run hold each material still and
+     screenshot it, which is the only way to check that five materials look
+     like five materials rather than trusting the code. */
+  window.__cgSetMat = function (m) {
+    texMode = (((m | 0) % 5) + 5) % 5;
+  };
+
   requestAnimationFrame(frame);
 })();

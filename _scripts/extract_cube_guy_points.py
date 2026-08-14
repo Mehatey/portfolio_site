@@ -85,10 +85,14 @@ def reader(attr):
 
 start, stride, count = reader("POSITION")
 n_start, n_stride, _ = reader("NORMAL")
+# TEXCOORD_0 so each point can carry the model's own base colour. The GLB
+# ships a 4096 JPEG; a 1024 copy of it lives at assets/models/cube-guy-albedo.jpg.
+t_start, t_stride, _ = reader("TEXCOORD_0")
 
 step = max(1, count // TARGET)
 pts = []
 nrm = []
+uvs = []
 for i in range(0, count, step):
     o = start + i * stride
     x, y, z = struct.unpack_from("<fff", d, o)
@@ -107,6 +111,10 @@ for i in range(0, count, step):
     rz = M[2] * nx + M[6] * ny + M[10] * nz
     ln = (rx * rx + ry * ry + rz * rz) ** 0.5 or 1.0
     nrm.append((rx / ln, ry / ln, rz / ln))
+
+    o = t_start + i * t_stride
+    u, vt = struct.unpack_from("<ff", d, o)
+    uvs.append((u, vt))
 
 xs = [p[0] for p in pts]
 ys = [p[1] for p in pts]
@@ -154,14 +162,17 @@ view(OUT + "cg-front.png", 0, 1)
 view(OUT + "cg-side.png", 2, 1)
 view(OUT + "cg-top.png", 0, 2)
 
-# Positions int16 (6 bytes) then normals int8 (3 bytes): 9 a point, against
-# 24 for two float32 triples. The normals are what let the hover reveal light
-# the surface as a solid instead of as a cloud of dots.
+# Positions int16 (6 bytes), normals int8 (3), uvs uint16 (4): 13 a point,
+# against 32 for the same data as float32. The normals let the hover reveal
+# light the surface as a solid; the uvs let it wear the model's own skin.
 out = bytearray()
 for p in norm:
     out += struct.pack("<hhh", *[max(-32767, min(32767, int(round(c * 32767)))) for c in p])
 for n in nrm:
     out += struct.pack("<bbb", *[max(-127, min(127, int(round(c * 127)))) for c in n])
+# uvs as unsigned int16 over 0..1, which is a 15-micron grid on a 1024 texture
+for t in uvs:
+    out += struct.pack("<HH", *[max(0, min(65535, int(round(c * 65535)))) for c in t])
 dst = "/Users/siddharthmehta/Desktop/al-folio/assets/models/cube-guy-points.bin"
 import os
 
