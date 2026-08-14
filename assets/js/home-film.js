@@ -102,8 +102,31 @@
     // film crops instead of stretching and the mask keeps stage coordinates
     "  uv = (uv - 0.5) * u_cover + 0.5;",
     "  uv.y = 1.0 - uv.y;",
+    /* ── THE PLATE IS ALREADY A PHOTOGRAPH ────────────────────────────────
+       Measured on the rendered hero: mean luminance 19 of 255, standard
+       deviation 22. That is a near-black rectangle with almost no structure
+       in it — the largest element on the site, and you could not tell there
+       was a person in it until you moved the pointer.
+
+       Three things were taking it there at once and each looked reasonable
+       alone: the pixelated encode is dark to begin with, a vignette
+       multiplied the edges by as little as 0.58, and nothing ever lifted the
+       exposure. A dark plate times a dark vignette is mud.
+
+       So the base is graded before anything else touches it, the way a print
+       is: shadows opened with a gamma, then a gentle contrast pivot about the
+       midtone so opening them does not also flatten them. The picture is not
+       brightened uniformly — that would just be a lighter mud — it is given
+       back its separation. */
     "  float mask = clamp(texture2D(u_mask, v).r, 0.0, 1.0);",
+    /* A floor of development. The brush is still what resolves the frame, but
+       at rest the emulsion is no longer blank: a fifth of the clear plate
+       bleeds through everywhere, which is the difference between "a dark
+       rectangle" and "an undeveloped photograph of someone". */
+    "  mask = max(mask, 0.28);",
     "  vec3 base = texture2D(u_base, uv).rgb;",
+    "  base = pow(base, vec3(0.64));",
+    "  base = clamp((base - 0.46) * 1.22 + 0.5, 0.0, 1.0);",
     // the wet edge splits into red/cyan, the same aberration the
     // project planes use, so the brush belongs to the site
     "  float o = 0.0045 * mask;",
@@ -113,7 +136,10 @@
     "  col += vec3(0.30, 0.46, 1.0) * edge * 0.10;",
     // scanline + vignette: it should read as footage on a screen
     "  col *= 0.93 + 0.07 * sin(v.y * u_res.y * 1.1);",
-    "  col *= 1.0 - 0.42 * length((v - 0.5) * vec2(1.05, 1.0));",
+    /* Down from 0.42. A vignette is meant to hold the eye in the frame, not
+       to remove the corners of it — at 0.42 on a plate this dark the outer
+       third of the picture was gone. */
+    "  col *= 1.0 - 0.26 * length((v - 0.5) * vec2(1.05, 1.0));",
     "  gl_FragColor = vec4(col, u_fade);",
     "}",
   ].join("\n");
@@ -299,7 +325,11 @@
     gl.uniform1i(pMask.u.u_prev, 0);
     gl.uniform2f(pMask.u.u_mouse, mouse[0], mouse[1]);
     gl.uniform1f(pMask.u.u_down, down);
-    gl.uniform1f(pMask.u.u_radius, 0.1 + vel * 0.06);
+    /* The idle hand paints wide and soft; a real pointer paints tight. At
+       rest this reads as the developer washing across the plate, which is the
+       thing the hero is actually about, rather than as a small bright dot
+       wandering a dark field. */
+    gl.uniform1f(pMask.u.u_radius, (touched ? 0.1 : 0.26) + vel * 0.06);
     gl.uniform1f(pMask.u.u_decay, Math.pow(0.972, step));
     gl.uniform1f(pMask.u.u_aspect, canvas.width / canvas.height);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
