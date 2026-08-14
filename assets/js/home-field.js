@@ -160,35 +160,93 @@
     "  return clamp(lum * 0.82 + drift * 0.24, 0.0, 1.0);",
     "}",
 
-    /* One value in, one amount of ink out. Kept in a single function so the
-       blend between two systems is a single mix rather than two code paths
-       that have to be kept in step. */
-    "float drawSystem(int sysm, float d, vec2 cuv, vec2 cid){",
+    /* ── FIVE TREATMENTS, NOT FOUR GRIDS AND FIVE PALETTES ───────────────
+       Sid: "for the click bg hover effects its repeating a lot and some just
+       change colors. please change it up not all the hovers need to be an
+       overlay like asci choose 5 distinct hover effects and shaders for the
+       vid."
+
+       He is describing a real structural fault, not a taste problem. Every
+       state used to reduce the footage to ONE NUMBER per cell — a density —
+       and then draw that number four ways: glyphs, dots, contour lines,
+       blocks. Four different marks, but the same picture underneath every
+       time, at the same grid resolution, so they read as one effect with a
+       skin on it. The palette then rotated separately, which is where "some
+       just change colors" comes from: two of the five changes a visitor sees
+       genuinely were only a hue.
+
+       So three of the five do not touch the grid at all. They treat the plate
+       itself — its edges, its scanlines, its flow — and they keep the film's
+       own colour, which is what makes them read as different pieces of work
+       rather than different inks:
+
+         0 GLYPHS    the ASCII atlas. The site's own language, kept.
+         1 HALFTONE  a colour dot screen, printed in the film's own colour
+                     rather than in one ink — a print, not a stencil.
+         2 EDGES     a Sobel over the plate. A line drawing of the footage,
+                     no cells anywhere in it.
+         3 TAPE      per-scanline horizontal displacement with the channels
+                     split — the plate as damaged video.
+         4 LIQUID    the plate resampled through a drifting flow field, so it
+                     smears like something wet and settles again.
+
+       Two are marks on a grid, three are the film handled directly. */
+
+    /* The plate, sampled anywhere, graded once. Everything below reads
+       through this so the grade cannot drift between systems. */
+    "vec3 plate(vec2 uv){",
+    "  vec2 t = clamp(uv, 0.0, 1.0);",
+    "  vec3 c = texture2D(u_real, vec2(t.x, 1.0 - t.y)).rgb;",
+    "  return clamp((pow(c, vec3(0.78)) - 0.5) * 1.12 + 0.5, 0.0, 1.0);",
+    "}",
+    "float plateLum(vec2 uv){ return dot(plate(uv), vec3(0.299, 0.587, 0.114)); }",
+
+    "vec4 treat(int sysm, vec2 uv, vec2 cuv, float d, vec3 tint, float filmA, float ink, float t, float quiet){",
     "  if (sysm == 0) {",
     "    float idx = floor(d * 15.0 + 0.5);",
     "    vec2 auv = vec2((idx + cuv.x) / 16.0, 1.0 - cuv.y);",
-    "    return texture2D(u_atlas, auv).r;",
+    "    float a = texture2D(u_atlas, auv).r * ink;",
+    "    float A = clamp(filmA + a, 0.0, 1.0);",
+    "    return vec4(mix(plate(uv), tint, clamp(a / max(A, 0.001), 0.0, 1.0)), A);",
     "  }",
     "  if (sysm == 1) {",
-    /* Halftone. Radius from density, edge softened across roughly one screen
-       pixel of the cell so the dots have an edge without crawling. */
-    "    float r = sqrt(d) * 0.62;",
-    "    float dist = length(cuv - 0.5);",
-    "    return smoothstep(r, r - 0.09, dist);",
+    /* Dots carrying the film's own colour. The radius still comes from
+       density, so the screen is a real halftone rather than a stencil, but
+       what prints is the photograph. */
+    "    float r = sqrt(d) * 0.66;",
+    "    float cov = smoothstep(r, r - 0.10, length(cuv - 0.5));",
+    "    vec3 c = plate(uv);",
+    "    c = mix(vec3(dot(c, vec3(0.3, 0.59, 0.11))), c, 1.25);",
+    "    float A = clamp(cov * 0.78 * quiet + filmA * 0.35, 0.0, 1.0);",
+    "    return vec4(mix(plate(uv), c, 0.85), A);",
     "  }",
     "  if (sysm == 2) {",
-    /* Contours. The field read as height: keep only what sits near a band
-       boundary, which draws the weather as lines instead of shading it. */
-    "    float f = d * 9.0;",
-    "    float dd = min(fract(f), 1.0 - fract(f));",
-    "    float line = 1.0 - smoothstep(0.04, 0.16, dd);",
-    "    return line * (0.4 + 0.6 * d);",
+    /* Sobel. The epsilon is in plate space rather than screen space so the
+       line weight does not change with the viewport. */
+    "    float e = 0.0022;",
+    "    float gx = plateLum(uv + vec2(e, 0.0)) - plateLum(uv - vec2(e, 0.0));",
+    "    float gy = plateLum(uv + vec2(0.0, e)) - plateLum(uv - vec2(0.0, e));",
+    "    float g = length(vec2(gx, gy)) * 3.4;",
+    "    float edge = smoothstep(0.10, 0.55, g);",
+    "    float A = clamp(edge * 0.92 * quiet + filmA * 0.22, 0.0, 1.0);",
+    "    return vec4(mix(plate(uv), tint, clamp((edge * 0.92) / max(A, 0.001), 0.0, 1.0)), A);",
     "  }",
-    /* Blocks. Flat cells with a hard step, plus a lift on the densest ones so
-       the mosaic has a highlight rather than reading as a flat quilt. */
-    "  float q = floor(d * 6.0) / 6.0;",
-    "  float edge = step(0.06, cuv.x) * step(0.06, cuv.y) * step(cuv.x, 0.94) * step(cuv.y, 0.94);",
-    "  return q * edge * (0.55 + 0.75 * smoothstep(0.6, 1.0, d));",
+    "  if (sysm == 3) {",
+    /* Tape. One horizontal offset per scanline, two frequencies so it does
+       not read as a single sine, and the channels pulled apart across it. */
+    "    float band = floor(uv.y * 150.0);",
+    "    float off = sin(band * 0.7 + t * 1.7) * 0.004 + (hash(vec2(band, floor(t * 3.0))) - 0.5) * 0.012;",
+    "    float sp = 0.0045 + 0.004 * abs(off) * 40.0;",
+    "    vec3 c = vec3(plate(uv + vec2(off + sp, 0.0)).r, plate(uv + vec2(off, 0.0)).g, plate(uv + vec2(off - sp, 0.0)).b);",
+    "    c *= 0.86 + 0.14 * sin(uv.y * 620.0);",
+    "    return vec4(c, clamp(filmA * 2.4 * quiet, 0.0, 0.92));",
+    "  }",
+    /* Liquid. The plate resampled through a slow flow field, then lightly
+       posterised so the smear has edges to see. */
+    "  vec2 w = vec2(fbm(uv * 3.2 + vec2(t * 0.07, 0.0)), fbm(uv * 3.2 + vec2(6.7, -t * 0.055))) - 0.5;",
+    "  vec3 c = plate(uv + w * 0.075);",
+    "  c = mix(c, floor(c * 7.0 + 0.5) / 7.0, 0.55);",
+    "  return vec4(c, clamp(filmA * 2.2 * quiet, 0.0, 0.9));",
     "}",
 
     "void main(){",
@@ -223,96 +281,42 @@
     "  d *= mix(0.42, 1.0, smoothstep(0.86, 0.16, v.y));",
     "  d = clamp(d, 0.0, 1.0);",
 
-    /* ── FOUR WAYS OF DRAWING THE SAME NUMBER ─────────────────────────────
-       Sid: "not just asci i want it to keep changing bro come on."
-
-       Everything above produces one value per cell. What changes on the
-       clock is how that value is DRAWN, which is why the field can look like
-       four unrelated pieces of work while staying one system that the
-       pointer disturbs in one way:
-
-         0 GLYPHS  the ASCII atlas, quantised to sixteen steps of ink
-         1 DOTS    a halftone screen, radius from density
-         2 LINES   contour bands, the field read as topography
-         3 BLOCKS  flat mosaic with a channel offset on the busiest cells
-
-       Two systems are evaluated and mixed whenever the clock is mid-change,
-       so it morphs between them rather than cutting. */
-    "  float sys = u_sysBlend > 0.001 ? -1.0 : u_sys;",
-    "  float inkAmt = 0.0;",
-    "  float inkA = drawSystem(int(u_sys), d, cuv, cid);",
-    "  if (u_sysBlend > 0.001) {",
-    "    float inkB = drawSystem(int(u_sysNext), d, cuv, cid);",
-    "    inkAmt = mix(inkA, inkB, u_sysBlend);",
-    "  } else { inkAmt = inkA; }",
-
-    /* Colour is a uniform, not an exposure. This is the whole reason the
-       field can live on both themes: dark page gets cool light ink on
-       nothing, cream page gets deep ink on nothing, and neither can wash out
-       because neither is a photograph. */
-    /* ── FIVE VIBES ───────────────────────────────────────────────────────
-       "everyclick let it change the styling and the vibe." A click advances
-       both the drawing system and the palette, so the change is a change of
-       register rather than the same picture in a different hue. */
+    /* ── THE CLOCK ────────────────────────────────────────────────────────
+       Two treatments are evaluated and mixed whenever the clock is mid-change,
+       so it morphs between them rather than cutting. Both are full RGBA now,
+       so a cross-fade between a line drawing and a colour halftone is a real
+       dissolve rather than two ink amounts averaged. */
     "  vec3 ink;",
     "  if (u_pal < 0.5)      ink = mix(vec3(0.62, 0.76, 0.98), vec3(0.08, 0.11, 0.18), u_light);",
     "  else if (u_pal < 1.5) ink = mix(vec3(1.00, 0.52, 0.30), vec3(0.42, 0.13, 0.02), u_light);",
     "  else if (u_pal < 2.5) ink = mix(vec3(0.52, 0.98, 0.72), vec3(0.02, 0.30, 0.16), u_light);",
     "  else if (u_pal < 3.5) ink = mix(vec3(0.98, 0.45, 0.78), vec3(0.38, 0.05, 0.24), u_light);",
     "  else                  ink = mix(vec3(0.94, 0.92, 0.86), vec3(0.10, 0.10, 0.10), u_light);",
-    "  vec3 tint = ink;",
-    "  tint = mix(tint, tint * vec3(1.12, 0.94, 1.04), smoothstep(0.55, 1.0, d));",
+    "  vec3 tint = mix(ink, ink * vec3(1.12, 0.94, 1.04), smoothstep(0.55, 1.0, d));",
 
-    "  float alpha = inkAmt * mix(0.40, 0.22, u_light) * u_fade;",
-    "  alpha *= 0.3 + 0.7 * d;",
+    "  float inkAmt = mix(0.40, 0.22, u_light) * u_fade * (0.3 + 0.7 * d);",
 
-    /* ── THE WINDOW ───────────────────────────────────────────────────────
-       "on hover show the real video". Under the pointer the glyph layer gives
-       way and the footage itself shows through, full colour and unscreened —
-       a hole cut in the print rather than a brightening of it. Soft-edged, so
-       it reads as the film surfacing rather than as a circular mask. */
-    "  vec2 ruv = (v - 0.5) * u_cover + 0.5 - vec2(u_shift, 0.0);",
-    "  ruv.y = 1.0 - ruv.y;",
-    "  vec3 real = texture2D(u_real, ruv).rgb;",
-    "  real = clamp((pow(real, vec3(0.78)) - 0.5) * 1.12 + 0.5, 0.0, 1.0);",
-    /* ── WHY THERE IS A FLOOR UNDER THIS ──────────────────────────────────
-       Sid: "i dont see my video."
+    /* The plate's own uv, cover-corrected and slid right. */
+    "  vec2 uvP = (v - 0.5) * u_cover + 0.5 - vec2(u_shift, 0.0);",
 
-       He was right and the reason is here. The footage only ever existed
-       inside a disc of radius 0.30 that followed the pointer, so the film was
-       invisible unless you happened to move the mouse across the hero — and
-       the pixelated take, the one that announces itself, plays once ever and
-       is then remembered in localStorage forever. On his own machine that
-       flag was set weeks ago. There was no path left on which he could see
-       his own film.
+    /* Under the pointer the film opens the rest of the way. Cream has
+       nowhere to go but down, so the same film sits heavier on the light
+       page at identical strength. */
+    "  float filmA = (0.13 + 0.62 * u_ptrOn * smoothstep(0.50, 0.03, pd)) * mix(1.0, 0.62, u_light) * u_fade;",
 
-       The peephole was the wrong shape for the job anyway: a hard 0.30 disc
-       reads as a spotlight cut into a print, which is a nice effect and a
-       poor way to show someone footage. So there is a floor now — the film is
-       always a quarter present, under the glyphs, the way a plate shows
-       through ink — and the pointer opens it the rest of the way over a much
-       softer, wider falloff. Move across it and the picture develops instead
-       of switching on. */
-    /* ── THE FILM IS A LAYER NOW, NOT A MIX ───────────────────────────────
-       The film and the ink used to be crossfaded by one number: the colour
-       mixed toward the footage by `win`, and the alpha mixed toward opaque by
-       the same `win`. Put a floor under that and the two multiply — a quarter
-       of the way to the film, at a third of the opacity the ink was carrying,
-       is the film at eight percent. Measured on a bright daylight plate over
-       a near-black page, that is nothing at all, which is exactly what Sid
-       was looking at.
+    /* The three plate-handling treatments would otherwise print the footage
+       at full strength straight through the headline. Same vertical falloff
+       the density already gets, applied to their alpha instead. */
+    "  float quiet = mix(0.42, 1.0, smoothstep(0.86, 0.16, v.y)) * u_fade;",
 
-       So they are two layers, composited the way they actually relate: the
-       film is the ground, the glyphs are ink on top of it, and each carries
-       its own alpha. `filmA` is what is showing of the plate — a third at
-       rest, nearly all of it under the pointer — and the ink adds to it
-       rather than diluting it. */
-    /* Cream has nowhere to go but down, so the same film sits heavier on the
-       light page than on the dark one at identical strength. */
-    "  float filmA = (0.13 + 0.62 * u_ptrOn * smoothstep(0.50, 0.03, pd)) * mix(1.0, 0.62, u_light);",
-    "  filmA *= u_fade;",
-    "  float outA = clamp(filmA + alpha, 0.0, 1.0);",
-    "  vec3 outCol = mix(real, tint, clamp(alpha / max(outA, 0.001), 0.0, 1.0));",
+    "  vec4 A = treat(int(u_sys), uvP, cuv, d, tint, filmA, inkAmt, u_time, quiet);",
+    "  vec4 outv = A;",
+    "  if (u_sysBlend > 0.001) {",
+    "    vec4 B = treat(int(u_sysNext), uvP, cuv, d, tint, filmA, inkAmt, u_time, quiet);",
+    "    outv = mix(A, B, u_sysBlend);",
+    "  }",
+    "  vec3 outCol = outv.rgb;",
+    "  float outA = outv.a;",
     "  gl_FragColor = vec4(outCol, outA);",
     "}",
   ].join("\n");
@@ -436,6 +440,10 @@
     });
   }
 
+  /* How far right the plate sits, as a fraction of the frame. Read by both
+     the cover clamp and the uniform. */
+  var SHIFT = 0.11;
+
   var vidAspect = 16 / 9;
   function upload(t, video) {
     if (!video || video.readyState < 2) return false;
@@ -545,7 +553,7 @@
      almost never in phase: a given combination of system and weather comes
      round about every four minutes. */
   var pal = Math.floor(Math.random() * 5);
-  var sys = Math.floor(Math.random() * 4),
+  var sys = Math.floor(Math.random() * 5),
     sysNext = sys,
     sysBlend = 0,
     SYS_EVERY = 20000;
@@ -603,7 +611,7 @@
       } else if (now > nextSys) {
         /* Never the same one twice running: step by one or two so the order
            varies without ever repeating what is already on screen. */
-        sysNext = (sys + 1 + Math.floor(Math.random() * 2)) % 4;
+        sysNext = (sys + 1 + Math.floor(Math.random() * 3)) % 5;
         sysBlend = 0.0001;
       }
     }
@@ -631,9 +639,8 @@
     gl.uniform1f(U.u_fade, fade);
     /* Sid: "can you move my working video a little bit to the right so my
        face doesnt collide with the cube?" Sampling further left moves the
-       image right. 0.11 of the frame puts him clear of the figure's shoulder
-       at 1440 and still inside the plate at 2560. */
-    gl.uniform1f(U.u_shift, 0.11);
+       image right. See SHIFT and the cover clamp above. */
+    gl.uniform1f(U.u_shift, SHIFT);
     gl.uniform2f(U.u_ptr, pxN, pyN);
     gl.uniform1f(U.u_ptrOn, on);
     gl.uniform1f(U.u_sys, sys);
@@ -643,8 +650,30 @@
 
     /* object-fit: cover in uv, so the footage crops rather than stretching. */
     var stageAspect = canvas.width / Math.max(1, canvas.height);
-    if (vidAspect > stageAspect) gl.uniform2f(U.u_cover, stageAspect / vidAspect, 1.0);
-    else gl.uniform2f(U.u_cover, 1.0, vidAspect / stageAspect);
+    var cx, cy;
+    if (vidAspect > stageAspect) {
+      cx = stageAspect / vidAspect;
+      cy = 1.0;
+    } else {
+      cx = 1.0;
+      cy = vidAspect / stageAspect;
+    }
+    /* ── THE SHIFT HAS TO FIT INSIDE THE PLATE ────────────────────────────
+       Sliding the sampling window right by SHIFT pushes the left edge of the
+       screen past uv.x = 0, and CLAMP_TO_EDGE answers that by repeating one
+       column of pixels — which is the vertical smear that appeared down the
+       left of the hero the moment the plate moved.
+
+       The window has to be narrow enough that the whole shift stays on the
+       film: uv.x is lowest at -cover.x/2 + 0.5 - SHIFT, so cover.x can be at
+       most 1 - 2*SHIFT. Both axes scale together, otherwise fixing the smear
+       would stretch the picture. */
+    var lim = 1 - 2 * SHIFT;
+    if (cx > lim) {
+      cy *= lim / cx;
+      cx = lim;
+    }
+    gl.uniform2f(U.u_cover, cx, cy);
 
     upload(texVideo, vPix || vClear);
     upload(texReal, vClear);
@@ -660,6 +689,17 @@
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, tex);
     gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+    /* A verification hook, not a feature. Nothing on the page calls it and
+     nothing renders because of it; it exists so a headless run can hold each
+     treatment still and screenshot it, which is the only way to check that
+     five states actually look like five states rather than trusting the
+     code. No UI, no console output, no visible effect. */
+    window.__fieldSetSys = function (n) {
+      sys = (((n | 0) % 5) + 5) % 5;
+      sysNext = sys;
+      sysBlend = 0;
+    };
 
     raf = requestAnimationFrame(frame);
   }
@@ -687,7 +727,7 @@
       if (e.button !== undefined && e.button !== 0) return;
       var t = e.target;
       if (t && t.closest && t.closest('a, button, select, input, textarea, label, [role="button"], [role="listbox"], .pgram')) return;
-      sysNext = (sys + 1 + Math.floor(Math.random() * 2)) % 4;
+      sysNext = (sys + 1 + Math.floor(Math.random() * 3)) % 5;
       sysBlend = 0.0001;
       pal = (pal + 1) % 5;
     });
