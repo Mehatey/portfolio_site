@@ -98,6 +98,7 @@
     "uniform vec2 u_res;",
     "uniform float u_time, u_n, u_mode, u_next, u_blend, u_light, u_fade, u_sys, u_sysNext, u_sysBlend;",
     "uniform vec2 u_ptr, u_cover;",
+    "uniform float u_shift;",
     "uniform float u_ptrOn, u_pal;",
 
     /* Value noise. Cheap, and its softness suits a field that is going to be
@@ -147,7 +148,7 @@
        small perturbation, enough to keep the grid from looking like a print
        of a still, nowhere near enough to be the subject. */
     "float sampleField(vec2 p, float t){",
-    "  vec2 uv = (p - 0.5) * u_cover + 0.5;",
+    "  vec2 uv = (p - 0.5) * u_cover + 0.5 - vec2(u_shift, 0.0);",
     "  uv.y = 1.0 - uv.y;",
     "  vec3 c = texture2D(u_video, uv).rgb;",
     "  float lum = dot(c, vec3(0.299, 0.587, 0.114));",
@@ -270,7 +271,7 @@
        way and the footage itself shows through, full colour and unscreened —
        a hole cut in the print rather than a brightening of it. Soft-edged, so
        it reads as the film surfacing rather than as a circular mask. */
-    "  vec2 ruv = (v - 0.5) * u_cover + 0.5;",
+    "  vec2 ruv = (v - 0.5) * u_cover + 0.5 - vec2(u_shift, 0.0);",
     "  ruv.y = 1.0 - ruv.y;",
     "  vec3 real = texture2D(u_real, ruv).rgb;",
     "  real = clamp((pow(real, vec3(0.78)) - 0.5) * 1.12 + 0.5, 0.0, 1.0);",
@@ -375,6 +376,7 @@
     "u_fade",
     "u_ptr",
     "u_cover",
+    "u_shift",
     "u_ptrOn",
     "u_pal",
     "u_sys",
@@ -608,14 +610,30 @@
 
     gl.uniform2f(U.u_res, canvas.width, canvas.height);
     gl.uniform1f(U.u_time, reduce ? 0.0 : t);
-    /* Cell count from the short edge, so the glyphs stay square and legible
-       from a phone to a wide display. */
-    gl.uniform1f(U.u_n, Math.max(26, Math.min(64, Math.round(Math.min(W, H) / 15))));
+    /* ── HOW FINE THE GRID IS ─────────────────────────────────────────────
+       Sid: "can you increase the quality of that background video, or have
+       you reduced the quality? i feel like its very low quality."
+
+       Nothing was reduced — the plate is the same 1280x720 h264 it always
+       was. What he was looking at is the grid: capped at 64 cells across the
+       short edge, every face in that footage was being drawn with about
+       forty dots, which is a resolution at which a person is a smudge. The
+       cap is 132 now and the divisor is 9 rather than 15, so a 900px-tall
+       hero draws 100 cells instead of 60 and the film reads as a film.
+
+       It costs nothing: the cell count is a divisor inside the fragment
+       shader, not a number of anything. Same one draw call either way. */
+    gl.uniform1f(U.u_n, Math.max(40, Math.min(132, Math.round(Math.min(W, H) / 9))));
     gl.uniform1f(U.u_mode, mode);
     gl.uniform1f(U.u_next, next);
     gl.uniform1f(U.u_blend, blend > 0 ? Math.min(1, blend) : 0);
     gl.uniform1f(U.u_light, light);
     gl.uniform1f(U.u_fade, fade);
+    /* Sid: "can you move my working video a little bit to the right so my
+       face doesnt collide with the cube?" Sampling further left moves the
+       image right. 0.11 of the frame puts him clear of the figure's shoulder
+       at 1440 and still inside the plate at 2560. */
+    gl.uniform1f(U.u_shift, 0.11);
     gl.uniform2f(U.u_ptr, pxN, pyN);
     gl.uniform1f(U.u_ptrOn, on);
     gl.uniform1f(U.u_sys, sys);

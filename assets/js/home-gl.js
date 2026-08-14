@@ -469,19 +469,27 @@
 
     var light = root.getAttribute("data-theme") === "light" ? 1 : 0;
 
-    /* backdrop */
-    gl.useProgram(bgProg);
-    gl.bindBuffer(gl.ARRAY_BUFFER, quad);
-    gl.enableVertexAttribArray(bgProg.a.a_pos);
-    gl.vertexAttribPointer(bgProg.a.a_pos, 2, gl.FLOAT, false, 0, 0);
-    gl.uniform2f(bgProg.u.u_res, canvas.width, canvas.height);
-    gl.uniform1f(bgProg.u.u_time, t);
-    gl.uniform1f(bgProg.u.u_vel, velSmooth);
-    gl.uniform1f(bgProg.u.u_scroll, sy);
-    gl.uniform2f(bgProg.u.u_mouse, mouseS[0], mouseS[1]);
-    gl.uniform1f(bgProg.u.u_light, light);
-    gl.disable(gl.BLEND);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    /* ── THE BACKDROP IS OFF ──────────────────────────────────────────────
+       Sid: "please remove this smoky shader. its very generic, and i dont
+       want it."
+
+       This is the one he meant — not smoke_bg. It is domain-warped fBm drawn
+       across the whole viewport with blending disabled, so it painted an
+       opaque cloud layer over the entire page, hero included, on top of which
+       his footage was trying to show. Two atmospheres competing, and the one
+       winning was noise.
+
+       It is also the most generic thing on the site by some distance: warped
+       fbm under a dark gradient is the default look of every WebGL background
+       written since about 2019, which is exactly his objection. The page has
+       its own ground (--home-bg) and the hero has his film; neither needs a
+       cloud between them.
+
+       The pass is skipped rather than the program deleted — bgProg still
+       compiles and the uniforms are still wired, so putting it back is
+       uncommenting a draw call. The media pass below, which is the half that
+       earns its keep (inertia, the real bend, per-pixel aberration on the
+       work covers), is untouched. */
 
     /* media */
     gl.enable(gl.BLEND);
