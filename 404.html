@@ -180,7 +180,14 @@
        label    UI labels, item titles in lists
        meta     captions, secondary detail
        micro    the mono eyebrows -- the ONLY role that is uppercase-tracked */
-    --type-display: 600 clamp(40px, 5vw, 72px) / 1.05 var(--font-title);
+    /* 350, not 600. The token said 600 and the site never agreed with it:
+       the sixteen case studies set their display heading at 300, the homepage
+       at 350, /about/ at 400. The only file that actually used the token was
+       play/index.html, so the scale's heaviest role was describing one page
+       while every other page hand-rolled something lighter. Changed to match
+       the voice that exists rather than leaving a token nobody could adopt
+       without making their page the odd one out. */
+    --type-display: 350 clamp(40px, 5vw, 72px) / 1.05 var(--font-title);
     --type-title: 500 clamp(28px, 3vw, 40px) / 1.15 var(--font-head);
     --type-heading: 500 24px / 1.33 var(--font-head);
     --type-body-lg: 400 19px / 1.68 var(--font-head);
@@ -1061,24 +1068,44 @@
        cursor_fluid.html uses to hold them at opacity 0, and the hover rules in
        studio_nav.html use to bring them up. Without it they sit visible behind
        the body at rest and the hover assembly has nothing left to assemble. -->
-  <rect class="cube-face cube-top" x="9" y="5.5" width="21" height="21" rx="4.5"></rect>
-  <rect class="cube-face cube-right" x="6" y="9.5" width="21" height="21" rx="4.5"></rect>
+  <!-- All three rects are now the SAME box as the body: same x, y, width and
+       height. That is what lets the hover build an actual isometric solid —
+       the top and right faces are the front face, skewed and scaled about
+       their own edges, so they meet it exactly instead of being two more
+       squares parked near it. Their offset at rest is a transform, not
+       geometry, which means one set of numbers to keep in step instead of
+       three. See the assembly in studio_nav.html. -->
+  <rect class="cube-face cube-top" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect>
+  <rect class="cube-face cube-right" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect>
 
-  <!-- The body. -->
-  <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="4.5"></rect>
+  <!-- The body. Sid: "reduce curve on edges a bit" — 4.5 on a 21-unit square
+       is a squircle, and at 36px it read closer to a blob than to a die. -->
+  <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect>
 
-  <!-- The eyes. transform-box: fill-box and transform-origin: center are set
-       on .logo-eye in cursor_fluid.html, so the blink scales each eye about
-       its own centre rather than about the SVG origin. The translate below is
-       the cursor drift; the blink's scaleY composes on top of it. -->
+  <!-- ── THE FACE HAS MORE ROOM ─────────────────────────────────────────
+       Sid: "increase the width around the face to the border of the square by
+       one point. its a little too compressed."
+
+       Everything below is the previous face scaled 0.82 about the square's
+       centre, rather than each mark nudged inward on its own. Pulling the
+       eyes in individually would have closed the gap between them by the
+       same amount it opened at the edges — the face would have gained margin
+       by going cross-eyed. A scale keeps the expression and moves only the
+       air: eyes 5.25 units from the border, now 6.2; mouth 5.2 below, now
+       6.16. About one unit all round, which is what he asked for.
+
+       transform-box: fill-box and transform-origin: center are set on
+       .logo-eye in cursor_fluid.html, so the blink scales each eye about its
+       own centre rather than about the SVG origin. The translate below is the
+       cursor drift; the blink's scaleY composes on top of it. -->
   <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))">
-    <rect class="logo-eye" x="12.4" y="13.6" width="2.6" height="5.4" rx="1.3"></rect>
-    <rect class="logo-eye" x="21" y="13.6" width="2.6" height="5.4" rx="1.3"></rect>
+    <rect class="logo-eye" x="13.7" y="14.56" width="1.56" height="4.1" rx="0.78"></rect>
+    <rect class="logo-eye" x="20.75" y="14.56" width="1.56" height="4.1" rx="0.78"></rect>
   </g>
 
   <!-- The mouth: one short line, deliberately not a curve. A smile would make
        this a face; a line makes it a device that happens to have a face. -->
-  <rect class="logo-mouth" x="14.6" y="22" width="6.8" height="1.5" rx="0.75"></rect>
+  <rect class="logo-mouth" x="15.38" y="21.44" width="5.25" height="0.9" rx="0.45"></rect>
 
   <!-- Drawn across the mark on hover — dasharray and offset are already set
        on .logo-scan in cursor_fluid.html. -->
@@ -2087,6 +2114,21 @@
      would sit there measuring nothing. 340px on a 42px glyph is a close,
      strong camera — the leading edge genuinely comes at you and the
      trailing one recedes. It is a cube; it should turn like one. */
+  /* ── IT EVOLVES, IT DOES NOT SNAP ────────────────────────────────────────
+     Sid: "when i leave hover of on the cube logo it feels weird and not
+     smooth can u do an evolving slow animation maybe 2 to 3 sec like a
+     pokemon evolution ... it feels too fast."
+
+     420ms in and 560ms out is a UI transition — right for a button, wrong for
+     the one mark on the site that is supposed to be a creature. The assembly
+     runs 2.2s in and 2.6s out now, on a curve that is slow at both ends and
+     quickest in the middle, so the flat face swells into a solid and settles
+     back rather than flicking between two states.
+
+     The pointer tilt is deliberately NOT on this clock — it stays at 120ms
+     further down, because a camera that lags two seconds behind your hand is
+     not slow, it is broken. Slow is the transformation; the tracking is
+     immediate. */
   .studio-mark .logo-cube .cube-face {
     fill: currentColor;
     fill-opacity: 0;
@@ -2097,15 +2139,58 @@
     transform-box: fill-box;
     transform-origin: center;
     transition:
-      opacity 0.42s var(--ease-out),
-      transform 0.42s var(--ease-out),
-      fill-opacity 0.42s ease;
+      opacity 2.6s cubic-bezier(0.62, 0, 0.32, 1),
+      transform 2.6s cubic-bezier(0.62, 0, 0.32, 1),
+      fill-opacity 2.6s ease;
+  }
+  .studio-mark:hover .logo-cube .cube-face,
+  .studio-mark:focus-visible .logo-cube .cube-face {
+    transition-duration: 2.2s;
   }
   .studio-mark .logo-cube .cube-top {
     transform: translateY(1.8px);
   }
   .studio-mark .logo-cube .cube-right {
     transform: translateX(-1.8px);
+  }
+
+  /* ── THE HOVER BUILDS A SOLID ────────────────────────────────────────────
+     Sid: "on hover let it do cooler stuff and become 3d."
+
+     The old hover span the flat mark through rotateY(360deg) under a
+     perspective. It is a nice turn and it is not three-dimensional: a full
+     revolution starts and ends at the identity matrix, and what happens in
+     between is one flat card showing you its back. The mark was never a
+     solid at any frame of it.
+
+     This builds one. The two spare faces are the same 21×21 box as the body,
+     so each can be skewed about the edge it shares with it:
+
+       · the top face scales to a quarter height and skews so its far edge
+         runs 10.5 units right and 5.25 up — the standard 2:1 construction —
+         and lands exactly on the body's top edge;
+       · the right face scales to half width and skews down the same slope,
+         landing exactly on the body's right edge.
+
+     Two parallelograms and a square, meeting at real corners: an isometric
+     cube, drawn rather than faked with a squash. The faces also take a fill
+     so it reads as a solid with a lit face rather than as wireframe.
+
+     What makes it feel three-dimensional is that it then answers the hand.
+     `--mx` / `--my` come from the pointer's position across the mark (see the
+     script below) and tilt the whole glyph under a 300px camera, so the
+     nearest corner really does come at you. That part is on the <svg>
+     element, which is an ordinary HTML box and takes 3D transforms happily —
+     SVG children do not, which is why the faces are built in 2D. */
+  .studio-mark:hover .logo-cube .cube-top,
+  .studio-mark:focus-visible .logo-cube .cube-top {
+    transform-origin: 0 100%;
+    transform: translateY(-21px) skewX(-63.435deg) scaleY(0.25);
+  }
+  .studio-mark:hover .logo-cube .cube-right,
+  .studio-mark:focus-visible .logo-cube .cube-right {
+    transform-origin: 0 0;
+    transform: translateX(21px) skewY(-26.565deg) scaleX(0.5);
   }
 
   /* Drawn, not faded: dashoffset runs the stroke across the face from one
@@ -2119,29 +2204,35 @@
     stroke-dasharray: 15 22;
     stroke-dashoffset: 15;
     opacity: 0;
+    /* On the same slow clock as the faces, so the line draws across the solid
+       as it forms instead of arriving before it. */
     transition:
-      opacity 0.3s ease,
-      stroke-dashoffset 0.55s var(--ease-out);
+      opacity 1.6s ease,
+      stroke-dashoffset 2.4s cubic-bezier(0.62, 0, 0.32, 1);
   }
 
   .studio-mark:hover .logo-cube,
   .studio-mark:focus-visible .logo-cube {
-    transform: perspective(340px) translateY(-1px) rotateY(360deg) scale(1.075);
+    /* --mx / --my are the pointer's position across the mark, -1 to 1, set by
+       the script at the foot of this file. They default to 0, so a keyboard
+       focus gets a still, slightly turned cube rather than nothing. */
+    transform: perspective(300px) rotateY(calc(var(--mx, 0) * 26deg)) rotateX(calc(var(--my, 0) * -22deg)) translateZ(6px) scale(1.06);
     color: rgba(206, 228, 255, 0.98);
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.34)) drop-shadow(0 0 16px rgba(150, 200, 255, 0.42));
   }
+  /* Tracking a pointer through a 560ms ease is a lag, not a follow. While the
+     mark is under the hand the tilt is nearly immediate; the settle back to
+     rest keeps the long curve. */
+  .studio-mark:hover .logo-cube {
+    transition:
+      transform 120ms linear,
+      color 300ms ease,
+      filter 300ms ease;
+  }
   .studio-mark:hover .logo-cube .cube-face,
   .studio-mark:focus-visible .logo-cube .cube-face {
-    opacity: 0.82;
-    fill-opacity: 0.16;
-  }
-  .studio-mark:hover .logo-cube .cube-top,
-  .studio-mark:focus-visible .logo-cube .cube-top {
-    transform: translateY(0);
-  }
-  .studio-mark:hover .logo-cube .cube-right,
-  .studio-mark:focus-visible .logo-cube .cube-right {
-    transform: translateX(0);
+    opacity: 0.9;
+    fill-opacity: 0.14;
   }
   .studio-mark:hover .logo-cube .logo-scan,
   .studio-mark:focus-visible .logo-cube .logo-scan {
@@ -2149,9 +2240,9 @@
     stroke-dashoffset: 0;
   }
 
-  /* A full turn is exactly the kind of motion this switch exists for. Hold
-     the assembled faces and the drawn scan — those are information, not
-     decoration — and drop only the spin and the lift. */
+  /* Hold the assembled solid — that is what the mark turns into, and it is
+     information rather than decoration — and drop the tilt that chases the
+     pointer, which is the part that moves without being asked to. */
   @media (prefers-reduced-motion: reduce) {
     .studio-mark .logo-cube .logo-scan {
       transition-duration: 1ms !important;
@@ -2159,6 +2250,7 @@
     .studio-mark:hover .logo-cube,
     .studio-mark:focus-visible .logo-cube {
       transform: none;
+      transition: none;
     }
   }
 
@@ -2613,6 +2705,59 @@
   })();
 </script>
 
+<script>
+  /* ── THE MARK ANSWERS THE HAND ────────────────────────────────────────────
+     Sid: "on hover let it do cooler stuff and become 3d."
+
+     The CSS builds the solid; this gives it a camera. --mx and --my are the
+     pointer's position across the mark normalised to -1..1, read off the
+     mark's own box, and the tilt is applied in CSS so the whole thing stays
+     one composited transform.
+
+     Written against `.studio-mark` rather than `.logo-cube` because the
+     pointer target is the link — the glyph inside it is 36px and a tilt that
+     only starts once you are dead on it never gets found. */
+  (function () {
+    var marks = document.querySelectorAll(".studio-mark");
+    if (!marks.length) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia && !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    for (var i = 0; i < marks.length; i++) {
+      (function (mark) {
+        var cube = mark.querySelector(".logo-cube");
+        if (!cube) return;
+        var raf = 0;
+        var px = 0;
+        var py = 0;
+
+        var write = function () {
+          raf = 0;
+          cube.style.setProperty("--mx", px.toFixed(3));
+          cube.style.setProperty("--my", py.toFixed(3));
+        };
+
+        mark.addEventListener("pointermove", function (e) {
+          if (e.pointerType === "touch") return;
+          var b = mark.getBoundingClientRect();
+          /* Clamped because the link box is wider than the glyph — without
+             it the wordmark end of the target drives the tilt past its
+             hinge and the cube reads as broken rather than turned. */
+          px = Math.max(-1, Math.min(1, ((e.clientX - b.left) / b.width) * 2 - 1));
+          py = Math.max(-1, Math.min(1, ((e.clientY - b.top) / b.height) * 2 - 1));
+          if (!raf) raf = requestAnimationFrame(write);
+        });
+
+        mark.addEventListener("pointerleave", function () {
+          px = 0;
+          py = 0;
+          if (!raf) raf = requestAnimationFrame(write);
+        });
+      })(marks[i]);
+    }
+  })();
+</script>
+
 
     <main class="notfound" id="main">
       <!-- Falling cube — visualizes the "alien square lost a side" copy -->
@@ -2872,7 +3017,19 @@
       flex: 0 0 auto;
       margin: 0;
       --ab: 4px;
-      --h: clamp(122px, 15vw, 214px);
+      /* ── BIGGER, AND FEWER ────────────────────────────────────────────────
+         Sid: "u can increase size of the get to know sid a little i mean the
+         images and media not text so we can reduce the amount we are shwoing
+         so people can actually look and see."
+
+         Up from clamp(122px, 15vw, 214px). At 214px a photograph of his
+         friends is a thumbnail — you register that a picture is there and
+         move on, which is the opposite of "get to know Sid". At 320 the
+         faces are legible and the wall of postcards has readable objects in
+         it. Two tiles come out of the rail with it (the stock book cover and
+         a duplicate portrait), because the point of going bigger is to show
+         less and have it land. */
+      --h: clamp(168px, 21vw, 320px);
       /* --s varies per tile so the tops sit at different heights against the
          shared bottom edge. Without it every tile is the same height and
          align-items: flex-end has nothing to do. */
@@ -3960,10 +4117,6 @@
           <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption>
         </figure>
-        <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)">
-          <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption>
-        </figure>
         <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)">
           <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption>
@@ -3986,12 +4139,7 @@
           <img src="/assets/img/sid-strip/memory-wall.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption>
         </figure>
-         
-        <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid_about3.jpg)">
-          <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption>
-        </figure>
-        
+          
         <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)">
           <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption>
@@ -4000,10 +4148,6 @@
           <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption>
         </figure>
-        <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)">
-          <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption>
-        </figure>
         <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)">
           <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption>
@@ -4026,12 +4170,7 @@
           <img src="/assets/img/sid-strip/memory-wall.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption>
         </figure>
-         
-        <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid_about3.jpg)">
-          <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption>
-        </figure>
-        
+          
       </div>
     </div>
   </section>
@@ -4340,7 +4479,15 @@
            picture is a title slide, and a column of copy beside it is the other
            kind of title slide; annotations pinned to the corners of the frame
            read as a plate label, which is what this is. -->
-      <p class="coda__eyebrow">Coda · 00:00–00:10</p>
+      <!-- The "Coda · 00:00–00:10" slate is gone. Sid: "on the footer, there
+           is some text which we dont need, like some cube or something, just
+           above, on the top, on the left, above where the iTunes screen
+           recording is."
+
+           It was a film-slate affectation on a section that already reads as
+           an end: the line on the right says "Everything above was made to
+           this", and a timecode for a ten-second nothing was the label
+           explaining a joke nobody asked about. -->
       <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2>
 
       <div class="coda__device">
@@ -4358,7 +4505,15 @@
            because what the scroll is doing here is spending a duration. -->
       <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div>
 
-      <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p>
+      <!-- "Scroll to play · Apple Music, 11:02pm" is gone. Sid: "remove the
+           scroll to play text under the mobile apple music thing we dont need
+           any tool tip text let people go on an adventure and discover the
+           site on their own."
+
+           It was an instruction for something that happens whether you read
+           it or not — the panel scrubs as you scroll, and a caption saying so
+           only steals the moment of noticing. Same argument as the cube's
+           "drag to spin". -->
     </div>
   </div>
 </section>
@@ -4390,7 +4545,11 @@
     position: sticky;
     top: 0;
     display: grid;
-    grid-template-rows: auto 1fr auto auto;
+    /* Three in-flow children since the slate came out — the device, the
+       playhead and the note. The title is absolutely positioned and never
+       counted. Left at four rows the device would take an `auto` track and
+       stop centring. */
+    grid-template-rows: 1fr auto auto;
     justify-items: center;
     height: 100svh;
     /* The top pad clears the fixed nav rather than approximating it. At
@@ -4663,6 +4822,221 @@
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", onScroll);
     frame();
+  })();
+</script>
+  <!-- ── THE WALL ────────────────────────────────────────────────────────────────
+     Sid: "can we add this when you scroll below the apple music screen rec
+     this is a png of my room wall and we can do something creative in the
+     spaces between. but yeah a nice scroll transition from the music and the
+     water bg to the png of my room. and make sure this is a common footer
+     across."
+
+     It is the last thing on the site, after the coda, and it is the only
+     image here that is a place rather than a piece of work: the wall above
+     his desk, with the postcards and the drawings and the letter and the
+     cube-head sketch on it.
+
+     THE SPACES BETWEEN. The file is cut out — the wall itself is transparent
+     and only the pinned objects carry pixels — so the gaps are real holes
+     onto the page's ground rather than painted black. That is what the
+     treatment is built on:
+
+       · it arrives OUT of the water. The pond above fades as this rises, so
+         one ground hands to the other rather than cutting;
+       · a light sweeps across it once as it enters, low and raking, so the
+         objects catch it in sequence left to right the way a torch would
+         find them;
+       · the pointer is a torch afterwards. A soft warm pool follows the
+         cursor and the wall is dim outside it, so reading the wall means
+         moving over it — which is the only honest way to show something that
+         is a hundred small things and no single subject.
+
+     It ships in site_footer.html, so it is on every page that has a footer.
+     ─────────────────────────────────────────────────────────────────────── -->
+<section class="wall" id="wall" aria-label="The wall above Sid's desk">
+  <div class="wall__runway">
+    <div class="wall__stage">
+      <div class="wall__frame" id="wall-frame">
+        <img class="wall__img" src="/assets/img/room-wall-1600.webp" srcset="/assets/img/room-wall-900.webp 900w, /assets/img/room-wall-1600.webp 1600w" sizes="(max-width: 900px) 100vw, 92vw" alt="The wall above Sid's desk: postcards, drawings, photographs, a letter, and a cube-headed figure in the middle" loading="lazy" decoding="async">
+        <span class="wall__torch" aria-hidden="true"></span>
+        <span class="wall__sweep" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .wall {
+    position: relative;
+    z-index: 2;
+    background: transparent;
+  }
+  /* The runway is the duration of the transition. Short — this is a coda to
+     the coda, not another act. */
+  /* 120vh, not 175. This section sits in the shared footer, so its runway
+     is charged to the bottom of every page on the site — the same toll the
+     coda's runway pays, and the reason that one was cut from 280vh to 150.
+     At 120 the arrival still has room to happen and the footer stops growing
+     by nearly two screens on pages that were already long. */
+  .wall__runway {
+    height: 120vh;
+  }
+  .wall__stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: clamp(64px, 10vh, 120px) clamp(16px, 4vw, 64px);
+    overflow: hidden;
+  }
+  .wall__frame {
+    position: relative;
+    width: min(1500px, 96vw);
+    /* --p is 0 as the section enters and 1 once it is centred, written by the
+       script below. Everything reads off it. */
+    transform: scale(calc(1.14 - var(--p, 0) * 0.14)) translateY(calc((1 - var(--p, 0)) * 7vh));
+    opacity: calc(var(--p, 0) * 1.25);
+    will-change: transform, opacity;
+  }
+  .wall__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* Dim at rest so the torch has somewhere to go. The wall is a cut-out, so
+       this darkens the objects and leaves the gaps as page. */
+    filter: brightness(calc(0.46 + var(--lit, 0) * 0.14)) saturate(0.92);
+    transition: filter 400ms ease;
+  }
+
+  /* THE TORCH. A soft pool at the pointer, composited so it lifts only what
+     is actually there — screen over transparent gaps changes nothing, which
+     is exactly the behaviour a cut-out wants. */
+  .wall__torch {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: var(--torch, 0);
+    transition: opacity 500ms ease;
+    background: radial-gradient(
+      circle at calc(var(--tx, 50%)) calc(var(--ty, 50%)),
+      rgba(255, 228, 178, 0.5) 0%,
+      rgba(255, 216, 150, 0.22) 22%,
+      rgba(255, 210, 140, 0.06) 40%,
+      transparent 62%
+    );
+  }
+  /* THE SWEEP. One raking pass as the section arrives, driven by --p rather
+     than by a keyframe so it is tied to the scroll and not to a clock. */
+  .wall__sweep {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: calc(var(--sweep, 0) * 0.85);
+    background: linear-gradient(
+      100deg,
+      transparent calc(var(--p, 0) * 150% - 34%),
+      rgba(255, 234, 196, 0.42) calc(var(--p, 0) * 150% - 16%),
+      rgba(255, 240, 214, 0.6) calc(var(--p, 0) * 150% - 8%),
+      rgba(255, 234, 196, 0.32) calc(var(--p, 0) * 150%),
+      transparent calc(var(--p, 0) * 150% + 18%)
+    );
+  }
+
+  html[data-theme="light"] .wall__img {
+    filter: brightness(calc(0.86 + var(--lit, 0) * 0.14)) saturate(0.96);
+  }
+  html[data-theme="light"] .wall__torch {
+    mix-blend-mode: multiply;
+    background: radial-gradient(
+      circle at calc(var(--tx, 50%)) calc(var(--ty, 50%)),
+      rgba(255, 245, 225, 0) 0%,
+      rgba(30, 26, 20, 0.16) 46%,
+      rgba(30, 26, 20, 0.28) 70%
+    );
+  }
+
+  @media (max-width: 760px) {
+    .wall__runway {
+      height: 130vh;
+    }
+    .wall__frame {
+      width: 100%;
+    }
+    /* No pointer to carry a torch on a phone, so the wall simply lights. */
+    .wall__img {
+      filter: brightness(0.72) saturate(0.95);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wall__frame {
+      transform: none;
+      opacity: 1;
+    }
+    .wall__sweep {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var sec = document.getElementById("wall");
+    var frame = document.getElementById("wall-frame");
+    if (!sec || !frame) return;
+
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var fine = !window.matchMedia || window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    var p = 0;
+    var raf = 0;
+
+    function measure() {
+      /* 0 as the runway's top reaches the viewport, 1 by the time it has
+         travelled one viewport further. The same pinned-progress idea the
+         hero uses, at a smaller scale. */
+      var r = sec.getBoundingClientRect();
+      var span = Math.max(1, window.innerHeight * 0.75);
+      var v = (window.innerHeight * 0.5 - r.top) / span;
+      var np = Math.max(0, Math.min(1, v));
+      if (Math.abs(np - p) > 0.002) {
+        p = np;
+        frame.style.setProperty("--p", p.toFixed(3));
+        /* The sweep only exists during the arrival — it is a lighting cue,
+           not a permanent shine. */
+        frame.style.setProperty("--sweep", (p < 0.98 ? Math.sin(Math.min(1, p) * Math.PI) : 0).toFixed(3));
+      }
+      raf = 0;
+    }
+
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(measure);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    measure();
+
+    if (fine && !reduce) {
+      frame.addEventListener("pointerenter", function () {
+        frame.style.setProperty("--torch", "1");
+        frame.style.setProperty("--lit", "1");
+      });
+      frame.addEventListener("pointerleave", function () {
+        frame.style.setProperty("--torch", "0");
+        frame.style.setProperty("--lit", "0");
+      });
+      frame.addEventListener(
+        "pointermove",
+        function (e) {
+          var r = frame.getBoundingClientRect();
+          frame.style.setProperty("--tx", (((e.clientX - r.left) / Math.max(1, r.width)) * 100).toFixed(2) + "%");
+          frame.style.setProperty("--ty", (((e.clientY - r.top) / Math.max(1, r.height)) * 100).toFixed(2) + "%");
+        },
+        { passive: true }
+      );
+    }
   })();
 </script>
 
@@ -5900,12 +6274,13 @@
 
   #cur-dot {
     position: fixed;
-    /* 18, down from 22. Sid: "cursor can be a little smaller." A ring this
-       size still reads as an object rather than a dot, and at 1.6x over an
-       interactive surface it now opens to 29 rather than 35 — which was
-       starting to look like a target reticle on small links. */
-    width: 18px;
-    height: 18px;
+    /* 13, down from 18 and originally 22. Sid, twice: "i want my cursor to be
+       a little smaller." At 13 the ring reads as a pointer rather than as a
+       reticle, and over an interactive surface it opens to 21 instead of 29 —
+       small enough that it stops covering the thing it is pointing at, which
+       is the actual complaint underneath the size one. */
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
@@ -5933,6 +6308,57 @@
   /* Over something interactive the dot hollows out into a ring, so whatever it
      is sitting on stays visible through the middle. A fill that merely got
      fainter covered small icons; a ring never does. */
+  /* ── OVER THE MARK, GET OUT OF THE WAY ──────────────────────────────────
+     Sid: "with the cursor i cant even see the 3d cube animating."
+
+     Literally true: the mark is 36px, the ring at hover scale was 29, and it
+     sat dead centre on the one thing on the page whose whole point is to be
+     watched. Over .studio-mark the ring drops to a third of its opacity and
+     shrinks rather than growing, and the trail stops paying out — so what you
+     are looking at is the cube, not a circle on top of it. */
+  #cur-dot.is-mark {
+    opacity: 0.28 !important;
+    background: transparent;
+    box-shadow: 0 0 0 1px rgba(214, 234, 255, 0.5);
+  }
+  html.cur-on-mark #cur-trail {
+    opacity: 0 !important;
+    transition: opacity 220ms ease;
+  }
+
+  /* The dot in the middle. Sid: "when i hover to change color or shape or
+     maybe a dot in the center." It only exists over something interactive, so
+     the resting cursor stays one clean ring and the hover state is a real
+     change of form rather than a change of size. */
+  #cur-dot.is-hover::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    margin: -1.5px 0 0 -1.5px;
+    border-radius: 50%;
+    background: rgba(236, 245, 255, 0.95);
+    animation: curCore 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  html[data-theme="light"] #cur-dot.is-hover::after {
+    background: rgba(16, 24, 40, 0.92);
+  }
+  #cur-dot.is-mark::after {
+    display: none;
+  }
+  @keyframes curCore {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
   #cur-dot.is-hover {
     background: rgba(190, 220, 255, 0.08);
     box-shadow:
@@ -8056,6 +8482,12 @@
     align-items: center;
     justify-content: center;
     cursor: none;
+    /* A <button> does not inherit the page's font — it falls back to the UA
+       default, which is Arial here. Auditing every page for the families in
+       use turned this up as the one non-Figtree, non-DM-Mono glyph on the
+       entire site, on every page, because the chat panel ships in the shared
+       cursor include. One line, and the family list is clean. */
+    font-family: inherit;
     font-size: 13px;
     transition:
       border-color 0.2s,
@@ -10937,7 +11369,7 @@
       }
 
       // Eased hover growth (1.6x over interactive surfaces)
-      const targetHover = dot.classList.contains("is-hover") ? 1.6 : 1;
+      const targetHover = dot.classList.contains("is-mark") ? 0.62 : dot.classList.contains("is-hover") ? 1.6 : 1;
       hoverScale += (targetHover - hoverScale) * 0.18;
 
       dot.style.left = rx + "px";
@@ -10978,6 +11410,10 @@
         "mouseover",
         (e) => {
           if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
+          if (e.target.closest && e.target.closest(".studio-mark")) {
+            dot.classList.add("is-mark");
+            document.documentElement.classList.add("cur-on-mark");
+          }
           if (label) {
             const labeled = e.target.closest && e.target.closest(LABEL_SELECTOR);
             if (labeled) {
@@ -10995,6 +11431,13 @@
             // Only remove if we're really leaving the hover surface (not just moving to a child)
             const to = e.relatedTarget;
             if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
+          }
+          if (e.target.closest && e.target.closest(".studio-mark")) {
+            const away = e.relatedTarget;
+            if (!away || !(away.closest && away.closest(".studio-mark"))) {
+              dot.classList.remove("is-mark");
+              document.documentElement.classList.remove("cur-on-mark");
+            }
           }
           if (label) {
             const leaving = e.target.closest && e.target.closest(LABEL_SELECTOR);

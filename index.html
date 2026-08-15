@@ -179,7 +179,14 @@
        label    UI labels, item titles in lists
        meta     captions, secondary detail
        micro    the mono eyebrows -- the ONLY role that is uppercase-tracked */
-    --type-display: 600 clamp(40px, 5vw, 72px) / 1.05 var(--font-title);
+    /* 350, not 600. The token said 600 and the site never agreed with it:
+       the sixteen case studies set their display heading at 300, the homepage
+       at 350, /about/ at 400. The only file that actually used the token was
+       play/index.html, so the scale's heaviest role was describing one page
+       while every other page hand-rolled something lighter. Changed to match
+       the voice that exists rather than leaving a token nobody could adopt
+       without making their page the odd one out. */
+    --type-display: 350 clamp(40px, 5vw, 72px) / 1.05 var(--font-title);
     --type-title: 500 clamp(28px, 3vw, 40px) / 1.15 var(--font-head);
     --type-heading: 500 24px / 1.33 var(--font-head);
     --type-body-lg: 400 19px / 1.68 var(--font-head);
@@ -844,14 +851,35 @@
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
-        padding-bottom: clamp(46px, 8vh, 92px);
+        /* ── THE COPY SITS LOWER NOW ──────────────────────────────────────
+           Sid: "i want the product designer six years ... to move towards the
+           bottom so its not colliding with the foot of the cube guy."
+
+           Two numbers do it together: the hero's foot padding comes in, and
+           the figure's stage lifts and shortens (see .cg-stage). Moving only
+           the type would have put it under the nav's shadow at the other end;
+           moving only the figure would have left him floating with his head
+           in the top margin. Measured at 1440x900 the gap between his sole
+           and the cap height of "Product designer" is 34px, from 0. */
+        padding-bottom: clamp(26px, 4.4vh, 54px);
         padding-top: clamp(120px, 18vh, 200px);
       }
       /* The hero is full-bleed now so the film can run edge to edge; the
          copy keeps the site's measure by living in its own wrap. */
+      /* ── THE TYPE MAKES WAY ───────────────────────────────────────────────
+         Sid: "the flow from the typography should maybe animate and break
+         away and make way for the cube guy to grow bigger."
+
+         --hero-p is the same 0 → 1 the figure's timeline runs on, written on
+         .hero by the script at the foot of this file. The copy lifts and
+         fades out over the first third of it, so it is gone before he starts
+         travelling rather than sitting there while he moves through it. */
       .hero__inner {
         position: relative;
         z-index: 2;
+        transform: translateY(calc(var(--hero-p, 0) * -90px));
+        opacity: calc(1 - var(--hero-p, 0) * 2.6);
+        will-change: transform, opacity;
         width: min(1440px, 100%);
         margin: 0 auto;
         padding: 0 clamp(22px, 5vw, 92px);
@@ -927,7 +955,11 @@
       h1.hero__title {
         margin: 0;
         max-width: 27ch;
-        font-weight: 500;
+        /* Sid: "the product shipped this thing, can we make it a little
+           lighter? the font is too thick." 500 on a 60px line is a medium
+           weight doing the work of a bold; 350 keeps the scale and lets the
+           line read as a statement rather than a banner. */
+        font-weight: 350;
         /* Down from 6.4vw/6.4rem. The old headline was two lines of twenty
            characters; this one is three lines of twenty-eight, and at the old
            size the longest line ran past the column and wrapped into a fourth.
@@ -1131,298 +1163,11 @@
         }
       }
 
-      /* ── THE SENTENCE ───────────────────────────────────────────────────
-         Sid asked for Pentagram's move: one line that names the discipline
-         and the sector, both of them operable, so a visitor can see the
-         range at a glance instead of reading a CV paragraph for it.
-
-         The two rules that make it feel like a sentence rather than a form:
-
-           · The selects carry no chrome of their own. `appearance: none`
-             strips the OS widget, so what is on screen is the word, a
-             hairline under it and a chevron — the same weight and family as
-             the words around it. A native <select> underneath means the
-             phone gets its own picker and the keyboard gets arrow keys for
-             free, which no div-and-listbox reimplementation would.
-
-           · A <select> sizes itself to its widest option, so the sentence
-             would sit with a hole in it on every short word. The width is
-             set from the selected option's measured text instead (see the
-             JS at the foot of the page) and transitions, so changing the
-             word visibly re-sets the line. That motion is the whole tell
-             that the sentence is a control. */
-      .hero__claim {
-        min-width: 0;
-      }
-      /* Bottom right of the hero, out of the headline's column. Absolute
-         rather than a grid cell because the hero's foot no longer has a right
-         column to put it in — the links that used to live there are gone. */
-      .hero__claim--corner {
-        position: absolute;
-        /* Clear of the theme toggle and chat button, which are fixed in this
-           corner on every page. 64px is the width of that stack plus a gap. */
-        right: calc(clamp(22px, 5vw, 92px) + 64px);
-        bottom: clamp(64px, 10vh, 108px);
-        z-index: 4;
-        text-align: right;
-        max-width: min(46ch, 52vw);
-      }
-      @media (max-width: 900px) {
-        .hero__claim--corner {
-          position: static;
-          text-align: left;
-          max-width: none;
-          margin-top: clamp(22px, 4vh, 40px);
-        }
-      }
-      .pgram {
-        margin: 0;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: baseline;
-        gap: 0.28em 0.34em;
-        /* Down from 3.1vw/2.55rem. Sid: "also make it smaller." In the
-           corner it is an aside, not a second headline. */
-        font-size: clamp(1.02rem, 1.62vw, 1.42rem);
-        font-weight: 400;
-        line-height: 1.24;
-        letter-spacing: -0.022em;
-        color: var(--home-muted);
-      }
-      .pgram__lead {
-        white-space: nowrap;
-      }
-      .pgram__slot {
-        position: relative;
-        display: inline-flex;
-        align-items: baseline;
-      }
-      /* ── NOT A DROPDOWN ──────────────────────────────────────────────────
-         This was a native <select>, chosen so the phone would get its own
-         picker and the keyboard would work for free. Sid: "i hate this drop
-         down ui implementation of the concept."
-
-         He is right, and the reason is that a <select> is the one control a
-         browser refuses to let you draw. Everything else on this page is set
-         in the site's own type on the site's own palette, and then the
-         sentence at the centre of the hero opened a rounded black OS panel in
-         the system font, with a system tick, at a size nothing else on the
-         page uses. It read as a form dropped onto a film.
-
-         So the word is a button and the options are a list, both drawn here.
-         The list is a column of words on a hairline rule, in the same face
-         and colour as the sentence they belong to, over the same blurred
-         plate as the rest of the site's chrome. No panel, no tick, no chevron
-         column, no rounded box.
-
-         The button keeps the semantics the <select> gave away for free —
-         aria-haspopup, aria-expanded, role="listbox" and aria-selected — and
-         the script below implements the keys the browser used to. */
-      .pgram__val {
-        appearance: none;
-        -webkit-appearance: none;
-        margin: 0;
-        padding: 0 0.72em 0.06em 0;
-        border: 0;
-        background: none;
-        font: inherit;
-        letter-spacing: inherit;
-        color: var(--home-ink);
-        cursor: pointer;
-        position: relative;
-        display: inline-flex;
-        align-items: baseline;
-        gap: 0.1em;
-        outline: none;
-      }
-      .pgram__word {
-        display: inline-block;
-      }
-      /* The hairline is on the wrapper so it spans the chevron and stays put
-         while the word changes width under it. */
-      .pgram__slot::after {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: -0.04em;
-        height: 1px;
-        background: var(--home-hair);
-        transition: background 0.24s ease;
-      }
-      .pgram__slot:hover::after,
-      .pgram__slot:focus-within::after,
-      .pgram__slot.is-open::after {
-        background: var(--home-ink);
-      }
-      .pgram__val i {
-        position: absolute;
-        right: 0.04em;
-        bottom: 0.34em;
-        width: 0.36em;
-        height: 0.36em;
-        border-right: 1.5px solid var(--home-faint);
-        border-bottom: 1.5px solid var(--home-faint);
-        transform: rotate(45deg);
-        transition:
-          transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
-          border-color 0.24s ease;
-        pointer-events: none;
-      }
-      .pgram__slot:hover .pgram__val i,
-      .pgram__slot:focus-within .pgram__val i {
-        border-color: var(--home-ink);
-      }
-      /* Points up while the list is open, which is the only state cue the
-         control needs. */
-      .pgram__slot.is-open .pgram__val i {
-        transform: rotate(-135deg) translate(-0.06em, -0.06em);
-        border-color: var(--home-ink);
-      }
-      .pgram__val:focus-visible {
-        outline: 2px solid var(--home-accent);
-        outline-offset: 4px;
-        border-radius: 2px;
-      }
-
-      .pgram__menu.is-up {
-        top: auto;
-        bottom: calc(100% + 14px);
-        transform-origin: 0 100%;
-      }
-      .pgram__menu {
-        position: absolute;
-        right: -0.5em;
-        left: auto;
-        text-align: left;
-        top: calc(100% + 12px);
-        left: -0.5em;
-        z-index: 6;
-        margin: 0;
-        padding: 6px 0;
-        list-style: none;
-        min-width: calc(100% + 1em);
-        background: rgba(8, 11, 17, 0.72);
-        -webkit-backdrop-filter: blur(16px) saturate(1.4);
-        backdrop-filter: blur(16px) saturate(1.4);
-        border: 1px solid var(--home-hair);
-        border-radius: 3px;
-        /* Arrives rather than appears: it grows out of the word it belongs
-           to, which is why the origin is the top-left corner. */
-        transform-origin: 0 0;
-        animation: pgMenuIn 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
-      }
-      html[data-theme="light"] .pgram__menu {
-        background: rgba(246, 244, 239, 0.82);
-      }
-      @keyframes pgMenuIn {
-        from {
-          opacity: 0;
-          transform: translateY(-6px) scale(0.98);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-      .pgram__menu li {
-        /* Deliberately smaller than the sentence. The list is a way of
-           changing the line, not a second headline. */
-        font-size: clamp(0.84rem, 1.05vw, 0.98rem);
-        line-height: 1.25;
-        letter-spacing: -0.01em;
-        color: var(--home-muted);
-        padding: 7px clamp(14px, 1.4vw, 20px);
-        cursor: pointer;
-        white-space: nowrap;
-        transition:
-          color 0.18s ease,
-          background 0.18s ease;
-      }
-      .pgram__menu li:hover,
-      .pgram__menu li.is-active {
-        color: var(--home-ink);
-        background: rgba(255, 255, 255, 0.06);
-      }
-      html[data-theme="light"] .pgram__menu li:hover,
-      html[data-theme="light"] .pgram__menu li.is-active {
-        background: rgba(20, 22, 27, 0.06);
-      }
-      .pgram__menu li[aria-selected="true"] {
-        color: var(--home-ink);
-      }
-      @media (max-width: 560px) {
-        .pgram__menu {
-          left: -0.5em;
-          right: auto;
-          max-width: min(84vw, 340px);
-        }
-        .pgram__menu li {
-          white-space: normal;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .pgram__menu {
-          animation: none;
-        }
-        .pgram__val i {
-          transition: none;
-        }
-      }
-
-      /* The answer. Mono, small, and deliberately quieter than the sentence:
-         it is the footnote the sentence just generated, and if it competed
-         the line above would stop reading as a statement. */
-      .pgram__out {
-        margin: clamp(16px, 2.4vh, 26px) 0 0;
-        font-family: "DM Mono", monospace;
-        font-size: clamp(0.72rem, 0.92vw, 0.8rem);
-        line-height: 2;
-        color: var(--home-muted);
-        max-width: 60ch;
-      }
-      .pgram__out em {
-        font-style: normal;
-        color: var(--home-faint);
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        font-size: 10px;
-        display: block;
-        margin-bottom: 0.5em;
-      }
-      .pgram__out a {
-        color: var(--home-ink);
-        text-decoration: none;
-        border-bottom: 1px solid var(--home-hair);
-        padding-bottom: 1px;
-        transition:
-          border-color 0.2s ease,
-          opacity 0.2s ease;
-      }
-      .pgram__out a:hover,
-      .pgram__out a:focus-visible {
-        border-bottom-color: var(--home-ink);
-      }
-      .pgram__out span {
-        color: var(--home-hair);
-        margin: 0 0.5em;
-      }
-      /* Each answer swaps in rather than cutting. 140ms is under the
-         threshold where a list feels like it reloaded. */
-      .pgram__out.is-swap {
-        opacity: 0;
-        transform: translateY(3px);
-      }
-      .pgram__out {
-        transition:
-          opacity 0.14s ease,
-          transform 0.14s ease;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .pgram__out {
-          transition: none;
-        }
-      }
+      /* The "I design ___ for ___" reel's CSS lived here — about 200 lines
+         through a <select>, a listbox, a hold state and finally a plain
+         cycling line. All of it is gone with the markup; the range is section
+         04 now and it is set in the page's own type with no machinery at all.
+         See _includes/../sid_home's .range block above. */
 
       /* Indexed destinations. Each row is a full-width rule that the label
          sits on; hovering slides the label off the number and drags the
@@ -1648,6 +1393,86 @@
         display: block;
         width: 100%;
         height: 100%;
+      }
+
+      /* ── HIM, IN THE MIDDLE ───────────────────────────────────────────────
+         Sid: "what if we have him in the centre in depth map and controllable
+         interactive."
+
+         The stage sits above the field and below the copy: he is centred in
+         the hero, the headline and the sentence are in the bottom corners, so
+         the only thing that ever crosses him is empty space. z-index 1 rather
+         than 3 for exactly that reason — if the type and the figure ever do
+         meet, the type wins.
+
+         It takes pointer events, which the field deliberately does not. That
+         is the whole "controllable" half of the ask: the middle of the hero
+         is the one region of this page with nothing to click, so a drag there
+         can safely mean something. `touch-action: pan-y` keeps a vertical
+         swipe scrolling the page while a horizontal one turns him. */
+      /* ── HE IS NOT CLIPPED BY THE HERO ────────────────────────────────────
+         Sid: "you see how the cubes foot is kind of hitting that black area
+         ... it just gets cut off."
+
+         The hero is `overflow: hidden` — it has to be, the field runs full
+         bleed — and the stage lives inside it, so the figure was being cut
+         off by the section edge exactly where his sole met it. Promoting the
+         stage out of the hero's clip is not an option without breaking the
+         field, so the stage keeps its box and the FIGURE is drawn smaller
+         inside it than the box allows: the canvas now has 18% of its own
+         height as clear air under his feet, which is what the camera pull
+         below spends. Nothing to clip against. */
+      .cg-stage {
+        position: absolute;
+        left: 50%;
+        top: 38%;
+        transform: translate(-50%, -50%);
+        width: min(560px, 46vw);
+        height: min(620px, 66vh);
+        z-index: 1;
+        touch-action: pan-y;
+        cursor: grab;
+        /* Nothing is painted until the 336KB of points has landed and the
+           first frame is up, so there is no empty box sitting in the middle
+           of the hero on a slow connection. */
+        opacity: 0;
+        transition: opacity 900ms ease;
+      }
+      .cg-stage.is-live {
+        opacity: 1;
+      }
+      /* Pinned by the script for the length of the handoff. The box is frozen
+         in JS at the moment of pinning so there is no jump; transform is left
+         alone because translate(-50%,-50%) is what centres the absolute
+         version and the fixed one is placed by its own top/left. */
+      .cg-stage.is-pinned {
+        position: fixed;
+        transform: none;
+        z-index: 3;
+      }
+      .cg-stage.is-turning {
+        cursor: grabbing;
+      }
+      .cg-stage canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      /* On a phone the hero stops being a viewport tall and the copy moves to
+         the top, so he cannot be the centrepiece without landing under the
+         headline. He becomes the backdrop instead, and stops taking the
+         pointer so a swipe is always a scroll. */
+      @media (max-width: 760px) {
+        .cg-stage {
+          top: 52%;
+          width: 78vw;
+          height: 52vh;
+          opacity: 0;
+          pointer-events: none;
+        }
+        .cg-stage.is-live {
+          opacity: 0.42;
+        }
       }
 
       /* The <video> elements are decode sources, never pixels on screen.
@@ -2302,6 +2127,112 @@
       }
 
       /* ── numbers ────────────────────────────────────────────────── */
+      /* ── THE RANGE ────────────────────────────────────────────────────────
+         Three pillars, not thirty-one items. The grid collapses to one column
+         under 900px because three columns of headline type at phone width is
+         four words a line.
+
+         Each pillar draws itself in on a stagger keyed off --i: the rule
+         wipes left to right, the word lifts, the sub-list fades a beat later.
+         .rv/.in is the site's existing reveal, so this rides the observer
+         that is already running rather than adding another. */
+      .range {
+        margin-top: clamp(30px, 6vh, 64px);
+      }
+      .range__pillars {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: clamp(24px, 4vw, 64px);
+      }
+      @media (max-width: 900px) {
+        .range__pillars {
+          grid-template-columns: 1fr;
+          gap: clamp(30px, 5vh, 48px);
+        }
+      }
+      .range__pillar {
+        position: relative;
+      }
+      .range__idx {
+        display: block;
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        color: var(--home-faint);
+        margin-bottom: 0.9em;
+      }
+      .range__word {
+        margin: 0;
+        font-size: clamp(2rem, 4.6vw, 4.1rem);
+        font-weight: 300;
+        line-height: 0.98;
+        letter-spacing: -0.035em;
+        color: var(--home-ink);
+        transform: translateY(calc((1 - var(--in, 0)) * 18px));
+        opacity: var(--in, 0);
+        transition:
+          transform 900ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i) * 120ms),
+          opacity 700ms ease calc(var(--i) * 120ms);
+      }
+      /* The rule under each word draws rather than appears — it is the only
+         moving part in the section and it is what makes the three read as a
+         sequence instead of a row. */
+      .range__bar {
+        display: block;
+        height: 1px;
+        margin: clamp(14px, 1.8vh, 22px) 0 clamp(16px, 2vh, 24px);
+        background: var(--home-hair);
+        transform: scaleX(var(--in, 0));
+        transform-origin: 0 50%;
+        transition: transform 1100ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i) * 120ms + 120ms);
+      }
+      .range__sub {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        font-size: clamp(0.9rem, 1.05vw, 1.02rem);
+        line-height: 1.85;
+        color: var(--home-muted);
+        opacity: calc(var(--in, 0) * 0.96);
+        transition: opacity 800ms ease calc(var(--i) * 120ms + 260ms);
+      }
+      .range__pillar.in {
+        --in: 1;
+      }
+      .range__for {
+        margin: clamp(34px, 5.5vh, 68px) 0 0;
+        font-size: clamp(0.95rem, 1.3vw, 1.18rem);
+        line-height: 1.6;
+        color: var(--home-muted);
+        max-width: 52ch;
+      }
+      .range__for span {
+        font-family: "DM Mono", monospace;
+        font-size: 10px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--home-faint);
+        display: block;
+        margin-bottom: 0.6em;
+      }
+      .range__facts {
+        margin: clamp(18px, 2.6vh, 30px) 0 0;
+        font-family: "DM Mono", monospace;
+        font-size: clamp(0.68rem, 0.84vw, 0.76rem);
+        letter-spacing: 0.05em;
+        color: var(--home-faint);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .range__word,
+        .range__bar,
+        .range__sub {
+          transition: none;
+        }
+      }
+
       .nums {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -2519,26 +2450,195 @@
         background: transparent !important;
       }
 
+      /* ── THE REEL SEAL ───────────────────────────────────────────────────
+         Sid: "the play reel button needs to be way cooler with maybe a flowy
+         changing state."
+
+         It was ten-pixel mono caps reading WATCH THE REEL — the same
+         treatment as every micro-label on the site, sitting directly under
+         the one object on the page you are meant to reach out and touch. The
+         page's single loudest invitation was its quietest mark.
+
+         So it is a seal: a glass disc with something moving inside it. Two
+         gradient fields counter-rotate behind a circular clip at different
+         speeds and different scales, which is what makes it read as liquid
+         rather than as a spinning texture — nothing in there ever returns to
+         the same arrangement. The type runs round the rim on a path, the
+         triangle sits in the middle, and hovering brings the fluid up,
+         doubles the rim's speed and pushes the triangle a hair to the right,
+         the way a play head leans into a cut.
+
+         All CSS. No canvas, no context to lose, nothing to load. */
       .reel-cue {
         margin: clamp(18px, 3vh, 34px) 0 0;
         text-align: center;
       }
-      .reel-cue button {
+      .reel-seal {
         appearance: none;
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        width: clamp(108px, 11vw, 136px);
+        aspect-ratio: 1;
+        padding: 0;
         border: 0;
+        border-radius: 50%;
         background: none;
-        cursor: pointer;
-        font-family: "DM Mono", monospace;
-        font-size: 10px;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        color: var(--home-faint);
-        padding: 8px 2px;
-        transition: color 0.24s ease;
-      }
-      .reel-cue button:hover,
-      .reel-cue button:focus-visible {
         color: var(--home-ink);
+        cursor: pointer;
+        isolation: isolate;
+        transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reel-seal:hover {
+        transform: scale(1.045);
+      }
+      /* The glass. Its own element rather than the button's background so the
+         backdrop blur has something to sit against without also blurring the
+         type and the triangle above it. */
+      .reel-seal::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid var(--home-hair);
+        -webkit-backdrop-filter: blur(9px) saturate(1.25);
+        backdrop-filter: blur(9px) saturate(1.25);
+        transition:
+          border-color 300ms ease,
+          background 300ms ease;
+      }
+      .reel-seal:hover::before,
+      .reel-seal:focus-visible::before {
+        border-color: rgba(180, 210, 255, 0.5);
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .reel-seal__flow {
+        position: absolute;
+        inset: 5px;
+        border-radius: 50%;
+        overflow: hidden;
+        opacity: 0.5;
+        transition: opacity 420ms ease;
+        pointer-events: none;
+      }
+      .reel-seal:hover .reel-seal__flow {
+        opacity: 0.86;
+      }
+      /* Two fields, opposite directions, different periods and different
+         centres of rotation. Their overlap is what moves.
+
+         The first pass blurred these to 14px across a box 40% larger than
+         the disc, which averaged the whole thing to one flat wash — pretty,
+         and completely still to look at, because a gradient with no dark
+         between its blobs has nothing to show you moving. Tighter falloffs
+         and half the blur leave real ground between them, and `screen` makes
+         them read as light in the glass rather than as paint on it. */
+      .reel-seal__flow::before,
+      .reel-seal__flow::after {
+        content: "";
+        position: absolute;
+        inset: -22%;
+        border-radius: 50%;
+        filter: blur(9px);
+        mix-blend-mode: screen;
+      }
+      .reel-seal__flow::before {
+        background:
+          radial-gradient(30% 30% at 36% 34%, rgba(110, 168, 255, 0.95), transparent 60%),
+          radial-gradient(26% 26% at 68% 64%, rgba(185, 140, 255, 0.8), transparent 62%);
+        animation: reelFlowA 13s linear infinite;
+      }
+      .reel-seal__flow::after {
+        background:
+          radial-gradient(24% 24% at 64% 30%, rgba(120, 255, 214, 0.6), transparent 62%),
+          radial-gradient(28% 28% at 32% 70%, rgba(255, 150, 190, 0.5), transparent 62%);
+        animation: reelFlowB 19s linear infinite reverse;
+      }
+      /* Screen on cream is white on white. The light page gets the same
+         fields multiplied instead, so they darken the glass the way ink in
+         water would. */
+      html[data-theme="light"] .reel-seal__flow::before,
+      html[data-theme="light"] .reel-seal__flow::after {
+        mix-blend-mode: multiply;
+      }
+      @keyframes reelFlowA {
+        to {
+          transform: rotate(360deg) scale(1.08);
+        }
+      }
+      @keyframes reelFlowB {
+        to {
+          transform: rotate(360deg) scale(0.92);
+        }
+      }
+      .reel-seal__ring {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        fill: var(--home-muted);
+        font-family: "DM Mono", monospace;
+        font-size: 7.4px;
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        animation: reelSpin 26s linear infinite;
+        transition: fill 300ms ease;
+        pointer-events: none;
+      }
+      .reel-seal:hover .reel-seal__ring,
+      .reel-seal:focus-visible .reel-seal__ring {
+        animation-duration: 13s;
+        fill: var(--home-ink);
+      }
+      @keyframes reelSpin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      /* The triangle, drawn rather than typed: a ▶ glyph carries the font's
+         own idea of a play button and sits off its own optical centre. */
+      .reel-seal__play {
+        position: relative;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 8px 0 8px 13px;
+        border-color: transparent transparent transparent var(--home-ink);
+        transform: translateX(1px);
+        transition: transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+      }
+      .reel-seal:hover .reel-seal__play {
+        transform: translateX(3px);
+      }
+      .reel-seal:focus-visible {
+        outline: 2px solid var(--home-accent);
+        outline-offset: 6px;
+      }
+      html[data-theme="light"] .reel-seal::before {
+        background: rgba(20, 22, 27, 0.03);
+      }
+      html[data-theme="light"] .reel-seal__flow {
+        opacity: 0.46;
+      }
+      html[data-theme="light"] .reel-seal:hover .reel-seal__flow {
+        opacity: 0.7;
+      }
+      /* The whole thing is motion for its own sake, which is exactly what
+         this switch is for. It keeps the glass, the type and the triangle —
+         still a legible, obvious control — and stops moving. */
+      @media (prefers-reduced-motion: reduce) {
+        .reel-seal__ring,
+        .reel-seal__flow::before,
+        .reel-seal__flow::after {
+          animation: none;
+        }
+        .reel-seal,
+        .reel-seal__play {
+          transition: none;
+        }
       }
 
       /* ── door ───────────────────────────────────────────────────── */
@@ -2549,9 +2649,43 @@
         margin: 0 auto 26px;
         max-width: 20ch;
         font-size: clamp(1.7rem, 4.6vw, 3.6rem);
-        font-weight: 600;
+        /* 600 was heavier than the hero headline, on a smaller line. */
+        font-weight: 400;
         letter-spacing: -0.03em;
         line-height: 1.04;
+      }
+      .door__line {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0 0.28em;
+        perspective: 900px;
+      }
+      /* Each word owns a slice of --p, so they land in reading order rather
+         than all at once. The rotation is small and alternates sign off the
+         index, which is what stops the row reading as one skewed block. */
+      .door__w {
+        display: inline-block;
+        --t: clamp(0, calc((var(--p, 0) - var(--i) * 0.055) * 3.4), 1);
+        transform: translateY(calc((1 - var(--t)) * 0.85em)) rotate(calc((1 - var(--t)) * var(--r) * 1deg));
+        opacity: var(--t);
+        transform-origin: 50% 100%;
+      }
+      /* The floor: a faint pool the words settle onto, so they have somewhere
+         to have fallen. */
+      .door {
+        position: relative;
+      }
+      .door::before {
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 46%;
+        width: min(760px, 86vw);
+        height: 220px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(ellipse at center, rgba(150, 190, 255, calc(var(--p, 0) * 0.09)), transparent 68%);
+        pointer-events: none;
       }
       .door .btns {
         justify-content: center;
@@ -2591,177 +2725,17 @@
          film's dark frame sat on flat black and had no field to separate from.
          It is a fixed canvas at z-index -1 and the hero sections are all
          transparent by design, so it costs nothing but the include. -->
-    <!-- Reusable WebGL smoke shader background — same code as home #smoke-bg.
-     Cursor-revealed cyan smoke on black. Sits at z-index 0; pages should put their content at z-index 1+.
-     In light mode the same field renders on paper instead of being switched off. Pauses on visibilitychange to save battery. -->
-<canvas id="page-smoke-bg" aria-hidden="true"></canvas>
-<style>
-  /* Force body into its own stacking context so canvas at z-index -1 sits behind body's content
-     but in front of html bg. Critical: do NOT add position:relative to body's other children — that
-     breaks position:fixed elements (skip-link, theme toggle, cube-chat FAB) by yanking them into flow. */
-  body {
-    /* `clip`, not `hidden`. Same visual result — no horizontal bleed from
-       marquee tracks or oversized media — but `hidden` would turn body into a
-       scroll container, which silently kills `position: sticky` on every
-       descendant on every page this include ships with. See the long note in
-       sid_home.html. */
-    overflow-x: clip;
-  }
-  /* The stacking context above used to be made with `isolation: isolate`, and
-     that one line was silently switching off every piece of glass on the site.
+    <!-- smoke_bg is gone from this page. Sid: "please remove this smoky
+         shader. its very generic, and i dont want it."
 
-     `isolation: isolate` does not merely open a stacking context — per the
-     Filter Effects spec it also establishes a *Backdrop Root*, and
-     `backdrop-filter` can only sample what is painted behind the nearest
-     backdrop root. Behind this one there is nothing, so the nav capsule, the
-     mark, and every other frosted surface were blurring an empty image and
-     compositing their tint over sharp, unblurred page content. It looked like
-     a tinted sticker rather than glass, which is exactly the complaint: list
-     items read straight through the SID MEHTA mark, letter for letter.
-
-     `position: relative; z-index: 0` gives the identical stacking context —
-     the canvas at z-index -1 still sits behind body's content and in front of
-     the html background — without the backdrop root. And relative positioning
-     on body specifically is safe for the fixed children the note above worries
-     about: only transform, filter, perspective, will-change of those, and
-     contain create a containing block for `position: fixed`. Verified: the
-     skip link, theme toggle and nav all still measure as fixed. */
-  body {
-    position: relative;
-    z-index: 0;
-  }
-  #page-smoke-bg {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0;
-    animation: pageSmokeFadeIn 1.4s var(--ease-out) 0.2s forwards;
-  }
-  @keyframes pageSmokeFadeIn {
-    to {
-      opacity: 0.55;
-    }
-  }
-  /* Light mode used to switch this off entirely, and that one line was the
-     single biggest reason light mode felt thin next to dark. Dark got a
-     living nebula behind every page; light got flat cream. The atmosphere
-     was not the problem — the palette was. So the same field now renders on
-     paper: the base colour IS the page cream, so an unlit pixel composites
-     to exactly the background it replaces, and the noise only ever moves
-     away from it by a couple of percent. Maximum darkening measured under
-     the cursor is about 4%, which is nowhere near the cream contrast floor.
-
-     It reads as light falling unevenly across a sheet rather than as smoke,
-     which is the right translation: smoke on paper would be dirt. */
-  html[data-theme="light"] #page-smoke-bg {
-    animation-name: pageSmokeFadeInLight;
-  }
-  @keyframes pageSmokeFadeInLight {
-    to {
-      opacity: 0.85;
-    }
-  }
-</style>
-<script>
-  (function () {
-    var c = document.getElementById("page-smoke-bg");
-    if (!c) return;
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    // Skip on mobile/touch — fragment-shader fbm noise was hanging low-end Android & older iPhones.
-    // The page already has a fallback dark bg; nothing else depends on this canvas painting.
-    var isTouchSmall =
-      window.matchMedia && (window.matchMedia("(hover: none) and (pointer: coarse)").matches || window.matchMedia("(max-width: 700px)").matches);
-    if (isTouchSmall) {
-      c.style.display = "none";
-      return;
-    }
-    var gl = c.getContext("webgl", { alpha: true, premultipliedAlpha: false });
-    if (!gl) return;
-    function resize() {
-      c.width = window.innerWidth * 0.5;
-      c.height = window.innerHeight * 0.5;
-      gl.viewport(0, 0, c.width, c.height);
-    }
-    resize();
-    window.addEventListener("resize", resize, { passive: true });
-    var VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}";
-    var FS = [
-      "precision mediump float;",
-      "uniform float u_time;uniform vec2 u_res;uniform vec2 u_mouse;uniform float u_light;",
-      "vec3 mod289(vec3 x){return x-floor(x/289.0)*289.0;}",
-      "vec2 mod289(vec2 x){return x-floor(x/289.0)*289.0;}",
-      "vec3 permute(vec3 x){return mod289((x*34.0+1.0)*x);}",
-      "float snoise(vec2 v){const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);vec2 i=floor(v+dot(v,C.yy));vec2 x0=v-i+dot(i,C.xx);vec2 i1=x0.x>x0.y?vec2(1,0):vec2(0,1);vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod289(i);vec3 p=permute(permute(i.y+vec3(0,i1.y,1))+i.x+vec3(0,i1.x,1));vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);m=m*m;m=m*m;vec3 x=2.0*fract(p*C.www)-1.0;vec3 h=abs(x)-0.5;vec3 ox=floor(x+0.5);vec3 a0=x-ox;m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;return 130.0*dot(m,g);}",
-      "float fbm(vec2 p){float f=0.0;f+=0.5*snoise(p);p*=2.02;f+=0.25*snoise(p);p*=2.03;f+=0.125*snoise(p);p*=2.01;f+=0.0625*snoise(p);return f;}",
-      "void main(){vec2 uv=gl_FragCoord.xy/u_res;float t=u_time*0.15;vec2 mouse=u_mouse;vec2 d=uv-mouse;float dist=length(d);float curl=exp(-dist*3.0)*0.4;vec2 swirl=vec2(-d.y,d.x)*curl;float n1=fbm(uv*3.0+vec2(t*0.8,t*0.6)+swirl*2.0);float n2=fbm(uv*2.0+vec2(-t*0.5,t*0.7)+swirl*1.5+0.5);float n3=fbm(uv*4.5+vec2(t*0.3,-t*0.4)+swirl*3.0+1.0);float smoke=n1*0.5+n2*0.3+n3*0.2;smoke=smoke*0.5+0.5;smoke=smoothstep(0.25,0.75,smoke);vec3 deep=vec3(0.01,0.02,0.04);vec3 mid=vec3(0.04,0.12,0.18);vec3 light=vec3(0.15,0.30,0.35);vec3 highlight=vec3(0.35,0.50,0.48);vec3 col=mix(deep,mid,smoothstep(0.2,0.45,smoke));col=mix(col,light,smoothstep(0.45,0.65,smoke));col=mix(col,highlight,smoothstep(0.7,0.9,smoke)*0.3);float proximity=exp(-dist*12.0);float vig=1.0-dot((uv-0.5)*1.6,(uv-0.5)*1.6);float glow=exp(-dist*18.0)*0.25;if(u_light>0.5){vec3 paper=vec3(0.961,0.953,0.933);vec3 shade=vec3(0.795,0.805,0.828);vec3 half_=vec3(0.888,0.888,0.890);vec3 lift=vec3(0.995,0.992,0.975);vec3 pc=mix(shade,half_,smoothstep(0.2,0.55,smoke));pc=mix(pc,lift,smoothstep(0.62,0.92,smoke));float rev=clamp(proximity*2.2+0.30,0.0,1.0);col=mix(paper,pc,rev);col=mix(col,vec3(0.902,0.929,0.972),glow*1.1);col*=mix(0.962,1.0,vig);}else{col*=proximity*2.5+0.005;col+=vec3(0.30,0.50,0.55)*glow;col*=vig;}gl_FragColor=vec4(col,1.0);}",
-    ].join("\n");
-    function mkShader(t, s) {
-      var sh = gl.createShader(t);
-      gl.shaderSource(sh, s);
-      gl.compileShader(sh);
-      return sh;
-    }
-    var prog = gl.createProgram();
-    gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, VS));
-    gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, FS));
-    gl.linkProgram(prog);
-    gl.useProgram(prog);
-    var buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-    var a = gl.getAttribLocation(prog, "a");
-    gl.enableVertexAttribArray(a);
-    gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
-    var uTime = gl.getUniformLocation(prog, "u_time");
-    var uRes = gl.getUniformLocation(prog, "u_res");
-    var uMouse = gl.getUniformLocation(prog, "u_mouse");
-    var uLight = gl.getUniformLocation(prog, "u_light");
-    var docEl = document.documentElement;
-    var mx = 0.5,
-      my = 0.5,
-      tmx = 0.5,
-      tmy = 0.5;
-    document.addEventListener(
-      "mousemove",
-      function (e) {
-        tmx = e.clientX / window.innerWidth;
-        tmy = 1.0 - e.clientY / window.innerHeight;
-      },
-      { passive: true }
-    );
-    var t0 = performance.now();
-    var hidden = false,
-      rafId = 0,
-      tOff = 0,
-      pauseAt = 0;
-    function tick() {
-      mx += (tmx - mx) * 0.05;
-      my += (tmy - my) * 0.05;
-      gl.uniform1f(uTime, (performance.now() - t0 - tOff) / 1000);
-      gl.uniform2f(uRes, c.width, c.height);
-      gl.uniform2f(uMouse, mx, my);
-      gl.uniform1f(uLight, docEl.getAttribute("data-theme") === "light" ? 1 : 0);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      if (!hidden) rafId = requestAnimationFrame(tick);
-    }
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) {
-        hidden = true;
-        pauseAt = performance.now();
-        if (rafId) cancelAnimationFrame(rafId);
-      } else if (hidden) {
-        hidden = false;
-        tOff += performance.now() - pauseAt;
-        tick();
-      }
-    });
-    tick();
-  })();
-</script>
- <style>
+         He is right that it was doing nothing an author chose: it was added
+         when the hero had no field of its own and the film's dark frame sat
+         on flat black with nothing to separate from. The hero now carries his
+         footage across the whole viewport, so the smoke was a second
+         atmosphere fighting the first — and a generic one, which is the worse
+         crime on a page whose argument is that everything on it was made.
+         It is still included on /works/, /about/ and /ai-prototypes/. -->
+    <style>
   #site-loader {
     position: fixed;
     inset: 0;
@@ -4348,6 +4322,29 @@
     }
 
     function startLoader() {
+      /* ── SHOW THE THING ───────────────────────────────────────────────────
+         Sid: "in the beginning, when i clicked Enter, the screen was blank,
+         and then i had to click on the top-left logo, and then i saw my
+         homepage."
+
+         The markup carries `style="display: none"` inline, and nothing in
+         this file ever took it off. So the entire opening ran — the video
+         played, the three Hello lines resolved, the collage assembled, the
+         teardown fired on schedule — inside an element that was never
+         displayed. What a visitor got was a black screen for twenty-five
+         seconds until the failsafe removed it, because the site underneath
+         does not reveal until `loaderDone`.
+
+         It also explains why the last check passed: it read video
+         currentTime and textContent, both of which advanced perfectly. An
+         inline style beats the stylesheet's `display: flex`, and no amount of
+         asking the sequence how it is doing will tell you nobody can see it.
+
+         `is-running` goes on here too — the skip button's rule keys off it,
+         so the escape hatch has never been visible either. */
+      loader.style.display = "flex";
+      loader.classList.add("is-running");
+
       setTimeout(function () {
         if (loader && loader.parentNode) {
           loader.remove();
@@ -4638,24 +4635,44 @@
        cursor_fluid.html uses to hold them at opacity 0, and the hover rules in
        studio_nav.html use to bring them up. Without it they sit visible behind
        the body at rest and the hover assembly has nothing left to assemble. -->
-  <rect class="cube-face cube-top" x="9" y="5.5" width="21" height="21" rx="4.5"></rect>
-  <rect class="cube-face cube-right" x="6" y="9.5" width="21" height="21" rx="4.5"></rect>
+  <!-- All three rects are now the SAME box as the body: same x, y, width and
+       height. That is what lets the hover build an actual isometric solid —
+       the top and right faces are the front face, skewed and scaled about
+       their own edges, so they meet it exactly instead of being two more
+       squares parked near it. Their offset at rest is a transform, not
+       geometry, which means one set of numbers to keep in step instead of
+       three. See the assembly in studio_nav.html. -->
+  <rect class="cube-face cube-top" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect>
+  <rect class="cube-face cube-right" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect>
 
-  <!-- The body. -->
-  <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="4.5"></rect>
+  <!-- The body. Sid: "reduce curve on edges a bit" — 4.5 on a 21-unit square
+       is a squircle, and at 36px it read closer to a blob than to a die. -->
+  <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect>
 
-  <!-- The eyes. transform-box: fill-box and transform-origin: center are set
-       on .logo-eye in cursor_fluid.html, so the blink scales each eye about
-       its own centre rather than about the SVG origin. The translate below is
-       the cursor drift; the blink's scaleY composes on top of it. -->
+  <!-- ── THE FACE HAS MORE ROOM ─────────────────────────────────────────
+       Sid: "increase the width around the face to the border of the square by
+       one point. its a little too compressed."
+
+       Everything below is the previous face scaled 0.82 about the square's
+       centre, rather than each mark nudged inward on its own. Pulling the
+       eyes in individually would have closed the gap between them by the
+       same amount it opened at the edges — the face would have gained margin
+       by going cross-eyed. A scale keeps the expression and moves only the
+       air: eyes 5.25 units from the border, now 6.2; mouth 5.2 below, now
+       6.16. About one unit all round, which is what he asked for.
+
+       transform-box: fill-box and transform-origin: center are set on
+       .logo-eye in cursor_fluid.html, so the blink scales each eye about its
+       own centre rather than about the SVG origin. The translate below is the
+       cursor drift; the blink's scaleY composes on top of it. -->
   <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))">
-    <rect class="logo-eye" x="12.4" y="13.6" width="2.6" height="5.4" rx="1.3"></rect>
-    <rect class="logo-eye" x="21" y="13.6" width="2.6" height="5.4" rx="1.3"></rect>
+    <rect class="logo-eye" x="13.7" y="14.56" width="1.56" height="4.1" rx="0.78"></rect>
+    <rect class="logo-eye" x="20.75" y="14.56" width="1.56" height="4.1" rx="0.78"></rect>
   </g>
 
   <!-- The mouth: one short line, deliberately not a curve. A smile would make
        this a face; a line makes it a device that happens to have a face. -->
-  <rect class="logo-mouth" x="14.6" y="22" width="6.8" height="1.5" rx="0.75"></rect>
+  <rect class="logo-mouth" x="15.38" y="21.44" width="5.25" height="0.9" rx="0.45"></rect>
 
   <!-- Drawn across the mark on hover — dasharray and offset are already set
        on .logo-scan in cursor_fluid.html. -->
@@ -5664,6 +5681,21 @@
      would sit there measuring nothing. 340px on a 42px glyph is a close,
      strong camera — the leading edge genuinely comes at you and the
      trailing one recedes. It is a cube; it should turn like one. */
+  /* ── IT EVOLVES, IT DOES NOT SNAP ────────────────────────────────────────
+     Sid: "when i leave hover of on the cube logo it feels weird and not
+     smooth can u do an evolving slow animation maybe 2 to 3 sec like a
+     pokemon evolution ... it feels too fast."
+
+     420ms in and 560ms out is a UI transition — right for a button, wrong for
+     the one mark on the site that is supposed to be a creature. The assembly
+     runs 2.2s in and 2.6s out now, on a curve that is slow at both ends and
+     quickest in the middle, so the flat face swells into a solid and settles
+     back rather than flicking between two states.
+
+     The pointer tilt is deliberately NOT on this clock — it stays at 120ms
+     further down, because a camera that lags two seconds behind your hand is
+     not slow, it is broken. Slow is the transformation; the tracking is
+     immediate. */
   .studio-mark .logo-cube .cube-face {
     fill: currentColor;
     fill-opacity: 0;
@@ -5674,15 +5706,58 @@
     transform-box: fill-box;
     transform-origin: center;
     transition:
-      opacity 0.42s var(--ease-out),
-      transform 0.42s var(--ease-out),
-      fill-opacity 0.42s ease;
+      opacity 2.6s cubic-bezier(0.62, 0, 0.32, 1),
+      transform 2.6s cubic-bezier(0.62, 0, 0.32, 1),
+      fill-opacity 2.6s ease;
+  }
+  .studio-mark:hover .logo-cube .cube-face,
+  .studio-mark:focus-visible .logo-cube .cube-face {
+    transition-duration: 2.2s;
   }
   .studio-mark .logo-cube .cube-top {
     transform: translateY(1.8px);
   }
   .studio-mark .logo-cube .cube-right {
     transform: translateX(-1.8px);
+  }
+
+  /* ── THE HOVER BUILDS A SOLID ────────────────────────────────────────────
+     Sid: "on hover let it do cooler stuff and become 3d."
+
+     The old hover span the flat mark through rotateY(360deg) under a
+     perspective. It is a nice turn and it is not three-dimensional: a full
+     revolution starts and ends at the identity matrix, and what happens in
+     between is one flat card showing you its back. The mark was never a
+     solid at any frame of it.
+
+     This builds one. The two spare faces are the same 21×21 box as the body,
+     so each can be skewed about the edge it shares with it:
+
+       · the top face scales to a quarter height and skews so its far edge
+         runs 10.5 units right and 5.25 up — the standard 2:1 construction —
+         and lands exactly on the body's top edge;
+       · the right face scales to half width and skews down the same slope,
+         landing exactly on the body's right edge.
+
+     Two parallelograms and a square, meeting at real corners: an isometric
+     cube, drawn rather than faked with a squash. The faces also take a fill
+     so it reads as a solid with a lit face rather than as wireframe.
+
+     What makes it feel three-dimensional is that it then answers the hand.
+     `--mx` / `--my` come from the pointer's position across the mark (see the
+     script below) and tilt the whole glyph under a 300px camera, so the
+     nearest corner really does come at you. That part is on the <svg>
+     element, which is an ordinary HTML box and takes 3D transforms happily —
+     SVG children do not, which is why the faces are built in 2D. */
+  .studio-mark:hover .logo-cube .cube-top,
+  .studio-mark:focus-visible .logo-cube .cube-top {
+    transform-origin: 0 100%;
+    transform: translateY(-21px) skewX(-63.435deg) scaleY(0.25);
+  }
+  .studio-mark:hover .logo-cube .cube-right,
+  .studio-mark:focus-visible .logo-cube .cube-right {
+    transform-origin: 0 0;
+    transform: translateX(21px) skewY(-26.565deg) scaleX(0.5);
   }
 
   /* Drawn, not faded: dashoffset runs the stroke across the face from one
@@ -5696,29 +5771,35 @@
     stroke-dasharray: 15 22;
     stroke-dashoffset: 15;
     opacity: 0;
+    /* On the same slow clock as the faces, so the line draws across the solid
+       as it forms instead of arriving before it. */
     transition:
-      opacity 0.3s ease,
-      stroke-dashoffset 0.55s var(--ease-out);
+      opacity 1.6s ease,
+      stroke-dashoffset 2.4s cubic-bezier(0.62, 0, 0.32, 1);
   }
 
   .studio-mark:hover .logo-cube,
   .studio-mark:focus-visible .logo-cube {
-    transform: perspective(340px) translateY(-1px) rotateY(360deg) scale(1.075);
+    /* --mx / --my are the pointer's position across the mark, -1 to 1, set by
+       the script at the foot of this file. They default to 0, so a keyboard
+       focus gets a still, slightly turned cube rather than nothing. */
+    transform: perspective(300px) rotateY(calc(var(--mx, 0) * 26deg)) rotateX(calc(var(--my, 0) * -22deg)) translateZ(6px) scale(1.06);
     color: rgba(206, 228, 255, 0.98);
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.55)) drop-shadow(0 6px 18px rgba(0, 0, 0, 0.34)) drop-shadow(0 0 16px rgba(150, 200, 255, 0.42));
   }
+  /* Tracking a pointer through a 560ms ease is a lag, not a follow. While the
+     mark is under the hand the tilt is nearly immediate; the settle back to
+     rest keeps the long curve. */
+  .studio-mark:hover .logo-cube {
+    transition:
+      transform 120ms linear,
+      color 300ms ease,
+      filter 300ms ease;
+  }
   .studio-mark:hover .logo-cube .cube-face,
   .studio-mark:focus-visible .logo-cube .cube-face {
-    opacity: 0.82;
-    fill-opacity: 0.16;
-  }
-  .studio-mark:hover .logo-cube .cube-top,
-  .studio-mark:focus-visible .logo-cube .cube-top {
-    transform: translateY(0);
-  }
-  .studio-mark:hover .logo-cube .cube-right,
-  .studio-mark:focus-visible .logo-cube .cube-right {
-    transform: translateX(0);
+    opacity: 0.9;
+    fill-opacity: 0.14;
   }
   .studio-mark:hover .logo-cube .logo-scan,
   .studio-mark:focus-visible .logo-cube .logo-scan {
@@ -5726,9 +5807,9 @@
     stroke-dashoffset: 0;
   }
 
-  /* A full turn is exactly the kind of motion this switch exists for. Hold
-     the assembled faces and the drawn scan — those are information, not
-     decoration — and drop only the spin and the lift. */
+  /* Hold the assembled solid — that is what the mark turns into, and it is
+     information rather than decoration — and drop the tilt that chases the
+     pointer, which is the part that moves without being asked to. */
   @media (prefers-reduced-motion: reduce) {
     .studio-mark .logo-cube .logo-scan {
       transition-duration: 1ms !important;
@@ -5736,6 +5817,7 @@
     .studio-mark:hover .logo-cube,
     .studio-mark:focus-visible .logo-cube {
       transform: none;
+      transition: none;
     }
   }
 
@@ -6190,6 +6272,59 @@
   })();
 </script>
 
+<script>
+  /* ── THE MARK ANSWERS THE HAND ────────────────────────────────────────────
+     Sid: "on hover let it do cooler stuff and become 3d."
+
+     The CSS builds the solid; this gives it a camera. --mx and --my are the
+     pointer's position across the mark normalised to -1..1, read off the
+     mark's own box, and the tilt is applied in CSS so the whole thing stays
+     one composited transform.
+
+     Written against `.studio-mark` rather than `.logo-cube` because the
+     pointer target is the link — the glyph inside it is 36px and a tilt that
+     only starts once you are dead on it never gets found. */
+  (function () {
+    var marks = document.querySelectorAll(".studio-mark");
+    if (!marks.length) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (window.matchMedia && !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    for (var i = 0; i < marks.length; i++) {
+      (function (mark) {
+        var cube = mark.querySelector(".logo-cube");
+        if (!cube) return;
+        var raf = 0;
+        var px = 0;
+        var py = 0;
+
+        var write = function () {
+          raf = 0;
+          cube.style.setProperty("--mx", px.toFixed(3));
+          cube.style.setProperty("--my", py.toFixed(3));
+        };
+
+        mark.addEventListener("pointermove", function (e) {
+          if (e.pointerType === "touch") return;
+          var b = mark.getBoundingClientRect();
+          /* Clamped because the link box is wider than the glyph — without
+             it the wordmark end of the target drives the tilt past its
+             hinge and the cube reads as broken rather than turned. */
+          px = Math.max(-1, Math.min(1, ((e.clientX - b.left) / b.width) * 2 - 1));
+          py = Math.max(-1, Math.min(1, ((e.clientY - b.top) / b.height) * 2 - 1));
+          if (!raf) raf = requestAnimationFrame(write);
+        });
+
+        mark.addEventListener("pointerleave", function () {
+          px = 0;
+          py = 0;
+          if (!raf) raf = requestAnimationFrame(write);
+        });
+      })(marks[i]);
+    }
+  })();
+</script>
+
 
     <div class="hg-base" aria-hidden="true"></div>
     <canvas id="gl-stage" aria-hidden="true"></canvas>
@@ -6220,6 +6355,13 @@
              pointer. See assets/js/home-field.js. -->
         <div class="field" id="field-stage" aria-hidden="true" data-base="">
           <canvas id="field-gl"></canvas>
+        </div>
+
+        <!-- The cube guy. aria-hidden because he is the page's atmosphere,
+             not its content: everything he stands for is already reachable as
+             text and as links, and a screen reader has no use for "canvas". -->
+        <div class="cg-stage" id="cg-stage" aria-hidden="true">
+          <canvas id="cg-gl" data-base=""></canvas>
         </div>
 
         <div class="hero__inner">
@@ -6297,47 +6439,20 @@
           </div>
         </div>
 
-        <!-- The sentence sits in the hero's bottom-right corner now rather
-             than under the headline. Sid: "u can have the dropdown text which
-             shudnt be a drop down on bottom right". It stops competing with
-             the headline for the same column and becomes the thing your eye
-             lands on last, which is the right order: claim, then range. -->
-        <div class="hero__claim hero__claim--corner">
-          <!-- A div, not a p. The option lists are <ul>s inside these
-                   slots, and a <ul> is not allowed inside a <p>: the parser
-                   closes the paragraph before it, which ejected both menus out
-                   of the sentence entirely and left them stacked full-width at
-                   the foot of the document. The positioning looked broken; the
-                   markup was. -->
-          <div class="pgram" id="pgram">
-            <span class="pgram__lead">I design</span>
-            <span class="pgram__slot" id="pg-slot-what">
-              <button type="button" class="pgram__val" id="pg-what" aria-haspopup="listbox" aria-expanded="false" aria-label="What I design">
-                <span class="pgram__word"></span><i aria-hidden="true"></i>
-              </button>
-              <ul class="pgram__menu" id="pg-menu-what" role="listbox" aria-label="What I design" hidden></ul>
-            </span>
-            <span class="pgram__lead">for</span>
-            <span class="pgram__slot" id="pg-slot-who">
-              <button type="button" class="pgram__val" id="pg-who" aria-haspopup="listbox" aria-expanded="false" aria-label="Who I design it for">
-                <span class="pgram__word"></span><i aria-hidden="true"></i>
-              </button>
-              <ul class="pgram__menu" id="pg-menu-who" role="listbox" aria-label="Who I design it for" hidden></ul>
-            </span>
-          </div>
-          <!-- The "2 PROJECTS · Mool / Alpha Stockathon" line that sat here
-                 is gone at Sid's request: the sentence above is a claim about
-                 range, and answering it with two links turned it into a filter
-                 widget arguing with /works/ instead of pointing at it.
+        <!-- ── THE CORNER IS EMPTY NOW ──────────────────────────────────
+             The "I design ___ for ___" reel lived here. Sid: "i am thinking
+             the bottom-right sort of thing, we move it somewhere in the
+             scroll, where on the first page we are talking about what all
+             spaces i designed for and such ... you have too much text on the
+             homepage."
 
-                 It is left in the DOM as an empty live region rather than
-                 deleted, because the control's script announces its result
-                 through it. Removing the element outright is exactly what
-                 broke the dropdown the first time — the script guards on
-                 `out` and returned early, so the words stopped opening at
-                 all. -->
-          <p class="pgram__out" id="pg-out" aria-live="polite" hidden></p>
-        </div>
+             It is section 04 now, set as big type rather than a line that
+             rewrites itself in a corner. Two things come out of that. The
+             hero drops to one block of copy, so the figure has the frame to
+             itself and the headline is the only thing competing with him.
+             And the range is stated where a reader has already chosen to
+             keep going, at a size that says it is a claim, instead of
+             whispering it against the headline in the first viewport. -->
 
         <div class="scroll-cue" aria-hidden="true">
 <span class="bar"></span><span>Scroll</span>
@@ -6415,7 +6530,10 @@
     cursor: grabbing;
   }
   .obj-cube {
-    --size: clamp(180px, 22vw, 300px);
+    /* Bigger. Sid: "the cube below should be a little bit bigger." With the
+       chapter head gone there is room for it, and it has to hold the eye on
+       its own now that nothing announces it. */
+    --size: clamp(220px, 30vw, 420px);
     position: absolute;
     left: 50%;
     top: 50%;
@@ -6497,20 +6615,16 @@
   .obj-face--bottom img {
     filter: brightness(0.66);
   }
-  .obj-hint {
-    position: relative;
-    margin-top: clamp(20px, 4vh, 40px);
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    /* This is the only sentence that tells you the cube is an object you can
-       grab rather than a picture of one. At 0.36 it computed to 3.2:1 — under
-       the floor, on the one line whose whole job is to be noticed once. The
-       house micro values are 0.5 white on the dark ground and 0.58 ink on
-       cream; both clear AA at 10px without shouting. */
-    color: rgba(230, 236, 244, 0.5);
-  }
+  /* ── THE CAPTION IS GONE ──────────────────────────────────────────────
+     "DRAG TO SPIN · CLICK A FACE TO OPEN IT" used to sit under the cube.
+     Sid: "let the cube not have text above it like drag to interact."
+
+     He is right, and the argument for keeping it was never strong: the
+     object already turns by itself as you scroll, the cursor is `grab` the
+     moment you are over it and `grabbing` the moment you press, and every
+     face is a link that lights up under the pointer. Three affordances,
+     none of which need announcing. A label explaining how to use an object
+     that is visibly moving is the thing that makes it read as a demo. */
   /* No JS, no motion preference, or a browser without preserve-3d:
      the faces collapse into a readable row of links instead. */
   .hs-object.is-flat .obj-stage {
@@ -6564,9 +6678,6 @@
   html[data-theme="light"] .obj-face:focus-visible {
     outline-color: #14161b;
   }
-  html[data-theme="light"] .obj-hint {
-    color: rgba(20, 22, 27, 0.58);
-  }
 </style>
 
 <section class="hs-object" id="hs-object" aria-label="The work as an object">
@@ -6574,9 +6685,10 @@
        the layout it was built for, where the order was work → numbers → cube;
        the home rebuild moved it to the front and the number stayed behind, so
        the page counted 03 → 01 → 02 → 03 → 04 with 03 used twice. -->
-  <div class="obj-head">
-<span>01</span><span class="cine-rule"></span><span>Six sides of the practice</span>
-</div>
+  <!-- The chapter head is gone. Sid: "we dont need a section title for it."
+       The figure above hands straight to this object as you scroll, and a
+       mono label sitting between them was the one thing insisting they are
+       two separate sections rather than one movement. -->
   <div class="obj-stage" id="obj-stage">
     <div class="obj-cube" id="obj-cube">
       <a class="obj-face obj-face--front" href="/mool/">
@@ -6609,7 +6721,6 @@
       </a>
     </div>
   </div>
-  <p class="obj-hint">Drag to spin · click a face to open it</p>
 </section>
 
 <script>
@@ -6728,8 +6839,21 @@
            beside the object it is a reel of, and down here it is the one
            thing asking for a click rather than the fifth. -->
       <p class="reel-cue rv">
-        <button type="button" id="reel-open" aria-haspopup="dialog" aria-controls="reel-modal">
-          Watch the reel<span class="xarrow" aria-hidden="true"></span>
+        <button type="button" id="reel-open" class="reel-seal" aria-haspopup="dialog" aria-controls="reel-modal" aria-label="Watch the showreel">
+          <span class="reel-seal__flow" aria-hidden="true"></span>
+          <svg class="reel-seal__ring" viewbox="0 0 100 100" aria-hidden="true" focusable="false">
+            <defs>
+              <!-- Two arcs rather than a <circle>, because a circle has no
+                   start point for a textPath to run from. Drawn clockwise
+                   from the left so the type reads left to right across the
+                   top of the seal. -->
+              <path id="reel-ring-path" fill="none" d="M50,50 m-37,0 a37,37 0 1,1 74,0 a37,37 0 1,1 -74,0"></path>
+            </defs>
+            <text>
+              <textpath href="#reel-ring-path" startoffset="0">watch the reel · watch the reel ·</textpath>
+            </text>
+          </svg>
+          <span class="reel-seal__play" aria-hidden="true"></span>
         </button>
       </p>
 
@@ -6867,101 +6991,78 @@
             </div>
             <pre class="ide__code"><code id="ide-code"></code></pre>
           </div>
-          <figcaption class="ide__cap">Hover to resolve him · click to redraw</figcaption>
+          <figcaption class="ide__cap" hidden>Hover to resolve him · click to redraw</figcaption>
         </figure>
+        <script defer src="/assets/js/how-scenery.js"></script>
         <script defer src="/assets/js/how-portrait.js"></script>
       </section>
+      <!-- ───────────────── 04 the range ─────────────────
+           Sid: "this looks abysmal. we can not use this much text. i told you
+           we need to show it creatively. we might not need to show all of
+           them, but the recruiter should know from a glance what type of
+           design i do, what areas i design for, and such."
 
-      <!-- ───────────────── 03 numbers ───────────────── -->
-      <section class="sec wrap" aria-labelledby="nums-h">
+           He is right and the fault was mine twice over. The first version
+           was four icon-over-figure cards, which is a deck slide. I replaced
+           it with thirty-one items of type, which is a wall — the same
+           mistake in the other direction, because a list that long is not
+           read, it is skimmed past.
+
+           A recruiter needs THREE things off this section in about two
+           seconds: what kind of designer, what he can build, who he has built
+           it for. So it is three pillars. Each is one word at headline scale
+           — the answer to "what kind" — with four supporting lines under it
+           that are there for the person who wants them and can be ignored by
+           the person who does not. The sectors are one quiet line at the
+           foot. Thirty-one items become three, plus detail on demand.
+
+           The animation is on the numerals and the rules: each pillar draws
+           its own rule left-to-right and lifts its word as it enters, on a
+           stagger, so the section assembles in the order you read it. -->
+      <section class="sec wrap" aria-labelledby="range-h">
         <div class="sec-head rv">
-<span>04</span><span class="rule"></span><span id="nums-h">By the numbers</span>
+<span>04</span><span class="rule"></span><span id="range-h">The range</span>
 </div>
-        <div class="nums">
-          <!-- ── THE MARKS COUNT ─────────────────────────────────────────────
-               Sid: "this by the numbers icons looks weak af and not aligned
-               with my site art direction and no animations."
 
-               He is right on both counts and they are the same fault. What was
-               here was a line chart, a stack, a picture frame and a download
-               arrow — four 1px glyphs that could have come out of any icon set,
-               sitting on a page whose whole visual argument is that everything
-               was drawn by hand: pixel marks in the nav, ASCII plants in the
-               pond, a cube with a face. A stock glyph in that company does not
-               read as restraint, it reads as a placeholder nobody replaced.
+        <div class="range">
+          <ol class="range__pillars">
+            <li class="range__pillar rv" style="--i: 0">
+              <span class="range__idx" aria-hidden="true">01</span>
+              <h3 class="range__word">Product</h3>
+              <span class="range__bar" aria-hidden="true"></span>
+              <ul class="range__sub">
+                <li>Interfaces</li>
+                <li>Design systems</li>
+                <li>Prototypes</li>
+                <li>Research</li>
+              </ul>
+            </li>
+            <li class="range__pillar rv" style="--i: 1">
+              <span class="range__idx" aria-hidden="true">02</span>
+              <h3 class="range__word">Spatial</h3>
+              <span class="range__bar" aria-hidden="true"></span>
+              <ul class="range__sub">
+                <li>visionOS apps</li>
+                <li>Augmented reality</li>
+                <li>Installations</li>
+                <li>Exhibitions</li>
+              </ul>
+            </li>
+            <li class="range__pillar rv" style="--i: 2">
+              <span class="range__idx" aria-hidden="true">03</span>
+              <h3 class="range__word">Generative</h3>
+              <span class="range__bar" aria-hidden="true"></span>
+              <ul class="range__sub">
+                <li>AI interfaces</li>
+                <li>Real-time shaders</li>
+                <li>Generative systems</li>
+                <li>Illustration</li>
+              </ul>
+            </li>
+          </ol>
 
-               So each mark is now built from the same rounded pixels as the nav
-               icons — and each one *is* its number. Six blocks for six years.
-               Sixteen cells with fourteen filled. Twenty-five pixels in a
-               frame. You can count them. That is the difference between an icon
-               that labels a statistic and a mark that states it, and it is the
-               only idea here worth having.
-
-               They build rather than appear: each pixel scales up from nothing
-               on its own step, in the reading order of the figure, timed off
-               the column's existing --d so the row still draws left to right.
-               And the whole section drifts on scroll — see --p below. -->
-          <div class="num rv" style="--d: 0ms; --k: 26; --hue: 108, 182, 255; --hue-l: 32, 86, 150">
-            <svg class="num__ico num__ico--steps" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
-              <!-- One block a year, climbing. -->
-              <rect style="--i: 0" x="0.9" y="18.6" width="3.4" height="3.4" rx="1.1"></rect>
-              <rect style="--i: 1" x="4.8" y="15.6" width="3.4" height="3.4" rx="1.1"></rect>
-              <rect style="--i: 2" x="8.7" y="12.6" width="3.4" height="3.4" rx="1.1"></rect>
-              <rect style="--i: 3" x="12.6" y="9.6" width="3.4" height="3.4" rx="1.1"></rect>
-              <rect style="--i: 4" x="16.5" y="6.6" width="3.4" height="3.4" rx="1.1"></rect>
-              <rect style="--i: 5" x="20.4" y="3.6" width="3.4" height="3.4" rx="1.1"></rect>
-            </svg>
-            <b data-count="6">6</b><span>Years shipping</span>
-          </div>
-
-          <div class="num rv" style="--d: 90ms; --k: 15; --hue: 127, 216, 168; --hue-l: 24, 108, 72">
-            <!-- Sixteen cells, fourteen of them shipped. The two that are only
-                 outlined are the point of the mark: it is a count with a
-                 remainder, which is what a body of work actually looks like. -->
-            <svg class="num__ico num__ico--cells" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect style="--i: 0" x="1.4" y="1.4" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 1" x="7" y="1.4" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 2" x="12.6" y="1.4" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 3" x="18.2" y="1.4" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 4" x="1.4" y="7" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 5" x="7" y="7" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 6" x="12.6" y="7" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 7" x="18.2" y="7" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 8" x="1.4" y="12.6" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 9" x="7" y="12.6" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 10" x="12.6" y="12.6" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 11" x="18.2" y="12.6" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 12" x="1.4" y="18.2" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect style="--i: 13" x="7" y="18.2" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect class="is-open" style="--i: 14" x="12.6" y="18.2" width="4.4" height="4.4" rx="1.1"></rect>
-              <rect class="is-open" style="--i: 15" x="18.2" y="18.2" width="4.4" height="4.4" rx="1.1"></rect>
-            </svg>
-            <b data-count="14">14</b><span>Public projects</span>
-          </div>
-
-          <div class="num rv" style="--d: 180ms; --k: 34; --hue: 255, 154, 114; --hue-l: 166, 64, 32">
-            <!-- Twenty-five pixels hung inside a frame. -->
-            <svg class="num__ico num__ico--wall" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect class="is-frame" x="0.8" y="0.8" width="22.4" height="22.4" rx="1.6"></rect>
-              <g class="num__ico-grid"></g>
-            </svg>
-            <b data-count="25">25</b><span>Artworks · The Met</span>
-          </div>
-
-          <div class="num rv" style="--d: 270ms; --k: 22; --hue: 183, 166, 255; --hue-l: 76, 58, 156">
-            <!-- Rain into a tray. The only one of the four that keeps moving
-                 after it has built, because it is the only figure still going
-                 up while you look at it. -->
-            <svg class="num__ico num__ico--rain" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
-              <rect class="is-drop" style="--i: 0; --lane: 0" x="3.4" y="1" width="2.6" height="2.6" rx="1.3"></rect>
-              <rect class="is-drop" style="--i: 1; --lane: 1" x="10.7" y="1" width="2.6" height="2.6" rx="1.3"></rect>
-              <rect class="is-drop" style="--i: 2; --lane: 2" x="18" y="1" width="2.6" height="2.6" rx="1.3"></rect>
-              <rect class="is-drop" style="--i: 3; --lane: 3" x="7" y="1" width="2.6" height="2.6" rx="1.3"></rect>
-              <rect class="is-drop" style="--i: 4; --lane: 4" x="14.4" y="1" width="2.6" height="2.6" rx="1.3"></rect>
-              <rect class="is-tray" style="--i: 5" x="1.2" y="19" width="21.6" height="3.4" rx="1.2"></rect>
-            </svg>
-            <b data-count="100" data-suffix="k+">100k+</b><span>Mool downloads</span>
-          </div>
+          <p class="range__for rv"><span>Built for</span> fintech · healthcare · hospitality · museums · wellness · enterprise · emerging tech</p>
+          <p class="range__facts rv">Six years · 14 public projects · 25 artworks at The Met · 100k+ downloads on Mool</p>
         </div>
       </section>
 
@@ -7042,7 +7143,21 @@
              have a figure in it. Play stays one click away in the nav on every
              page, which is where a section of the site belongs; it does not
              also need a door at the bottom of the home page. -->
-        <h2 class="rv">The rest of it is still on the studio floor.</h2>
+        <!-- ── THE LINE FALLS TO THE FLOOR ────────────────────────────────
+             Sid: "i hate this section no creativity no animation no scroll
+             effect."
+
+             It was one centred sentence in semibold, a button, and nothing
+             else — the most conventional block on a page whose whole argument
+             is that it was made by hand.
+
+             It is scroll-linked now, and the effect is the sentence itself:
+             the words drop, one after another, and settle at slightly
+             different angles, like type that has been left ON the studio
+             floor. --p runs 0 → 1 as the section crosses the viewport and
+             each word reads it off its own --i, so scrolling back up picks
+             them all up again. -->
+        <h2 class="door__line" id="door-line" data-line="The rest of it is still on the studio floor."></h2>
         <div class="btns rv" style="--d: 120ms">
           <a class="btn btn--solid" data-magnetic href="/contact/">Start a conversation<span class="xarrow xarrow--right" aria-hidden="true"></span></a>
         </div>
@@ -7491,7 +7606,19 @@
       flex: 0 0 auto;
       margin: 0;
       --ab: 4px;
-      --h: clamp(122px, 15vw, 214px);
+      /* ── BIGGER, AND FEWER ────────────────────────────────────────────────
+         Sid: "u can increase size of the get to know sid a little i mean the
+         images and media not text so we can reduce the amount we are shwoing
+         so people can actually look and see."
+
+         Up from clamp(122px, 15vw, 214px). At 214px a photograph of his
+         friends is a thumbnail — you register that a picture is there and
+         move on, which is the opposite of "get to know Sid". At 320 the
+         faces are legible and the wall of postcards has readable objects in
+         it. Two tiles come out of the rail with it (the stock book cover and
+         a duplicate portrait), because the point of going bigger is to show
+         less and have it land. */
+      --h: clamp(168px, 21vw, 320px);
       /* --s varies per tile so the tops sit at different heights against the
          shared bottom edge. Without it every tile is the same height and
          align-items: flex-end has nothing to do. */
@@ -8579,10 +8706,6 @@
           <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption>
         </figure>
-        <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)">
-          <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption>
-        </figure>
         <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)">
           <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption>
@@ -8605,12 +8728,7 @@
           <img src="/assets/img/sid-strip/memory-wall.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption>
         </figure>
-         
-        <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid_about3.jpg)">
-          <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption>
-        </figure>
-        
+          
         <figure class="sid-tile" style="--s: 0.86; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)">
           <img src="/assets/img/sid-strip/film-requiem.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption>
@@ -8619,10 +8737,6 @@
           <img src="/assets/img/sid-strip/cats.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption>
         </figure>
-        <figure class="sid-tile" style="--s: 0.78; --ar: 0.7; --src: url(/assets/img/book_covers/the_godfather.jpg)">
-          <img src="/assets/img/book_covers/the_godfather.jpg" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Last book</em><b>The Godfather · Mario Puzo</b></figcaption>
-        </figure>
         <figure class="sid-tile" style="--s: 1.0; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)">
           <img src="/assets/img/sid-strip/song-sky-i.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption>
@@ -8645,12 +8759,7 @@
           <img src="/assets/img/sid-strip/memory-wall.webp" alt="" loading="lazy" decoding="async">
           <figcaption><em>Last photo I took</em><b>From the camera roll</b></figcaption>
         </figure>
-         
-        <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid_about3.jpg)">
-          <img src="/assets/img/sid_about3.jpg" alt="" loading="lazy" decoding="async">
-          <figcaption><em>Currently</em><b>Building this site by hand</b></figcaption>
-        </figure>
-        
+          
       </div>
     </div>
   </section>
@@ -8959,7 +9068,15 @@
            picture is a title slide, and a column of copy beside it is the other
            kind of title slide; annotations pinned to the corners of the frame
            read as a plate label, which is what this is. -->
-      <p class="coda__eyebrow">Coda · 00:00–00:10</p>
+      <!-- The "Coda · 00:00–00:10" slate is gone. Sid: "on the footer, there
+           is some text which we dont need, like some cube or something, just
+           above, on the top, on the left, above where the iTunes screen
+           recording is."
+
+           It was a film-slate affectation on a section that already reads as
+           an end: the line on the right says "Everything above was made to
+           this", and a timecode for a ten-second nothing was the label
+           explaining a joke nobody asked about. -->
       <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2>
 
       <div class="coda__device">
@@ -8977,7 +9094,15 @@
            because what the scroll is doing here is spending a duration. -->
       <div class="coda__track" aria-hidden="true"><span class="coda__fill" id="coda-fill"></span></div>
 
-      <p class="coda__note">Scroll to play · <span>Apple Music, 11:02pm</span></p>
+      <!-- "Scroll to play · Apple Music, 11:02pm" is gone. Sid: "remove the
+           scroll to play text under the mobile apple music thing we dont need
+           any tool tip text let people go on an adventure and discover the
+           site on their own."
+
+           It was an instruction for something that happens whether you read
+           it or not — the panel scrubs as you scroll, and a caption saying so
+           only steals the moment of noticing. Same argument as the cube's
+           "drag to spin". -->
     </div>
   </div>
 </section>
@@ -9009,7 +9134,11 @@
     position: sticky;
     top: 0;
     display: grid;
-    grid-template-rows: auto 1fr auto auto;
+    /* Three in-flow children since the slate came out — the device, the
+       playhead and the note. The title is absolutely positioned and never
+       counted. Left at four rows the device would take an `auto` track and
+       stop centring. */
+    grid-template-rows: 1fr auto auto;
     justify-items: center;
     height: 100svh;
     /* The top pad clears the fixed nav rather than approximating it. At
@@ -9282,6 +9411,221 @@
     addEventListener("scroll", onScroll, { passive: true });
     addEventListener("resize", onScroll);
     frame();
+  })();
+</script>
+  <!-- ── THE WALL ────────────────────────────────────────────────────────────────
+     Sid: "can we add this when you scroll below the apple music screen rec
+     this is a png of my room wall and we can do something creative in the
+     spaces between. but yeah a nice scroll transition from the music and the
+     water bg to the png of my room. and make sure this is a common footer
+     across."
+
+     It is the last thing on the site, after the coda, and it is the only
+     image here that is a place rather than a piece of work: the wall above
+     his desk, with the postcards and the drawings and the letter and the
+     cube-head sketch on it.
+
+     THE SPACES BETWEEN. The file is cut out — the wall itself is transparent
+     and only the pinned objects carry pixels — so the gaps are real holes
+     onto the page's ground rather than painted black. That is what the
+     treatment is built on:
+
+       · it arrives OUT of the water. The pond above fades as this rises, so
+         one ground hands to the other rather than cutting;
+       · a light sweeps across it once as it enters, low and raking, so the
+         objects catch it in sequence left to right the way a torch would
+         find them;
+       · the pointer is a torch afterwards. A soft warm pool follows the
+         cursor and the wall is dim outside it, so reading the wall means
+         moving over it — which is the only honest way to show something that
+         is a hundred small things and no single subject.
+
+     It ships in site_footer.html, so it is on every page that has a footer.
+     ─────────────────────────────────────────────────────────────────────── -->
+<section class="wall" id="wall" aria-label="The wall above Sid's desk">
+  <div class="wall__runway">
+    <div class="wall__stage">
+      <div class="wall__frame" id="wall-frame">
+        <img class="wall__img" src="/assets/img/room-wall-1600.webp" srcset="/assets/img/room-wall-900.webp 900w, /assets/img/room-wall-1600.webp 1600w" sizes="(max-width: 900px) 100vw, 92vw" alt="The wall above Sid's desk: postcards, drawings, photographs, a letter, and a cube-headed figure in the middle" loading="lazy" decoding="async">
+        <span class="wall__torch" aria-hidden="true"></span>
+        <span class="wall__sweep" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .wall {
+    position: relative;
+    z-index: 2;
+    background: transparent;
+  }
+  /* The runway is the duration of the transition. Short — this is a coda to
+     the coda, not another act. */
+  /* 120vh, not 175. This section sits in the shared footer, so its runway
+     is charged to the bottom of every page on the site — the same toll the
+     coda's runway pays, and the reason that one was cut from 280vh to 150.
+     At 120 the arrival still has room to happen and the footer stops growing
+     by nearly two screens on pages that were already long. */
+  .wall__runway {
+    height: 120vh;
+  }
+  .wall__stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: clamp(64px, 10vh, 120px) clamp(16px, 4vw, 64px);
+    overflow: hidden;
+  }
+  .wall__frame {
+    position: relative;
+    width: min(1500px, 96vw);
+    /* --p is 0 as the section enters and 1 once it is centred, written by the
+       script below. Everything reads off it. */
+    transform: scale(calc(1.14 - var(--p, 0) * 0.14)) translateY(calc((1 - var(--p, 0)) * 7vh));
+    opacity: calc(var(--p, 0) * 1.25);
+    will-change: transform, opacity;
+  }
+  .wall__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* Dim at rest so the torch has somewhere to go. The wall is a cut-out, so
+       this darkens the objects and leaves the gaps as page. */
+    filter: brightness(calc(0.46 + var(--lit, 0) * 0.14)) saturate(0.92);
+    transition: filter 400ms ease;
+  }
+
+  /* THE TORCH. A soft pool at the pointer, composited so it lifts only what
+     is actually there — screen over transparent gaps changes nothing, which
+     is exactly the behaviour a cut-out wants. */
+  .wall__torch {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: var(--torch, 0);
+    transition: opacity 500ms ease;
+    background: radial-gradient(
+      circle at calc(var(--tx, 50%)) calc(var(--ty, 50%)),
+      rgba(255, 228, 178, 0.5) 0%,
+      rgba(255, 216, 150, 0.22) 22%,
+      rgba(255, 210, 140, 0.06) 40%,
+      transparent 62%
+    );
+  }
+  /* THE SWEEP. One raking pass as the section arrives, driven by --p rather
+     than by a keyframe so it is tied to the scroll and not to a clock. */
+  .wall__sweep {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: calc(var(--sweep, 0) * 0.85);
+    background: linear-gradient(
+      100deg,
+      transparent calc(var(--p, 0) * 150% - 34%),
+      rgba(255, 234, 196, 0.42) calc(var(--p, 0) * 150% - 16%),
+      rgba(255, 240, 214, 0.6) calc(var(--p, 0) * 150% - 8%),
+      rgba(255, 234, 196, 0.32) calc(var(--p, 0) * 150%),
+      transparent calc(var(--p, 0) * 150% + 18%)
+    );
+  }
+
+  html[data-theme="light"] .wall__img {
+    filter: brightness(calc(0.86 + var(--lit, 0) * 0.14)) saturate(0.96);
+  }
+  html[data-theme="light"] .wall__torch {
+    mix-blend-mode: multiply;
+    background: radial-gradient(
+      circle at calc(var(--tx, 50%)) calc(var(--ty, 50%)),
+      rgba(255, 245, 225, 0) 0%,
+      rgba(30, 26, 20, 0.16) 46%,
+      rgba(30, 26, 20, 0.28) 70%
+    );
+  }
+
+  @media (max-width: 760px) {
+    .wall__runway {
+      height: 130vh;
+    }
+    .wall__frame {
+      width: 100%;
+    }
+    /* No pointer to carry a torch on a phone, so the wall simply lights. */
+    .wall__img {
+      filter: brightness(0.72) saturate(0.95);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wall__frame {
+      transform: none;
+      opacity: 1;
+    }
+    .wall__sweep {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var sec = document.getElementById("wall");
+    var frame = document.getElementById("wall-frame");
+    if (!sec || !frame) return;
+
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var fine = !window.matchMedia || window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    var p = 0;
+    var raf = 0;
+
+    function measure() {
+      /* 0 as the runway's top reaches the viewport, 1 by the time it has
+         travelled one viewport further. The same pinned-progress idea the
+         hero uses, at a smaller scale. */
+      var r = sec.getBoundingClientRect();
+      var span = Math.max(1, window.innerHeight * 0.75);
+      var v = (window.innerHeight * 0.5 - r.top) / span;
+      var np = Math.max(0, Math.min(1, v));
+      if (Math.abs(np - p) > 0.002) {
+        p = np;
+        frame.style.setProperty("--p", p.toFixed(3));
+        /* The sweep only exists during the arrival — it is a lighting cue,
+           not a permanent shine. */
+        frame.style.setProperty("--sweep", (p < 0.98 ? Math.sin(Math.min(1, p) * Math.PI) : 0).toFixed(3));
+      }
+      raf = 0;
+    }
+
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(measure);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    measure();
+
+    if (fine && !reduce) {
+      frame.addEventListener("pointerenter", function () {
+        frame.style.setProperty("--torch", "1");
+        frame.style.setProperty("--lit", "1");
+      });
+      frame.addEventListener("pointerleave", function () {
+        frame.style.setProperty("--torch", "0");
+        frame.style.setProperty("--lit", "0");
+      });
+      frame.addEventListener(
+        "pointermove",
+        function (e) {
+          var r = frame.getBoundingClientRect();
+          frame.style.setProperty("--tx", (((e.clientX - r.left) / Math.max(1, r.width)) * 100).toFixed(2) + "%");
+          frame.style.setProperty("--ty", (((e.clientY - r.top) / Math.max(1, r.height)) * 100).toFixed(2) + "%");
+        },
+        { passive: true }
+      );
+    }
   })();
 </script>
 
@@ -10422,6 +10766,8 @@
         display: block;
       }
       .home-reel-modal__close {
+        /* Same UA-default Arial leak as .cc-close — see the note there. */
+        font-family: inherit;
         position: absolute;
         top: 18px;
         right: 20px;
@@ -10447,6 +10793,7 @@
 
     <script src="/assets/js/home-gl.js" defer></script>
     <script src="/assets/js/home-field.js" defer></script>
+    <script src="/assets/js/cube-guy.js" defer></script>
 
     <script>
       /* ── headline arrival ────────────────────────────────────────
@@ -10465,20 +10812,72 @@
         var host = document.querySelector(".tw");
         var hero = document.getElementById("hero");
         if (!host) return;
+        /* ── IT TYPES AFTER ALL ───────────────────────────────────────────
+           Sid, twice: "the product designer six years show up in a nice
+           typewriter fashion", and then "i want the product designer text to
+           appear through a typewriter animation, and then the next text."
+
+           A previous pass took the typewriter OUT, and the argument it left
+           behind is worth keeping on the record because it was his own: a
+           character-by-character reveal is the single most-copied "AI
+           website" gesture there is, and nothing here is supposed to read as
+           slop. That objection was answered by the sequence around it rather
+           than by refusing the request — this line now types over his own
+           footage, as the second beat of an opening that starts with his
+           pixelated plate, which is not a gesture anyone else can copy.
+
+           28ms a character with a 420ms beat between lines: the first line is
+           legible in under a second and both are home in about two, which is
+           inside the window a hero gets. Reduced motion skips straight to the
+           full text — a headline that withholds itself is the exact thing
+           that switch exists to stop. */
         var lines = (host.getAttribute("data-tw") || "").split("|");
-        lines.forEach(function (txt, i) {
+        var LESS = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var inks = lines.map(function (txt, i) {
           var el = document.createElement("span");
           el.className = "tw__line";
           var ink = document.createElement("span");
           ink.className = "tw__ink";
+          /* The full string is written first and then emptied, so the block
+             reserves its final height immediately. Typing into an empty
+             element reflows the hero on every character and drags the copy
+             under it up and down for two seconds. */
           ink.textContent = txt;
-          /* 110ms apart. Wide enough that the three lines read as a sequence
-             rather than one block sliding, tight enough that the last one is
-             home before the eye has finished the first. */
           ink.style.animationDelay = 240 + i * 110 + "ms";
           el.appendChild(ink);
           host.appendChild(el);
+          return { ink: ink, txt: txt };
         });
+
+        if (!LESS) {
+          inks.forEach(function (o) {
+            o.ink.style.visibility = "hidden";
+          });
+          var line = 0;
+          var pos = 0;
+          var startAt = performance.now() + 520;
+          (function type(now) {
+            if (line >= inks.length) return;
+            if (now < startAt) {
+              requestAnimationFrame(type);
+              return;
+            }
+            var o = inks[line];
+            o.ink.style.visibility = "visible";
+            pos += 1;
+            /* A hair space holds the line's box open where the text has not
+               arrived yet, so nothing under it moves. */
+            o.ink.textContent = o.txt.slice(0, pos);
+            if (pos >= o.txt.length) {
+              line += 1;
+              pos = 0;
+              startAt = now + 420;
+            } else {
+              startAt = now + 28;
+            }
+            requestAnimationFrame(type);
+          })(performance.now());
+        }
         if (hero) hero.classList.add("in");
 
         /* The per-character cursor response that used to live here is now
@@ -10579,320 +10978,61 @@
         setTimeout(cycle, 1500);
       })();
 
-      /* ── the sentence you operate ────────────────────────────────────────
-         "I design ___ for ___", both blanks live, the matching work listed
-         underneath. Pentagram's device, at the scale of sixteen projects.
+      /* The reel's script is gone with it. Nothing replaced it: a list of
+         thirty-one things a reader can see all of at once does not need a
+         timer, and the one behaviour worth keeping from that control — that
+         you can take in the whole range in a couple of seconds — is better
+         served by showing the whole range. */
 
-         The one design decision that matters here is that the second list is
-         rebuilt from the first. With seven disciplines and six sectors there
-         are forty-two sentences a visitor can write and only about twenty of
-         them are true, so a free pairing would hand out empty results most of
-         the time — the control would be teaching you what he has NOT done.
-         Narrowing the "for" list to sectors that actually have work in the
-         chosen discipline means every sentence on offer is one he can back,
-         which is the entire point of putting it in the hero.
-
-         The table is the site's own taxonomy, not a new one: every project
-         below is a row on /works/ and the labels are its pills. */
+      /* ── the studio line, word by word ──────────────────────────────────
+         Splits the sentence into words once, then writes --p on the section
+         as it crosses the viewport. No per-frame layout reads: the rect is
+         taken inside a rAF that only runs on scroll, and the words are moved
+         by CSS off a single custom property. */
       (function () {
-        var out = document.getElementById("pg-out");
-        var mk = function (id) {
-          var btn = document.getElementById(id);
-          if (!btn) return null;
-          return {
-            btn: btn,
-            slot: btn.parentNode,
-            word: btn.querySelector(".pgram__word"),
-            list: document.getElementById("pg-menu-" + id.replace("pg-", "")),
-            rows: [],
-            value: "",
-            onchange: function () {},
-          };
-        };
-        var what = mk("pg-what");
-        var who = mk("pg-who");
-        if (!what || !who || !out || !what.list || !who.list) return;
-        var base = "";
-
-        /* title, url, disciplines, sectors */
-        var WORK = [
-          ["Mool", "/mool/", ["product", "brand"], ["fintech"]],
-          ["M Health Fairview", "/m-health-fairview/", ["product"], ["health"]],
-          ["Marriott", "/marriott/", ["product"], ["hospitality"]],
-          ["Alpha Stockathon", "/alpha-stockathon/", ["product", "games"], ["fintech"]],
-          ["Aananda", "/aananda/", ["product", "brand", "install"], ["culture"]],
-          ["Encoded", "/encoded/", ["spatial"], ["culture"]],
-          ["Bodhi", "/bloom/", ["spatial", "ai"], ["wellness", "emerging"]],
-          ["AI Self", "/ai-self/", ["spatial", "ai"], ["emerging"]],
-          ["2026 AI Experiments", "/ai-prototypes/", ["ai"], ["emerging"]],
-          ["Bloom; who are you", "/mandalas/", ["install"], ["culture", "wellness"]],
-          ["Mind Your Feelings", "/mind-your-feelings/", ["install"], ["health"]],
-          ["Broken and Beautiful", "/b-plus-b/", ["install"], ["culture"]],
-          ["Naavo", "/naavo/", ["brand"], ["wellness"]],
-          ["Cube of Creations", "/cube-guy/", ["games"], ["culture"]],
-          ["Illustrations", "/illustrations/", ["images"], ["culture"]],
-          ["Shot on iPhone", "/shot-on-iphone/", ["images"], ["culture"]],
-        ];
-        var DISC = [
-          ["product", "product interfaces"],
-          ["spatial", "spatial computing"],
-          ["ai", "AI interfaces"],
-          ["install", "installations"],
-          ["brand", "brand identity"],
-          ["games", "games and characters"],
-          ["images", "images"],
-        ];
-        var SECT = [
-          ["fintech", "fintech"],
-          ["health", "healthcare"],
-          ["hospitality", "hospitality"],
-          ["culture", "museums and culture"],
-          ["wellness", "wellness"],
-          ["emerging", "emerging tech"],
-        ];
-
-        /* ── THE CONTROL ────────────────────────────────────────────────────
-           A <select> hands you the keyboard, the mobile picker and the roles
-           for nothing, and takes your typography in exchange. That trade was
-           wrong for the centre of this hero, so everything it gave away is
-           rebuilt here: Enter and Space and Down open the list, Up and Down
-           walk it, Enter and Space choose, Escape closes and returns focus to
-           the word, Tab closes on the way past, and a click anywhere else
-           dismisses it. aria-expanded and aria-selected are kept in step so
-           the control still announces what it is and what it holds. */
-        var openMenu = null;
-
-        var closeMenu = function (focusBack) {
-          if (!openMenu) return;
-          var m = openMenu;
-          openMenu = null;
-          m.list.hidden = true;
-          m.btn.setAttribute("aria-expanded", "false");
-          m.slot.classList.remove("is-open");
-          if (focusBack) m.btn.focus();
-        };
-
-        var buildMenu = function (ctl, rows) {
-          ctl.list.innerHTML = "";
-          rows.forEach(function (r) {
-            var li = document.createElement("li");
-            li.setAttribute("role", "option");
-            li.setAttribute("data-value", r[0]);
-            li.textContent = r[1];
-            li.setAttribute("aria-selected", String(r[0] === ctl.value));
-            li.addEventListener("click", function () {
-              select(ctl, r[0]);
-              closeMenu(true);
-            });
-            li.addEventListener("mouseenter", function () {
-              var all = ctl.list.querySelectorAll("li");
-              for (var i = 0; i < all.length; i++) all[i].classList.remove("is-active");
-              li.classList.add("is-active");
-              /* Resting on an option IS choosing it. The list stays open so
-                 the reader can keep moving along it and watch the sentence
-                 change under their hand. */
-              if (r[0] !== ctl.value) select(ctl, r[0]);
-            });
-            ctl.list.appendChild(li);
-          });
-        };
-
-        var label = function (rows, v) {
-          for (var i = 0; i < rows.length; i++) if (rows[i][0] === v) return rows[i][1];
-          return rows.length ? rows[0][1] : "";
-        };
-
-        var select = function (ctl, v) {
-          ctl.value = v;
-          ctl.word.textContent = label(ctl.rows, v);
-          var lis = ctl.list.querySelectorAll("li");
-          for (var i = 0; i < lis.length; i++) {
-            lis[i].setAttribute("aria-selected", String(lis[i].getAttribute("data-value") === v));
-          }
-          ctl.onchange();
-        };
-
-        var fill = function (ctl, rows, keep) {
-          ctl.rows = rows;
-          var has = rows.some(function (r) {
-            return r[0] === keep;
-          });
-          ctl.value = has ? keep : rows.length ? rows[0][0] : "";
-          ctl.word.textContent = label(rows, ctl.value);
-          buildMenu(ctl, rows);
-        };
-
-        var toggle = function (ctl) {
-          if (openMenu && openMenu.btn === ctl.btn) {
-            closeMenu(true);
-            return;
-          }
-          closeMenu(false);
-          buildMenu(ctl, ctl.rows);
-          ctl.list.hidden = false;
-          ctl.btn.setAttribute("aria-expanded", "true");
-          ctl.slot.classList.add("is-open");
-          openMenu = ctl;
-
-          /* ── WHICH WAY IT OPENS ────────────────────────────────────────
-             The sentence sits in the lower third of a full-height hero, so a
-             seven-item list opening downward runs straight off the fold and
-             the last options cannot be reached. Measured after the list is
-             visible — it has no height before that — and flipped above the
-             word when there is more room up than down. */
-          ctl.list.classList.remove("is-up");
-          var br = ctl.btn.getBoundingClientRect();
-          var lh = ctl.list.offsetHeight;
-          var below = window.innerHeight - br.bottom;
-          if (lh + 24 > below && br.top > below) ctl.list.classList.add("is-up");
-          var cur = ctl.list.querySelector('li[aria-selected="true"]') || ctl.list.firstChild;
-          if (cur) cur.classList.add("is-active");
-        };
-
-        var walk = function (ctl, d) {
-          var lis = [].slice.call(ctl.list.querySelectorAll("li"));
-          if (!lis.length) return;
-          var i = lis.findIndex(function (el) {
-            return el.classList.contains("is-active");
-          });
-          if (i < 0) i = 0;
-          lis[i].classList.remove("is-active");
-          var n = (i + d + lis.length) % lis.length;
-          lis[n].classList.add("is-active");
-          lis[n].scrollIntoView({ block: "nearest" });
-        };
-
-        var wire = function (ctl) {
-          /* ── HOVER, NOT CLICK ──────────────────────────────────────────
-             Sid: "let the drop down be not drop down and a hover there is no
-             point in clicking and selecting."
-
-             He is right about the gesture. This is not a form being filled
-             in, it is a sentence being read — the reader is browsing a range,
-             not committing to a choice, and asking for a click and then a
-             second click to pick an option makes a two-step transaction out
-             of something that should cost nothing.
-
-             So the list opens on approach and an option takes effect the
-             moment the pointer rests on it: you read the sentence by moving
-             along it. Click still works, because a control that opens on
-             hover and does nothing when clicked feels broken, and the whole
-             keyboard path is untouched — that one genuinely does need a
-             deliberate action.
-
-             The close is delayed by 260ms so travelling from the word down to
-             the list does not dismiss it in the gap between them. */
-          var shutTimer = null;
-          var hold = function () {
-            if (shutTimer) {
-              clearTimeout(shutTimer);
-              shutTimer = null;
-            }
-          };
-          var release = function () {
-            hold();
-            shutTimer = setTimeout(function () {
-              if (openMenu && openMenu.btn === ctl.btn) closeMenu(false);
-            }, 260);
-          };
-          ctl.slot.addEventListener("pointerenter", function (e) {
-            if (e.pointerType === "touch") return;
-            hold();
-            if (!openMenu || openMenu.btn !== ctl.btn) toggle(ctl);
-          });
-          ctl.slot.addEventListener("pointerleave", function (e) {
-            if (e.pointerType === "touch") return;
-            release();
-          });
-          ctl.btn.addEventListener("click", function (e) {
-            e.stopPropagation();
-            toggle(ctl);
-          });
-          ctl.btn.addEventListener("keydown", function (e) {
-            if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-              e.preventDefault();
-              if (!openMenu || openMenu.btn !== ctl.btn) toggle(ctl);
-              else walk(ctl, 1);
-            } else if (e.key === "ArrowUp") {
-              e.preventDefault();
-              if (openMenu && openMenu.btn === ctl.btn) walk(ctl, -1);
-            } else if (e.key === "Escape") {
-              closeMenu(true);
-            } else if (e.key === "Tab") {
-              closeMenu(false);
-            }
-          });
-        };
-
-        /* Choosing happens on keyup for Space so the keydown that opened the
-           list cannot also pick its first item. */
-        document.addEventListener("keydown", function (e) {
-          if (!openMenu) return;
-          if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-            var act = openMenu.list.querySelector("li.is-active");
-            if (act) {
-              e.preventDefault();
-              select(openMenu, act.getAttribute("data-value"));
-              closeMenu(true);
-            }
-          } else if (e.key === "Escape") {
-            e.preventDefault();
-            closeMenu(true);
-          }
-        });
-        document.addEventListener("click", function () {
-          closeMenu(false);
+        var host = document.getElementById("door-line");
+        if (!host) return;
+        var sec = host.closest("section");
+        var text = host.getAttribute("data-line") || "";
+        var words = text.split(" ");
+        host.textContent = "";
+        words.forEach(function (w, i) {
+          var el = document.createElement("span");
+          el.className = "door__w";
+          el.textContent = w;
+          el.style.setProperty("--i", i);
+          /* Alternating lean, varied by index so it is not a zigzag. */
+          el.style.setProperty("--r", (i % 2 ? 1 : -1) * (2 + (i % 3)));
+          host.appendChild(el);
         });
 
-        var matches = function () {
-          var d = what.value,
-            s = who.value;
-          return WORK.filter(function (w) {
-            return w[2].indexOf(d) > -1 && w[3].indexOf(s) > -1;
-          });
-        };
-
-        var draw = function () {
-          var hits = matches();
-          var html = "<em>" + hits.length + (hits.length === 1 ? " project" : " projects") + "</em>";
-          html += hits
-            .map(function (w) {
-              return '<a href="' + base + w[1] + '">' + w[0] + "</a>";
-            })
-            .join("<span>/</span>");
-          out.classList.add("is-swap");
-          setTimeout(function () {
-            out.innerHTML = html;
-            out.classList.remove("is-swap");
-          }, 140);
-        };
-
-        /* the sectors that have work in the currently chosen discipline */
-        var refreshSectors = function () {
-          var d = what.value;
-          var live = SECT.filter(function (s) {
-            return WORK.some(function (w) {
-              return w[2].indexOf(d) > -1 && w[3].indexOf(s[0]) > -1;
-            });
-          });
-          fill(who, live, who.value);
-        };
-
-        /* The width measuring that used to live here is gone with the
-           <select> that needed it. A button is as wide as its own text, so
-           the sentence sets itself and there is nothing to keep in step with
-           the webfont. */
-        what.onchange = function () {
-          refreshSectors();
-          draw();
-        };
-        who.onchange = draw;
-
-        wire(what);
-        wire(who);
-        fill(what, DISC);
-        refreshSectors();
-        draw();
+        var raf = 0;
+        var last = -1;
+        function measure() {
+          raf = 0;
+          var r = sec.getBoundingClientRect();
+          var vh = window.innerHeight || 1;
+          /* 0 when the section's top is a viewport away, 1 once it has
+             reached the upper third — so the line is fully down before it
+             leaves. */
+          var p = (vh - r.top) / (vh * 0.78);
+          p = Math.max(0, Math.min(1, p));
+          if (Math.abs(p - last) > 0.004) {
+            last = p;
+            sec.style.setProperty("--p", p.toFixed(3));
+          }
+        }
+        window.addEventListener(
+          "scroll",
+          function () {
+            if (!raf) raf = requestAnimationFrame(measure);
+          },
+          { passive: true }
+        );
+        window.addEventListener("resize", function () {
+          if (!raf) raf = requestAnimationFrame(measure);
+        });
+        measure();
       })();
 
       /* ── the portrait that starts working ────────────────────────
@@ -11347,12 +11487,13 @@
 
   #cur-dot {
     position: fixed;
-    /* 18, down from 22. Sid: "cursor can be a little smaller." A ring this
-       size still reads as an object rather than a dot, and at 1.6x over an
-       interactive surface it now opens to 29 rather than 35 — which was
-       starting to look like a target reticle on small links. */
-    width: 18px;
-    height: 18px;
+    /* 13, down from 18 and originally 22. Sid, twice: "i want my cursor to be
+       a little smaller." At 13 the ring reads as a pointer rather than as a
+       reticle, and over an interactive surface it opens to 21 instead of 29 —
+       small enough that it stops covering the thing it is pointing at, which
+       is the actual complaint underneath the size one. */
+    width: 13px;
+    height: 13px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
@@ -11380,6 +11521,57 @@
   /* Over something interactive the dot hollows out into a ring, so whatever it
      is sitting on stays visible through the middle. A fill that merely got
      fainter covered small icons; a ring never does. */
+  /* ── OVER THE MARK, GET OUT OF THE WAY ──────────────────────────────────
+     Sid: "with the cursor i cant even see the 3d cube animating."
+
+     Literally true: the mark is 36px, the ring at hover scale was 29, and it
+     sat dead centre on the one thing on the page whose whole point is to be
+     watched. Over .studio-mark the ring drops to a third of its opacity and
+     shrinks rather than growing, and the trail stops paying out — so what you
+     are looking at is the cube, not a circle on top of it. */
+  #cur-dot.is-mark {
+    opacity: 0.28 !important;
+    background: transparent;
+    box-shadow: 0 0 0 1px rgba(214, 234, 255, 0.5);
+  }
+  html.cur-on-mark #cur-trail {
+    opacity: 0 !important;
+    transition: opacity 220ms ease;
+  }
+
+  /* The dot in the middle. Sid: "when i hover to change color or shape or
+     maybe a dot in the center." It only exists over something interactive, so
+     the resting cursor stays one clean ring and the hover state is a real
+     change of form rather than a change of size. */
+  #cur-dot.is-hover::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 3px;
+    height: 3px;
+    margin: -1.5px 0 0 -1.5px;
+    border-radius: 50%;
+    background: rgba(236, 245, 255, 0.95);
+    animation: curCore 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  html[data-theme="light"] #cur-dot.is-hover::after {
+    background: rgba(16, 24, 40, 0.92);
+  }
+  #cur-dot.is-mark::after {
+    display: none;
+  }
+  @keyframes curCore {
+    from {
+      transform: scale(0);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
   #cur-dot.is-hover {
     background: rgba(190, 220, 255, 0.08);
     box-shadow:
@@ -13503,6 +13695,12 @@
     align-items: center;
     justify-content: center;
     cursor: none;
+    /* A <button> does not inherit the page's font — it falls back to the UA
+       default, which is Arial here. Auditing every page for the families in
+       use turned this up as the one non-Figtree, non-DM-Mono glyph on the
+       entire site, on every page, because the chat panel ships in the shared
+       cursor include. One line, and the family list is clean. */
+    font-family: inherit;
     font-size: 13px;
     transition:
       border-color 0.2s,
@@ -16384,7 +16582,7 @@
       }
 
       // Eased hover growth (1.6x over interactive surfaces)
-      const targetHover = dot.classList.contains("is-hover") ? 1.6 : 1;
+      const targetHover = dot.classList.contains("is-mark") ? 0.62 : dot.classList.contains("is-hover") ? 1.6 : 1;
       hoverScale += (targetHover - hoverScale) * 0.18;
 
       dot.style.left = rx + "px";
@@ -16425,6 +16623,10 @@
         "mouseover",
         (e) => {
           if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
+          if (e.target.closest && e.target.closest(".studio-mark")) {
+            dot.classList.add("is-mark");
+            document.documentElement.classList.add("cur-on-mark");
+          }
           if (label) {
             const labeled = e.target.closest && e.target.closest(LABEL_SELECTOR);
             if (labeled) {
@@ -16442,6 +16644,13 @@
             // Only remove if we're really leaving the hover surface (not just moving to a child)
             const to = e.relatedTarget;
             if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
+          }
+          if (e.target.closest && e.target.closest(".studio-mark")) {
+            const away = e.relatedTarget;
+            if (!away || !(away.closest && away.closest(".studio-mark"))) {
+              dot.classList.remove("is-mark");
+              document.documentElement.classList.remove("cur-on-mark");
+            }
           }
           if (label) {
             const leaving = e.target.closest && e.target.closest(LABEL_SELECTOR);
