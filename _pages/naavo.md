@@ -87,11 +87,11 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/2.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/2.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/3.1.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/3.1.webp" alt="" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item">
     <video width="1440" height="810" autoplay muted loop playsinline preload="auto"><source src="{{ site.baseurl }}/7.naavo/3.2.mp4" type="video/mp4" /></video>
   </div>
@@ -99,17 +99,17 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Ideation.</em></p>
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.1.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.2.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/5.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/5.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Logo breakdown.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/6.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/6.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -133,24 +133,24 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Mobile app to purchase guided products.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/12.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/12.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/13.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/13.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Naavo packaging labels.</em></p>
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/7.naavo/13.3 solo.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/13.3 solo.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/13.4 solo.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/13.4 solo.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/7.naavo/13.5 solo.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/13.5 solo.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Product mock-up.</em></p>
@@ -161,51 +161,51 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2 2.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2 2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Product incense sticks.</em></p>
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.1.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.2.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.1.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.2.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Creams and oils.</em></p>
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.2.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Branding collaterals.</em></p>
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/7.naavo/19.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/19.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.1.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.2.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/21.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/21.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Instagram posts and stories.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/22.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/22.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Potential advertisements.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/23.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/23.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/24.webp" alt="Naavo" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/24.webp" alt="" loading="lazy" decoding="async" />
 </div>

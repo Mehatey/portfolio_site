@@ -93,121 +93,121 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/1.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/1.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/2.png" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/2.png" alt="" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Brand positioning.</em></p>
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/3.1.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/3.2.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/3.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/3.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Ideation for gamification.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/4.png" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/4.png" alt="" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/5.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/5.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/6.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/6.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Characters.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/7.webp" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/7.webp" alt="" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/8.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/8.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/9.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/9.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/10.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/10.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/11.1.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/11.2.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/11.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/11.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/12.1.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/12.2.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/12.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/12.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/13.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/13.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/17.1.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/17.2.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/17.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/17.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/18.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/18.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/19.1.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/19.2.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/19.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/19.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/21.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/21.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/22.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/22.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/23.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/23.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/24.1.png" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/24.2.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/24.1.png" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/24.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/25.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/25.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/26.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/26.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/27.1.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/27.2.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/27.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/27.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/27.3.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/27.3.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/28.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/28.webp" alt="" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/29.1.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/29.2.webp" alt="Alpha Stockathon" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/29.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/29.2.webp" alt="" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Advertisement idea.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/30.webp" alt="Alpha Stockathon" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/30.webp" alt="" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>

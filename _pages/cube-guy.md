@@ -108,52 +108,52 @@ next_project:
 <!-- caption + 1 -->
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/1.webp" alt="Cube of Creations: process work" style="object-fit: contain;" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.cube/conception/1.webp" alt="" style="object-fit: contain;" loading="lazy" decoding="async" />
 </div>
 
 <!-- 2 -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/2.png" alt="Cube of Creations: process work" style="object-fit: contain;" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.cube/conception/2.png" alt="" style="object-fit: contain;" loading="lazy" decoding="async" />
 </div>
 
 <!-- Ideating sketches label + 6.1 + 6.2 -->
 <p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/6.1.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/6.1.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/6.2.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/6.2.webp" alt="" loading="lazy" decoding="async" />
   </div>
 </div>
 
 <!-- 7.1 + 7.2 + 7.3 -->
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.1.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.1.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.2.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.2.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.3.jpg" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.3.jpg" alt="" loading="lazy" decoding="async" />
   </div>
 </div>
 
 <!-- 7.4 + 7.5 -->
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.4.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.4.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.5.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.5.webp" alt="" loading="lazy" decoding="async" />
   </div>
 </div>
 
 <!-- 8.1 + 8.2 + 8.3 -->
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/8.2.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/8.2.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="object-fit: cover; object-position: top center;">
@@ -161,7 +161,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/8.3.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/8.3.webp" alt="" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -175,10 +175,10 @@ next_project:
 <!-- 10.1 + 10.2 + 10.3 -->
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/10.1.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/10.1.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/10.2.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/10.2.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
@@ -405,7 +405,7 @@ next_project:
 <!-- 3.1 + 3.2 -->
 <div class="cs-grid film-grid cs-grid--left-heavy">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/3.1.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/2d/3.1.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video width="952" height="1538" autoplay muted loop playsinline preload="none">
@@ -545,10 +545,10 @@ next_project:
 <!-- 3 + 3.1 grid -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/3d/3.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/3d/3.webp" alt="" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/3d/3.1.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/3d/3.1.webp" alt="" loading="lazy" decoding="async" />
   </div>
 </div>
 
