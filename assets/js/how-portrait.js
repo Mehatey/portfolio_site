@@ -49,7 +49,7 @@
   if (!img) return;
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-  var MODES = ["DUST", "HALFTONE", "SLIT", "TOPO"];
+  var MODES = ["DUST", "HALFTONE", "WEAVE", "TOPO", "SHARDS", "RAIN"];
   var GRID_W = 200; // columns sampled across the frame
   var GRID_H = 250; // rows — the source is 4:5, so this is square sampling
 
@@ -112,26 +112,44 @@
     "    extra = smoothstep(0.0, 0.1, tone);",
     "  }",
 
-    /* --- SLIT ----------------------------------------------------- */
-    /* The shear is quantised into 52 bands so it reads as scan lines
-       rather than as a smooth ripple, and it never fully settles —
-       even resolved, the plate keeps breathing. */
+    /* --- WEAVE ---------------------------------------------------- */
+    /* Chromatic SLIT is gone — Sid, on the cube: "i told u no chromatic
+       aberration", and there is no reason the portrait gets to keep an
+       idiom the rest of the site has dropped.
+
+       WEAVE snaps every point onto one of 74 horizontal threads and lets
+       the threads carry the image. Between them the plate is empty, so
+       the face is made of line rather than of tone, and the threads sag
+       and lift on a travelling wave that tightens as he resolves —
+       cloth pulled taut. Thread thickness follows luminance, which is
+       what keeps him legible when the weave is the only thing drawing. */
     "  else if (m < 2.5) {",
-    "    float band = floor(uv.y * 52.0);",
-    "    float w = sin(band * 0.66 + u_time * 1.5) * 0.65 + sin(band * 0.17 - u_time * 0.9) * 0.35;",
-    "    pos.x += w * mix(0.11, 0.028, rev);",
-    "    float ch = step(0.5, a_rnd.x);",
-    "    pos.x += (ch * 2.0 - 1.0) * mix(0.035, 0.013, rev);",
-    "    col = mix(vec3(1.0, 0.42, 0.7), vec3(0.42, 0.84, 1.0), ch) * (0.24 + a_lum * 0.88);",
-    "    col *= mix(1.0, 0.62, u_light);",
-    "    s = mix(1.3, 1.15, rev);",
+    "    float TH = 74.0;",
+    "    float th = floor(uv.y * TH);",
+    "    float ty = (th + 0.5) / TH;",
+    "    float slack = mix(0.055, 0.006, rev);",
+    "    ty += sin(uv.x * 9.0 + th * 0.5 + u_time * 1.1) * slack;",
+    "    ty += sin(uv.x * 21.0 - u_time * 0.7) * slack * 0.4;",
+    "    pos.y = ty;",
+    "    float ink = smoothstep(0.08, 0.72, tone);",
+    "    s = mix(0.85, 1.05, rev) * (0.35 + ink * 1.75);",
+    "    col = a_rgb * (0.55 + ink * 0.8);",
+    "    extra = smoothstep(0.02, 0.14, tone);",
+    /* THE PLUCK. A string instrument's answer to being touched: the wave
+       radiates outward from the cursor along the thread, and dies with
+       distance, so you can see which threads you have caught. */
+    "    float dxp = abs(uv.x - u_ptr.x);",
+    "    float dyp = abs(ty - u_ptr.y);",
+    "    float pluck = u_ptrOn * exp(-dyp * dyp * 260.0) * exp(-dxp * 2.2);",
+    "    pos.y += sin(dxp * 46.0 - u_time * 9.0) * pluck * 0.05;",
+    "    s *= 1.0 + pluck * 1.4;",
     "  }",
 
     /* --- TOPO ----------------------------------------------------- */
     /* Keep only the points whose luminance sits near a band boundary.
        Roughly a fifth survive, and they land in lines, so the face is
        drawn rather than shaded. */
-    "  else {",
+    "  else if (m < 3.5) {",
     "    float f = a_lum * 12.0;",
     "    float dist = min(fract(f), 1.0 - fract(f));",
     "    float on = 1.0 - smoothstep(0.06, 0.17, dist);",
@@ -140,6 +158,70 @@
     "    col = mix(vec3(0.74, 0.87, 1.0), vec3(0.07, 0.2, 0.48), u_light);",
     "    s = 1.05;",
     "    extra = on;",
+    /* THE SURVEY ADVANCES. Under the cursor the contour interval halves,
+       so the map gets locally finer — more lines, closer together, the
+       way a survey tightens where the ground is interesting. */
+    "    vec2 td = (pos - u_ptr) * vec2(1.0, 1.25);",
+    "    float tin = u_ptrOn * exp(-dot(td, td) * 30.0);",
+    "    if (tin > 0.01) {",
+    "      float f2 = a_lum * mix(12.0, 30.0, tin);",
+    "      float d2 = min(fract(f2), 1.0 - fract(f2));",
+    "      float on2 = 1.0 - smoothstep(0.06, 0.17, d2);",
+    "      extra = max(extra, on2 * tin);",
+    "      if (on2 > 0.06) drop = 0.0;",
+    "    }",
+    "  }",
+
+    /* --- SHARDS --------------------------------------------------- */
+    /* The frame is cut into 9x11 plates and each one is thrown: its own
+       offset, its own rotation about its own centre, its own delay. As
+       he resolves they fly back and lock together, so the formation is a
+       jigsaw closing rather than a fog condensing. Each plate carries a
+       hair of its own tint so the seams stay visible at rest. */
+    "  else if (m < 4.5) {",
+    "    vec2 PC = vec2(9.0, 11.0);",
+    "    vec2 pcell = floor(uv * PC);",
+    "    vec2 pcen = (pcell + 0.5) / PC;",
+    "    float ph = fract(sin(dot(pcell, vec2(37.1, 91.7))) * 21713.19);",
+    "    float away2 = 1.0 - rev;",
+    "    float aa = ph * 6.2831853;",
+    "    vec2 off = vec2(cos(aa), sin(aa)) * (0.06 + ph * 0.26) * away2;",
+    "    float rot = (ph - 0.5) * 2.2 * away2;",
+    "    vec2 rel = uv - pcen;",
+    "    rel = vec2(rel.x * cos(rot) - rel.y * sin(rot), rel.x * sin(rot) + rel.y * cos(rot));",
+    "    pos = pcen + rel + off;",
+    "    col = a_rgb * (0.86 + ph * 0.3);",
+    "    s = mix(1.5, 1.42, rev);",
+    /* THE PLATE UNDER YOUR HAND LIFTS. Not a radius — the whole cell the
+       cursor is inside, so the response has the geometry of the mode. */
+    "    vec2 hc = floor(u_ptr * PC);",
+    "    float same = step(abs(hc.x - pcell.x) + abs(hc.y - pcell.y), 0.5) * u_ptrOn;",
+    "    pos += (uv - pcen) * same * 0.12;",
+    "    s *= 1.0 + same * 0.9;",
+    "    col += vec3(0.16, 0.2, 0.28) * same;",
+    "  }",
+
+    /* --- RAIN ----------------------------------------------------- */
+    /* He falls into place. Every point starts above the frame and comes
+       down on its own delay, so the image builds top-edge first and the
+       last points are still arriving when the first have landed —
+       formation with a direction, which none of the others have. */
+    "  else {",
+    "    float delay = a_rnd.y * 0.55;",
+    "    float t2 = clamp((rev - delay) / max(0.0001, 1.0 - delay), 0.0, 1.0);",
+    "    float fall = 1.0 - t2 * t2;",
+    "    pos.y = uv.y - fall * (0.5 + a_rnd.x * 0.9);",
+    /* streaks while falling, dots once landed */
+    "    s = mix(2.6, 1.35, t2);",
+    "    col = mix(a_rgb * vec3(0.7, 0.86, 1.1), a_rgb, t2);",
+    "    extra = mix(0.5, 1.0, t2);",
+    /* THE SURFACE ANSWERS. Rings travel out from the cursor and the
+       points ride them, the way water does when something lands in it. */
+    "    vec2 wd = (pos - u_ptr) * vec2(1.0, 1.25);",
+    "    float wr = length(wd);",
+    "    float ripple = u_ptrOn * exp(-wr * 5.0) * sin(wr * 52.0 - u_time * 7.0);",
+    "    pos += normalize(wd + 0.0001) * ripple * 0.026;",
+    "    s *= 1.0 + abs(ripple) * 0.8;",
     "  }",
 
     /* --- THE LENS -------------------------------------------------- */
