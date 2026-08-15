@@ -45,6 +45,15 @@ TARGETS = [
     ),
     (
         "_layouts/contact.html",
+        "contact-copy (never in the markup)",
+        r"\.contact-copy(?![A-Za-z0-9_-])",
+        "HANDOFF documents two rules aimed at .contact-copy doing nothing — a "
+        "z-index that was hiding the email behind a scrim on mobile, and the "
+        "entry stagger. The wrappers are .c-corner. The only real element with "
+        "that prefix is .contact-copybtn, which the negative lookahead spares.",
+    ),
+    (
+        "_layouts/contact.html",
         "contact-hint / chint-*",
         r"\.(contact-hint|chint-[a-z]+)\b",
         "The 'move across the plate' tooltip was removed; no element carries "
