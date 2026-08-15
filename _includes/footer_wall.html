@@ -1,0 +1,218 @@
+<!-- ── THE WALL ────────────────────────────────────────────────────────────────
+     Sid: "can we add this when you scroll below the apple music screen rec
+     this is a png of my room wall and we can do something creative in the
+     spaces between. but yeah a nice scroll transition from the music and the
+     water bg to the png of my room. and make sure this is a common footer
+     across."
+
+     It is the last thing on the site, after the coda, and it is the only
+     image here that is a place rather than a piece of work: the wall above
+     his desk, with the postcards and the drawings and the letter and the
+     cube-head sketch on it.
+
+     THE SPACES BETWEEN. The file is cut out — the wall itself is transparent
+     and only the pinned objects carry pixels — so the gaps are real holes
+     onto the page's ground rather than painted black. That is what the
+     treatment is built on:
+
+       · it arrives OUT of the water. The pond above fades as this rises, so
+         one ground hands to the other rather than cutting;
+       · a light sweeps across it once as it enters, low and raking, so the
+         objects catch it in sequence left to right the way a torch would
+         find them;
+       · the pointer is a torch afterwards. A soft warm pool follows the
+         cursor and the wall is dim outside it, so reading the wall means
+         moving over it — which is the only honest way to show something that
+         is a hundred small things and no single subject.
+
+     It ships in site_footer.html, so it is on every page that has a footer.
+     ─────────────────────────────────────────────────────────────────────── -->
+<section class="wall" id="wall" aria-label="The wall above Sid's desk">
+  <div class="wall__runway">
+    <div class="wall__stage">
+      <div class="wall__frame" id="wall-frame">
+        <img
+          class="wall__img"
+          src="{{ site.baseurl }}/assets/img/room-wall-1600.webp"
+          srcset="{{ site.baseurl }}/assets/img/room-wall-900.webp 900w, {{ site.baseurl }}/assets/img/room-wall-1600.webp 1600w"
+          sizes="(max-width: 900px) 100vw, 92vw"
+          alt="The wall above Sid's desk: postcards, drawings, photographs, a letter, and a cube-headed figure in the middle"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="wall__torch" aria-hidden="true"></span>
+        <span class="wall__sweep" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .wall {
+    position: relative;
+    z-index: 2;
+    background: transparent;
+  }
+  /* The runway is the duration of the transition. Short — this is a coda to
+     the coda, not another act. */
+  .wall__runway {
+    height: 175vh;
+  }
+  .wall__stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: grid;
+    place-items: center;
+    padding: clamp(64px, 10vh, 120px) clamp(16px, 4vw, 64px);
+    overflow: hidden;
+  }
+  .wall__frame {
+    position: relative;
+    width: min(1500px, 96vw);
+    /* --p is 0 as the section enters and 1 once it is centred, written by the
+       script below. Everything reads off it. */
+    transform: scale(calc(1.14 - var(--p, 0) * 0.14)) translateY(calc((1 - var(--p, 0)) * 7vh));
+    opacity: calc(var(--p, 0) * 1.25);
+    will-change: transform, opacity;
+  }
+  .wall__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    /* Dim at rest so the torch has somewhere to go. The wall is a cut-out, so
+       this darkens the objects and leaves the gaps as page. */
+    filter: brightness(calc(0.46 + var(--lit, 0) * 0.14)) saturate(0.92);
+    transition: filter 400ms ease;
+  }
+
+  /* THE TORCH. A soft pool at the pointer, composited so it lifts only what
+     is actually there — screen over transparent gaps changes nothing, which
+     is exactly the behaviour a cut-out wants. */
+  .wall__torch {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: var(--torch, 0);
+    transition: opacity 500ms ease;
+    background: radial-gradient(
+      circle at calc(var(--tx, 50%)) calc(var(--ty, 50%)),
+      rgba(255, 228, 178, 0.5) 0%,
+      rgba(255, 216, 150, 0.22) 22%,
+      rgba(255, 210, 140, 0.06) 40%,
+      transparent 62%
+    );
+  }
+  /* THE SWEEP. One raking pass as the section arrives, driven by --p rather
+     than by a keyframe so it is tied to the scroll and not to a clock. */
+  .wall__sweep {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    opacity: calc(var(--sweep, 0) * 0.85);
+    background: linear-gradient(
+      100deg,
+      transparent calc(var(--p, 0) * 150% - 34%),
+      rgba(255, 234, 196, 0.42) calc(var(--p, 0) * 150% - 16%),
+      rgba(255, 240, 214, 0.6) calc(var(--p, 0) * 150% - 8%),
+      rgba(255, 234, 196, 0.32) calc(var(--p, 0) * 150%),
+      transparent calc(var(--p, 0) * 150% + 18%)
+    );
+  }
+
+  html[data-theme="light"] .wall__img {
+    filter: brightness(calc(0.86 + var(--lit, 0) * 0.14)) saturate(0.96);
+  }
+  html[data-theme="light"] .wall__torch {
+    mix-blend-mode: multiply;
+    background: radial-gradient(
+      circle at calc(var(--tx, 50%)) calc(var(--ty, 50%)),
+      rgba(255, 245, 225, 0) 0%,
+      rgba(30, 26, 20, 0.16) 46%,
+      rgba(30, 26, 20, 0.28) 70%
+    );
+  }
+
+  @media (max-width: 760px) {
+    .wall__runway {
+      height: 130vh;
+    }
+    .wall__frame {
+      width: 100%;
+    }
+    /* No pointer to carry a torch on a phone, so the wall simply lights. */
+    .wall__img {
+      filter: brightness(0.72) saturate(0.95);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wall__frame {
+      transform: none;
+      opacity: 1;
+    }
+    .wall__sweep {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var sec = document.getElementById("wall");
+    var frame = document.getElementById("wall-frame");
+    if (!sec || !frame) return;
+
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var fine = !window.matchMedia || window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    var p = 0;
+    var raf = 0;
+
+    function measure() {
+      /* 0 as the runway's top reaches the viewport, 1 by the time it has
+         travelled one viewport further. The same pinned-progress idea the
+         hero uses, at a smaller scale. */
+      var r = sec.getBoundingClientRect();
+      var span = Math.max(1, window.innerHeight * 0.75);
+      var v = (window.innerHeight * 0.5 - r.top) / span;
+      var np = Math.max(0, Math.min(1, v));
+      if (Math.abs(np - p) > 0.002) {
+        p = np;
+        frame.style.setProperty("--p", p.toFixed(3));
+        /* The sweep only exists during the arrival — it is a lighting cue,
+           not a permanent shine. */
+        frame.style.setProperty("--sweep", (p < 0.98 ? Math.sin(Math.min(1, p) * Math.PI) : 0).toFixed(3));
+      }
+      raf = 0;
+    }
+
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(measure);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    measure();
+
+    if (fine && !reduce) {
+      frame.addEventListener("pointerenter", function () {
+        frame.style.setProperty("--torch", "1");
+        frame.style.setProperty("--lit", "1");
+      });
+      frame.addEventListener("pointerleave", function () {
+        frame.style.setProperty("--torch", "0");
+        frame.style.setProperty("--lit", "0");
+      });
+      frame.addEventListener(
+        "pointermove",
+        function (e) {
+          var r = frame.getBoundingClientRect();
+          frame.style.setProperty("--tx", (((e.clientX - r.left) / Math.max(1, r.width)) * 100).toFixed(2) + "%");
+          frame.style.setProperty("--ty", (((e.clientY - r.top) / Math.max(1, r.height)) * 100).toFixed(2) + "%");
+        },
+        { passive: true }
+      );
+    }
+  })();
+</script>
