@@ -330,7 +330,31 @@
     "  vec4 outv = A;",
     "  if (u_sysBlend > 0.001) {",
     "    vec4 B = treat(int(u_sysNext), uvP, cuv, d, tint, filmA, inkAmt, u_time, quiet);",
-    "    outv = mix(A, B, u_sysBlend);",
+
+    /* ── THE CHANGE IS A DEVELOPING EDGE, NOT A DISSOLVE ──────────────────
+       Sid: "the bg effects changing can we have a really nice animation or
+       transition to the bg when it changes the effect or shader or filter."
+
+       A straight mix() between two treatments is a cross-fade, and a
+       cross-fade of two pictures of the same thing is a muddle: for the whole
+       middle of it you are looking at 50% of each, which is neither, and the
+       eye reads it as a smear rather than as a change.
+
+       So the new treatment arrives across a WIPE. A diagonal front sweeps the
+       frame, warped by the same fbm the field uses so the edge is torn rather
+       than ruled, and the boundary carries a bright rim — the treatment
+       develops the way a photograph does in a tray, edge first. Every pixel
+       is fully one thing or fully the other; only the 4%-wide seam is a mix,
+       and that seam is the animation. */
+    "    float wipe = (v.x * 0.62 + v.y * 0.38);",
+    "    wipe += (fbm(v * 3.1 + u_time * 0.05) - 0.5) * 0.28;",
+    "    float front = u_sysBlend * 1.36 - 0.18;",
+    "    float e = smoothstep(front - 0.04, front + 0.04, wipe);",
+    "    outv = mix(B, A, e);",
+    /* the rim: a thin bright line riding the front */
+    "    float rim = smoothstep(0.055, 0.0, abs(wipe - front));",
+    "    outv.rgb += tint * rim * 0.55 * u_fade;",
+    "    outv.a = clamp(outv.a + rim * 0.30 * u_fade, 0.0, 1.0);",
     "  }",
     "  vec3 outCol = outv.rgb;",
     "  float outA = outv.a;",
@@ -655,7 +679,7 @@
       }
 
       if (sysBlend > 0) {
-        sysBlend += dt / 2.0;
+        sysBlend += dt / 2.9;
         if (sysBlend >= 1) {
           sys = sysNext;
           sysBlend = 0;
