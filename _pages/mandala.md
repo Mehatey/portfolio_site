@@ -378,69 +378,21 @@ next_project:
   </div>
 </div>
 
-<!-- SECTION: BREATHE -->
+<!-- SECTION: MEASURING THE CALM -->
 <div class="cs-section">
-  <h2 class="cs-section-label">Breathe</h2>
+  <h2 class="cs-section-label">Measuring the calm</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>An earlier experiment. A 2D pixel art game asking if play could make you more still.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim. So an EEG headband read each visitor before the room, and again after, to see what actually changed.</em></p>
 <div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/g1.mp4" type="video/mp4" />
+  <video width="1440" height="814" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+    <source data-src="{{ site.baseurl }}/4.mandala/brainbit.mp4" type="video/mp4" />
   </video>
 </div>
 
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/g2.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- g3 + g4 side-by-side -->
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/4.mandala/g3.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/4.mandala/g4.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/g5.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- BREATHE LINK -->
-<div class="m-watch-link">
-  <a href="https://mehatey.github.io/breathe-game/" target="_blank" rel="noopener">Play Breathe<span class="xarrow" aria-hidden="true"></span></a>
-</div>
-
-<!-- SECTION: BLOOM -->
-<div class="cs-section">
-  <h2 class="cs-section-label">Bloom</h2>
-</div>
-
-<!-- Bloom logo hero -->
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/4.mandala/bloom-logo.jpeg" alt="Bloom" loading="lazy" decoding="async" />
-</div>
-
-<p class="cube-cap cube-cap--above"><em>Experimenting with translucent acrylic shades and reflections.</em></p>
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/4.mandala/bloom1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/bloom2.jpg" alt="" loading="lazy" decoding="async" />
-  </div>
+<p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled.</em></p>
+<div class="cs-bleed bl-contain">
+  <img src="{{ site.baseurl }}/4.mandala/brainbit.jpg" alt="BrainBit Studio: EEG brain log from a session in the installation" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: MANDALAS -->
@@ -544,21 +496,69 @@ next_project:
   </div>
 </div>
 
-<!-- SECTION: MEASURING THE CALM -->
+<!-- SECTION: BLOOM -->
 <div class="cs-section">
-  <h2 class="cs-section-label">Measuring the calm</h2>
+  <h2 class="cs-section-label">Bloom</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim. So an EEG headband read each visitor before the room, and again after, to see what actually changed.</em></p>
+<!-- Bloom logo hero -->
 <div class="cs-bleed">
-  <video width="1440" height="814" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source data-src="{{ site.baseurl }}/4.mandala/brainbit.mp4" type="video/mp4" />
+  <img src="{{ site.baseurl }}/4.mandala/bloom-logo.jpeg" alt="Bloom" loading="lazy" decoding="async" />
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Experimenting with translucent acrylic shades and reflections.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/4.mandala/bloom1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/4.mandala/bloom2.jpg" alt="" loading="lazy" decoding="async" />
+  </div>
+</div>
+
+<!-- SECTION: BREATHE -->
+<div class="cs-section">
+  <h2 class="cs-section-label">Breathe</h2>
+</div>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>An earlier experiment. A 2D pixel art game asking if play could make you more still.</em></p>
+<div class="cs-bleed">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+    <source data-src="{{ site.baseurl }}/4.mandala/g1.mp4" type="video/mp4" />
   </video>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled.</em></p>
-<div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/4.mandala/brainbit.jpg" alt="BrainBit Studio: EEG brain log from a session in the installation" loading="lazy" decoding="async" />
+<div class="cs-bleed">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+    <source data-src="{{ site.baseurl }}/4.mandala/g2.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- g3 + g4 side-by-side -->
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/4.mandala/g3.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/4.mandala/g4.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<div class="cs-bleed">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+    <source data-src="{{ site.baseurl }}/4.mandala/g5.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<!-- BREATHE LINK -->
+<div class="m-watch-link">
+  <a href="https://mehatey.github.io/breathe-game/" target="_blank" rel="noopener">Play Breathe<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <!-- SECTION: MANDALAS STYLE EXPLORATIONS -->
@@ -586,46 +586,16 @@ next_project:
   </video>
 </div>
 
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/test-ma26.webp" alt="" loading="lazy" class="ma-cover" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/4.mandala/ma26.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma3.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma4.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma5.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma6.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma3.mp4" type="video/mp4" /></video>
 </div>
 
 <div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/ma7.mp4" type="video/mp4" />
-  </video>
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma11.mp4" type="video/mp4" /></video>
 </div>
 
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma8.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma9.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma10.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma11.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma13.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma14.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma14.mp4" type="video/mp4" /></video>
 </div>
 
 <div class="cs-bleed">
@@ -634,14 +604,8 @@ next_project:
   </video>
 </div>
 
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma16.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma17.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma18.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma20.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma17.mp4" type="video/mp4" /></video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Going beyond mandalas and playing with different eye tracking forms.</em></p>
@@ -651,24 +615,8 @@ next_project:
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma24.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma25.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma28.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma29.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
   <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma30.mp4" type="video/mp4" /></video></div>
   <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma31.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/ma32.mp4" type="video/mp4" />
-  </video>
 </div>
 
 <div class="cs-grid ma-grid">
@@ -679,12 +627,6 @@ next_project:
 <div class="cs-grid ma-grid">
   <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma36.mp4" type="video/mp4" /></video></div>
   <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/blobs.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/ma35.mp4" type="video/mp4" />
-  </video>
 </div>
 
 <div class="m-watch-link">

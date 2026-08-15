@@ -355,23 +355,23 @@ next_project:
 
 <!-- SECTION: IN THE ROOM -->
 <div class="cs-section">
-  <h2 class="cs-section-label">Made physical</h2>
+  <h2 class="cs-section-label">In the room</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The exhibition objects remain as proof of the thesis environment, but they now support the main interaction instead of taking over the scroll.</em></p>
-<div class="cs-grid-3 grid-compact">
-  <div class="cs-grid-item bl-contain">
-    <img src="{{ site.baseurl }}/15.bloom-vp/altar.jpg" alt="Bloom exhibition: physical bodhi altar with holographic sheet and lotus" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item bl-contain">
-    <img src="{{ site.baseurl }}/15.bloom-vp/plate-bloom.jpg" alt="Bloom exhibition: acrylic plate, No. 09 bloom" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item bl-contain">
-    <video width="608" height="1080" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/plate-silence.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
+<!-- The three exhibition objects — the bodhi altar, the No. 09 bloom plate
+     and the silence plate — are off this page. Sid: "in the vision pro page
+     there were some sculptures and all remove those."
+
+     What is left under this heading is the part that is about the Vision Pro
+     build: people wearing it, and the screen mirroring what the headset saw
+     so the room could watch too. The objects are staging for a thesis show;
+     they were documenting the room, not the software, and on a page whose
+     argument is that attention is the interface they were the only things
+     asking to be looked at instead of used.
+
+     The files still exist at 15.bloom-vp/altar.jpg, plate-bloom.jpg and
+     plate-silence.mp4. Where they belong depends on which show they were shot
+     at, which is not something this page can tell me — see the note to Sid. -->
 
 <p class="cube-cap cube-cap--above"><em>People sitting with it. The screen mirrored what the headset saw, so the room could watch too.</em></p>
 <div class="cs-grid grid-compact">
