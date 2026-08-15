@@ -74,19 +74,19 @@ next_project:
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/marriott/03-spec.webp" alt="Annotated dashboard specification" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">Operational overview. Arrived, departed, in house and no shows, with live room occupancy across the property.</p>
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source src="{{ site.baseurl }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source src="{{ site.baseurl }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
 
 <p class="cube-cap cube-cap--above">Reservation flow and cases. Peak reservation flow through the day and an at a glance view of open, overdue and upcoming cases.</p>
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
 
 <p class="cube-cap cube-cap--above">Loyalty enrolment. A Bonvoy membership card carousel that lets an associate enrol a guest into the right tier without leaving the desk.</p>
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source src="{{ site.baseurl }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source src="{{ site.baseurl }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
 
 <p class="cube-cap cube-cap--above">Enrolment, specified. Each membership tier, benefit and interaction defined, from the card carousel to the enrol flow.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/marriott/07-enrollspec.webp" alt="Loyalty enrolment key functionality" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">Enrol a new member. A guided modal that opens over the dashboard so enrolment never pulls the associate away from their work.</p>
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>
 
 <p class="cube-cap cube-cap--above">One system, every screen. The same operational experience designed for a tablet at the desk and a browser in the back office.</p>
 <div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/marriott/09-desktop.webp" alt="SPOG on desktop browser" loading="lazy" style="animation:mkBreathe 6s ease-in-out infinite;" decoding="async" /></div>

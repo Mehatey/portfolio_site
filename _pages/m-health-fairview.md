@@ -83,7 +83,7 @@ next_project:
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">The new entry point. Helping you choose the right care, one clear place to start with same day and scheduled paths.</p>
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
 
 <p class="cube-cap cube-cap--above">Get Care Today and Schedule Your Care. Immediate needs and later appointments separated into two calm, self explaining paths.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/08-getcare.webp" alt="Get Care Today and Schedule Your Care" loading="lazy" decoding="async" /></div>
@@ -92,13 +92,13 @@ next_project:
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/09-compare.webp" alt="Specialty categories and care type comparison" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">The specialty icons themselves, designed and animated by hand. The same set that powers the specialty finder above, each one built to move.</p>
-<div class="cs-bleed"><video src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
+<div class="cs-bleed"><video width="1600" height="908" src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
 
 <p class="cube-cap cube-cap--above">Choosing a care type. Routine preventive, primary and specialty care surfaced as three clear routes.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/10-caretypes.gif" alt="Care type selection in motion" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">The assistant. A conversational helper for patients who would rather be guided than browse.</p>
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="{{ site.baseurl }}/assets/img/fairview/11-assistant.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video width="796" height="1126" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="{{ site.baseurl }}/assets/img/fairview/11-assistant.mp4" type="video/mp4" /></video></div>
 
 <p class="cube-cap cube-cap--above">Prepare for your visit. Clear before and after visit guidance so patients arrive ready and leave informed.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async" /></div>

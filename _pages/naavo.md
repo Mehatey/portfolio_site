@@ -93,7 +93,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/3.1.webp" alt="Naavo" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto"><source src="{{ site.baseurl }}/7.naavo/3.2.mp4" type="video/mp4" /></video>
+    <video width="1440" height="810" autoplay muted loop playsinline preload="auto"><source src="{{ site.baseurl }}/7.naavo/3.2.mp4" type="video/mp4" /></video>
   </div>
 </div>
 
@@ -113,20 +113,20 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video width="1400" height="800" autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/7.naavo/7.1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Making simple shapes out of the dosha patterns.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video width="1440" height="816" autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/7.naavo/9.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video width="1440" height="252" autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/7.naavo/11.mp4" type="video/mp4" />
   </video>
 </div>
@@ -155,7 +155,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Product mock-up.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="auto">
+  <video width="1400" height="932" autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/7.naavo/14.mp4" type="video/mp4" />
   </video>
 </div>

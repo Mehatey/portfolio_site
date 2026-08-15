@@ -90,7 +90,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>30 songs illustrated.</em></p>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="metadata">
     <source src="{{ site.baseurl }}/11.illu/2.mp4" type="video/mp4" />
   </video>
 </div>
@@ -100,7 +100,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
+  <video width="1280" height="720" autoplay muted loop playsinline preload="metadata">
     <source src="{{ site.baseurl }}/11.illu/4.mp4" type="video/mp4" />
   </video>
 </div>
@@ -173,12 +173,12 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="metadata">
+    <video width="1040" height="936" autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/11.illu/17.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="metadata">
+    <video width="1200" height="686" autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/11.illu/17.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -201,7 +201,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b20.1.png" alt="Illustrations" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="metadata">
+    <video width="1400" height="1400" autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/11.illu/b20.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -230,7 +230,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="metadata">
     <source src="{{ site.baseurl }}/11.illu/21.2.mp4" type="video/mp4" />
   </video>
 </div>
@@ -273,7 +273,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata">
+  <video width="1104" height="730" autoplay muted loop playsinline preload="metadata">
     <source src="{{ site.baseurl }}/11.illu/27.2.mp4" type="video/mp4" />
   </video>
 </div>

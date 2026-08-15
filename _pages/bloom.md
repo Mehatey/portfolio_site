@@ -228,7 +228,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>The first encounter is not a menu. A bodhi tree appears in the room, breathes, and begins a patient conversation.</em></p>
 <div class="cs-bleed" style="position: relative;">
-  <video id="tree-vid" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
+  <video width="1440" height="810" id="tree-vid" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
     <source src="{{ site.baseurl }}/15.bloom-vp/tree.mp4" type="video/mp4" />
   </video>
   <button class="cover-audio-btn muted" id="tree-audio-btn" aria-label="Toggle audio">
@@ -240,19 +240,19 @@ next_project:
 <!-- VP SCENES: show the headset experience before the physical archive -->
 <p class="cube-cap cube-cap--above"><em>Inside Vision Pro, the project is about presence: the tree, the voice, the room, and the marks you leave in space.</em></p>
 <div class="cs-bleed bl-focus-video">
-  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-21.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-22.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-scene-23.mp4" type="video/mp4" />
     </video>
   </div>
@@ -260,7 +260,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>The tree settles into Bloom when the visitor stays with it long enough.</em></p>
 <div class="cs-bleed bl-focus-video">
-  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-scene-4.mp4" type="video/mp4" />
   </video>
 </div>
@@ -291,7 +291,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree responds to where you look, not where you tap. Gaze at a branch and it stills. Look away and it drifts again.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/gaze.mp4" type="video/mp4" />
   </video>
 </div>
@@ -299,12 +299,12 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Every question it asks has no right answer. It does not evaluate what you say. It just continues, with infinite patience.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/visitor-1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/visitor-2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -317,7 +317,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The answer is not only spoken. Visitors can assemble and draw objects in 3D space, turning thought into a small spatial ritual.</em></p>
 <div class="cs-bleed bl-focus-video">
-  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+  <video width="1280" height="720" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/wall-objects-assemble.mp4" type="video/mp4" />
   </video>
 </div>
@@ -325,38 +325,33 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>A few earlier scene studies stayed in the archive, but the story now points back to the conversational spatial experience.</em></p>
 <div class="cs-grid-3 grid-compact">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-18.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-21.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-22.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
-<!-- SECTION: MEASURING THE CALM -->
-<div class="cs-section">
-  <h2 class="cs-section-label">Measuring the calm</h2>
-</div>
+<!-- The "Measuring the calm" section — the EEG headband video and the
+     BrainBit channel log — moved to /mandalas/. Sid: "in the vision pro
+     section there is some video stuff and brainwaves and person wearing
+     brainbit that all has to shift to the mandala section and make sure
+     vision pro has only the vision pro stuff."
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim. So an EEG headband read each visitor before the tree, and again after, to see what actually changed.</em></p>
-<div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source data-src="{{ site.baseurl }}/15.bloom-vp/brainbit.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled on the tree.</em></p>
-<div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/15.bloom-vp/brainbit.jpg" alt="BrainBit Studio: EEG brain log from a Bloom session" loading="lazy" decoding="async" />
-</div>
+     He is right about where it belongs. The headband was read on visitors of
+     the mandala installation, which is the piece whose whole claim is that a
+     room can change your attention; on this page it was evidence for a
+     different project's thesis sitting in the middle of the Vision Pro
+     build. The media moved with it, to 4.mandala/. -->
 
 <!-- SECTION: IN THE ROOM -->
 <div class="cs-section">
@@ -372,7 +367,7 @@ next_project:
     <img src="{{ site.baseurl }}/15.bloom-vp/plate-bloom.jpg" alt="Bloom exhibition: acrylic plate, No. 09 bloom" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item bl-contain">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="608" height="1080" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/plate-silence.mp4" type="video/mp4" />
     </video>
   </div>
@@ -381,12 +376,12 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>People sitting with it. The screen mirrored what the headset saw, so the room could watch too.</em></p>
 <div class="cs-grid grid-compact">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/exhibit-room.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="640" height="360" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/15.bloom-vp/watching.mp4" type="video/mp4" />
     </video>
   </div>

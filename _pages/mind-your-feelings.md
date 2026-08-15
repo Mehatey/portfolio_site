@@ -122,7 +122,7 @@ next_project:
 <!-- HERO -->
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="auto">
+    <video width="1096" height="1004" autoplay muted loop playsinline preload="auto">
       <source src="{{ site.baseurl }}/6.mindu/0.1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -141,7 +141,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/6.mindu/2.1.mp4" type="video/mp4" />
   </video>
 </div>
@@ -156,16 +156,16 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Walkthrough of the kiosk.</em></p>
 <div class="cs-bleed">
-  <video src="{{ site.baseurl }}/6.mindu/kiosk1.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Walkthrough of the Mind Your Feelings kiosk"></video>
+  <video width="1280" height="720" src="{{ site.baseurl }}/6.mindu/kiosk1.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Walkthrough of the Mind Your Feelings kiosk"></video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>The color of the emotion you draw is sent to the brain, which lights up in that color.</em></p>
 <div class="cs-bleed">
-  <video src="{{ site.baseurl }}/6.mindu/kiosk2.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Color of the drawn emotion sent to the brain"></video>
+  <video width="1280" height="720" src="{{ site.baseurl }}/6.mindu/kiosk2.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Color of the drawn emotion sent to the brain"></video>
 </div>
 
 <div class="cs-bleed">
-  <video src="{{ site.baseurl }}/6.mindu/kiosk3.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Mind Your Feelings kiosk in use"></video>
+  <video width="1280" height="720" src="{{ site.baseurl }}/6.mindu/kiosk3.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Mind Your Feelings kiosk in use"></video>
 </div>
 
 <div class="cs-bleed">

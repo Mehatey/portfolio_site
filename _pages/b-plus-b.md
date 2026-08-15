@@ -153,7 +153,7 @@ next_project:
 
 <!-- HERO -->
 <div class="cs-bleed-full">
-  <video autoplay muted loop playsinline preload="auto">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/5.bb/d8.mp4" type="video/mp4" />
   </video>
 </div>
@@ -189,12 +189,12 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/1.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/1.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -203,7 +203,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>A stop sign already means something. Redeployed not as a warning, but as an invitation.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/board1.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -213,7 +213,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/board2.1.mp4" type="video/mp4" />
   </video>
 </div>
@@ -222,38 +222,38 @@ next_project:
   <em>Moment of truth. Union Square Park.</em>
 </p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/board2.2.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/board3.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/board4.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/board5.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/board6.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/board7.mp4" type="video/mp4" />
   </video>
 </div>
@@ -274,13 +274,13 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/d1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/d2.mp4" type="video/mp4" />
   </video>
 </div>
@@ -300,7 +300,7 @@ next_project:
   <em>Responses coming in through the site. People writing what felt broken and what felt beautiful about the world.</em>
 </p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/d5.mp4" type="video/mp4" />
   </video>
 </div>
@@ -310,12 +310,12 @@ next_project:
 </p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/d6.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/d6.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -324,12 +324,12 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Words people kept using, given visual shape. Not illustrating, just looking.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/d7.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/d7.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -337,7 +337,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>An image of what we carry without knowing others carry it too.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/d8.mp4" type="video/mp4" />
   </video>
 </div>
@@ -349,7 +349,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Fifteen strangers. One question. Here are four of them.</em></p>
 <div class="cs-bleed interview-wrap">
-  <video id="int-russell" autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" id="int-russell" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/russell.mp4" type="video/mp4" />
   </video>
   <button class="interview-audio is-muted" id="btn-russell" aria-label="Toggle audio">
@@ -361,7 +361,7 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item interview-wrap">
-    <video id="int-john" autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" id="int-john" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/john.mp4" type="video/mp4" />
     </video>
     <button class="interview-audio is-muted" id="btn-john" aria-label="Toggle audio">
@@ -371,7 +371,7 @@ next_project:
     <span class="interview-name">John</span>
   </div>
   <div class="cs-grid-item interview-wrap">
-    <video id="int-karis" autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" id="int-karis" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/5.bb/karis.mp4" type="video/mp4" />
     </video>
     <button class="interview-audio is-muted" id="btn-karis" aria-label="Toggle audio">
@@ -383,7 +383,7 @@ next_project:
 </div>
 
 <div class="cs-bleed interview-wrap">
-  <video id="int-tsing" autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" id="int-tsing" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/tsing.mp4" type="video/mp4" />
   </video>
   <button class="interview-audio is-muted" id="btn-tsing" aria-label="Toggle audio">

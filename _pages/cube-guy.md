@@ -156,7 +156,7 @@ next_project:
     <img src="{{ site.baseurl }}/2.cube/conception/8.2.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none" style="object-fit: cover; object-position: top center;">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="object-fit: cover; object-position: top center;">
       <source data-src="{{ site.baseurl }}/2.cube/conception/8.1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -167,7 +167,7 @@ next_project:
 
 <!-- 9 -->
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="1018" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/conception/9.mp4" type="video/mp4" />
   </video>
 </div>
@@ -181,7 +181,7 @@ next_project:
     <img src="{{ site.baseurl }}/2.cube/conception/10.2.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/conception/10.3.mp4" type="video/mp4" />
     </video>
   </div>
@@ -211,12 +211,12 @@ next_project:
 <!-- 2.1 + 2.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/2.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/2.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -228,12 +228,12 @@ next_project:
 <!-- 3.1 + 3.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/3.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="812" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/3.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -245,12 +245,12 @@ next_project:
 <!-- 5.1 + 5.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1080" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/5.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -259,12 +259,12 @@ next_project:
 <!-- 6.1 + 6.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/6.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1080" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/6.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -273,12 +273,12 @@ next_project:
 <!-- 7.1 + 7.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1316" height="1022" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/7.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/7.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -287,12 +287,12 @@ next_project:
 <!-- 8.1 + 8.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/8.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1080" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/8.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -301,12 +301,12 @@ next_project:
 <!-- 9.1 + 9.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1038" height="1038" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/9.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -315,12 +315,12 @@ next_project:
 <!-- 11.1 + 11.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1076" height="1076" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/11.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -329,12 +329,12 @@ next_project:
 <!-- 12.1 + 12.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/12.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -345,14 +345,14 @@ next_project:
 
 <!-- 13 standalone -->
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/13.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- CONCLUSION -->
 <div class="cs-bleed-full">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/2.cube/short%20film%20hd/1.mp4" type="video/mp4" />
   </video>
 </div>
@@ -369,7 +369,7 @@ next_project:
 
 <!-- 2D: 1 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/2d/1.mp4" type="video/mp4" />
   </video>
 </div>
@@ -388,12 +388,12 @@ next_project:
 <!-- 2.2 + 2.3 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/2d/2.2.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/2d/2.3.mp4" type="video/mp4" />
     </video>
   </div>
@@ -408,7 +408,7 @@ next_project:
     <img src="{{ site.baseurl }}/2.cube/2d/3.1.webp" alt="Cube of Creations: process work" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="952" height="1538" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/2d/3.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -416,7 +416,7 @@ next_project:
 
 <!-- 4 standalone -->
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/2d/4.mp4" type="video/mp4" />
   </video>
 </div>
@@ -427,12 +427,12 @@ next_project:
 <!-- 5.1 + 5.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/2d/5.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/2d/5.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -444,12 +444,12 @@ next_project:
 <!-- 7.1 + 7.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="560" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/2d/7.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/2d/7.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -457,7 +457,7 @@ next_project:
 
 <!-- 8 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="818" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/2d/8.mp4" type="video/mp4" />
   </video>
 </div>
@@ -467,14 +467,14 @@ next_project:
 
 <!-- 9.1 -->
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="874" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/2d/9.1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 10 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/2d/10.mp4" type="video/mp4" />
   </video>
 </div>
@@ -484,14 +484,14 @@ next_project:
 
 <!-- 11 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/2d/11.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 12 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/2d/12.mp4" type="video/mp4" />
   </video>
 </div>
@@ -509,7 +509,7 @@ next_project:
 
 <!-- 3D: 0 opening bleed -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/0.mp4" type="video/mp4" />
   </video>
 </div>
@@ -527,14 +527,14 @@ next_project:
 
 <!-- 1 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 2 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/2.mp4" type="video/mp4" />
   </video>
 </div>
@@ -557,7 +557,7 @@ next_project:
 
 <!-- 5 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/5.mp4" type="video/mp4" />
   </video>
 </div>
@@ -567,14 +567,14 @@ next_project:
 
 <!-- 6 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/6.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 7 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/7.mp4" type="video/mp4" />
   </video>
 </div>
@@ -582,12 +582,12 @@ next_project:
 <!-- 9.1 + 9.2 -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/3d/9.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/3d/9.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -596,12 +596,12 @@ next_project:
 <!-- 10.1 + 10.2 -->
 <div class="cs-grid film-grid film-grid--no-top">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/3d/10.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/2.cube/3d/10.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -609,14 +609,14 @@ next_project:
 
 <!-- 11 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/11.mp4" type="video/mp4" />
   </video>
 </div>
 
 <!-- 12 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/12.mp4" type="video/mp4" />
   </video>
 </div>
@@ -626,7 +626,7 @@ next_project:
 
 <!-- 13 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/3d/13.mp4" type="video/mp4" />
   </video>
 </div>
@@ -639,7 +639,7 @@ next_project:
 <!-- END OF CUBE -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Meh thanks you for staying till the end.</em></p>
 <div class="cs-bleed cs-bleed--no-fade">
-  <video autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
     <source data-src="{{ site.baseurl }}/2.cube/end%20of%20cube%20.mp4" type="video/mp4" />
   </video>
 </div>

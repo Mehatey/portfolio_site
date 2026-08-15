@@ -276,14 +276,14 @@ next_project:
 <!-- KINECT EXPERIENCE - opening clips -->
 <p class="cube-cap cube-cap--above"><em>The world I was asking people to step away from. Loud, lit, everything at once.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
     <source src="{{ site.baseurl }}/4.mandala/final-walking.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>The guided sit begins.</em></p>
 <div class="cs-bleed" style="position: relative;">
-  <video id="k1-vid" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
+  <video width="1440" height="810" id="k1-vid" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
     <source src="{{ site.baseurl }}/4.mandala/k1.mp4" type="video/mp4" />
   </video>
   <button class="grid-audio-btn muted" id="k1-audio-btn" aria-label="Toggle audio">
@@ -294,14 +294,14 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Spiral concept of evolution interested me.</em></p>
 <div class="f-vid-wrap">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/first.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>I wanted to combine the spiral shape with the stories of shared human experience.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/people.mp4" type="video/mp4" />
   </video>
 </div>
@@ -313,19 +313,19 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>The lit room. Brighter, more reflective. People found it harder to settle.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/8.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/9.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/a1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -333,7 +333,7 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/10.1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -343,14 +343,14 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/11.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/12.1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -369,7 +369,7 @@ next_project:
     <img src="{{ site.baseurl }}/4.mandala/13.1.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/13.2.mp4" type="video/mp4" />
     </video>
   </div>
@@ -385,13 +385,13 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>An earlier experiment. A 2D pixel art game asking if play could make you more still.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/g1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/g2.mp4" type="video/mp4" />
   </video>
 </div>
@@ -399,19 +399,19 @@ next_project:
 <!-- g3 + g4 side-by-side -->
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/g3.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/g4.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/g5.mp4" type="video/mp4" />
   </video>
 </div>
@@ -434,7 +434,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Experimenting with translucent acrylic shades and reflections.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/bloom1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -458,7 +458,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/3.2.mp4" type="video/mp4" />
   </video>
 </div>
@@ -466,17 +466,17 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Sid's record. A brain scan, a name in binary, a voice. Inspired by the Voyager golden record.</em></p>
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/2.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/2.2.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/2.3.mp4" type="video/mp4" />
     </video>
   </div>
@@ -489,7 +489,7 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/6.mp4" type="video/mp4" />
     </video>
   </div>
@@ -500,12 +500,12 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/ab.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/abc.mp4" type="video/mp4" />
     </video>
   </div>
@@ -513,7 +513,7 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item" style="position:relative;">
-    <video id="mandala-compiled-vid" autoplay muted loop playsinline preload="auto">
+    <video width="1280" height="720" id="mandala-compiled-vid" autoplay muted loop playsinline preload="auto">
       <source src="{{ site.baseurl }}/4.mandala/mandala-shorter.mp4" type="video/mp4" />
     </video>
     <button class="grid-audio-btn muted" id="mandala-audio-btn" aria-label="Toggle audio">
@@ -522,7 +522,7 @@ next_project:
     </button>
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/m1.mp4" type="video/mp4" />
     </video>
   </div>
@@ -535,13 +535,30 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Most people needed a prompt to begin. Without direction, reflection stayed on the surface.</em></p>
 <div class="cs-grid g-cover">
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="788" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/g.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/4.mandala/j.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
   </div>
+</div>
+
+<!-- SECTION: MEASURING THE CALM -->
+<div class="cs-section">
+  <h2 class="cs-section-label">Measuring the calm</h2>
+</div>
+
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim. So an EEG headband read each visitor before the room, and again after, to see what actually changed.</em></p>
+<div class="cs-bleed">
+  <video width="1440" height="814" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+    <source data-src="{{ site.baseurl }}/4.mandala/brainbit.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled.</em></p>
+<div class="cs-bleed bl-contain">
+  <img src="{{ site.baseurl }}/4.mandala/brainbit.jpg" alt="BrainBit Studio: EEG brain log from a session in the installation" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: MANDALAS STYLE EXPLORATIONS -->
@@ -551,20 +568,20 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>The goal was for people to not use the cursor. The coin is a distraction.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/ma1.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>When you shake your hand, the mandala ripples.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/ripple-web.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/ma2.mp4" type="video/mp4" />
   </video>
 </div>
@@ -574,98 +591,98 @@ next_project:
     <img src="{{ site.baseurl }}/4.mandala/test-ma26.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" class="ma-cover" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <video autoplay muted loop playsinline preload="none">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
       <source data-src="{{ site.baseurl }}/4.mandala/ma26.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma3.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma4.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma3.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma4.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma5.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma6.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma5.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma6.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/ma7.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma8.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma9.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma8.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma9.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma10.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma11.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma10.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma11.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma13.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma14.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma13.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma14.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/ma15.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma16.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma17.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma16.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma17.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma18.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma20.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma18.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma20.mp4" type="video/mp4" /></video></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Going beyond mandalas and playing with different eye tracking forms.</em></p>
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma21.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma23.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma21.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma23.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma24.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma25.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma24.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma25.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma28.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma29.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma28.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma29.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma30.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma31.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma30.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma31.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/ma32.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma33.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma34.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma33.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma34.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma36.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/blobs.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma36.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/blobs.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/ma35.mp4" type="video/mp4" />
   </video>
 </div>
@@ -685,13 +702,13 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top:40px;"><em>A report of what you stayed with, and what that might say about you.</em></p>
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/ma37.mp4" type="video/mp4" />
   </video>
 </div>
 
 <div class="cs-bleed">
-  <video autoplay muted loop playsinline preload="none">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/5.2.mp4" type="video/mp4" />
   </video>
 </div>
