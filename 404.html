@@ -717,60 +717,193 @@
         max-width: 1320px;
         position: relative;
       }
-      .notfound-cube {
+      /* ── THE SEVENTH SIDE ─────────────────────────────────────────────────
+         The copy on this page has always said the missing page is "like the
+         seventh side of a cube". It was a good line sitting next to a static
+         SVG of a cube falling, which is a picture of the joke rather than the
+         joke.
+
+         So the cube is real now, and it is the navigation. Six faces, six
+         ways out of here, and you turn it to read them — which means the one
+         page a visitor reaches by accident is also the only page where the
+         way out is a thing you handle rather than a row of links you skim.
+
+         The seventh face is the payoff: keep turning and there isn't one.
+         What is written on the sixth is the path they actually typed, pulled
+         off location.pathname, so the cube is holding the thing that does not
+         exist. That face is the only one that is not a link.
+
+         CSS 3D rather than WebGL, for the same reasons home_cube.html gives:
+         the faces stay crisp at any DPR, every one is a real <a> so it is
+         keyboard-reachable and crawlable, and there is no context to lose.
+         Without preserve-3d, or under reduced motion, .is-flat collapses it
+         into a plain list of links — which is exactly what a 404 needs to
+         degrade into. */
+      .nf-stage {
         position: absolute;
-        right: 8vw;
-        top: 18%;
-        width: clamp(140px, 22vw, 280px);
-        height: clamp(140px, 22vw, 280px);
-        color: rgba(160, 200, 255, 0.4);
-        filter: drop-shadow(0 8px 32px rgba(80, 130, 220, 0.25));
-        animation:
-          notfoundCubeFall 4.6s cubic-bezier(0.34, 1.2, 0.64, 1) infinite,
-          notfoundCubeSpin 7s linear infinite;
-        transform-origin: center;
+        right: 7vw;
+        top: 16%;
+        width: clamp(190px, 26vw, 320px);
+        height: clamp(190px, 26vw, 320px);
+        perspective: 1000px;
+        perspective-origin: 50% 45%;
+        touch-action: pan-y;
+        cursor: grab;
       }
-      @keyframes notfoundCubeFall {
-        0% {
-          transform: translateY(-40px) rotate(0deg);
-          opacity: 0;
-        }
-        15% {
-          opacity: 1;
-        }
-        70% {
-          transform: translateY(80px) rotate(180deg);
-        }
-        100% {
-          transform: translateY(140px) rotate(420deg);
-          opacity: 0;
+      .nf-stage.is-turning {
+        cursor: grabbing;
+      }
+      .nf-cube {
+        --s: clamp(96px, 13vw, 160px);
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: var(--s);
+        height: var(--s);
+        margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+        transform-style: preserve-3d;
+        will-change: transform;
+      }
+      .nf-face {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        gap: 6px;
+        text-align: center;
+        text-decoration: none;
+        border: 1px solid rgba(160, 200, 255, 0.34);
+        background: rgba(10, 14, 22, 0.62);
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+        color: rgba(226, 238, 255, 0.92);
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 11px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        transition:
+          border-color 240ms ease,
+          background 240ms ease,
+          color 240ms ease;
+      }
+      .nf-face b {
+        font-family: var(--font-head, inherit);
+        font-size: clamp(13px, 1.5vw, 17px);
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        text-transform: none;
+      }
+      .nf-face i {
+        font-style: normal;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        color: rgba(160, 200, 255, 0.55);
+      }
+      .nf-face:hover,
+      .nf-face:focus-visible {
+        border-color: rgba(190, 220, 255, 0.85);
+        background: rgba(24, 34, 52, 0.78);
+        color: #fff;
+        outline: none;
+      }
+      /* The missing one. No fill, no link, and a dashed edge — the only face
+         you cannot go through. */
+      .nf-face--void {
+        border-style: dashed;
+        border-color: rgba(255, 140, 160, 0.5);
+        background: rgba(8, 10, 16, 0.28);
+        color: rgba(255, 190, 200, 0.86);
+        cursor: default;
+      }
+      .nf-face--void b {
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        word-break: break-all;
+        max-width: calc(var(--s) - 22px);
+      }
+      .nf-face--f {
+        transform: translateZ(calc(var(--s) / 2));
+      }
+      .nf-face--b {
+        transform: rotateY(180deg) translateZ(calc(var(--s) / 2));
+      }
+      .nf-face--r {
+        transform: rotateY(90deg) translateZ(calc(var(--s) / 2));
+      }
+      .nf-face--l {
+        transform: rotateY(-90deg) translateZ(calc(var(--s) / 2));
+      }
+      .nf-face--u {
+        transform: rotateX(90deg) translateZ(calc(var(--s) / 2));
+      }
+      .nf-face--d {
+        transform: rotateX(-90deg) translateZ(calc(var(--s) / 2));
+      }
+
+      /* No 3D, or the reader asked for less motion: it becomes a list of the
+         same links. The void face drops out entirely — a dead end is only
+         worth drawing when you can turn it over. */
+      .nf-stage.is-flat {
+        position: static;
+        width: auto;
+        height: auto;
+        perspective: none;
+        cursor: default;
+        margin-top: 26px;
+      }
+      .nf-stage.is-flat .nf-cube {
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0;
+        transform: none;
+        transform-style: flat;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .nf-stage.is-flat .nf-face {
+        position: relative;
+        inset: auto;
+        transform: none !important;
+        padding: 10px 14px;
+        backdrop-filter: none;
+      }
+      .nf-stage.is-flat .nf-face--void {
+        display: none;
+      }
+
+      html[data-theme="light"] .nf-face {
+        border-color: rgba(20, 40, 80, 0.22);
+        background: rgba(255, 255, 255, 0.66);
+        color: #14161b;
+      }
+      html[data-theme="light"] .nf-face i {
+        color: rgba(20, 40, 80, 0.5);
+      }
+      html[data-theme="light"] .nf-face:hover,
+      html[data-theme="light"] .nf-face:focus-visible {
+        border-color: rgba(20, 40, 80, 0.6);
+        background: #fff;
+      }
+      html[data-theme="light"] .nf-face--void {
+        border-color: rgba(190, 60, 90, 0.5);
+        background: rgba(255, 255, 255, 0.35);
+        color: rgba(150, 40, 70, 0.9);
+      }
+
+      @media (max-width: 860px) {
+        .nf-stage {
+          position: relative;
+          right: auto;
+          top: auto;
+          margin: 30px 0 0;
+          width: 100%;
+          height: 240px;
         }
       }
-      @keyframes notfoundCubeSpin {
-        0% {
-          filter: drop-shadow(0 8px 32px rgba(80, 130, 220, 0.25)) hue-rotate(0deg);
-        }
-        50% {
-          filter: drop-shadow(0 8px 32px rgba(180, 100, 200, 0.3)) hue-rotate(60deg);
-        }
-        100% {
-          filter: drop-shadow(0 8px 32px rgba(80, 130, 220, 0.25)) hue-rotate(0deg);
-        }
-      }
-      @media (max-width: 700px) {
-        .notfound-cube {
-          right: 5vw;
-          top: 12%;
-          width: 110px;
-          height: 110px;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .notfound-cube {
-          animation: none;
-          opacity: 0.7;
-        }
-      }
+
       .notfound-num {
         font-family: var(--font-title);
         font-size: clamp(96px, 16vw, 220px);
@@ -2763,14 +2896,21 @@
 
 
     <main class="notfound" id="main">
-      <!-- Falling cube — visualizes the "alien square lost a side" copy -->
-      <svg class="notfound-cube" viewbox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-        <path d="M5 9 L9 5 L23 5 L19 9 Z" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"></path>
-        <path d="M19 9 L23 5 L23 19 L19 23 Z" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linejoin="round"></path>
-        <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.55)" stroke="currentColor" stroke-width="0.9"></rect>
-        <rect x="8.7" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect>
-        <rect x="14.3" y="13" width="1" height="5" fill="currentColor" rx="0.2"></rect>
-      </svg>
+      <!-- Six faces, six ways out, and a seventh side that is not there.
+           Built in the markup rather than by script so the links exist for a
+           crawler and for anyone whose JS never arrives. -->
+      <div class="nf-stage" id="nf-stage" aria-label="Six ways out of here">
+        <div class="nf-cube" id="nf-cube">
+          <a class="nf-face nf-face--f" href="/works/"><i>01</i><b>Work</b></a>
+          <a class="nf-face nf-face--r" href="/play/"><i>02</i><b>Play</b></a>
+          <a class="nf-face nf-face--b" href="/about/"><i>03</i><b>About</b></a>
+          <a class="nf-face nf-face--l" href="/contact/"><i>04</i><b>Contact</b></a>
+          <a class="nf-face nf-face--u" href="/"><i>05</i><b>Home</b></a>
+          <div class="nf-face nf-face--d nf-face--void" aria-hidden="true">
+<i>06</i><b id="nf-void">the page you asked for</b>
+</div>
+        </div>
+      </div>
       <!-- ── WHICH OF THESE IS THE HEADING ─────────────────────────────────
            The numeral was the <h1> and the sentence was a <p>. Visually that
            is right — the 404 is a ghost watermark at 220px, deliberately down
@@ -2795,6 +2935,129 @@
         <span class="notfound-hint">Or press <kbd>⌘K</kbd> to navigate</span>
       </div>
     </main>
+
+    <script>
+      /* ── THE CUBE TURNS ───────────────────────────────────────────────────
+         Scroll does not drive this one — there is nothing to scroll on a 404,
+         and the page is one viewport by design. It drifts on its own and it
+         answers a drag, with inertia that decays back into the drift, so a
+         flick spins it and then hands it back.
+
+         The void face is written from location.pathname, so the cube is
+         literally carrying the thing that is missing. If someone lands here
+         from a link rather than a typo the path is still true, which is the
+         only reason it is worth printing at all. */
+      (function () {
+        var stage = document.getElementById("nf-stage");
+        var cube = document.getElementById("nf-cube");
+        var voidLabel = document.getElementById("nf-void");
+        if (!stage || !cube) return;
+
+        if (voidLabel) {
+          var path = (window.location.pathname || "/").replace(/\/+$/, "") || "/";
+          /* Trimmed from the middle rather than the end: the tail of a path is
+             the part that identifies it, and "/2026/design/…ntations/final" is
+             more use than "/2026/design/present…". */
+          if (path.length > 30) path = path.slice(0, 14) + "…" + path.slice(-13);
+          voidLabel.textContent = path;
+        }
+
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var flat = reduce || !(CSS.supports && CSS.supports("transform-style", "preserve-3d"));
+        if (flat) {
+          stage.classList.add("is-flat");
+          return;
+        }
+
+        var yaw = -0.5;
+        var pitch = -0.35;
+        var vy = 0;
+        var vx = 0;
+        var dragging = false;
+        var lx = 0;
+        var ly = 0;
+        var raf = 0;
+
+        function draw() {
+          cube.style.transform = "rotateX(" + pitch + "rad) rotateY(" + yaw + "rad)";
+        }
+
+        function frame() {
+          raf = requestAnimationFrame(frame);
+          if (!dragging) {
+            if (Math.abs(vy) > 0.0002 || Math.abs(vx) > 0.0002) {
+              yaw += vy;
+              pitch = Math.max(-1.1, Math.min(1.1, pitch + vx));
+              vy *= 0.955;
+              vx *= 0.955;
+            } else {
+              /* The idle drift is deliberately not a spin: it turns about
+                 both axes at rates that do not divide into each other, so it
+                 never returns to the same pose and never looks like a loop. */
+              yaw += 0.0022;
+              pitch += Math.sin(performance.now() / 4200) * 0.00035;
+            }
+          }
+          draw();
+        }
+
+        stage.addEventListener("pointerdown", function (e) {
+          dragging = true;
+          lx = e.clientX;
+          ly = e.clientY;
+          vy = vx = 0;
+          stage.classList.add("is-turning");
+          if (stage.setPointerCapture) {
+            try {
+              stage.setPointerCapture(e.pointerId);
+            } catch (_) {}
+          }
+        });
+        window.addEventListener("pointermove", function (e) {
+          if (!dragging) return;
+          var dx = e.clientX - lx;
+          var dy = e.clientY - ly;
+          lx = e.clientX;
+          ly = e.clientY;
+          vy = dx * 0.006;
+          vx = -dy * 0.005;
+          yaw += vy;
+          pitch = Math.max(-1.1, Math.min(1.1, pitch + vx));
+        });
+        function end() {
+          if (!dragging) return;
+          dragging = false;
+          stage.classList.remove("is-turning");
+        }
+        window.addEventListener("pointerup", end);
+        window.addEventListener("pointercancel", end);
+
+        /* Tabbing to a face turns that face to camera, so the keyboard path
+           is not "focus something you cannot see". */
+        var poses = { f: [0, 0], r: [0, -1.5708], b: [0, 3.1416], l: [0, 1.5708], u: [-1.5708, 0], d: [1.5708, 0] };
+        Array.prototype.forEach.call(cube.querySelectorAll(".nf-face"), function (el) {
+          el.addEventListener("focus", function () {
+            var m = (el.className.match(/nf-face--([frblud])\b/) || [])[1];
+            if (!m || !poses[m]) return;
+            pitch = poses[m][0];
+            yaw = poses[m][1];
+            vy = vx = 0;
+          });
+        });
+
+        /* Paused off-screen and on a hidden tab. It is one cube, but a 404 is
+           exactly the page somebody leaves open in a background tab. */
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            if (raf) cancelAnimationFrame(raf);
+            raf = 0;
+          } else if (!raf) raf = requestAnimationFrame(frame);
+        });
+
+        draw();
+        raf = requestAnimationFrame(frame);
+      })();
+    </script>
 
     <script>
       // ── SMART 404 SUGGESTION ── if the typed path is close to a real one, surface it as a clickable hint
