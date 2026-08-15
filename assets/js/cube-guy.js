@@ -502,7 +502,17 @@
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([120, 120, 124, 255]));
-  (function () {
+  /* ── FETCHED ON FIRST TOUCH, NOT ON LOAD ────────────────────────────────
+     The skin is the model's own 4096 base colour, shipped at 2048 so the
+     revealed surface holds up on a retina display — 888KB. It is also only
+     ever visible once someone hovers him, so paying for it on every homepage
+     load would be charging every visitor for a state most of them never
+     enter. It is requested the first time the brush opens; until then the
+     reveal uses the lit clay, which is the same thing the fallback shows. */
+  var skinAsked = false;
+  function loadSkin() {
+    if (skinAsked) return;
+    skinAsked = true;
     var img = new Image();
     img.onload = function () {
       gl.bindTexture(gl.TEXTURE_2D, skinTex);
@@ -511,7 +521,7 @@
       hasSkin = 1;
     };
     img.src = (canvas.getAttribute("data-base") || "") + "/assets/models/cube-guy-albedo.jpg";
-  })();
+  }
 
   /* Material 0 is his own skin, and it is where he starts. After that every
      arrival steps to a different one — never the same twice running, which
@@ -619,6 +629,7 @@
   host.addEventListener("pointerenter", function (e) {
     if (e.pointerType === "touch") return;
     hovTarget = 1;
+    loadSkin();
     /* Advanced on the way in rather than on the way out, so the material has
        already changed by the time the brush opens. */
     texMode = (texMode + 1 + Math.floor(Math.random() * 4)) % 5;
