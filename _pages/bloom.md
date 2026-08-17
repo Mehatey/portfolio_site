@@ -199,20 +199,6 @@ next_project:
     50% { transform: scale(1.008) translateY(-3px); }
   }
 
-  /* The embedded tree is deliberately opt-in. A live iframe otherwise captures the
-     wheel as soon as a visitor crosses it, which made this one artwork feel like a
-     scroll trap. The preview remains visible; click only when you want to interact. */
-  .bloom-interactive { position: relative; background: #04070c; }
-  .bloom-interactive-toggle {
-    position: absolute; right: 16px; bottom: 16px; z-index: 2;
-    border: 0; border-bottom: 1px solid rgba(255,255,255,0.48);
-    padding: 0 0 4px; background: rgba(4,7,12,0.78);
-    color: rgba(255,255,255,0.86); font-family: var(--font-mono);
-    font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase;
-    cursor: pointer; transition: color 0.2s, border-color 0.2s;
-  }
-  .bloom-interactive-toggle:hover { color: #fff; border-color: #fff; }
-  @media (max-width: 600px) { .bloom-interactive-toggle { right: 12px; bottom: 12px; } }
 </style>
 
 <!-- OPENING: start with the identity question, then move into spatial AI -->
@@ -265,24 +251,10 @@ next_project:
   </video>
 </div>
 
-<!-- SECTION: SIT WITH IT - live in-browser AI inhabiting a 3D bodhi tree (self-contained, embedded) -->
-<div class="cs-section">
-  <h2 class="cs-section-label">Sit with it</h2>
-</div>
-
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree, alive in the browser. An AI sits inside it. Talk to it.</em></p>
-<div class="cs-bleed bloom-interactive" id="bloom-interactive" data-project-interactive style="margin-top: 12px;">
-  <iframe
-    id="bloom-tree-frame"
-    src="{{ site.baseurl }}/bloom-tree/"
-    title="Bloom: sit with the tree"
-    loading="lazy"
-    allow="autoplay"
-    tabindex="-1"
-    style="width: 100%; height: clamp(440px, 64vh, 640px); border: 0; display: block; background: #04070c; border-radius: 2px;"
-  ></iframe>
-  <button class="bloom-interactive-toggle" id="bloom-interactive-toggle" type="button" aria-pressed="false">Explore the live tree ↗</button>
-</div>
+<!-- The "Sit with it" section lived here: a live iframe of /bloom-tree/, the
+     in-browser bodhi tree, with a toggle that handed it the scroll wheel.
+     Removed at Sid's request. The /bloom-tree/ build is still on disk and
+     still reachable at its own URL; nothing on this page points at it. -->
 
 <!-- SECTION: ATTENTION IS THE INTERFACE -->
 <div class="cs-section">
@@ -396,28 +368,6 @@ next_project:
       vid.muted = !vid.muted;
       btn.classList.toggle("muted", vid.muted);
       if (!vid.muted) vid.play().catch(function () {});
-    });
-  })();
-  (function () {
-    var stage = document.getElementById("bloom-interactive");
-    var frame = document.getElementById("bloom-tree-frame");
-    var toggle = document.getElementById("bloom-interactive-toggle");
-    if (!stage || !frame || !toggle) return;
-    function setInteractive(active) {
-      stage.classList.toggle("is-active", active);
-      frame.tabIndex = active ? 0 : -1;
-      toggle.setAttribute("aria-pressed", String(active));
-      toggle.textContent = active ? "Resume page scroll ↑" : "Explore the live tree ↗";
-    }
-    toggle.addEventListener("click", function () {
-      setInteractive(!stage.classList.contains("is-active"));
-    });
-    // The page always has an immediate way back from the live experience.
-    window.addEventListener("keydown", function (event) {
-      if (event.key === "Escape" && stage.classList.contains("is-active")) {
-        setInteractive(false);
-        toggle.focus();
-      }
     });
   })();
 </script>
