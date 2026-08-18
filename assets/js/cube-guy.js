@@ -555,6 +555,17 @@
 
   /* ── the data ─────────────────────────────────────────────────────────── */
   var base = canvas.getAttribute("data-base") || "";
+  /* His own skin is the DEFAULT material, not a hover state, so it has to be
+     on its way before the first frame rather than on first pointerenter. The
+     old deferral was reasoned as "only ever visible once someone hovers him",
+     and that reasoning was simply wrong: material 0 is what he starts on.
+     Deferring it meant every visitor who never hovered saw chalk and nothing
+     else, which is the entire "i still see only gray" report.
+
+     Requested after the point fetch is issued so it queues behind the
+     geometry — the model is useless without points and merely untextured
+     without this. */
+  loadSkin();
   fetch(base + "/assets/models/cube-guy-points.bin")
     .then(function (r) {
       if (!r.ok) throw new Error("cube guy: " + r.status);
@@ -630,8 +641,22 @@
     if (e.pointerType === "touch") return;
     hovTarget = 1;
     loadSkin();
-    /* Advanced on the way in rather than on the way out, so the material has
-       already changed by the time the brush opens. */
+    /* ── WHY THIS NO LONGER LEAVES 0 ────────────────────────────────────────
+       Sid: "i still see only gray."
+
+       He was right and the skin had in fact never once been drawn. This line
+       used to advance by `1 + random(0..3)`, so entering ALWAYS moved off
+       material 0 — and 0 is his own painted surface. The only moment 0 was
+       ever selected was the initial page load, and at that moment loadSkin()
+       had not been called yet, so u_hasSkin was 0 and the shader's
+       `if (m < 0.5 && u_hasSkin > 0.5)` fell through to the next branch:
+       chalk. Flat grey, every time, on the one material that is actually his.
+
+       Two changes. The skin is fetched up front now (see loadSkin's call
+       beside the point data) so material 0 has something to draw, and the
+       step below is allowed to land on 0 — it just may not repeat whatever
+       was showing, which is what "vividly different each time" actually
+       asked for. */
     texMode = (texMode + 1 + Math.floor(Math.random() * 4)) % 5;
   });
   host.addEventListener("pointermove", function (e) {
