@@ -882,95 +882,138 @@
         animation-duration: 0.5s;
         animation-timing-function: var(--ease-out);
       }
-      /* Award badge.
+      /* ── THE AWARD READS AS AN AWARD LABEL ──────────────────────────────
+         Sid: "i wanted the metal shiny thing to be clipped on the top right
+         like a behance awards label we had it right earliar and in the correct
+         logo like the kyurius award logo png and the webby award logo png i
+         had given all this earliar."
 
-         It used to hang off the top edge of the hero — top: 0, square top
-         corners, the shape of a ribbon dropping out of the frame. The frame it
-         was dropping out of is under the fixed nav: the hero starts at y=64 and
-         the nav capsule bottoms out at y=72, so the badge spent its first 8px
-         underneath the navigation on every award page. Eight pixels is not a
-         collision anyone can name, which is why it survived this long — it just
-         made that corner feel wrong.
+         What it had become was a floating sticker: fully rounded, parked 20px
+         down and 36px in from the corner, with a sheen sweeping across it. A
+         thing that hovers near a corner and a thing that is fixed INTO a
+         corner say different things, and only the second one reads as a mark
+         applied to the work. So it goes back to the corner, flush on both
+         edges, and takes the Behance shape — square where it meets the frame,
+         cut on the diagonal where it leaves it.
 
-         It cannot hang from that edge, so it stops pretending to. It is a
-         sticker applied to the corner of the cover: fully rounded, clear of the
-         nav by 12px, and right-aligned to 36px — the nav capsule's own right
-         edge, not the 48px it used to sit at. Two objects anchored to the right
-         of the same screen that miss each other's line by 12px read as a
-         mistake even when nobody works out which one moved. */
+         WHY THE METAL IS THE FRAME AND NOT THE FILL
+
+         Both marks are supplied as raster plates with their backgrounds baked
+         in: Kyoorius is white on its brand blue, Webby is white on black.
+         Neither can be knocked out cleanly, and neither is ours to recolour —
+         an award mark is the awarding body's, not the site's. So the metal is
+         the bezel that holds the plate, and the sheen travels across the
+         bezel and the plate together. The logo stays exactly the logo.
+
+         ABOUT THE NAV
+
+         The hero starts at y=64 and the nav capsule bottoms out at y=72, so
+         anything flush to the hero's top edge has 8px under the navigation.
+         That is why this used to sit 20px down. The label is corner-flush now
+         and carries 11px of its own padding, so the eight pixels the nav
+         covers are the label's own margin — the mark inside never reaches
+         them. It sits below the nav in z-order deliberately: the glass should
+         pass over the metal, not the other way round. */
       .award-badge {
         position: absolute;
-        top: 20px;
-        right: 36px;
-        z-index: 10;
-        /* 96, down from 110. The asset is a saturated blue plate and it is the
-           loudest colour on any hero it appears on — it has to be, it is an
-           award mark and it is not ours to restyle. What is ours is how much
-           room it takes: at 110 it competed with the project title for the
-           first look, which inverts the point of the page. At 96 it is still
-           legible at a glance and reads as a credential rather than a banner. */
-        width: 96px;
+        top: 0;
+        right: 0;
+        z-index: 6;
+        width: 148px;
+        padding: 11px 11px 13px;
+        /* Brushed metal: light off the top-left, a bright band across the
+           middle, and a cooler foot. Five stops rather than two, because two
+           stops is a grey gradient and what makes a surface read as metal is
+           the sharp turn from light to dark partway down. */
+        background: linear-gradient(
+          148deg,
+          rgba(246, 248, 252, 0.92) 0%,
+          rgba(178, 188, 204, 0.86) 26%,
+          rgba(232, 238, 246, 0.94) 44%,
+          rgba(138, 150, 168, 0.86) 62%,
+          rgba(196, 206, 222, 0.9) 100%
+        );
+        /* The Behance corner: square into the frame, chamfered out of it. */
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.34);
         overflow: hidden;
-        border-radius: 10px;
-        box-shadow:
-          0 4px 20px rgba(0, 0, 0, 0.3),
-          0 0 0 1px rgba(255, 255, 255, 0.16);
-        transition: transform 0.5s var(--ease-out), filter 0.5s ease;
+        transition: transform 0.55s var(--ease-out), filter 0.55s ease;
         cursor: none;
       }
+      /* Pressing INTO the corner rather than lifting off it. A label that is
+         fixed to a surface cannot peel; it can only seat harder. */
       .award-badge:hover {
-        /* Lifts now rather than dropping. The 4px drop was the ribbon swinging
-           on its hanger; a sticker that is stuck to something peels up. */
-        transform: translateY(-3px) rotate(-1.5deg) scale(1.03);
-        filter: drop-shadow(0 12px 28px rgba(160, 200, 255, 0.25));
+        transform: translate(2px, -2px);
+        filter: brightness(1.06) drop-shadow(0 14px 30px rgba(170, 200, 255, 0.22));
       }
       .award-badge img {
         width: 100%;
         display: block;
-        transition: filter 0.4s ease;
+        border-radius: 3px;
+        /* The plates arrive at wildly different pixel sizes — 324px for
+           Kyoorius, 3838px for Webby — and both are ~1.76:1, so one aspect
+           box holds either without letterboxing. */
+        aspect-ratio: 1.76 / 1;
+        object-fit: cover;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
       }
-      .award-badge:hover img {
-        filter: url(#glass-refract);
-      }
-      /* Shiny light pass sweep */
+      /* The sheen crosses the bezel AND the plate, which is what sells them as
+         one object. Angled with the metal, not against it. */
       .award-badge::after {
-        content: '';
+        content: "";
         position: absolute;
-        top: 0;
-        left: -100%;
-        width: 60%;
-        height: 100%;
+        inset: 0;
+        pointer-events: none;
         background: linear-gradient(
           105deg,
-          transparent 30%,
-          rgba(255,255,255,0.3) 45%,
-          rgba(255,255,255,0.5) 50%,
-          rgba(255,255,255,0.3) 55%,
-          transparent 70%
+          transparent 34%,
+          rgba(255, 255, 255, 0.34) 47%,
+          rgba(255, 255, 255, 0.62) 50%,
+          rgba(255, 255, 255, 0.34) 53%,
+          transparent 66%
         );
-        animation: lightPass 4s ease-in-out infinite;
+        transform: translateX(-120%);
+        animation: awardSheen 5.5s ease-in-out infinite;
       }
-      @keyframes lightPass {
-        0%, 70%, 100% { left: -100%; }
-        40% { left: 150%; }
+      @keyframes awardSheen {
+        0%,
+        72%,
+        100% {
+          transform: translateX(-120%);
+        }
+        42% {
+          transform: translateX(120%);
+        }
       }
-      /* The badge had no responsive size, which is a different mistake from
-         having the wrong one. 96px against a 1440 viewport is 6.7% of the
-         width — a credential in the corner. The same 96px against a 390 phone
-         is 25%, and a 390×844 render of /mool/ shows what that costs: a
-         saturated blue plate, the loudest colour on the page, floating in the
-         empty sky above a title set at 44px, winning the first look off a
-         project it is only meant to endorse. It also stops being a sticker on
-         the corner of the cover once it is a quarter of the cover.
-
-         68px holds the same proportion it has on desktop and the mark inside
-         it still resolves — it is a silhouette and a year, not a paragraph.
-         The clearance stays 12px below the nav; only the plate shrinks. */
+      @media (prefers-reduced-motion: reduce) {
+        .award-badge::after {
+          animation: none;
+          opacity: 0.25;
+          transform: none;
+        }
+      }
+      /* On cream the metal has to darken rather than lighten, or the label
+         disappears into a pale hero. Same five-stop turn, inverted. */
+      html[data-theme="light"] .award-badge {
+        background: linear-gradient(
+          148deg,
+          rgba(252, 253, 255, 0.96) 0%,
+          rgba(158, 168, 186, 0.9) 26%,
+          rgba(238, 242, 249, 0.96) 44%,
+          rgba(120, 132, 152, 0.9) 62%,
+          rgba(180, 190, 208, 0.94) 100%
+        );
+        box-shadow: 0 10px 26px rgba(20, 26, 40, 0.26);
+      }
+      /* 148px is 10% of a 1440 viewport and reads as a credential. The same
+         148px on a 390 phone is 38% of the width, which is a banner. The plate
+         shrinks and the chamfer with it; the corner anchoring does not change,
+         because that is the part that makes it an award label. */
       @media (max-width: 600px) {
         .award-badge {
-          width: 68px;
-          right: 20px;
-          border-radius: 8px;
+          width: 96px;
+          padding: 8px 8px 10px;
+          clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px));
         }
       }
       .hero-overlay {
@@ -1635,6 +1678,28 @@
       .cs-bleed img, .cs-bleed video {
         width: 100%; height: 100%; object-fit: cover; display: block;
       }
+      /* ── NO IMAGE IS TALLER THAN THE WINDOW ──────────────────────────────
+         Sid: "a lot of pages have too much of a scroll with too many full
+         length images which dont deserve to be there."
+
+         A .cs-bleed is 16/9 by default, so on most pages this never fires.
+         Several pages release the aspect ratio so tall artwork can run at its
+         own proportions — which is right for a book spread or a poster, and
+         wrong past the point where the picture no longer fits on screen.
+         Measured at 1440x900 before this rule: an illustration at 1238x2211,
+         a Mool board at 1238x1644, a Marriott spec sheet at 1238x1580. Each
+         of those is one image you have to scroll to finish, and scrolling
+         through a single picture is the reader doing work that the layout
+         should have done.
+
+         The cap is the window itself. Anything under it is untouched;
+         anything over it comes down to fit and narrows as it does, which
+         turns a wall into a plate. svh rather than vh so a phone's collapsing
+         address bar cannot make the cap taller than the screen it names. */
+      .cs-bleed > img,
+      .cs-bleed > video {
+        max-height: 92svh;
+      }
       /* Soft edge fade — subtle top/bottom feather only */
       .cs-bleed::before {
         content: '';
@@ -1702,6 +1767,45 @@
         background:
           linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 20%),
           linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 20%);
+      }
+
+      /* ── A GRID THAT DOES NOT CROP ───────────────────────────────────────
+         Sid, about the Fairview page: "an ai chat which takes too much space
+         add it to a grid", and more generally: "a lot of pages have too much
+         of a scroll with too many full length images which dont deserve to be
+         there."
+
+         Pairing two things side by side is the fix for both, but the default
+         .cs-grid-item is a 16/9 box with object-fit: cover, which exists for
+         photographs. Every image on a page like Fairview is a screenshot of a
+         dense interface — a comparison table, an audit board, a phone-shaped
+         assistant at 0.71. Cover-cropping any of those to 16/9 removes the
+         content and leaves the frame.
+
+         So this variant lets each cell take the media's own height and fits
+         rather than fills. The vignette comes off too: it is there to seat a
+         photograph in the page, and on a white UI screenshot it reads as a
+         smudge along the top and bottom edge. Cells align to the top so a
+         short one next to a tall one does not float in the middle of its
+         column with nothing to sit on. */
+      .cs-grid--fit {
+        align-items: start;
+      }
+      .cs-grid--fit::before {
+        display: none;
+      }
+      .cs-grid--fit .cs-grid-item {
+        aspect-ratio: auto;
+        background: transparent;
+        border-radius: 6px;
+      }
+      .cs-grid--fit .cs-grid-item::before {
+        display: none;
+      }
+      .cs-grid--fit .cs-grid-item img,
+      .cs-grid--fit .cs-grid-item video {
+        height: auto;
+        object-fit: contain;
       }
 
       /* Three-up grid */
@@ -3127,7 +3231,14 @@
       .case-story .cs-bleed-full video {
         width: 100% !important;
         height: auto !important;
-        max-height: none !important;
+        /* This was `max-height: none !important`, and it is the reason the
+           window cap defined up with .cs-bleed never fired on the pages that
+           needed it most. .case-story releases the 16/9 box so tall artwork
+           can run at its own proportions, which is right; releasing it with
+           no ceiling at all is what produced a 2211px illustration, a 1644px
+           Mool board and a 1580px Marriott spec sheet on a 900px screen.
+           Same cap, stated where it can win. */
+        max-height: 92svh !important;
         object-fit: contain !important;
         display: block;
       }
@@ -4917,7 +5028,141 @@
           min-height: 44px;
         }
       }
-    </style> </head> <body data-pillar="ai"> <div class="progress-bar"><div class="progress-fill" id="progress"></div></div> <a class="skip-link" href="#main">Skip to project content</a> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-face cube-top" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect> <rect class="cube-face cube-right" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect> <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect> <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))"> <rect class="logo-eye" x="13.83" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> <rect class="logo-eye" x="20.88" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> </g> <rect class="logo-mouth" x="15.86" y="21.9" width="4.3" height="0.9" rx="0.45"></rect> <path class="logo-scan" d="M8.5 18 H27.5"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link is-active" href="/works/" aria-label="Work"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> <span aria-hidden="true"><b>Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> <span aria-hidden="true"><b>Play</b></span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="11.3" y="1.6" width="1.4" height="5" rx="0.7"></rect> <rect class="nav-pixel__ray" x="11.3" y="17.4" width="1.4" height="5" rx="0.7"></rect> <rect class="nav-pixel__ray" x="1.6" y="11.3" width="5" height="1.4" rx="0.7"></rect> <rect class="nav-pixel__ray" x="17.4" y="11.3" width="5" height="1.4" rx="0.7"></rect> <rect class="nav-pixel__spark" x="5.1" y="5.1" width="1.6" height="1.6" rx="0.8"></rect> <rect class="nav-pixel__spark" x="17.3" y="5.1" width="1.6" height="1.6" rx="0.8"></rect> <rect class="nav-pixel__spark" x="5.1" y="17.3" width="1.6" height="1.6" rx="0.8"></rect> <rect class="nav-pixel__spark" x="17.3" y="17.3" width="1.6" height="1.6" rx="0.8"></rect> <circle class="nav-pixel__ring" cx="12" cy="12" r="3.6" fill="none" stroke-width="1.4"></circle> </svg> <span aria-hidden="true"><b>Contact</b></span> </a> <a class="studio-link" href="/about/" aria-label="About"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> <span aria-hidden="true"><b>About</b></span> </a> </nav> </header> <style>
+    </style> </head> <body data-pillar="ai"> <div class="progress-bar"><div class="progress-fill" id="progress"></div></div> <div class="prules" aria-hidden="true"> <span class="prules__v prules__v--l"></span> <span class="prules__v prules__v--r"></span> <span class="prules__h prules__h--t"></span> <span class="prules__h prules__h--b"></span> <span class="prules__x prules__x--tl"></span> <span class="prules__x prules__x--tr"></span> <span class="prules__x prules__x--bl"></span> <span class="prules__x prules__x--br"></span> </div> <style>
+  .prules {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    /* Written by the script as the footer arrives. */
+    opacity: var(--pr-on, 0);
+    transition: opacity 600ms ease;
+  }
+  /* The nav capsule's own inset, so the logo's left edge sits on the line.
+     One custom property feeds all eight pieces — the verticals, the ends of
+     the horizontals and the four marks — so they cannot drift apart. */
+  .prules {
+    --pr-x: 36px;
+    --pr-t: 70px;
+    --pr-b: 92px;
+    /* 0.11, up from 0.06. On cream the frame read clearly at six percent;
+       on the near-black page it was a line you could only find if you already
+       knew where it was, which is not structure, it is a rumour of one. */
+    --pr-ink: rgba(255, 255, 255, 0.11);
+  }
+  html[data-theme="light"] .prules {
+    --pr-ink: rgba(7, 9, 15, 0.09);
+  }
+  .prules__v {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent 0, var(--pr-ink) 70px, var(--pr-ink) calc(100% - 70px), transparent 100%);
+  }
+  .prules__v--l {
+    left: var(--pr-x);
+  }
+  .prules__v--r {
+    right: var(--pr-x);
+  }
+  .prules__h {
+    position: absolute;
+    left: var(--pr-x);
+    right: var(--pr-x);
+    height: 1px;
+    background: var(--pr-ink);
+  }
+  .prules__h--t {
+    top: var(--pr-t);
+  }
+  .prules__h--b {
+    bottom: var(--pr-b);
+  }
+  /* The marks. Two 7px strokes crossing, drawn with a gradient rather than
+     two elements each, so the frame stays eight nodes. */
+  .prules__x {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background:
+      linear-gradient(to right, transparent 3px, var(--pr-ink) 3px 4px, transparent 4px),
+      linear-gradient(to bottom, transparent 3px, var(--pr-ink) 3px 4px, transparent 4px);
+  }
+  .prules__x--tl {
+    left: calc(var(--pr-x) - 3px);
+    top: calc(var(--pr-t) - 3px);
+  }
+  .prules__x--tr {
+    right: calc(var(--pr-x) - 3px);
+    top: calc(var(--pr-t) - 3px);
+  }
+  .prules__x--bl {
+    left: calc(var(--pr-x) - 3px);
+    bottom: calc(var(--pr-b) - 3px);
+  }
+  .prules__x--br {
+    right: calc(var(--pr-x) - 3px);
+    bottom: calc(var(--pr-b) - 3px);
+  }
+  /* A phone has no room to spare on either side, and the frame would sit on
+     top of the content rather than around it. */
+  @media (max-width: 760px) {
+    .prules {
+      display: none;
+    }
+  }
+</style> <script>
+  (function () {
+    "use strict";
+    var el = document.querySelector(".prules");
+    if (!el) return;
+
+    /* Fails OPEN. If nothing below runs, --pr-on is set here and the frame is
+       simply always on, which is a working page. The alternative — defaulting
+       to 0 and hoping the observer fires — is how a thing ends up invisible on
+       the one machine nobody tested. */
+    el.style.setProperty("--pr-on", "1");
+
+    /* It comes off over the footer. The wall sits in water down there and the
+       surfacing band sweeps across it; a hairline ruled over either of those
+       reads as a scratch on the glass rather than as the page's margin.
+
+       Looked up on DOMContentLoaded, not now. This include sits partway down
+       the layout and the footer is written after it, so at the moment this
+       script parses there is no footer in the document to find — the first
+       version asked for it here, got null, returned, and left the frame
+       permanently at full strength with no error to show for it. */
+    var footer = null,
+      raf = 0,
+      last = -1;
+    function read() {
+      raf = 0;
+      if (!footer) return;
+      var top = footer.getBoundingClientRect().top;
+      var vh = window.innerHeight || 1;
+      /* Full strength while the footer is still a screen away, gone by the
+         time it is a third of the way up. */
+      var on = Math.max(0, Math.min(1, (top - vh * 0.34) / (vh * 0.5)));
+      if (Math.abs(on - last) > 0.01) {
+        last = on;
+        el.style.setProperty("--pr-on", on.toFixed(3));
+      }
+    }
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(read);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    function bind() {
+      footer = document.querySelector(".wall, .surface, .site-footer, footer");
+      read();
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind);
+    else bind();
+  })();
+</script> <a class="skip-link" href="#main">Skip to project content</a> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-face cube-top" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect> <rect class="cube-face cube-right" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect> <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="3.2"></rect> <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))"> <rect class="logo-eye" x="13.83" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> <rect class="logo-eye" x="20.88" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> </g> <rect class="logo-mouth" x="15.86" y="21.9" width="4.3" height="0.9" rx="0.45"></rect> <path class="logo-scan" d="M8.5 18 H27.5"></path> </svg> <span class="studio-mark-label">Sid Mehta</span> </a> <nav class="studio-links" aria-label="Portfolio sections"> <a class="studio-link is-active" href="/works/" aria-label="Work"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> <span aria-hidden="true"><b>Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> <span aria-hidden="true"><b>Play</b></span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="11.3" y="1.6" width="1.4" height="5" rx="0.7"></rect> <rect class="nav-pixel__ray" x="11.3" y="17.4" width="1.4" height="5" rx="0.7"></rect> <rect class="nav-pixel__ray" x="1.6" y="11.3" width="5" height="1.4" rx="0.7"></rect> <rect class="nav-pixel__ray" x="17.4" y="11.3" width="5" height="1.4" rx="0.7"></rect> <rect class="nav-pixel__spark" x="5.1" y="5.1" width="1.6" height="1.6" rx="0.8"></rect> <rect class="nav-pixel__spark" x="17.3" y="5.1" width="1.6" height="1.6" rx="0.8"></rect> <rect class="nav-pixel__spark" x="5.1" y="17.3" width="1.6" height="1.6" rx="0.8"></rect> <rect class="nav-pixel__spark" x="17.3" y="17.3" width="1.6" height="1.6" rx="0.8"></rect> <circle class="nav-pixel__ring" cx="12" cy="12" r="3.6" fill="none" stroke-width="1.4"></circle> </svg> <span aria-hidden="true"><b>Contact</b></span> </a> <a class="studio-link" href="/about/" aria-label="About"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> <span aria-hidden="true"><b>About</b></span> </a> </nav> </header> <style>
   /* The hire chip is removed from the markup above. Its rules are left in
      place deliberately rather than stripped: they now match nothing, and
      deleting them by pattern is how the first attempt at this broke the

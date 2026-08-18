@@ -13290,6 +13290,140 @@
     window.addEventListener("resize", onScroll, { passive: true });
     read();
   })();
+</script> <div class="prules" aria-hidden="true"> <span class="prules__v prules__v--l"></span> <span class="prules__v prules__v--r"></span> <span class="prules__h prules__h--t"></span> <span class="prules__h prules__h--b"></span> <span class="prules__x prules__x--tl"></span> <span class="prules__x prules__x--tr"></span> <span class="prules__x prules__x--bl"></span> <span class="prules__x prules__x--br"></span> </div> <style>
+  .prules {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    /* Written by the script as the footer arrives. */
+    opacity: var(--pr-on, 0);
+    transition: opacity 600ms ease;
+  }
+  /* The nav capsule's own inset, so the logo's left edge sits on the line.
+     One custom property feeds all eight pieces — the verticals, the ends of
+     the horizontals and the four marks — so they cannot drift apart. */
+  .prules {
+    --pr-x: 36px;
+    --pr-t: 70px;
+    --pr-b: 92px;
+    /* 0.11, up from 0.06. On cream the frame read clearly at six percent;
+       on the near-black page it was a line you could only find if you already
+       knew where it was, which is not structure, it is a rumour of one. */
+    --pr-ink: rgba(255, 255, 255, 0.11);
+  }
+  html[data-theme="light"] .prules {
+    --pr-ink: rgba(7, 9, 15, 0.09);
+  }
+  .prules__v {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent 0, var(--pr-ink) 70px, var(--pr-ink) calc(100% - 70px), transparent 100%);
+  }
+  .prules__v--l {
+    left: var(--pr-x);
+  }
+  .prules__v--r {
+    right: var(--pr-x);
+  }
+  .prules__h {
+    position: absolute;
+    left: var(--pr-x);
+    right: var(--pr-x);
+    height: 1px;
+    background: var(--pr-ink);
+  }
+  .prules__h--t {
+    top: var(--pr-t);
+  }
+  .prules__h--b {
+    bottom: var(--pr-b);
+  }
+  /* The marks. Two 7px strokes crossing, drawn with a gradient rather than
+     two elements each, so the frame stays eight nodes. */
+  .prules__x {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background:
+      linear-gradient(to right, transparent 3px, var(--pr-ink) 3px 4px, transparent 4px),
+      linear-gradient(to bottom, transparent 3px, var(--pr-ink) 3px 4px, transparent 4px);
+  }
+  .prules__x--tl {
+    left: calc(var(--pr-x) - 3px);
+    top: calc(var(--pr-t) - 3px);
+  }
+  .prules__x--tr {
+    right: calc(var(--pr-x) - 3px);
+    top: calc(var(--pr-t) - 3px);
+  }
+  .prules__x--bl {
+    left: calc(var(--pr-x) - 3px);
+    bottom: calc(var(--pr-b) - 3px);
+  }
+  .prules__x--br {
+    right: calc(var(--pr-x) - 3px);
+    bottom: calc(var(--pr-b) - 3px);
+  }
+  /* A phone has no room to spare on either side, and the frame would sit on
+     top of the content rather than around it. */
+  @media (max-width: 760px) {
+    .prules {
+      display: none;
+    }
+  }
+</style> <script>
+  (function () {
+    "use strict";
+    var el = document.querySelector(".prules");
+    if (!el) return;
+
+    /* Fails OPEN. If nothing below runs, --pr-on is set here and the frame is
+       simply always on, which is a working page. The alternative — defaulting
+       to 0 and hoping the observer fires — is how a thing ends up invisible on
+       the one machine nobody tested. */
+    el.style.setProperty("--pr-on", "1");
+
+    /* It comes off over the footer. The wall sits in water down there and the
+       surfacing band sweeps across it; a hairline ruled over either of those
+       reads as a scratch on the glass rather than as the page's margin.
+
+       Looked up on DOMContentLoaded, not now. This include sits partway down
+       the layout and the footer is written after it, so at the moment this
+       script parses there is no footer in the document to find — the first
+       version asked for it here, got null, returned, and left the frame
+       permanently at full strength with no error to show for it. */
+    var footer = null,
+      raf = 0,
+      last = -1;
+    function read() {
+      raf = 0;
+      if (!footer) return;
+      var top = footer.getBoundingClientRect().top;
+      var vh = window.innerHeight || 1;
+      /* Full strength while the footer is still a screen away, gone by the
+         time it is a third of the way up. */
+      var on = Math.max(0, Math.min(1, (top - vh * 0.34) / (vh * 0.5)));
+      if (Math.abs(on - last) > 0.01) {
+        last = on;
+        el.style.setProperty("--pr-on", on.toFixed(3));
+      }
+    }
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(read);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+
+    function bind() {
+      footer = document.querySelector(".wall, .surface, .site-footer, footer");
+      read();
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind);
+    else bind();
+  })();
 </script> <div id="cube-says" data-line="Ten of these run on your GPU. Your laptop may get opinions." hidden> <p class="cube-says__text" role="status" aria-live="polite"></p> <button type="button" class="cube-says__close" aria-label="Dismiss"> <svg viewbox="0 0 12 12" aria-hidden="true"> <path d="M2 2 L10 10 M10 2 L2 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path> </svg> </button> </div> <style>
   /* Anchored to the cube's own corner: the FAB is fixed at bottom 22 / right
      22 and is 52 square, so sitting the bubble on the same baseline and
