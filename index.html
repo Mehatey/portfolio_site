@@ -4619,13 +4619,25 @@
        own centre rather than about the SVG origin. The translate below is the
        cursor drift; the blink's scaleY composes on top of it. -->
   <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))">
-    <rect class="logo-eye" x="13.7" y="14.56" width="1.56" height="4.1" rx="0.78"></rect>
-    <rect class="logo-eye" x="20.75" y="14.56" width="1.56" height="4.1" rx="0.78"></rect>
+    <rect class="logo-eye" x="13.83" y="13.9" width="1.3" height="4.8" rx="0.65"></rect>
+    <rect class="logo-eye" x="20.88" y="13.9" width="1.3" height="4.8" rx="0.65"></rect>
   </g>
 
   <!-- The mouth: one short line, deliberately not a curve. A smile would make
-       this a face; a line makes it a device that happens to have a face. -->
-  <rect class="logo-mouth" x="15.38" y="21.44" width="5.25" height="0.9" rx="0.45"></rect>
+       this a face; a line makes it a device that happens to have a face.
+
+       Sid: "make my mouth a little shorter in horizontal width and move it a
+       little bit more down... make the eyes a little longer and move them up,
+       and reduce the width of the eye a little bit."
+
+       Both marks keep their centres so the face stays symmetrical: the eyes
+       are centred on x 14.48 and 21.53 and the mouth on 18.005, which is the
+       midpoint of the pair, so width changes are applied either side of those
+       numbers rather than by moving the left edge. Eyes 1.56->1.3 wide and
+       4.1->4.8 tall with the top raised 0.66; mouth 5.25->4.3 wide, dropped
+       0.46. Taller narrower eyes set higher and a shorter mouth set lower
+       reads as more alert without turning the line into an expression. -->
+  <rect class="logo-mouth" x="15.86" y="21.9" width="4.3" height="0.9" rx="0.45"></rect>
 
   <!-- Drawn across the mark on hover — dasharray and offset are already set
        on .logo-scan in cursor_fluid.html. -->
@@ -7168,6 +7180,27 @@
     display: inline-block;
     font-variation-settings: "wght" var(--lt-base, 500);
   }
+  /* ── WORDS STAY WHOLE ──────────────────────────────────────────────────
+     Sid: "it's cameling or whatever, that canoeing where it moves to the
+     next line."
+
+     He was looking at "Most spatial and AI work de / mos beautifully and
+     falls apar / t the moment a real person u / ses it in a real room." —
+     four lines, three of them broken mid-word.
+
+     Nothing was wrong with the copy or the measure. Every character here is
+     its own inline-block, and an inline-block is a break opportunity, so the
+     browser was free to wrap between any two letters — which is precisely
+     what it did once the column got narrow enough to need a break at all.
+     The wider headings on other pages have the same bug; they simply have
+     enough room to break at a space first.
+
+     So characters are grouped into words now, and the word is what refuses
+     to break. Line breaking goes back to happening at spaces, which is where
+     the browser wanted to do it all along. */
+  [data-livetype] .lt-w {
+    white-space: nowrap;
+  }
 </style>
 <script>
   (function () {
@@ -7231,14 +7264,30 @@
         });
         if (!text) continue;
         var frag = document.createDocumentFragment();
-        for (var c = 0; c < text.length; c++) {
-          var sp = document.createElement("span");
-          sp.className = "lt-c";
-          /* A space cannot carry a weight and must not be allowed to
-             collapse once it is inside an inline-block. */
-          sp.textContent = text[c] === " " ? " " : text[c];
-          frag.appendChild(sp);
-          chars.push({ el: sp, x: 0, y: 0, w: 0, t: 0 });
+        /* Split keeping the separators, so the run alternates word, gap,
+           word. Gaps become real text nodes rather than spans: a text node
+           between two words is a break opportunity, and it is the only one
+           that should exist in the line. Inside a word every character is
+           still its own inline-block, which is what the weight effect needs,
+           and .lt-w holds them together with white-space: nowrap. */
+        var parts = text.split(/(\s+)/);
+        for (var pi = 0; pi < parts.length; pi++) {
+          var part = parts[pi];
+          if (!part) continue;
+          if (/^\s+$/.test(part)) {
+            frag.appendChild(document.createTextNode(" "));
+            continue;
+          }
+          var word = document.createElement("span");
+          word.className = "lt-w";
+          for (var c = 0; c < part.length; c++) {
+            var sp = document.createElement("span");
+            sp.className = "lt-c";
+            sp.textContent = part[c];
+            word.appendChild(sp);
+            chars.push({ el: sp, x: 0, y: 0, w: 0, t: 0 });
+          }
+          frag.appendChild(word);
         }
         node.parentNode.replaceChild(frag, node);
       }
@@ -9363,9 +9412,14 @@
 
        · it arrives OUT of the water. The pond above fades as this rises, so
          one ground hands to the other rather than cutting;
-       · a light sweeps across it once as it enters, low and raking, so the
-         objects catch it in sequence left to right the way a torch would
-         find them;
+       · it breathes. A displacement map moves the image's own pixels along a
+         slow noise field, so the wall bends the way something under water
+         bends. (A raking light sweep used to live here. It parked as a pale
+         vertical band down the right-hand side once --p settled, which read
+         as a rendering fault on the photograph — Sid spotted it and confirmed
+         there is no such mark in the source PNG. Removed rather than retuned:
+         a light painted over the picture was the wrong idea for a picture
+         that is meant to be IN something.)
        · the pointer is a torch afterwards. A soft warm pool follows the
          cursor and the wall is dim outside it, so reading the wall means
          moving over it — which is the only honest way to show something that
@@ -9390,10 +9444,36 @@
             /assets/img/room-wall-2560.webp 2560w
           " sizes="(max-width: 900px) 100vw, min(1500px, 96vw)" alt="The wall above Sid's desk: postcards, drawings, photographs, a letter, and a cube-headed figure in the middle" loading="lazy" decoding="async">
         <span class="wall__torch" aria-hidden="true"></span>
-        <span class="wall__sweep" aria-hidden="true"></span>
       </div>
     </div>
   </div>
+
+  <!-- ── THE RIPPLE ────────────────────────────────────────────────────────
+       Sid: "it should look like it's placed onto the water realistically. can
+       you add a realistic, soft ripple to it so it feels like it's breathing."
+
+       A displacement map, not an overlay. Everything laid ON this image so
+       far — the torch, the old sweep — sat above it and tinted it, and a
+       picture with light painted on top still reads as a picture with light
+       painted on top. Water does not tint what is under it, it MOVES it.
+
+       feTurbulence generates a slow fractal noise field and feDisplacementMap
+       pushes the image's own pixels along it, so the postcards themselves
+       bend. baseFrequency animates between two close values over eighteen
+       seconds, which is the breathing: too slow to watch, too present to
+       miss. Scale is 7 — enough to soften a straight pin edge, not enough to
+       turn a hundred small photographs into soup.
+
+       SMIL rather than JS because this needs no state and no rAF; the browser
+       animates the filter itself and stops when the tab is hidden. -->
+  <svg class="wall__defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="wall-ripple" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+      <feturbulence type="fractalNoise" basefrequency="0.011 0.019" numoctaves="2" seed="7" result="noise">
+        <animate attributename="baseFrequency" dur="18s" values="0.011 0.019; 0.016 0.013; 0.011 0.019" calcmode="spline" keysplines="0.4 0 0.6 1; 0.4 0 0.6 1" repeatcount="indefinite"></animate>
+      </feturbulence>
+      <fedisplacementmap in="SourceGraphic" in2="noise" scale="7" xchannelselector="R" ychannelselector="G"></fedisplacementmap>
+    </filter>
+  </svg>
 </section>
 
 <style>
@@ -9434,10 +9514,35 @@
     display: block;
     width: 100%;
     height: auto;
-    /* Dim at rest so the torch has somewhere to go. The wall is a cut-out, so
-       this darkens the objects and leaves the gaps as page. */
-    filter: brightness(calc(0.46 + var(--lit, 0) * 0.14)) saturate(0.92);
+    /* Sid: "it should be at 100% opacity and not be saturated."
+
+       It was brightness 0.46 — the wall was being held at less than half
+       strength so that a torch pool would have somewhere to travel to. That
+       is a reasonable trick for an object you want a visitor to hunt through
+       in the dark, and the wrong one for an object that is supposed to be
+       sitting IN something. Half-lit reads as a picture behind glass, not a
+       picture under water.
+
+       Full brightness now, and the saturation comes DOWN rather than up,
+       because that is what water does: it desaturates and cools what is
+       beneath it. The torch still works — it just lifts an already-lit wall
+       by a little instead of rescuing a dark one. */
+    filter: brightness(calc(1 + var(--lit, 0) * 0.06)) saturate(0.82) url(#wall-ripple);
     transition: filter 400ms ease;
+  }
+  .wall__defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+  /* A displacement map is a per-pixel filter over a 1500px image. On a
+     coarse pointer that is a phone GPU redrawing the footer of every page,
+     and the ripple is the least of what a phone is being asked for here. */
+  @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .wall__img {
+      filter: brightness(calc(1 + var(--lit, 0) * 0.06)) saturate(0.82);
+    }
   }
 
   /* THE TORCH. A soft pool at the pointer, composited so it lifts only what
@@ -9458,26 +9563,14 @@
       transparent 62%
     );
   }
-  /* THE SWEEP. One raking pass as the section arrives, driven by --p rather
-     than by a keyframe so it is tied to the scroll and not to a clock. */
-  .wall__sweep {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    opacity: calc(var(--sweep, 0) * 0.85);
-    background: linear-gradient(
-      100deg,
-      transparent calc(var(--p, 0) * 150% - 34%),
-      rgba(255, 234, 196, 0.42) calc(var(--p, 0) * 150% - 16%),
-      rgba(255, 240, 214, 0.6) calc(var(--p, 0) * 150% - 8%),
-      rgba(255, 234, 196, 0.32) calc(var(--p, 0) * 150%),
-      transparent calc(var(--p, 0) * 150% + 18%)
-    );
-  }
 
   html[data-theme="light"] .wall__img {
-    filter: brightness(calc(0.86 + var(--lit, 0) * 0.14)) saturate(0.96);
+    filter: brightness(calc(1 + var(--lit, 0) * 0.04)) saturate(0.86) url(#wall-ripple);
+  }
+  @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+    html[data-theme="light"] .wall__img {
+      filter: brightness(calc(1 + var(--lit, 0) * 0.04)) saturate(0.86);
+    }
   }
   html[data-theme="light"] .wall__torch {
     mix-blend-mode: multiply;
@@ -9506,9 +9599,6 @@
       transform: none;
       opacity: 1;
     }
-    .wall__sweep {
-      display: none;
-    }
   }
 </style>
 
@@ -9535,9 +9625,6 @@
       if (Math.abs(np - p) > 0.002) {
         p = np;
         frame.style.setProperty("--p", p.toFixed(3));
-        /* The sweep only exists during the arrival — it is a lighting cue,
-           not a permanent shine. */
-        frame.style.setProperty("--sweep", (p < 0.98 ? Math.sin(Math.min(1, p) * Math.PI) : 0).toFixed(3));
       }
       raf = 0;
     }
