@@ -309,25 +309,6 @@ title: Play · Sid Mehta
         cursor: default;
       }
       .play-grid video.is-in:hover { filter: blur(0); }
-      .play-instruction {
-        position: fixed;
-        left: 50%;
-        bottom: var(--sp-5, 24px);
-        transform: translateX(-50%);
-        z-index: 4;
-        margin: 0;
-        padding: var(--sp-2, 8px) var(--sp-4, 16px);
-        font: var(--type-micro);
-        letter-spacing: var(--track-micro);
-        text-transform: uppercase;
-        color: var(--ink-3);
-        background: color-mix(in srgb, var(--bg) 82%, transparent);
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        backdrop-filter: blur(8px);
-        transition: opacity 400ms ease;
-      }
-      .play-instruction.is-idle { opacity: 0; }
       @media (max-width: 760px) {
         .play-stage { padding: calc(var(--nav-h, 56px) + var(--sp-6, 32px)) var(--sp-4, 16px) var(--sp-8, 64px); }
         .play-grid { column-width: 150px; column-gap: var(--sp-2, 8px); }
@@ -490,7 +471,6 @@ title: Play · Sid Mehta
         .play-header { top: 78px; left: 18px; width: 205px; }
         .play-header h1 { font-size: 48px; }
         .play-header p { display: none; }
-        .play-instruction { display: none; }
         .play-caption { bottom: 54px; }
         .play-index__bar { width: 48px; }
         .play-fallback { inset: 190px 14px 62px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
@@ -500,7 +480,6 @@ title: Play · Sid Mehta
       }
       @media (prefers-reduced-motion: reduce) {
         .play-skeleton i { animation: none; opacity: 0.5; }
-        .play-instruction { display: none; }
         .play-caption, .play-index__bar::after, .play-lightbox, .play-lightbox button { transition-duration: 1ms !important; }
       }
     </style>
@@ -535,7 +514,13 @@ title: Play · Sid Mehta
 
       <div class="play-grid" id="play-grid" aria-label="Play archive"></div>
 
-      <p class="play-instruction" id="play-instruction">Scrolling on its own · scroll to take over · click any piece to open it</p>
+      <!-- The instruction line lived here: "scrolling on its own · scroll to
+           take over · click any piece to open it". Removed at Sid's request.
+           It narrated three things the page already demonstrates the instant
+           you arrive: it is visibly drifting, it stops the moment you touch
+           the wheel, and a grid of artwork is self-evidently clickable.
+           Telling someone what they are already watching is the same narrator
+           voice being cut everywhere else on this site. -->
       <ul class="sr-only" id="play-access-list" aria-label="Play pieces"></ul>
     </main>
 
@@ -969,7 +954,6 @@ title: Play · Sid Mehta
           if (reduced) return;
           var SPEED = 22;
           var RESUME_MS = 4000;
-          var hint = document.getElementById("play-instruction");
           var last = 0, idle = 0, auto = true, returning = false;
           /* The drift position is kept as a float here and only handed to
              scrollTo. Reading window.scrollY back each frame and adding to it
@@ -1015,7 +999,6 @@ title: Play · Sid Mehta
             returning = false;
             idle = performance.now();
             pos = window.scrollY;
-            if (hint) hint.classList.remove("is-idle");
           }
           ["wheel", "touchstart", "pointerdown", "keydown"].forEach(function (ev) {
             window.addEventListener(ev, interrupt, { passive: true });
@@ -1027,7 +1010,7 @@ title: Play · Sid Mehta
             last = now;
             if (document.hidden) return;
             if (!auto) {
-              if (now - idle > RESUME_MS) { auto = true; if (hint) hint.classList.add("is-idle"); }
+              if (now - idle > RESUME_MS) { auto = true; }
               return;
             }
             /* The drift is a tour of the pictures, so it ends where the
@@ -1056,7 +1039,6 @@ title: Play · Sid Mehta
             jump(pos);
           }
           requestAnimationFrame(tick);
-          if (hint) setTimeout(function () { hint.classList.add("is-idle"); }, 5200);
         })();
       })();
     </script>
