@@ -694,7 +694,24 @@
         --wk-gap: clamp(18px, 2.2vw, 34px);
         --wk-ink: var(--ink-page);
         --wk-muted: rgba(236, 241, 247, 0.62);
-        --wk-faint: rgba(236, 241, 247, 0.42);
+        /* ── 0.42 WAS BELOW THIS SITE'S OWN FLOOR ─────────────────────────
+           Measured on the live page: every use of --wk-faint is 10 or 11px
+           mono, and at 0.42 "16 PROJECTS" in the header was effectively
+           invisible against the ground — a count nobody could read.
+
+           The token ladder in design_tokens.html is explicit about which
+           step is for what: ink-3 at 0.64 is "captions, meta", ink-4 at 0.44
+           is "eyebrows, disabled, DECORATIVE". All four things wearing
+           --wk-faint are meta, not decoration — the project count, the year,
+           the discipline tags and the footer line. They are the facts a
+           recruiter scans. They were categorised one step too quiet and then
+           set two hundredths below even that step.
+
+           Raised to the ladder's meta level. The distinction --wk-faint used
+           to draw against --wk-muted was two hundredths of an alpha, which
+           is not a hierarchy anyone can see; keeping both names would just
+           preserve the mistake under a different number. */
+        --wk-faint: rgba(236, 241, 247, 0.62);
         --wk-hair: rgba(236, 241, 247, 0.14);
         width: min(1560px, 100% - clamp(28px, 5vw, 96px));
         margin: 0 auto;
@@ -704,7 +721,7 @@
       html[data-theme="light"] .wk {
         --wk-ink: #14161b;
         --wk-muted: rgba(20, 22, 27, 0.66);
-        --wk-faint: rgba(20, 22, 27, 0.46);
+        --wk-faint: rgba(20, 22, 27, 0.66);
         --wk-hair: rgba(20, 22, 27, 0.16);
       }
 
@@ -1404,12 +1421,32 @@
      touch stronger at the top than black does: a dark wordmark passing
      under a pale veil keeps more of its contrast than a light one passing
      under a dark veil, so 0.90 here does roughly the work 0.86 does above. */
+  /* ── THE SCRIM HAS TO OUTLAST THE NAV ROW ──────────────────────────────
+     Sid: "the nav bar and the logo and images and text and buttons become
+     invisible or washed out."
+
+     Reproduced by scrolling a dark project card up under the nav in light
+     mode: Play, Contact and About are dark ink, and by their baseline this
+     gradient had already thinned to about 0.5 — half-cream over a dark
+     photograph is a mid-grey, and dark ink on mid-grey is the washout he is
+     describing. On a pale card nothing looked wrong, which is why it
+     survived; the failure only exists over dark art.
+
+     The stops move rather than the colours. Full strength is held to 52%,
+     which is past the bottom of the nav row at every breakpoint, and the
+     fade happens in the empty band below it. The scrim is the same height
+     and still invisible at its own edge — it just stops fading out from
+     underneath the thing it exists to support.
+
+     Dark mode does not need the same change: its ink is light and its scrim
+     is dark, so the equivalent failure needs a very bright image under the
+     nav, and the pages that have one keep it below the fold. */
   html[data-theme="light"] .studio-nav::before {
     background: linear-gradient(
       180deg,
-      rgba(244, 241, 235, 0.9) 0%,
-      rgba(244, 241, 235, 0.72) 34%,
-      rgba(244, 241, 235, 0.34) 64%,
+      rgba(244, 241, 235, 0.94) 0%,
+      rgba(244, 241, 235, 0.92) 52%,
+      rgba(244, 241, 235, 0.52) 76%,
       rgba(244, 241, 235, 0) 100%
     );
   }
@@ -7692,6 +7729,27 @@
     border-color: rgba(0, 0, 0, 0.1);
     color: #07090f;
   }
+  /* ── THE CUBE BUTTON WAS INVISIBLE ON CREAM ─────────────────────────────
+     Sid: "the nav bar and the logo and images and text and buttons become
+     invisible or washed out."
+
+     Measured in both themes, the fab's icon came back rgba(180, 220, 255,
+     0.92) in BOTH: `#cube-chat-fab svg { color: ... }` had no light
+     counterpart, and being a rule on the svg it outranked the `color:
+     #07090f` the rule above sets on the button. Pale blue over cream is
+     about 1.15:1 — the mark was simply not there.
+
+     Flipping the colour alone is not enough. The cube's outline AND its two
+     eyes are both currentColor, while the front face is a hardcoded dark
+     rect: make the strokes dark and the eyes vanish into the face instead.
+     So the face flips too, and the mark reads the way it does on black —
+     light face, dark features, dark edge. */
+  html[data-theme="light"] #cube-chat-fab svg {
+    color: #0a1727;
+  }
+  html[data-theme="light"] #cube-chat-fab .fab-face {
+    fill: rgba(255, 255, 255, 0.72);
+  }
   /* Cmd+K palette */
   html[data-theme="light"] .cmdk-panel {
     background: rgba(255, 255, 255, 0.96);
@@ -11176,7 +11234,7 @@
       el.classList.add("motion-press");
     });
   })();
-</script> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" title="Close">✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
+</script> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" title="Chat with Sid's cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect class="fab-face" x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" title="Close">✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
   // ── CUBE CHAT ── canned conversational agent (Sid's cube as host)
   (function () {
     var fab = document.getElementById("cube-chat-fab");
