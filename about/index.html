@@ -932,11 +932,21 @@
         aspect-ratio: 4 / 5;
         min-height: 0;
         overflow: hidden;
-        border-radius: 26px;
-        background:
-          radial-gradient(260px 180px at 28% 0%, rgba(255, 255, 255, 0.2), transparent 68%),
-          linear-gradient(135deg, rgba(222, 242, 255, 0.18), rgba(11, 14, 22, 0.52));
-        border: 1px solid rgba(220, 240, 255, 0.3);
+        /* ── NOT A CARD ────────────────────────────────────────────────────
+           Sid: "the card looks way too basic, like a Figma UI card."
+
+           He is describing three properties, and they are exactly the three
+           that define the default component in every design tool: a 26px
+           radius, a 1px light border, and a glass fill. Any photograph put
+           inside that reads as an avatar in a UI, whatever the photograph is.
+
+           So the frame stops competing. The radius drops to 4px, which is a
+           print edge rather than a component; the border goes; the glass fill
+           goes with it. What is left is the picture, on the page, with a
+           depth shadow underneath it — and the treatment moves onto the
+           IMAGE instead, where it belongs: see .about-photo below. */
+        border-radius: 4px;
+        background: #0a0e14;
         /* No backdrop-filter here. It used to carry blur(18px) saturate(1.22),
            which sounds right for a glass card and does nothing at all in
            practice: a blur can only show itself where there is high-frequency
@@ -980,6 +990,22 @@
         mix-blend-mode: screen;
         opacity: 0.64;
       }
+      /* ── THE TREATMENT IS ON THE PICTURE ───────────────────────────────
+         Sid: "can you make it look better, maybe with some other shader or
+         some other way of showing it, or some animation? we really need to
+         look at animations, micro interactions."
+
+         At rest the photograph is cooled and pulled back — desaturated, a
+         touch darker, slightly contrast-lifted, so it sits in the same water
+         the rest of the site is standing in. Hovering warms it back to full
+         colour over three quarters of a second. So the interaction is not a
+         card lighting up; it is a person coming into focus, which is the one
+         gesture that means anything on a page called About.
+
+         It breathes at rest as well: an eighteen-second scale drift of about
+         a percent and a half, the same slow clock as the footer wall's
+         ripple, so the frame is never quite still without ever visibly
+         moving. */
       .about-photo {
         width: 100%;
         height: 100%;
@@ -989,7 +1015,52 @@
         position: absolute;
         inset: 0;
         opacity: 0;
-        transition: opacity 0.6s ease;
+        filter: saturate(0.62) contrast(1.06) brightness(0.9);
+        transform: scale(1.02);
+        transition:
+          opacity 0.6s ease,
+          filter 0.75s var(--ease-out),
+          transform 0.9s var(--ease-out);
+      }
+      .about-photo.active {
+        opacity: 1;
+        position: relative;
+        animation: about-photo-breathe 18s ease-in-out infinite;
+      }
+      .about-profile-card:hover .about-photo,
+      .about-profile-card:focus-visible .about-photo {
+        filter: saturate(1.04) contrast(1) brightness(1);
+        transform: scale(1.045);
+        animation-play-state: paused;
+      }
+      @keyframes about-photo-breathe {
+        0%,
+        100% {
+          transform: scale(1.02);
+        }
+        50% {
+          transform: scale(1.035);
+        }
+      }
+      /* A grain plate over the picture, not over the frame. It is what stops
+         a large flat photograph on a near-black page reading as a sticker —
+         the same reason the rest of the site has texture in it. */
+      .about-profile-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0.16;
+        mix-blend-mode: overlay;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-photo,
+        .about-photo.active {
+          animation: none;
+          transform: none;
+        }
       }
       .about-photo.active {
         opacity: 1;
