@@ -46,6 +46,10 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        transition:
+          opacity 700ms ease,
+          filter 700ms ease,
+          transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       #after,
       #after2 {
@@ -209,7 +213,7 @@
         background: linear-gradient(to top, rgba(8, 8, 10, 0.92), rgba(8, 8, 10, 0));
       }
       #chips {
-        display: flex;
+        display: none;
         gap: 8px;
         flex-wrap: nowrap;
         justify-content: center;
@@ -247,6 +251,17 @@
         align-items: center;
         gap: 14px;
         width: min(760px, 94vw);
+      }
+      body:not(.orbit-mode) #bar {
+        width: auto;
+      }
+      body:not(.orbit-mode) #prompt,
+      body:not(.orbit-mode) #tools {
+        display: none;
+      }
+      body:not(.orbit-mode) #go {
+        min-width: 156px;
+        padding: 16px 30px;
       }
       #prompt {
         flex: 1;
@@ -308,6 +323,10 @@
         min-height: 20px;
       }
       #tools .act {
+        background: none;
+        border: 0;
+        padding: 0;
+        font: inherit;
         cursor: pointer;
         color: var(--ink);
         opacity: 0.7;
@@ -332,23 +351,65 @@
         accent-color: var(--accent);
       }
       #loader {
-        width: min(720px, 94vw);
-        height: 3px;
-        border-radius: 999px;
-        overflow: hidden;
-        background: rgba(244, 241, 234, 0.09);
+        position: fixed;
+        left: 50%;
+        top: calc(47% + clamp(54px, 8vh, 82px));
+        transform: translateX(-50%);
+        z-index: 4;
+        width: min(420px, 62vw);
+        display: grid;
+        gap: 9px;
         opacity: 0;
         transition: opacity 250ms ease;
+        pointer-events: none;
       }
       #loader.on {
         opacity: 1;
       }
+      #loadertrack {
+        height: 2px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(244, 241, 234, 0.12);
+      }
       #loaderfill {
         height: 100%;
         width: 0%;
-        border-radius: inherit;
+        border-radius: 999px;
         background: var(--accent);
-        transition: width 220ms ease;
+        box-shadow: 0 0 18px rgba(244, 241, 234, 0.55);
+        transition: width 320ms cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      #loader.indeterminate #loaderfill {
+        width: 30%;
+        animation: loader-scan 1.35s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+      }
+      #loadermeta {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        color: rgba(244, 241, 234, 0.64);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        line-height: 1;
+        text-transform: lowercase;
+        text-shadow: 0 2px 12px #000;
+      }
+      #loaderelapsed {
+        color: rgba(244, 241, 234, 0.42);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      @keyframes loader-scan {
+        0% {
+          transform: translateX(-115%) scaleX(0.55);
+        }
+        52% {
+          transform: translateX(120%) scaleX(1);
+        }
+        100% {
+          transform: translateX(335%) scaleX(0.65);
+        }
       }
 
       /* ── status ── */
@@ -515,6 +576,207 @@
         }
       }
 
+      /* ── 3D guise orbit ── */
+      #orbit-shell {
+        position: fixed;
+        inset: 0 0 150px;
+        z-index: 2;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 700ms ease;
+      }
+      body.orbit-mode #orbit-shell {
+        opacity: 1;
+      }
+      body.orbit-mode #stage {
+        opacity: 0.12;
+        filter: blur(18px);
+        transform: scale(1.04);
+      }
+      #orbit {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        outline: none;
+        cursor: grab;
+        touch-action: none;
+        transition: opacity 600ms ease;
+      }
+      #orbit.on {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      #orbit.dragging {
+        cursor: grabbing;
+      }
+      #orbit:focus-visible {
+        outline: 1px solid rgba(244, 241, 234, 0.62);
+        outline-offset: -12px;
+      }
+      #orbitlabels {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      body:not(.orbit-fallback) #orbitlabels {
+        display: none;
+      }
+      .orbit-tag {
+        border: 0;
+        background: #111216;
+        color: var(--ink);
+        cursor: pointer;
+      }
+      #orbitmeta {
+        display: none;
+      }
+      #orbitnav {
+        position: absolute;
+        left: 50%;
+        bottom: 14px;
+        z-index: 3;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        opacity: 0;
+        transform: translate(-50%, 8px);
+        pointer-events: none;
+        transition:
+          opacity 360ms ease,
+          transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      body.orbit-mode #orbitnav {
+        opacity: 1;
+        transform: translate(-50%, 0);
+        pointer-events: auto;
+      }
+      #orbitnav button {
+        width: 38px;
+        height: 38px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(244, 241, 234, 0.08);
+        color: rgba(244, 241, 234, 0.76);
+        font-size: 18px;
+        cursor: pointer;
+        transition:
+          background 180ms ease,
+          color 180ms ease;
+      }
+      #orbitnav button:hover,
+      #orbitnav button:focus-visible {
+        background: rgba(244, 241, 234, 0.16);
+        color: var(--ink);
+        outline: 1px solid rgba(244, 241, 234, 0.6);
+        outline-offset: 3px;
+      }
+      #orbitname {
+        min-width: min(240px, 46vw);
+        color: rgba(244, 241, 234, 0.82);
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        text-align: center;
+        text-transform: lowercase;
+      }
+      body.orbit-mode #chips {
+        display: none;
+      }
+      body.orbit-mode #loader {
+        top: clamp(28px, 5vh, 48px);
+        width: min(340px, 50vw);
+      }
+      body.orbit-mode #guise {
+        display: none;
+      }
+      body.orbit-mode #youwrap {
+        left: clamp(12px, 2vw, 28px);
+        top: clamp(12px, 2vw, 28px);
+        width: clamp(52px, 5vw, 72px);
+        aspect-ratio: 1;
+        border-radius: 50%;
+        transform: none;
+        animation: none;
+        opacity: 0.3;
+        filter: grayscale(1) contrast(0.9);
+        transition:
+          opacity 220ms ease,
+          filter 220ms ease;
+      }
+      body.orbit-mode #youwrap:hover {
+        opacity: 0.72;
+        filter: grayscale(0.25);
+      }
+      body.orbit-mode #shottag {
+        display: none;
+      }
+
+      .orbit-fallback #orbit {
+        display: none;
+      }
+      .orbit-fallback #orbitlabels {
+        inset: 72px clamp(16px, 4vw, 56px) 180px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        overflow: auto;
+        pointer-events: auto;
+      }
+      .orbit-fallback .orbit-tag {
+        position: relative;
+        min-width: 0;
+        min-height: 180px;
+        align-content: end;
+        border-radius: 20px;
+        background-position: center;
+        background-size: cover;
+        transform: none !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        display: grid;
+        gap: 4px;
+        padding: 12px;
+      }
+
+      @media (max-width: 720px) {
+        #orbit-shell {
+          bottom: 162px;
+        }
+        #orbitnav {
+          bottom: 8px;
+          gap: 10px;
+        }
+        #orbitnav button {
+          width: 34px;
+          height: 34px;
+        }
+        #dock {
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+        #bar {
+          gap: 8px;
+        }
+        #prompt {
+          min-width: 0;
+          padding-right: 14px;
+          padding-left: 14px;
+        }
+        #go {
+          padding-right: 18px;
+          padding-left: 18px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #orbit-shell,
+        #orbit,
+        .orbit-tag {
+          transition-duration: 1ms;
+        }
+      }
+
       /* ── begin gate ── */
       #begin {
         position: fixed;
@@ -603,6 +865,16 @@
       <div id="vignette"></div>
     </div>
 
+    <section id="orbit-shell" aria-label="Generated guise orbit">
+      <canvas id="orbit" tabindex="0" aria-label="Drag, scroll, or use arrow keys to explore generated styles"></canvas>
+      <div id="orbitlabels" aria-live="polite"></div>
+      <div id="orbitnav" aria-label="Browse generated styles">
+        <button id="orbitprev" type="button" aria-label="Previous style">←</button>
+        <span id="orbitname" aria-live="polite">viking warrior</span>
+        <button id="orbitnext" type="button" aria-label="Next style">→</button>
+      </div>
+    </section>
+
     <div id="guise"></div>
 
     <div id="youwrap">
@@ -617,17 +889,24 @@
     <div id="sweep"></div>
     <div id="status"></div>
     <div id="story"></div>
+    <div id="loader" role="progressbar" aria-label="Creating transformation" aria-valuemin="0" aria-valuemax="100">
+      <div id="loadertrack"><div id="loaderfill"></div></div>
+      <div id="loadermeta">
+        <span id="loaderstage">preparing</span>
+        <span id="loaderelapsed">0:00 elapsed</span>
+      </div>
+    </div>
 
     <div id="dock">
       <div id="chips"></div>
       <div id="bar">
-        <input id="prompt" type="text" placeholder="type anything to become, then enter" autocomplete="off" />
-        <button id="go">become</button>
+        <input id="prompt" type="text" placeholder="add another guise" autocomplete="off" />
+        <button id="go">take a pic</button>
       </div>
-      <div id="loader"><div id="loaderfill"></div></div>
       <div id="tools">
         <span class="slider">keep me <input id="strength" type="range" min="0" max="100" value="70" /> go wild</span>
-        <span class="act off" id="download">download</span>
+        <button type="button" class="act off" id="retake">retake</button>
+        <button type="button" class="act off" id="download">download</button>
       </div>
     </div>
 
@@ -635,7 +914,7 @@
 
     <div id="begin">
       <h1>guise</h1>
-      <p>a camera-led AI transformation study. type a world, a character, a material. it keeps your pose and remakes the rest.</p>
+      <p>one camera snap, ten alternate selves. build a living orbit of worlds, characters, and materials around your pose.</p>
       <button id="beginbtn">begin</button>
       <div id="beginstatus" aria-live="polite"></div>
       <p id="service-note" hidden>
@@ -643,8 +922,12 @@
       </p>
     </div>
 
+    <script src="./orbit.js"></script>
     <script>
-      const PROXY = location.hostname === "localhost" || location.hostname === "127.0.0.1" ? "http://localhost:8011" : `${location.origin}/guise-api`;
+      const PROXY =
+        location.hostname === "localhost" || location.hostname === "127.0.0.1"
+          ? "http://localhost:8011"
+          : "https://guise-api.mehta-sidhu.workers.dev";
       const QUALITY = "photorealistic, cinematic lighting, sharp focus, rich detail, 35mm";
 
       const PRESETS = [
@@ -733,14 +1016,24 @@
         ],
       };
 
+      function storySubject(label) {
+        return label
+          .trim()
+          .toLowerCase()
+          .replace(/^(please\s+)?(make|turn|transform)\s+me\s+(into\s+)?/, "")
+          .replace(/^become\s+/, "")
+          .slice(0, 72);
+      }
+
       function storyLines(label) {
+        const subject = storySubject(label) || "something new";
         return (
           PRESET_STORIES[label] || [
-            "the machine is studying your edges",
-            `dissolving what you were`,
-            "the image is learning to forget itself",
-            "something new is remembering your shape",
-            "almost",
+            `${subject} is looking for a way into the frame`,
+            `your silhouette is teaching ${subject} how to move`,
+            `light is making room for ${subject}`,
+            "the old image is letting go",
+            `hold still. ${subject} is almost here`,
           ]
         );
       }
@@ -812,11 +1105,19 @@
       const go = document.getElementById("go");
       const countdownEl = document.getElementById("countdown");
       const statusEl = document.getElementById("status");
+      const orbitCanvas = document.getElementById("orbit");
+      const orbitLabels = document.getElementById("orbitlabels");
+      const orbitNameEl = document.getElementById("orbitname");
+      const orbitPrevEl = document.getElementById("orbitprev");
+      const orbitNextEl = document.getElementById("orbitnext");
       const loaderEl = document.getElementById("loader");
       const loaderFill = document.getElementById("loaderfill");
+      const loaderStageEl = document.getElementById("loaderstage");
+      const loaderElapsedEl = document.getElementById("loaderelapsed");
       const storyEl = document.getElementById("story");
       const guiseEl = document.getElementById("guise");
       const strengthEl = document.getElementById("strength");
+      const retakeEl = document.getElementById("retake");
       const downloadEl = document.getElementById("download");
       const beginEl = document.getElementById("begin");
       const beginBtn = document.getElementById("beginbtn");
@@ -826,27 +1127,57 @@
       const sweepEl = document.getElementById("sweep");
 
       const cap = document.createElement("canvas");
-      const capx = cap.getContext("2d");
+      const capx = cap.getContext("2d", { willReadFrequently: true });
 
       let busy = false,
         front = 0,
         lastUrl = null,
         lastFreeze = null,
         ready = false;
-      let progressFrame = null,
+      let loaderTimer = null,
+        loaderHideTimer = null,
+        loaderStartedAt = 0,
         storyToken = 0;
+      let orbitItems = [],
+        generationQueue = [],
+        activeGenerations = 0,
+        orbitCaption = "",
+        orbitSession = 0,
+        selectedOrbitId = null,
+        orbitIdCounter = 0;
+
+      const orbit = window.GuiseOrbit.create({
+        canvas: orbitCanvas,
+        labels: orbitLabels,
+        onSelect: (item) => {
+          selectedOrbitId = item.id;
+          orbitNameEl.textContent = item.label;
+          guiseEl.textContent = item.label;
+          guiseEl.classList.add("on");
+          lastUrl = item.state === "ready" ? item.url : null;
+          downloadEl.classList.toggle("off", !lastUrl);
+          if (item.state === "failed") retryOrbitItem(item);
+        },
+      });
+      orbitPrevEl.addEventListener("click", () => {
+        playClick();
+        orbit.step(-1);
+      });
+      orbitNextEl.addEventListener("click", () => {
+        playClick();
+        orbit.step(1);
+      });
 
       // chips
       for (const [label, full] of PRESETS) {
-        const b = document.createElement("div");
+        const b = document.createElement("button");
+        b.type = "button";
         b.className = "chip";
         b.textContent = label;
         b.addEventListener("click", () => {
           playClick();
-          if (!busy) {
-            promptEl.value = label;
-            run(label, full);
-          }
+          promptEl.value = label;
+          run(label, full);
         });
         chipsEl.appendChild(b);
       }
@@ -854,31 +1185,50 @@
       function status(main, seen) {
         statusEl.innerHTML = main ? `<div><span class="dot"></span>${main}</div>` + (seen ? `<div class="seen">${seen}</div>` : "") : "";
         statusEl.classList.toggle("on", !!main);
-        loaderEl.classList.toggle("on", !!main);
       }
 
-      function startProgress(seconds = 22) {
-        cancelAnimationFrame(progressFrame);
-        const start = performance.now();
-        loaderFill.style.width = "4%";
-        const tick = (now) => {
-          const raw = Math.min((now - start) / (seconds * 1000), 1);
-          const eased = 1 - Math.pow(1 - raw, 2.2);
-          loaderFill.style.width = `${Math.min(94, 6 + eased * 88)}%`;
-          if (raw < 1 && busy) progressFrame = requestAnimationFrame(tick);
-        };
-        progressFrame = requestAnimationFrame(tick);
+      function elapsedLabel(seconds) {
+        const whole = Math.max(0, Math.floor(seconds));
+        return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")} elapsed`;
       }
 
-      function finishProgress() {
-        cancelAnimationFrame(progressFrame);
-        loaderFill.style.width = "100%";
+      function setLoaderPhase(label, { progress = null, indeterminate = false } = {}) {
+        loaderEl.classList.add("on");
+        loaderEl.classList.toggle("indeterminate", indeterminate);
+        loaderStageEl.textContent = label;
+        loaderEl.setAttribute("aria-valuetext", label);
+        if (indeterminate || progress === null) {
+          loaderEl.removeAttribute("aria-valuenow");
+        } else {
+          loaderFill.style.width = `${progress}%`;
+          loaderEl.setAttribute("aria-valuenow", String(progress));
+        }
       }
-      function clearProgress() {
-        cancelAnimationFrame(progressFrame);
-        setTimeout(() => {
-          if (!busy) loaderFill.style.width = "0%";
-        }, 260);
+
+      function startLoader(label) {
+        clearInterval(loaderTimer);
+        clearTimeout(loaderHideTimer);
+        loaderStartedAt = performance.now();
+        loaderElapsedEl.textContent = "0:00 elapsed";
+        loaderTimer = setInterval(() => {
+          loaderElapsedEl.textContent = elapsedLabel((performance.now() - loaderStartedAt) / 1000);
+        }, 250);
+        setLoaderPhase(label, { progress: 8 });
+      }
+
+      function finishLoader() {
+        setLoaderPhase("ready", { progress: 100 });
+      }
+
+      function clearLoader() {
+        clearInterval(loaderTimer);
+        loaderTimer = null;
+        clearTimeout(loaderHideTimer);
+        loaderHideTimer = setTimeout(() => {
+          loaderEl.classList.remove("on", "indeterminate");
+          loaderFill.style.width = "0%";
+          loaderEl.removeAttribute("aria-valuenow");
+        }, 500);
       }
 
       async function startStory(lines) {
@@ -1061,44 +1411,221 @@
         return r.json();
       }
 
-      async function run(label, full) {
+      function makeOrbitItem(label, full) {
+        const slug = label
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        return {
+          id: `${slug || "guise"}-${orbitSession}-${orbitIdCounter++}`,
+          label,
+          full,
+          state: "waiting",
+          url: null,
+          inFlight: false,
+          queued: false,
+        };
+      }
+
+      function setOrbitItemState(item, state, extra = {}) {
+        Object.assign(item, { state, ...extra });
+        orbit.update(item.id, { state: item.state, url: item.url });
+        if (selectedOrbitId === item.id) {
+          lastUrl = item.state === "ready" ? item.url : null;
+          downloadEl.classList.toggle("off", !lastUrl);
+        }
+        updateOrbitProgress();
+      }
+
+      function updateOrbitProgress() {
+        const total = orbitItems.length;
+        const readyItems = orbitItems.filter((item) => item.state === "ready").length;
+        const failedItems = orbitItems.filter((item) => item.state === "failed").length;
+        const finished = readyItems + failedItems;
+        if (!total) return;
+        if (finished < total || activeGenerations || generationQueue.length) {
+          setLoaderPhase("building orbit", {
+            progress: Math.round((finished / total) * 100),
+          });
+          retakeEl.classList.add("off");
+        } else {
+          setLoaderPhase("orbit ready", { progress: 100 });
+          stopStory();
+          retakeEl.classList.remove("off");
+          const session = orbitSession;
+          setTimeout(() => {
+            if (session === orbitSession && !activeGenerations && !generationQueue.length) {
+              clearLoader();
+            }
+          }, 1400);
+        }
+      }
+
+      async function pollTransform(item, body, session) {
+        const started = await post("/transform/start", body);
+        if (!started.ok || !started.job_id) throw new Error(started.error || "transform could not start");
+        while (session === orbitSession) {
+          const response = await fetch(`${PROXY}/transform/status?id=${encodeURIComponent(started.job_id)}`);
+          const job = await response.json();
+          if (!job.ok) throw new Error(job.error || "transform status failed");
+          if (job.stage === "preparing" || job.stage === "uploading") {
+            setOrbitItemState(item, "uploading");
+          } else if (job.stage === "queued") {
+            setOrbitItemState(item, job.queue_position ? `queue ${job.queue_position}` : "queued");
+          } else if (job.stage === "processing") {
+            setOrbitItemState(item, "forming");
+          } else if (job.stage === "finalizing") {
+            setOrbitItemState(item, "finishing");
+          } else if (job.stage === "complete") {
+            return job;
+          } else if (job.stage === "error") {
+            throw new Error(job.error || "transform failed");
+          }
+          await new Promise((resolve) => setTimeout(resolve, 650));
+        }
+        throw new Error("orbit replaced");
+      }
+
+      async function generateOrbitItem(item) {
+        const session = orbitSession;
+        activeGenerations++;
+        item.inFlight = true;
+        item.queued = false;
+        setOrbitItemState(item, "uploading");
+        try {
+          const control = 1.0 - (strengthEl.value / 100) * 0.4;
+          const result = await pollTransform(
+            item,
+            {
+              prompt: buildPrompt(orbitCaption, item.full),
+              image_data_url: lastFreeze,
+              control,
+            },
+            session
+          );
+          if (session !== orbitSession) return;
+          setOrbitItemState(item, "ready", { url: result.url });
+          playTone(392 + (orbitItems.indexOf(item) % 4) * 74, 0.5, "sine", 0.045);
+          const readyItems = orbitItems.filter((entry) => entry.state === "ready").length;
+          if (readyItems === 1) {
+            stopStory();
+          }
+        } catch (error) {
+          if (session === orbitSession) setOrbitItemState(item, "failed", { error: error.message });
+        } finally {
+          item.inFlight = false;
+          activeGenerations = Math.max(0, activeGenerations - 1);
+          updateOrbitProgress();
+          pumpGenerationQueue();
+        }
+      }
+
+      function pumpGenerationQueue() {
+        while (activeGenerations < 3 && generationQueue.length) {
+          const item = generationQueue.shift();
+          if (!item || item.inFlight || item.state === "ready") continue;
+          generateOrbitItem(item);
+        }
+      }
+
+      function queueOrbitItem(item, priority = false) {
+        if (item.inFlight || item.queued || item.state === "ready") return;
+        item.queued = true;
+        item.state = "waiting";
+        orbit.update(item.id, { state: "waiting" });
+        if (priority) generationQueue.unshift(item);
+        else generationQueue.push(item);
+        updateOrbitProgress();
+        pumpGenerationQueue();
+      }
+
+      function retryOrbitItem(item) {
+        if (!item || item.state !== "failed") return;
+        if (!activeGenerations && !generationQueue.length) startLoader("retrying a guise");
+        retakeEl.classList.add("off");
+        queueOrbitItem(item, true);
+      }
+
+      function addOrbitStyle(label, full) {
+        const existing = orbitItems.find((item) => item.label.toLowerCase() === label.toLowerCase());
+        if (existing) {
+          orbit.select(existing.id, true);
+          if (existing.state === "failed") retryOrbitItem(existing);
+          return;
+        }
+        const item = makeOrbitItem(label, full);
+        orbitItems.push(item);
+        orbit.add(item);
+        startLoader("adding a new guise");
+        queueOrbitItem(item, true);
+        orbit.select(item.id, true);
+      }
+
+      async function startOrbit(label, full) {
         if (busy || !ready) return;
-        full = full || label;
         busy = true;
         go.disabled = true;
         downloadEl.classList.add("off");
-        await poseCountdown();
-        const freeze = freezeFrame();
-        lastFreeze = freeze;
+        retakeEl.classList.add("off");
         try {
-          status("shot locked");
-          await new Promise((r) => setTimeout(r, 650));
-          youwrap.classList.remove("locked");
-          startProgress(22);
+          if (!lastFreeze) {
+            await poseCountdown();
+            lastFreeze = freezeFrame();
+          } else {
+            youwrap.classList.add("locked");
+          }
+
+          orbitSession++;
+          orbitItems = [];
+          generationQueue = [];
+          selectedOrbitId = null;
+
+          const styles = PRESETS.map(([presetLabel, presetFull]) => [presetLabel, presetFull]);
+          if (!styles.some(([presetLabel]) => presetLabel.toLowerCase() === label.toLowerCase())) {
+            styles.unshift([label, full]);
+          }
+          orbitItems = styles.map(([styleLabel, styleFull]) => makeOrbitItem(styleLabel, styleFull));
+          document.body.classList.add("orbit-mode");
+          go.textContent = "add guise";
+          promptEl.value = "";
+          promptEl.placeholder = "add another guise to this orbit";
+          orbit.activate(lastFreeze, orbitItems);
+          const preferred = orbitItems.find((item) => item.label.toLowerCase() === label.toLowerCase()) || orbitItems[0];
+          orbit.select(preferred.id, true);
+          startLoader("reading the frame");
           startStory(storyLines(label));
-          status("seeing you");
-          const seen = await post("/see", { image_data_url: freeze });
-          const caption = cleanCaption(seen.caption);
-          status(`becoming ${label} · estimating 20s`, caption ? `seen: ${caption}` : "");
-          const control = 1.0 - (strengthEl.value / 100) * 0.4;
-          const tr = await post("/transform", { prompt: buildPrompt(caption, full), image_data_url: freeze, control });
-          if (!tr.ok) throw new Error(tr.error || "transform failed");
-          finishProgress();
-          await showImage(tr.url);
-          lastUrl = tr.url;
-          guiseEl.textContent = label;
-          guiseEl.classList.add("on");
-          downloadEl.classList.remove("off");
-          stopStory();
+          status("reading the frame");
+          const seen = await post("/see", { image_data_url: lastFreeze });
+          if (!seen.ok) throw new Error(seen.error || "frame analysis failed");
+          orbitCaption = cleanCaption(seen.caption);
+          generationQueue = [preferred, ...orbitItems.filter((item) => item !== preferred)];
+          generationQueue.forEach((item) => {
+            item.queued = true;
+          });
           status("");
-        } catch (e) {
+          updateOrbitProgress();
+          pumpGenerationQueue();
+        } catch (error) {
           stopStory();
-          status("that one slipped. try again.");
+          orbit.reset();
+          orbitItems = [];
+          generationQueue = [];
+          document.body.classList.remove("orbit-mode");
+          go.textContent = "take a pic";
+          status("the orbit slipped. try again.");
+          clearLoader();
           setTimeout(() => status(""), 1800);
+        } finally {
+          busy = false;
+          go.disabled = false;
         }
-        clearProgress();
-        busy = false;
-        go.disabled = false;
+      }
+
+      function run(label, full) {
+        if (!ready || busy) return;
+        full = full || label;
+        if (orbitItems.length) addOrbitStyle(label, full);
+        else startOrbit(label, full);
       }
 
       async function download() {
@@ -1116,6 +1643,11 @@
       }
 
       function submit() {
+        if (!orbitItems.length) {
+          playClick();
+          run(PRESETS[0][0], PRESETS[0][1]);
+          return;
+        }
         const v = promptEl.value.trim();
         if (v) {
           playClick();
@@ -1130,6 +1662,30 @@
         playClick();
         download();
       });
+      retakeEl.addEventListener("click", () => {
+        if (busy || activeGenerations || generationQueue.length) return;
+        playClick();
+        orbitSession++;
+        orbit.reset();
+        orbitItems = [];
+        generationQueue = [];
+        selectedOrbitId = null;
+        orbitCaption = "";
+        lastFreeze = null;
+        lastUrl = null;
+        shotthumb.removeAttribute("src");
+        youwrap.classList.remove("locked");
+        document.body.classList.remove("orbit-mode");
+        afters.forEach((layer) => layer.classList.remove("on"));
+        guiseEl.classList.remove("on");
+        downloadEl.classList.add("off");
+        retakeEl.classList.add("off");
+        go.textContent = "take a pic";
+        promptEl.value = "";
+        promptEl.placeholder = "add another guise";
+        status("");
+        go.focus();
+      });
 
       async function begin() {
         beginBtn.disabled = true;
@@ -1138,6 +1694,11 @@
         try {
           const h = await fetch(PROXY + "/health").then((r) => r.json());
           if (!h.ok) throw new Error("service unavailable");
+          if (h.gen) {
+            document.getElementById("stack").textContent = "webgl + florence-2 + flux kontext · live";
+            beginEl.querySelector("p").textContent =
+              "one camera snap becomes ten alternate selves. drag through a living 3D orbit while each guise arrives.";
+          }
         } catch (e) {
           beginStatus.textContent = "guided demo currently unavailable";
           serviceNote.hidden = false;
@@ -1158,7 +1719,7 @@
         ready = true;
         beginEl.classList.add("gone");
         drawParticles();
-        setTimeout(() => promptEl.focus(), 400);
+        setTimeout(() => go.focus(), 400);
       }
       beginBtn.addEventListener("click", () => {
         playClick();
