@@ -137,8 +137,23 @@
        when the funnel starts, so the two read as one move. */
     "  vec3 pos = vec3(p.x, p.z, p.y);",
 
-    "  float lift = smoothstep(0.18, 0.52, u_scroll);",
-    "  float funnel = smoothstep(0.45, 0.85, u_scroll);",
+    /* ── HE IS NO LONGER IN THE TRANSITION ────────────────────────────────
+       Sid: "don't make the cube guy come down and increase in size, that
+       parallax doesn't work... instead try another scroll transition without
+       the cube guy involved."
+
+       The timeline described above — lift, travel right, funnel, gone — is
+       what he is asking to lose. It is left in the file and simply not fed:
+       `lift` and `funnel` are pinned to 0, so every move below evaluates to
+       identity and he stands still through the whole hero. He is a thing you
+       turn with your hand and break with a click, and that is all he is now.
+       Deleting the maths would make bringing any of it back an archaeology
+       exercise; holding it at zero keeps it readable and costs two lines.
+
+       What replaces it does not touch him: see .hero-veil in sid_home.html,
+       a light passing over the whole hero as the section leaves. */
+    "  float lift = 0.0;",
+    "  float funnel = 0.0;",
 
     /* THE TWIST. Angle grows toward the feet, so he wrings out from the
        bottom like something being poured. */
@@ -179,6 +194,30 @@
     "    vec3 cell = floor(pos * 4.5);",
     "    float cs = fract(sin(dot(cell, vec3(41.3, 289.1, 77.7))) * 24571.13);",
     "    vec3 cc = (cell + 0.5) / 4.5;",
+    /* ── WHY IT DID NOT FEEL ORGANIC ──────────────────────────────────────
+       Sid: "the breaking on click doesn't feel too good, it doesn't feel
+       organic."
+
+       Everything above was already per-shard — direction, tumble, gravity —
+       but every shard was reading the SAME u_break, so all ninety left at
+       the same instant and all ninety came home at the same instant. Ninety
+       different trajectories starting and ending on one clock still reads as
+       one event, because what the eye tracks in a break is not the paths, it
+       is the onset.
+
+       So each shard now gets its own onset and its own return. `bs` remaps
+       u_break through a per-shard delay of up to a fifth of the animation:
+       the ones nearest the click go first and the rest let go a beat later,
+       which is a crack propagating rather than a detonation.
+
+       And on the way back, each shard overshoots its own seat slightly and
+       settles — a damped wobble scaled by how far it travelled. That is the
+       part that reads as weight. A piece that arrives exactly on its mark
+       and stops dead is a piece with no mass. */
+    "    float dly = cs * 0.20;",
+    "    float bs = clamp((u_break - dly) / max(0.001, 1.0 - dly), 0.0, 1.0);",
+    /* Settle only applies while coming home, and dies out as it arrives. */
+    "    float st = sin(bs * 26.0 + cs * 6.28318) * bs * (1.0 - bs) * 0.16;",
     /* direction: away from the body's axis, biased outward and up */
     /* A direction per shard on a full sphere, biased upward — NOT the cell's
        offset from the origin. The first pass used the latter and the figure
@@ -188,9 +227,9 @@
     "    float a1 = cs * 6.28318;",
     "    float a2 = fract(cs * 71.7) * 3.14159;",
     "    vec3 dirS = vec3(sin(a2) * cos(a1), cos(a2) * 0.55 + 0.42, sin(a2) * sin(a1));",
-    "    float k = u_break * (0.55 + 0.9 * cs);",
+    "    float k = (bs + st) * (0.55 + 0.9 * cs);",
     /* the piece tumbles about its own centre */
-    "    float ang = u_break * (cs - 0.5) * 7.0;",
+    "    float ang = bs * (cs - 0.5) * 7.0;",
     "    float cbk = cos(ang), sbk = sin(ang);",
     "    vec3 rel = pos - cc;",
     "    rel.xy = mat2(cbk, -sbk, sbk, cbk) * rel.xy;",
@@ -198,7 +237,7 @@
     "    pos = cc + rel;",
     /* thrown out, then pulled down — gravity on the way, so the pieces arc */
     "    pos += dirS * k * 1.15;",
-    "    pos.y -= u_break * u_break * (0.35 + 0.5 * cs);",
+    "    pos.y -= bs * bs * (0.35 + 0.5 * cs);",
     "  }",
     "  vec3 nor = normalize(vec3(nrm.x, nrm.z, nrm.y) + 0.0001);",
     "  float n = hash(p);",

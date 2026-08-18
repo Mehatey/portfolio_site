@@ -788,6 +788,53 @@
          inside it than the box allows: the canvas now has 18% of its own
          height as clear air under his feet, which is what the camera pull
          below spends. Nothing to clip against. */
+      /* ── THE HERO'S OWN EXIT ─────────────────────────────────────────────
+         --hx runs 0 to 1 as the hero leaves, written by the script below. */
+      .hero-veil {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        opacity: var(--hx, 0);
+        background:
+          linear-gradient(
+            104deg,
+            transparent calc(var(--hx, 0) * 190% - 62%),
+            rgba(150, 205, 232, 0.16) calc(var(--hx, 0) * 190% - 38%),
+            rgba(226, 244, 255, 0.3) calc(var(--hx, 0) * 190% - 20%),
+            rgba(150, 205, 232, 0.14) calc(var(--hx, 0) * 190% - 6%),
+            transparent calc(var(--hx, 0) * 190% + 16%)
+          ),
+          linear-gradient(180deg, rgba(3, 6, 11, 0) 0%, rgba(3, 6, 11, calc(var(--hx, 0) * 0.72)) 100%);
+        mix-blend-mode: screen;
+      }
+      /* The second layer has to darken, and screen cannot darken — so the
+         shade is its own element underneath the sweep. */
+      .hero-veil::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        mix-blend-mode: normal;
+        background: radial-gradient(120% 90% at 50% 50%, transparent 30%, rgba(3, 6, 11, calc(var(--hx, 0) * 0.8)) 100%);
+      }
+      html[data-theme="light"] .hero-veil {
+        mix-blend-mode: multiply;
+        background: linear-gradient(
+          104deg,
+          transparent calc(var(--hx, 0) * 190% - 62%),
+          rgba(120, 170, 200, 0.14) calc(var(--hx, 0) * 190% - 20%),
+          transparent calc(var(--hx, 0) * 190% + 16%)
+        );
+      }
+      html[data-theme="light"] .hero-veil::after {
+        background: radial-gradient(120% 90% at 50% 50%, transparent 34%, rgba(232, 238, 245, calc(var(--hx, 0) * 0.85)) 100%);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-veil {
+          display: none;
+        }
+      }
+
       .cg-stage {
         position: absolute;
         left: 50%;
@@ -2059,6 +2106,21 @@
     <main id="main">
       <!-- ───────────────── hero ───────────────── -->
       <section class="hero" id="hero" aria-labelledby="hero-title">
+        <!-- ── THE HERO LEAVES BEHIND A LIGHT ──────────────────────────────
+             Sid: "instead try another scroll transition without the cube guy
+             involved."
+
+             The move it replaces took the figure himself down into a spout
+             as you scrolled. This one leaves him alone entirely: a raking
+             light crosses the whole hero as the section goes, and the frame
+             darkens and contracts a little behind it — the room losing its
+             light rather than a character performing an exit. It reads as
+             one surface handing to the next, which is the same grammar the
+             footer now uses when you surface out of the water.
+
+             Purely decorative and inert to the pointer, so nothing in the
+             hero becomes unreachable while it plays. -->
+        <span class="hero-veil" aria-hidden="true"></span>
         <!-- The film. Two takes of one shot: pixelated is what you are given,
              clear is what you develop by moving through it. The <video> tags
              exist only so the browser decodes frames — WebGL draws both. -->
@@ -3178,5 +3240,35 @@
          fixed chrome stacks above them and its cursor reads over the cube
          canvas rather than under it. -->
     {% include cursor_fluid.html %} {% include cube_says.html line="He rebuilt this page four times. This is the one that survived." %}
+    <script>
+      /* Drives .hero-veil. One number, read off how far the hero has left the
+         screen, on the same rAF-coalesced pattern the rest of the site's
+         scroll work uses. Nothing here touches the figure. */
+      (function () {
+        var hero = document.getElementById("hero");
+        var veil = hero && hero.querySelector(".hero-veil");
+        if (!hero || !veil) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var hx = -1,
+          raf = 0;
+        function read() {
+          var r = hero.getBoundingClientRect();
+          var vh = window.innerHeight || 1;
+          /* 0 while the hero still fills the screen, 1 once it has gone. */
+          var n = 1 - Math.max(0, Math.min(1, r.bottom / vh));
+          if (Math.abs(n - hx) > 0.002) {
+            hx = n;
+            veil.style.setProperty("--hx", hx.toFixed(3));
+          }
+          raf = 0;
+        }
+        function onScroll() {
+          if (!raf) raf = requestAnimationFrame(read);
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll, { passive: true });
+        read();
+      })();
+    </script>
   </body>
 </html>
