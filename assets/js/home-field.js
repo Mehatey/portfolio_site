@@ -98,7 +98,7 @@
     "uniform vec2 u_res;",
     "uniform float u_time, u_n, u_mode, u_next, u_blend, u_light, u_fade, u_sys, u_sysNext, u_sysBlend;",
     "uniform vec2 u_ptr, u_cover;",
-    "uniform float u_shift, u_raw;",
+    "uniform float u_shift, u_raw, u_reveal;",
     "uniform float u_ptrOn, u_pal;",
 
     /* Value noise. Cheap, and its softness suits a field that is going to be
@@ -194,9 +194,24 @@
 
     /* The plate, sampled anywhere, graded once. Everything below reads
        through this so the grade cannot drift between systems. */
+    /* ── HOVERING DEVELOPS THE PICTURE ────────────────────────────────────
+       Sid: "in the first pixel video let me hover on it and let it show the
+       unpixelated video rather than not having anything."
+
+       The two takes are the same shot, pixelated and clear. Before this the
+       swap was purely temporal — the pixelated one played once, fired
+       `ended`, and was removed from the DOM — so hovering during the only
+       moment it is on screen did nothing at all.
+
+       Now u_video always holds the pixelated take and u_real always holds
+       the clear one, and this mixes between them. u_reveal is the pointer.
+       Resolution is what the hover buys, which is the same gesture the
+       portrait and the desk make elsewhere on the site: the picture comes
+       into focus because you leaned in. */
     "vec3 plate(vec2 uv){",
     "  vec2 t = clamp(uv, 0.0, 1.0);",
-    "  vec3 c = texture2D(u_real, vec2(t.x, 1.0 - t.y)).rgb;",
+    "  vec2 st = vec2(t.x, 1.0 - t.y);",
+    "  vec3 c = mix(texture2D(u_video, st).rgb, texture2D(u_real, st).rgb, u_reveal);",
     "  return clamp((pow(c, vec3(0.78)) - 0.5) * 1.12 + 0.5, 0.0, 1.0);",
     "}",
     "float plateLum(vec2 uv){ return dot(plate(uv), vec3(0.299, 0.587, 0.114)); }",
@@ -440,6 +455,7 @@
     "u_cover",
     "u_shift",
     "u_raw",
+    "u_reveal",
     "u_ptrOn",
     "u_pal",
     "u_sys",
@@ -502,6 +518,17 @@
 
   var base = stage.getAttribute("data-base") || "";
   var vClear = mkVideo(base + "/assets/video/sid_sitting.mp4", true);
+  /* ── THE PIXEL TAKE IS AN INTRO, NOT AN ALTERNATE CUT ──────────────────
+     Worth writing down, because a first pass at Sid's hover request got this
+     wrong and looped it. sid_pixelated.mp4 is not a pixelated COPY of the
+     sitting shot — it is a ten-second animation that opens on a black frame
+     with a tiny mosaic blob in the middle and resolves outward into the
+     scene. Looping it sends the hero back to a black frame every ten
+     seconds. It plays once and stands down, as it always did.
+
+     What the hover buys is therefore a shortcut through it rather than an
+     alternate state: see u_reveal, which mixes toward the clear take while
+     this one is still running. */
   var vPix = mkVideo(base + "/assets/video/sid_pixelated.mp4", false);
   if (vPix) {
     vPix.addEventListener("ended", function () {
@@ -519,7 +546,20 @@
 
   /* How far right the plate sits, as a fraction of the frame. Read by both
      the cover clamp and the uniform. */
-  var SHIFT = 0.11;
+  /* Sid: "can you zoomout a bit for both videos its a little too zoomed in."
+
+     Two numbers do this together. u_cover is the sampling window: bigger
+     means MORE of the source is on screen, which is zooming out. But the
+     window is clamped to 1 - 2*SHIFT so the rightward slide never runs off
+     the plate and smears the left edge, and at SHIFT 0.11 that ceiling was
+     0.78 — the clamp was the thing holding the crop tight.
+
+     So the slide comes down to 0.06, which lifts the ceiling to 0.88, and
+     ZOOM_OUT asks for 14% more frame. The result lands on the ceiling rather
+     than above it: about 13% more of the shot on screen, both axes together
+     so nothing stretches. */
+  var SHIFT = 0.06;
+  var ZOOM_OUT = 1.14;
 
   var vidAspect = 16 / 9;
   function upload(t, video) {
@@ -585,7 +625,11 @@
     tpx = 0.5,
     tpy = 0.5,
     on = 0,
-    tOn = 0;
+    tOn = 0,
+    /* Reveal is the eased pointer presence. It gets its own value rather
+       than reusing `on` because `on` also drives the treatment window and
+       snaps harder than a picture resolving should. */
+    reveal = 0;
   window.addEventListener(
     "pointermove",
     function (e) {
@@ -720,6 +764,27 @@
     gl.uniform1f(U.u_shift, SHIFT);
     gl.uniform2f(U.u_ptr, pxN, pyN);
     gl.uniform1f(U.u_ptrOn, on);
+    /* ── REVEAL IS PROXIMITY, NOT PRESENCE ────────────────────────────────
+       First attempt keyed this to tOn, which is wrong here: the stage is the
+       whole hero, so the pointer is inside it essentially always and the
+       picture simply sat resolved. Nothing to reveal.
+
+       So it is distance to the figure instead. The plate is slid right by
+       SHIFT, so its centre is at 0.5 + SHIFT across; within about a fifth of
+       the frame of that the take is fully clear, and by four tenths it is
+       back to pixels. Moving toward him develops him, moving away lets him
+       dissolve — which is the same "develop by moving through it" gesture
+       the rest of this file is written around, and it means the resting
+       state of the hero is the pixelated take, as intended.
+
+       Developing in is slower than falling back out: leaning in resolves
+       over about a second, leaving lets go in half that. */
+    var rdx = pxN - (0.5 + SHIFT);
+    var rdy = (pyN - 0.5) * 0.72; /* the frame is wider than it is tall */
+    var rd = Math.sqrt(rdx * rdx + rdy * rdy);
+    var rTarget = on ? Math.max(0, Math.min(1, (0.42 - rd) / 0.22)) : 0;
+    reveal += (rTarget - reveal) * (rTarget > reveal ? 0.05 : 0.09);
+    gl.uniform1f(U.u_reveal, reveal);
     gl.uniform1f(U.u_sys, sys);
     gl.uniform1f(U.u_sysNext, sysNext);
     gl.uniform1f(U.u_sysBlend, sysBlend > 0 ? Math.min(1, sysBlend) : 0);
@@ -745,6 +810,8 @@
        film: uv.x is lowest at -cover.x/2 + 0.5 - SHIFT, so cover.x can be at
        most 1 - 2*SHIFT. Both axes scale together, otherwise fixing the smear
        would stretch the picture. */
+    cx *= ZOOM_OUT;
+    cy *= ZOOM_OUT;
     var lim = 1 - 2 * SHIFT;
     if (cx > lim) {
       cy *= lim / cx;
@@ -762,8 +829,16 @@
     raw += ((phase === 2 ? 0 : 1) - raw) * 0.011;
     gl.uniform1f(U.u_raw, raw);
 
+    /* Pixelated in u_video, clear in u_real, always — plate() mixes between
+       them off u_reveal. Previously BOTH slots carried the pixelated take
+       during phase 0, which is why there was nothing to reveal to. Once the
+       pixelated take has ended and been dropped, vPix is null and both slots
+       fall back to the clear one, so the mix becomes a no-op on its own. */
     upload(texVideo, vPix || vClear);
-    upload(texReal, phase === 0 && vPix ? vPix : vClear);
+    upload(texReal, vClear);
+    /* Once the intro has ended and vPix is null, both slots carry the clear
+       take and the reveal mix is a no-op — which is why it costs nothing for
+       the rest of the session. */
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texVideo);
     gl.uniform1i(U.u_video, 1);
