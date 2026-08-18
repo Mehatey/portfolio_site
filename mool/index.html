@@ -9400,16 +9400,162 @@
         frame.style.setProperty("--torch", "0");
         frame.style.setProperty("--lit", "0");
       });
+      /* ── STIRRING THE WATER ──────────────────────────────────────────────
+         Sid: "this is my room picture, and when i hover on it, let there be
+         some nice effect on the PNG."
+
+         The honest effect for something sitting in water is not another
+         overlay — it is that touching it disturbs the surface. Moving across
+         the wall raises the displacement scale, so the picture stirs under
+         the pointer and settles again when the hand leaves. The torch stays;
+         between them, hovering now costs the wall both light and stillness.
+
+         Driven off pointer SPEED rather than presence, so a slow read barely
+         moves the surface and a quick sweep across it churns. The value eases
+         back to rest on its own, which is the settling. */
+      var disp = document.querySelector("#wall-ripple feDisplacementMap");
+      var stir = 0,
+        stirRaf = 0,
+        lastX = 0,
+        lastY = 0,
+        lastT = 0;
+
+      function relax() {
+        stir *= 0.94;
+        if (disp) disp.setAttribute("scale", (7 + stir).toFixed(2));
+        stirRaf = stir > 0.05 ? requestAnimationFrame(relax) : 0;
+      }
+
       frame.addEventListener(
         "pointermove",
         function (e) {
           var r = frame.getBoundingClientRect();
           frame.style.setProperty("--tx", (((e.clientX - r.left) / Math.max(1, r.width)) * 100).toFixed(2) + "%");
           frame.style.setProperty("--ty", (((e.clientY - r.top) / Math.max(1, r.height)) * 100).toFixed(2) + "%");
+
+          var now = e.timeStamp || Date.now();
+          var dt = Math.max(16, now - lastT);
+          var dx = e.clientX - lastX,
+            dy = e.clientY - lastY;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          lastT = now;
+          /* px per frame, clamped. A flick across the whole wall is worth
+             about 11 extra units of displacement on top of the resting 7. */
+          var v = (Math.sqrt(dx * dx + dy * dy) / dt) * 16;
+          stir = Math.min(11, stir + Math.min(2.4, v * 0.5));
+          if (!stirRaf) stirRaf = requestAnimationFrame(relax);
         },
         { passive: true }
       );
     }
+  })();
+</script> <section class="surface" id="surface" aria-hidden="true"> <div class="surface__band"> <span class="surface__light"></span> <span class="surface__caustic"></span> </div> </section> <style>
+  .surface {
+    position: relative;
+    z-index: 2;
+    height: 90vh;
+    pointer-events: none;
+  }
+  .surface__band {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    /* The sweep. Stops are positions computed from --q, so the whole ramp
+       travels up through the frame as the section crosses the viewport
+       instead of cross-fading in place — which is the difference between a
+       surface passing and a light being turned on. */
+    background: linear-gradient(
+      168deg,
+      transparent calc(var(--q, 0) * 190% - 78%),
+      rgba(18, 78, 96, calc(var(--q, 0) * 0.55)) calc(var(--q, 0) * 190% - 54%),
+      rgba(46, 156, 168, calc(var(--q, 0) * 0.62)) calc(var(--q, 0) * 190% - 30%),
+      rgba(126, 216, 214, calc(var(--q, 0) * 0.5)) calc(var(--q, 0) * 190% - 12%),
+      rgba(236, 252, 252, calc(var(--q, 0) * 0.34)) calc(var(--q, 0) * 190%),
+      transparent calc(var(--q, 0) * 190% + 26%)
+    );
+  }
+  /* The bloom at the meniscus. Brightest exactly as the band crosses the
+     middle of the screen, which is the moment you would break the surface. */
+  .surface__light {
+    position: absolute;
+    inset: 0;
+    mix-blend-mode: screen;
+    opacity: calc(var(--peak, 0) * 0.5);
+    background: radial-gradient(120% 46% at 50% calc(96% - var(--q, 0) * 78%), rgba(226, 252, 250, 0.72), transparent 68%);
+  }
+  /* Caustics: two lazy diagonal grids, offset and drifting at different
+     rates, which is enough to read as light through moving water without
+     costing a shader. */
+  .surface__caustic {
+    position: absolute;
+    inset: -20%;
+    opacity: calc(var(--peak, 0) * 0.22);
+    mix-blend-mode: screen;
+    background:
+      repeating-linear-gradient(104deg, transparent 0 38px, rgba(180, 240, 236, 0.5) 38px 41px, transparent 41px 96px),
+      repeating-linear-gradient(64deg, transparent 0 52px, rgba(140, 226, 232, 0.36) 52px 54px, transparent 54px 128px);
+    transform: translate3d(calc(var(--q, 0) * -6%), calc(var(--q, 0) * -14%), 0);
+  }
+
+  /* On cream the band is the same move in reverse: the page is already light,
+     so surfacing means the teal thins out rather than a white arriving. */
+  html[data-theme="light"] .surface__band {
+    background: linear-gradient(
+      168deg,
+      transparent calc(var(--q, 0) * 190% - 78%),
+      rgba(46, 156, 168, calc(var(--q, 0) * 0.34)) calc(var(--q, 0) * 190% - 42%),
+      rgba(126, 216, 214, calc(var(--q, 0) * 0.26)) calc(var(--q, 0) * 190% - 14%),
+      rgba(255, 255, 255, calc(var(--q, 0) * 0.5)) calc(var(--q, 0) * 190%),
+      transparent calc(var(--q, 0) * 190% + 26%)
+    );
+  }
+
+  @media (max-width: 760px) {
+    .surface {
+      height: 60vh;
+    }
+  }
+  /* No band at all rather than a static teal wash, which is what a frozen
+     --q would leave behind. */
+  @media (prefers-reduced-motion: reduce) {
+    .surface {
+      display: none;
+    }
+  }
+</style> <script>
+  (function () {
+    var sec = document.getElementById("surface");
+    if (!sec) return;
+    var band = sec.querySelector(".surface__band");
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var q = -1,
+      raf = 0;
+
+    function read() {
+      var r = sec.getBoundingClientRect();
+      var vh = window.innerHeight || 1;
+      /* 0 when the band's top is still a screen below the fold, 1 once its
+         bottom has passed the top of the screen. */
+      var np = 1 - (r.bottom - 0) / (vh + r.height);
+      np = Math.max(0, Math.min(1, np));
+      if (Math.abs(np - q) > 0.002) {
+        q = np;
+        band.style.setProperty("--q", q.toFixed(3));
+        /* Peaks in the middle of the crossing and falls away either side —
+           the bloom and the caustics only exist AT the surface. */
+        band.style.setProperty("--peak", Math.sin(q * Math.PI).toFixed(3));
+      }
+      raf = 0;
+    }
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(read);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    read();
   })();
 </script> <div class="site-footer-base"> <p class="site-footer-colophon">Built by hand · Jekyll, WebGL and too much Canvas · <span id="site-footer-time"></span></p> <a class="site-footer-conversation" href="/contact/">Let’s make something useful.</a> </div> </footer> <script>
   (function () {
