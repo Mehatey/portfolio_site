@@ -540,6 +540,77 @@
         will-change: transform;
       }
 
+      .contact-defs {
+        position: absolute;
+        width: 0;
+        height: 0;
+        overflow: hidden;
+      }
+      /* Applied to the two plates rather than to .contact-desk, because the
+         wrapper also carries ::before — the blue floor glow that grounds the
+         scene — and displacing a soft radial gradient does nothing you can
+         see while doubling the filter's area. */
+      .contact-desk__pixel,
+      .contact-desk__real {
+        filter: url(#desk-liquify);
+      }
+      @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+        .contact-desk__pixel,
+        .contact-desk__real {
+          filter: none;
+        }
+      }
+
+      /* ── THE PAGE STANDS IN THE SAME WATER AS THE FOOTER ─────────────────
+         Sid: "can you add the same water footer background here."
+
+         The pond canvas already ships with site_footer, but it is pinned
+         inside the footer, so on this page it only exists once you have
+         scrolled past everything. What was missing was the water being the
+         GROUND the contact page stands on, not a thing at the end of it.
+
+         This is the footer's own palette as a fixed depth gradient plus the
+         same two drifting caustic grids the surfacing band uses, so the two
+         read as one body of water rather than two effects that happen to be
+         blue. Fixed rather than absolute: the light should stay where it is
+         while the page moves through it. */
+      .contact-water {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background:
+          radial-gradient(120% 70% at 50% 118%, rgba(38, 132, 146, 0.34), transparent 68%),
+          radial-gradient(90% 55% at 18% 8%, rgba(26, 84, 104, 0.22), transparent 70%),
+          linear-gradient(180deg, rgba(6, 16, 24, 0) 0%, rgba(9, 32, 44, 0.5) 62%, rgba(12, 46, 60, 0.62) 100%);
+      }
+      .contact-water::after {
+        content: "";
+        position: absolute;
+        inset: -20%;
+        opacity: 0.12;
+        mix-blend-mode: screen;
+        background:
+          repeating-linear-gradient(104deg, transparent 0 42px, rgba(180, 240, 236, 0.42) 42px 45px, transparent 45px 104px),
+          repeating-linear-gradient(64deg, transparent 0 58px, rgba(140, 226, 232, 0.3) 58px 60px, transparent 60px 136px);
+        animation: contact-caustic 26s linear infinite;
+      }
+      @keyframes contact-caustic {
+        to {
+          transform: translate3d(-4%, -7%, 0);
+        }
+      }
+      html[data-theme="light"] .contact-water {
+        background:
+          radial-gradient(120% 70% at 50% 118%, rgba(120, 196, 202, 0.26), transparent 68%),
+          linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(198, 228, 232, 0.32) 100%);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .contact-water::after {
+          animation: none;
+        }
+      }
+
       .contact-desk::before {
         content: "";
         position: absolute;
@@ -1474,6 +1545,7 @@
   </head>
 
   <body class="contact-page">
+    <span class="contact-water" aria-hidden="true"></span>
     {% include studio_nav.html active="contact" %}
     <main class="contact-shell" id="main">
       <!-- ══ DESK IN THE MIDDLE, INFORMATION AT THE CORNERS ═══════════════
@@ -1499,9 +1571,7 @@
       </div>
 
       <div class="c-corner c-corner--tr">
-        <p class="contact-intro">
-          Based in New York. Best reached by email, for product design roles and creative technology work.
-        </p>
+        <p class="contact-intro">Based in New York. Best reached by email, for product design roles and creative technology work.</p>
       </div>
 
       <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk">
@@ -1513,6 +1583,34 @@
         <img class="contact-desk__real" src="{{ site.baseurl }}/assets/img/table_new.png" alt="" aria-hidden="true" />
         <span class="contact-desk__fade" aria-hidden="true"></span>
       </div>
+
+      <!-- ── THE DESK LIQUIFIES ────────────────────────────────────────────
+           Sid: "when i hover on the desk i want it to liquify and warp the
+           longer i am hovered on it."
+
+           Same displacement map the footer wall breathes under, driven the
+           opposite way: there the surface is disturbed by SPEED and settles
+           when you stop, here it builds with DWELL and settles when you
+           leave. Staying still is what warps it, which is the behaviour he
+           asked for and the inverse of a hover state that snaps on.
+
+           scale is written by the script below and eased both ways, so
+           arriving is a swell rather than a switch. -->
+      <svg class="contact-defs" width="0" height="0" aria-hidden="true" focusable="false">
+        <filter id="desk-liquify" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.008 0.014" numOctaves="2" seed="3" result="warp">
+            <animate
+              attributeName="baseFrequency"
+              dur="14s"
+              values="0.008 0.014; 0.013 0.009; 0.008 0.014"
+              calcMode="spline"
+              keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
+              repeatCount="indefinite"
+            />
+          </feTurbulence>
+          <feDisplacementMap id="desk-disp" in="SourceGraphic" in2="warp" scale="0" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+      </svg>
 
       <div class="c-corner c-corner--bl">
         <div class="contact-primary">
@@ -1720,5 +1818,56 @@
          other page on the site signs off the same way. Sid: "have this common
          footer that we have on the homepage on every page." -->
     {% include site_footer.html %} {% include cursor_fluid.html %} {% include cube_says.html line="He answers. Usually faster than he should." %}
+    <script>
+      /* ── DWELL WARPS THE DESK ──────────────────────────────────────────
+         The footer wall is disturbed by pointer SPEED and settles when you
+         stop. This is the inverse: it builds the longer you stay, so
+         standing still on the desk is what liquifies it. A hover state that
+         snapped on would be a filter toggle; this is a swell.
+
+         Both directions are eased on the same rAF, so leaving unwinds at the
+         same rate it arrived, and the loop stops itself once the value is
+         home rather than running for the life of the page. */
+      (function () {
+        var desk = document.getElementById("contact-desk");
+        var disp = document.getElementById("desk-disp");
+        if (!desk || !disp) return;
+        if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
+
+        var MAX = 26;
+        var target = 0,
+          cur = 0,
+          raf = 0;
+
+        function step() {
+          /* Rising is slow (0.028) and falling is quicker (0.075): it should
+             take a couple of seconds of dwell to really warp, and let go
+             promptly when the pointer leaves. */
+          cur += (target - cur) * (target > cur ? 0.028 : 0.075);
+          disp.setAttribute("scale", cur.toFixed(2));
+          raf = Math.abs(target - cur) > 0.08 ? requestAnimationFrame(step) : 0;
+        }
+        function kick() {
+          if (!raf) raf = requestAnimationFrame(step);
+        }
+        desk.addEventListener("pointerenter", function (e) {
+          if (e.pointerType === "touch") return;
+          target = MAX;
+          kick();
+        });
+        desk.addEventListener("pointerleave", function () {
+          target = 0;
+          kick();
+        });
+        desk.addEventListener("focus", function () {
+          target = MAX;
+          kick();
+        });
+        desk.addEventListener("blur", function () {
+          target = 0;
+          kick();
+        });
+      })();
+    </script>
   </body>
 </html>
