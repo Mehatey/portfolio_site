@@ -76,9 +76,39 @@ selector=".play-grid figure" %}{% endraw %} {% endcomment %}
     /* Tuning. MAX_DEG is deliberately small: this is a surface with a gentle
        radius, not a carousel. Past about 9 degrees the top row starts
        showing its own underside and the page reads as a fairground ride. */
-    var MAX_DEG = 8;
-    var MAX_BLUR = 5.5;
-    var MAX_Z = 46;
+    /* ── RETUNED, HARD ────────────────────────────────────────────────────
+       Sid: "the blurs are happening way too much on the top and the bottom.
+       i can't even see some of the media."
+
+       He is right and the numbers say so. Blur began at |t| > 0.34 — an item
+       only a third of the way from the middle of the screen was already
+       softening — and MAX_BLUR 5.5 was then multiplied by up to 1.8 on
+       velocity, so a normal scroll was putting TEN pixels of blur on
+       something still fully on screen. That is not a depth cue, that is a
+       veil.
+
+       Blur now starts at 0.72, which is most of the way to the edge, and
+       tops out at 2.2 with a much smaller velocity term. The dim went from
+       45% to 16% for the same reason: two effects that each cost legibility
+       were stacking on the same distance.
+
+       The curve itself is halved. It was doing the least work of the three
+       and taking the most attention. */
+    /* ── THE BLUR MOVED TO THE NAV ────────────────────────────────────────
+       Sid: "i think just a top blur on the nav bar panel should be good."
+
+       So the media stops blurring altogether. Blurring the artwork was
+       costing legibility to imply depth, and the depth cue that actually
+       belongs on a page is at the TOP EDGE, where content passes under the
+       chrome — which is where it lives now (see .studio-nav).
+
+       What is left here is the curvature alone, halved again: enough that
+       the grid reads as a surface rather than a wall of rectangles, small
+       enough that nothing is ever hard to look at. Blur and dim are zero. */
+    var MAX_DEG = 3;
+    var MAX_BLUR = 0;
+    var MAX_Z = 18;
+    var BLUR_START = 0.72;
     var vel = 0,
       lastY = window.scrollY,
       raf = 0,
@@ -121,12 +151,12 @@ selector=".play-grid figure" %}{% endraw %} {% endcomment %}
 
         /* Curve: lies back going up, tips forward coming from below. The
            velocity term stiffens the whole surface while the page moves. */
-        var deg = t * MAX_DEG * (1 + vel * 0.55);
-        /* Blur and dim only start past the middle third, so the piece you
-           are actually looking at is never soft. */
-        var edge = Math.max(0, (a - 0.34) / 0.66);
-        var blur = edge * edge * MAX_BLUR * (1 + vel * 0.8);
-        var dim = 1 - edge * 0.45;
+        var deg = t * MAX_DEG * (1 + vel * 0.3);
+        /* Blur and dim only exist in the last quarter of the travel, so
+           anything you could actually be looking at is sharp. */
+        var edge = Math.max(0, (a - BLUR_START) / (1 - BLUR_START));
+        var blur = edge * edge * MAX_BLUR * (1 + vel * 0.25);
+        var dim = 1;
         var z = -a * MAX_Z;
 
         el.style.setProperty("--cv", deg.toFixed(2));

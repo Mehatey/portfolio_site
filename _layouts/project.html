@@ -766,7 +766,6 @@
       #case-overview,
       #case-proof,
       #case-archive,
-      #case-decisions,
       #project-next-step { scroll-margin-top: calc(var(--nav-h) + 24px); }
 
       /* ─── CASE MAP ─── Long case studies need a stable reading anchor, not a
@@ -774,11 +773,30 @@
          title, summary, role, or proof: those are already available in the first
          viewport. This rail only helps a recruiter move through the visual story.
          Scrolling remains ordinary vertical scrolling—no wheel hijacking. */
+      /* ── THE MEDIA WAS TOO SMALL ──────────────────────────────────────────
+         Sid: "can we not make the media a little bigger? what is the standard
+         people use on the best design portfolios for the size of the media?
+         i feel like it's too small."
+
+         Measured at 1440: the story column rendered 1065px, so a case study
+         image was filling 74% of the viewport. Strong design portfolios run
+         inline case media around 85 to 95% and go full-bleed for feature
+         moments; 74% reads as a document rather than as work being shown.
+
+         Two numbers were holding it there. The layout was capped at
+         --content-max (1440) while the page itself is wider, and a 190px
+         sticky rail plus a 64px gutter came off the top of that before the
+         media saw any of it. The cap goes to 1680 and the rail narrows,
+         which puts the column near 1280 at this width — about 89%.
+
+         The height cap moves with it (see .case-story .cs-bleed below):
+         640px on a 1000px viewport was cropping 16:10 media well before its
+         width ran out. */
       .case-study-layout {
         display: grid;
-        grid-template-columns: minmax(156px, 190px) minmax(0, 1fr);
-        gap: clamp(32px, 4vw, 64px);
-        max-width: var(--content-max);
+        grid-template-columns: minmax(132px, 158px) minmax(0, 1fr);
+        gap: clamp(28px, 3vw, 48px);
+        max-width: min(1680px, 94vw);
         margin: 0 auto;
         padding: 46px var(--gutter) 0;
       }
@@ -878,11 +896,14 @@
       .case-story .cs-grid-3 { margin-top: 28px !important; }
       .case-story .cs-bleed {
         aspect-ratio: 16 / 10;
-        max-height: min(64vh, 640px);
+        /* Raised with the column. 64vh/640px was cropping the frame before
+           its width was used up, which is why several visuals looked like
+           details rather than shots. */
+        max-height: min(82vh, 860px);
       }
       .case-story .cs-bleed img,
       .case-story .cs-bleed video { object-fit: cover; }
-      .case-story .cs-wide-inner { aspect-ratio: 16 / 10; max-height: min(64vh, 640px); }
+      .case-story .cs-wide-inner { aspect-ratio: 16 / 10; max-height: min(82vh, 860px); }
       .case-story .cs-grid { gap: 12px; }
       .case-story .cs-grid-item { aspect-ratio: 4 / 3; }
       /* Some older project pages preserve original media dimensions. Keep that
@@ -2454,9 +2475,19 @@
         text-transform: none;
         color: var(--ink-4);
       }
+      /* This is the rule that actually wins — the grid declaration far above
+         is overridden here, which is why widening that one alone did nothing
+         and the media stayed at 74% of the viewport.
+
+         Widened for the reason recorded up there: strong design portfolios
+         run inline case media at 85 to 95%, and 74% reads as a document.
+         Only the VISUAL column moves. .proj-intro and .proj-highlights stay
+         at 1180 on purpose — those hold prose, and prose past about 75
+         characters a line is harder to read, not more impressive. So the
+         overview stays a readable measure and the work gets the width. */
       .case-study-layout {
         display: block;
-        max-width: 1180px;
+        max-width: min(1680px, 94vw);
         margin: 0 auto;
         padding: 48px var(--gutter) 104px;
       }
@@ -4488,43 +4519,26 @@
            proved, what I decided and what it cost — then the pictures as
            evidence for a case already made, rather than a slideshow the reader
            has to sit through before being told why any of it mattered. -->
-      {% if page.decisions or page.next_steps %}
-      <section class="proj-decisions" id="case-decisions" aria-labelledby="case-decisions-title">
-        <div class="proj-decisions__head">
-          <h2 class="proj-decisions__eyebrow" id="case-decisions-title" data-reveal>Design decisions</h2>
-          <p class="proj-decisions__lede" data-reveal>
-            {{ page.decisions_lede | default: "The calls that shaped this project: what I chose, why, and what each choice cost." }}
-          </p>
-        </div>
+      <!-- ── THE DECISIONS SECTION CAME OUT ──────────────────────────────
+           Sid: "on each of the work pages, you've added too much text, like
+           all the design decisions and all of that. nobody's gonna read
+           that. just give me the initial blurb."
 
-        {% if page.decisions %}
-        <ol class="decision-list">
-          {% for d in page.decisions %}
-          <li class="decision" data-reveal>
-            <!-- The index is aria-hidden on purpose: this is an <ol>, so a
-                 screen reader already announces "2 of 3". Left exposed, it
-                 ran into the heading as "02Kept the numbers plain…". -->
-            <h3 class="decision__choice">
-              <span class="decision__n" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>{{ d.choice }}
-            </h3>
-            <div class="decision__body">
-              <p class="decision__why">{{ d.why }}</p>
-              {% if d.tradeoff %}
-              <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>{{ d.tradeoff }}</span></p>
-              {% endif %}
-            </div>
-          </li>
-          {% endfor %}
-        </ol>
-        {% endif %} {% if page.next_steps %}
-        <div class="proj-next-steps">
-          <h3 class="proj-next-steps__label" data-reveal>What I&rsquo;d do next</h3>
-          <div class="proj-next-steps__body" data-reveal>{{ page.next_steps | markdownify }}</div>
-        </div>
-        {% endif %}
-      </section>
-      {% endif %}
+           It was three numbered decisions per project, each with a reason
+           and a TRADEOFF paragraph, plus a "What I'd do next" essay — on
+           /mool/ that ran to roughly nine hundred words of body copy sitting
+           between the reader and the work, on a page whose whole purpose is
+           to show the work.
 
+           The copy is NOT deleted: `decisions:` and `next_steps:` are still
+           in each page's front matter, untouched, so nothing is lost and the
+           section can be restored by putting this markup back. It is the
+           rendering that stops. What remains above is the overview blurb and
+           the proof figures, which is what he asked for, and then the visual
+           story.
+
+           The story-path nav below no longer offers a "Decisions" step, for
+           the same reason. -->
       <div class="case-study-layout">
         <aside class="case-context" aria-label="Case-study navigation">
           <p class="case-context__eyebrow">Story path</p>
@@ -4542,9 +4556,7 @@
                other and disagreeing about what the page contains. -->
           <nav class="case-context__links" aria-label="Project sections">
             <a href="#case-overview">Overview</a>
-            {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %} {% if page.decisions or page.next_steps %}<a href="#case-decisions"
-              >Decisions</a
-            >{% endif %}
+            {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
             <a href="#case-archive">Visual story</a>
             <a href="#project-next-step">Next project</a>
           </nav>
@@ -4554,9 +4566,7 @@
           <nav class="case-rail" aria-label="Case study path">
             <span class="case-rail-label">Visual story</span>
             <a href="#case-overview">Overview</a>
-            {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %} {% if page.decisions or page.next_steps %}<a href="#case-decisions"
-              >Decisions</a
-            >{% endif %}
+            {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
             <a href="#case-archive">Visual story</a>
             <a href="#project-next-step">Next project</a>
           </nav>
@@ -4977,7 +4987,6 @@
             ["case-overview", "Overview"],
             ["case-proof", "Proof"],
             ["case-archive", "Visual story"],
-            ["case-decisions", "Decisions"],
             ["reflection-section", "Reflection"],
             ["project-next-step", "Next project"],
           ];
@@ -5468,18 +5477,14 @@
       </defs>
     </svg>
     {% include scroll_length.html %}
-    <!-- ── THE SAME SURFACE AS PLAY ────────────────────────────────────────
-         Sid: "if you can add that physics and the top bottom curving and
-         blurring of when media enters and leaves the page to all the work
-         details pages too that would be great."
+    <!-- The scroll curvature that /play/ uses is deliberately NOT here.
+         Sid: "a lot of the media, like there's no curve, things happen at
+         the top... should it be curved or not curved?"
 
-         Same include, different selector. It targets the media INSIDE the
-         bleeds and grid cells rather than the containers themselves: the
-         containers carry the case-study layout — captions, gaps, the
-         motion.html reveal — and rotating those would tilt a caption away
-         from the picture it belongs to. Curving the picture alone leaves the
-         page's own structure flat and still. -->
-    {% include scroll_curve.html selector=".cs-bleed img, .cs-bleed video, .cs-bleed-full img, .cs-bleed-full video, .cs-grid-item img, .cs-grid-item
-    video" %}
+         Not curved, on this page. A case study is evidence — someone is on
+         it to SEE the work — and bending and softening the artefact fights
+         the only job the page has. Play is a gallery where the media is the
+         experience itself, so the surface can be playful there. Here the
+         media should be flat, sharp and as large as the column allows. -->
   </body>
 </html>

@@ -906,7 +906,26 @@
     var runway = heroH * 0.92;
     var prog = Math.max(0, Math.min(1, y / runway));
 
-    var wantPin = prog > 0.001 && prog < 0.999;
+    /* ── HE DOES NOT TRAVEL, AND HE DOES NOT PIN ──────────────────────────
+       Sid, twice: "don't make the cube guy come down and increase in size,
+       that parallax doesn't work" and then "that cube guy is still coming on
+       the right. i don't want that. the cube guy should stay where he is."
+
+       The first pass only zeroed `lift` and `funnel` inside the shader, which
+       stopped the genie move. It did not stop the two things actually
+       carrying him across the screen:
+
+         · THE PIN. .cg-stage went position:fixed for a whole viewport of
+           scroll, so he stayed on screen and hung over the section arriving
+           underneath. That is what "still coming" describes — he was not
+           travelling, the page was, and he was standing still on top of it.
+         · THE GROW. u_grow ran 1 → 1.55 off the same scroll, which is the
+           "increase in size" he had already rejected once.
+
+       Both are gone. He is an absolutely-positioned element in the hero that
+       scrolls away with it like anything else, and what is left is what he
+       asked to keep: turn him with the pointer, break him with a click. */
+    var wantPin = false;
     if (wantPin !== pinned) {
       pinned = wantPin;
       host.classList.toggle("is-pinned", pinned);
@@ -936,8 +955,11 @@
       lastPub = scrollP;
       hero.style.setProperty("--hero-p", scrollP.toFixed(3));
     }
-    gl.uniform1f(U.u_scroll, scrollP);
-    gl.uniform1f(U.u_grow, 1 + 0.55 * scrollP);
+    /* Zero, so every scroll-driven term in the shader evaluates to identity.
+       `prog` is still computed above because --hero-p drives the hero COPY's
+       breakaway, which is not him and which Sid has not asked to change. */
+    gl.uniform1f(U.u_scroll, 0);
+    gl.uniform1f(U.u_grow, 1);
     gl.uniform1f(U.u_fade, fade);
     /* The band travels the height of the figure and wraps, a shade slower
        than the drift so the two never lock into a rhythm. */
