@@ -25,10 +25,12 @@
          there is no such mark in the source PNG. Removed rather than retuned:
          a light painted over the picture was the wrong idea for a picture
          that is meant to be IN something.)
-       · the pointer is a torch afterwards. A soft warm pool follows the
-         cursor and the wall is dim outside it, so reading the wall means
-         moving over it — which is the only honest way to show something that
-         is a hundred small things and no single subject.
+       · the pointer stirs it afterwards. Moving across the wall raises the
+         displacement, so the water answers the hand — the wall itself stays
+         evenly lit. (A warm torch pool used to follow the cursor here too.
+         Sid, on the live site: "i still see this weird yellow light." It was
+         a stain, not a light: amber sitting on a cool image with no source.
+         The ripple is the response now, and it is the one that belongs.)
 
      RESOLUTION. The frame is min(1500px, 96vw) wide, so a 2x display asks
      for up to 3000px of image. The first version of this shipped a 1600px
@@ -56,7 +58,6 @@
           loading="lazy"
           decoding="async"
         />
-        <span class="wall__torch" aria-hidden="true"></span>
       </div>
     </div>
   </div>
@@ -137,7 +138,7 @@
     /* Sid: "it should be at 100% opacity and not be saturated."
 
        It was brightness 0.46 — the wall was being held at less than half
-       strength so that a torch pool would have somewhere to travel to. That
+       strength so that the old torch pool had somewhere to travel to. That
        is a reasonable trick for an object you want a visitor to hunt through
        in the dark, and the wrong one for an object that is supposed to be
        sitting IN something. Half-lit reads as a picture behind glass, not a
@@ -145,8 +146,8 @@
 
        Full brightness now, and the saturation comes DOWN rather than up,
        because that is what water does: it desaturates and cools what is
-       beneath it. The torch still works — it just lifts an already-lit wall
-       by a little instead of rescuing a dark one. */
+       beneath it. The pointer lift that remains is a few percent of
+       brightness, not a rescue of a dark wall. */
     filter: brightness(calc(1 + var(--lit, 0) * 0.06)) saturate(0.82) url(#wall-ripple);
     transition: filter 400ms ease;
   }
@@ -165,25 +166,15 @@
     }
   }
 
-  /* THE TORCH. A soft pool at the pointer, composited so it lifts only what
-     is actually there — screen over transparent gaps changes nothing, which
-     is exactly the behaviour a cut-out wants. */
-  .wall__torch {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    opacity: var(--torch, 0);
-    transition: opacity 500ms ease;
-    background: radial-gradient(
-      circle at calc(var(--tx, 50%)) calc(var(--ty, 50%)),
-      rgba(255, 228, 178, 0.5) 0%,
-      rgba(255, 216, 150, 0.22) 22%,
-      rgba(255, 210, 140, 0.06) 40%,
-      transparent 62%
-    );
-  }
+  /* THE TORCH IS GONE.
+     Sid, looking at the live footer: "on footer image i still see this weird
+     yellow light."
 
+     It was an amber pool that tracked the pointer across the wall, meant to
+     read as a hand-held light moving over pinned paper. On the page it read
+     as a stain: a warm blob sitting on a cool image, following the cursor
+     with no source and no reason. The wall already answers the pointer
+     through the ripple and the brightness lift, and those are enough. */
   html[data-theme="light"] .wall__img {
     filter: brightness(calc(1 + var(--lit, 0) * 0.04)) saturate(0.86) url(#wall-ripple);
   }
@@ -191,15 +182,6 @@
     html[data-theme="light"] .wall__img {
       filter: brightness(calc(1 + var(--lit, 0) * 0.04)) saturate(0.86);
     }
-  }
-  html[data-theme="light"] .wall__torch {
-    mix-blend-mode: multiply;
-    background: radial-gradient(
-      circle at calc(var(--tx, 50%)) calc(var(--ty, 50%)),
-      rgba(255, 245, 225, 0) 0%,
-      rgba(30, 26, 20, 0.16) 46%,
-      rgba(30, 26, 20, 0.28) 70%
-    );
   }
 
   @media (max-width: 760px) {
@@ -258,11 +240,9 @@
 
     if (fine && !reduce) {
       frame.addEventListener("pointerenter", function () {
-        frame.style.setProperty("--torch", "1");
         frame.style.setProperty("--lit", "1");
       });
       frame.addEventListener("pointerleave", function () {
-        frame.style.setProperty("--torch", "0");
         frame.style.setProperty("--lit", "0");
       });
       /* ── STIRRING THE WATER ──────────────────────────────────────────────
@@ -295,8 +275,6 @@
         "pointermove",
         function (e) {
           var r = frame.getBoundingClientRect();
-          frame.style.setProperty("--tx", (((e.clientX - r.left) / Math.max(1, r.width)) * 100).toFixed(2) + "%");
-          frame.style.setProperty("--ty", (((e.clientY - r.top) / Math.max(1, r.height)) * 100).toFixed(2) + "%");
 
           var now = e.timeStamp || Date.now();
           var dt = Math.max(16, now - lastT);

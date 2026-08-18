@@ -116,6 +116,7 @@ var S = `https://api.inaturalist.org/v1/observations`,
   ne = new Set(),
   re = [],
   ie = new Set(),
+  mediaPhotos = new Set(),
   ae = 4e3,
   oe = !1,
   se = 0,
@@ -168,11 +169,14 @@ function me(e) {
     c = ye(t.sounds),
     l = be(t.taxon);
   if (!c || !l) return null;
-  let u = `${c}|${l}`;
-  if (ie.has(u)) return null;
-  ie.add(u);
-  let d = typeof t.place_guess == `string` && t.place_guess ? ve(t.place_guess) : null;
-  return { id: t.id, taxon: n, name: r, lat: i, lng: a, place: d, solarHour: s, createdAt: o, receivedAt: Date.now(), soundUrl: c, photoUrl: l };
+  let u = c.split(/[?#]/)[0],
+    d = l
+      .split(/[?#]/)[0]
+      .replace(/\/(square|small|medium|large|original)\./i, `/size.`);
+  if (ie.has(u) || mediaPhotos.has(d)) return null;
+  (ie.add(u), mediaPhotos.add(d));
+  let f = typeof t.place_guess == `string` && t.place_guess ? ve(t.place_guess) : null;
+  return { id: t.id, taxon: n, name: r, lat: i, lng: a, place: f, solarHour: s, createdAt: o, receivedAt: Date.now(), soundUrl: c, photoUrl: l };
 }
 function he(e) {
   if (typeof e != `string`) return { lat: null, lng: null };
@@ -11743,6 +11747,10 @@ function are(e, t) {
   qs && Ys.volume.rampTo(e, 0.5, t);
 }
 function ore() {
+  if (realAudioMeter) {
+    let e = realAudioMeter.getValue();
+    return { rms: typeof e == `number` ? e : e[0], peak: typeof e == `number` ? e : e[0] };
+  }
   if (!qs) return { rms: 0, peak: 0 };
   let e = tc.getValue(),
     t = nc.getValue();
@@ -11882,9 +11890,9 @@ function dc(e) {
 function fc(e, t, n) {
   return e + (t - e) * n;
 }
-var gre = 12,
+var gre = 64,
   _re = 2500,
-  vre = 40,
+  vre = 48,
   yre = 2048,
   pc = 8,
   mc = 1.4,
@@ -11898,41 +11906,62 @@ var gre = 12,
   bc,
   xc = !1,
   Sre = 0,
-  Cre = 0;
+  Cre = 0,
+  lastVoiceId = null,
+  audioPlayingUntil = 0,
+  realAudioMeter = null,
+  selectedVoice = null,
+  preloadActive = 0,
+  preloadLimit = 6;
 function wre() {
   xc ||=
-    ((vc = new Ms({ type: `bandpass`, frequency: 1200, Q: 0.6 })),
-    (bc = new Vs(0)),
-    (yc = new qo(-6)),
-    vc.connect(bc),
+    ((bc = new Vs(0)),
+    (yc = new qo(-2)),
+    (realAudioMeter = new Ws({ normalRange: !0, smoothing: 0.72 })),
     bc.connect(yc),
-    yc.connect(rre()),
-    setInterval(Tre, _re),
+    yc.toDestination(),
+    yc.connect(realAudioMeter),
     !0);
 }
 function Sc(e) {
-  if (!(!xc || !e.soundUrl || _c.has(e.id)) && (_c.add(e.id), gc.push(e), gc.length > vre)) {
+  if (!(!xc || !e.soundUrl || _c.has(e.id) || hc.some((t) => t.obs.id === e.id)) && (_c.add(e.id), gc.push(e), gc.length > vre)) {
     let e = gc.shift();
     e && _c.delete(e.id);
   }
+  Tre();
 }
 function Tre() {
-  let e = gc.shift();
-  e && (_c.delete(e.id), Ere(e));
+  for (; preloadActive < preloadLimit && gc.length; ) {
+    let e = gc.shift();
+    if (!e) break;
+    (preloadActive++,
+      Ere(e)
+        .then((t) => {
+          t && displayObservation(e);
+        })
+        .finally(() => {
+          (_c.delete(e.id), preloadActive--, Tre());
+        }));
+  }
 }
 async function Ere(e) {
+  let t = hc.find((t) => t.obs.id === e.id);
+  if (t) return t;
   try {
     let t = await fetch(e.soundUrl);
-    if (!t.ok) return;
+    if (!t.ok) return null;
     let n = await t.arrayBuffer(),
       r = await fo().decodeAudioData(n.slice(0));
-    if (r.duration < 0.5) return;
-    let i = kre(r),
-      a = new ws(r).connect(vc);
-    ((a.fadeIn = 0.25), (a.fadeOut = 0.4), Ore(e));
-    let o = Dre(e, a, i);
-    (hc.push(o), Sre++, hc.length > gre && hc.shift()?.player.dispose());
-  } catch {}
+    if (r.duration < 0.5) return null;
+    let s = hc.find((t) => t.obs.id === e.id);
+    if (s) return s;
+    let a = new ws(r).connect(bc);
+    ((a.fadeIn = 0.02), (a.fadeOut = 0.08), Ore(e));
+    let o = { obs: e, player: a };
+    return (hc.push(o), Sre++, hc.length > gre && hc.shift()?.player.dispose(), o);
+  } catch {
+    return null;
+  }
 }
 function Dre(e, t, n) {
   let r = n[0],
@@ -11950,23 +11979,20 @@ function Dre(e, t, n) {
 }
 function Cc(e) {
   if (hc.length === 0) return null;
-  if (e) {
-    let t = hc.filter((t) => t.obs.taxon === e);
-    if (t.length) return t[(Math.random() * t.length) | 0];
-  }
-  return hc[(Math.random() * hc.length) | 0];
+  let t = e ? hc.filter((t) => t.obs.taxon === e) : hc;
+  t.length || (t = hc);
+  let n = t.filter((e) => e.obs.id !== lastVoiceId);
+  n.length || (n = t);
+  let r = n[(Math.random() * n.length) | 0];
+  return ((lastVoiceId = r.obs.id), r);
 }
 function wc(e, t, n, r = 0) {
   if (xc)
     try {
-      (vc.frequency.setValueAtTime(500 + n * 4500, t),
-        bc.pan.setValueAtTime(e.pan, t),
-        yc.volume.setValueAtTime(-6 + r, t),
-        (e.player.playbackRate = e.rate));
+      (bc.pan.setValueAtTime(0, t), yc.volume.setValueAtTime(-2, t), (e.player.playbackRate = 1));
       let i = e.player.buffer.duration,
-        a = Math.min(e.durBase, Math.max(0.5, i - 0.1)),
-        o = Math.max(0, Math.random() * Math.max(0, i - a));
-      (e.player.start(t, o, a), Cre++);
+        a = Math.min(12, i);
+      (e.player.start(t, 0, a), (audioPlayingUntil = performance.now() + a * 1e3), Cre++);
     } catch {}
 }
 function Ore(e) {
@@ -46691,7 +46717,10 @@ var jV = 0,
   MV = 56;
 async function NV() {
   let e = Ks();
-  ((e.bpm.value = 56), e.scheduleRepeat(PV, `8n`), e.scheduleRepeat(FV, `2m`), await mo(), e.start());
+  ((e.bpm.value = 56), await mo());
+  let t = (60 / 56) * 0.5 * 1e3,
+    n = (60 / 56) * 8 * 1e3;
+  (PV(Zne() + 0.05), window.setInterval(() => PV(Zne() + 0.05), t), window.setInterval(() => FV(Zne() + 0.05), n));
 }
 function PV(e) {
   jV++;
@@ -46718,28 +46747,21 @@ function PV(e) {
 function FV(e) {
   let t = y(Date.now()),
     n = sc(t);
-  (ere(n.padChord, e, Eo(`2m`).toSeconds() * 1.1), Ks().bpm.rampTo(MV, Eo(`1m`).toSeconds(), e));
+  ere(n.padChord, e, Eo(`2m`).toSeconds() * 1.1);
   let r = 0.55 + n.swell * 0.4;
   if (Math.random() < r) {
     let r = Cc(b(t));
     r && wc(r, e + Eo(`4n`).toSeconds() * (0.5 + Math.random()), n.brightness, n.swell * 3);
   }
 }
-function IV(e) {
-  let t = y(Date.now()),
-    n = sc(t),
-    r = Zne() + 0.035,
-    i = cc(e.id, e.taxon, n);
-  nre(i.family, i.note, r);
-  let a = Cc(e.taxon);
-  a
-    ? wc(a, r + 0.16, n.brightness, n.swell * 2 + 4)
-    : rc(
-        EV(Math.min(1, t.windowCount / 55), n.scalePcs, e.taxon === `Aves` || e.taxon === `Insecta` ? 6 : 4),
-        r + 0.36,
-        0.58 + n.brightness * 0.2,
-        0.9
-      );
+async function IV(e) {
+  let a = hc.find((t) => t.obs.id === e.id);
+  a || (a = await Ere(e));
+  if (!a) return !1;
+  try {
+    selectedVoice?.player.stop();
+  } catch {}
+  return ((selectedVoice = a), wc(a, Zne() + 0.05), !0);
 }
 var LV = 1e3,
   RV = 1001,
@@ -81146,23 +81168,39 @@ var i9 = Q.vec3,
   Q.workingToColorSpace,
   Q.xor);
 var o9 = 5,
-  s9 = 1e3,
+  s9 = 360,
   c9 = 1800,
   l9 = {
-    Aves: new V(0.82, 0.62, 0.34),
-    Insecta: new V(0.58, 0.66, 0.38),
-    Arachnida: new V(0.62, 0.43, 0.3),
-    Mammalia: new V(0.72, 0.52, 0.36),
-    Amphibia: new V(0.42, 0.62, 0.46),
-    Reptilia: new V(0.52, 0.58, 0.32),
-    Actinopterygii: new V(0.38, 0.58, 0.66),
-    Mollusca: new V(0.56, 0.5, 0.42),
-    Plantae: new V(0.4, 0.62, 0.36),
-    Fungi: new V(0.62, 0.48, 0.34),
-    Protozoa: new V(0.48, 0.58, 0.54),
-    Chromista: new V(0.42, 0.56, 0.6),
-    Animalia: new V(0.66, 0.58, 0.42),
-    Unknown: new V(0.62, 0.58, 0.48),
+    Aves: new V(1, 0.72, 0.24),
+    Insecta: new V(1, 0.38, 0.22),
+    Arachnida: new V(0.94, 0.3, 0.63),
+    Mammalia: new V(0.34, 0.7, 1),
+    Amphibia: new V(0.4, 0.95, 0.54),
+    Reptilia: new V(0.96, 0.57, 0.18),
+    Actinopterygii: new V(0.18, 0.82, 1),
+    Mollusca: new V(0.7, 0.47, 1),
+    Plantae: new V(0.27, 0.88, 0.5),
+    Fungi: new V(0.73, 0.4, 0.92),
+    Protozoa: new V(0.36, 0.83, 0.78),
+    Chromista: new V(0.27, 0.73, 0.82),
+    Animalia: new V(0.92, 0.76, 0.4),
+    Unknown: new V(0.72, 0.78, 0.78),
+  },
+  beaconScaleMap = {
+    Aves: 0.88,
+    Insecta: 0.72,
+    Arachnida: 0.78,
+    Mammalia: 1.18,
+    Amphibia: 0.98,
+    Reptilia: 1.04,
+    Actinopterygii: 0.9,
+    Mollusca: 1.08,
+    Plantae: 0.82,
+    Fungi: 0.92,
+    Protozoa: 0.68,
+    Chromista: 0.76,
+    Animalia: 1,
+    Unknown: 0.84,
   },
   u9 = null,
   d9 = !1,
@@ -81170,20 +81208,27 @@ var o9 = 5,
   p9 = n9(0),
   m9 = n9(0),
   h9 = n9(0),
+  focusTint = n9(0),
   aOe = n9(new V(1, 0.35, 0.2).normalize()),
   g9 = Array.from({ length: s9 }, () => new V(0, 0, 0)),
   _9 = Array.from({ length: s9 }, () => new V(0.62, 0.58, 0.48)),
+  beaconScales = Array(s9).fill(1),
   v9 = Array(s9).fill(-9999),
   y9 = Array(s9).fill(null),
   oOe = r9(g9),
   sOe = r9(_9),
+  beaconScaleUniform = r9(beaconScales),
   cOe = r9(v9),
   b9 = 0,
   x9 = 0,
   S9 = 0,
   C9 = 0,
   w9 = !1,
-  T9 = 15;
+  T9 = 16.2,
+  Pzoom = 1,
+  focusActive = !1,
+  focusQuaternion = null,
+  reducedMotion = window.matchMedia(`(prefers-reduced-motion: reduce)`).matches;
 async function lOe(e, t) {
   try {
     ((u9 = new $De({ canvas: e, alpha: !0, antialias: !0 })),
@@ -81196,9 +81241,9 @@ async function lOe(e, t) {
     let i = new oG();
     ((i.rotation.y = -SOe()),
       n.add(i),
-      i.add(_Oe()),
+      n.add(_Oe()),
       i.add(fOe()),
-      i.add(pOe()),
+      i.add(await naturalEarthOe()),
       i.add(gOe()),
       i.add(mOe()),
       i.add(dOe()),
@@ -81217,13 +81262,16 @@ async function lOe(e, t) {
           ((m9.value += (Math.min(1, e * 3) - m9.value) * 0.1),
           (h9.value += (t.burst - h9.value) * 0.08),
           !w9 && b9 > 40 && ((i.rotation.y = -Math.atan2(S9, C9)), (w9 = !0)),
+          (focusTint.value += ((focusActive ? 1 : 0) - focusTint.value) * 0.065),
           (D9.vel *= 0.94),
-          (i.rotation.y += D9.active ? D9.vel : 4e-4 + D9.vel),
-          (i.rotation.x += (D9.targetX - i.rotation.x) * 0.08),
-          (r.position.z += (T9 - r.position.z) * 0.08),
+          focusActive && focusQuaternion
+            ? i.quaternion.slerp(focusQuaternion, reducedMotion ? 1 : 0.075)
+            : ((i.rotation.y += D9.active ? D9.vel : 4e-4 + D9.vel), (i.rotation.x += (D9.targetX - i.rotation.x) * 0.08)),
+          (r.position.z += (T9 * Pzoom - r.position.z) * (reducedMotion ? 1 : 0.08)),
+          updateAudioMonogram(e, a),
           f9?.visible)
         ) {
-          let e = 1 + Math.sin(a * 5) * 0.12;
+          let e = 1 + Math.sin(a * 3.2) * 0.14 + m9.value * 0.14;
           f9.scale.setScalar(e);
         }
         u9.render(n, r);
@@ -81236,11 +81284,25 @@ async function lOe(e, t) {
   }
 }
 function uOe(e) {
-  if (!d9 || e.lat == null || e.lng == null) return;
+  if (!d9 || e.lat == null || e.lng == null) return !1;
   let t = b9 % s9,
     [n, r] = xOe(e),
-    [i, a, o] = k9(n, r, o9 * 1.02);
-  (g9[t].set(i, a, o), _9[t].copy(l9[e.taxon] ?? l9.Unknown), (v9[t] = x9), (y9[t] = e), (S9 += i), (C9 += o), b9++);
+    [i, a, o] = k9(n, r, o9 * 1.02),
+    s = o9 * 1.02,
+    c = Math.cos((9 * Math.PI) / 180) * s * s,
+    l = Math.min(b9, s9);
+  for (let e = 0; e < l; e++) if (x9 - v9[e] < 260 && g9[e].x * i + g9[e].y * a + g9[e].z * o > c) return !1;
+  return (
+    g9[t].set(i, a, o),
+    _9[t].copy(l9[e.taxon] ?? l9.Unknown),
+    (beaconScales[t] = beaconScaleMap[e.taxon] ?? beaconScaleMap.Unknown),
+    (v9[t] = x9),
+    (y9[t] = e),
+    (S9 += i),
+    (C9 += o),
+    b9++,
+    !0
+  );
 }
 function dOe() {
   let e = new Pq(1, 1),
@@ -81254,19 +81316,24 @@ function dOe() {
       .clamp(0, 1),
     s = a.max(o),
     c = t9(J7(0.015), J7(0.1), s),
-    l = J7(0.085).add(o.mul(0.14)).add(m9.mul(0.05)).mul(c),
+    l = J7(0.24).add(o.mul(0.3)).add(m9.mul(0.12)).mul(c).mul(beaconScaleUniform.element(n)),
     u = rOe.mul(a9(r, 1)),
     d = u.xy.add(iOe.xy.mul(l));
   ((t.vertexNode = eOe.mul(a9(d, u.z, u.w))),
     (t.colorNode = G7(() => {
-      let e = X7(sOe.element(n), i9(0.96, 0.9, 0.78), o.mul(0.35)),
-        t = a.mul(J7(1.25).add(m9.mul(0.45))).add(o.mul(0.95));
-      return a9(e.mul(t), s);
+      let e = Q.length(Q.uv().sub(0.5)).mul(2),
+        t = J7(1).sub(t9(J7(0.02), J7(0.25), e)),
+        r = J7(1).sub(t9(J7(0.18), J7(0.78), e)),
+        i = t9(J7(0.48), J7(0.62), e).mul(J7(1).sub(t9(J7(0.7), J7(0.88), e))),
+        c = X7(sOe.element(n), i9(1, 0.99, 0.95), t.mul(0.78).add(i.mul(0.2))),
+        l = a.mul(J7(1.12).add(m9.mul(0.42))).add(o.mul(0.82)),
+        u = t.mul(0.96).add(r.mul(0.22)).add(i.mul(J7(0.3).add(o.mul(0.3))));
+      return a9(c.mul(l), s.mul(u).clamp(0, 1));
     })()));
-  let f = new $K(e, t, s9),
-    p = new MW();
-  for (let e = 0; e < s9; e++) f.setMatrixAt(e, p);
-  return ((f.instanceMatrix.needsUpdate = !0), (f.frustumCulled = !1), f);
+  let p = new $K(e, t, s9),
+    m = new MW();
+  for (let e = 0; e < s9; e++) p.setMatrixAt(e, m);
+  return ((p.instanceMatrix.needsUpdate = !0), (p.frustumCulled = !1), p);
 }
 function fOe() {
   let e = new Fq(o9, 96, 96),
@@ -81276,20 +81343,74 @@ function fOe() {
       let e = Q7(Z7),
         t = q7(e, aOe),
         n = t9(J7(-0.25), J7(0.45), t),
-        r = X7(i9(0.007, 0.009, 0.018), i9(0.026, 0.028, 0.03), n),
+        r = X7(i9(0.001, 0.003, 0.012), i9(0.012, 0.12, 0.24), n),
         i = Q7(K7.sub($7)),
         a = e9(J7(1).sub(Y7(J7(0), q7(e, i))), 4),
-        o = i9(0.12, 0.13, 0.14)
+        o = i9(0.07, 0.32, 0.58)
           .mul(a)
-          .mul(J7(0.55).add(h9.mul(0.4)));
-      return a9(r.add(o), 1);
+          .mul(J7(0.5).add(h9.mul(0.3)));
+      return a9(X7(r, i9(0.002, 0.035, 0.055), focusTint.mul(0.76)).add(o.mul(J7(1).sub(focusTint.mul(0.48)))), 1);
     })()),
     new VK(e, t)
   );
 }
+async function naturalEarthOe() {
+  try {
+    let e = await fetch(`https://raw.githubusercontent.com/nvkelso/natural-earth-vector/master/geojson/ne_110m_land.geojson`);
+    if (!e.ok) throw Error(`Natural Earth HTTP ${e.status}`);
+    return buildNaturalEarthLand(await e.json());
+  } catch (e) {
+    return (console.warn(`[feral] detailed land unavailable:`, e.message), pOe());
+  }
+}
+function buildNaturalEarthLand(e) {
+  let t = [],
+    n = [];
+  for (let r of e?.features ?? []) {
+    let e = r?.geometry,
+      i = e?.type === `Polygon` ? [e.coordinates] : e?.type === `MultiPolygon` ? e.coordinates : [];
+    for (let e of i) {
+      let r = e?.[0];
+      if (!Array.isArray(r) || r.length < 3) continue;
+      let i = r
+        .filter((e) => Array.isArray(e) && Number.isFinite(e[0]) && Number.isFinite(e[1]))
+        .map((e) => [e[1], e[0]]);
+      if (i.length < 3) continue;
+      for (let e = 0; e < i.length - 1; e++) hOe(t, i[e], i[e + 1]);
+      let a = Math.min(...i.map((e) => e[0])),
+        o = Math.max(...i.map((e) => e[0])),
+        s = Math.min(...i.map((e) => e[1])),
+        c = Math.max(...i.map((e) => e[1])),
+        l = c - s > 180,
+        u = l ? i.map((e) => [e[0], e[1] < 0 ? e[1] + 360 : e[1]]) : i;
+      l && ((s = Math.min(...u.map((e) => e[1]))), (c = Math.max(...u.map((e) => e[1]))));
+      n.push({ ring: u, minLat: a, maxLat: o, minLng: s, maxLng: c, wrapped: l });
+    }
+  }
+  let r = new mK();
+  r.setAttribute(`position`, new QG(new Float32Array(t), 3));
+  let i = new Cq(r, new dq({ color: 11909045, transparent: !0, opacity: 0.5, depthWrite: !1 })),
+    a = [];
+  for (let e = -84; e <= 84; e += 1.35)
+    for (let t = -180 + ((Math.round(e * 10) & 1) ? 0.675 : 0); t < 180; t += 1.35) {
+      let r = n.some((n) => {
+        let r = n.wrapped && t < 0 ? t + 360 : t;
+        return e >= n.minLat && e <= n.maxLat && r >= n.minLng && r <= n.maxLng && EOland(n.ring, e, r);
+      });
+      if (r) {
+        let [n, r, i] = k9(e, t, o9 * 1.004);
+        a.push(n, r, i);
+      }
+    }
+  let s = new mK();
+  s.setAttribute(`position`, new QG(new Float32Array(a), 3));
+  let c = new Uge(s, new c3({ color: 0x82a978, size: 0.058, sizeAttenuation: !0, transparent: !0, opacity: 0.58, depthWrite: !1 })),
+    l = new oG();
+  return (l.add(c), l.add(i), l);
+}
 function pOe() {
-  let e = [];
-  for (let t of [
+  let e = [],
+    t = [
     [
       [72, -164],
       [68, -136],
@@ -81375,16 +81496,44 @@ function pOe() {
       [-66, 120],
       [-63, 180],
     ],
-  ])
-    for (let n = 0; n < t.length - 1; n++) hOe(e, t[n], t[n + 1]);
-  let t = new mK();
-  return (
-    t.setAttribute(`position`, new QG(new Float32Array(e), 3)),
-    new Cq(t, new dq({ color: 12113887, transparent: !0, opacity: 0.24, depthWrite: !1 }))
-  );
+  ];
+  for (let n of t) for (let t = 0; t < n.length - 1; t++) hOe(e, n[t], n[t + 1]);
+  let n = new mK();
+  n.setAttribute(`position`, new QG(new Float32Array(e), 3));
+  let r = new Cq(n, new dq({ color: 7444874, transparent: !0, opacity: 0.62, depthWrite: !1 })),
+    i = [];
+  for (let e = 0; e < t.length - 1; e++) {
+    let n = t[e],
+      r = Math.max(-78, Math.floor(Math.min(...n.map((e) => e[0])))),
+      a = Math.min(84, Math.ceil(Math.max(...n.map((e) => e[0])))),
+      o = Math.floor(Math.min(...n.map((e) => e[1]))),
+      s = Math.ceil(Math.max(...n.map((e) => e[1])));
+    for (let e = r; e <= a; e += 1.8)
+      for (let t = o + ((Math.round(e * 10) & 1) ? 0.9 : 0); t <= s; t += 1.8)
+        if (EOland(n, e, t)) {
+          let [n, r, a] = k9(e, t, o9 * 1.004);
+          i.push(n, r, a);
+        }
+  }
+  let a = new mK();
+  a.setAttribute(`position`, new QG(new Float32Array(i), 3));
+  let s = new Uge(a, new c3({ color: 6851190, size: 0.034, sizeAttenuation: !0, transparent: !0, opacity: 0.42, depthWrite: !1 })),
+    c = new oG();
+  return (c.add(s), c.add(r), c);
+}
+function EOland(e, t, n) {
+  let r = !1;
+  for (let i = 0, a = e.length - 1; i < e.length; a = i++) {
+    let o = e[i][1],
+      s = e[i][0],
+      c = e[a][1],
+      l = e[a][0];
+    s > t != l > t && n < ((c - o) * (t - s)) / (l - s) + o && (r = !r);
+  }
+  return r;
 }
 function mOe() {
-  let e = new Fq(o9 * 1.16, 64, 64),
+  let e = new Fq(o9 * 1.09, 64, 64),
     t = new V2({ transparent: !0, side: 1, depthWrite: !1, blending: 2 });
   return (
     (t.colorNode = G7(() => {
@@ -81392,10 +81541,10 @@ function mOe() {
         t = Q7(K7.sub($7)),
         n = e9(J7(1).sub(Y7(J7(0), q7(e, t))), 3);
       return a9(
-        i9(0.14, 0.15, 0.16)
+        i9(0.09, 0.38, 0.68)
           .mul(n)
-          .mul(J7(0.6).add(m9.mul(0.45)).add(h9.mul(0.55))),
-        n.mul(0.8)
+          .mul(J7(0.56).add(m9.mul(0.34)).add(h9.mul(0.42))),
+        n.mul(0.46)
       );
     })()),
     new VK(e, t)
@@ -81424,26 +81573,40 @@ function gOe() {
   let n = new mK();
   return (
     n.setAttribute(`position`, new QG(new Float32Array(e), 3)),
-    new Cq(n, new dq({ color: 9418691, transparent: !0, opacity: 0.08, depthWrite: !1 }))
+    new Cq(n, new dq({ color: 0x31506f, transparent: !0, opacity: 0.032, depthWrite: !1 }))
   );
 }
 function _Oe() {
-  let e = new Float32Array(c9 * 3);
-  for (let t = 0; t < c9; t++) {
-    let n = Math.random() * 2 - 1,
-      r = Math.random() * Math.PI * 2,
-      i = Math.sqrt(1 - n * n),
-      a = 70 + Math.random() * 30;
-    ((e[t * 3] = a * i * Math.cos(r)), (e[t * 3 + 1] = a * n), (e[t * 3 + 2] = a * i * Math.sin(r)));
-  }
-  let t = new mK();
+  let e = (e, t = 70, n = 100) => {
+      for (let r = 0; r < e.length / 3; r++) {
+        let i = Math.random() * 2 - 1,
+          a = Math.random() * Math.PI * 2,
+          o = Math.sqrt(1 - i * i),
+          s = t + Math.random() * (n - t);
+        ((e[r * 3] = s * o * Math.cos(a)), (e[r * 3 + 1] = s * i), (e[r * 3 + 2] = s * o * Math.sin(a)));
+      }
+    },
+    t = new Float32Array(c9 * 3),
+    n = new Float32Array(180 * 3);
+  (e(t), e(n, 58, 92));
+  let r = new mK(),
+    i = new mK();
+  (r.setAttribute(`position`, new QG(t, 3)), i.setAttribute(`position`, new QG(n, 3)));
+  let a = new oG();
   return (
-    t.setAttribute(`position`, new QG(e, 3)),
-    new Uge(t, new c3({ color: 8956592, size: 0.18, sizeAttenuation: !0, transparent: !0, opacity: 0.5 }))
+    a.add(new Uge(r, new c3({ color: 0x91a9d6, size: 0.14, sizeAttenuation: !0, transparent: !0, opacity: 0.58, depthWrite: !1 }))),
+    a.add(new Uge(i, new c3({ color: 0xffddb0, size: 0.34, sizeAttenuation: !0, transparent: !0, opacity: 0.78, depthWrite: !1 }))),
+    a
   );
 }
 function vOe() {
-  let e = new VK(new Fq(0.22, 24, 24), new kK({ color: 16777215, transparent: !0, opacity: 0.95, depthWrite: !1, blending: 2 }));
+  let e = new oG();
+  for (let [t, n] of [
+    [0.1, 0.98],
+    [0.19, 0.28],
+    [0.32, 0.08],
+  ])
+    e.add(new VK(new Fq(t, 32, 32), new kK({ color: 16777215, transparent: !0, opacity: n, depthWrite: !1, blending: 2 })));
   return ((e.visible = !1), e);
 }
 var D9 = { active: !1, lastX: 0, lastY: 0, downX: 0, downY: 0, vel: 0, targetX: 0 };
@@ -81462,7 +81625,7 @@ function yOe(e, t, n, r) {
       let a = Math.hypot(i.clientX - D9.downX, i.clientY - D9.downY);
       if (((D9.active = !1), a < 6)) {
         let e = bOe(i.clientX, i.clientY, t, n);
-        e && r?.(e);
+        e ? r?.(e) : focusActive && BOclose();
       }
       e.style.cursor = `grab`;
     }),
@@ -81495,18 +81658,28 @@ function bOe(e, t, n, r) {
     let f = (l.x * 0.5 + 0.5) * i.width,
       p = (-l.y * 0.5 + 0.5) * i.height,
       m = Math.hypot(f - a, p - o);
-    m <= Math.max(16, 28 - d * 0.04) && (!s || m < s.dist) && (s = { obs: u, dist: m, slot: t, sx: f, sy: p });
+    m <= Math.max(24, 38 - d * 0.055) && (!s || m < s.dist) && (s = { obs: u, dist: m, slot: t, sx: f, sy: p });
   }
   return s
     ? ((v9[s.slot] = c),
-      (T9 = Math.min(T9, 11)),
+      (T9 = 11.6),
+      (focusActive = !0),
+      (focusQuaternion = new uW()
+        .setFromUnitVectors(g9[s.slot].clone().applyQuaternion(r.quaternion).normalize(), new V(0, 0, 1))
+        .multiply(r.quaternion.clone())),
+      document.body.classList.add(`is-focused`),
       f9 &&
-        ((f9.visible = !0), f9.position.copy(g9[s.slot]).multiplyScalar(1.01), f9.material.color.setRGB(_9[s.slot].x, _9[s.slot].y, _9[s.slot].z)),
+        ((f9.visible = !0),
+        f9.position.copy(g9[s.slot]).multiplyScalar(1.01),
+        f9.children.forEach((e) => e.material.color.setRGB(_9[s.slot].x, _9[s.slot].y, _9[s.slot].z))),
       { obs: s.obs, screenX: i.left + s.sx, screenY: i.top + s.sy })
     : null;
 }
 function O9(e) {
-  ((e.aspect = window.innerWidth / window.innerHeight), e.updateProjectionMatrix(), u9.setSize(window.innerWidth, window.innerHeight));
+  ((e.aspect = window.innerWidth / window.innerHeight),
+    (Pzoom = Math.max(1, Math.min(1.75, 0.78 / e.aspect))),
+    e.updateProjectionMatrix(),
+    u9.setSize(window.innerWidth, window.innerHeight));
 }
 function k9(e, t, n) {
   let r = ((90 - e) * Math.PI) / 180,
@@ -81543,19 +81716,42 @@ var N9 = (e) => document.getElementById(e),
   F9 = N9(`begin`),
   wOe = N9(`brand`),
   I9 = N9(`now`),
-  L9 = N9(`intro`),
   TOe = N9(`credit`),
   R9 = N9(`inspect`),
   z9 = N9(`live-beacon`),
+  audioVisual = N9(`audio-visual`),
+  audioBars = [...audioVisual.querySelectorAll(`.audio-mark i`)],
+  audioVisualPlaying = !1,
   B9 = !1;
 F9.addEventListener(`click`, () => {
   B9 || ((B9 = !0), EOe());
 });
+window.addEventListener(`keydown`, (e) => {
+  e.key === `Escape` && BOclose();
+});
+function BOclose() {
+  (R9.classList.remove(`shown`, `active`),
+    R9.setAttribute(`aria-hidden`, `true`),
+    I9.classList.remove(`inspect-open`),
+    f9 && (f9.visible = !1),
+    (focusActive = !1),
+    (focusQuaternion = null),
+    (T9 = 16.2),
+    document.body.classList.remove(`is-focused`));
+}
+function updateAudioMonogram(e, t) {
+  let n = performance.now() < audioPlayingUntil;
+  n !== audioVisualPlaying && ((audioVisualPlaying = n), audioVisual.classList.toggle(`playing`, n));
+  let r = n ? Math.min(1, 0.18 + e * 8) : 0.12;
+  for (let e = 0; e < audioBars.length; e++) {
+    let n = 0.24 + Math.abs(Math.sin(t * (3.2 + e * 0.27) + e * 0.9)) * 0.76;
+    audioBars[e].style.transform = `scaleY(${(0.16 + r * n).toFixed(3)})`;
+  }
+}
 async function EOe() {
   ((F9.disabled = !0),
-    await Qne(),
+    await mo(),
     wre(),
-    await NV(),
     await lOe(N9(`field`), kOe),
     le(DOe),
     P9.classList.add(`gone`),
@@ -81563,9 +81759,7 @@ async function EOe() {
     setTimeout(() => {
       (wOe.classList.add(`shown`), TOe.classList.add(`shown`));
     }, 700),
-    setTimeout(() => L9.classList.add(`show`), 1400),
-    setTimeout(() => L9.classList.remove(`show`), 8500),
-    setTimeout(() => I9.classList.add(`shown`), 6e3),
+    setTimeout(() => I9.classList.add(`shown`), 2400),
     setInterval(OOe, 1700),
     setInterval(q9, 1e3));
 }
@@ -81575,56 +81769,61 @@ var V9 = null,
   W9 = 0,
   G9 = 0;
 function DOe(e) {
-  (uOe(e),
-    TV(e.taxon, e.id),
-    e.soundUrl && Sc(e),
+  Sc(e);
+}
+function displayObservation(e) {
+  if (!uOe(e)) return;
+  (TV(e.taxon, e.id),
     (W9 = Date.now()),
     q9(),
     jOe(e),
     e.name && e.name !== `unknown organism` && ((H9 = e), e.soundUrl && (V9 = e)));
 }
 function OOe() {
-  let e = (V9 && X9(V9) !== U9 ? V9 : null) ?? H9 ?? V9;
-  ((V9 = null), (H9 = null), e && (K9(e), q9()));
+  ((V9 = null), (H9 = null), q9());
 }
 function K9(e) {
   let t = I9.querySelector(`.now-name`),
-    n = I9.querySelector(`.now-meta`);
-  ((U9 = X9(e)), (t.textContent = e.name));
-  let r = [];
-  (e.place && r.push(Y9(e.place)),
-    r.push(J9(e.taxon)),
-    (n.innerHTML = r.join(` · `) + (e.soundUrl ? ` <span class="sound">♪ live recording</span>` : ``)),
+    n = I9.querySelector(`.now-meta`),
+    r = audioVisual.querySelector(`strong`);
+  ((U9 = X9(e)),
+    (t.textContent = e.name),
+    (n.innerHTML = `<span class="sound">♪ field recording</span>`),
+    (r.textContent = e.name),
+    audioVisual.classList.add(`shown`),
     I9.classList.remove(`bump`),
     I9.offsetWidth,
     I9.classList.add(`bump`));
 }
 function kOe(e) {
   let { obs: t } = e;
-  (t.soundUrl && Sc(t), IV(t), K9(t), AOe(t, e));
+  (IV(t), K9(t), AOe(t, e));
 }
 function AOe(e, t) {
-  let n = R9.querySelector(`.inspect-photo`),
+  let n = R9.querySelector(`.inspect-photo img`),
     r = R9.querySelector(`h2`),
-    i = R9.querySelector(`.inspect-meta`),
     a = R9.querySelector(`.inspect-grid`),
-    o = y(Date.now()),
-    s = sc(o),
-    c = cc(e.id, e.taxon, s);
-  ((r.textContent = e.name), (i.textContent = [e.place, J9(e.taxon)].filter(Boolean).join(` · `)));
+    o = y(Date.now());
+  r.textContent = e.name;
   let l = FOe(e);
-  ((n.style.backgroundImage = l ? `url("${l}")` : ``),
+  let u = l9[e.taxon] ?? l9.Unknown;
+  (R9.style.setProperty(`--taxon-color`, `rgb(${Math.round(u.x * 255)} ${Math.round(u.y * 255)} ${Math.round(u.z * 255)})`),
+    R9.style.setProperty(`--photo-origin-x`, `${(t.screenX ?? window.innerWidth / 2) - window.innerWidth / 2}px`),
+    R9.style.setProperty(`--photo-origin-y`, `${(t.screenY ?? window.innerHeight / 2) - window.innerHeight / 2}px`),
+    document.body.style.setProperty(`--selected-color`, `rgb(${Math.round(u.x * 255)} ${Math.round(u.y * 255)} ${Math.round(u.z * 255)})`),
+    (n.src = l || ``),
+    (n.alt = l ? `${e.name}, observed in ${e.place || `an undisclosed location`}` : ``),
     R9.classList.toggle(`no-photo`, !l),
-    n.setAttribute(`aria-label`, l ? `${e.name} photo` : `No photo available`),
-    MOe(t.screenX, t.screenY),
     (a.innerHTML = [
       Z9(`Seen`, Q9(e.createdAt)),
-      Z9(`Where`, NOe(e)),
       Z9(`Local time`, POe(e.solarHour)),
-      Z9(`Sound`, `${c.family} · ${c.note}`),
-      Z9(`Live feed`, `${o.windowCount} sightings`),
+      Z9(`Sightings`, o.totalIngested.toLocaleString()),
     ].join(``)),
-    R9.classList.add(`shown`, `active`));
+    R9.setAttribute(`aria-hidden`, `false`),
+    R9.classList.remove(`active`),
+    R9.offsetWidth,
+    R9.classList.add(`shown`, `active`),
+    I9.classList.add(`inspect-open`));
 }
 function q9() {
   let e = y(Date.now()).totalIngested,
@@ -81640,31 +81839,6 @@ function jOe(e) {
       z9.classList.remove(`active`, `shown`);
     }, 1800)));
 }
-function MOe(e, t) {
-  let n = Math.min(R9.offsetWidth || 672, window.innerWidth - 36),
-    r = R9.offsetHeight || 300,
-    i = e < window.innerWidth * 0.55 ? e + 36 : e - n - 36,
-    a = t - r * 0.45;
-  ((R9.style.left = `${$9(i, 18, window.innerWidth - n - 18)}px`),
-    (R9.style.top = `${$9(a, 74, window.innerHeight - r - 18)}px`),
-    (R9.style.right = `auto`));
-}
-function J9(e) {
-  return (
-    {
-      Aves: `bird`,
-      Mammalia: `mammal`,
-      Amphibia: `amphibian`,
-      Reptilia: `reptile`,
-      Insecta: `insect`,
-      Arachnida: `arachnid`,
-      Actinopterygii: `fish`,
-      Mollusca: `mollusc`,
-      Plantae: `plant`,
-      Fungi: `fungus`,
-    }[e] ?? `living thing`
-  );
-}
 function Y9(e) {
   return e.replace(/[&<>]/g, (e) => (e === `&` ? `&amp;` : e === `<` ? `&lt;` : `&gt;`));
 }
@@ -81673,9 +81847,6 @@ function X9(e) {
 }
 function Z9(e, t) {
   return `<div><span>${Y9(e)}</span><b>${Y9(t)}</b></div>`;
-}
-function NOe(e) {
-  return e.lat == null || e.lng == null ? `unknown` : `${e.lat.toFixed(2)}, ${e.lng.toFixed(2)}`;
 }
 function POe(e) {
   let t = Math.floor(e),
