@@ -5,7 +5,7 @@ project_title: Aananda
 proj_num: "13"
 tagline: >
   Aananda explores how Jain philosophy reaches younger audiences without losing what makes it deep. The question was how to translate something ancient and dense into a form that feels present. The project spans a mobile app studied against existing religious platforms, a book drawing from the visual language of Jain temples, and a print identity that holds it together.
-quick_read: "Designed a complete identity system — mobile app, book and print — that translates Jain philosophy into a visual language a younger audience can actually sit with."
+quick_read: "Designed a complete identity system, mobile app, book and print, that translates Jain philosophy into a visual language a younger audience can actually sit with."
 category: Branding · App Design
 year: 2020
 hero_bg: "radial-gradient(ellipse at 35% 65%, #24110c 0%, #120806 50%, #050202 100%)"
