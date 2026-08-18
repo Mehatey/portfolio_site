@@ -338,95 +338,138 @@
         animation-duration: 0.5s;
         animation-timing-function: var(--ease-out);
       }
-      /* Award badge.
+      /* ── THE AWARD READS AS AN AWARD LABEL ──────────────────────────────
+         Sid: "i wanted the metal shiny thing to be clipped on the top right
+         like a behance awards label we had it right earliar and in the correct
+         logo like the kyurius award logo png and the webby award logo png i
+         had given all this earliar."
 
-         It used to hang off the top edge of the hero — top: 0, square top
-         corners, the shape of a ribbon dropping out of the frame. The frame it
-         was dropping out of is under the fixed nav: the hero starts at y=64 and
-         the nav capsule bottoms out at y=72, so the badge spent its first 8px
-         underneath the navigation on every award page. Eight pixels is not a
-         collision anyone can name, which is why it survived this long — it just
-         made that corner feel wrong.
+         What it had become was a floating sticker: fully rounded, parked 20px
+         down and 36px in from the corner, with a sheen sweeping across it. A
+         thing that hovers near a corner and a thing that is fixed INTO a
+         corner say different things, and only the second one reads as a mark
+         applied to the work. So it goes back to the corner, flush on both
+         edges, and takes the Behance shape — square where it meets the frame,
+         cut on the diagonal where it leaves it.
 
-         It cannot hang from that edge, so it stops pretending to. It is a
-         sticker applied to the corner of the cover: fully rounded, clear of the
-         nav by 12px, and right-aligned to 36px — the nav capsule's own right
-         edge, not the 48px it used to sit at. Two objects anchored to the right
-         of the same screen that miss each other's line by 12px read as a
-         mistake even when nobody works out which one moved. */
+         WHY THE METAL IS THE FRAME AND NOT THE FILL
+
+         Both marks are supplied as raster plates with their backgrounds baked
+         in: Kyoorius is white on its brand blue, Webby is white on black.
+         Neither can be knocked out cleanly, and neither is ours to recolour —
+         an award mark is the awarding body's, not the site's. So the metal is
+         the bezel that holds the plate, and the sheen travels across the
+         bezel and the plate together. The logo stays exactly the logo.
+
+         ABOUT THE NAV
+
+         The hero starts at y=64 and the nav capsule bottoms out at y=72, so
+         anything flush to the hero's top edge has 8px under the navigation.
+         That is why this used to sit 20px down. The label is corner-flush now
+         and carries 11px of its own padding, so the eight pixels the nav
+         covers are the label's own margin — the mark inside never reaches
+         them. It sits below the nav in z-order deliberately: the glass should
+         pass over the metal, not the other way round. */
       .award-badge {
         position: absolute;
-        top: 20px;
-        right: 36px;
-        z-index: 10;
-        /* 96, down from 110. The asset is a saturated blue plate and it is the
-           loudest colour on any hero it appears on — it has to be, it is an
-           award mark and it is not ours to restyle. What is ours is how much
-           room it takes: at 110 it competed with the project title for the
-           first look, which inverts the point of the page. At 96 it is still
-           legible at a glance and reads as a credential rather than a banner. */
-        width: 96px;
+        top: 0;
+        right: 0;
+        z-index: 6;
+        width: 148px;
+        padding: 11px 11px 13px;
+        /* Brushed metal: light off the top-left, a bright band across the
+           middle, and a cooler foot. Five stops rather than two, because two
+           stops is a grey gradient and what makes a surface read as metal is
+           the sharp turn from light to dark partway down. */
+        background: linear-gradient(
+          148deg,
+          rgba(246, 248, 252, 0.92) 0%,
+          rgba(178, 188, 204, 0.86) 26%,
+          rgba(232, 238, 246, 0.94) 44%,
+          rgba(138, 150, 168, 0.86) 62%,
+          rgba(196, 206, 222, 0.9) 100%
+        );
+        /* The Behance corner: square into the frame, chamfered out of it. */
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 22px 100%, 0 calc(100% - 22px));
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.34);
         overflow: hidden;
-        border-radius: 10px;
-        box-shadow:
-          0 4px 20px rgba(0, 0, 0, 0.3),
-          0 0 0 1px rgba(255, 255, 255, 0.16);
-        transition: transform 0.5s var(--ease-out), filter 0.5s ease;
+        transition: transform 0.55s var(--ease-out), filter 0.55s ease;
         cursor: none;
       }
+      /* Pressing INTO the corner rather than lifting off it. A label that is
+         fixed to a surface cannot peel; it can only seat harder. */
       .award-badge:hover {
-        /* Lifts now rather than dropping. The 4px drop was the ribbon swinging
-           on its hanger; a sticker that is stuck to something peels up. */
-        transform: translateY(-3px) rotate(-1.5deg) scale(1.03);
-        filter: drop-shadow(0 12px 28px rgba(160, 200, 255, 0.25));
+        transform: translate(2px, -2px);
+        filter: brightness(1.06) drop-shadow(0 14px 30px rgba(170, 200, 255, 0.22));
       }
       .award-badge img {
         width: 100%;
         display: block;
-        transition: filter 0.4s ease;
+        border-radius: 3px;
+        /* The plates arrive at wildly different pixel sizes — 324px for
+           Kyoorius, 3838px for Webby — and both are ~1.76:1, so one aspect
+           box holds either without letterboxing. */
+        aspect-ratio: 1.76 / 1;
+        object-fit: cover;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
       }
-      .award-badge:hover img {
-        filter: url(#glass-refract);
-      }
-      /* Shiny light pass sweep */
+      /* The sheen crosses the bezel AND the plate, which is what sells them as
+         one object. Angled with the metal, not against it. */
       .award-badge::after {
-        content: '';
+        content: "";
         position: absolute;
-        top: 0;
-        left: -100%;
-        width: 60%;
-        height: 100%;
+        inset: 0;
+        pointer-events: none;
         background: linear-gradient(
           105deg,
-          transparent 30%,
-          rgba(255,255,255,0.3) 45%,
-          rgba(255,255,255,0.5) 50%,
-          rgba(255,255,255,0.3) 55%,
-          transparent 70%
+          transparent 34%,
+          rgba(255, 255, 255, 0.34) 47%,
+          rgba(255, 255, 255, 0.62) 50%,
+          rgba(255, 255, 255, 0.34) 53%,
+          transparent 66%
         );
-        animation: lightPass 4s ease-in-out infinite;
+        transform: translateX(-120%);
+        animation: awardSheen 5.5s ease-in-out infinite;
       }
-      @keyframes lightPass {
-        0%, 70%, 100% { left: -100%; }
-        40% { left: 150%; }
+      @keyframes awardSheen {
+        0%,
+        72%,
+        100% {
+          transform: translateX(-120%);
+        }
+        42% {
+          transform: translateX(120%);
+        }
       }
-      /* The badge had no responsive size, which is a different mistake from
-         having the wrong one. 96px against a 1440 viewport is 6.7% of the
-         width — a credential in the corner. The same 96px against a 390 phone
-         is 25%, and a 390×844 render of /mool/ shows what that costs: a
-         saturated blue plate, the loudest colour on the page, floating in the
-         empty sky above a title set at 44px, winning the first look off a
-         project it is only meant to endorse. It also stops being a sticker on
-         the corner of the cover once it is a quarter of the cover.
-
-         68px holds the same proportion it has on desktop and the mark inside
-         it still resolves — it is a silhouette and a year, not a paragraph.
-         The clearance stays 12px below the nav; only the plate shrinks. */
+      @media (prefers-reduced-motion: reduce) {
+        .award-badge::after {
+          animation: none;
+          opacity: 0.25;
+          transform: none;
+        }
+      }
+      /* On cream the metal has to darken rather than lighten, or the label
+         disappears into a pale hero. Same five-stop turn, inverted. */
+      html[data-theme="light"] .award-badge {
+        background: linear-gradient(
+          148deg,
+          rgba(252, 253, 255, 0.96) 0%,
+          rgba(158, 168, 186, 0.9) 26%,
+          rgba(238, 242, 249, 0.96) 44%,
+          rgba(120, 132, 152, 0.9) 62%,
+          rgba(180, 190, 208, 0.94) 100%
+        );
+        box-shadow: 0 10px 26px rgba(20, 26, 40, 0.26);
+      }
+      /* 148px is 10% of a 1440 viewport and reads as a credential. The same
+         148px on a 390 phone is 38% of the width, which is a banner. The plate
+         shrinks and the chamfer with it; the corner anchoring does not change,
+         because that is the part that makes it an award label. */
       @media (max-width: 600px) {
         .award-badge {
-          width: 68px;
-          right: 20px;
-          border-radius: 8px;
+          width: 96px;
+          padding: 8px 8px 10px;
+          clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px));
         }
       }
       .hero-overlay {
