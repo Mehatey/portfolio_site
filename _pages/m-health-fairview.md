@@ -64,23 +64,61 @@ next_project:
   @keyframes fvBreathe { 0%,100%{transform:scale(1) translateY(0);} 50%{transform:scale(1.006) translateY(-2px);} }
 </style>
 
+<!-- ── THE ORDER, AND WHY ────────────────────────────────────────────────
+     Sid: "in the fairview page there is one metric screen you can bring that
+     before and an ai chat which takes too much space add it to a grid. also
+     keep the icons which are animated and the movie version and remove the
+     other version which is jsut a png. also a lot of pages have too much of a
+     scroll with too many full length images which dont deserve to be there or
+     the order of the work details needs to be better to tell the story
+     better."
+
+     All four of those were the same page. It ran as fourteen full-bleed
+     blocks in a single column, every one of them the same size and therefore
+     the same importance, and the numbers that justify the whole project were
+     the fourteenth thing you reached.
+
+     THE IMPACT MOVES UP. It now follows the before-and-after, because that
+     pairing is the argument: here is what changed, here is what it did.
+     Everything after it is the detail of how, which is the right thing to
+     read second and the wrong thing to read for six screens before you have
+     been told whether it worked.
+
+     FOUR PAIRS BECOME GRIDS. Business needs and the heuristic audit are one
+     analysis and were two scrolls. Constraints and research likewise. The
+     assistant is a 796x1126 phone recording that was being served at the same
+     width as a 1600px desktop board, which is where "takes too much space"
+     comes from — it is beside the prepare-for-your-visit screen now, at the
+     size a phone actually is.
+
+     THE STATIC ICONS COME OUT. 09-compare.webp was one tall screenshot
+     carrying the specialty icon grid AND the care-type comparison table, and
+     the icon grid in it is the same set that specialty-icons.mp4 animates two
+     blocks later. The still is cropped down to the comparison table, so the
+     icons appear once, moving.
+
+     Fourteen bleeds to eight bleeds and three grids. -->
+
 <p class="cube-cap cube-cap--above">The requirement. Deloitte Digital broke down the problem areas with M Health Fairview, a booking journey that was hard to follow, care types that were not centralised, and a push to move patients toward virtual and preventive care.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/01-requirements.webp" alt="Client requirements and problems to solve" loading="lazy" decoding="async" /></div>
 
-<p class="cube-cap cube-cap--above">The problem. Mapping the business needs, the user needs and a heuristic audit of the live site side by side.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/02-needs.webp" alt="Business needs, user needs and heuristic analysis" loading="lazy" decoding="async" /></div>
+<p class="cube-cap cube-cap--above">The problem, and the audit. Business needs, user needs and a heuristic read of the live site: a broken booking flow, redundant links, unclear hierarchy and a misleading Emergency Care call to action.</p>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/02-needs.webp" alt="Business needs, user needs and heuristic analysis" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/03-audit.webp" alt="Annotated heuristic audit of the existing site" loading="lazy" decoding="async" /></div>
+</div>
 
-<p class="cube-cap cube-cap--above">The audit. A close read of the existing Get Care page, a broken booking flow, redundant links, unclear hierarchy and a misleading Emergency Care call to action.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/03-audit.webp" alt="Annotated heuristic audit of the existing site" loading="lazy" decoding="async" /></div>
-
-<p class="cube-cap cube-cap--above">Constraints. Designing around a third party MyChart scheduling API, a two sprint timeline, and an offshore team that could not observe Minnesota patients in real time.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/04-constraints.webp" alt="Project constraints" loading="lazy" decoding="async" /></div>
-
-<p class="cube-cap cube-cap--above">Research and ideation. A competitive teardown of other health systems, the reasons behind non urgent emergency use, crazy eights, and the first information architecture concepts.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/05-research.webp" alt="Secondary research, ideation and initial concepts" loading="lazy" decoding="async" /></div>
+<p class="cube-cap cube-cap--above">What we had to work within, and what we found. A third party MyChart scheduling API, two sprints, an offshore team that could not observe Minnesota patients in real time, and a competitive teardown of how other health systems handle the same journey.</p>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/04-constraints.webp" alt="Project constraints" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/05-research.webp" alt="Secondary research, ideation and initial concepts" loading="lazy" decoding="async" /></div>
+</div>
 
 <p class="cube-cap cube-cap--above">Before and after. Every action pulled into the first fold and sorted by urgency, with new entry points for labs, checkups and promotions.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
+
+<p class="cube-cap cube-cap--above">What it did. Clearer paths turned the same demand into $13.6M in scheduling revenue, a 22 percent rise in e-visits and 32 percent more new patients booking for themselves.</p>
+<div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/fairview/13-impact.webp" alt="Our impact, key metrics" loading="lazy" style="animation:fvBreathe 6s ease-in-out infinite;" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">The new entry point. Helping you choose the right care, one clear place to start with same day and scheduled paths.</p>
 <div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
@@ -88,20 +126,17 @@ next_project:
 <p class="cube-cap cube-cap--above">Get Care Today and Schedule Your Care. Immediate needs and later appointments separated into two calm, self explaining paths.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/08-getcare.webp" alt="Get Care Today and Schedule Your Care" loading="lazy" decoding="async" /></div>
 
-<p class="cube-cap cube-cap--above">Care types, compared. A specialty finder and a side by side comparison of every care type by cost, wait and what it treats.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/09-compare.webp" alt="Specialty categories and care type comparison" loading="lazy" decoding="async" /></div>
+<p class="cube-cap cube-cap--above">Care types, compared. Every care type set side by side by cost, wait, what it treats and whether you can stay at home.</p>
+<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/09-comparison.webp" alt="Side by side comparison of every care type by cost, wait and what it treats" loading="lazy" decoding="async" /></div>
 
-<p class="cube-cap cube-cap--above">The specialty icons themselves, designed and animated by hand. The same set that powers the specialty finder above, each one built to move.</p>
+<p class="cube-cap cube-cap--above">The specialty icons themselves, designed and animated by hand. The same set that powers the specialty finder, each one built to move.</p>
 <div class="cs-bleed"><video width="1600" height="908" src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
 
 <p class="cube-cap cube-cap--above">Choosing a care type. Routine preventive, primary and specialty care surfaced as three clear routes.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/10-caretypes.gif" alt="Care type selection in motion" loading="lazy" decoding="async" /></div>
 
-<p class="cube-cap cube-cap--above">The assistant. A conversational helper for patients who would rather be guided than browse.</p>
-<div class="cs-bleed"><video width="796" height="1126" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="{{ site.baseurl }}/assets/img/fairview/11-assistant.mp4" type="video/mp4" /></video></div>
-
-<p class="cube-cap cube-cap--above">Prepare for your visit. Clear before and after visit guidance so patients arrive ready and leave informed.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async" /></div>
-
-<p class="cube-cap cube-cap--above">The impact. Clearer paths turned the same demand into measurably better outcomes for patients and the system.</p>
-<div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/fairview/13-impact.webp" alt="Our impact, key metrics" loading="lazy" style="animation:fvBreathe 6s ease-in-out infinite;" decoding="async" /></div>
+<p class="cube-cap cube-cap--above">Being guided, and arriving ready. A conversational helper for patients who would rather be led than browse, and clear before and after visit guidance.</p>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item"><video width="796" height="1126" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="{{ site.baseurl }}/assets/img/fairview/11-assistant.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async" /></div>
+</div>
