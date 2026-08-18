@@ -67,10 +67,14 @@ async function falFetch(url, init, env) {
 
 /** Synchronous fal call, for the fast models. */
 async function falRun(model, args, env) {
-  const r = await falFetch(`https://fal.run/${model}`, {
-    method: "POST",
-    body: JSON.stringify(args),
-  }, env);
+  const r = await falFetch(
+    `https://fal.run/${model}`,
+    {
+      method: "POST",
+      body: JSON.stringify(args),
+    },
+    env
+  );
   const text = await r.text();
   if (!r.ok) throw new Error(`fal ${r.status}: ${text.slice(0, 300)}`);
   return JSON.parse(text);
@@ -146,10 +150,7 @@ export default {
 
         if (s.status === "IN_QUEUE") {
           // fal positions are zero based; show a human friendly count.
-          return json(
-            { ok: true, stage: "queued", queue_position: Math.max(0, s.queue_position || 0) + 1 },
-            origin
-          );
+          return json({ ok: true, stage: "queued", queue_position: Math.max(0, s.queue_position || 0) + 1 }, origin);
         }
         if (s.status === "IN_PROGRESS") {
           return json({ ok: true, stage: "processing", queue_position: null }, origin);
@@ -190,10 +191,14 @@ export default {
         const over = await checkBudget(env, ip, now);
         if (over) return json({ ok: false, error: over }, origin);
 
-        const r = await falFetch(`https://queue.fal.run/${GEN_MODEL}`, {
-          method: "POST",
-          body: JSON.stringify({ prompt, image_url: dataUrl, guidance_scale: 3.5 }),
-        }, env);
+        const r = await falFetch(
+          `https://queue.fal.run/${GEN_MODEL}`,
+          {
+            method: "POST",
+            body: JSON.stringify({ prompt, image_url: dataUrl, guidance_scale: 3.5 }),
+          },
+          env
+        );
         const text = await r.text();
         if (!r.ok) return json({ ok: false, error: `fal ${r.status}: ${text.slice(0, 200)}` }, origin);
         const q = JSON.parse(text);
@@ -201,11 +206,9 @@ export default {
           return json({ ok: false, error: "fal did not return a queue handle" }, origin);
         }
 
-        await env.GUISE_KV.put(
-          `job:${q.request_id}`,
-          JSON.stringify({ status_url: q.status_url, response_url: q.response_url }),
-          { expirationTtl: 600 }
-        );
+        await env.GUISE_KV.put(`job:${q.request_id}`, JSON.stringify({ status_url: q.status_url, response_url: q.response_url }), {
+          expirationTtl: 600,
+        });
         await spend(env, ip, now);
         return json({ ok: true, job_id: q.request_id, stage: "preparing" }, origin);
       }
