@@ -41,6 +41,27 @@
     display: inline-block;
     font-variation-settings: "wght" var(--lt-base, 500);
   }
+  /* ── WORDS STAY WHOLE ──────────────────────────────────────────────────
+     Sid: "it's cameling or whatever, that canoeing where it moves to the
+     next line."
+
+     He was looking at "Most spatial and AI work de / mos beautifully and
+     falls apar / t the moment a real person u / ses it in a real room." —
+     four lines, three of them broken mid-word.
+
+     Nothing was wrong with the copy or the measure. Every character here is
+     its own inline-block, and an inline-block is a break opportunity, so the
+     browser was free to wrap between any two letters — which is precisely
+     what it did once the column got narrow enough to need a break at all.
+     The wider headings on other pages have the same bug; they simply have
+     enough room to break at a space first.
+
+     So characters are grouped into words now, and the word is what refuses
+     to break. Line breaking goes back to happening at spaces, which is where
+     the browser wanted to do it all along. */
+  [data-livetype] .lt-w {
+    white-space: nowrap;
+  }
 </style>
 <script>
   (function () {
@@ -104,14 +125,30 @@
         });
         if (!text) continue;
         var frag = document.createDocumentFragment();
-        for (var c = 0; c < text.length; c++) {
-          var sp = document.createElement("span");
-          sp.className = "lt-c";
-          /* A space cannot carry a weight and must not be allowed to
-             collapse once it is inside an inline-block. */
-          sp.textContent = text[c] === " " ? " " : text[c];
-          frag.appendChild(sp);
-          chars.push({ el: sp, x: 0, y: 0, w: 0, t: 0 });
+        /* Split keeping the separators, so the run alternates word, gap,
+           word. Gaps become real text nodes rather than spans: a text node
+           between two words is a break opportunity, and it is the only one
+           that should exist in the line. Inside a word every character is
+           still its own inline-block, which is what the weight effect needs,
+           and .lt-w holds them together with white-space: nowrap. */
+        var parts = text.split(/(\s+)/);
+        for (var pi = 0; pi < parts.length; pi++) {
+          var part = parts[pi];
+          if (!part) continue;
+          if (/^\s+$/.test(part)) {
+            frag.appendChild(document.createTextNode(" "));
+            continue;
+          }
+          var word = document.createElement("span");
+          word.className = "lt-w";
+          for (var c = 0; c < part.length; c++) {
+            var sp = document.createElement("span");
+            sp.className = "lt-c";
+            sp.textContent = part[c];
+            word.appendChild(sp);
+            chars.push({ el: sp, x: 0, y: 0, w: 0, t: 0 });
+          }
+          frag.appendChild(word);
         }
         node.parentNode.replaceChild(frag, node);
       }
