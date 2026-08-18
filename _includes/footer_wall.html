@@ -265,12 +265,51 @@
         frame.style.setProperty("--torch", "0");
         frame.style.setProperty("--lit", "0");
       });
+      /* ── STIRRING THE WATER ──────────────────────────────────────────────
+         Sid: "this is my room picture, and when i hover on it, let there be
+         some nice effect on the PNG."
+
+         The honest effect for something sitting in water is not another
+         overlay — it is that touching it disturbs the surface. Moving across
+         the wall raises the displacement scale, so the picture stirs under
+         the pointer and settles again when the hand leaves. The torch stays;
+         between them, hovering now costs the wall both light and stillness.
+
+         Driven off pointer SPEED rather than presence, so a slow read barely
+         moves the surface and a quick sweep across it churns. The value eases
+         back to rest on its own, which is the settling. */
+      var disp = document.querySelector("#wall-ripple feDisplacementMap");
+      var stir = 0,
+        stirRaf = 0,
+        lastX = 0,
+        lastY = 0,
+        lastT = 0;
+
+      function relax() {
+        stir *= 0.94;
+        if (disp) disp.setAttribute("scale", (7 + stir).toFixed(2));
+        stirRaf = stir > 0.05 ? requestAnimationFrame(relax) : 0;
+      }
+
       frame.addEventListener(
         "pointermove",
         function (e) {
           var r = frame.getBoundingClientRect();
           frame.style.setProperty("--tx", (((e.clientX - r.left) / Math.max(1, r.width)) * 100).toFixed(2) + "%");
           frame.style.setProperty("--ty", (((e.clientY - r.top) / Math.max(1, r.height)) * 100).toFixed(2) + "%");
+
+          var now = e.timeStamp || Date.now();
+          var dt = Math.max(16, now - lastT);
+          var dx = e.clientX - lastX,
+            dy = e.clientY - lastY;
+          lastX = e.clientX;
+          lastY = e.clientY;
+          lastT = now;
+          /* px per frame, clamped. A flick across the whole wall is worth
+             about 11 extra units of displacement on top of the resting 7. */
+          var v = (Math.sqrt(dx * dx + dy * dy) / dt) * 16;
+          stir = Math.min(11, stir + Math.min(2.4, v * 0.5));
+          if (!stirRaf) stirRaf = requestAnimationFrame(relax);
         },
         { passive: true }
       );
