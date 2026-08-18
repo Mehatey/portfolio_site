@@ -1137,7 +1137,8 @@
       let loaderTimer = null,
         loaderHideTimer = null,
         loaderStartedAt = 0,
-        storyToken = 0;
+        storyToken = 0,
+        storyOrbitId = null;
       let orbitItems = [],
         generationQueue = [],
         activeGenerations = 0,
@@ -1156,6 +1157,7 @@
           guiseEl.classList.add("on");
           lastUrl = item.state === "ready" ? item.url : null;
           downloadEl.classList.toggle("off", !lastUrl);
+          syncSelectedStory(item);
           if (item.state === "failed") retryOrbitItem(item);
         },
       });
@@ -1231,8 +1233,22 @@
         }, 500);
       }
 
-      async function startStory(lines) {
+      function isLoadingOrbitItem(item) {
+        return item && item.state !== "ready" && item.state !== "failed";
+      }
+
+      function syncSelectedStory(item) {
+        if (!isLoadingOrbitItem(item)) {
+          stopStory();
+          return;
+        }
+        if (storyOrbitId === item.id && storyEl.classList.contains("on")) return;
+        startStory(storyLines(item.label), item.id);
+      }
+
+      async function startStory(lines, orbitId = null) {
         const token = ++storyToken;
+        storyOrbitId = orbitId;
         storyEl.classList.add("on");
         while (token === storyToken) {
           for (const line of lines) {
@@ -1252,6 +1268,7 @@
 
       function stopStory() {
         storyToken++;
+        storyOrbitId = null;
         storyEl.classList.remove("on");
         storyEl.textContent = "";
       }
@@ -1433,6 +1450,7 @@
         if (selectedOrbitId === item.id) {
           lastUrl = item.state === "ready" ? item.url : null;
           downloadEl.classList.toggle("off", !lastUrl);
+          syncSelectedStory(item);
         }
         updateOrbitProgress();
       }
@@ -1506,10 +1524,6 @@
           if (session !== orbitSession) return;
           setOrbitItemState(item, "ready", { url: result.url });
           playTone(392 + (orbitItems.indexOf(item) % 4) * 74, 0.5, "sine", 0.045);
-          const readyItems = orbitItems.filter((entry) => entry.state === "ready").length;
-          if (readyItems === 1) {
-            stopStory();
-          }
         } catch (error) {
           if (session === orbitSession) setOrbitItemState(item, "failed", { error: error.message });
         } finally {
@@ -1533,6 +1547,7 @@
         item.queued = true;
         item.state = "waiting";
         orbit.update(item.id, { state: "waiting" });
+        if (selectedOrbitId === item.id) syncSelectedStory(item);
         if (priority) generationQueue.unshift(item);
         else generationQueue.push(item);
         updateOrbitProgress();
@@ -1593,7 +1608,6 @@
           const preferred = orbitItems.find((item) => item.label.toLowerCase() === label.toLowerCase()) || orbitItems[0];
           orbit.select(preferred.id, true);
           startLoader("reading the frame");
-          startStory(storyLines(label));
           status("reading the frame");
           const seen = await post("/see", { image_data_url: lastFreeze });
           if (!seen.ok) throw new Error(seen.error || "frame analysis failed");
@@ -1673,6 +1687,7 @@
         orbitCaption = "";
         lastFreeze = null;
         lastUrl = null;
+        stopStory();
         shotthumb.removeAttribute("src");
         youwrap.classList.remove("locked");
         document.body.classList.remove("orbit-mode");

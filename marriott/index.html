@@ -1310,7 +1310,6 @@
       #case-overview,
       #case-proof,
       #case-archive,
-      #case-decisions,
       #project-next-step { scroll-margin-top: calc(var(--nav-h) + 24px); }
 
       /* ─── CASE MAP ─── Long case studies need a stable reading anchor, not a
@@ -1318,11 +1317,30 @@
          title, summary, role, or proof: those are already available in the first
          viewport. This rail only helps a recruiter move through the visual story.
          Scrolling remains ordinary vertical scrolling—no wheel hijacking. */
+      /* ── THE MEDIA WAS TOO SMALL ──────────────────────────────────────────
+         Sid: "can we not make the media a little bigger? what is the standard
+         people use on the best design portfolios for the size of the media?
+         i feel like it's too small."
+
+         Measured at 1440: the story column rendered 1065px, so a case study
+         image was filling 74% of the viewport. Strong design portfolios run
+         inline case media around 85 to 95% and go full-bleed for feature
+         moments; 74% reads as a document rather than as work being shown.
+
+         Two numbers were holding it there. The layout was capped at
+         --content-max (1440) while the page itself is wider, and a 190px
+         sticky rail plus a 64px gutter came off the top of that before the
+         media saw any of it. The cap goes to 1680 and the rail narrows,
+         which puts the column near 1280 at this width — about 89%.
+
+         The height cap moves with it (see .case-story .cs-bleed below):
+         640px on a 1000px viewport was cropping 16:10 media well before its
+         width ran out. */
       .case-study-layout {
         display: grid;
-        grid-template-columns: minmax(156px, 190px) minmax(0, 1fr);
-        gap: clamp(32px, 4vw, 64px);
-        max-width: var(--content-max);
+        grid-template-columns: minmax(132px, 158px) minmax(0, 1fr);
+        gap: clamp(28px, 3vw, 48px);
+        max-width: min(1680px, 94vw);
         margin: 0 auto;
         padding: 46px var(--gutter) 0;
       }
@@ -1422,11 +1440,14 @@
       .case-story .cs-grid-3 { margin-top: 28px !important; }
       .case-story .cs-bleed {
         aspect-ratio: 16 / 10;
-        max-height: min(64vh, 640px);
+        /* Raised with the column. 64vh/640px was cropping the frame before
+           its width was used up, which is why several visuals looked like
+           details rather than shots. */
+        max-height: min(82vh, 860px);
       }
       .case-story .cs-bleed img,
       .case-story .cs-bleed video { object-fit: cover; }
-      .case-story .cs-wide-inner { aspect-ratio: 16 / 10; max-height: min(64vh, 640px); }
+      .case-story .cs-wide-inner { aspect-ratio: 16 / 10; max-height: min(82vh, 860px); }
       .case-story .cs-grid { gap: 12px; }
       .case-story .cs-grid-item { aspect-ratio: 4 / 3; }
       /* Some older project pages preserve original media dimensions. Keep that
@@ -2998,9 +3019,19 @@
         text-transform: none;
         color: var(--ink-4);
       }
+      /* This is the rule that actually wins — the grid declaration far above
+         is overridden here, which is why widening that one alone did nothing
+         and the media stayed at 74% of the viewport.
+
+         Widened for the reason recorded up there: strong design portfolios
+         run inline case media at 85 to 95%, and 74% reads as a document.
+         Only the VISUAL column moves. .proj-intro and .proj-highlights stay
+         at 1180 on purpose — those hold prose, and prose past about 75
+         characters a line is harder to read, not more impressive. So the
+         overview stays a readable measure and the work gets the width. */
       .case-study-layout {
         display: block;
-        max-width: 1180px;
+        max-width: min(1680px, 94vw);
         margin: 0 auto;
         padding: 48px var(--gutter) 104px;
       }
@@ -4972,6 +5003,32 @@
      ease-out curve put most of the falloff in the first third and let the
      tail approach zero asymptotically, which is what makes it read as a
      dimming of the page rather than as a rectangle drawn on it. */
+  /* ── LIQUID GLASS, NOT A GRADIENT ───────────────────────────────────────
+     Sid: "just a top blur on the nav bar panel should be good and it should
+     feel like apple liquid glass not just a blur."
+
+     What was here was a plain dark gradient with NO backdrop-filter at all,
+     which is why it read as a fade rather than as a surface: nothing behind
+     it was being altered, so there was no glass, only a scrim.
+
+     Four things make it read as glass rather than as blur, and it needs all
+     four:
+
+       1. THE BLUR ITSELF, with saturation pushed past 1. Real glass
+          concentrates colour as it diffuses it; a plain blur greys
+          everything and looks like fog.
+       2. A SPECULAR TOP EDGE. One hairline of near-white along the very top
+          is what tells the eye there is a physical edge catching light. It
+          is the single most important line here.
+       3. A GRADIENT MASK, so the panel has weight at the top and dissolves
+          at the bottom instead of ending on a hard line. The blur fades out
+          WITH it — masking the element fades the backdrop-filter too, which
+          is what stops the "pane of frosted glass floating in the page" look.
+       4. A FAINT INNER SHADOW under the top edge, so the light sits ON
+          something rather than being painted over it.
+
+     Height stays 104px and the ink stays where it was; this replaces how the
+     band is drawn, not where it is or what it holds. */
   .studio-nav::before {
     content: "";
     position: fixed;
@@ -4979,7 +5036,33 @@
     height: 104px;
     z-index: -1;
     pointer-events: none;
-    background: linear-gradient(180deg, rgba(3, 6, 11, 0.86) 0%, rgba(3, 6, 11, 0.68) 34%, rgba(3, 6, 11, 0.32) 64%, rgba(3, 6, 11, 0) 100%);
+    background: linear-gradient(180deg, rgba(6, 10, 16, 0.62) 0%, rgba(6, 10, 16, 0.44) 46%, rgba(6, 10, 16, 0.16) 78%, rgba(6, 10, 16, 0) 100%);
+    -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(0.94);
+    backdrop-filter: blur(22px) saturate(1.7) brightness(0.94);
+    /* The dissolve. Masking takes the backdrop-filter with it, so the glass
+       genuinely thins out rather than stopping at an edge. */
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, rgba(0, 0, 0, 0.55) 76%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 52%, rgba(0, 0, 0, 0.55) 76%, transparent 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  }
+  /* The specular edge, as its own element so it is not subject to the mask
+     that dissolves the panel below it. A single hairline, brightest in the
+     middle where a curved surface would catch the most light. */
+  .studio-nav::after {
+    content: "";
+    position: fixed;
+    inset: 0 0 auto 0;
+    height: 1px;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.16) 18%,
+      rgba(255, 255, 255, 0.34) 50%,
+      rgba(255, 255, 255, 0.16) 82%,
+      rgba(255, 255, 255, 0) 100%
+    );
   }
 
   /* Same shape, the page's paper instead of its ink. Cream needs to sit a
@@ -5006,13 +5089,31 @@
      Dark mode does not need the same change: its ink is light and its scrim
      is dark, so the equivalent failure needs a very bright image under the
      nav, and the pages that have one keep it below the fold. */
+  /* Cream glass. The tint stays strong through the nav row for the reason
+     recorded above — dark ink over a dark photograph needs a real ground,
+     not a veil — but it is now doing that on top of the same blur and
+     saturation, so it reads as the same material in both themes rather than
+     as glass on one and paint on the other. */
   html[data-theme="light"] .studio-nav::before {
     background: linear-gradient(
       180deg,
-      rgba(244, 241, 235, 0.94) 0%,
-      rgba(244, 241, 235, 0.92) 52%,
-      rgba(244, 241, 235, 0.52) 76%,
-      rgba(244, 241, 235, 0) 100%
+      rgba(246, 244, 239, 0.86) 0%,
+      rgba(246, 244, 239, 0.82) 52%,
+      rgba(246, 244, 239, 0.4) 78%,
+      rgba(246, 244, 239, 0) 100%
+    );
+    -webkit-backdrop-filter: blur(22px) saturate(1.5) brightness(1.06);
+    backdrop-filter: blur(22px) saturate(1.5) brightness(1.06);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+  html[data-theme="light"] .studio-nav::after {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.5) 18%,
+      rgba(255, 255, 255, 0.85) 50%,
+      rgba(255, 255, 255, 0.5) 82%,
+      rgba(255, 255, 255, 0) 100%
     );
   }
 
@@ -6465,7 +6566,7 @@
       })(marks[i]);
     }
   })();
-</script> <main id="main"> <header class="proj-hero proj-hero--artifact"> <img class="hero-video" src="/assets/img/marriott/cover.webp" alt="Marriott Bonvoy SPOG" loading="eager" fetchpriority="high"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title" data-livetype data-livetype-zone=".proj-hero, section, main" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="150"> Marriott Bonvoy SPOG </h1> </div> <aside class="hero-recruiter-brief" aria-label="Project at a glance"> <span class="hero-brief-shade" aria-hidden="true"></span> <p class="hero-brief-label">At a glance</p> <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">Enterprise UX · Design Systems</span></p> <p class="hero-brief-fact hero-brief-fact--role"> <span class="hero-brief-key">Role</span><span class="hero-brief-value">Product Designer · Deloitte Digital for Marriott International</span> </p> <p class="hero-brief-fact"> <span class="hero-brief-key">Proof</span><span class="hero-brief-value">9,000+ · properties in scope</span> </p> <a class="hero-brief-jump" href="#case-archive">Skim visual story</a> </aside> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Partner</p> <p class="meta-v"> Deloitte Digital </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> Marriott International </p> </div> <div class="meta-item"> <p class="meta-k">Scope</p> <p class="meta-v"> End to end employee app </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2023 </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Designed SPOG, a single pane of glass employee application for Marriott Bonvoy properties, unifying daily operations, reservations and loyalty enrolment into one calm, information dense dashboard. </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">9,000+</p> <p class="proj-highlight-label">properties in scope</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">1 pane</p> <p class="proj-highlight-label">for the whole shift</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">17%</p> <p class="proj-highlight-label">lift in inventory accuracy</p> </div> </section> <section class="proj-decisions" id="case-decisions" aria-labelledby="case-decisions-title"> <div class="proj-decisions__head"> <h2 class="proj-decisions__eyebrow" id="case-decisions-title" data-reveal>Design decisions</h2> <p class="proj-decisions__lede" data-reveal> The calls that shaped this project: what I chose, why, and what each choice cost. </p> </div> <ol class="decision-list"> <li class="decision" data-reveal> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">01</span>Built one dashboard that reads in a glance, not a wall of dashboards </h3> <div class="decision__body"> <p class="decision__why">An associate does not have time to hunt across screens mid shift. We put the whole day on one overview, arrivals and departures, occupancy, room status, cases and events, with a strict visual hierarchy so the most time sensitive numbers read first and detail waits one tap away. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>Fitting that much on one surface meant relentless editing of what earned a place on the first screen. Several secondary metrics had to move into detail views to keep the overview calm. </span></p> </div> </li> <li class="decision" data-reveal> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">02</span>Used a warm neutral system with a single accent to keep dense data calm </h3> <div class="decision__body"> <p class="decision__why">Operational data is unforgiving, and colour used carelessly turns a dashboard into noise. We held to a warm neutral base with one gold accent and reserved stronger colour only for states that need attention, so an alert actually feels like an alert. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>A restrained palette gives up some quick visual coding. We made up for it with shape, weight and position so meaning still comes through without leaning on colour. </span></p> </div> </li> <li class="decision" data-reveal> <h3 class="decision__choice"> <span class="decision__n" aria-hidden="true">03</span>Designed loyalty enrolment as a guided, glanceable flow </h3> <div class="decision__body"> <p class="decision__why">Enrolling a guest into Bonvoy at the desk had to be fast and hard to get wrong. We built a membership card carousel and a guided enrolment with clear tiers and benefits, so an associate can move a guest through it while talking to them. </p> <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>A guided flow is less flexible than a raw form. For the rare edge case an associate has fewer shortcuts, but the common path is far faster and less error prone. </span></p> </div> </li> </ol> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-decisions">Decisions</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <nav class="case-chapter-map" id="case-chapter-map" aria-label="Visual story chapters" hidden></nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-decisions">Decisions</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <div class="proj-body" id="case-archive"> <style>
+</script> <main id="main"> <header class="proj-hero proj-hero--artifact"> <img class="hero-video" src="/assets/img/marriott/cover.webp" alt="Marriott Bonvoy SPOG" loading="eager" fetchpriority="high"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title" data-livetype data-livetype-zone=".proj-hero, section, main" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="150"> Marriott Bonvoy SPOG </h1> </div> <aside class="hero-recruiter-brief" aria-label="Project at a glance"> <span class="hero-brief-shade" aria-hidden="true"></span> <p class="hero-brief-label">At a glance</p> <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">Enterprise UX · Design Systems</span></p> <p class="hero-brief-fact hero-brief-fact--role"> <span class="hero-brief-key">Role</span><span class="hero-brief-value">Product Designer · Deloitte Digital for Marriott International</span> </p> <p class="hero-brief-fact"> <span class="hero-brief-key">Proof</span><span class="hero-brief-value">9,000+ · properties in scope</span> </p> <a class="hero-brief-jump" href="#case-archive">Skim visual story</a> </aside> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Partner</p> <p class="meta-v"> Deloitte Digital </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> Marriott International </p> </div> <div class="meta-item"> <p class="meta-k">Scope</p> <p class="meta-v"> End to end employee app </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2023 </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Designed SPOG, a single pane of glass employee application for Marriott Bonvoy properties, unifying daily operations, reservations and loyalty enrolment into one calm, information dense dashboard. </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">9,000+</p> <p class="proj-highlight-label">properties in scope</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">1 pane</p> <p class="proj-highlight-label">for the whole shift</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">17%</p> <p class="proj-highlight-label">lift in inventory accuracy</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <nav class="case-chapter-map" id="case-chapter-map" aria-label="Visual story chapters" hidden></nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <div class="proj-body" id="case-archive"> <style>
   @keyframes mkBreathe { 0%,100%{transform:scale(1) translateY(0);} 50%{transform:scale(1.006) translateY(-2px);} }
 </style> <p class="cube-cap cube-cap--above">What we did. An end to end employee application for Marriott staff across every Bonvoy property, from the daily operational overview to loyalty enrolment.</p> <div class="cs-bleed"><img src="/assets/img/marriott/01-what.webp" alt="What we did, Marriott Bonvoy employee app" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">The dashboard. Good morning, the whole shift on one pane, arrivals, departures and today's overview for the active property.</p> <div class="cs-bleed"><img src="/assets/img/marriott/02-dashboard.gif" alt="SPOG dashboard overview in motion" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">The specification. Every element on the dashboard mapped to a functional requirement, a key functionality and a user interaction.</p> <div class="cs-bleed"><img src="/assets/img/marriott/03-spec.webp" alt="Annotated dashboard specification" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">Operational overview. Arrived, departed, in house and no shows, with live room occupancy across the property.</p> <div class="cs-bleed"><video width="1200" height="674" autoplay="" muted="" loop="" playsinline="" preload="none" poster="/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source src="/assets/img/marriott/04-overview.mp4" type="video/mp4"></source></video></div> <p class="cube-cap cube-cap--above">Reservation flow and cases. Peak reservation flow through the day and an at a glance view of open, overdue and upcoming cases.</p> <div class="cs-bleed"><video width="1100" height="618" autoplay="" muted="" loop="" playsinline="" preload="none" poster="/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="/assets/img/marriott/05-flow.mp4" type="video/mp4"></source></video></div> <p class="cube-cap cube-cap--above">Loyalty enrolment. A Bonvoy membership card carousel that lets an associate enrol a guest into the right tier without leaving the desk.</p> <div class="cs-bleed"><video width="1100" height="618" autoplay="" muted="" loop="" playsinline="" preload="none" poster="/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source src="/assets/img/marriott/06-enroll.mp4" type="video/mp4"></source></video></div> <p class="cube-cap cube-cap--above">Enrolment, specified. Each membership tier, benefit and interaction defined, from the card carousel to the enrol flow.</p> <div class="cs-bleed"><img src="/assets/img/marriott/07-enrollspec.webp" alt="Loyalty enrolment key functionality" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">Enrol a new member. A guided modal that opens over the dashboard so enrolment never pulls the associate away from their work.</p> <div class="cs-bleed"><video width="1100" height="618" autoplay="" muted="" loop="" playsinline="" preload="none" poster="/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4"></source></video></div> <p class="cube-cap cube-cap--above">One system, every screen. The same operational experience designed for a tablet at the desk and a browser in the back office.</p> <div class="cs-bleed" style="text-align:center;"><img src="/assets/img/marriott/09-desktop.webp" alt="SPOG on desktop browser" loading="lazy" style="animation:mkBreathe 6s ease-in-out infinite;" decoding="async"></div> </div> </div> </div> <style>
   [data-reveal] {
@@ -17612,7 +17713,6 @@
             ["case-overview", "Overview"],
             ["case-proof", "Proof"],
             ["case-archive", "Visual story"],
-            ["case-decisions", "Decisions"],
             ["reflection-section", "Reflection"],
             ["project-next-step", "Next project"],
           ];
@@ -18217,142 +18317,5 @@
     );
     window.addEventListener("resize", upd, { passive: true });
     upd();
-  })();
-</script> <style>
-  [data-curve] {
-    /* The transform is written as one property so the two contributions —
-       resting curve and velocity — cannot fight over the matrix. */
-    transform: perspective(1400px) rotateX(calc(var(--cv, 0) * 1deg)) translateZ(calc(var(--cz, 0) * 1px)) scale(var(--cs, 1));
-    transform-origin: center center;
-    filter: blur(calc(var(--cb, 0) * 1px));
-    opacity: var(--co, 1);
-    will-change: transform, filter;
-    backface-visibility: hidden;
-  }
-  /* A blurred element still paints its own edges, so a hard corner on a
-     blurred plate reads as a smudge with a sharp border. */
-  [data-curve] > * {
-    backface-visibility: hidden;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    [data-curve] {
-      transform: none;
-      filter: none;
-      opacity: 1;
-    }
-  }
-</style> <script>
-  (function () {
-    var SEL = ".cs-bleed img, .cs-bleed video, .cs-bleed-full img, .cs-bleed-full video, .cs-grid-item img, .cs-grid-item\n    video";
-    if (!SEL) return;
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    /* ── ITEMS CAN ARRIVE LATE ──────────────────────────────────────────
-       The play grid is empty in the markup and built by script, so a single
-       querySelectorAll at parse time finds nothing at all. Collect once,
-       then watch for more: a MutationObserver on the document re-scans when
-       children land, which also covers anything lazily inserted later. The
-       scan is cheap because the selector is narrow and the observer only
-       fires when the DOM actually changes. */
-    var items = [];
-    function collect() {
-      var found = [].slice.call(document.querySelectorAll(SEL));
-      if (found.length === items.length) return false;
-      items = found;
-      for (var i = 0; i < items.length; i++) {
-        if (!items[i].hasAttribute("data-curve")) items[i].setAttribute("data-curve", "");
-      }
-      return true;
-    }
-    collect();
-
-    if ("MutationObserver" in window) {
-      var mo = new MutationObserver(function () {
-        if (collect()) kick();
-      });
-      mo.observe(document.body, { childList: true, subtree: true });
-      /* Stop watching once the page has settled — this observer exists for
-         a grid that builds once, not for a live feed. */
-      setTimeout(function () {
-        mo.disconnect();
-      }, 12000);
-    }
-
-    /* Tuning. MAX_DEG is deliberately small: this is a surface with a gentle
-       radius, not a carousel. Past about 9 degrees the top row starts
-       showing its own underside and the page reads as a fairground ride. */
-    var MAX_DEG = 8;
-    var MAX_BLUR = 5.5;
-    var MAX_Z = 46;
-    var vel = 0,
-      lastY = window.scrollY,
-      raf = 0,
-      idle = 0;
-
-    function frame() {
-      var y = window.scrollY;
-      var dy = y - lastY;
-      lastY = y;
-      /* Velocity in screens-per-second-ish, clamped and smoothed. Raw dy is
-         far too spiky to drive a visual directly. */
-      vel = vel * 0.9 + Math.min(1, Math.abs(dy) / 90) * 0.1;
-
-      var vh = window.innerHeight || 1;
-      var mid = vh * 0.5;
-      var moved = false;
-
-      for (var i = 0; i < items.length; i++) {
-        var el = items[i];
-        var r = el.getBoundingClientRect();
-        /* Skip anything well off screen. Reading a rect is cheap; blurring
-           fifty-seven off-screen plates is not. */
-        if (r.bottom < -vh * 0.4 || r.top > vh * 1.4) {
-          if (el.__on) {
-            el.style.setProperty("--cv", 0);
-            el.style.setProperty("--cb", 0);
-            el.style.setProperty("--co", 1);
-            el.style.setProperty("--cz", 0);
-            el.style.setProperty("--cs", 1);
-            el.__on = 0;
-          }
-          continue;
-        }
-        el.__on = 1;
-        moved = true;
-
-        /* -1 at the top of the screen, 0 dead centre, +1 at the bottom. */
-        var t = ((r.top + r.height * 0.5 - mid) / mid) * -1;
-        var a = Math.abs(t);
-
-        /* Curve: lies back going up, tips forward coming from below. The
-           velocity term stiffens the whole surface while the page moves. */
-        var deg = t * MAX_DEG * (1 + vel * 0.55);
-        /* Blur and dim only start past the middle third, so the piece you
-           are actually looking at is never soft. */
-        var edge = Math.max(0, (a - 0.34) / 0.66);
-        var blur = edge * edge * MAX_BLUR * (1 + vel * 0.8);
-        var dim = 1 - edge * 0.45;
-        var z = -a * MAX_Z;
-
-        el.style.setProperty("--cv", deg.toFixed(2));
-        el.style.setProperty("--cb", blur.toFixed(2));
-        el.style.setProperty("--co", dim.toFixed(3));
-        el.style.setProperty("--cz", z.toFixed(1));
-        /* A plane rotating about its own centre loses apparent height; a
-           hair of scale keeps the grid's gaps even as it curves. */
-        el.style.setProperty("--cs", (1 + a * 0.012).toFixed(4));
-      }
-
-      /* Keep running while the surface is still settling, then stop. */
-      idle = vel > 0.004 || moved ? 0 : idle + 1;
-      raf = idle > 6 ? 0 : requestAnimationFrame(frame);
-    }
-
-    function kick() {
-      if (!raf) raf = requestAnimationFrame(frame);
-    }
-    window.addEventListener("scroll", kick, { passive: true });
-    window.addEventListener("resize", kick, { passive: true });
-    kick();
   })();
 </script> </body> </html>
