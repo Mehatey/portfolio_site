@@ -17,9 +17,14 @@
 
        · it arrives OUT of the water. The pond above fades as this rises, so
          one ground hands to the other rather than cutting;
-       · a light sweeps across it once as it enters, low and raking, so the
-         objects catch it in sequence left to right the way a torch would
-         find them;
+       · it breathes. A displacement map moves the image's own pixels along a
+         slow noise field, so the wall bends the way something under water
+         bends. (A raking light sweep used to live here. It parked as a pale
+         vertical band down the right-hand side once --p settled, which read
+         as a rendering fault on the photograph — Sid spotted it and confirmed
+         there is no such mark in the source PNG. Removed rather than retuned:
+         a light painted over the picture was the wrong idea for a picture
+         that is meant to be IN something.)
        · the pointer is a torch afterwards. A soft warm pool follows the
          cursor and the wall is dim outside it, so reading the wall means
          moving over it — which is the only honest way to show something that
@@ -52,10 +57,43 @@
           decoding="async"
         />
         <span class="wall__torch" aria-hidden="true"></span>
-        <span class="wall__sweep" aria-hidden="true"></span>
       </div>
     </div>
   </div>
+
+  <!-- ── THE RIPPLE ────────────────────────────────────────────────────────
+       Sid: "it should look like it's placed onto the water realistically. can
+       you add a realistic, soft ripple to it so it feels like it's breathing."
+
+       A displacement map, not an overlay. Everything laid ON this image so
+       far — the torch, the old sweep — sat above it and tinted it, and a
+       picture with light painted on top still reads as a picture with light
+       painted on top. Water does not tint what is under it, it MOVES it.
+
+       feTurbulence generates a slow fractal noise field and feDisplacementMap
+       pushes the image's own pixels along it, so the postcards themselves
+       bend. baseFrequency animates between two close values over eighteen
+       seconds, which is the breathing: too slow to watch, too present to
+       miss. Scale is 7 — enough to soften a straight pin edge, not enough to
+       turn a hundred small photographs into soup.
+
+       SMIL rather than JS because this needs no state and no rAF; the browser
+       animates the filter itself and stops when the tab is hidden. -->
+  <svg class="wall__defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <filter id="wall-ripple" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.011 0.019" numOctaves="2" seed="7" result="noise">
+        <animate
+          attributeName="baseFrequency"
+          dur="18s"
+          values="0.011 0.019; 0.016 0.013; 0.011 0.019"
+          calcMode="spline"
+          keySplines="0.4 0 0.6 1; 0.4 0 0.6 1"
+          repeatCount="indefinite"
+        />
+      </feTurbulence>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G" />
+    </filter>
+  </svg>
 </section>
 
 <style>
@@ -96,10 +134,35 @@
     display: block;
     width: 100%;
     height: auto;
-    /* Dim at rest so the torch has somewhere to go. The wall is a cut-out, so
-       this darkens the objects and leaves the gaps as page. */
-    filter: brightness(calc(0.46 + var(--lit, 0) * 0.14)) saturate(0.92);
+    /* Sid: "it should be at 100% opacity and not be saturated."
+
+       It was brightness 0.46 — the wall was being held at less than half
+       strength so that a torch pool would have somewhere to travel to. That
+       is a reasonable trick for an object you want a visitor to hunt through
+       in the dark, and the wrong one for an object that is supposed to be
+       sitting IN something. Half-lit reads as a picture behind glass, not a
+       picture under water.
+
+       Full brightness now, and the saturation comes DOWN rather than up,
+       because that is what water does: it desaturates and cools what is
+       beneath it. The torch still works — it just lifts an already-lit wall
+       by a little instead of rescuing a dark one. */
+    filter: brightness(calc(1 + var(--lit, 0) * 0.06)) saturate(0.82) url(#wall-ripple);
     transition: filter 400ms ease;
+  }
+  .wall__defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+  /* A displacement map is a per-pixel filter over a 1500px image. On a
+     coarse pointer that is a phone GPU redrawing the footer of every page,
+     and the ripple is the least of what a phone is being asked for here. */
+  @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .wall__img {
+      filter: brightness(calc(1 + var(--lit, 0) * 0.06)) saturate(0.82);
+    }
   }
 
   /* THE TORCH. A soft pool at the pointer, composited so it lifts only what
@@ -120,26 +183,14 @@
       transparent 62%
     );
   }
-  /* THE SWEEP. One raking pass as the section arrives, driven by --p rather
-     than by a keyframe so it is tied to the scroll and not to a clock. */
-  .wall__sweep {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    mix-blend-mode: screen;
-    opacity: calc(var(--sweep, 0) * 0.85);
-    background: linear-gradient(
-      100deg,
-      transparent calc(var(--p, 0) * 150% - 34%),
-      rgba(255, 234, 196, 0.42) calc(var(--p, 0) * 150% - 16%),
-      rgba(255, 240, 214, 0.6) calc(var(--p, 0) * 150% - 8%),
-      rgba(255, 234, 196, 0.32) calc(var(--p, 0) * 150%),
-      transparent calc(var(--p, 0) * 150% + 18%)
-    );
-  }
 
   html[data-theme="light"] .wall__img {
-    filter: brightness(calc(0.86 + var(--lit, 0) * 0.14)) saturate(0.96);
+    filter: brightness(calc(1 + var(--lit, 0) * 0.04)) saturate(0.86) url(#wall-ripple);
+  }
+  @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+    html[data-theme="light"] .wall__img {
+      filter: brightness(calc(1 + var(--lit, 0) * 0.04)) saturate(0.86);
+    }
   }
   html[data-theme="light"] .wall__torch {
     mix-blend-mode: multiply;
@@ -168,9 +219,6 @@
       transform: none;
       opacity: 1;
     }
-    .wall__sweep {
-      display: none;
-    }
   }
 </style>
 
@@ -197,9 +245,6 @@
       if (Math.abs(np - p) > 0.002) {
         p = np;
         frame.style.setProperty("--p", p.toFixed(3));
-        /* The sweep only exists during the arrival — it is a lighting cue,
-           not a permanent shine. */
-        frame.style.setProperty("--sweep", (p < 0.98 ? Math.sin(Math.min(1, p) * Math.PI) : 0).toFixed(3));
       }
       raf = 0;
     }
