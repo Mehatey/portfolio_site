@@ -221,6 +221,24 @@
        even the quietest step clears AA for small text. That is the point of
        stopping the ladder at four -- every earlier attempt at "just a bit
        fainter" is how 0.62, 0.66 and 0.68 all ended up on the same page. */
+    /* ── ONE PAGE INK ───────────────────────────────────────────────────
+       Audited across eight routes: the site was rendering FOUR different
+       opaque near-whites as its primary ink, one per page, each declared
+       locally and none of them aware of the others —
+
+         #f2f5f9  --home-ink and --wk-ink
+         #f4f7fb  --play-ink
+         #f5f7fa  --contact-ink
+         #f5f7fb  --nav-ink
+
+       Three units apart at the widest. Nobody can see the difference, which
+       is exactly why it went unnoticed for so long and exactly why it is
+       worth fixing: four tokens doing one job is four places to change when
+       the answer changes, and the reason the fourth page always drifts.
+
+       The per-page names stay, because they carry meaning at their call
+       sites. They just all resolve here now. */
+    --ink-page: #f4f7fb;
     --ink: rgba(255, 255, 255, 0.96);
     --ink-2: rgba(255, 255, 255, 0.82);
     --ink-3: rgba(255, 255, 255, 0.64);
@@ -707,7 +725,7 @@
       :root {
         color-scheme: dark;
         --home-bg: #04060b;
-        --home-ink: #f2f5f9;
+        --home-ink: var(--ink-page);
         --home-muted: rgba(236, 241, 247, 0.66);
         /* 0.38 measured 2.1:1 on the film hint and 2.4:1 on the scroll cue —
            the two pieces of copy on the home page whose entire job is to tell
@@ -1438,6 +1456,53 @@
          inside it than the box allows: the canvas now has 18% of its own
          height as clear air under his feet, which is what the camera pull
          below spends. Nothing to clip against. */
+      /* ── THE HERO'S OWN EXIT ─────────────────────────────────────────────
+         --hx runs 0 to 1 as the hero leaves, written by the script below. */
+      .hero-veil {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+        opacity: var(--hx, 0);
+        background:
+          linear-gradient(
+            104deg,
+            transparent calc(var(--hx, 0) * 190% - 62%),
+            rgba(150, 205, 232, 0.16) calc(var(--hx, 0) * 190% - 38%),
+            rgba(226, 244, 255, 0.3) calc(var(--hx, 0) * 190% - 20%),
+            rgba(150, 205, 232, 0.14) calc(var(--hx, 0) * 190% - 6%),
+            transparent calc(var(--hx, 0) * 190% + 16%)
+          ),
+          linear-gradient(180deg, rgba(3, 6, 11, 0) 0%, rgba(3, 6, 11, calc(var(--hx, 0) * 0.72)) 100%);
+        mix-blend-mode: screen;
+      }
+      /* The second layer has to darken, and screen cannot darken — so the
+         shade is its own element underneath the sweep. */
+      .hero-veil::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        mix-blend-mode: normal;
+        background: radial-gradient(120% 90% at 50% 50%, transparent 30%, rgba(3, 6, 11, calc(var(--hx, 0) * 0.8)) 100%);
+      }
+      html[data-theme="light"] .hero-veil {
+        mix-blend-mode: multiply;
+        background: linear-gradient(
+          104deg,
+          transparent calc(var(--hx, 0) * 190% - 62%),
+          rgba(120, 170, 200, 0.14) calc(var(--hx, 0) * 190% - 20%),
+          transparent calc(var(--hx, 0) * 190% + 16%)
+        );
+      }
+      html[data-theme="light"] .hero-veil::after {
+        background: radial-gradient(120% 90% at 50% 50%, transparent 34%, rgba(232, 238, 245, calc(var(--hx, 0) * 0.85)) 100%);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-veil {
+          display: none;
+        }
+      }
+
       .cg-stage {
         position: absolute;
         left: 50%;
@@ -4769,7 +4834,7 @@
      inset: 0 0 auto 0 and stays full-bleed, which is correct: the dimming
      covers the whole band, only the objects are on the measure. */
   .studio-nav {
-    --nav-ink: #f5f7fb;
+    --nav-ink: var(--ink-page);
     /* The plane the mobile top band is painted on. Same ink the scrim
        gradient already used, promoted to a token so the light theme can swap
        it in one place instead of restating the gradient. */
@@ -5362,7 +5427,7 @@
   }
   .home-page .studio-nav,
   .play-page .studio-nav {
-    --nav-ink: #f5f7fb;
+    --nav-ink: var(--ink-page);
   }
 
   /* The contact page used to opt out of every light-theme nav rule here,
@@ -6310,6 +6375,21 @@
     <main id="main">
       <!-- ───────────────── hero ───────────────── -->
       <section class="hero" id="hero" aria-labelledby="hero-title">
+        <!-- ── THE HERO LEAVES BEHIND A LIGHT ──────────────────────────────
+             Sid: "instead try another scroll transition without the cube guy
+             involved."
+
+             The move it replaces took the figure himself down into a spout
+             as you scrolled. This one leaves him alone entirely: a raking
+             light crosses the whole hero as the section goes, and the frame
+             darkens and contracts a little behind it — the room losing its
+             light rather than a character performing an exit. It reads as
+             one surface handing to the next, which is the same grammar the
+             footer now uses when you surface out of the water.
+
+             Purely decorative and inert to the pointer, so nothing in the
+             hero becomes unreachable while it plays. -->
+        <span class="hero-veil" aria-hidden="true"></span>
         <!-- The film. Two takes of one shot: pixelated is what you are given,
              clear is what you develop by moving through it. The <video> tags
              exist only so the browser decodes frames — WebGL draws both. -->
@@ -9786,6 +9866,227 @@
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     read();
+  })();
+</script>
+  
+
+<!-- ── MESHOPT, SET AT PARSE TIME ────────────────────────────────────────
+     buddha-web.glb is meshopt-compressed and model-viewer will not decode it
+     without knowing where the decoder lives. Setting this from inside the
+     lazy loader further down was too late — the GLB fetched with a 200, the
+     element reported defined, and the only symptom was one console line:
+     "THREE.GLTFLoader: setMeshoptDecoder must be called before loading
+     compressed files". It has to exist on the global before the library
+     module is evaluated, which means a plain script tag here rather than an
+     assignment inside a function.
+
+     loader.html carries the identical block for the identical file; this is
+     repeated because the loader only ships on the home page and this section
+     is in the shared footer. -->
+<script>
+  self.ModelViewerElement = self.ModelViewerElement || {};
+  self.ModelViewerElement.meshoptDecoderLocation = "https://cdn.jsdelivr.net/npm/meshoptimizer/meshopt_decoder.js";
+</script>
+
+<section class="lastfig" id="lastfig" aria-label="A figure, turning">
+  <div class="lastfig__stage">
+    <div class="lastfig__mount" id="lastfig-mount"></div>
+  </div>
+</section>
+
+<style>
+  .lastfig {
+    position: relative;
+    z-index: 2;
+    /* The scroll it owns. Long enough that the turn is a movement rather
+       than a flick, short enough that it is not a corridor. */
+    height: 160vh;
+  }
+  .lastfig__stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+  .lastfig__mount {
+    position: relative;
+    width: min(46vh, 380px);
+    aspect-ratio: 1;
+    pointer-events: auto;
+    cursor: pointer;
+    /* Rises and settles as the section arrives, on the same --q the
+       surfacing band uses so the two read as one continuous descent. */
+    /* Reaches full opacity a third of the way in rather than only at the
+       very end — at the midpoint the old ramp was still only 0.65, so the
+       figure was semi-transparent exactly where it is most on screen. */
+    opacity: clamp(0, calc(var(--f, 0) * 3), 1);
+    transform: translateY(calc((1 - var(--f, 0)) * 6vh)) scale(var(--fs, 1));
+    transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.55));
+  }
+  .lastfig__mount model-viewer {
+    width: 100%;
+    height: 100%;
+    --poster-color: transparent;
+    background: transparent;
+  }
+  /* Hover lifts it and warms the light. Click is a single compression and
+     release — the object acknowledging you rather than starting anything. */
+  .lastfig__mount.is-hot {
+    transform: translateY(calc((1 - var(--f, 0)) * 6vh)) scale(calc(var(--fs, 1) * 1.05));
+  }
+  .lastfig__mount.is-hit {
+    transform: translateY(calc((1 - var(--f, 0)) * 6vh)) scale(calc(var(--fs, 1) * 0.94));
+    transition-duration: 130ms;
+  }
+  /* A halo that only exists while the pointer is on it, so the figure has
+     somewhere to be lifted INTO rather than just getting bigger. */
+  .lastfig__stage::before {
+    content: "";
+    position: absolute;
+    width: min(70vh, 620px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(146, 214, 226, 0.16), transparent 62%);
+    opacity: var(--halo, 0);
+    transition: opacity 520ms ease;
+    pointer-events: none;
+  }
+  @media (max-width: 760px) {
+    .lastfig {
+      height: 120vh;
+    }
+    .lastfig__mount {
+      width: min(38vh, 260px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lastfig {
+      height: 70vh;
+    }
+    .lastfig__mount {
+      transition: none;
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var sec = document.getElementById("lastfig");
+    var mount = document.getElementById("lastfig-mount");
+    if (!sec || !mount) return;
+    var stage = sec.querySelector(".lastfig__stage");
+    var SRC = "/assets/models/buddha-web.glb";
+    var LIB = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js";
+
+    var mv = null,
+      built = false;
+
+    function ensureLib() {
+      /* The loader already ships this on the home page. Anywhere else it is
+         requested once, here, and only when the figure is nearly in view. */
+      if (window.customElements && customElements.get("model-viewer")) return;
+      if (document.querySelector("script[data-mv-lib]")) return;
+      var s = document.createElement("script");
+      s.type = "module";
+      s.src = LIB;
+      s.crossOrigin = "anonymous";
+      s.setAttribute("data-mv-lib", "");
+      document.head.appendChild(s);
+    }
+
+    function build() {
+      if (built) return;
+      built = true;
+      ensureLib();
+      mv = document.createElement("model-viewer");
+      mv.setAttribute("src", SRC);
+      mv.setAttribute("camera-orbit", "0deg 78deg 105%");
+      mv.setAttribute("interaction-prompt", "none");
+      mv.setAttribute("disable-zoom", "");
+      mv.setAttribute("disable-pan", "");
+      mv.setAttribute("disable-tap", "");
+      mv.setAttribute("environment-image", "neutral");
+      mv.setAttribute("exposure", "0.9");
+      mv.setAttribute("shadow-intensity", "0");
+      /* NOT loading="lazy". The element is already constructed lazily by the
+         observer below — it does not exist until the section is within a
+         screen — so model-viewer's own lazy gate is a second lock on a door
+         that has just been opened, and it kept the GLB from ever being
+         fetched: `defined: true, loaded: false`, no network request. `eager`
+         means "load now", and now is already the right time. */
+      mv.setAttribute("loading", "eager");
+      mv.setAttribute("reveal", "auto");
+      mv.style.pointerEvents = "none";
+      mount.appendChild(mv);
+    }
+
+    /* Build a screen early so the GLB has decoded by the time it is wanted,
+       and never build at all for a visitor who stops before the footer. */
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(
+        function (e) {
+          if (e[0].isIntersecting) {
+            build();
+            io.disconnect();
+          }
+        },
+        { rootMargin: "100% 0px" }
+      );
+      io.observe(sec);
+    } else build();
+
+    /* ── SCROLL TURNS IT ───────────────────────────────────────────────────
+       Not model-viewer's own auto-rotate, which runs on a clock and would
+       keep turning while the page is still. The angle is the scroll
+       position, so stopping stops it — the figure is being turned BY the
+       reader rather than performing next to them. A little under one full
+       revolution across the section, so it never repeats a face. */
+    var f = -1,
+      raf = 0;
+    function read() {
+      var r = sec.getBoundingClientRect();
+      var vh = window.innerHeight || 1;
+      var np = 1 - r.bottom / (vh + r.height);
+      np = Math.max(0, Math.min(1, np));
+      if (Math.abs(np - f) > 0.0015) {
+        f = np;
+        mount.style.setProperty("--f", f.toFixed(3));
+        /* Grows a little as it comes to the middle and settles back. */
+        mount.style.setProperty("--fs", (0.94 + Math.sin(Math.min(1, f) * Math.PI) * 0.1).toFixed(3));
+        if (mv) mv.setAttribute("camera-orbit", (-40 + f * 320).toFixed(1) + "deg " + (82 - f * 10).toFixed(1) + "deg 105%");
+      }
+      raf = 0;
+    }
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(read);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    read();
+
+    /* ── HOVER AND CLICK ── */
+    mount.addEventListener("pointerenter", function (e) {
+      if (e.pointerType === "touch") return;
+      mount.classList.add("is-hot");
+      stage.style.setProperty("--halo", "1");
+      if (mv) mv.setAttribute("exposure", "1.25");
+    });
+    mount.addEventListener("pointerleave", function () {
+      mount.classList.remove("is-hot");
+      stage.style.setProperty("--halo", "0");
+      if (mv) mv.setAttribute("exposure", "0.9");
+    });
+    mount.addEventListener("click", function () {
+      mount.classList.add("is-hit");
+      setTimeout(function () {
+        mount.classList.remove("is-hit");
+      }, 150);
+    });
   })();
 </script>
 
@@ -18396,5 +18697,35 @@
   })();
 </script>
 
+    <script>
+      /* Drives .hero-veil. One number, read off how far the hero has left the
+         screen, on the same rAF-coalesced pattern the rest of the site's
+         scroll work uses. Nothing here touches the figure. */
+      (function () {
+        var hero = document.getElementById("hero");
+        var veil = hero && hero.querySelector(".hero-veil");
+        if (!hero || !veil) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var hx = -1,
+          raf = 0;
+        function read() {
+          var r = hero.getBoundingClientRect();
+          var vh = window.innerHeight || 1;
+          /* 0 while the hero still fills the screen, 1 once it has gone. */
+          var n = 1 - Math.max(0, Math.min(1, r.bottom / vh));
+          if (Math.abs(n - hx) > 0.002) {
+            hx = n;
+            veil.style.setProperty("--hx", hx.toFixed(3));
+          }
+          raf = 0;
+        }
+        function onScroll() {
+          if (!raf) raf = requestAnimationFrame(read);
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll, { passive: true });
+        read();
+      })();
+    </script>
   </body>
 </html>
