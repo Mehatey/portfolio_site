@@ -3742,6 +3742,30 @@
     color: rgba(7, 9, 15, 0.98);
     border-bottom-color: rgba(7, 9, 15, 0.7);
   }
+  /* ── TWO THE FIRST LIGHT-MODE PASS MISSED ───────────────────────────────
+     That pass fixed the gate's name, role, scope, enter label and recruiter
+     links, and stopped there. Two things on the same transparent gate kept
+     their dark-tuned colour and were therefore invisible on cream, which is
+     the same bug the pass was written to remove.
+
+     #buddha-speech is the idle thought that surfaces near the sculpture. It
+     was rgba(232,243,255,0.5) — a near-white at half strength — over paper,
+     plus a blue bloom that only makes sense against black. Measured on the
+     cream ground it comes out at 1.05:1, so on light mode the sculpture sat
+     there thinking at nobody.
+
+     .enter-btn-mobile is the way IN on a phone. A near-white label on cream
+     is not a contrast complaint on a button like that, it is a dead end. */
+  html[data-theme="light"] #buddha-speech {
+    color: rgba(7, 9, 15, 0.66);
+    text-shadow: none;
+  }
+  html[data-theme="light"] .enter-btn-mobile {
+    color: rgba(7, 9, 15, 0.92);
+    border-color: rgba(7, 9, 15, 0.28);
+    text-shadow: none;
+  }
+
   /* Screen-blend bloom is a no-op on a light ground and only greys the paper. */
   html[data-theme="light"] #enter-flash {
     display: none;
@@ -3895,14 +3919,67 @@
     ];
     var speechTimers = [];
     placeSpeech = function () {
-      // Position bubble above/below the centered stage using its actual DOM rect.
+      /* ── IT GOES WHERE THERE IS ROOM ────────────────────────────────────
+         This was one rule: sit above the sculpture, flip below if that would
+         land under the nav. Right on a wide screen, where the sculpture
+         floats in the middle of an empty page. Wrong on a phone, where the
+         layout stacks and the sculpture has the identity block immediately
+         above it and ENTER PORTFOLIO immediately below. Rendered at 390x844,
+         "TAKE YOUR TIME." sat across "EyeJack · Philips"; flipping it below
+         put it across ENTER PORTFOLIO instead. No single offset is free on
+         both layouts.
+
+         So it picks a SLOT rather than an offset — above the sculpture, below
+         the sculpture, or below the enter label, that last being the open
+         band a phone actually has between the call to action and the two
+         links at the foot. Each candidate is tested against everything it
+         could land on, and the first clear one wins. If none is clear the
+         thought is not shown at all: a legible page with no idle musing beats
+         a musing printed over the way in.
+
+         No breakpoint in any of it. Every element reports its own rect, so
+         this holds at widths nobody thought to check. */
       if (!speech || !speechVisible) return;
       var r = stage.getBoundingClientRect();
-      var bx = r.left + r.width / 2;
-      var topY = r.top - 14;
-      var below = topY < 70;
-      var by = below ? r.bottom + 14 : topY;
-      bx = Math.max(150, Math.min(W - 150, bx));
+      var bx = Math.max(150, Math.min(W - 150, r.left + r.width / 2));
+
+      var obstacles = [];
+      [".entry-identity", "#enter-label", ".enter-quick-links", ".studio-nav", ".enter-btn-mobile"].forEach(function (sel) {
+        var e = document.querySelector(sel);
+        if (!e) return;
+        var q = e.getBoundingClientRect();
+        if (q.width > 0 && q.height > 0) obstacles.push(q);
+      });
+
+      var sh = speech.offsetHeight || 20;
+      var sw = speech.offsetWidth || 160;
+      var slots = [r.top - 14 - sh, r.bottom + 14];
+      var enterEl = document.getElementById("enter-label");
+      if (enterEl) slots.push(enterEl.getBoundingClientRect().bottom + 18);
+
+      function clear(top) {
+        if (top < 74 || top + sh > window.innerHeight - 8) return false;
+        for (var i = 0; i < obstacles.length; i++) {
+          var q = obstacles[i];
+          var oy = Math.min(top + sh, q.bottom) - Math.max(top, q.top);
+          var ox = Math.min(bx + sw / 2, q.right) - Math.max(bx - sw / 2, q.left);
+          if (oy > 2 && ox > 2) return false;
+        }
+        return true;
+      }
+
+      var by = null;
+      for (var si = 0; si < slots.length; si++) {
+        if (clear(slots[si])) {
+          by = slots[si];
+          break;
+        }
+      }
+      if (by === null) {
+        speech.classList.remove("show");
+        return;
+      }
+
       speech.style.left = bx + "px";
       speech.style.top = by + "px";
     };
