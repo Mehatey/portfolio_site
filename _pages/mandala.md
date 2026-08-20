@@ -156,7 +156,11 @@ next_project:
     font-size: 11px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.42);
+    /* 0.42 measured 3.95:1 on an 11px link — under AA, on an interactive
+       element. --ink-3 is the tertiary step, clears AA in both themes, and is
+       one token rather than a fourth hand-picked alpha for what is the same
+       component on four different pages. */
+    color: var(--ink-3);
     padding: 16px 0;
     white-space: nowrap;
     text-decoration: none;
@@ -219,7 +223,11 @@ next_project:
     font-size: 10px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.45);
+    /* Two more hand-picked alphas on one card: 0.45 for the kicker and 0.32
+       for the "PDF" tag, measured at 4.41:1 and 2.67:1 on 10px type. Both are
+       on the ladder now — the kicker is the item's title and the tag is its
+       metadata, which is exactly what ink-2 and ink-3 are for. */
+    color: var(--ink-2);
   }
   .thesis-doc-title {
     font-family: var(--font-head);
@@ -234,7 +242,7 @@ next_project:
     font-size: 10px;
     letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.32);
+    color: var(--ink-3);
     margin-top: 16px;
     transition: color 0.3s;
   }
@@ -253,10 +261,12 @@ next_project:
     border-color: rgba(7,9,15,0.28);
     background: rgba(7,9,15,0.03);
   }
-  html[data-theme="light"] .thesis-doc-kicker { color: rgba(7,9,15,0.55); }
-  html[data-theme="light"] .thesis-doc-title { color: rgba(7,9,15,0.88); }
-  html[data-theme="light"] .thesis-doc-meta { color: rgba(7,9,15,0.45); }
-  html[data-theme="light"] .thesis-doc:hover .thesis-doc-meta { color: rgba(7,9,15,0.75); }
+  /* These three were the light-mode half of the same hand-picked alphas the
+     dark rules used, and they override the tokens set above — so fixing the
+     dark page left cream at 4.32:1 and 3.12:1. The ladder already has a light
+     definition for every step; there is nothing for these rules to do. */
+  html[data-theme="light"] .thesis-doc-title { color: var(--ink); }
+  html[data-theme="light"] .thesis-doc:hover .thesis-doc-meta { color: var(--ink); }
 </style>
 
 <!-- THESIS DOCUMENTS -->

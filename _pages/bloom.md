@@ -167,7 +167,11 @@ next_project:
   .bl-watch-link a {
     font-family: var(--font-mono); font-size: 11px;
     letter-spacing: 0.18em; text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.42);
+    /* 0.42 measured 3.95:1 on an 11px link — under AA, on an interactive
+       element. --ink-3 is the tertiary step, clears AA in both themes, and is
+       one token rather than a fourth hand-picked alpha for what is the same
+       component on four different pages. */
+    color: var(--ink-3);
     padding: 16px 0; white-space: nowrap;
     text-decoration: none; transition: color 0.2s;
   }
