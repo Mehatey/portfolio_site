@@ -987,6 +987,20 @@ title: Play · Sid Mehta
           if (reduced) return;
           var SPEED = 22;
           var RESUME_MS = 4000;
+          /* ── IT DOES NOT START ON THE HEADER ──────────────────────────────
+             The drift began on the first frame, which meant the page's own
+             title was leaving before anyone had read it: measured, "Play" and
+             its one-line tagline were half off the top of the window inside
+             five seconds and fully gone inside eight, on a page whose heading
+             is the only thing that says what any of the pictures are.
+
+             So the tour waits. Three seconds is long enough to read a word and
+             a sentence and short enough that the page still announces itself
+             as something that moves — and it is only the OPENING hold: an
+             interrupt still resumes on RESUME_MS as before, because by then
+             the reader has met the header and is somewhere else. */
+          var START_MS = 3000;
+          var t0 = performance.now();
           var last = 0, idle = 0, auto = true, returning = false;
           /* The drift position is kept as a float here and only handed to
              scrollTo. Reading window.scrollY back each frame and adding to it
@@ -1042,6 +1056,13 @@ title: Play · Sid Mehta
             var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
             last = now;
             if (document.hidden) return;
+            if (now - t0 < START_MS) {
+              /* Kept in step with the real scroll position through the hold,
+                 so a reader who scrolls during it and then stops does not get
+                 yanked back to where the drift thought it was. */
+              pos = window.scrollY;
+              return;
+            }
             if (!auto) {
               if (now - idle > RESUME_MS) { auto = true; }
               return;

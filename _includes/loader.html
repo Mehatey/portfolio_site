@@ -1017,7 +1017,36 @@
   self.ModelViewerElement = self.ModelViewerElement || {};
   self.ModelViewerElement.meshoptDecoderLocation = "https://cdn.jsdelivr.net/npm/meshoptimizer/meshopt_decoder.js";
 </script>
-<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js" crossorigin="anonymous"></script>
+<!-- ── 933KB THAT MOST VISITS NEVER USED ────────────────────────────────────
+     This was a plain <script type="module"> and it was the single largest
+     asset on the home page after the film — measured at 933KB decoded, ahead
+     of the point cloud, the albedo and every image on the page.
+
+     It is only ever needed by the Enter gate's Buddha. The gate is skipped
+     entirely for anyone who has been here before: `sid_loaded` in
+     localStorage means the loader removes itself and the gate from the DOM
+     within a tick of parsing (see the skip path below). The library
+     downloaded, parsed and defined its custom elements anyway, on every one
+     of those visits, for an element that no longer existed by the time it
+     finished.
+
+     So it is requested by the Buddha's own bootstrap instead, which runs only
+     when the gate is actually going to be shown. _includes/footer_buddha.html
+     has always done it this way and guards on the same customElements check,
+     so whichever of the two needs it first pays for it and the other one
+     finds it already there. -->
+<script>
+  window.__mvLib = function () {
+    if (window.customElements && customElements.get("model-viewer")) return;
+    if (document.querySelector("script[data-mv-lib]")) return;
+    var s = document.createElement("script");
+    s.type = "module";
+    s.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js";
+    s.crossOrigin = "anonymous";
+    s.setAttribute("data-mv-lib", "");
+    document.head.appendChild(s);
+  };
+</script>
 
 <script>
   // Floating buddha head — single model that DVD-bounces around. Slowly grows in size and rotation
@@ -1026,6 +1055,18 @@
     var stage = document.getElementById("enter-3d-stage");
     var mount = document.getElementById("enter-3d-mount");
     if (!stage || !mount) return;
+    /* ── THE GATE IS NOT ALWAYS SHOWN ─────────────────────────────────────
+       This block runs from an inline script above the skip path, so on a
+       return visit it was building the Buddha — and requesting the library
+       for it — a few hundred milliseconds before the skip path removed the
+       gate from the document. The elements were still present, which is the
+       only thing the guard above tests, so nothing about it looked wrong.
+
+       Same flag the skip path reads, read here first. Anyone who has been
+       through Enter once never pays for the 3D again. */
+    try {
+      if (localStorage.getItem("sid_loaded") || sessionStorage.getItem("sid_loaded")) return;
+    } catch (_) {}
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     // Buddha now runs on touch too — user wants it visible on mobile. CSS already
     // shrinks the stage on small screens, and the rAF loop is light (<1ms/frame).
@@ -1033,6 +1074,9 @@
     var BUDDHA_SRC = "{{ site.baseurl }}/assets/models/buddha-web.glb";
     var mv;
     function buildViewer() {
+      /* The one place on this page that needs the library. Called from the
+         gate's bootstrap below, which does not run when the gate is skipped. */
+      if (window.__mvLib) window.__mvLib();
       mount.innerHTML = "";
       mv = document.createElement("model-viewer");
       mv.setAttribute("src", BUDDHA_SRC);
