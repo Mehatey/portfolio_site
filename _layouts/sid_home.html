@@ -189,9 +189,92 @@
         z-index: 2;
       }
       .wrap {
-        width: min(1440px, 100%);
+        width: 100%;
         margin: 0 auto;
         padding: 0 clamp(22px, 5vw, 92px);
+      }
+
+      /* ── THE THREE COLUMNS ────────────────────────────────────────────────
+         Outer columns take whatever is left; the middle one is the figure,
+         exactly. `min-width: 0` on the outer two because a grid track's
+         default min-content floor is the longest unbreakable word, and
+         "designer," at 43px is wide enough to push the middle column narrower
+         than the canvas standing in it — which is how type ends up over his
+         shoulder at 1024. */
+      .hero__cols {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) var(--cg-w) minmax(0, 1fr);
+        align-items: center;
+        column-gap: clamp(20px, 3vw, 56px);
+      }
+      .hero__col {
+        display: block;
+        min-width: 0;
+      }
+      /* Grid places them in source order, so the right clause needs telling
+         which track it is in — there is an empty middle track between them
+         and no element to fill it. Nothing is drawn in that track; it is the
+         hole the figure stands in. */
+      .hero__col--l {
+        grid-column: 1;
+        text-align: left;
+      }
+      .hero__col--r {
+        grid-column: 3;
+        text-align: right;
+      }
+
+      /* ── THE TYPE STEPS BACK WHILE THE FRAME CHANGES HANDS ────────────────
+         --hero-beat is written on .hero by assets/js/home-hero.js: 0 while
+         either subject is holding, running to 1 across each handoff. The copy
+         lightens and lifts a hair through it, so the sentence reads as part
+         of the same event rather than as a caption bolted over a dissolve.
+
+         Deliberately small. The headline is the only thing on this screen a
+         recruiter has to be able to read, and a hero that hides its own claim
+         every seventeen seconds is a hero with a bug. Peak is 0.72 opacity —
+         still comfortably legible, just no longer the loudest thing. */
+      .hero__cols {
+        opacity: calc(1 - var(--hero-beat, 0) * 0.28);
+        transform: translateY(calc(var(--hero-beat, 0) * -6px));
+        will-change: opacity, transform;
+      }
+
+      /* ── ONE LINE, BOTTOM LEFT ────────────────────────────────────────────
+         Absolute rather than a flex child: "bottom left" is a position in the
+         frame, and the moment it is in the flow it is instead "under the
+         headline", which is where it already was. Padding matches
+         .hero__inner so it sits on the same left margin as the left clause
+         above it — the corner and the column share one edge. */
+      .hero__base {
+        position: absolute;
+        left: 0;
+        bottom: clamp(26px, 4.4vh, 54px);
+        z-index: 2;
+        margin: 0;
+        padding: 0 clamp(22px, 5vw, 92px);
+        max-width: min(46ch, 66vw);
+        font-size: clamp(0.9rem, 1.15vw, 1.12rem);
+        font-weight: 450;
+        line-height: 1.34;
+        letter-spacing: -0.014em;
+        min-height: 1.34em;
+        opacity: calc(1 - var(--hero-beat, 0) * 0.34);
+      }
+      /* Two lines reserved at the widths where the longest phrase takes two,
+         so the corner does not hop as the tail rewrites itself. */
+      @media (max-width: 900px) {
+        .hero__base {
+          min-height: 2.68em;
+        }
+      }
+      /* The scroll mark is centred on the bottom edge and the line sits at
+         the left of it; below about 620 the line is wide enough to run under
+         the mark. It gets the full measure and clears the mark vertically. */
+      @media (max-width: 620px) {
+        .hero__base {
+          max-width: 100%;
+        }
       }
 
       /* ── reveal ─────────────────────────────────────────────────── */
@@ -227,8 +310,28 @@
            moving only the figure would have left him floating with his head
            in the top margin. Measured at 1440x900 the gap between his sole
            and the cap height of "Product designer" is 34px, from 0. */
-        padding-bottom: clamp(26px, 4.4vh, 54px);
-        padding-top: clamp(120px, 18vh, 200px);
+        /* ── THE COPY IS CENTRED NOW ──────────────────────────────────────
+           Sid: "we have center-aligned text instead of the bottom."
+
+           justify-content was flex-end and the padding above was the shim
+           that stopped the block colliding with the figure's feet — a fix for
+           a composition where the type sat under him. It does not sit under
+           him any more, it sits either side of him on his own centre line, so
+           the shim is what would break it: 200px of top padding pushes a
+           centred grid off centre by a hundred.
+
+           Symmetrical padding, and it only has to clear the nav. Everything
+           that used to hang off the bottom edge — the one live line, the
+           scroll mark — is absolutely positioned there now, which is what
+           bottom-left and bottom-centre actually mean. */
+        justify-content: center;
+        padding-top: var(--nav-h, 64px);
+        padding-bottom: var(--nav-h, 64px);
+
+        /* One number for the figure's width, shared by .cg-stage and by the
+           middle column of the headline grid, so the type can never be laid
+           out against a column that is not the size he is drawn at. */
+        --cg-w: min(560px, 46vw);
       }
       /* The hero is full-bleed now so the film can run edge to edge; the
          copy keeps the site's measure by living in its own wrap. */
@@ -266,12 +369,74 @@
 
          On a phone the film is behind the type either way, so the copy goes
          to the top and the hero stops trying to be a viewport tall. */
+      /* ── THE SPLIT NEEDS A FRAME TO SPLIT ─────────────────────────────
+         Below 1024 the outer tracks are narrower than the words in them and
+         the sentence breaks into two-word lines either side of a figure that
+         has nowhere left to stand. So the grid collapses to one column, the
+         clauses stack back into a single block, and the figure goes behind
+         them as atmosphere — which is what he already does on a phone.
+
+         The hero stays a viewport tall and stays centred down to 760, because
+         a centred one-column hero is still a composition. Only below that,
+         where the copy is most of the screen on its own, does it go back to
+         standing at the top. */
+      @media (max-width: 1023px) {
+        .hero__cols {
+          grid-template-columns: minmax(0, 1fr);
+          row-gap: 0;
+        }
+        .hero__col--l,
+        .hero__col--r {
+          grid-column: 1;
+          text-align: left;
+        }
+        .cg-stage {
+          opacity: 0;
+        }
+        .cg-stage.is-live {
+          opacity: 0.5;
+        }
+      }
+      /* ── THE PHONE ────────────────────────────────────────────────────────
+         What was here collapsed the hero to min-height: auto and stood the
+         copy at the top. That was right for the composition it was written
+         for: the copy hung off the bottom of a 100svh box, and on a 390x844
+         phone that left about 600px of empty screen above it — the page
+         opened on nothing and the headline was most of a swipe away.
+
+         It is wrong for this one, and measurably so. With the copy centred
+         the hero collapsed to roughly 330px, and .hero is overflow: hidden,
+         so the figure standing in the middle of it was cut off at the shins
+         by the section edge. The old fix, applied to the new layout, produced
+         the exact defect it was written to prevent — a hero that shows a
+         fragment of its subject.
+
+         So the hero is a viewport tall again, and it is not empty, because
+         there is something in the middle of it now. The copy stacks and sits
+         on the figure rather than beside him; he drops to 0.42 opacity and
+         stops taking the pointer, so a swipe is always a scroll. */
       @media (max-width: 760px) {
         .hero {
-          min-height: auto;
-          justify-content: flex-start;
-          padding-top: calc(var(--nav-h, 56px) + var(--sp-6, 32px));
+          min-height: 100svh;
+          justify-content: center;
+          padding-top: calc(var(--nav-h, 56px) + var(--sp-5, 24px));
           padding-bottom: var(--sp-8, 64px);
+        }
+        .cg-stage {
+          top: 50%;
+          width: 82vw;
+          height: 56vh;
+          pointer-events: none;
+        }
+        .cg-stage.is-live {
+          opacity: 0.42;
+        }
+        /* The bottom-left corner still exists on a phone; it just needs the
+           page's own left margin, which it inherited from .hero__inner while
+           it was in the flow and does not while it is placed against .hero. */
+        .hero__base {
+          bottom: calc(var(--sp-8, 64px) + 28px);
+          padding: 0 clamp(22px, 5vw, 92px);
         }
       }
 
@@ -320,7 +485,6 @@
 
       h1.hero__title {
         margin: 0;
-        max-width: 27ch;
         /* Sid: "the product shipped this thing, can we make it a little
            lighter? the font is too thick." 500 on a 60px line is a medium
            weight doing the work of a bold; 350 keeps the scale and lets the
@@ -348,8 +512,17 @@
            the rotating line, and the sentence — and this one was set loud
            enough that the other two read as its footnotes rather than as
            their own thoughts. */
-        font-size: clamp(1.3rem, 2.7vw, 2.7rem);
-        line-height: 1;
+        /* Up from clamp(1.3rem, 2.7vw, 2.7rem). That size was set for a
+           27ch stack sharing the bottom-left corner with two other blocks of
+           copy; each clause now has a third of the frame to itself and
+           nothing under it, and at 2.7rem the two halves read as labels
+           pinned to the edges rather than as one sentence spanning the page.
+
+           The max-width comes off entirely for the same reason — the grid
+           track IS the measure now, and a 27ch cap inside a 1fr track just
+           reintroduces the ragged column it was there to create. */
+        font-size: clamp(1.45rem, 3.1vw, 3.15rem);
+        line-height: 1.04;
         letter-spacing: -0.032em;
       }
 
@@ -701,6 +874,23 @@
         transform: none;
       }
 
+      /* ── THE OUTLINE WAS MISSING A LEVEL ──────────────────────────────────
+         Every section on this page already declared its own name through
+         aria-labelledby, and every one of those names was a <span>. So the
+         document went h1 straight to h3 — the four project titles and the
+         three range words sat directly under the hero headline with nothing
+         between them, and a screen reader's heading list read as one page-
+         level claim followed by seven equal items with no sections at all.
+
+         The elements are h2 now. Nothing about the page changes: they are in a
+         flex row that sets their type, and this resets the two things a
+         heading brings with it that a span does not. */
+      .sec-head__h {
+        font: inherit;
+        letter-spacing: inherit;
+        margin: 0;
+      }
+
       .scroll-cue {
         position: absolute;
         left: 50%;
@@ -838,9 +1028,13 @@
       .cg-stage {
         position: absolute;
         left: 50%;
-        top: 38%;
+        /* Dead centre, not 38%. He was lifted up the frame to clear a block
+           of copy sitting along the bottom edge; the copy is on his own
+           centre line now, in the gap this canvas occupies, so anything other
+           than 50% puts him off the axis his own headline is aligned to. */
+        top: 50%;
         transform: translate(-50%, -50%);
-        width: min(560px, 46vw);
+        width: var(--cg-w);
         height: min(620px, 66vh);
         z-index: 1;
         touch-action: pan-y;
@@ -1124,10 +1318,21 @@
       .ide__photo.has-cloud .ide__mode {
         opacity: 1;
       }
+      /* ── THE FOURTH TIME ──────────────────────────────────────────────
+         --accent is one blue, defined once, built for a dark canvas, and it
+         does NOT flip with the theme. The token file says so at its
+         declaration and lists three previous occasions on which a light-mode
+         rule coloured type with it anyway, because the name reads as
+         theme-aware. This is the fourth: pale blue at 55% white behind it,
+         measured on cream at 1.55:1 — a white chip on a white card.
+
+         --accent-ink is the text-safe accent and it does flip. The plate goes
+         opaque as well; a 55% white wash over a photograph is not a surface a
+         10px label can sit on at any colour. */
       html[data-theme="light"] .ide__mode {
-        color: var(--accent);
-        background: rgba(255, 255, 255, 0.55);
-        border-color: var(--accent-dim);
+        color: var(--accent-ink);
+        background: rgba(255, 255, 255, 0.92);
+        border-color: rgba(35, 80, 127, 0.28);
       }
       .ide__mode.is-hit {
         animation: ideModeHit 620ms ease 1;
@@ -2171,70 +2376,41 @@
                how far through the process, whether he writes the code,
                whether he works with AI) and the line under it carries the
                taste. Facts above, character below. -->
+          <!-- ── THE SENTENCE STANDS EITHER SIDE OF HIM ──────────────────
+               Sid: "we have center-aligned text instead of the bottom ... the
+               text which keeps forming, we can have on the left and the right
+               of the cube guy in the middle. Compose it better."
+
+               The headline is one sentence in two clauses, and it was set as a
+               stack in the bottom-left corner with the figure floating above it
+               in a lot of empty screen. Split across the frame it does two
+               things at once: the clauses land where the eye already travels,
+               and the gap between them becomes a deliberate column with the
+               figure standing in it, rather than dead space the type happens
+               to avoid.
+
+               The columns face OUT, not in — left clause set left at the page
+               margin, right clause set right at the other. Facing them inward
+               frames him prettily and breaks the reading line, which matters
+               more: this is a sentence before it is a composition, and its two
+               halves have to be findable in the order they are written.
+
+               The middle column is exactly the figure's own width, off the
+               same --cg-w that sizes .cg-stage, so the two are one grid rather
+               than two things that happen to be centred. Below 1024 the grid
+               collapses and the clauses stack: at that measure a three-column
+               split is two words a line. -->
           <h1 class="hero__title" id="hero-title">
             <span class="sr-only">Product designer, six years. Research to shipped code, end to end.</span>
-            <span
-              class="tw"
-              aria-hidden="true"
-              data-livetype
-              data-livetype-zone="#hero"
-              data-tw="Product designer, six years.|Research to shipped code, end to end."
-            ></span>
+            <span class="hero__cols" aria-hidden="true">
+              <span class="hero__col hero__col--l">
+                <span class="tw" data-livetype data-livetype-zone="#hero" data-tw-seq="0" data-tw="Product designer,|six years."></span>
+              </span>
+              <span class="hero__col hero__col--r">
+                <span class="tw" data-livetype data-livetype-zone="#hero" data-tw-seq="1" data-tw="Research to shipped code,|end to end."></span>
+              </span>
+            </span>
           </h1>
-
-          <!-- The one live thing in the block. Prefix is fixed so only the
-               tail rewrites itself — a whole sentence retyping every few
-               seconds reads as a broken page, a tail that swaps reads as
-               someone still deciding. The chromatic-aberration accent moved
-               off the headline and onto this segment, because the split
-               fringe should sit on the part that is actually moving. -->
-          <p class="hero__rot" aria-hidden="true">
-            <span class="hero__rot-fix">Building</span>
-            <span
-              class="hero__rot-val accent"
-              data-rot="quiet tools for messy human problems|emotional software out of cold tech|experiments that grow into products|interfaces for hardware not built yet|money software people actually trust"
-            ></span>
-          </p>
-
-          <div class="hero__foot rv">
-            <!-- Sid: "that zero six years needs to be aligned, and needs to
-                 say experience zero six and years and make it in just two lines
-                 in my spaces of working."
-
-                 It was a stacked 06 with YEARS hanging under it and two lines of
-                 copy beside — the second of which ("I build the version people
-                 trust when it actually matters") he asked to cut, and which was
-                 doing the same job as the rotating line four elements above it.
-
-                 So: a label, then the figure and its unit on one baseline, then
-                 exactly two lines naming the rooms he has worked in. Nothing in
-                 the block claims anything about how good the work is; the work
-                 is one scroll down. -->
-            <!-- ── THE SENTENCE ──────────────────────────────────────────────
-                 Sid: "i like pentagram's way of showing what all they design
-                 for who and what spaces and fields and areas i am proficient
-                 in at a glance."
-
-                 What was here was a 96px "25 / artworks / At the Met" — one
-                 fact, shouted, and one he asked to drop. A hero slot that
-                 large should answer the question a visitor actually arrives
-                 with, which is not "how many" but "what do you do and who for".
-
-                 So it is a sentence you operate. Two dropdowns inside one
-                 line, the way Pentagram runs theirs, and the work matching
-                 your pick appears underneath. Every option is a real
-                 discipline with real projects behind it — the "for" list is
-                 rebuilt from whatever you pick on the left, so there is no
-                 combination that returns nothing. It reads as a claim and
-                 behaves as an index. -->
-
-            <!-- The "16 · All work" row and "or watch the reel" used to sit
-                 here. Sid: "dont show all work linkout and video link let
-                 video link show below near the cube somewhere". The hero was
-                 carrying six pieces of UI in its bottom quarter; the nav
-                 already reaches /works/ from every page, and the reel belongs
-                 next to the object it is a reel of. -->
-          </div>
         </div>
 
         <!-- ── THE CORNER IS EMPTY NOW ──────────────────────────────────
@@ -2251,6 +2427,27 @@
              And the range is stated where a reader has already chosen to
              keep going, at a size that says it is a claim, instead of
              whispering it against the headline in the first viewport. -->
+
+        <!-- ── ONE LINE, BOTTOM LEFT ────────────────────────────────────
+             Sid: "maybe in the bottom left, we can have one line of text."
+
+             This is the line that was under the headline. It is the only
+             thing in the hero still deciding what it says, and in the middle
+             of the frame it read as a third claim competing with the other
+             two. In the corner it reads as a signature — the one part of the
+             composition that keeps moving while everything else holds, which
+             is what a corner is for.
+
+             Prefix is fixed so only the tail rewrites itself: a whole sentence
+             retyping every few seconds reads as a broken page, a tail that
+             swaps reads as someone still deciding. -->
+        <p class="hero__base" aria-hidden="true">
+          <span class="hero__rot-fix">Building</span>
+          <span
+            class="hero__rot-val accent"
+            data-rot="quiet tools for messy human problems|emotional software out of cold tech|experiments that grow into products|interfaces for hardware not built yet|money software people actually trust"
+          ></span>
+        </p>
 
         <!-- The word "Scroll" came out. Sid: "on the homepage we have scroll
              down tooltip text can you change the animation on that or
@@ -2293,7 +2490,10 @@
 
       <!-- ───────────────── 01 work ───────────────── -->
       <section class="sec wrap" id="work" aria-labelledby="work-h">
-        <div class="sec-head rv"><span>02</span><span class="rule"></span><span id="work-h">Selected work</span></div>
+        <div class="sec-head rv">
+          <span>02</span><span class="rule"></span>
+          <h2 class="sec-head__h" id="work-h">Selected work</h2>
+        </div>
 
         <ol class="gal">
           <!-- ── COVER SIZES ──────────────────────────────────────────────
@@ -2407,7 +2607,10 @@
 
       <!-- ───────────────── 02 how I think ───────────────── -->
       <section class="sec wrap" id="how" aria-labelledby="how-h">
-        <div class="sec-head rv"><span>03</span><span class="rule"></span><span id="how-h">How I think</span></div>
+        <div class="sec-head rv">
+          <span>03</span><span class="rule"></span>
+          <h2 class="sec-head__h" id="how-h">How I think</h2>
+        </div>
         <figure class="ide rv" id="ide">
           <div class="ide__photo">
             <!-- Central Park, blue jacket, blue cap, background removed.
@@ -2465,7 +2668,10 @@
            its own rule left-to-right and lifts its word as it enters, on a
            stagger, so the section assembles in the order you read it. -->
       <section class="sec wrap" aria-labelledby="range-h">
-        <div class="sec-head rv"><span>04</span><span class="rule"></span><span id="range-h">The range</span></div>
+        <div class="sec-head rv">
+          <span>04</span><span class="rule"></span>
+          <h2 class="sec-head__h" id="range-h">The range</h2>
+        </div>
 
         <div class="range">
           <ol class="range__pillars">
@@ -2574,7 +2780,8 @@
       <!-- ───────────────── 05 the door ───────────────── -->
       <section class="sec wrap door" aria-labelledby="door-h">
         <div class="sec-head rv" style="justify-content: center">
-          <span>05</span><span class="rule" style="max-width: 60px"></span><span id="door-h">The studio</span>
+          <span>05</span><span class="rule" style="max-width: 60px"></span>
+          <h2 class="sec-head__h" id="door-h">The studio</h2>
         </div>
         <!-- Sid: "dont link the play page from the bottom which says 98. there
              were like 220 include photos and vids too."
@@ -2690,6 +2897,10 @@
     <script src="{{ site.baseurl }}/assets/js/home-gl.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/home-field.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/cube-guy.js" defer></script>
+    <!-- The sequence that makes the figure and the film take turns. Loaded
+         after both renderers and deferred like them, so it is guaranteed to
+         find their hooks; it degrades to nothing if either is missing. -->
+    <script src="{{ site.baseurl }}/assets/js/home-hero.js" defer></script>
 
     <script>
       /* ── headline arrival ────────────────────────────────────────
@@ -2705,44 +2916,42 @@
          simply there, because the text does not depend on the motion. That was
          not true of the typewriter. */
       (function () {
-        var host = document.querySelector(".tw");
+        /* ── ONE SENTENCE, TWO HOSTS ──────────────────────────────────────
+           This used to be `querySelector(".tw")` — one element carrying both
+           clauses as two lines. The clauses live either side of the figure
+           now, so there are two hosts, and the typing has to run through them
+           in order or the two halves of a sentence appear at once from
+           opposite edges and read as two unrelated labels.
+
+           data-tw-seq is the running order. Every host is built up front —
+           full text written and then emptied — so both boxes reserve their
+           final height immediately and nothing in the grid moves while the
+           later one is still waiting its turn. */
+        var hosts = [].slice.call(document.querySelectorAll(".tw"));
         var hero = document.getElementById("hero");
-        if (!host) return;
-        /* ── IT TYPES AFTER ALL ───────────────────────────────────────────
-           Sid, twice: "the product designer six years show up in a nice
-           typewriter fashion", and then "i want the product designer text to
-           appear through a typewriter animation, and then the next text."
+        if (!hosts.length) return;
+        hosts.sort(function (a, b) {
+          return (+a.getAttribute("data-tw-seq") || 0) - (+b.getAttribute("data-tw-seq") || 0);
+        });
 
-           A previous pass took the typewriter OUT, and the argument it left
-           behind is worth keeping on the record because it was his own: a
-           character-by-character reveal is the single most-copied "AI
-           website" gesture there is, and nothing here is supposed to read as
-           slop. That objection was answered by the sequence around it rather
-           than by refusing the request — this line now types over his own
-           footage, as the second beat of an opening that starts with his
-           pixelated plate, which is not a gesture anyone else can copy.
-
-           28ms a character with a 420ms beat between lines: the first line is
-           legible in under a second and both are home in about two, which is
-           inside the window a hero gets. Reduced motion skips straight to the
-           full text — a headline that withholds itself is the exact thing
-           that switch exists to stop. */
-        var lines = (host.getAttribute("data-tw") || "").split("|");
         var LESS = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        var inks = lines.map(function (txt, i) {
-          var el = document.createElement("span");
-          el.className = "tw__line";
-          var ink = document.createElement("span");
-          ink.className = "tw__ink";
-          /* The full string is written first and then emptied, so the block
-             reserves its final height immediately. Typing into an empty
-             element reflows the hero on every character and drags the copy
-             under it up and down for two seconds. */
-          ink.textContent = txt;
-          ink.style.animationDelay = 240 + i * 110 + "ms";
-          el.appendChild(ink);
-          host.appendChild(el);
-          return { ink: ink, txt: txt };
+
+        /* Flattened: every line of every host, in reading order, as one
+           queue. The typing loop then knows nothing about hosts at all. */
+        var inks = [];
+        hosts.forEach(function (host, hi) {
+          var lines = (host.getAttribute("data-tw") || "").split("|");
+          lines.forEach(function (txt, i) {
+            var el = document.createElement("span");
+            el.className = "tw__line";
+            var ink = document.createElement("span");
+            ink.className = "tw__ink";
+            ink.textContent = txt;
+            ink.style.animationDelay = 240 + (hi * 2 + i) * 110 + "ms";
+            el.appendChild(ink);
+            host.appendChild(el);
+            inks.push({ ink: ink, txt: txt });
+          });
         });
 
         if (!LESS) {
@@ -2751,7 +2960,17 @@
           });
           var line = 0;
           var pos = 0;
-          var startAt = performance.now() + 520;
+          /* 22ms a character with a 300ms beat between lines. Down from
+             28/420: there are four lines to get through now rather than two,
+             and at the old rate the right-hand clause did not start until the
+             third second and did not land until the fifth. Both clauses are
+             home inside about two and a half seconds, which is the window a
+             hero gets before a visitor decides whether the page is loading.
+
+             The gap between the two HOSTS is the same 300ms as between lines
+             within one, on purpose — a longer pause there would read as the
+             sentence having finished. */
+          var startAt = performance.now() + 460;
           (function type(now) {
             if (line >= inks.length) return;
             if (now < startAt) {
@@ -2761,15 +2980,13 @@
             var o = inks[line];
             o.ink.style.visibility = "visible";
             pos += 1;
-            /* A hair space holds the line's box open where the text has not
-               arrived yet, so nothing under it moves. */
             o.ink.textContent = o.txt.slice(0, pos);
             if (pos >= o.txt.length) {
               line += 1;
               pos = 0;
-              startAt = now + 420;
+              startAt = now + 300;
             } else {
-              startAt = now + 28;
+              startAt = now + 22;
             }
             requestAnimationFrame(type);
           })(performance.now());
@@ -2777,9 +2994,9 @@
         if (hero) hero.classList.add("in");
 
         /* The per-character cursor response that used to live here is now
-           _includes/live_type.html, applied via data-livetype on the .tw
-           span below — one implementation for every large heading on the
-           site rather than a homepage-only trick. */
+           _includes/live_type.html, applied via data-livetype on each .tw
+           span — one implementation for every large heading on the site
+           rather than a homepage-only trick. */
       })();
 
       /* ── THE LINE THAT REFORMS ───────────────────────────────────────
@@ -2862,7 +3079,7 @@
           if (live) cycle();
         });
         if ("IntersectionObserver" in window) {
-          var host = document.querySelector(".hero__rot");
+          var host = document.querySelector(".hero__base");
           if (host)
             new IntersectionObserver(function (es) {
               var was = inView;

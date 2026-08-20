@@ -99,7 +99,7 @@
     "uniform float u_time, u_n, u_mode, u_next, u_blend, u_light, u_fade, u_sys, u_sysNext, u_sysBlend;",
     "uniform vec2 u_ptr, u_cover;",
     "uniform float u_shift, u_raw, u_reveal;",
-    "uniform float u_ptrOn, u_pal;",
+    "uniform float u_ptrOn, u_pal, u_present;",
 
     /* Value noise. Cheap, and its softness suits a field that is going to be
        quantised to sixteen steps anyway — gradient noise would spend detail
@@ -308,7 +308,29 @@
        Both ends corrected: quiet at the bottom, and quieter than before,
        because what it is holding back now is a photograph rather than a
        scattering of glyphs. */
-    "  d *= mix(0.22, 1.0, smoothstep(0.16, 0.86, v.y));",
+    /* ── ONE MASK, TWO CONSUMERS ──────────────────────────────────────────
+       There have always been two of these and they disagreed. `d` is the
+       density the grid treatments draw from, and `quiet` is the alpha the
+       plate treatments draw at; each carried its own hand-tuned vertical
+       gradient, so a change to one silently left the other describing a
+       composition that no longer existed. That is exactly what happened when
+       the copy moved off the bottom edge — quiet was updated, this was not,
+       and GLYPHS went on being gutted across the bottom two thirds for a
+       headline that is not there any more.
+
+       So the weighting is computed once, from where the type actually is, and
+       both read it. Quieter under the two clauses at the margins and along
+       the bottom edge where the live line sits; full strength through the
+       middle column, which is the space the figure vacates.
+
+       `d` gets a higher floor than `quiet` does, because density is what
+       decides whether a mark is drawn at all: below about a third the ramp
+       resolves to a space and the treatment stops being a picture and starts
+       being a scattering of dots. */
+    "  float sideQ = smoothstep(0.14, 0.42, abs(v.x - 0.5));",
+    "  float footQ = smoothstep(0.24, 0.04, v.y);",
+    "  float comp = (1.0 - 0.58 * sideQ) * (1.0 - 0.38 * footQ);",
+    "  d *= mix(0.38, 1.0, comp);",
     "  d = clamp(d, 0.0, 1.0);",
 
     /* ── THE CLOCK ────────────────────────────────────────────────────────
@@ -324,7 +346,14 @@
     "  else                  ink = mix(vec3(0.94, 0.92, 0.86), vec3(0.10, 0.10, 0.10), u_light);",
     "  vec3 tint = mix(ink, ink * vec3(1.12, 0.94, 1.04), smoothstep(0.55, 1.0, d));",
 
-    "  float inkAmt = mix(0.40, 0.22, u_light) * u_fade * (0.3 + 0.7 * d);",
+    /* Light was 0.22 against dark's 0.40 for the same reason filmA was cut:
+       ink over cream reads heavier at equal alpha. That holds while the marks
+       are a texture behind type and stops holding when they are the picture,
+       and 0.22 left GLYPHS and EDGES as a grey haze on the light page. Cream
+       now takes slightly MORE than the dark page, not less: the marks are
+       drawn in a dark ink on a pale ground, which is the lower-contrast
+       direction of the two at equal alpha. */
+    "  float inkAmt = mix(0.40, 0.44, u_light) * u_fade * (0.3 + 0.7 * d);",
 
     /* The plate's own uv, cover-corrected and slid right. */
     "  vec2 uvP = (v - 0.5) * u_cover + 0.5 - vec2(u_shift, 0.0);",
@@ -332,14 +361,50 @@
     /* Under the pointer the film opens the rest of the way. Cream has
        nowhere to go but down, so the same film sits heavier on the light
        page at identical strength. */
-    "  float filmA = (0.13 + 0.62 * u_ptrOn * smoothstep(0.50, 0.03, pd)) * mix(1.0, 0.62, u_light) * u_fade;",
+    /* ── THE FILM IS A STATE NOW, NOT A WHISPER ───────────────────────────
+       0.13 was the resting strength of footage that was only ever meant to
+       sit UNDER a field of marks; the pointer term did the rest when someone
+       leaned in. Two of the five treatments — TAPE and LIQUID — carry no
+       marks at all and take their whole alpha from this number, so at 0.13
+       they were drawing the photograph at three tenths of one, and on cream,
+       where the 0.62 factor cut it again, at eight hundredths.
+
+       Measured on the light page mid film beat: the hero was blank. The
+       figure had dissolved on schedule and what replaced him was nothing, for
+       six seconds, every lap.
+
+       It is safe to raise because presence gates it: u_present is 0 for most
+       of the cycle and this is multiplied through it, so a louder film is
+       louder only in the beat that is meant to be film. The light-mode factor
+       comes up too — 0.62 was set to stop a photograph washing out cream it
+       was sitting behind, and it is not sitting behind anything now. */
+    "  float filmA = (0.34 + 0.46 * u_ptrOn * smoothstep(0.50, 0.03, pd)) * mix(1.0, 0.78, u_light) * u_fade;",
 
     /* The three plate-handling treatments would otherwise print the footage
        at full strength straight through the headline. Same vertical falloff
        the density gets — and the same correction, see above. Lower floor
        again, because these carry the photograph rather than a mark derived
        from it. */
-    "  float quiet = mix(0.14, 1.0, smoothstep(0.20, 0.82, v.y)) * u_fade;",
+    /* ── THE FILM IS LOUDEST WHERE HE WAS ─────────────────────────────────
+       This was a plain vertical gradient: quiet along the bottom, full
+       strength at the top, because the headline used to sit in the bottom-
+       left corner and the plate had to be held off it.
+
+       The copy is not there any more. It is a clause at each margin on the
+       vertical centre line, with one live line in the bottom-left corner, and
+       the middle of the frame — the column the figure stands in — is the one
+       region with nothing over it at any width.
+
+       So the mask follows the composition instead of the old one. The film
+       comes up strongest through the middle third and falls away under the
+       two clauses and along the bottom edge, which does two jobs with one
+       gradient: the type keeps its contrast, and the footage arrives out of
+       exactly the space the figure just left rather than washing in over the
+       whole screen. The handoff reads as a substitution.
+
+       0.58 and 0.38 are weights, not cutoffs — the picture stays continuous
+       across the frame. Cutting it would put a visible edge down both sides. */
+    "  float quiet = comp * u_fade;",
 
     "  vec4 A = treat(int(u_sys), uvP, cuv, d, tint, filmA, inkAmt, u_time, quiet);",
     "  vec4 outv = A;",
@@ -390,7 +455,13 @@
     "    outCol = mix(outCol, plain, u_raw);",
     "    outA = mix(outA, u_fade * scrim, u_raw);",
     "  }",
-    "  gl_FragColor = vec4(outCol, outA);",
+    /* ── THE FIELD IS NOT ALWAYS ON ────────────────────────────────────
+       u_present is the hero's own clock, written by home-hero.js. At 0 this
+       whole canvas is transparent and the figure has the frame; at 1 the
+       footage is the frame. It is applied to alpha rather than mixed toward
+       the page colour so the hero's background shows through untouched —
+       there is no grey plate half-drawn over the theme at the midpoint. */
+    "  gl_FragColor = vec4(outCol, outA * u_present);",
     "}",
   ].join("\n");
 
@@ -461,6 +532,7 @@
     "u_sys",
     "u_sysNext",
     "u_sysBlend",
+    "u_present",
   ].forEach(function (k) {
     U[k] = gl.getUniformLocation(prog, k);
   });
@@ -497,9 +569,37 @@
      The localStorage gate that made phase 0 a once-ever event is gone. It is
      the opening of the page; a page that opens differently depending on
      whether you have been before does not have an opening. */
-  var phase = 0;
-  var raw = 1; // 1 = the plate as itself, 0 = the treatments
-  var filmDeadline = 0;
+  /* ── THE OPENING IS NOT THE FOOTAGE ANY MORE ────────────────────────────
+     Sid: "maybe in the beginning we don't show my background videos with all
+     those effects, and we start with the cube guy ... the background of me
+     working shows up, but creatively and artfully done, because having the
+     cube guy and background videos is a little too much."
+
+     What was here was a three-phase opening that ran the other way round:
+     PLATE, his pixelated encode full frame with no treatment for its whole
+     ten seconds; then FILM, the clear take, also full frame, for another
+     ten; and only at about twenty seconds did the treatments arrive and the
+     figure fade up behind them. Measured on the live site, the first thing a
+     visitor got was twenty seconds of video and no cube guy at all.
+
+     So the sequence inverts and moves out of this file. The figure opens the
+     page; home-hero.js decides when the footage is allowed in and for how
+     long, and hands this file one number to obey. What is left here is the
+     drawing — which is all this file was ever good at.
+
+     u_raw is pinned to 0 for the same reason. It existed to show the plate
+     with no treatment during phases 0 and 1, and there are no such phases
+     now: when the film is on screen it is on screen AS the field, which is
+     the "creatively and artfully done" half of the ask. The uniform stays
+     because the shader branch is cheap and deleting it would take the plain
+     plate out of reach for good.
+
+     sid_pixelated.mp4 goes with the phases. It is a ten-second animation
+     that opens on a black frame and resolves outward, which is an intro and
+     nothing else; dropped into a cycle it would black the hero out every
+     time the film came round. The arrival is the shader's job now, and the
+     page carries 773KB less. */
+  var raw = 0;
 
   function mkVideo(src, loop) {
     var v = document.createElement("video");
@@ -516,33 +616,27 @@
     return v;
   }
 
-  var base = stage.getAttribute("data-base") || "";
-  var vClear = mkVideo(base + "/assets/video/sid_sitting.mp4", true);
-  /* ── THE PIXEL TAKE IS AN INTRO, NOT AN ALTERNATE CUT ──────────────────
-     Worth writing down, because a first pass at Sid's hover request got this
-     wrong and looped it. sid_pixelated.mp4 is not a pixelated COPY of the
-     sitting shot — it is a ten-second animation that opens on a black frame
-     with a tiny mosaic blob in the middle and resolves outward into the
-     scene. Looping it sends the hero back to a black frame every ten
-     seconds. It plays once and stands down, as it always did.
+  /* ── THE FILM IS NOT NEEDED FOR SIX AND A HALF SECONDS ──────────────────
+     2.1MB, and the largest asset on the page by some distance. It used to be
+     mounted on the first frame because it WAS the first frame — the hero
+     opened on the footage. It does not any more: home-hero.js holds the
+     figure for 6.5s before the first handoff, and until then this canvas is
+     drawn at zero presence.
 
-     What the hover buys is therefore a shortcut through it rather than an
-     alternate state: see u_reveal, which mixes toward the clear take while
-     this one is still running. */
-  var vPix = mkVideo(base + "/assets/video/sid_pixelated.mp4", false);
-  if (vPix) {
-    vPix.addEventListener("ended", function () {
-      /* Phase 0 → 1. The clear take gets one full pass before anything is
-         drawn over it; duration is read off the element, with a floor so a
-         stalled metadata read cannot skip the phase entirely. */
-      phase = 1;
-      filmDeadline = performance.now() + Math.max(6000, (vClear.duration || 10) * 1000);
-      /* Dropped from the DOM as well as from the draw, so a visitor who has
-         seen it once is not decoding it for the rest of the session. */
-      if (vPix.parentNode) vPix.parentNode.removeChild(vPix);
-      vPix = null;
-    });
-  }
+     So it is created a second and a half in, which takes it out of the
+     opening burst and leaves it competing with nothing while the point cloud
+     and the albedo — the two things that ARE on screen at t=0 — land. Five
+     seconds of headroom before the beat needs it, on any connection where the
+     page was usable to begin with.
+
+     `raf` and the draw loop do not wait for it: upload() returns false while
+     readyState is low and the shader draws the field's own noise, which is
+     what it does between frames anyway. */
+  var base = stage.getAttribute("data-base") || "";
+  var vClear = null;
+  setTimeout(function () {
+    vClear = mkVideo(base + "/assets/video/sid_sitting.mp4", true);
+  }, 1500);
 
   /* How far right the plate sits, as a fraction of the frame. Read by both
      the cover clamp and the uniform. */
@@ -678,6 +772,10 @@
     sysNext = sys,
     sysBlend = 0,
     SYS_EVERY = 20000;
+
+  /* Default 1: without a conductor the field behaves exactly as it did. */
+  var pres = 1,
+    presT = 1;
 
   var t0 = performance.now(),
     last = t0,
@@ -819,26 +917,33 @@
     }
     gl.uniform2f(U.u_cover, cx, cy);
 
-    /* Phase 1 → 2 once the clear take has had its pass. */
-    if (phase === 1 && filmDeadline && now > filmDeadline) phase = 2;
-    /* Published so the cube guy can hold off until the plate has had the
-       frame to itself. One number on window, read once a frame; the two
-       canvases stay otherwise independent. */
-    window.__fieldPhase = phase;
-    /* 1.5s cross-fade from the plate into the treatments. */
-    raw += ((phase === 2 ? 0 : 1) - raw) * 0.011;
     gl.uniform1f(U.u_raw, raw);
+    /* ── HOW MUCH OF THE FILM IS ALLOWED ────────────────────────────────
+       presT is what home-hero.js asks for, pres is what the canvas is
+       doing. The rise is slower than the fall for the same reason the
+       figure's dissolve is: arriving is the beat you watch and leaving is
+       the one that should get out of the way of what follows.
 
-    /* Pixelated in u_video, clear in u_real, always — plate() mixes between
-       them off u_reveal. Previously BOTH slots carried the pixelated take
-       during phase 0, which is why there was nothing to reveal to. Once the
-       pixelated take has ended and been dropped, vPix is null and both slots
-       fall back to the clear one, so the mix becomes a no-op on its own. */
-    upload(texVideo, vPix || vClear);
+       Guarded so that if the conductor never runs — its file fails, or the
+       markup it needs is not there — presT stays at its default of 1 and
+       the hero is simply the field, which is what it was before any of
+       this. It never gets stuck on an invisible canvas. */
+    /* Fast, because the SHAPE of the fade is the conductor's job and this is
+       only here to keep a jump from ever reaching the shader. At 0.018 the
+       two easings compounded and the film did not arrive until the figure
+       had already gone — measured mid-dissolve at melt 0.35 the frame was
+       empty, which is a hole in the middle of the one beat that is supposed
+       to be a handoff. */
+    pres += (presT - pres) * (presT > pres ? 0.1 : 0.13);
+    gl.uniform1f(U.u_present, fade * pres);
+
+    /* One plate in both slots. u_reveal still mixes between them, which is
+       now a mix of a thing with itself: a no-op that costs one texture
+       lookup and keeps plate() and the reveal maths intact for whenever a
+       second take exists again. The alternative was pulling u_real out of
+       four places in the shader to save nothing measurable. */
+    upload(texVideo, vClear);
     upload(texReal, vClear);
-    /* Once the intro has ended and vPix is null, both slots carry the clear
-       take and the reveal mix is a no-op — which is why it costs nothing for
-       the rest of the session. */
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texVideo);
     gl.uniform1i(U.u_video, 1);
@@ -894,6 +999,23 @@
       pal = (pal + 1) % 5;
     });
   }
+
+  /* ── THE SEAM WITH THE CONDUCTOR ────────────────────────────────────────
+     Two functions and nothing else. home-hero.js says how present the film
+     should be and, when a new beat starts, asks for a different drawing —
+     so the footage is never twice the same picture two beats running. The
+     wipe that carries that change is the one the auto clock already uses. */
+  window.__fieldSetPresence = function (v) {
+    presT = Math.max(0, Math.min(1, +v || 0));
+  };
+  window.__fieldNewLook = function () {
+    if (reduce) return;
+    sysNext = (sys + 1 + Math.floor(Math.random() * 3)) % 5;
+    sysBlend = 0.0001;
+    pal = (pal + 1 + Math.floor(Math.random() * 3)) % 5;
+    nextSys = performance.now() + SYS_EVERY;
+  };
+  window.__fieldReady = true;
 
   raf = requestAnimationFrame(frame);
 })();

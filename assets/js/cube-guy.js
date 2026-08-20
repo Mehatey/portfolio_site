@@ -91,12 +91,13 @@
     "attribute vec3 nrm;",
     "attribute vec2 uv;",
     "uniform mat3 u_rot;",
-    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break;",
+    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break, u_melt;",
     "uniform vec2 u_ptr;",
     "varying float v_depth;",
     "varying float v_rand;",
     "varying float v_brush;",
     "varying float v_lit;",
+    "varying float v_melt;",
     "varying vec2 v_scr;",
     "varying vec2 v_uv;",
 
@@ -275,6 +276,44 @@
     "  float loose = (1.0 - brush) * u_hov;",
     "  pos += dir * loose * (0.018 + 0.085 * n) * breathe;",
     "  pos += normalize(pos + 0.0001) * band * loose * 0.07;",
+
+    /* ── THE DISSOLVE ──────────────────────────────────────────
+       Sid: "at certain times, we can have the cube guy's particles kind of
+       drift away slowly and then be replaced in a nice WebGL shader-type
+       way."
+
+       Deliberately NOT u_break. The shatter above groups points into about
+       ninety shards and throws them, because a click is an impact and a
+       figure that pops into dust under your finger reads as a bug. This is
+       the opposite gesture: nothing struck him, he is being carried off,
+       so the unit is the single point and the motion is a drift.
+
+       Three things make it read as dust rather than as a fade:
+
+         · every point leaves on its own clock. `ms` remaps u_melt through
+           a per-point delay of up to 42% of the animation, keyed off the
+           same stable hash the idle loosening uses, so the cloud thins from
+           the inside out over the whole beat instead of all going at once.
+         · the direction is the point's own scatter axis bent by a slow
+           swirl on u_time, so neighbouring points diverge as they travel
+           and the silhouette comes apart rather than expanding.
+         · it lifts. pos.y takes a squared term, so the drift starts
+           sideways and turns upward — the shape of something leaving on
+           air, not of something exploding.
+
+       Point size and alpha both fall away with it (see gl_PointSize below
+       and v_melt in the fragment shader), so what is left at u_melt = 1 is
+       nothing at all and the film behind him has the frame to itself. */
+    "  float ms = 0.0;",
+    "  if (u_melt > 0.0001) {",
+    "    ms = clamp((u_melt - n * 0.42) / 0.58, 0.0, 1.0);",
+    "    ms = ms * ms * (3.0 - 2.0 * ms);",
+    "    float sw2 = u_time * 0.5 + n * 31.0;",
+    "    vec3 away = normalize(vec3(dir.x + sin(sw2) * 0.7, dir.y * 0.4 + 0.45, dir.z + cos(sw2 * 0.83) * 0.7) + 0.0001);",
+    "    pos += away * ms * (0.26 + 0.9 * n);",
+    "    pos.y += ms * ms * 0.32;",
+    "  }",
+    "  v_melt = ms;",
     "  r = u_rot * pos;",
     "  z = r.z + 3.1;",
     "  ndc = vec2((r.x * f / z) / u_aspect, r.y * f / z);",
@@ -299,7 +338,7 @@
        That is the whole trick: no mesh is shipped, the solid is 55,843 points
        drawn large enough to close. */
     "  float grow = 1.0 + 3.6 * brush;",
-    "  gl_PointSize = u_size * u_dpr * (2.15 / z) * (0.72 + 0.56 * n) * grow;",
+    "  gl_PointSize = u_size * u_dpr * (2.15 / z) * (0.72 + 0.56 * n) * grow * (1.0 - 0.66 * ms);",
     "  v_depth = clamp((4.1 - z) / 2.0, 0.0, 1.0);",
     "}",
   ].join("\n");
@@ -314,6 +353,7 @@
     "varying float v_rand;",
     "varying float v_brush;",
     "varying float v_lit;",
+    "varying float v_melt;",
     "varying vec2 v_scr;",
     "varying vec2 v_uv;",
     "void main() {",
@@ -393,7 +433,7 @@
     /* Hard-edged disc — the overlap between neighbours does the smoothing;
        a soft one leaves the surface looking like felt. Faded out by the
        brush at its edge and by the scroll handoff at the end. */
-    "    float a = smoothstep(0.25, 0.19, d) * smoothstep(0.01, 0.16, v_brush) * u_fade * (1.0 - smoothstep(0.70, 0.95, u_scroll));",
+    "    float a = smoothstep(0.25, 0.19, d) * smoothstep(0.01, 0.16, v_brush) * u_fade * (1.0 - smoothstep(0.70, 0.95, u_scroll)) * (1.0 - v_melt);",
     "    gl_FragColor = vec4(lit, a);",
     "    return;",
     "  }",
@@ -411,6 +451,10 @@
        impact, gone as the pieces settle back. */
     "  col += u_near * u_break * (0.35 + 0.5 * v_rand);",
     "  a *= 1.0 + u_break * 0.5;",
+    /* Whatever has drifted is gone; what has not is still solid. Fading the
+       whole cloud on one number would be a dip to black with a figure
+       still in it. */
+    "  a *= 1.0 - v_melt;",
     "  gl_FragColor = vec4(col, a);",
     "}",
   ].join("\n");
@@ -458,6 +502,7 @@
     "u_scroll",
     "u_grow",
     "u_break",
+    "u_melt",
     "u_tex",
     "u_texMode",
     "u_hasTex",
@@ -541,13 +586,17 @@
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([120, 120, 124, 255]));
-  /* ── FETCHED ON FIRST TOUCH, NOT ON LOAD ────────────────────────────────
+  /* ── FETCHED UP FRONT, DESPITE THE NAME ─────────────────────────────────
      The skin is the model's own 4096 base colour, shipped at 2048 so the
-     revealed surface holds up on a retina display — 888KB. It is also only
-     ever visible once someone hovers him, so paying for it on every homepage
-     load would be charging every visitor for a state most of them never
-     enter. It is requested the first time the brush opens; until then the
-     reveal uses the lit clay, which is the same thing the fallback shows. */
+     revealed surface holds up on a retina display — 867KB measured.
+
+     This block used to say it was fetched on first touch, and it is not: see
+     the call beside the point fetch below, and the note there for why the
+     deferral had to be undone. Material 0 is his DEFAULT, not a hover state,
+     so deferring it meant everyone who never hovered saw flat chalk. The
+     guard below still exists and still works; it is simply reached from load
+     rather than from pointerenter. Left as a function so a future change of
+     mind is one call site, not a rewrite. */
   var skinAsked = false;
   function loadSkin() {
     if (skinAsked) return;
@@ -764,6 +813,11 @@
   /* ── frame ────────────────────────────────────────────────────────────── */
   var t0 = performance.now();
   var fade = 0;
+  /* The dissolve, eased here rather than in CSS because it drives a shader.
+     `meltT` is what the conductor asks for; `melt` is what the cloud is
+     actually doing, and the two rates differ on purpose — see below. */
+  var melt = 0,
+    meltT = 0;
   var visible = true;
   var onScreen = true;
 
@@ -823,18 +877,27 @@
        transition because it drives a shader, and Sid asked for slow. */
     var target = REDUCED ? 0 : hovTarget;
     hov += (target - hov) * 0.018;
-    /* ── HE ARRIVES SECOND ────────────────────────────────────────────────
-       The field opens on Sid's pixelated plate with the frame to itself
-       (phase 0), then the clear take (phase 1), and only then does the figure
-       fade up. Sid: "basically, i want a little hierarchy in how we show
-       information on the homepage."
 
-       Guarded so that if home-field never runs — no WebGL there, or the file
-       fails — __fieldPhase stays undefined and he simply appears, rather than
-       waiting forever for a sequence that is not coming. */
-    var fp = window.__fieldPhase;
-    var welcome = fp === undefined || fp >= 1;
-    fade += ((welcome ? 1 : 0) - fade) * 0.03;
+    /* Out slower than back. Leaving is the beat the eye is meant to watch —
+       it is the handoff into the film — so it gets about 2.4s; coming home
+       is the recovery and takes about 1.7s, which lands him back on his mark
+       before the copy has finished re-settling. Reduced motion never melts:
+       the figure simply stays, and the film cross-fades over him instead. */
+    if (REDUCED) meltT = 0;
+    melt += (meltT - melt) * (meltT > melt ? 0.022 : 0.032);
+    if (melt < 0.0005 && meltT === 0) melt = 0;
+    /* ── HE ARRIVES FIRST NOW ─────────────────────────────────────────────
+       He used to wait: the field opened on the pixelated plate with the frame
+       to itself, then the clear take, and only at about twenty seconds did
+       the figure fade up behind them. Sid: "maybe in the beginning we don't
+       show my background videos ... and we start with the cube guy."
+
+       So the gate is gone and he simply fades in, which makes him the first
+       thing on the page. What decides when the FILM is allowed is
+       home-hero.js, and it reaches the figure through u_melt rather than
+       through this fade — the difference matters: a fade is the figure being
+       hidden, and the dissolve is the figure leaving. */
+    fade += (1 - fade) * 0.03;
 
     setRot(yaw, pitch);
     gl.uniformMatrix3fv(U.u_rot, false, rot);
@@ -885,6 +948,7 @@
       }
     }
     gl.uniform1f(U.u_break, breakV);
+    gl.uniform1f(U.u_melt, melt);
     gl.uniform1f(U.u_texMode, texMode);
 
     /* ── PINNED, SO THE TIMELINE HAS SOMEWHERE TO PLAY ─────────────────────
@@ -1000,8 +1064,19 @@
     breakAt = performance.now();
   };
   window.__cgState = function () {
-    return { breakV: breakV, breakAt: breakAt, hov: hov, scrollP: scrollP };
+    return { breakV: breakV, breakAt: breakAt, hov: hov, scrollP: scrollP, melt: melt, meltT: meltT };
   };
+
+  /* ── THE ONE CONTROL THE CONDUCTOR HAS ──────────────────────────────────
+     home-hero.js owns the sequence; this file owns the figure. The seam
+     between them is one number. Nothing else about the cube's behaviour —
+     the idle turn, the drag, the brush, the shatter — is reachable from
+     outside, so the conductor cannot accidentally take over the parts of
+     him that answer to the hand. */
+  window.__cgSetMelt = function (v) {
+    meltT = Math.max(0, Math.min(1, +v || 0));
+  };
+  window.__cgReady = true;
 
   window.__cgSetMat = function (m) {
     texMode = (((m | 0) % 5) + 5) % 5;
