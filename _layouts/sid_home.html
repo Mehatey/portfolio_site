@@ -1206,6 +1206,82 @@
         }
       }
 
+      /* ── THE ROOM ──────────────────────────────────────────────────────
+       --room-h is where the horizon sits, as a fraction of the hero, and
+       --room-f is the floor. Both are shared with the field's mask below so
+       the backdrop's curved cut and the line drawn on it cannot drift apart.
+       Percentages rather than pixels: the room has to hold its proportions
+       from a laptop to a 2560 display. */
+      .hero {
+        --room-h: 30%;
+        /* At 78% the line sat about 110px below his soles and he read as
+           floating above it. 66% puts it where his feet actually land at a 900
+           hero, which is the whole point of drawing a floor. */
+        --room-f: 66%;
+      }
+      .hero-room {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+      .hero-room__horizon,
+      .hero-room__floor {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        /* --line-2 is rgba(255,255,255,0.2), the right weight for a divider
+         between two blocks of text and invisible as a 1px line across a
+         near-black hero. These are meant to be seen: they are the drawing
+         of the room, not a separator. */
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34) 16%, rgba(255, 255, 255, 0.34) 84%, transparent);
+      }
+      html[data-theme="light"] .hero-room__horizon,
+      html[data-theme="light"] .hero-room__floor {
+        background: linear-gradient(90deg, transparent, rgba(12, 14, 20, 0.3) 16%, rgba(12, 14, 20, 0.3) 84%, transparent);
+      }
+      /* The horizon is fainter and sits behind the figure: it is the far wall,
+       and a far wall drawn at the same weight as the floor flattens the
+       space it is supposed to open. */
+      .hero-room__horizon {
+        top: var(--room-h);
+        opacity: 0.55;
+      }
+      .hero-room__floor {
+        top: var(--room-f);
+      }
+      /* ── THE BACKDROP CURVES AWAY ────────────────────────────────────────
+       The field used to run edge to edge and bottom to top, which is a
+       rectangle of footage with a figure in front of it. Masked to end on an
+       ellipse just under the horizon, it becomes a cyclorama: the curve is
+       what tells the eye there is depth behind him rather than a wall of
+       picture.
+
+       A mask rather than a clip so the edge can be soft — 6% of feather,
+       which at a 900px hero is about fifty pixels of falloff. A hard cut
+       reads as a crop; a soft one reads as light running out. */
+      .field {
+        -webkit-mask-image: radial-gradient(120% 86% at 50% -6%, #000 60%, rgba(0, 0, 0, 0.55) 78%, transparent 92%);
+        mask-image: radial-gradient(120% 86% at 50% -6%, #000 60%, rgba(0, 0, 0, 0.55) 78%, transparent 92%);
+      }
+      @media (max-width: 760px) {
+        /* On a phone the copy sits over the middle of the frame and the room
+         lines run straight through it. The floor stays, because it is what
+         he stands on; the horizon goes. */
+        .hero-room__horizon {
+          display: none;
+        }
+        .hero {
+          --room-f: 84%;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-room {
+          opacity: 0.6;
+        }
+      }
+
       .cg-stage {
         position: absolute;
         left: 50%;
@@ -2607,6 +2683,29 @@
         <!-- The cube guy. aria-hidden because he is the page's atmosphere,
              not its content: everything he stands for is already reachable as
              text and as links, and a screen reader has no use for "canvas". -->
+        <!-- ── THE ROOM ────────────────────────────────────────────────────
+             Sid: "this could be like a nice 3D space where we have these white
+             lines creating the viewport ... the background will be above the
+             white line, curved and cut off in the backdrop behind the 3D
+             space."
+
+             Two hairlines and a curve, and between them the figure stops
+             floating in a void and starts standing somewhere. The upper line
+             is the horizon: the field is cut off along it, and the cut is an
+             ellipse rather than a straight edge, so the backdrop reads as a
+             cyclorama curving away behind him rather than as a rectangle of
+             video ending. The lower line is the floor he stands on, set at his
+             feet.
+
+             Both are drawn as gradients that fade at the ends rather than as
+             borders, which is the same hairline language the foot row uses.
+             Inert to the pointer and hidden from assistive tech: it is a
+             drawing of a space, not content. -->
+        <div class="hero-room" aria-hidden="true">
+          <span class="hero-room__horizon"></span>
+          <span class="hero-room__floor"></span>
+        </div>
+
         <div class="cg-stage" id="cg-stage" aria-hidden="true">
           <canvas id="cg-gl" data-base="{{ site.baseurl }}"></canvas>
         </div>

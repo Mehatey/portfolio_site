@@ -1044,6 +1044,10 @@
      across, +1 at the top. */
   var ptrX = 0;
   var ptrY = 0;
+  /* 0 when nobody is here, 1 when the pointer is in the hero. Eased, so he
+     takes up and puts down the habit of watching rather than switching. */
+  var attend = 0,
+    attendT = 0;
 
   host.addEventListener("pointerenter", function (e) {
     if (e.pointerType === "touch") return;
@@ -1067,12 +1071,38 @@
        asked for. */
     texMode = (texMode + 1 + Math.floor(Math.random() * 4)) % 5;
   });
-  host.addEventListener("pointermove", function (e) {
-    if (e.pointerType === "touch") return;
-    var b = host.getBoundingClientRect();
-    ptrX = ((e.clientX - b.left) / Math.max(1, b.width)) * 2 - 1;
-    ptrY = 1 - ((e.clientY - b.top) / Math.max(1, b.height)) * 2;
-  });
+  /* ── THE POINTER IS MEASURED AGAINST THE CANVAS ─────────────────────────
+     Not against the stage. They used to be the same box and are not any more:
+     the stage stayed the figure's size so it can be dragged and clicked, and
+     the canvas was stretched to the viewport so the break has somewhere to
+     fly. The brush compares this value against `ndc`, which is computed in
+     CANVAS space — so measuring it against the stage put the painted spot a
+     long way from the cursor as soon as the two boxes diverged. Same rect the
+     projection uses, so they cannot drift apart again.
+
+     Bound to the HERO rather than to the stage, because he tracks the cursor
+     across the whole frame now; the stage keeps the drag and the click, which
+     should stay on him. */
+  var trackEl = hero || host;
+  trackEl.addEventListener(
+    "pointermove",
+    function (e) {
+      if (e.pointerType === "touch") return;
+      var b = canvas.getBoundingClientRect();
+      ptrX = ((e.clientX - b.left) / Math.max(1, b.width)) * 2 - 1;
+      ptrY = 1 - ((e.clientY - b.top) / Math.max(1, b.height)) * 2;
+      attendT = 1;
+    },
+    { passive: true }
+  );
+  trackEl.addEventListener(
+    "pointerleave",
+    function () {
+      /* He goes back to his own drift rather than freezing mid-glance. */
+      attendT = 0;
+    },
+    { passive: true }
+  );
   host.addEventListener("pointerleave", function () {
     hovTarget = 0;
   });
@@ -1215,9 +1245,35 @@
         yaw += velY;
         velY *= 0.955;
       } else if (!REDUCED) {
-        yaw += 0.0016 + 0.026 * scrollP * scrollP;
+        /* ── HE WATCHES THE CURSOR ────────────────────────────────────────
+           Sid: "the rotation could follow the cursor."
+
+           The idle spin does not stop — a figure that only ever faces you is
+           a mannequin, and the slow turn is what makes him read as alive when
+           nobody is doing anything. What the pointer buys is a BIAS on top of
+           it: the further your cursor sits from centre, the harder he is
+           pulled toward facing it, and the drift continues underneath.
+
+           ptrX is the pointer in NDC across the canvas, which is the whole
+           viewport, so this is his heading relative to the actual screen
+           rather than to his own little box. 0.85 radians is about fifty
+           degrees at the edges: enough that he is unmistakably tracking you,
+           not so much that he ever turns his back on the frame.
+
+           The lerp is what keeps it from being a puppet on a stick. He leans
+           into the new heading over about half a second and lags behind a
+           fast sweep, which is the difference between watching and snapping. */
+        var lookTarget = -ptrX * 0.85;
+        var lookPull = attend * 0.06;
+        yaw += (lookTarget - yaw) * lookPull;
+        yaw += (0.0016 + 0.026 * scrollP * scrollP) * (1 - attend * 0.55);
       }
-      pitch += (0.05 - pitch) * 0.012;
+      /* Pitch follows the pointer's height by a smaller amount, so looking
+         down at him tips his head down. Half the yaw's reach: a figure that
+         pitches as freely as it yaws reads as a floating object rather than
+         as something standing on a floor. */
+      var pitchTarget = 0.05 + (REDUCED ? 0 : ptrY * 0.22 * attend);
+      pitch += (pitchTarget - pitch) * 0.03;
     }
 
     /* 1.4s each way. The easing is on the value rather than on a CSS
@@ -1230,7 +1286,14 @@
        is the recovery and takes about 1.7s, which lands him back on his mark
        before the copy has finished re-settling. Reduced motion never melts:
        the figure simply stays, and the film cross-fades over him instead. */
-    if (REDUCED) meltT = 0;
+    /* Eased at different rates in each direction: he notices you quickly and
+       loses interest slowly, which is the right way round for something that
+       is supposed to seem curious rather than twitchy. */
+    attend += (attendT - attend) * (attendT > attend ? 0.05 : 0.018);
+    if (REDUCED) {
+      attend = 0;
+      meltT = 0;
+    }
     melt += (meltT - melt) * (meltT > melt ? 0.022 : 0.032);
     if (melt < 0.0005 && meltT === 0) melt = 0;
     /* ── HE ARRIVES FIRST NOW ─────────────────────────────────────────────
