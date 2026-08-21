@@ -1,42 +1,11 @@
 /* ============================================================
    Homepage hero — THE FIELD.
 
-   What this replaces: two 10-second videos, one pixelated and one clear,
-   crossfaded by a painted mask. Sid: "u can remove that video and both and
-   have an auto switching reactive cursor new shader and coool webgl bg."
-
-   Three reasons it had to go beyond him asking.
-
-   It was 2.8MB of video to draw a picture nobody could read: measured, the
-   hero band sat at mean luminance 19 of 255. Grading it helped and could only
-   ever help so much, because the source is a dim room and half the frame is
-   an unlit wall.
-
-   It could not be themed. Footage has its own exposure, so on the cream page
-   the same plate washed to near-white and on the near-black page it sank to
-   mud. Two themes, one negative, no way to serve both.
-
-   And it was a photograph of a room, which says nothing about what he makes.
-
-   So the hero is generated now. An ASCII field: a grid of monospace glyphs
-   picked per cell from a flow field, disturbed by the pointer, cycling
-   through four states on its own. It is the site's own language — the nav
-   marks are pixels, the footer plants are ASCII, the About portrait is a
-   halftone — arriving in the one place that was still borrowing someone
-   else's medium. It ships as about six kilobytes of script and no media at
-   all, it is legible by construction in both themes because the palette is
-   a uniform rather than an exposure, and it cannot be mud.
-
-   HOW THE GLYPHS WORK
-
-   The standard technique. A texture atlas is drawn once at runtime: sixteen
-   characters in a row, ordered by how much ink each puts on the page, from a
-   space to a solid block. The fragment shader reduces each cell to a single
-   number, quantises it to sixteen steps, and samples the matching slice of
-   the atlas. Everything after that is deciding what the number is.
-
-   Falls back to nothing: without WebGL the hero is the page's own background,
-   which is exactly what it was already designed to sit on.
+   The visible source is the art-directed rooftop film. A second, hidden
+   grayscale stream supplies per-pixel depth. The shader uses that depth for
+   restrained cursor parallax, scroll drift and edge separation while keeping
+   the original film recognisable. If WebGL or either texture fails, the
+   colour video remains in the DOM as the complete fallback.
    ============================================================ */
 (function () {
   "use strict";
@@ -45,6 +14,13 @@
   if (!stage) return;
   var canvas = document.getElementById("field-gl");
   if (!canvas) return;
+
+  /* The colour plate is a complete fallback, not a loading placeholder. The
+     conductor can still fade it when WebGL is unavailable, and the shader
+     takes over only after both colour and depth frames have uploaded. */
+  window.__fieldSetPresence = function (v) {
+    stage.style.setProperty("--field-presence", Math.max(0, Math.min(1, +v || 0)).toFixed(3));
+  };
 
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -55,7 +31,6 @@
     gl = null;
   }
   if (!gl) return;
-  stage.classList.add("is-gl");
 
   /* ── the atlas ─────────────────────────────────────────────────────────
      Ordered by ink. The ramp matters more than the characters: a jump in
@@ -94,12 +69,12 @@
   var FS = [
     "precision highp float;",
     "varying vec2 v;",
-    "uniform sampler2D u_atlas, u_video, u_real;",
+    "uniform sampler2D u_atlas, u_video, u_real, u_depth;",
     "uniform vec2 u_res;",
     "uniform float u_time, u_n, u_mode, u_next, u_blend, u_light, u_fade, u_sys, u_sysNext, u_sysBlend;",
-    "uniform vec2 u_ptr, u_cover;",
+    "uniform vec2 u_ptr, u_cover, u_parallax;",
     "uniform float u_shift, u_raw, u_reveal;",
-    "uniform float u_ptrOn, u_pal, u_present;",
+    "uniform float u_ptrOn, u_pal, u_present, u_depthFx, u_scroll;",
 
     /* Value noise. Cheap, and its softness suits a field that is going to be
        quantised to sixteen steps anyway — gradient noise would spend detail
@@ -211,7 +186,14 @@
     "vec3 plate(vec2 uv){",
     "  vec2 t = clamp(uv, 0.0, 1.0);",
     "  vec2 st = vec2(t.x, 1.0 - t.y);",
-    "  vec3 c = mix(texture2D(u_video, st).rgb, texture2D(u_real, st).rgb, u_reveal);",
+    "  float z = texture2D(u_depth, st).r;",
+    "  vec2 shift = u_parallax * (z - 0.42) * u_depthFx * 0.026;",
+    "  shift.y += (z - 0.46) * u_scroll * 0.045;",
+    "  st = clamp(st + vec2(shift.x, -shift.y), vec2(0.004), vec2(0.996));",
+    "  float split = (abs(z - 0.45) * u_depthFx + u_scroll) * 0.0018;",
+    "  vec3 a = texture2D(u_video, st).rgb;",
+    "  vec3 b = vec3(texture2D(u_real, st + vec2(split, 0.0)).r, texture2D(u_real, st).g, texture2D(u_real, st - vec2(split, 0.0)).b);",
+    "  vec3 c = mix(a, b, max(u_reveal, u_depthFx * 0.72));",
     "  return clamp((pow(c, vec3(0.78)) - 0.5) * 1.12 + 0.5, 0.0, 1.0);",
     "}",
     "float plateLum(vec2 uv){ return dot(plate(uv), vec3(0.299, 0.587, 0.114)); }",
@@ -514,6 +496,7 @@
     "u_atlas",
     "u_video",
     "u_real",
+    "u_depth",
     "u_res",
     "u_time",
     "u_n",
@@ -524,6 +507,7 @@
     "u_fade",
     "u_ptr",
     "u_cover",
+    "u_parallax",
     "u_shift",
     "u_raw",
     "u_reveal",
@@ -533,6 +517,8 @@
     "u_sysNext",
     "u_sysBlend",
     "u_present",
+    "u_depthFx",
+    "u_scroll",
   ].forEach(function (k) {
     U[k] = gl.getUniformLocation(prog, k);
   });
@@ -599,7 +585,9 @@
      nothing else; dropped into a cycle it would black the hero out every
      time the film came round. The arrival is the shader's job now, and the
      page carries 773KB less. */
-  var raw = 0;
+  /* The new plate is already art-directed. Keep it legible as film and let
+     depth, not a printed overlay, carry the interaction. */
+  var raw = 1;
 
   function mkVideo(src, loop) {
     var v = document.createElement("video");
@@ -633,10 +621,14 @@
      readyState is low and the shader draws the field's own noise, which is
      what it does between frames anyway. */
   var base = stage.getAttribute("data-base") || "";
-  var vClear = null;
-  setTimeout(function () {
-    vClear = mkVideo(base + "/assets/video/sid_sitting.mp4", true);
-  }, 1500);
+  var vClear = document.getElementById("field-video") || mkVideo(base + "/assets/video/sid_rooftop_4k.mp4", true);
+  var vDepth = document.getElementById("field-depth") || mkVideo(base + "/assets/video/sid_rooftop_depth.mp4", true);
+  [vClear, vDepth].forEach(function (video) {
+    video.muted = true;
+    video.playsInline = true;
+    video.loop = true;
+    video.play().catch(function () {});
+  });
 
   /* How far right the plate sits, as a fraction of the frame. Read by both
      the cover clamp and the uniform. */
@@ -652,8 +644,8 @@
      ZOOM_OUT asks for 14% more frame. The result lands on the ceiling rather
      than above it: about 13% more of the shot on screen, both axes together
      so nothing stretches. */
-  var SHIFT = 0.06;
-  var ZOOM_OUT = 1.14;
+  var SHIFT = 0;
+  var ZOOM_OUT = 1;
 
   var vidAspect = 16 / 9;
   function upload(t, video) {
@@ -680,7 +672,8 @@
     return t;
   }
   var texVideo = newTex(),
-    texReal = newTex();
+    texReal = newTex(),
+    texDepth = newTex();
 
   var tex = gl.createTexture();
   gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -724,6 +717,8 @@
        than reusing `on` because `on` also drives the treatment window and
        snaps harder than a picture resolving should. */
     reveal = 0;
+  var scrollFx = 0;
+  var heroSection = stage.closest("section") || stage;
   window.addEventListener(
     "pointermove",
     function (e) {
@@ -806,6 +801,9 @@
     pxN += (tpx - pxN) * (1 - Math.exp(-dt / 0.07));
     pyN += (tpy - pyN) * (1 - Math.exp(-dt / 0.07));
     on += (tOn - on) * (1 - Math.exp(-dt / 0.18));
+    var heroRect = heroSection.getBoundingClientRect();
+    var scrollTarget = Math.max(0, Math.min(1, -heroRect.top / Math.max(1, heroRect.height * 0.72)));
+    scrollFx += (scrollTarget - scrollFx) * (1 - Math.exp(-dt / 0.12));
 
     if (!reduce) {
       if (blend > 0) {
@@ -862,6 +860,9 @@
     gl.uniform1f(U.u_shift, SHIFT);
     gl.uniform2f(U.u_ptr, pxN, pyN);
     gl.uniform1f(U.u_ptrOn, on);
+    gl.uniform2f(U.u_parallax, (pxN - 0.5) * 2, (pyN - 0.5) * 2);
+    gl.uniform1f(U.u_depthFx, reduce ? 0 : on);
+    gl.uniform1f(U.u_scroll, reduce ? 0 : scrollFx);
     /* ── REVEAL IS PROXIMITY, NOT PRESENCE ────────────────────────────────
        First attempt keyed this to tOn, which is wrong here: the stage is the
        whole hero, so the pointer is inside it essentially always and the
@@ -942,14 +943,22 @@
        lookup and keeps plate() and the reveal maths intact for whenever a
        second take exists again. The alternative was pulling u_real out of
        four places in the shader to save nothing measurable. */
-    upload(texVideo, vClear);
+    if (vClear.readyState >= 2 && vDepth.readyState >= 2 && !vDepth.seeking && Math.abs(vDepth.currentTime - vClear.currentTime) > 0.075) {
+      vDepth.currentTime = vClear.currentTime;
+    }
+    var colorReady = upload(texVideo, vClear);
     upload(texReal, vClear);
+    var depthReady = upload(texDepth, vDepth);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, texVideo);
     gl.uniform1i(U.u_video, 1);
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, texReal);
     gl.uniform1i(U.u_real, 2);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, texDepth);
+    gl.uniform1i(U.u_depth, 3);
+    if (colorReady && depthReady) stage.classList.add("is-gl", "is-depth");
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -988,7 +997,7 @@
      "everyclick let it change the styling and the vibe." Both advance: a new
      drawing system and a new palette, so it is a different piece of work
      rather than a recolour. Clicks on real controls are left alone. */
-  var heroEl = stage.closest("section") || stage.parentElement;
+  var heroEl = heroSection;
   if (heroEl) {
     heroEl.addEventListener("pointerdown", function (e) {
       if (e.button !== undefined && e.button !== 0) return;
@@ -1007,6 +1016,7 @@
      wipe that carries that change is the one the auto clock already uses. */
   window.__fieldSetPresence = function (v) {
     presT = Math.max(0, Math.min(1, +v || 0));
+    stage.style.setProperty("--field-presence", presT.toFixed(3));
   };
   window.__fieldNewLook = function () {
     if (reduce) return;
