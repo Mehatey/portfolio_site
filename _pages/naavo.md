@@ -83,15 +83,15 @@ next_project:
 </style>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/7.naavo/1.png" alt="Naavo" loading="eager" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/1.png" alt="The Naavo identity: New Age Ayurveda, set under a mark of three coloured segments in a circle" loading="eager" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/2.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/2.webp" alt="Dosha explained: five elements combine into three doshas, Vata as ether and air, Pitta as fire and water, Kapha as earth and water" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/3.1.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/3.1.webp" alt="Five elements, three doshas, one you, shown as leaf, fire, night sky, cloud and water" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item">
     <video width="1440" height="810" autoplay muted loop playsinline preload="auto"><source src="{{ site.baseurl }}/7.naavo/3.2.mp4" type="video/mp4" /></video>
   </div>
@@ -99,17 +99,17 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Ideation.</em></p>
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.1.webp" alt="Handwritten research map connecting Ayurveda, the three doshas, diet and lifestyle" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.2.webp" alt="Logo development: the five elements reduced to overlapping circles, with sketch exploration and the dosha colour set" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/5.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/5.webp" alt="Positioning: where Naavo sits against other brands on authenticity and price" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Logo breakdown.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/6.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/6.webp" alt="Construction of the mark on a grid, and the three doshas combining into the human" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -133,24 +133,24 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Mobile app to purchase guided products.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/12.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/12.webp" alt="App screens: the Prakriti test, a user profile with dosha results, the splash, a recommended shelf and a product page" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/13.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/13.webp" alt="Inside a Naavo store, with a planted wall behind the counter" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Naavo packaging labels.</em></p>
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/7.naavo/13.3 solo.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/13.3 solo.webp" alt="The in-store dosha test on a kiosk, and how the product range differentiates by dosha" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/13.4 solo.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/13.4 solo.webp" alt="Face and body oils on a plinth, beside a printed hang tag" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/7.naavo/13.5 solo.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/13.5 solo.webp" alt="The oil range in five variants" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Product mock-up.</em></p>
@@ -161,51 +161,51 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2 2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.webp" alt="Massage oil cartons in kraft board" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.2 2.webp" alt="A Vata massage oil box" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Product incense sticks.</em></p>
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.1.webp" alt="Vata lavender mint incense sticks, laid out with herbs and a mortar" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/16.2.webp" alt="Incense packaging opened, showing the inner sleeve" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.1.webp" alt="Kapha nagachampa incense sticks, with tuberose and a bowl of herbs" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/17.2.webp" alt="The three incense variants together, one for each dosha" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Creams and oils.</em></p>
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.webp" alt="Hydrating sea salt crystal rose body polisher" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.2.webp" alt="Morning dew face serum, photographed among ferns and moss" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Branding collaterals.</em></p>
 <div class="cs-bleed breathe">
-  <img src="{{ site.baseurl }}/7.naavo/19.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/19.webp" alt="A Naavo tote carried through foliage" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.1.webp" alt="A branded t-shirt and a woven care tag" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/20.2.webp" alt="The Naavo yoga mat, seen from above in child pose" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/21.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/21.webp" alt="Stationery: letterhead, business cards and envelope" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Instagram posts and stories.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/22.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/22.webp" alt="The Instagram profile, a product post and a carousel" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Potential advertisements.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/23.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/23.webp" alt="Street posters pasted on a wall and in a shopfront: five elements, three doshas, one you" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/7.naavo/24.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/7.naavo/24.webp" alt="A lit billboard at night: discover your dosha today" loading="lazy" decoding="async" />
 </div>

@@ -184,11 +184,11 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/5.webp" alt="Process" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/5.webp" alt="The cardboard prototype, the responses plotted by emotion, and a sketch of the stand on a Manhattan street" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/6.webp" alt="Process" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.bb/6.webp" alt="In the city's rush, we often feel small. This space is an oasis, a break from it all" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">

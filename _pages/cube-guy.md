@@ -102,58 +102,58 @@ next_project:
 
 <!-- 0 -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/0.webp" alt="Cube of Creations: process work" style="object-fit: contain; animation: projBreathe 7s ease-in-out infinite;" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.cube/conception/0.webp" alt="The cube guy in six colours, beside a portrait" style="object-fit: contain; animation: projBreathe 7s ease-in-out infinite;" loading="lazy" decoding="async" />
 </div>
 
 <!-- caption + 1 -->
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/1.webp" alt="" style="object-fit: contain;" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.cube/conception/1.webp" alt="The 11.2 km/s cube, and the same mark tattooed on a forearm" style="object-fit: contain;" loading="lazy" decoding="async" />
 </div>
 
 <!-- 2 -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/2.png" alt="" style="object-fit: contain;" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.cube/conception/2.png" alt="The cube unfolding, in white on black" style="object-fit: contain;" loading="lazy" decoding="async" />
 </div>
 
 <!-- Ideating sketches label + 6.1 + 6.2 -->
 <p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/6.1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/6.1.webp" alt="A sketchbook spread, drawn edge to edge" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/6.2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/6.2.webp" alt="A crowd of cube-headed figures in colour study" loading="lazy" decoding="async" />
   </div>
 </div>
 
 <!-- 7.1 + 7.2 + 7.3 -->
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.1.webp" alt="A painted page of cube-headed figures" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.2.webp" alt="A notebook page working out who the character is: truth, thought, energy" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.3.jpg" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.3.jpg" alt="A watercolour of the cube opening between two mountains" loading="lazy" decoding="async" />
   </div>
 </div>
 
 <!-- 7.4 + 7.5 -->
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.4.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.4.webp" alt="Be true: the figure drawn against a Mondrian grid" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/7.5.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/7.5.webp" alt="Why do I play this game: hands holding an open cube" loading="lazy" decoding="async" />
   </div>
 </div>
 
 <!-- 8.1 + 8.2 + 8.3 -->
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/8.2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/8.2.webp" alt="A pencil crowd scene from the sketchbook" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="object-fit: cover; object-position: top center;">
@@ -161,7 +161,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/8.3.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/8.3.webp" alt="The cube guy taking off, painted in red and blue" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -175,10 +175,10 @@ next_project:
 <!-- 10.1 + 10.2 + 10.3 -->
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/10.1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/10.1.webp" alt="A screen of the character system: thought, conversation mirroring, and the pattern set" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/conception/10.2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/conception/10.2.webp" alt="A paper-cut city in magenta light" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
@@ -194,7 +194,7 @@ next_project:
 
 <!-- FILM POSTER -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/short%20film%20hd/0.webp" alt="Squarube film poster" style="object-fit: contain;" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/2.cube/short%20film%20hd/0.webp" alt="A frame from the short film: sitting on a rooftop above a valley. I lost myself, to find my self" style="object-fit: contain;" loading="lazy" decoding="async" />
 </div>
 
 <!-- FILM INTRO -->
@@ -405,7 +405,7 @@ next_project:
 <!-- 3.1 + 3.2 -->
 <div class="cs-grid film-grid cs-grid--left-heavy">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/2d/3.1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/2d/3.1.webp" alt="The character in twelve material treatments" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video width="952" height="1538" autoplay muted loop playsinline preload="none">
@@ -545,10 +545,10 @@ next_project:
 <!-- 3 + 3.1 grid -->
 <div class="cs-grid film-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/3d/3.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/3d/3.webp" alt="Building the world: the paper model, the node graph, the lit set and the wireframe" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/2.cube/3d/3.1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/2.cube/3d/3.1.webp" alt="The finished game world, seen from above" loading="lazy" decoding="async" />
   </div>
 </div>
 

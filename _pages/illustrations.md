@@ -79,7 +79,7 @@ next_project:
 </style>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/1.JPG" alt="Illustrations" loading="eager" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/1.JPG" alt="Presenting an early illustrated panel at school" loading="eager" decoding="async" />
 </div>
 
 <!-- SECTION: MUSIC ILLUSTRATIONS -->
@@ -96,7 +96,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/3.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/3.webp" alt="An essay about hearing the same song differently every time, set on a pink field" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -106,17 +106,17 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.1.webp" alt="The 11.2 km/s mark tattooed on a forearm" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.2.webp" alt="The 11.2 km/s cube, drawn in white line on a field of coloured strokes" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/6.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/6.webp" alt="Sixteen line drawings, each paired with a handwritten line" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.1.webp" alt="Affection: an entwined figure drawn in one continuous line" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.2.webp" alt="Into the sun: a knot of scribbled line" loading="lazy" decoding="async" /></div>
 </div>
 
 <!-- SECTION: THERE WILL COME SOFT RAINS -->
@@ -127,31 +127,31 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Illustrative book.</em></p>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/8.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/8.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/8.1.webp" alt="There Will Come Soft Rains, the cover and spine" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/8.2.webp" alt="The opening spread: I have rewritten this story, Ray Bradbury has, I illustrated it" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/9.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/9.webp" alt="A spread at 11:15 and 11:40, the house still setting the table" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/10.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/10.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/10.1.webp" alt="A spread at 9:05, the forest and the lake" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/10.2.webp" alt="A spread at 10:15 and 10:30, the fire reaching the stairs" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/11.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/11.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/11.1.webp" alt="A spread at 12:00 and 2:35, the house calling fire" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/11.2.webp" alt="A spread at 11:15 and 11:30, the mower still cutting the lawn" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/12.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/12.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/12.1.webp" alt="A spread at 11:00, the animals coming through the window" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/12.2.webp" alt="A spread at 12:00, the last voice repeating the date" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/13.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/13.webp" alt="A spread at 4:00 and 5:00, the nursery walls" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: AVATAR VISHNU -->
@@ -160,15 +160,15 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/14.png" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/14.png" alt="Dashavatara, the title" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/15.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/15.webp" alt="A single flame in a cloud of ash" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/16.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/16.webp" alt="The Dashavatara explained as the ten incarnations of Vishnu, and as the evolution of consciousness" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
@@ -185,12 +185,12 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/18.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/18.webp" alt="The ten avatars, each drawn as a gold medallion" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Mock-up of cards.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/19.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/19.webp" alt="Buddha, as a card and its explanation" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: ASTROLOGER IDENTITY -->
@@ -199,7 +199,7 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b20.1.png" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b20.1.png" alt="Three geometric constructions used to build the cards" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item">
     <video width="1400" height="1400" autoplay muted loop playsinline preload="metadata">
       <source src="{{ site.baseurl }}/11.illu/b20.2.mp4" type="video/mp4" />
@@ -208,9 +208,9 @@ next_project:
 </div>
 
 <div class="cs-grid-3">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.2.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.3.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.1.webp" alt="Inside, outside" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.2.webp" alt="Kundali: the birth chart drawn as a geometric figure" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/20.3.webp" alt="Aankhein: the eye, drawn in gold line" loading="lazy" decoding="async" /></div>
 </div>
 
 <!-- SECTION: REMINISCENCE -->
@@ -221,12 +221,12 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Font designed by me.</em></p>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.1.webp" alt="Cut paper letterforms laid out on the studio floor" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.2.webp" alt="The brief: use time, space and motion to create a font. Music for time, dreams for motion, thought for motion" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/21.1.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/21.1.webp" alt="Laying out the specimen sheets on the floor" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -236,16 +236,16 @@ next_project:
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.1.png" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.1.png" alt="Reminiscence: the logic of the letterform, five bars of music and a circle for continuity" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.2.webp" alt="Three letters from the typeface, set in white on black" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/23.1.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/23.1.webp" alt="The full character set" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/23.2.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/23.2.webp" alt="Bye bye, hello: the typeface animating between words" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: ILLUSTRATIVE IDENTITY -->
@@ -256,20 +256,20 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Made for an Indian small shop owner.</em></p>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/24.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/24.webp" alt="Apna Adda, in Devanagari on red" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/25.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/25.webp" alt="The shop the project is named after: after college we all used to eat here and it became our spot" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Settled on Apna Da, meaning my spot.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/26.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/26.webp" alt="The naming and concept board on a studio wall" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/27.1.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/27.1.webp" alt="The owner behind the counter: garma garam milega bhai" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -280,23 +280,23 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Ideating logo type.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/28.1.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/28.1.webp" alt="A drawing of the shopfront, with the menu beside it" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/28.2.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/28.2.webp" alt="Logo exploration, from wordmarks to seals" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/29.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/29.2.png" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/29.1.webp" alt="The mark applied to packaging cubes" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/29.2.png" alt="Building the अ monogram" loading="lazy" decoding="async" /></div>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Menu.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/30.1.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/30.1.webp" alt="The menu, in red" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/31.1.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/11.illu/31.1.webp" alt="Packaging patterns, one per dish" loading="lazy" decoding="async" />
 </div>

@@ -155,46 +155,46 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/1.jpg" alt="Mool" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/1.jpg" alt="The Mool wordmark" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.1.webp" alt="Mool takes its name from the Sanskrit and Hindi word for the point at which something begins" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="The four brand colours, each named for what it signals: Freedom Blue, Auspicious Red, Growth Green, Stability Blue" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/3.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/3.webp" alt="Tone of voice: simple, direct, thoughtful, uplifting, human" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/4.jpg" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/4.jpg" alt="Monthly income and expenses, drawn as a ring and a bar chart" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/5.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/5.webp" alt="The marketing site: be good with money" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/6.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/6.webp" alt="Onboarding screens: bank where your roots are valued, prosper into the new world, finance a dream at your fingertips" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/7.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/7.webp" alt="A savings goal written as a question: can I send my kid to her dream school" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/8.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/8.webp" alt="Bank account, balance and investments, and goals and plans" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed" style="text-align:center;">
-  <img src="{{ site.baseurl }}/5.mool/9.webp" alt="" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/9.webp" alt="A home-ownership goal written as a question: can I buy a home in this city" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed cs-bleed--narrow">
-  <img src="{{ site.baseurl }}/5.mool/10.webp" alt="" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/10.webp" alt="Payments and transfers, debit card controls, and the card itself" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Out-of-home posters at a bus shelter: Empathy, Equality, Freedom" loading="lazy" decoding="async" />
 </div>

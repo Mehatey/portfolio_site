@@ -132,12 +132,12 @@ next_project:
 </div>
 
 <div class="brain-wrap">
-  <img src="{{ site.baseurl }}/6.mindu/1.webp" alt="LED Brain" class="brain-sway" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/1.webp" alt="The kiosk: a lit brain on a stand above a touchscreen" class="brain-sway" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Our supporters.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/2.0.webp" alt="Supporters" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/2.0.webp" alt="Funders and partners, from the ArtsBergen initiative to Johnson Public Library" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -147,11 +147,11 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/3.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/3.webp" alt="The neural landscape, drawn from fMRI work on emotional fingerprints at Duke" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/5.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/5.webp" alt="The flow on screen: tell us what you are feeling today, where do you feel it, and what the findings say" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Walkthrough of the kiosk.</em></p>
@@ -169,14 +169,14 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/6.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/6.webp" alt="Visitors at the installation in the library" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.1.webp" alt="" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.2.webp" alt="" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.1.webp" alt="A visitor answering at the kiosk, the brain lit gold behind her" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/6.mindu/7.2.webp" alt="Two visitors reading the results together" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/6.mindu/gg.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/6.mindu/gg.webp" alt="The full emotion set, and the note that it received over 250 responses in three weeks" loading="lazy" decoding="async" />
 </div>

@@ -348,7 +348,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/4.mandala/10.2.webp" alt="Bloom mandala installation: process and explorations" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/10.2.webp" alt="Mandala light thrown across a darkened room" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -365,18 +365,18 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/4.mandala/12.2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/12.2.webp" alt="An early projection test, a single lantern in a dark studio" loading="lazy" decoding="async" />
   </div>
 </div>
 
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/9.2.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/9.2.webp" alt="Foil, candles and prisms on the desk, refracting the projection" loading="lazy" decoding="async" />
 </div>
 
 <!-- 13.1 + 13.2 + 13.3 grid -->
 <div class="cs-grid-3">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/13.1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/13.1.webp" alt="The rig at night: lamps, glass and a mandala on the far wall" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
     <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
@@ -384,7 +384,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/13.3.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/13.3.webp" alt="The installation lit in red, with the question What is the point on the panel" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -402,7 +402,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled.</em></p>
 <div class="cs-bleed bl-contain">
-  <img src="{{ site.baseurl }}/4.mandala/brainbit.jpg" alt="BrainBit Studio: EEG brain log from a session in the installation" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/brainbit.jpg" alt="The Bloom operator view, with live audio levels and the session log" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: MANDALAS -->
@@ -412,11 +412,11 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Mandalas made on festival floors, then walked over and dissolved. This started from that memory.</em></p>
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/2.webp" alt="" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/2.webp" alt="Painted mandalas on the studio wall, and one laid out in candles on the floor" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
 </div>
 
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/1.webp" alt="" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/1.webp" alt="A card left outdoors: who are you, to you" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -456,7 +456,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item ai-contain">
-    <img src="{{ site.baseurl }}/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/cover.jpg" alt="A projected mandala filling a wall, with candles along the floor" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -502,7 +502,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/j.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/j.webp" alt="Research: sketching the system, and interviews about what happiness is" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -513,7 +513,7 @@ next_project:
 
 <!-- Bloom logo hero -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/4.mandala/bloom-logo.jpeg" alt="Bloom" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/bloom-logo.jpeg" alt="The Bloom sticker, holographic on white" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Experimenting with translucent acrylic shades and reflections.</em></p>
@@ -524,7 +524,7 @@ next_project:
     </video>
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/bloom2.jpg" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/bloom2.jpg" alt="A cut acrylic mandala catching daylight" loading="lazy" decoding="async" />
   </div>
 </div>
 
@@ -645,10 +645,10 @@ next_project:
 
 <div class="cs-grid">
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/p1.png" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/p1.png" alt="A visitor at the installation, the mandala forming on their screen" loading="lazy" decoding="async" />
   </div>
   <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/4.mandala/p2.png" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/4.mandala/p2.png" alt="A visitor working through the session" loading="lazy" decoding="async" />
   </div>
 </div>
 
