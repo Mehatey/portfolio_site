@@ -1798,6 +1798,39 @@
         display: block;
         width: 100%;
         height: 100%;
+        opacity: 0;
+        transition: opacity 700ms ease;
+      }
+      .field.is-gl canvas {
+        opacity: 1;
+      }
+      .field__video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: calc(var(--field-presence, 1) * 0.9);
+        transition: opacity 500ms ease;
+      }
+      .field.is-gl .field__video {
+        opacity: 0;
+      }
+      html[data-theme="light"] .field.is-gl canvas {
+        opacity: 0.72;
+        mix-blend-mode: multiply;
+        filter: brightness(1.1) contrast(1.04) saturate(0.72);
+      }
+      html[data-theme="light"] .field__video {
+        mix-blend-mode: multiply;
+        filter: brightness(1.1) contrast(1.04) saturate(0.72);
+      }
+      .field__depth {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        pointer-events: none;
       }
 
       /* ── HIM, IN THE MIDDLE ───────────────────────────────────────────────
@@ -7113,9 +7146,9 @@
              Purely decorative and inert to the pointer, so nothing in the
              hero becomes unreachable while it plays. -->
         <span class="hero-veil" aria-hidden="true"></span>
-        <!-- The film. Two takes of one shot: pixelated is what you are given,
-             clear is what you develop by moving through it. The <video> tags
-             exist only so the browser decodes frames — WebGL draws both. -->
+        <!-- The film. The visible rooftop plate and its hidden depth pass stay
+             frame-locked. WebGL uses the latter to move near and far planes
+             at different speeds under the cursor and during the hero's exit. -->
         <!-- ── THE FIELD ──────────────────────────────────────────────────
              Two videos used to live here, a pixelated plate and a clear one,
              crossfaded by a painted mask. Sid: "u can remove that video and
@@ -7130,11 +7163,13 @@
              failure he screenshotted. And it was a picture of a room, which
              says nothing about what he makes.
 
-             What is here now is generated and carries no media at all: a
-             field that draws itself four different ways, changes every twenty
-             seconds, starts somewhere different every visit, and answers the
-             pointer. See assets/js/home-field.js. -->
+             The rooftop film is a normal video fallback first. Once both
+             streams decode, WebGL takes over without a blank frame. The depth
+             stream is never shown; it only supplies geometry to the shader.
+             See assets/js/home-field.js. -->
         <div class="field" id="field-stage" aria-hidden="true" data-base="">
+          <video class="field__video" id="field-video" src="/assets/video/sid_rooftop_4k.mp4" poster="/assets/img/sid-rooftop-poster.jpg" muted loop playsinline preload="metadata"></video>
+          <video class="field__depth" id="field-depth" src="/assets/video/sid_rooftop_depth.mp4" muted loop playsinline preload="metadata"></video>
           <canvas id="field-gl"></canvas>
         </div>
 
