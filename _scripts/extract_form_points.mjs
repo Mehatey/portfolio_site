@@ -17,9 +17,18 @@
 import fs from "fs";
 import { MeshoptDecoder } from "/tmp/claude-501/-Users-siddharthmehta/1e843781-4ada-4bc1-b83b-57739ad6638f/scratchpad/meshopt_decoder.module.js";
 
-const SRC = "assets/models/buddha-web.glb";
-const OUT = "assets/models/buddha-points.bin";
-const TARGET = +(process.argv[2] || 55843);
+/* Generic now, because the Buddha turned out not to be the only form worth
+   having. Any plain glTF point cloud or mesh can become one:
+
+     node _scripts/extract_form_points.mjs <input.glb> <out.bin> [count]
+
+   The count is not a preference. Every form is lerped against the cube guy
+   index by index, so they must all carry EXACTLY his 55,843 points. Sources
+   with fewer vertices than that are not usable as-is; sources with more are
+   strided down. */
+const SRC = process.argv[2] || "assets/models/buddha-web.glb";
+const OUT = process.argv[3] || "assets/models/buddha-points.bin";
+const TARGET = +(process.argv[4] || 55843);
 
 const d = fs.readFileSync(SRC);
 const total = d.readUInt32LE(8);
@@ -128,10 +137,39 @@ for (let i = 0; i < TARGET; i++) sel.push(Math.min(pts.length - 1, Math.floor(i 
    sitting on y = -1, longest axis scaled to fit. Anything else and the two
    figures would not occupy the same space and the morph would translate as
    well as reshape. */
-let mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9];
-for (const i of sel) for (let c = 0; c < 3; c++) { mn[c] = Math.min(mn[c], pts[i][c]); mx[c] = Math.max(mx[c], pts[i][c]); }
+/* ── OUTLIERS DECIDE THE BOUNDING BOX, SO THEY DO NOT GET A VOTE ──────────
+   Absolute min/max is fine for a modelled asset and wrong for a scan. These
+   are photogrammetry and lidar clouds: a handful of stray points metres away
+   from the subject is normal, and with min/max those strays set the extent —
+   the scale collapses, the centre shifts toward the noise, and the actual
+   object renders small and off to one side. Measured on tree.glb: it drew at
+   about a third of the intended height, below the floor line and well left of
+   centre.
+
+   So the box is taken from the 1st to 99th percentile on each axis instead.
+   The subject decides its own size; the strays are still drawn, they simply
+   fall outside the unit box and off the edge of the figure, which is what a
+   stray is. */
+const pct = (arr, q) => arr[Math.min(arr.length - 1, Math.max(0, Math.floor(arr.length * q)))];
+let mn = [0, 0, 0], mx = [0, 0, 0];
+for (let c = 0; c < 3; c++) {
+  const col = sel.map((i) => pts[i][c]).sort((a, b) => a - b);
+  mn[c] = pct(col, 0.01);
+  mx[c] = pct(col, 0.99);
+}
 const ext = [mx[0] - mn[0], mx[1] - mn[1], mx[2] - mn[2]];
-const scale = 2 / Math.max(ext[0], ext[1], ext[2]);
+/* ── EVERY FORM STANDS THE SAME HEIGHT ────────────────────────────────────
+   Scaling by the LONGEST axis is right for fitting an object into a box and
+   wrong for a substitution system. These forms all occupy the same slot in
+   the same frame, one after another, and the only property that has to agree
+   between them is how tall they are — a tree that happens to be wider than it
+   is tall got scaled by its width and rendered at half the cube guy's height,
+   sitting below the floor line he stands on.
+
+   So height decides, and the other two axes come along at the same scale so
+   nothing is stretched. A form wider than the frame is a fine outcome; a form
+   that does not reach the floor is not. */
+const scale = 2 / Math.max(1e-6, ext[1]);
 const cx = (mn[0] + mx[0]) / 2, cz = (mn[2] + mx[2]) / 2;
 
 const pos = new Int16Array(TARGET * 3);
@@ -154,7 +192,10 @@ sel.forEach((src, i) => {
   /* No halving. The runtime reads these back as pos/32767, i.e. it expects
      the full int16 range to span the unit box — dividing by two here drew the
      Buddha at half the cube guy's size. */
-  for (let c = 0; c < 3; c++) pos[i * 3 + c] = Math.max(-32767, Math.min(32767, Math.round(v[c] * 32767)));
+  /* Clamped to the box rather than to the int16 range: a stray that would
+     otherwise sit at the very edge of the quantisation reads as a bright dot
+     pinned to the frame, which is worse than not drawing it. */
+  for (let c = 0; c < 3; c++) pos[i * 3 + c] = Math.max(-32767, Math.min(32767, Math.round(Math.max(-1.35, Math.min(1.35, v[c])) * 32767)));
   const L = Math.hypot(n[0], n[1], n[2]) || 1;
   /* Same reorder, or the lighting would be lit from the side the geometry is
      no longer facing. */
