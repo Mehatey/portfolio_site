@@ -189,7 +189,7 @@
         z-index: 2;
       }
       .wrap {
-        width: 100%;
+        width: min(1440px, 100%);
         margin: 0 auto;
         padding: 0 clamp(22px, 5vw, 92px);
       }
@@ -203,7 +203,7 @@
          shoulder at 1024. */
       .hero__cols {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) var(--cg-w) minmax(0, 1fr);
+        grid-template-columns: minmax(0, 1fr) var(--cg-core) minmax(0, 1fr);
         align-items: center;
         column-gap: clamp(20px, 3vw, 56px);
       }
@@ -246,13 +246,103 @@
          headline", which is where it already was. Padding matches
          .hero__inner so it sits on the same left margin as the left clause
          above it — the corner and the column share one edge. */
-      .hero__base {
+      /* ── THE HERO STANDS ON A LINE ────────────────────────────────────────
+         One row across the foot of the frame, on a hairline, with the live
+         half at the left and the fixed facts at the right. It is the same
+         device the award portfolios use and it does two things here: it gives
+         the composition a floor, so the type and the figure are standing on
+         something rather than floating in a black field, and it fills the
+         right half of the bottom edge, which was the last empty quadrant.
+
+         The right padding clears the two floating controls — the theme toggle
+         and the shortcut key — which are fixed at the viewport's own corner
+         and are not part of this grid. */
+      .hero__foot-row {
         position: absolute;
         left: 0;
-        bottom: clamp(26px, 4.4vh, 54px);
+        right: 0;
+        /* ── IT HAS TO CLEAR THE SCROLL MARK ──────────────────────────────
+           At the corner line's old 54px this row spanned 821 to 860 and the
+           mark spanned 834 to 878 — a 26px overlap with the mark's animated
+           bar sitting directly on the rule, at dead centre, in the gap
+           between the row's two halves. Both are "this is the bottom edge"
+           devices and they were drawing on top of each other.
+
+           72px is the mark's own 22px offset plus its 44px bar plus six of
+           air, so the two stack instead of colliding. Verified at 768, 900
+           and 1080. */
+        bottom: clamp(72px, 8vh, 92px);
         z-index: 2;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: var(--sp-6, 32px);
+        padding: var(--sp-4, 16px) clamp(22px, 4vw, 64px) 0;
+      }
+      /* ── THE RULE FADES AT THE EDGES ──────────────────────────────────────
+         A border-top at --line was measured at rgba(255,255,255,0.1) and was
+         invisible against the near-black page — the row read as two floating
+         labels rather than as a floor. --line-2 is visible, and a full-bleed
+         solid at that weight is a line drawn under the whole design, which is
+         louder than the composition wants.
+
+         So it is a gradient: nothing at the frame's edges, full strength
+         across the middle where the two halves of the row actually are. Same
+         device as the scroll mark's own bar, which is the site's existing
+         language for a hairline that is a mark rather than a border. */
+      .hero__foot-row::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: clamp(22px, 4vw, 64px);
+        right: clamp(22px, 4vw, 64px);
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--line-2) 12%, var(--line-2) 88%, transparent);
+      }
+      @media (min-width: 761px) {
+        .hero__foot-row {
+          padding-right: calc(clamp(22px, 4vw, 64px) + 68px);
+        }
+      }
+
+      /* ── THE STAMP ────────────────────────────────────────────────────────
+         Mono micro, on the ladder, uppercase and tracked — the one role in
+         the type scale that is allowed to be. It does not shrink with the
+         beat the way the copy does: the point of it is that it is constant. */
+      .hero__stamp {
+        display: flex;
+        align-items: center;
+        gap: var(--sp-3, 12px);
         margin: 0;
-        padding: 0 clamp(22px, 5vw, 92px);
+        flex: none;
+        font: var(--type-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--ink-3);
+        white-space: nowrap;
+      }
+      /* A rule rather than a middle dot. The dot is the site's separator
+         inside a sentence; this is three separate facts, not a list. */
+      .hero__stamp-sep {
+        width: 18px;
+        height: 1px;
+        background: var(--line-2);
+      }
+      /* The one fact on the row that is an offer rather than a description,
+         so it is the one that carries the accent. --accent-ink, not --accent:
+         the latter does not flip and this row exists in both themes. */
+      .hero__stamp-open {
+        color: var(--accent-ink);
+      }
+      @media (max-width: 900px) {
+        .hero__stamp {
+          display: none;
+        }
+      }
+
+      .hero__base {
+        margin: 0;
+        min-width: 0;
         max-width: min(46ch, 66vw);
         font-size: clamp(0.9rem, 1.15vw, 1.12rem);
         font-weight: 450;
@@ -261,6 +351,11 @@
         min-height: 1.34em;
         opacity: calc(1 - var(--hero-beat, 0) * 0.34);
       }
+      @media (prefers-reduced-motion: reduce) {
+        .hero__base {
+          opacity: 1;
+        }
+      }
       /* Two lines reserved at the widths where the longest phrase takes two,
          so the corner does not hop as the tail rewrites itself. */
       @media (max-width: 900px) {
@@ -268,9 +363,7 @@
           min-height: 2.68em;
         }
       }
-      /* The scroll mark is centred on the bottom edge and the line sits at
-         the left of it; below about 620 the line is wide enough to run under
-         the mark. It gets the full measure and clears the mark vertically. */
+      /* Below about 620 the live line is wide enough to want the whole row. */
       @media (max-width: 620px) {
         .hero__base {
           max-width: 100%;
@@ -328,10 +421,23 @@
         padding-top: var(--nav-h, 64px);
         padding-bottom: var(--nav-h, 64px);
 
-        /* One number for the figure's width, shared by .cg-stage and by the
-           middle column of the headline grid, so the type can never be laid
-           out against a column that is not the size he is drawn at. */
-        --cg-w: min(560px, 46vw);
+        /* Two numbers, and the difference between them is what lets the type
+           grow. --cg-w is the CANVAS: 560px of WebGL surface that he is drawn
+           inside, most of which is empty air above his head and beside his
+           arms. --cg-core is the FIGURE: measured at 1440, his silhouette is
+           about 220px across, and 320px is that plus a margin either side that
+           nothing is allowed into.
+
+           Reserving the canvas width for the middle column was reserving 340px
+           of nothing twice over, and it was the only reason the headline had
+           to stay small. */
+        /* Both scale with the frame instead of capping at a fixed pixel
+           width. min(560px, 46vw) meant the figure stopped growing at 1220 and
+           then shrank as a proportion of every screen above it — 39% of the
+           frame at 1440, 29% at 1920, 22% at 2560. The subject of a hero
+           should not get smaller the better the display. */
+        --cg-w: clamp(420px, 40vw, 760px);
+        --cg-core: clamp(240px, 22vw, 420px);
       }
       /* The hero is full-bleed now so the film can run edge to edge; the
          copy keeps the site's measure by living in its own wrap. */
@@ -349,9 +455,24 @@
         transform: translateY(calc(var(--hero-p, 0) * -90px));
         opacity: calc(1 - var(--hero-p, 0) * 2.6);
         will-change: transform, opacity;
-        width: min(1440px, 100%);
+        /* ── THE HERO IS NOT A 1440 COLUMN ────────────────────────────────
+           .wrap caps the page's content at 1440 and that is right for reading
+           column, cards and case-study grids. It is wrong for this block: the
+           headline is set in two tracks either side of a figure, so capping
+           the container caps the tracks, and above 1440 the type stops using
+           the screen it has — measured at 1920 the columns were still 412px
+           and the right clause broke into a fourth line on a display with
+           680px available.
+
+           Full bleed, with the page margin as padding. The measure that
+           matters here is the grid track, and the track is defined against
+           the figure rather than against a maximum page width.
+
+           92px to 64px for the same reason: 56px of page margin was 28px off
+           each column, which at this size is most of a character. */
+        width: 100%;
         margin: 0 auto;
-        padding: 0 clamp(22px, 5vw, 92px);
+        padding: 0 clamp(22px, 4vw, 64px);
       }
       /* ── THE HERO ON A PHONE ──────────────────────────────────────────
          .hero is min-height: 100svh with justify-content: flex-end, so the
@@ -370,17 +491,22 @@
          On a phone the film is behind the type either way, so the copy goes
          to the top and the hero stops trying to be a viewport tall. */
       /* ── THE SPLIT NEEDS A FRAME TO SPLIT ─────────────────────────────
-         Below 1024 the outer tracks are narrower than the words in them and
+         Below 1200 the outer tracks are narrower than the words in them and
          the sentence breaks into two-word lines either side of a figure that
          has nowhere left to stand. So the grid collapses to one column, the
          clauses stack back into a single block, and the figure goes behind
          them as atmosphere — which is what he already does on a phone.
 
+         The threshold was 1024 while the headline was 50px. It moved with the
+         type: at 1024 the right clause broke into four lines — "Research to /
+         shipped / code, / end to end." — which is the failure this query
+         exists to prevent, one breakpoint above where it was looking.
+
          The hero stays a viewport tall and stays centred down to 760, because
          a centred one-column hero is still a composition. Only below that,
          where the copy is most of the screen on its own, does it go back to
          standing at the top. */
-      @media (max-width: 1023px) {
+      @media (max-width: 1199px) {
         .hero__cols {
           grid-template-columns: minmax(0, 1fr);
           row-gap: 0;
@@ -431,12 +557,11 @@
         .cg-stage.is-live {
           opacity: 0.42;
         }
-        /* The bottom-left corner still exists on a phone; it just needs the
-           page's own left margin, which it inherited from .hero__inner while
-           it was in the flow and does not while it is placed against .hero. */
-        .hero__base {
+        /* The row still exists on a phone, minus the stamp (see its own
+           query) — so it is the live line and a rule, clear of the scroll
+           mark on the same edge. */
+        .hero__foot-row {
           bottom: calc(var(--sp-8, 64px) + 28px);
-          padding: 0 clamp(22px, 5vw, 92px);
         }
       }
 
@@ -521,9 +646,29 @@
            The max-width comes off entirely for the same reason — the grid
            track IS the measure now, and a 27ch cap inside a 1fr track just
            reintroduces the ragged column it was there to create. */
-        font-size: clamp(1.45rem, 3.1vw, 3.15rem);
-        line-height: 1.04;
-        letter-spacing: -0.032em;
+        /* ── IT WAS TOO QUIET ─────────────────────────────────────────────
+           Measured against the current Awwwards portfolio honourees: Adcker
+           sets its statement at about 130px, Artiom Yakushev sets his own name
+           at about 180px edge to edge, Lama Lama runs about 58px in heavy
+           caps. This was 50px at weight 350 — elegant, and the smallest hero
+           of the five by a wide margin.
+
+           The ceiling is not taste, it is the longest unbreakable line. Both
+           clauses break into three, and the longest of the six is "shipped
+           code," at thirteen characters; Figtree at 350 averages about 0.48em
+           an advance, so a column has to hold roughly 6.3em for the line not
+           to wrap into a fourth. With --cg-core down to 320 and the page
+           margin down to 64, each outer column is about 460px at 1440, which
+           puts the ceiling near 73px.
+
+           So 4.8vw, capped at 4.5rem. Forty per cent up, and measured not to
+           wrap at 1200, 1280, 1366, 1440, 1600, 1920 and 2560. Line height
+           comes down as the
+           size goes up, which is the usual trade — 1.04 was set for 50px and
+           opens a visible gap between three stacked lines at 73. */
+        font-size: clamp(1.45rem, 4.8vw, 4.5rem);
+        line-height: 0.98;
+        letter-spacing: -0.036em;
       }
 
       /* The reactive line. Sized deliberately far below the headline — it is
@@ -1840,6 +1985,42 @@
         color: var(--home-muted);
         max-width: 52ch;
       }
+      /* The fields themselves. flex-wrap rather than a wrapping string, so a
+         break happens between two items and never inside the punctuation. */
+      .range__fields {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 0 var(--sp-3, 12px);
+        margin: var(--sp-2, 8px) 0 0;
+        padding: 0;
+        list-style: none;
+        /* No 52ch cap. The cap is what made this wrap at all — the seven
+           fields measure about 740px and the section they sit in is 1300 wide,
+           so on any desktop there is no break to get wrong. Inherited from the
+           paragraph above, where a measure is correct because it is prose. */
+        font-size: clamp(0.95rem, 1.3vw, 1.18rem);
+        line-height: 1.6;
+        color: var(--home-muted);
+      }
+      /* Drawn between, so there is no last one to dangle off a line end. */
+      .range__fields li + li::before {
+        content: "·";
+        margin-right: var(--sp-3, 12px);
+        color: var(--ink-4);
+      }
+      /* Narrow enough to wrap, and a separator bound to its item leads the
+         new line instead of trailing the old one — which is the same defect
+         the other way round. Below 900 the row becomes a stack and the gap is
+         the separator. */
+      @media (max-width: 900px) {
+        .range__fields {
+          gap: var(--sp-1, 4px) var(--sp-4, 16px);
+        }
+        .range__fields li + li::before {
+          content: none;
+        }
+      }
       .range__for span {
         font-family: "DM Mono", monospace;
         font-size: 10px;
@@ -2441,13 +2622,40 @@
              Prefix is fixed so only the tail rewrites itself: a whole sentence
              retyping every few seconds reads as a broken page, a tail that
              swaps reads as someone still deciding. -->
-        <p class="hero__base" aria-hidden="true">
-          <span class="hero__rot-fix">Building</span>
-          <span
-            class="hero__rot-val accent"
-            data-rot="quiet tools for messy human problems|emotional software out of cold tech|experiments that grow into products|interfaces for hardware not built yet|money software people actually trust"
-          ></span>
-        </p>
+        <div class="hero__foot-row">
+          <p class="hero__base" aria-hidden="true">
+            <span class="hero__rot-fix">Building</span>
+            <span
+              class="hero__rot-val accent"
+              data-rot="quiet tools for messy human problems|emotional software out of cold tech|experiments that grow into products|interfaces for hardware not built yet|money software people actually trust"
+            ></span>
+          </p>
+
+          <!-- ── THE STAMP ────────────────────────────────────────────────
+               The right half of this edge was empty. Every portfolio in the
+               current Awwwards honours list that has a bottom edge puts the
+               same three things on it — Lama Lama runs "20+ DIGITAL FREAKS ·
+               AMSTERDAM BASED · 01:57:57" across the foot of every screen,
+               Artiom Yakushev runs "YEREVAN 03:58 AM" bottom-left — because
+               they are the facts a stranger checks before anything else: is
+               this person real, where are they, can I hire them.
+
+               All three were already on this site and none of them were here.
+               "New York" and "Open to roles" were 10px on the About portrait,
+               two pages in. The clock is new and is the reason the row reads
+               as live rather than as a footer: it is his time, not yours, so
+               it says where he is without a label.
+
+               aria-hidden because the same facts are on /about/ and /contact/
+               as prose, and a screen reader has no use for a ticking clock. -->
+          <p class="hero__stamp" aria-hidden="true">
+            <span>New York</span>
+            <span class="hero__stamp-sep"></span>
+            <span id="hero-clock">--:--</span>
+            <span class="hero__stamp-sep"></span>
+            <span class="hero__stamp-open">Open to roles</span>
+          </p>
+        </div>
 
         <!-- The word "Scroll" came out. Sid: "on the homepage we have scroll
              down tooltip text can you change the animation on that or
@@ -2710,7 +2918,26 @@
             </li>
           </ol>
 
-          <p class="range__for rv"><span>Built for</span> fintech · healthcare · hospitality · museums · wellness · enterprise · emerging tech</p>
+          <!-- ── THE SEPARATORS ARE NOT CHARACTERS ─────────────────────────
+               This was one string with middle dots typed into it, and a wrapping
+               string breaks wherever it likes: at 1440 it ended a line on
+               "enterprise ·" and started the next on "emerging tech", leaving a
+               separator hanging off the right edge with nothing after it.
+
+               The dots are drawn between items now rather than written into the
+               text, so the last one cannot exist and a dot can never be the last
+               thing on a line. It also makes the list a list to a screen reader
+               instead of one long sentence of punctuation. -->
+          <p class="range__for rv"><span>Built for</span></p>
+          <ul class="range__fields rv" aria-label="Fields">
+            <li>fintech</li>
+            <li>healthcare</li>
+            <li>hospitality</li>
+            <li>museums</li>
+            <li>wellness</li>
+            <li>enterprise</li>
+            <li>emerging tech</li>
+          </ul>
           <p class="range__facts rv">Six years · 14 public projects · 25 artworks at The Met · 100k+ downloads on Mool</p>
         </div>
       </section>
@@ -2997,6 +3224,52 @@
            _includes/live_type.html, applied via data-livetype on each .tw
            span — one implementation for every large heading on the site
            rather than a homepage-only trick. */
+      })();
+
+      /* ── HIS TIME, NOT YOURS ────────────────────────────────────────────
+         The clock in the foot stamp. Written with an explicit timeZone rather
+         than off the visitor's own clock, which is the whole point: someone
+         opening this from London at nine in the morning should see that it is
+         four a.m. where he is. A local clock would just be telling them what
+         they already know.
+
+         Intl handles the offset, so daylight saving is not something this file
+         has to know about. Ticks on the minute rather than the second — a
+         seconds counter in a hero is a stopwatch, and it also means this wakes
+         up sixty times less often.
+
+         If Intl throws, or the zone is unknown, the stamp keeps its "--:--"
+         placeholder and the row still reads as three facts. */
+      (function () {
+        var el = document.getElementById("hero-clock");
+        if (!el) return;
+        var fmt;
+        try {
+          fmt = new Intl.DateTimeFormat("en-US", {
+            timeZone: "America/New_York",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          });
+        } catch (e) {
+          return;
+        }
+        function tick() {
+          try {
+            el.textContent = fmt.format(new Date());
+          } catch (e) {}
+        }
+        tick();
+        /* Aligned to the next minute boundary so it changes when the minute
+           does, then every minute after — not sixty seconds after page load,
+           which drifts visibly against any other clock on the screen. */
+        setTimeout(
+          function () {
+            tick();
+            setInterval(tick, 60000);
+          },
+          60000 - (Date.now() % 60000)
+        );
       })();
 
       /* ── THE LINE THAT REFORMS ───────────────────────────────────────
