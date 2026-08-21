@@ -91,10 +91,13 @@
     "attribute vec3 cubeP;",
     "attribute vec3 nrm;",
     "attribute vec2 uv;",
+    "attribute vec3 bp;",
+    "attribute vec3 bn;",
     "uniform mat3 u_rot;",
     "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break, u_melt, u_fit, u_morph;",
     "uniform sampler2D u_paint;",
     "uniform float u_hasPaint, u_paintOnly, u_paintSize;",
+    "uniform float u_form;",
     "uniform vec2 u_ptr;",
     "varying float v_depth;",
     "varying float v_rand;",
@@ -141,6 +144,36 @@
        The overlap between the slices is deliberate: he is still travelling
        when the funnel starts, so the two read as one move. */
     "  vec3 pos = vec3(p.x, p.z, p.y);",
+    /* ── TWO FORMS, ONE CLOUD ─────────────────────────────────────────────
+       Sid: "when broken let it reassemble into this [buddha-web.glb] ... and
+       then when you click it again it breaks in a new well animated smooth
+       break and then reforms into cube guy."
+
+       buddha-points.bin is the same 55,843 points, sampled from the Buddha at
+       exactly the cube guy's count and normalised into the same unit box, so
+       point i of one figure has a partner at point i of the other and the two
+       occupy the same space. That is the whole trick: with matched counts the
+       change of form is a lerp per point rather than a crossfade between two
+       clouds, so nothing is born and nothing dies — the same dust rearranges.
+
+       The per-point delay is what stops it reading as one rubber sheet being
+       pulled between two shapes. Each point starts its journey up to a third
+       of the way into the transition, keyed off its own stable hash, so the
+       silhouette dissolves and re-gathers rather than stretching.
+
+       UV stays with the cube guy's point either way, so whatever has been
+       painted travels onto the Buddha and back. */
+    "  if (u_form > 0.0001) {",
+    "    float nn = hash(p);",
+    "    float fp = clamp((u_form - nn * 0.34) / 0.66, 0.0, 1.0);",
+    "    fp = fp * fp * (3.0 - 2.0 * fp);",
+    "    vec3 bpos = vec3(bp.x, bp.z, bp.y);",
+    /* A bow outward through the middle of the change, so the two forms are
+       joined by a swell rather than by the shortest line between them. */
+    "    float bow = sin(fp * 3.14159265);",
+    "    vec3 side = normalize(vec3(sin(nn * 61.7), cos(nn * 23.9) * 0.5, sin(nn * 91.3)) + 0.0001);",
+    "    pos = mix(pos, bpos, fp) + side * bow * (0.06 + nn * 0.16);",
+    "  }",
 
     /* ── HE IS NO LONGER IN THE TRANSITION ────────────────────────────────
        Sid: "don't make the cube guy come down and increase in size, that
@@ -261,6 +294,9 @@
     "    pos.y -= bs * bs * (0.55 + 0.9 * cs);",
     "  }",
     "  vec3 nor = normalize(vec3(nrm.x, nrm.z, nrm.y) + 0.0001);",
+    "  if (u_form > 0.0001) {",
+    "    nor = normalize(mix(nor, vec3(bn.x, bn.z, bn.y), u_form) + 0.0001);",
+    "  }",
     "  float n = hash(p);",
     "  v_rand = n;",
 
@@ -603,6 +639,7 @@
     "u_skin",
     "u_hasSkin",
     "u_morph",
+    "u_form",
   ].forEach(function (k) {
     U[k] = gl.getUniformLocation(prog, k);
   });
@@ -610,10 +647,18 @@
   var aCube = gl.getAttribLocation(prog, "cubeP");
   var aN = gl.getAttribLocation(prog, "nrm");
   var aUV = gl.getAttribLocation(prog, "uv");
+  var aBP = gl.getAttribLocation(prog, "bp");
+  var aBN = gl.getAttribLocation(prog, "bn");
 
   var buf = gl.createBuffer();
   var cubeBuf = gl.createBuffer();
   var count = 0;
+  var bBuf = null,
+    hasForm = 0;
+  /* 0 = cube guy, 1 = Buddha. `formT` is what the click asks for, `form` is
+     what the cloud is actually showing. */
+  var form = 0,
+    formT = 0;
   var ready = false;
 
   gl.enable(gl.BLEND);
@@ -871,6 +916,55 @@
         gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 32, 24);
       }
 
+      /* ── THE OTHER FORM ────────────────────────────────────────────────
+         Fetched after the cube guy rather than beside him: he is what the page
+         opens on and the Buddha is not needed until someone clicks. 502KB,
+         nine bytes a point (positions and normals, no uv — the uv that matters
+         is the cube guy's, and it stays with the point through both forms).
+
+         If it fails, u_form is simply never driven past 0 and the click break
+         reassembles as itself, which is the behaviour this replaces. */
+      fetch(base + "/assets/models/buddha-points.bin")
+        .then(function (r) {
+          if (!r.ok) throw new Error("buddha: " + r.status);
+          return r.arrayBuffer();
+        })
+        .then(function (bb) {
+          var bn2 = (bb.byteLength / 9) | 0;
+          if (bn2 !== n) {
+            /* Matched counts are the entire premise of the morph. Rather than
+               lerp against garbage, refuse the second form. */
+            console.warn("buddha points " + bn2 + " != cube guy " + n + "; second form disabled");
+            return;
+          }
+          var bpos = new Int16Array(bb, 0, n * 3);
+          var bnor = new Int8Array(bb, n * 6, n * 3);
+          var bf = new Float32Array(n * 6);
+          for (var k = 0; k < n; k++) {
+            bf[k * 6] = bpos[k * 3] / 32767;
+            bf[k * 6 + 1] = bpos[k * 3 + 1] / 32767;
+            bf[k * 6 + 2] = bpos[k * 3 + 2] / 32767;
+            bf[k * 6 + 3] = bnor[k * 3] / 127;
+            bf[k * 6 + 4] = bnor[k * 3 + 1] / 127;
+            bf[k * 6 + 5] = bnor[k * 3 + 2] / 127;
+          }
+          bBuf = gl.createBuffer();
+          gl.bindBuffer(gl.ARRAY_BUFFER, bBuf);
+          gl.bufferData(gl.ARRAY_BUFFER, bf, gl.STATIC_DRAW);
+          if (aBP >= 0) {
+            gl.enableVertexAttribArray(aBP);
+            gl.vertexAttribPointer(aBP, 3, gl.FLOAT, false, 24, 0);
+          }
+          if (aBN >= 0) {
+            gl.enableVertexAttribArray(aBN);
+            gl.vertexAttribPointer(aBN, 3, gl.FLOAT, false, 24, 12);
+          }
+          hasForm = 1;
+        })
+        .catch(function (e) {
+          console.warn(e);
+        });
+
       /* Low-discrepancy sampling across six faces. Same count as the figure,
          so there is no particle birth, death or quality reduction during the
          handoff. The original UV remains attached to every point, carrying
@@ -996,9 +1090,35 @@
   var downX = 0;
   var downY = 0;
 
+  /* ── THE GESTURE ────────────────────────────────────────────────────────
+     Sid: "when broken let it reassemble into [the Buddha] ... and then when
+     you click it again it breaks in a new smooth break and then reforms into
+     cube guy."
+
+     So a click is not "shatter and come back" any more, it is "shatter and
+     come back as the other one". The swap is scheduled for the moment the
+     cloud is at its most scattered — about 1.05s in, just before the pieces
+     turn around — because that is the only instant at which neither
+     silhouette is legible and the change of form is therefore invisible. Flip
+     it earlier and you watch a Buddha's arm grow out of a cube guy's; flip it
+     later and the reassembly visibly corrects itself.
+
+     If the second form never loaded, formT stays 0 and this is the break it
+     always was. */
+  function strike() {
+    breakAt = performance.now();
+    clearPaint();
+    if (!hasForm) return;
+    if (formTimer) clearTimeout(formTimer);
+    formTimer = setTimeout(function () {
+      formT = formT > 0.5 ? 0 : 1;
+    }, 1050);
+  }
+  var formTimer = 0;
+
   host.addEventListener("pointerup", function (e) {
     var moved = Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY);
-    if (moved < 6 && performance.now() - downAt < 400) breakAt = performance.now();
+    if (moved < 6 && performance.now() - downAt < 400) strike();
   });
 
   host.addEventListener("pointerdown", function (e) {
@@ -1219,6 +1339,13 @@
       }
     }
     gl.uniform1f(U.u_break, breakV);
+    /* Eased rather than snapped, so that even if the swap lands a frame off
+       the peak of the break the change still arrives as a transition. Slow
+       enough that the reassembly and the change of form are one move: the
+       pieces come home to somewhere slightly different than they left. */
+    form += (formT - form) * Math.min(1, 0.055);
+    if (Math.abs(form - formT) < 0.0015) form = formT;
+    gl.uniform1f(U.u_form, hasForm ? form : 0);
     var morphMeltRelease = Math.max(0, Math.min(1, morph / 0.12));
     gl.uniform1f(U.u_melt, melt * (1 - morphMeltRelease));
     gl.uniform1f(U.u_morph, morph);
@@ -1336,11 +1463,16 @@
      like five materials rather than trusting the code. */
   /* Verification hooks. Nothing on the page calls these. */
   window.__cgBreak = function () {
-    breakAt = performance.now();
-    /* Whatever was painted belonged to the body that just came apart. Keeping
-       it would reapply a half-finished stroke to whatever reassembles, in
-       exactly the wrong places. */
-    clearPaint();
+    strike();
+  };
+  window.__cgForm = function () {
+    return { form: form, formT: formT, hasForm: hasForm };
+  };
+  /* Verification hook. Nothing on the page calls it; it lets a headless run
+     hold either form still and screenshot it, which is the only way to check
+     that the second figure lands in the same space as the first. */
+  window.__cgSetForm = function (v) {
+    form = formT = Math.max(0, Math.min(1, +v || 0));
   };
   window.__cgClearPaint = clearPaint;
   window.__cgState = function () {
