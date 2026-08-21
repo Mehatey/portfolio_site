@@ -88,14 +88,18 @@
   var VS = [
     "precision highp float;",
     "attribute vec3 p;",
+    "attribute vec3 cubeP;",
     "attribute vec3 nrm;",
     "attribute vec2 uv;",
     "uniform mat3 u_rot;",
-    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break, u_melt, u_fit;",
+    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break, u_melt, u_fit, u_morph;",
+    "uniform sampler2D u_paint;",
+    "uniform float u_hasPaint, u_paintOnly, u_paintSize;",
     "uniform vec2 u_ptr;",
     "varying float v_depth;",
     "varying float v_rand;",
     "varying float v_brush;",
+    "varying float v_live;",
     "varying float v_lit;",
     "varying float v_melt;",
     "varying vec2 v_scr;",
@@ -288,7 +292,29 @@
     "  float bd = length((ndc - u_ptr) * vec2(u_aspect, 1.0));",
     "  bd += (n - 0.5) * 0.17 + sin(pos.y * 9.0 + u_time * 0.9) * 0.055 + sin(pos.x * 13.0 - u_time * 0.7) * 0.045 + sin(pos.z * 7.0 + u_time * 0.5) * 0.03;",
     "  float R = u_brushR * u_hov;",
-    "  float brush = R > 0.001 ? smoothstep(R, R * 0.35, bd) : 0.0;",
+    "  float live = R > 0.001 ? smoothstep(R, R * 0.35, bd) : 0.0;",
+    /* ── PAINT STAYS ──────────────────────────────────────────────────────
+       Sid: "hover should paint that area of the cube guy in and keep it
+       painted so people can paint the whole one."
+
+       The brush was pure state: a distance to the pointer, recomputed every
+       frame, gone the instant the cursor moved on. Nothing accumulated, so
+       there was nothing to fill in.
+
+       What accumulates now is a texture in the model's OWN uv space. Once a
+       frame the whole cloud is drawn a second time with gl_Position taken
+       from `uv` instead of from the camera — every point lands on its own
+       texel — and the live brush value is blended in additively. The result
+       is a map of everywhere the pointer has ever been on his surface, which
+       survives him turning, because uv turns with him.
+
+       512x512 for 55,843 points is about five texels each: coarse enough to
+       be cheap, fine enough that a brush stroke has an edge. `max` rather
+       than `+` on the read, so the live brush is always at least as bright as
+       the memory of it and the leading edge of a stroke still reads. */
+    "  float painted = u_hasPaint > 0.5 ? texture2D(u_paint, uv).r : 0.0;",
+    "  float brush = max(live, painted);",
+    "  v_live = live;",
     "  v_brush = brush;",
 
     /* Loosen only what the brush has not claimed. */
@@ -333,6 +359,20 @@
     "    pos.y += ms * ms * 0.32;",
     "  }",
     "  v_melt = ms;",
+
+    /* One substance, two forms. Each point keeps its UV and therefore its
+       colour while its position retargets from the figure to a cube face.
+       A stable per-point delay prevents the silhouette collapsing as one
+       rubber sheet; the sine envelope gives the journey volume without
+       leaving any residual displacement at either endpoint. */
+    "  float mp = clamp((u_morph - n * 0.16) / 0.84, 0.0, 1.0);",
+    "  mp = mp * mp * (3.0 - 2.0 * mp);",
+    "  float arc = sin(mp * 3.14159265);",
+    "  vec3 stream = normalize(vec3(sin(n * 53.1), cos(n * 31.7) * 0.42, sin(n * 79.3)) + 0.0001);",
+    "  pos = mix(pos, cubeP, mp) + stream * arc * (0.10 + n * 0.24);",
+    "  float faceAxis = max(max(abs(cubeP.x), abs(cubeP.y)), abs(cubeP.z));",
+    "  vec3 cubeNor = normalize(step(vec3(faceAxis - 0.001), abs(cubeP)) * sign(cubeP) + 0.0001);",
+    "  nor = normalize(mix(nor, cubeNor, mp));",
     "  r = u_rot * pos;",
     "  z = r.z + 3.1;",
     "  ndc = vec2((r.x * f / z) / u_aspect, r.y * f / z);",
@@ -344,6 +384,18 @@
     /* Depth is written by the solid pass and tested by the cloud, so it has
        to be a real number, not 0. Mapped to roughly the volume the figure
        occupies. */
+    /* ── THE PAINT PASS ───────────────────────────────────────────────────
+       u_paintOnly redirects the whole cloud into uv space so the accumulation
+       texture can be drawn with the same buffer and the same brush maths as
+       the visible pass. Written last, so everything above — rotation, brush
+       distance, melt — has already been computed exactly as it will be on
+       screen, and only the destination differs. */
+    "  if (u_paintOnly > 0.5) {",
+    "    gl_Position = vec4(uv * 2.0 - 1.0, 0.0, 1.0);",
+    "    gl_PointSize = max(2.0, u_paintSize);",
+    "    v_depth = 0.0;",
+    "    return;",
+    "  }",
     "  gl_Position = vec4(ndc, clamp((z - 1.8) / 2.6, -0.99, 0.99), 1.0);",
     /* Screen-space uv for the reveal's texture. Sampling the plate where the
        point LANDS rather than by any model uv means the footage sits still in
@@ -365,12 +417,13 @@
   var FS = [
     "precision highp float;",
     "uniform vec3 u_near, u_far;",
-    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll, u_texMode, u_hasTex, u_hasSkin, u_time, u_break;",
+    "uniform float u_hov, u_fade, u_light, u_pass, u_scroll, u_texMode, u_hasTex, u_hasSkin, u_time, u_break, u_paintOnly;",
     "uniform sampler2D u_tex, u_skin;",
     "uniform vec2 u_texCover;",
     "varying float v_depth;",
     "varying float v_rand;",
     "varying float v_brush;",
+    "varying float v_live;",
     "varying float v_lit;",
     "varying float v_melt;",
     "varying vec2 v_scr;",
@@ -378,6 +431,22 @@
     "void main() {",
     "  vec2 c = gl_PointCoord - 0.5;",
     "  float d = dot(c, c);",
+    /* The accumulation target. Soft-edged so strokes overlap into a wash
+       rather than tiling as visible squares, and scaled down so a single
+       frame under the pointer adds a little rather than everything — paint
+       builds with dwell, which is what makes it feel like painting. */
+    "  if (u_paintOnly > 0.5) {",
+    "    if (d > 0.25) discard;",
+    "    float soft = smoothstep(0.25, 0.0, d);",
+    /* 0.055, not 0.16. At the higher rate a single two-second drag
+       flooded the entire body — the brush is 0.46 of the frame wide, so one
+       stroke touches most of him and at 0.16 a touch was enough. Painting
+       should take dwell: about a second of the pointer held over one area to
+       bring it fully in, so filling him is something you do rather than
+       something that happens to you. */
+    "    gl_FragColor = vec4(vec3(v_live * soft * 0.055), 1.0);",
+    "    return;",
+    "  }",
     "  if (d > 0.25) discard;",
 
     "  float t = pow(v_depth, 1.35);",
@@ -516,6 +585,10 @@
     "u_fade",
     "u_light",
     "u_pass",
+    "u_paintSize",
+    "u_paintOnly",
+    "u_hasPaint",
+    "u_paint",
     "u_ptr",
     "u_brushR",
     "u_scroll",
@@ -529,14 +602,17 @@
     "u_texCover",
     "u_skin",
     "u_hasSkin",
+    "u_morph",
   ].forEach(function (k) {
     U[k] = gl.getUniformLocation(prog, k);
   });
   var aP = gl.getAttribLocation(prog, "p");
+  var aCube = gl.getAttribLocation(prog, "cubeP");
   var aN = gl.getAttribLocation(prog, "nrm");
   var aUV = gl.getAttribLocation(prog, "uv");
 
   var buf = gl.createBuffer();
+  var cubeBuf = gl.createBuffer();
   var count = 0;
   var ready = false;
 
@@ -634,6 +710,48 @@
   /* Material 0 is his own skin, and it is where he starts. After that every
      arrival steps to a different one — never the same twice running, which
      is what "vividly different" needs more than any amount of contrast. */
+  /* ── THE PAINT BUFFER ───────────────────────────────────────────────────
+     One 512x512 target holding everywhere the pointer has been on his
+     surface, in the model's own uv space so it turns when he turns. Drawn to
+     once a frame with the same vertex buffer (see the u_paintOnly branch in
+     the shader) and read back by the visible pass.
+
+     RGBA/UNSIGNED_BYTE rather than a float target, because a float colour
+     buffer needs an extension that a good number of machines still do not
+     advertise and eight bits of paint is eight bits more than none. Additive
+     blending saturates at 1.0 on its own, which is exactly the ceiling
+     wanted: a surface can be fully painted and no more. */
+  var PAINT_N = 512;
+  var paintTex = null,
+    paintFbo = null,
+    hasPaint = 0;
+  (function () {
+    paintTex = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, paintTex);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, PAINT_N, PAINT_N, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    paintFbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, paintFbo);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, paintTex, 0);
+    hasPaint = gl.checkFramebufferStatus(gl.FRAMEBUFFER) === gl.FRAMEBUFFER_COMPLETE ? 1 : 0;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    /* No paint support is not an error — the brush falls back to the live
+       distance it always was, which is the behaviour this replaces. */
+  })();
+
+  function clearPaint() {
+    if (!hasPaint) return;
+    gl.bindFramebuffer(gl.FRAMEBUFFER, paintFbo);
+    gl.viewport(0, 0, PAINT_N, PAINT_N);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  }
+  clearPaint();
+
   var texMode = 0;
 
   readTheme();
@@ -752,8 +870,50 @@
         gl.enableVertexAttribArray(aUV);
         gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 32, 24);
       }
+
+      /* Low-discrepancy sampling across six faces. Same count as the figure,
+         so there is no particle birth, death or quality reduction during the
+         handoff. The original UV remains attached to every point, carrying
+         Cube Guy's painted colour onto the assembled object. */
+      var cubeTargets = new Float32Array(n * 3);
+      var side = 0.72;
+      for (var j = 0; j < n; j++) {
+        var face = j % 6;
+        var u = ((j * 0.7548776662466927) % 1) * 2 - 1;
+        var vv = ((j * 0.5698402909980532) % 1) * 2 - 1;
+        var x = u * side;
+        var y = vv * side;
+        var z = side;
+        if (face === 1) z = -side;
+        else if (face === 2) {
+          x = side;
+          z = u * side;
+        } else if (face === 3) {
+          x = -side;
+          z = u * side;
+        } else if (face === 4) {
+          x = u * side;
+          y = side;
+          z = vv * side;
+        } else if (face === 5) {
+          x = u * side;
+          y = -side;
+          z = vv * side;
+        }
+        cubeTargets[j * 3] = x;
+        cubeTargets[j * 3 + 1] = y;
+        cubeTargets[j * 3 + 2] = z;
+      }
+      gl.bindBuffer(gl.ARRAY_BUFFER, cubeBuf);
+      gl.bufferData(gl.ARRAY_BUFFER, cubeTargets, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(aCube);
+      gl.vertexAttribPointer(aCube, 3, gl.FLOAT, false, 12, 0);
       ready = true;
       host.classList.add("is-live");
+      if (cubeObject && !REDUCED) {
+        cubeObject.style.opacity = "0";
+        cubeObject.style.pointerEvents = "none";
+      }
       resize();
     })
     .catch(function (e) {
@@ -774,6 +934,16 @@
   var pinned = false;
   var lastPub = -1;
   var hero = host.closest("section") || host.parentElement;
+  var cubeSection = document.getElementById("hs-object");
+  var cubeObject = document.getElementById("obj-cube");
+  var morph = 0;
+
+  function readMorph() {
+    if (REDUCED || !cubeSection) return 0;
+    var r = cubeSection.getBoundingClientRect();
+    var vh = Math.max(1, window.innerHeight);
+    return Math.max(0, Math.min(1, (vh * 0.98 - r.top) / (vh * 0.84)));
+  }
 
   /* The brush needs the pointer in the same clip space the vertex shader
      projects into, so it is normalised against the stage's own box: -1..1
@@ -912,7 +1082,8 @@
 
   function frame(now) {
     requestAnimationFrame(frame);
-    if (!ready || !visible || !onScreen) return;
+    var morphTarget = readMorph();
+    if (!ready || !visible || (!onScreen && morphTarget <= 0.001)) return;
 
     var t = (now - t0) / 1000;
 
@@ -955,7 +1126,21 @@
        hidden, and the dissolve is the figure leaving. */
     fade += (1 - fade) * 0.03;
 
-    setRot(yaw, pitch);
+    morph += (morphTarget - morph) * 0.14;
+    if (Math.abs(morphTarget - morph) < 0.0005) morph = morphTarget;
+    var morphing = morph > 0.001 && morph < 0.999;
+    host.classList.toggle("is-cube-morphing", morphing);
+    if (hero) hero.classList.toggle("is-cube-morphing", morphing);
+    if (cubeObject) {
+      var cubeReveal = Math.max(0, Math.min(1, (morph - 0.78) / 0.22));
+      cubeReveal = cubeReveal * cubeReveal * (3 - 2 * cubeReveal);
+      cubeObject.style.opacity = cubeReveal.toFixed(3);
+      cubeObject.style.pointerEvents = cubeReveal > 0.94 ? "auto" : "none";
+    }
+
+    var targetYaw = 0.62;
+    var targetPitch = -0.31;
+    setRot(yaw * (1 - morph) + targetYaw * morph, pitch * (1 - morph) + targetPitch * morph);
     gl.uniformMatrix3fv(U.u_rot, false, rot);
     gl.uniform1f(U.u_time, t);
     gl.uniform1f(U.u_hov, hov);
@@ -984,6 +1169,32 @@
     } else {
       gl.uniform1f(U.u_hasTex, 0);
     }
+    /* ── ACCUMULATE ───────────────────────────────────────────────────────
+       Before anything is drawn for the eye. Additive, depth off, and only
+       while the brush is actually open — at hov 0 there is nothing to add and
+       the pass is skipped entirely, so an untouched figure costs nothing. */
+    if (hasPaint && hov > 0.004 && !breakAt && melt < 0.02) {
+      gl.bindFramebuffer(gl.FRAMEBUFFER, paintFbo);
+      gl.viewport(0, 0, PAINT_N, PAINT_N);
+      gl.disable(gl.DEPTH_TEST);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE, gl.ONE);
+      gl.uniform1f(U.u_paintOnly, 1);
+      /* Big enough that neighbouring points overlap into a continuous wash;
+         at 55,843 points over 512x512 a single texel per point would leave a
+         stipple you can see. */
+      gl.uniform1f(U.u_paintSize, 4.0);
+      gl.drawArrays(gl.POINTS, 0, count);
+      gl.uniform1f(U.u_paintOnly, 0);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+      gl.viewport(0, 0, W, H);
+      gl.enable(gl.DEPTH_TEST);
+    }
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, paintTex);
+    gl.uniform1i(U.u_paint, 3);
+    gl.uniform1f(U.u_hasPaint, hasPaint);
+
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, skinTex);
     gl.uniform1i(U.u_skin, 1);
@@ -1008,7 +1219,9 @@
       }
     }
     gl.uniform1f(U.u_break, breakV);
-    gl.uniform1f(U.u_melt, melt);
+    var morphMeltRelease = Math.max(0, Math.min(1, morph / 0.12));
+    gl.uniform1f(U.u_melt, melt * (1 - morphMeltRelease));
+    gl.uniform1f(U.u_morph, morph);
     gl.uniform1f(U.u_texMode, texMode);
 
     /* ── PINNED, SO THE TIMELINE HAS SOMEWHERE TO PLAY ─────────────────────
@@ -1083,8 +1296,10 @@
        `prog` is still computed above because --hero-p drives the hero COPY's
        breakaway, which is not him and which Sid has not asked to change. */
     gl.uniform1f(U.u_scroll, 0);
-    gl.uniform1f(U.u_grow, 1);
-    gl.uniform1f(U.u_fade, fade);
+    var cubeSize = cubeObject ? cubeObject.getBoundingClientRect().width : figureWidth();
+    gl.uniform1f(U.u_grow, 1 + (cubeSize / Math.max(1, figureWidth()) - 1) * morph);
+    var morphFade = 1 - Math.max(0, Math.min(1, (morph - 0.84) / 0.16));
+    gl.uniform1f(U.u_fade, fade * morphFade);
     /* The band travels the height of the figure and wraps, a shade slower
        than the drift so the two never lock into a rhythm. */
     gl.uniform1f(U.u_scan, ((t * 0.24) % 2.4) - 1.2);
@@ -1122,7 +1337,12 @@
   /* Verification hooks. Nothing on the page calls these. */
   window.__cgBreak = function () {
     breakAt = performance.now();
+    /* Whatever was painted belonged to the body that just came apart. Keeping
+       it would reapply a half-finished stroke to whatever reassembles, in
+       exactly the wrong places. */
+    clearPaint();
   };
+  window.__cgClearPaint = clearPaint;
   window.__cgState = function () {
     return { breakV: breakV, breakAt: breakAt, hov: hov, scrollP: scrollP, melt: melt, meltT: meltT };
   };
