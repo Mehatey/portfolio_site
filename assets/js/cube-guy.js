@@ -654,7 +654,10 @@
   var cubeBuf = gl.createBuffer();
   var count = 0;
   var bBuf = null,
-    hasForm = 0;
+    hasForm = 0,
+    loadForm = null,
+    uploadForm = null,
+    formCount = 3;
   /* 0 = cube guy, 1 = Buddha. `formT` is what the click asks for, `form` is
      what the cloud is actually showing. */
   var form = 0,
@@ -794,6 +797,21 @@
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    /* ── PUT THE VIEWPORT BACK ────────────────────────────────────────────
+       The one line that made every form look broken. The GL viewport is
+       global state, not something a framebuffer owns, so setting it to
+       512x512 for the paint target leaves it at 512x512 for the canvas too.
+
+       The per-frame paint pass restores it on the way out and is therefore
+       fine. This function is called from strike(), OUTSIDE the frame loop,
+       and the paint pass only runs while the brush is open — so with no
+       pointer on the page the viewport simply stayed at 512x512 from the
+       moment of the first click. Everything after a break drew into the
+       bottom-left third of the canvas at a third of the size, which is
+       exactly what it looked like: the Buddha, the tree and the brain all
+       rendering small, low and to the left, while loading a form WITHOUT
+       breaking rendered perfectly. The forms were never wrong. */
+    gl.viewport(0, 0, W, H);
   }
   clearPaint();
 
@@ -830,9 +848,20 @@
      1440 wide and the figure is drawn at 0.4 of it. */
   var FIG_W = 560;
   function figureWidth() {
-    var v = getComputedStyle(host).getPropertyValue("--cg-w").trim();
-    var n = parseFloat(v);
-    return n && !isNaN(n) ? n : FIG_W;
+    /* ── A CUSTOM PROPERTY IS NOT A RESOLVED LENGTH ────────────────────────
+       getPropertyValue on a custom property hands back the SPECIFIED value,
+       not the used one — for --cg-w that is the literal string
+       "clamp(480px, 46vw, 880px)", which parseFloat reads as NaN. So this had
+       been silently falling through to the 560 default since the day it was
+       written: measured at a 1440 viewport the figure was drawn at 560/1440
+       when it should have been 662/1440, about 15% small, and it never
+       responded to the viewport at all.
+
+       The stage element IS that width, so its own box is the resolved answer.
+       Reading the rect rather than the property also means the two can never
+       disagree. */
+    var w = host.getBoundingClientRect().width;
+    return w > 8 ? w : FIG_W;
   }
   function resize() {
     /* The canvas, not the stage. They are different boxes now: the stage
@@ -916,54 +945,101 @@
         gl.vertexAttribPointer(aUV, 2, gl.FLOAT, false, 32, 24);
       }
 
-      /* ── THE OTHER FORM ────────────────────────────────────────────────
-         Fetched after the cube guy rather than beside him: he is what the page
-         opens on and the Buddha is not needed until someone clicks. 502KB,
-         nine bytes a point (positions and normals, no uv — the uv that matters
-         is the cube guy's, and it stays with the point through both forms).
+      /* ── THE OTHER FORMS ───────────────────────────────────────────────
+         Sid: "see if anything from this folder is interesting to use."
 
-         If it fails, u_form is simply never driven past 0 and the click break
-         reassembles as itself, which is the behaviour this replaces. */
-      fetch(base + "/assets/models/buddha-points.bin")
-        .then(function (r) {
-          if (!r.ok) throw new Error("buddha: " + r.status);
-          return r.arrayBuffer();
-        })
-        .then(function (bb) {
-          var bn2 = (bb.byteLength / 9) | 0;
-          if (bn2 !== n) {
-            /* Matched counts are the entire premise of the morph. Rather than
-               lerp against garbage, refuse the second form. */
-            console.warn("buddha points " + bn2 + " != cube guy " + n + "; second form disabled");
-            return;
-          }
-          var bpos = new Int16Array(bb, 0, n * 3);
-          var bnor = new Int8Array(bb, n * 6, n * 3);
-          var bf = new Float32Array(n * 6);
-          for (var k = 0; k < n; k++) {
-            bf[k * 6] = bpos[k * 3] / 32767;
-            bf[k * 6 + 1] = bpos[k * 3 + 1] / 32767;
-            bf[k * 6 + 2] = bpos[k * 3 + 2] / 32767;
-            bf[k * 6 + 3] = bnor[k * 3] / 127;
-            bf[k * 6 + 4] = bnor[k * 3 + 1] / 127;
-            bf[k * 6 + 5] = bnor[k * 3 + 2] / 127;
-          }
-          bBuf = gl.createBuffer();
-          gl.bindBuffer(gl.ARRAY_BUFFER, bBuf);
-          gl.bufferData(gl.ARRAY_BUFFER, bf, gl.STATIC_DRAW);
-          if (aBP >= 0) {
-            gl.enableVertexAttribArray(aBP);
-            gl.vertexAttribPointer(aBP, 3, gl.FLOAT, false, 24, 0);
-          }
-          if (aBN >= 0) {
-            gl.enableVertexAttribArray(aBN);
-            gl.vertexAttribPointer(aBN, 3, gl.FLOAT, false, 24, 12);
-          }
-          hasForm = 1;
-        })
-        .catch(function (e) {
-          console.warn(e);
-        });
+         Three, and each one is a thing his work is actually about rather than
+         a shape that looked good: the Buddha head that already opens the site,
+         the tree that is the centrepiece of Bloom, and the brain that is the
+         whole of Mind Your Feelings. Sampled from his own point-cloud library
+         through _scripts/extract_form_points.mjs to exactly the cube guy's
+         55,843 points, which is the only way a per-point lerp between them
+         means anything.
+
+         THE CYCLE GOES THROUGH HIM. Click and he becomes the Buddha; click
+         again and he comes back; click again and he becomes the tree. He is
+         never skipped, and that is the point — the substance is HIS, and each
+         artifact is something he turns into and returns from, not a carousel
+         of objects that happen to share a buffer.
+
+         Fetched on demand, one at a time, and never twice. The page opens
+         carrying none of them: 500KB each is not a cost anyone should pay for
+         a state they may never reach, and by the time the first break is over
+         the second form has had a second and a half to arrive. */
+      var FORMS = [
+        { name: "buddha", url: "/assets/models/buddha-points.bin" },
+        { name: "tree", url: "/assets/models/form-tree.bin" },
+        { name: "brain", url: "/assets/models/form-brain.bin" },
+      ];
+      var formIdx = -1,
+        formLoading = 0;
+
+      loadForm = function (i, then) {
+        if (formLoading) return;
+        var F = FORMS[i];
+        if (!F) return;
+        if (F.data) {
+          uploadForm(F.data);
+          if (then) then();
+          return;
+        }
+        formLoading = 1;
+        fetch(base + F.url)
+          .then(function (r) {
+            if (!r.ok) throw new Error(F.name + ": " + r.status);
+            return r.arrayBuffer();
+          })
+          .then(function (bb) {
+            var bn2 = (bb.byteLength / 9) | 0;
+            if (bn2 !== n) {
+              /* Matched counts are the entire premise. Rather than lerp
+                 against garbage, refuse this form and leave the cycle on the
+                 ones that do line up. */
+              throw new Error(F.name + " has " + bn2 + " points, need " + n);
+            }
+            var bpos = new Int16Array(bb, 0, n * 3);
+            var bnor = new Int8Array(bb, n * 6, n * 3);
+            var bf = new Float32Array(n * 6);
+            for (var k = 0; k < n; k++) {
+              bf[k * 6] = bpos[k * 3] / 32767;
+              bf[k * 6 + 1] = bpos[k * 3 + 1] / 32767;
+              bf[k * 6 + 2] = bpos[k * 3 + 2] / 32767;
+              bf[k * 6 + 3] = bnor[k * 3] / 127;
+              bf[k * 6 + 4] = bnor[k * 3 + 1] / 127;
+              bf[k * 6 + 5] = bnor[k * 3 + 2] / 127;
+            }
+            F.data = bf;
+            uploadForm(bf);
+            formLoading = 0;
+            if (then) then();
+          })
+          .catch(function (e) {
+            formLoading = 0;
+            console.warn(e);
+          });
+      };
+
+      uploadForm = function (bf) {
+        if (!bBuf) bBuf = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, bBuf);
+        gl.bufferData(gl.ARRAY_BUFFER, bf, gl.STATIC_DRAW);
+        if (aBP >= 0) {
+          gl.enableVertexAttribArray(aBP);
+          gl.vertexAttribPointer(aBP, 3, gl.FLOAT, false, 24, 0);
+        }
+        if (aBN >= 0) {
+          gl.enableVertexAttribArray(aBN);
+          gl.vertexAttribPointer(aBN, 3, gl.FLOAT, false, 24, 12);
+        }
+        hasForm = 1;
+      };
+
+      /* The first one is warmed as soon as the figure itself is up, so the
+         very first click has something to become without a wait. */
+      setTimeout(function () {
+        formIdx = 0;
+        loadForm(0);
+      }, 2500);
 
       /* Low-discrepancy sampling across six faces. Same count as the figure,
          so there is no particle birth, death or quality reduction during the
@@ -1138,10 +1214,22 @@
   function strike() {
     breakAt = performance.now();
     clearPaint();
-    if (!hasForm) return;
     if (formTimer) clearTimeout(formTimer);
     formTimer = setTimeout(function () {
-      formT = formT > 0.5 ? 0 : 1;
+      if (formT > 0.5) {
+        /* Coming home. The next artifact is fetched now rather than on the
+           click that needs it, so the wait happens while he is standing
+           there rather than in the middle of a break. */
+        formT = 0;
+        if (loadForm) {
+          var nxt = (window.__cgFormIdx = ((window.__cgFormIdx || 0) + 1) % formCount);
+          setTimeout(function () {
+            loadForm(nxt);
+          }, 900);
+        }
+      } else if (hasForm) {
+        formT = 1;
+      }
     }, 1050);
   }
   var formTimer = 0;
@@ -1534,6 +1622,24 @@
   /* Verification hook. Nothing on the page calls it; it lets a headless run
      hold either form still and screenshot it, which is the only way to check
      that the second figure lands in the same space as the first. */
+  window.__cgDump = function () {
+    return {
+      form: form,
+      formT: formT,
+      melt: melt,
+      breakV: breakV,
+      morph: morph,
+      scrollP: scrollP,
+      hov: hov,
+      yaw: yaw,
+      pitch: pitch,
+      grow: 1,
+      fit: figureWidth(),
+    };
+  };
+  window.__cgLoadForm = function (i) {
+    if (loadForm) loadForm(i);
+  };
   window.__cgSetForm = function (v) {
     form = formT = Math.max(0, Math.min(1, +v || 0));
   };
