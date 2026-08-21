@@ -91,7 +91,7 @@
     "attribute vec3 nrm;",
     "attribute vec2 uv;",
     "uniform mat3 u_rot;",
-    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break, u_melt;",
+    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break, u_melt, u_fit;",
     "uniform vec2 u_ptr;",
     "varying float v_depth;",
     "varying float v_rand;",
@@ -192,9 +192,19 @@
        together, and a shatter that snaps back at the same rate reads as a
        loop rather than as a recovery. */
     "  if (u_break > 0.0001) {",
-    "    vec3 cell = floor(pos * 4.5);",
+    /* ── HOW MANY PIECES ──────────────────────────────────────────────────
+       Sid: "a lot more shrapnel and realistic physics."
+
+       This divisor is the shard count. At 4.5 the body was cut into about
+       ninety cells, which at his on-screen size is a plate the width of his
+       forearm — the break read as a statue coming apart in slabs. At 9.5 it is
+       roughly seven hundred, small enough to read as shrapnel and still large
+       enough that each piece holds a recognisable scrap of surface. Costs
+       nothing: it is a divisor inside the vertex shader, not a number of
+       anything, and the same 55,843 points are drawn either way. */
+    "    vec3 cell = floor(pos * 9.5);",
     "    float cs = fract(sin(dot(cell, vec3(41.3, 289.1, 77.7))) * 24571.13);",
-    "    vec3 cc = (cell + 0.5) / 4.5;",
+    "    vec3 cc = (cell + 0.5) / 9.5;",
     /* ── WHY IT DID NOT FEEL ORGANIC ──────────────────────────────────────
        Sid: "the breaking on click doesn't feel too good, it doesn't feel
        organic."
@@ -228,7 +238,10 @@
     "    float a1 = cs * 6.28318;",
     "    float a2 = fract(cs * 71.7) * 3.14159;",
     "    vec3 dirS = vec3(sin(a2) * cos(a1), cos(a2) * 0.55 + 0.42, sin(a2) * sin(a1));",
-    "    float k = (bs + st) * (0.55 + 0.9 * cs);",
+    /* Spread of launch speeds widened from 0.55-1.45 to 0.4-2.3. Real debris
+       does not leave at one speed; a narrow spread is what made the old break
+       read as a single expanding shell rather than as a scatter. */
+    "    float k = (bs + st) * (0.4 + 1.9 * cs);",
     /* the piece tumbles about its own centre */
     "    float ang = bs * (cs - 0.5) * 7.0;",
     "    float cbk = cos(ang), sbk = sin(ang);",
@@ -238,7 +251,10 @@
     "    pos = cc + rel;",
     /* thrown out, then pulled down — gravity on the way, so the pieces arc */
     "    pos += dirS * k * 1.15;",
-    "    pos.y -= bs * bs * (0.35 + 0.5 * cs);",
+    /* Gravity, squared in time so the arc accelerates downward the way a
+       thrown thing does. Raised with the launch speed so the pieces that go
+       furthest also fall furthest, which is what gives the scatter depth. */
+    "    pos.y -= bs * bs * (0.55 + 0.9 * cs);",
     "  }",
     "  vec3 nor = normalize(vec3(nrm.x, nrm.z, nrm.y) + 0.0001);",
     "  float n = hash(p);",
@@ -259,7 +275,10 @@
     /* 2.28 rather than 2.62: the figure sits inside its own canvas with air
        under the feet, so the hero's overflow:hidden has nothing of him to
        cut. */
-    "  float f = 2.28 * u_grow;",
+    /* u_fit shrinks the projection so a full-hero canvas still draws a
+       figure of --cg-w. Applied to the focal length rather than to the point
+       positions, so the perspective is unchanged and only the framing moves. */
+    "  float f = 2.28 * u_grow * u_fit;",
     "  vec2 ndc = vec2((r.x * f / z) / u_aspect, r.y * f / z);",
 
     /* ── THE BRUSH ────────────────────────────────────────────────────────
@@ -501,6 +520,7 @@
     "u_brushR",
     "u_scroll",
     "u_grow",
+    "u_fit",
     "u_break",
     "u_melt",
     "u_tex",
@@ -625,8 +645,40 @@
   var dpr = 1;
   var W = 1;
   var H = 1;
+  /* ── THE IMAGINARY BOX ────────────────────────────────────────────────────
+     Sid: "when I click, break on the cube guy — a lot more shrapnel and
+     realistic physics, and it doesn't go across the whole page, it gets cut
+     off by this imaginary box."
+
+     The box was this canvas. The stage used to be exactly the figure's own
+     width — 560px, later --cg-w — so every shard that left his silhouette hit
+     the edge of the drawing surface a few dozen pixels later and vanished
+     mid-flight. Nothing was clipping it in CSS; there was simply no canvas
+     out there to draw on.
+
+     So the stage is the whole hero now (see .cg-stage in sid_home.html) and
+     the FIGURE is scaled down inside it to the size he was before. --cg-w
+     stays the number that decides how big he looks; it is just applied to the
+     projection instead of to the element. The shards get the entire frame to
+     travel through, which is what "across the whole page" needs, and they
+     leave by fading rather than by being cut.
+
+     u_fit is that ratio. At a 1440 hero with --cg-w at 576, the canvas is
+     1440 wide and the figure is drawn at 0.4 of it. */
+  var FIG_W = 560;
+  function figureWidth() {
+    var v = getComputedStyle(host).getPropertyValue("--cg-w").trim();
+    var n = parseFloat(v);
+    return n && !isNaN(n) ? n : FIG_W;
+  }
   function resize() {
-    var r = host.getBoundingClientRect();
+    /* The canvas, not the stage. They are different boxes now: the stage
+       stayed the figure's own size so that drag, click and hover keep the hit
+       area they have always had, and the canvas is stretched to the whole
+       viewport underneath it so a shard has somewhere to fly to. Measuring the
+       stage here would size the drawing surface to the hit area again and put
+       the imaginary box straight back. */
+    var r = canvas.getBoundingClientRect();
     dpr = Math.min(2, window.devicePixelRatio || 1);
     W = Math.max(1, Math.round(r.width * dpr));
     H = Math.max(1, Math.round(r.height * dpr));
@@ -637,7 +689,11 @@
     gl.viewport(0, 0, W, H);
     gl.uniform1f(U.u_aspect, r.width / Math.max(1, r.height));
     gl.uniform1f(U.u_dpr, dpr);
-    gl.uniform1f(U.u_size, Math.max(1.8, Math.min(4.0, r.width / 250)));
+    /* Point size follows the figure's drawn width, not the canvas width, or
+       he would be rendered with dots sized for a 1440px object. */
+    var fw = figureWidth();
+    gl.uniform1f(U.u_fit, fw / Math.max(1, r.width));
+    gl.uniform1f(U.u_size, Math.max(1.8, Math.min(4.0, fw / 250)));
   }
   window.addEventListener("resize", resize);
 
@@ -936,11 +992,15 @@
        in — so the pieces leap and then drift home. */
     if (breakAt) {
       var el = (now - breakAt) / 1000;
-      if (el < 0.9) {
-        var o = el / 0.9;
+      /* 1.1s out and 2.4s back, up from 0.9 and 1.6. The pieces have the whole
+         frame to cross now rather than the width of his own stage, so the same
+         envelope was throwing them off screen and hauling them back before the
+         eye had followed any of them. */
+      if (el < 1.1) {
+        var o = el / 1.1;
         breakV = 1 - (1 - o) * (1 - o);
-      } else if (el < 2.5) {
-        var i2 = (el - 0.9) / 1.6;
+      } else if (el < 3.5) {
+        var i2 = (el - 1.1) / 2.4;
         breakV = 1 - i2 * i2 * (3 - 2 * i2);
       } else {
         breakV = 0;

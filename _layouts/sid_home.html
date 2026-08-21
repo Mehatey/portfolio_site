@@ -743,6 +743,38 @@
       .tw {
         display: block;
       }
+      /* ── THE LETTERS ARE THEIR OWN BOXES ──────────────────────────────────
+         _includes/live_type.html carries the same two rules, but scoped under
+         [data-livetype] — and the hero no longer has that attribute, because
+         assets/js/hero-type.js owns these clauses instead. Declared here so
+         the split letters get their boxes from the page that renders them.
+
+         inline-block is what lets a letter travel without the line reflowing:
+         the box stays where the browser put it and only the transform moves.
+         .lt-w holds the letters of a word together with nowrap, because an
+         inline-block is a break opportunity and a headline that can break
+         between any two letters will.
+
+         will-change is deliberate here where live_type refuses it. Its comment
+         is right for a case-study heading that moves only under the pointer —
+         promoting sixty layers for that costs more than it saves. These sixty
+         are never at rest: the buoyancy runs the whole time the hero is on
+         screen, so they are compositor layers either way and saying so up
+         front avoids a promotion on the first pointer move. */
+      .tw .lt-c {
+        display: inline-block;
+        font-variation-settings: "wght" 350;
+        will-change: transform;
+      }
+      .tw .lt-w {
+        white-space: nowrap;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .tw .lt-c {
+          will-change: auto;
+          transform: none !important;
+        }
+      }
       .tw__line {
         display: block;
         min-height: 0.98em;
@@ -1205,10 +1237,32 @@
       .cg-stage.is-turning {
         cursor: grabbing;
       }
+      /* ── THE DRAW SURFACE IS NOT THE HIT AREA ─────────────────────────────
+         Sid: "when I click break on the cube guy ... it doesn't go across the
+         whole page, it gets cut off by this imaginary box."
+
+         The box was this canvas. It used to be exactly the size of .cg-stage,
+         which is exactly the size of the figure — so a shard thrown out of his
+         silhouette ran out of canvas a few dozen pixels later and vanished
+         mid-flight. Nothing was clipping it; there was no surface out there to
+         draw on.
+
+         So the two boxes come apart. .cg-stage keeps the figure's own size and
+         goes on being the thing you drag, click and hover, unchanged. The
+         canvas is stretched to the whole viewport behind it and takes no
+         pointer events at all, which gives the break the entire frame to
+         travel through. cube-guy.js scales the projection by the ratio between
+         them (u_fit), so the figure is drawn at exactly the size he was. */
       .cg-stage canvas {
         display: block;
-        width: 100%;
-        height: 100%;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 100vw;
+        height: 100vh;
+        max-width: none;
+        pointer-events: none;
       }
       /* On a phone the hero stops being a viewport tall and the copy moves to
          the top, so he cannot be the centrepiece without landing under the
@@ -2585,10 +2639,10 @@
             <span class="sr-only">Product designer, six years. Research to shipped code, end to end.</span>
             <span class="hero__cols" aria-hidden="true">
               <span class="hero__col hero__col--l">
-                <span class="tw" data-livetype data-livetype-zone="#hero" data-tw-seq="0" data-tw="Product designer,|six years."></span>
+                <span class="tw" data-tw-seq="0" data-tw="Product designer,|six years."></span>
               </span>
               <span class="hero__col hero__col--r">
-                <span class="tw" data-livetype data-livetype-zone="#hero" data-tw-seq="1" data-tw="Research to shipped code,|end to end."></span>
+                <span class="tw" data-tw-seq="1" data-tw="Research to shipped code,|end to end."></span>
               </span>
             </span>
           </h1>
@@ -3128,6 +3182,9 @@
          after both renderers and deferred like them, so it is guaranteed to
          find their hooks; it degrades to nothing if either is missing. -->
     <script src="{{ site.baseurl }}/assets/js/home-hero.js" defer></script>
+    <!-- The headline's own fluid. Deferred, and it waits for sid:herotyped
+         before it touches the DOM, so it can never race the typewriter. -->
+    <script src="{{ site.baseurl }}/assets/js/hero-type.js" defer></script>
 
     <script>
       /* ── headline arrival ────────────────────────────────────────
@@ -3212,11 +3269,28 @@
               line += 1;
               pos = 0;
               startAt = now + 300;
+              /* ── THE HANDOFF ────────────────────────────────────────────
+                 assets/js/hero-type.js takes the finished line apart into
+                 per-letter spans. It cannot do that while this loop is still
+                 running, because writing textContent destroys children — and
+                 that is exactly what used to happen: _includes/live_type.html
+                 split the hero at about 1.5s and this loop wiped all 31 spans
+                 a beat later, so the per-character effect the whole site
+                 shares had never once run on the page it was written for.
+
+                 Fired when the LAST line lands, not each one. */
+              if (line >= inks.length) {
+                window.dispatchEvent(new CustomEvent("sid:herotyped"));
+              }
             } else {
               startAt = now + 22;
             }
             requestAnimationFrame(type);
           })(performance.now());
+        } else {
+          /* Reduced motion skips the typing entirely, so the line is already
+             complete and the splitter can be told immediately. */
+          window.dispatchEvent(new CustomEvent("sid:herotyped"));
         }
         if (hero) hero.classList.add("in");
 
