@@ -1383,9 +1383,46 @@
         display: grid;
         grid-template-columns: minmax(132px, 158px) minmax(0, 1fr);
         gap: clamp(28px, 3vw, 48px);
-        max-width: min(1680px, 94vw);
+        /* ══ THE MEDIA SYSTEM ══════════════════════════════════════════════
+           Sid: "make sure we are having nice grids and wider images than we
+           had last time ... take a call on whether curved edges or no curve
+           and whether we have motion breathing for certain images ... make
+           sure all work details follow same styling."
+
+           Measured at 1920 before this: the picture was 1372px inside a 1920
+           frame. The shell capped at 1680, took 76.8px of padding a side, and
+           the media sat inside that — 307px of margin before the image starts,
+           16% of the screen, on a page whose entire job is showing pictures.
+
+           The cap comes up to 1880/96vw and the media claims back half the
+           shell's padding (see .cs-bleed below), which is about +7% at 1440
+           and +16% at 1920 without letting go of the frame. Prose is
+           unaffected: .cs-body has its own 640px measure and never read this. */
+        max-width: min(1880px, 96vw);
         margin: 0 auto;
         padding: 46px var(--gutter) 0;
+      }
+
+      /* Two tokens, declared once, read by every visual on all sixteen case
+         studies. The inconsistency they replace was not a styling slip, it was
+         the absence of anywhere to put the decision.
+
+         --media-radius  THE CALL ON CURVE: curved, but far less. It was
+                         clamp(18px, 2vw, 30px) — 28.8px at 1440 — set with an
+                         !important in a late override block. At the width these
+                         run, 29px stops reading as a considered edge and starts
+                         reading as a card: the picture looks like a component
+                         rather than a plate. Removing the curve entirely was
+                         the other option and it is wrong for this site, whose
+                         whole surface language is soft. 8px is the size at
+                         which the corner is a decision you notice only if you
+                         go looking for it.
+
+         --media-breathe THE CALL ON MOTION: yes, but rare and opt-in. See
+                         .breathe below. */
+      .case-story {
+        --media-radius: 8px;
+        --media-breathe: 9s;
       }
       .case-context {
         position: sticky;
@@ -1467,20 +1504,43 @@
       /* Every visual now belongs to the media rail. The !important rules also
          normalize older per-page inline margins, which were the source of the
          inconsistent oversized visual treatment. */
+      /* ── THE MEDIA IS WIDER THAN THE COLUMN IT SITS IN ────────────────────
+         This block is what actually decides media width — it is the last
+         !important on the cascade, so the base .cs-bleed rule above has been
+         inert for a long time. Changing it here rather than adding a sixth
+         competing rule underneath.
+
+         Was width: 100% with the margins zeroed, which left the picture inside
+         the shell's own --gutter padding. Measured at 1920 that put 307px of
+         margin either side of the image — 16% of the screen — on a page whose
+         only job is showing pictures.
+
+         Each media block now claims back half that padding on each side. Half
+         rather than all: a full breakout puts the image hard against the type
+         above it, and the frame is what makes a picture read as a plate rather
+         than as a background. About +7% at 1440 and +16% at 1920.
+
+         .cs-body and .cs-intro are deliberately not in this list. They keep
+         the shell's padding, which is what holds the reading column where it
+         has always been, and .cs-body has its own 640px measure anyway. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
       .case-story .cs-grid-3,
       .case-story .cs-split,
       .case-story .cs-pair {
-        width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        width: calc(100% + var(--gutter)) !important;
+        margin-left: calc(var(--gutter) * -0.5) !important;
+        margin-right: calc(var(--gutter) * -0.5) !important;
       }
+      /* margin-TOP only. This used to be a `margin` shorthand, which reset the
+         horizontal breakout above every time it was applied. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
-      .case-story .cs-grid-3 { margin-top: 28px !important; }
+      .case-story .cs-grid-3 {
+        margin-top: 28px !important;
+      }
       .case-story .cs-bleed {
         aspect-ratio: 16 / 10;
         /* Raised with the column. 64vh/640px was cropping the frame before
@@ -1665,6 +1725,16 @@
       .film-grid--no-top {
         margin-top: 0 !important;
       }
+      /* ── THE MEDIA IS WIDER THAN THE COLUMN IT SITS IN ────────────────
+         The shell already pads by --gutter so its prose has a margin. A
+         picture does not want that margin at the same strength, so every media
+         block pulls back half of it on each side. Half rather than all: a full
+         breakout puts the image hard against the type above it, and the frame
+         is what makes a picture read as a plate rather than as a background.
+
+         The three media containers only. .cs-body and .cs-intro keep the
+         shell's padding, which is what holds the reading column where it has
+         always been. */
       .cs-bleed {
         margin: 36px var(--gutter) 0;
         width: calc(100% - var(--gutter) * 2);
@@ -1736,6 +1806,12 @@
       .cs-grid {
         margin: 36px var(--gutter) 0;
         display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        /* Cells size themselves rather than stretching to the tallest in the
+           row. Stretch is the grid default and it is why a 16:9 plate beside a
+           taller one left a band of empty background under the shorter of the
+           two: the cell grew, the picture inside it did not. A ragged bottom
+           edge is what an editorial grid does; a black gap is a bug. */
+        align-items: start;
         position: relative;
         content-visibility: auto;
         contain-intrinsic-size: auto 480px;
@@ -2768,12 +2844,23 @@
       .cs-section.is-visible .cs-section-label { opacity: 1; }
 
       /* ─── CAPTIONS (global) ─── */
+      /* ── THE DEFAULT WAS WRONG, SO EVERY PAGE CORRECTED IT ────────────────
+         margin was 0, and all THIRTEEN case studies that carry a <style> block
+         set `.cube-cap { margin: 40px 0 0 }` in their own file. The same
+         declaration, thirteen times, because the shared value did not match
+         what any page actually wanted. Same story for the two adjacency rules
+         below: twelve pages each overrode 8px to 12px, and twelve overrode
+         16px to 8px.
+
+         The fix is not a fourteenth override. It is to make the default the
+         thing everyone had already independently agreed on, and delete the
+         copies — which is the whole argument for having a default at all. */
       .cube-cap {
         font-family: var(--font-mono);
         font-size: 13px;
         color: var(--ink-4);
         padding: 8px var(--gutter) 0;
-        margin: 0;
+        margin: 40px 0 0;
         line-height: 1.5;
       }
       .cube-cap em { font-style: italic; }
@@ -2838,10 +2925,16 @@
       html[data-theme="light"] .cube-cap--above::before {
         color: var(--accent-ink);
       }
-      .cube-cap--above + .cs-grid { margin-top: 8px; }
-      .cube-cap--above + .cs-bleed { margin-top: 8px; }
-      .cube-cap--above + .cs-bleed-full { margin-top: 8px; }
-      .cube-cap + .cs-bleed { margin-top: 16px; }
+      /* A caption above its image sits closer to it than one below, because
+         above it is a title and below it is an afterword. 12 and 8, which is
+         what twelve pages each wrote out by hand. */
+      .cube-cap--above + .cs-grid,
+      .cube-cap--above + .cs-grid-3,
+      .cube-cap--above + .cs-bleed,
+      .cube-cap--above + .cs-bleed-full { margin-top: 12px; }
+      .cube-cap + .cs-bleed,
+      .cube-cap + .cs-grid,
+      .cube-cap + .cs-grid-3 { margin-top: 8px; }
       .cs-grid + .cs-bleed { margin-top: 24px; }
 
       /* ─── cs-intro (global base) ─── */
@@ -3230,6 +3323,17 @@
       }
       .case-chapter-map__link.is-current::before { color: var(--accent); }
       .case-rail { display: none; }
+      /* ── AND THIS IS THE ONE THAT ACTUALLY WINS ────────────────────────────
+         Three rules in this file set the width of the same six selectors, all
+         with !important, at identical specificity. The last one in source order
+         takes it, which is this one — so the two above have been decorative for
+         as long as it has existed, and the earlier of them is what anyone
+         looking for "why is the image this wide" would have found and edited.
+         All three are corrected; this is the one that does the work.
+
+         Same breakout: half the shell's gutter reclaimed on each side, with
+         margin-top declared on its own so the shorthand cannot reset the
+         horizontal values a second time. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
@@ -3237,8 +3341,10 @@
       .case-story .cs-split,
       .case-story .cs-pair,
       .case-story .cs-bleed-full {
-        width: 100% !important;
-        margin: 32px 0 0 !important;
+        width: calc(100% + var(--gutter)) !important;
+        margin-top: 32px !important;
+        margin-left: calc(var(--gutter) * -0.5) !important;
+        margin-right: calc(var(--gutter) * -0.5) !important;
       }
       .case-story .cs-bleed,
       .case-story .cs-wide-inner,
@@ -4350,7 +4456,63 @@
 
       .case-story img,
       .case-story video {
-        border-radius: clamp(18px, 2vw, 30px) !important;
+        border-radius: var(--media-radius) !important;
+      }
+
+      /* ══ THE CALL ON MOTION ════════════════════════════════════════════════
+         Sid: "whether we have motion breathing for certain images or what."
+
+         Yes, and rarely. A still that drifts forever is a screensaver, and a
+         page where every picture is moving has no way left to say "look at
+         this one". So it stays an opt-in class on the lead visual of a section
+         and nothing else — at most two or three on a page.
+
+         What this replaces: @keyframes projBreathe was declared separately in
+         six different page files, at 6s on two of them and 7s on the rest,
+         applied three different ways — a .breathe class on the container, a
+         .breathe img/video pair, and a raw style="animation: ..." attribute on
+         two Mool images. Six copies of one idea, none of which agreed, and no
+         way to change the timing without editing six files.
+
+         The amplitude is deliberately below the threshold at which you can see
+         it happening: 0.6% of scale and three pixels of lift over nine
+         seconds. You should register that the image is alive, not that it is
+         animating. It was 0.8% over 6-7s, which on a 1700px-wide plate is a
+         visible pump.
+
+         AND IT STOPS FOR REDUCED MOTION. None of the six copies did. An
+         infinite animation with no guard is the exact case that switch exists
+         for, and it was running on every visitor who had asked for less. */
+      @keyframes projBreathe {
+        0%,
+        100% {
+          transform: scale(1) translateY(0);
+        }
+        50% {
+          transform: scale(1.006) translateY(-3px);
+        }
+      }
+      .breathe img,
+      .breathe video {
+        animation: projBreathe var(--media-breathe) ease-in-out infinite;
+        will-change: transform;
+      }
+      /* ── ONE GUARD FOR EVERY LOOP IN A CASE STUDY ─────────────────────────
+         Not just .breathe. Pages declare their own infinite decorative
+         animations too — cube-guy runs driftLeft and driftRight on its
+         conception grids at 7s, 9s and 11s, and Mind Your Feelings sways its
+         brain — and not one of them checked this setting. Scoped to media and
+         grid cells rather than to everything, so a reveal or a focus ring is
+         untouched, and !important because the page-level declarations it has
+         to beat are themselves !important. */
+      @media (prefers-reduced-motion: reduce) {
+        .case-story img,
+        .case-story video,
+        .case-story .cs-grid-item,
+        .breathe img,
+        .breathe video {
+          animation: none !important;
+        }
       }
 
       html[data-theme="light"] .hero-recruiter-brief {
@@ -6817,7 +6979,7 @@
   })();
 </script> <main id="main"> <header class="proj-hero proj-hero--artifact"> <img class="hero-video" src="/assets/img/fairview/cover.webp" alt="M Health Fairview" loading="eager" fetchpriority="high"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title" data-livetype data-livetype-zone=".proj-hero, section, main" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="150"> M Health Fairview </h1> </div> <aside class="hero-recruiter-brief" aria-label="Project at a glance"> <span class="hero-brief-shade" aria-hidden="true"></span> <p class="hero-brief-label">At a glance</p> <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">Healthcare · Enterprise UX</span></p> <p class="hero-brief-fact hero-brief-fact--role"> <span class="hero-brief-key">Role</span><span class="hero-brief-value">Product Designer · Deloitte Digital for M Health Fairview</span> </p> <p class="hero-brief-fact"> <span class="hero-brief-key">Proof</span><span class="hero-brief-value">$13.6M+ · revenue through scheduling</span> </p> <a class="hero-brief-jump" href="#case-archive">Skim visual story</a> </aside> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Partner</p> <p class="meta-v"> Deloitte Digital </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> M Health Fairview </p> </div> <div class="meta-item"> <p class="meta-k">Timeline</p> <p class="meta-v"> 2 sprints </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2024 </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Redesigned M Health Fairview's care discovery and scheduling into one urgency sorted journey with Deloitte Digital, lifting scheduling revenue and moving routine demand away from the emergency room. </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">$13.6M+</p> <p class="proj-highlight-label">revenue through scheduling</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">32%</p> <p class="proj-highlight-label">more new patients scheduling</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">4.4</p> <p class="proj-highlight-label">top rated care app</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <nav class="case-chapter-map" id="case-chapter-map" aria-label="Visual story chapters" hidden></nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <div class="proj-body" id="case-archive"> <style>
   @keyframes fvBreathe { 0%,100%{transform:scale(1) translateY(0);} 50%{transform:scale(1.006) translateY(-2px);} }
-</style> <p class="cube-cap cube-cap--above">The requirement. Deloitte Digital broke down the problem areas with M Health Fairview, a booking journey that was hard to follow, care types that were not centralised, and a push to move patients toward virtual and preventive care.</p> <div class="cs-bleed"><img src="/assets/img/fairview/01-requirements.webp" alt="Client requirements and problems to solve" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">The problem, and the audit. Business needs, user needs and a heuristic read of the live site: a broken booking flow, redundant links, unclear hierarchy and a misleading Emergency Care call to action.</p> <div class="cs-grid cs-grid--fit"> <div class="cs-grid-item"><img src="/assets/img/fairview/02-needs.webp" alt="Business needs, user needs and heuristic analysis" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/assets/img/fairview/03-audit.webp" alt="Annotated heuristic audit of the existing site" loading="lazy" decoding="async"></div> </div> <p class="cube-cap cube-cap--above">What we had to work within, and what we found. A third party MyChart scheduling API, two sprints, an offshore team that could not observe Minnesota patients in real time, and a competitive teardown of how other health systems handle the same journey.</p> <div class="cs-grid cs-grid--fit"> <div class="cs-grid-item"><img src="/assets/img/fairview/04-constraints.webp" alt="Project constraints" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/assets/img/fairview/05-research.webp" alt="Secondary research, ideation and initial concepts" loading="lazy" decoding="async"></div> </div> <p class="cube-cap cube-cap--above">Before and after. Every action pulled into the first fold and sorted by urgency, with new entry points for labs, checkups and promotions.</p> <div class="cs-bleed"><img src="/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">What it did. Clearer paths turned the same demand into $13.6M in scheduling revenue, a 22 percent rise in e-visits and 32 percent more new patients booking for themselves.</p> <div class="cs-bleed" style="text-align:center;"><img src="/assets/img/fairview/13-impact.webp" alt="Our impact, key metrics" loading="lazy" style="animation:fvBreathe 6s ease-in-out infinite;" decoding="async"></div> <p class="cube-cap cube-cap--above">The new entry point. Helping you choose the right care, one clear place to start with same day and scheduled paths.</p> <div class="cs-bleed"><video width="1200" height="674" autoplay="" muted="" loop="" playsinline="" preload="none" poster="/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="/assets/img/fairview/07-choose.mp4" type="video/mp4"></source></video></div> <p class="cube-cap cube-cap--above">Get Care Today and Schedule Your Care. Immediate needs and later appointments separated into two calm, self explaining paths.</p> <div class="cs-bleed"><img src="/assets/img/fairview/08-getcare.webp" alt="Get Care Today and Schedule Your Care" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">Care types, compared. Every care type set side by side by cost, wait, what it treats and whether you can stay at home.</p> <div class="cs-bleed"><img src="/assets/img/fairview/09-comparison.webp" alt="Side by side comparison of every care type by cost, wait and what it treats" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">The specialty icons themselves, designed and animated by hand. The same set that powers the specialty finder, each one built to move.</p> <div class="cs-bleed"><video width="1600" height="908" src="/assets/img/fairview/specialty-icons.mp4" poster="/assets/img/fairview/specialty-icons-poster.webp" autoplay="" muted="" loop="" playsinline="" preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div> <p class="cube-cap cube-cap--above">Choosing a care type. Routine preventive, primary and specialty care surfaced as three clear routes.</p> <div class="cs-bleed"><img src="/assets/img/fairview/10-caretypes.gif" alt="Care type selection in motion" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">Being guided, and arriving ready. A conversational helper for patients who would rather be led than browse, and clear before and after visit guidance.</p> <div class="cs-grid cs-grid--fit"> <div class="cs-grid-item"><video width="796" height="1126" autoplay="" muted="" loop="" playsinline="" preload="none" poster="/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="/assets/img/fairview/11-assistant.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><img src="/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async"></div> </div> </div> </div> </div> <style>
+</style> <p class="cube-cap cube-cap--above">The requirement, broken down with Deloitte Digital.</p> <div class="cs-bleed"><img src="/assets/img/fairview/01-requirements.webp" alt="Client requirements and problems to solve" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">The audit: a broken booking flow, and a misleading Emergency Care button.</p> <div class="cs-grid cs-grid--fit"> <div class="cs-grid-item"><img src="/assets/img/fairview/02-needs.webp" alt="Business needs, user needs and heuristic analysis" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/assets/img/fairview/03-audit.webp" alt="Annotated heuristic audit of the existing site" loading="lazy" decoding="async"></div> </div> <p class="cube-cap cube-cap--above">The constraints: a third party API, two sprints, no access to patients.</p> <div class="cs-grid cs-grid--fit"> <div class="cs-grid-item"><img src="/assets/img/fairview/04-constraints.webp" alt="Project constraints" loading="lazy" decoding="async"></div> <div class="cs-grid-item"><img src="/assets/img/fairview/05-research.webp" alt="Secondary research, ideation and initial concepts" loading="lazy" decoding="async"></div> </div> <p class="cube-cap cube-cap--above">Before and after. Every action in the first fold, sorted by urgency.</p> <div class="cs-bleed"><img src="/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">$13.6M in scheduling revenue, and 32% more new patients booking themselves.</p> <div class="cs-bleed" style="text-align:center;"><img src="/assets/img/fairview/13-impact.webp" alt="Our impact, key metrics" loading="lazy" style="animation:fvBreathe 6s ease-in-out infinite;" decoding="async"></div> <p class="cube-cap cube-cap--above">The new entry point. One clear place to start.</p> <div class="cs-bleed"><video width="1200" height="674" autoplay="" muted="" loop="" playsinline="" preload="none" poster="/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="/assets/img/fairview/07-choose.mp4" type="video/mp4"></source></video></div> <p class="cube-cap cube-cap--above">Get Care Today and Schedule Your Care, separated into two paths.</p> <div class="cs-bleed"><img src="/assets/img/fairview/08-getcare.webp" alt="Get Care Today and Schedule Your Care" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">Care types compared by cost, wait and what they treat.</p> <div class="cs-bleed"><img src="/assets/img/fairview/09-comparison.webp" alt="Side by side comparison of every care type by cost, wait and what it treats" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">The specialty icons, designed and animated by hand.</p> <div class="cs-bleed"><video width="1600" height="908" src="/assets/img/fairview/specialty-icons.mp4" poster="/assets/img/fairview/specialty-icons-poster.webp" autoplay="" muted="" loop="" playsinline="" preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div> <p class="cube-cap cube-cap--above">Choosing a care type. Routine preventive, primary and specialty care surfaced as three clear routes.</p> <div class="cs-bleed"><img src="/assets/img/fairview/10-caretypes.gif" alt="Care type selection in motion" loading="lazy" decoding="async"></div> <p class="cube-cap cube-cap--above">A helper for patients who would rather be led than browse.</p> <div class="cs-grid cs-grid--fit"> <div class="cs-grid-item"><video width="796" height="1126" autoplay="" muted="" loop="" playsinline="" preload="none" poster="/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="/assets/img/fairview/11-assistant.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><img src="/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async"></div> </div> </div> </div> </div> <style>
   [data-reveal] {
     opacity: 0;
     transform: translateY(18px);

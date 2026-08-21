@@ -1383,9 +1383,46 @@
         display: grid;
         grid-template-columns: minmax(132px, 158px) minmax(0, 1fr);
         gap: clamp(28px, 3vw, 48px);
-        max-width: min(1680px, 94vw);
+        /* ══ THE MEDIA SYSTEM ══════════════════════════════════════════════
+           Sid: "make sure we are having nice grids and wider images than we
+           had last time ... take a call on whether curved edges or no curve
+           and whether we have motion breathing for certain images ... make
+           sure all work details follow same styling."
+
+           Measured at 1920 before this: the picture was 1372px inside a 1920
+           frame. The shell capped at 1680, took 76.8px of padding a side, and
+           the media sat inside that — 307px of margin before the image starts,
+           16% of the screen, on a page whose entire job is showing pictures.
+
+           The cap comes up to 1880/96vw and the media claims back half the
+           shell's padding (see .cs-bleed below), which is about +7% at 1440
+           and +16% at 1920 without letting go of the frame. Prose is
+           unaffected: .cs-body has its own 640px measure and never read this. */
+        max-width: min(1880px, 96vw);
         margin: 0 auto;
         padding: 46px var(--gutter) 0;
+      }
+
+      /* Two tokens, declared once, read by every visual on all sixteen case
+         studies. The inconsistency they replace was not a styling slip, it was
+         the absence of anywhere to put the decision.
+
+         --media-radius  THE CALL ON CURVE: curved, but far less. It was
+                         clamp(18px, 2vw, 30px) — 28.8px at 1440 — set with an
+                         !important in a late override block. At the width these
+                         run, 29px stops reading as a considered edge and starts
+                         reading as a card: the picture looks like a component
+                         rather than a plate. Removing the curve entirely was
+                         the other option and it is wrong for this site, whose
+                         whole surface language is soft. 8px is the size at
+                         which the corner is a decision you notice only if you
+                         go looking for it.
+
+         --media-breathe THE CALL ON MOTION: yes, but rare and opt-in. See
+                         .breathe below. */
+      .case-story {
+        --media-radius: 8px;
+        --media-breathe: 9s;
       }
       .case-context {
         position: sticky;
@@ -1467,20 +1504,43 @@
       /* Every visual now belongs to the media rail. The !important rules also
          normalize older per-page inline margins, which were the source of the
          inconsistent oversized visual treatment. */
+      /* ── THE MEDIA IS WIDER THAN THE COLUMN IT SITS IN ────────────────────
+         This block is what actually decides media width — it is the last
+         !important on the cascade, so the base .cs-bleed rule above has been
+         inert for a long time. Changing it here rather than adding a sixth
+         competing rule underneath.
+
+         Was width: 100% with the margins zeroed, which left the picture inside
+         the shell's own --gutter padding. Measured at 1920 that put 307px of
+         margin either side of the image — 16% of the screen — on a page whose
+         only job is showing pictures.
+
+         Each media block now claims back half that padding on each side. Half
+         rather than all: a full breakout puts the image hard against the type
+         above it, and the frame is what makes a picture read as a plate rather
+         than as a background. About +7% at 1440 and +16% at 1920.
+
+         .cs-body and .cs-intro are deliberately not in this list. They keep
+         the shell's padding, which is what holds the reading column where it
+         has always been, and .cs-body has its own 640px measure anyway. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
       .case-story .cs-grid-3,
       .case-story .cs-split,
       .case-story .cs-pair {
-        width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        width: calc(100% + var(--gutter)) !important;
+        margin-left: calc(var(--gutter) * -0.5) !important;
+        margin-right: calc(var(--gutter) * -0.5) !important;
       }
+      /* margin-TOP only. This used to be a `margin` shorthand, which reset the
+         horizontal breakout above every time it was applied. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
-      .case-story .cs-grid-3 { margin-top: 28px !important; }
+      .case-story .cs-grid-3 {
+        margin-top: 28px !important;
+      }
       .case-story .cs-bleed {
         aspect-ratio: 16 / 10;
         /* Raised with the column. 64vh/640px was cropping the frame before
@@ -1665,6 +1725,16 @@
       .film-grid--no-top {
         margin-top: 0 !important;
       }
+      /* ── THE MEDIA IS WIDER THAN THE COLUMN IT SITS IN ────────────────
+         The shell already pads by --gutter so its prose has a margin. A
+         picture does not want that margin at the same strength, so every media
+         block pulls back half of it on each side. Half rather than all: a full
+         breakout puts the image hard against the type above it, and the frame
+         is what makes a picture read as a plate rather than as a background.
+
+         The three media containers only. .cs-body and .cs-intro keep the
+         shell's padding, which is what holds the reading column where it has
+         always been. */
       .cs-bleed {
         margin: 36px var(--gutter) 0;
         width: calc(100% - var(--gutter) * 2);
@@ -1736,6 +1806,12 @@
       .cs-grid {
         margin: 36px var(--gutter) 0;
         display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        /* Cells size themselves rather than stretching to the tallest in the
+           row. Stretch is the grid default and it is why a 16:9 plate beside a
+           taller one left a band of empty background under the shorter of the
+           two: the cell grew, the picture inside it did not. A ragged bottom
+           edge is what an editorial grid does; a black gap is a bug. */
+        align-items: start;
         position: relative;
         content-visibility: auto;
         contain-intrinsic-size: auto 480px;
@@ -2768,12 +2844,23 @@
       .cs-section.is-visible .cs-section-label { opacity: 1; }
 
       /* ─── CAPTIONS (global) ─── */
+      /* ── THE DEFAULT WAS WRONG, SO EVERY PAGE CORRECTED IT ────────────────
+         margin was 0, and all THIRTEEN case studies that carry a <style> block
+         set `.cube-cap { margin: 40px 0 0 }` in their own file. The same
+         declaration, thirteen times, because the shared value did not match
+         what any page actually wanted. Same story for the two adjacency rules
+         below: twelve pages each overrode 8px to 12px, and twelve overrode
+         16px to 8px.
+
+         The fix is not a fourteenth override. It is to make the default the
+         thing everyone had already independently agreed on, and delete the
+         copies — which is the whole argument for having a default at all. */
       .cube-cap {
         font-family: var(--font-mono);
         font-size: 13px;
         color: var(--ink-4);
         padding: 8px var(--gutter) 0;
-        margin: 0;
+        margin: 40px 0 0;
         line-height: 1.5;
       }
       .cube-cap em { font-style: italic; }
@@ -2838,10 +2925,16 @@
       html[data-theme="light"] .cube-cap--above::before {
         color: var(--accent-ink);
       }
-      .cube-cap--above + .cs-grid { margin-top: 8px; }
-      .cube-cap--above + .cs-bleed { margin-top: 8px; }
-      .cube-cap--above + .cs-bleed-full { margin-top: 8px; }
-      .cube-cap + .cs-bleed { margin-top: 16px; }
+      /* A caption above its image sits closer to it than one below, because
+         above it is a title and below it is an afterword. 12 and 8, which is
+         what twelve pages each wrote out by hand. */
+      .cube-cap--above + .cs-grid,
+      .cube-cap--above + .cs-grid-3,
+      .cube-cap--above + .cs-bleed,
+      .cube-cap--above + .cs-bleed-full { margin-top: 12px; }
+      .cube-cap + .cs-bleed,
+      .cube-cap + .cs-grid,
+      .cube-cap + .cs-grid-3 { margin-top: 8px; }
       .cs-grid + .cs-bleed { margin-top: 24px; }
 
       /* ─── cs-intro (global base) ─── */
@@ -3230,6 +3323,17 @@
       }
       .case-chapter-map__link.is-current::before { color: var(--accent); }
       .case-rail { display: none; }
+      /* ── AND THIS IS THE ONE THAT ACTUALLY WINS ────────────────────────────
+         Three rules in this file set the width of the same six selectors, all
+         with !important, at identical specificity. The last one in source order
+         takes it, which is this one — so the two above have been decorative for
+         as long as it has existed, and the earlier of them is what anyone
+         looking for "why is the image this wide" would have found and edited.
+         All three are corrected; this is the one that does the work.
+
+         Same breakout: half the shell's gutter reclaimed on each side, with
+         margin-top declared on its own so the shorthand cannot reset the
+         horizontal values a second time. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
@@ -3237,8 +3341,10 @@
       .case-story .cs-split,
       .case-story .cs-pair,
       .case-story .cs-bleed-full {
-        width: 100% !important;
-        margin: 32px 0 0 !important;
+        width: calc(100% + var(--gutter)) !important;
+        margin-top: 32px !important;
+        margin-left: calc(var(--gutter) * -0.5) !important;
+        margin-right: calc(var(--gutter) * -0.5) !important;
       }
       .case-story .cs-bleed,
       .case-story .cs-wide-inner,
@@ -4350,7 +4456,63 @@
 
       .case-story img,
       .case-story video {
-        border-radius: clamp(18px, 2vw, 30px) !important;
+        border-radius: var(--media-radius) !important;
+      }
+
+      /* ══ THE CALL ON MOTION ════════════════════════════════════════════════
+         Sid: "whether we have motion breathing for certain images or what."
+
+         Yes, and rarely. A still that drifts forever is a screensaver, and a
+         page where every picture is moving has no way left to say "look at
+         this one". So it stays an opt-in class on the lead visual of a section
+         and nothing else — at most two or three on a page.
+
+         What this replaces: @keyframes projBreathe was declared separately in
+         six different page files, at 6s on two of them and 7s on the rest,
+         applied three different ways — a .breathe class on the container, a
+         .breathe img/video pair, and a raw style="animation: ..." attribute on
+         two Mool images. Six copies of one idea, none of which agreed, and no
+         way to change the timing without editing six files.
+
+         The amplitude is deliberately below the threshold at which you can see
+         it happening: 0.6% of scale and three pixels of lift over nine
+         seconds. You should register that the image is alive, not that it is
+         animating. It was 0.8% over 6-7s, which on a 1700px-wide plate is a
+         visible pump.
+
+         AND IT STOPS FOR REDUCED MOTION. None of the six copies did. An
+         infinite animation with no guard is the exact case that switch exists
+         for, and it was running on every visitor who had asked for less. */
+      @keyframes projBreathe {
+        0%,
+        100% {
+          transform: scale(1) translateY(0);
+        }
+        50% {
+          transform: scale(1.006) translateY(-3px);
+        }
+      }
+      .breathe img,
+      .breathe video {
+        animation: projBreathe var(--media-breathe) ease-in-out infinite;
+        will-change: transform;
+      }
+      /* ── ONE GUARD FOR EVERY LOOP IN A CASE STUDY ─────────────────────────
+         Not just .breathe. Pages declare their own infinite decorative
+         animations too — cube-guy runs driftLeft and driftRight on its
+         conception grids at 7s, 9s and 11s, and Mind Your Feelings sways its
+         brain — and not one of them checked this setting. Scoped to media and
+         grid cells rather than to everything, so a reveal or a focus ring is
+         untouched, and !important because the page-level declarations it has
+         to beat are themselves !important. */
+      @media (prefers-reduced-motion: reduce) {
+        .case-story img,
+        .case-story video,
+        .case-story .cs-grid-item,
+        .breathe img,
+        .breathe video {
+          animation: none !important;
+        }
       }
 
       html[data-theme="light"] .hero-recruiter-brief {
@@ -6823,8 +6985,18 @@
   .cs-grid-item img, .cs-grid-item video { object-fit: contain !important; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
-  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; margin-left: 0 !important; margin-right: 0 !important; }
-  .cs-grid-3 { padding: 0 !important; margin-left: 0 !important; margin-right: 0 !important; }
+  /* margin-left/right: 0 was here on both, which opted this page out of the
+     media breakout every other case study uses and left its grids sitting 13px
+     inside the plates above and below them. Padding still zeroed; the
+     horizontal position is the system's to decide. */
+  .cs-grid {
+    gap: 16px !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+  }
+  .cs-grid-3 {
+    padding: 0 !important;
+  }
   .cs-bleed { margin-top: 40px !important; }
   .cs-bleed + .cs-bleed { margin-top: 16px !important; }
   .cs-grid { margin-top: 40px !important; }
@@ -6832,11 +7004,6 @@
   .cs-bleed + .cs-grid { margin-top: 16px !important; }
 
   /* Section dividers use global template styling */
-
-  /* Captions */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
 
   /* Conception grids: fixed height, cover to fill, slow drift */
   .cs-grid, .cs-grid-3 {
@@ -6871,12 +7038,7 @@
   .film-grid .cs-grid-item:nth-child(1), .film-grid .cs-grid-item:nth-child(2) { animation: none; }
   .film-grid--no-top { margin-top: 0 !important; }
   .cs-grid--left-heavy { grid-template-columns: 3fr 2fr; }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
-</style> <div class="cs-bleed"> <img src="/2.cube/conception/0.webp" alt="The cube guy in six colours, beside a portrait" style="object-fit: contain; animation: projBreathe 7s ease-in-out infinite;" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p> <div class="cs-bleed"> <img src="/2.cube/conception/1.webp" alt="The 11.2 km/s cube, and the same mark tattooed on a forearm" style="object-fit: contain;" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/2.cube/conception/2.png" alt="The cube unfolding, in white on black" style="object-fit: contain;" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p> <div class="cs-grid"> <div class="cs-grid-item"> <img src="/2.cube/conception/6.1.webp" alt="A sketchbook spread, drawn edge to edge" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/6.2.webp" alt="A crowd of cube-headed figures in colour study" loading="lazy" decoding="async"> </div> </div> <div class="cs-grid-3"> <div class="cs-grid-item"> <img src="/2.cube/conception/7.1.webp" alt="A painted page of cube-headed figures" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/7.2.webp" alt="A notebook page working out who the character is: truth, thought, energy" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/7.3.jpg" alt="A watercolour of the cube opening between two mountains" loading="lazy" decoding="async"> </div> </div> <div class="cs-grid"> <div class="cs-grid-item"> <img src="/2.cube/conception/7.4.webp" alt="Be true: the figure drawn against a Mondrian grid" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/7.5.webp" alt="Why do I play this game: hands holding an open cube" loading="lazy" decoding="async"> </div> </div> <div class="cs-grid-3"> <div class="cs-grid-item"> <img src="/2.cube/conception/8.2.webp" alt="A pencil crowd scene from the sketchbook" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="object-fit: cover; object-position: top center;"> <source data-src="/2.cube/conception/8.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/8.3.webp" alt="The cube guy taking off, painted in red and blue" loading="lazy" decoding="async"> </div> </div> <div class="cs-bleed"> <video width="1440" height="1018" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/conception/9.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-3"> <div class="cs-grid-item"> <img src="/2.cube/conception/10.1.webp" alt="A screen of the character system: thought, conversation mirroring, and the pattern set" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/10.2.webp" alt="A paper-cut city in magenta light" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/conception/10.3.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Film</h2> </div> <div class="cs-bleed"> <img src="/2.cube/short%20film%20hd/0.webp" alt="A frame from the short film: sitting on a rooftop above a valley. I lost myself, to find my self" style="object-fit: contain;" loading="lazy" decoding="async"> </div> <div class="cs-intro"> <span class="intro-overview-label">Short Film · 2022</span> <div class="cs-body"> <p>Squarube. An alien square lands on Earth looking for purpose. He observes three humans, collects their insights, and adds a side with each one. Six minutes. The first time years of sketches became something you could actually watch.</p> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>An alien square. Lives on a planet of two-dimensional beings. Flat, contained, known.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/2.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/2.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>He leaves. Comes to Earth searching for meaning. Finds three humans and follows them.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/3.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="812" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/3.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Each human gives him something. Six insights. Each one adds a side.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1080" height="1080" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/5.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/5.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/6.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1080" height="1080" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/6.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1316" height="1022" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/7.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/7.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/8.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1080" height="1080" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/8.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1038" height="1038" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/9.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/9.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/11.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1076" height="1076" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/11.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/12.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/12.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Six sides complete. The square becomes a cube. A new dimension added to his life.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/short%20film%20hd/13.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed-full"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/1.mp4" type="video/mp4"></source> </video> </div> <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);"> <a href="https://www.youtube.com/watch?v=fl8L5V_pOUU" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Full Film<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-section"> <h2 class="cs-section-label">2D Game</h2> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-intro"> <span class="intro-overview-label">2D Game · 2021</span> <div class="cs-body"> <p>The character brought into an interactive world. A 2D platformer built from scratch, the same square from the film, now something you could actually play. Personalized to the player, populated with distractions, ending in a boss fight with Doubt itself.</p> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The game in motion. The world the character walks through.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/2.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/2.3.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Sketches given motion. Flat drawings turned into a character you could actually play.</em></p> <div class="cs-grid film-grid cs-grid--left-heavy"> <div class="cs-grid-item"> <img src="/2.cube/2d/3.1.webp" alt="The character in twelve material treatments" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <video width="952" height="1538" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/3.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/4.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/5.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/5.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Distractions given shape. The things that pull you off course become obstacles to dodge.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="560" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/7.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/7.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="818" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/8.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The enemies borrowed from memory. Characters already lodged in the brain, now in your way.</em></p> <div class="cs-bleed"> <video width="1440" height="874" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/9.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/10.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Clip from the boss battle. A fight with Doubt.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/11.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/12.mp4" type="video/mp4"></source> </video> </div> <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);"> <a href="https://mehatey.github.io/game_final/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 28px 16px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Play Game<span class="xarrow" aria-hidden="true"></span></a> <a href="https://github.com/Mehatey/game_final" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">GitHub<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-section"> <h2 class="cs-section-label">3D Game</h2> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/0.mp4" type="video/mp4"></source> </video> </div> <div class="cs-intro"> <span class="intro-overview-label">3D Game · 2024</span> <div class="cs-body"> <p>The same character, now fully three-dimensional. Built in Unreal Engine. What started as a sketch on paper had become a film, then a 2D game, and now a world you could actually walk through.</p> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The flat drawings taken into a new dimension. The character rebuilt in Meshy AI, given volume, weight, and shadow for the first time.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/2.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Different worlds tried on. Mirror-like spaces and distorted geometry, looking for a place that felt like the inside of a mind.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <img src="/2.cube/3d/3.webp" alt="Building the world: the paper model, the node graph, the lit set and the wireframe" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/3d/3.1.webp" alt="The finished game world, seen from above" loading="lazy" decoding="async"> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The chosen scene. The one that stayed.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/5.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The game begins. Six years of a character, now something you can move through.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/6.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/7.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/3d/9.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/3d/9.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/3d/10.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/3d/10.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/11.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/12.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Congratulations. Your inner child has been found and integrated. The square became a cube. The cube found its world.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/13.mp4" type="video/mp4"></source> </video> </div> <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);"> <a href="https://www.youtube.com/watch?v=2q1UYA1BzR0" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Walkthrough<span class="xarrow" aria-hidden="true"></span></a> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Meh thanks you for staying till the end.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/end%20of%20cube%20.mp4" type="video/mp4"></source> </video> </div> </div> </div> </div> <style>
+</style> <div class="cs-bleed"> <img class="breathe" src="/2.cube/conception/0.webp" alt="The cube guy in six colours, beside a portrait" style="object-fit: contain" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>11.2 km/s is Earth's escape velocity.</em></p> <div class="cs-bleed"> <img src="/2.cube/conception/1.webp" alt="The 11.2 km/s cube, and the same mark tattooed on a forearm" style="object-fit: contain;" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/2.cube/conception/2.png" alt="The cube unfolding, in white on black" style="object-fit: contain;" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p> <div class="cs-grid"> <div class="cs-grid-item"> <img src="/2.cube/conception/6.1.webp" alt="A sketchbook spread, drawn edge to edge" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/6.2.webp" alt="A crowd of cube-headed figures in colour study" loading="lazy" decoding="async"> </div> </div> <div class="cs-grid-3"> <div class="cs-grid-item"> <img src="/2.cube/conception/7.1.webp" alt="A painted page of cube-headed figures" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/7.2.webp" alt="A notebook page working out who the character is: truth, thought, energy" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/7.3.jpg" alt="A watercolour of the cube opening between two mountains" loading="lazy" decoding="async"> </div> </div> <div class="cs-grid"> <div class="cs-grid-item"> <img src="/2.cube/conception/7.4.webp" alt="Be true: the figure drawn against a Mondrian grid" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/7.5.webp" alt="Why do I play this game: hands holding an open cube" loading="lazy" decoding="async"> </div> </div> <div class="cs-grid-3"> <div class="cs-grid-item"> <img src="/2.cube/conception/8.2.webp" alt="A pencil crowd scene from the sketchbook" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="object-fit: cover; object-position: top center;"> <source data-src="/2.cube/conception/8.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/8.3.webp" alt="The cube guy taking off, painted in red and blue" loading="lazy" decoding="async"> </div> </div> <div class="cs-bleed"> <video width="1440" height="1018" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/conception/9.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-3"> <div class="cs-grid-item"> <img src="/2.cube/conception/10.1.webp" alt="A screen of the character system: thought, conversation mirroring, and the pattern set" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/conception/10.2.webp" alt="A paper-cut city in magenta light" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/conception/10.3.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Film</h2> </div> <div class="cs-bleed"> <img src="/2.cube/short%20film%20hd/0.webp" alt="A frame from the short film: sitting on a rooftop above a valley. I lost myself, to find my self" style="object-fit: contain;" loading="lazy" decoding="async"> </div> <div class="cs-intro"> <span class="intro-overview-label">Short Film · 2022</span> <div class="cs-body"> <p>Squarube. An alien square lands on Earth looking for purpose. He observes three humans, collects their insights, and adds a side with each one. Six minutes. The first time years of sketches became something you could actually watch.</p> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>An alien square. Lives on a planet of two-dimensional beings. Flat, contained, known.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/2.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/2.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>He leaves. Comes to Earth searching for meaning. Finds three humans and follows them.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/3.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="812" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/3.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Each human gives him something. Six insights. Each one adds a side.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1080" height="1080" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/5.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/5.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/6.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1080" height="1080" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/6.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1316" height="1022" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/7.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/7.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/8.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1080" height="1080" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/8.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1038" height="1038" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/9.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/9.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/11.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1076" height="1076" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/11.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/12.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/12.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Six sides complete. The square becomes a cube. A new dimension added to his life.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/short%20film%20hd/13.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed-full"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/short%20film%20hd/1.mp4" type="video/mp4"></source> </video> </div> <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);"> <a href="https://www.youtube.com/watch?v=fl8L5V_pOUU" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Full Film<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-section"> <h2 class="cs-section-label">2D Game</h2> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-intro"> <span class="intro-overview-label">2D Game · 2021</span> <div class="cs-body"> <p>The character brought into an interactive world. A 2D platformer built from scratch, the same square from the film, now something you could actually play. Personalized to the player, populated with distractions, ending in a boss fight with Doubt itself.</p> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The game in motion. The world the character walks through.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/2.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/2.3.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Sketches given motion. Flat drawings turned into a character you could actually play.</em></p> <div class="cs-grid film-grid cs-grid--left-heavy"> <div class="cs-grid-item"> <img src="/2.cube/2d/3.1.webp" alt="The character in twelve material treatments" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <video width="952" height="1538" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/3.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/4.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Before it starts, it asks you who you are. Your answers shape the world you walk through.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/5.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/5.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Distractions given shape. The things that pull you off course become obstacles to dodge.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="560" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/7.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/2d/7.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="818" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/8.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The enemies borrowed from memory. Characters already lodged in the brain, now in your way.</em></p> <div class="cs-bleed"> <video width="1440" height="874" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/9.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/10.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Clip from the boss battle. A fight with Doubt.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/11.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/2d/12.mp4" type="video/mp4"></source> </video> </div> <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);"> <a href="https://mehatey.github.io/game_final/" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 28px 16px 0;margin-right:28px;border-right:1px solid rgba(255,255,255,0.07);white-space:nowrap;text-decoration:none;transition:color 0.2s;">Play Game<span class="xarrow" aria-hidden="true"></span></a> <a href="https://github.com/Mehatey/game_final" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">GitHub<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-section"> <h2 class="cs-section-label">3D Game</h2> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/0.mp4" type="video/mp4"></source> </video> </div> <div class="cs-intro"> <span class="intro-overview-label">3D Game · 2024</span> <div class="cs-body"> <p>The same character, now fully three-dimensional. Built in Unreal Engine. What started as a sketch on paper had become a film, then a 2D game, and now a world you could actually walk through.</p> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The flat drawings given volume, weight and shadow for the first time.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/2.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Worlds tried on, looking for one that felt like the inside of a mind.</em></p> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <img src="/2.cube/3d/3.webp" alt="Building the world: the paper model, the node graph, the lit set and the wireframe" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/2.cube/3d/3.1.webp" alt="The finished game world, seen from above" loading="lazy" decoding="async"> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The chosen scene. The one that stayed.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/5.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The game begins. Six years of a character, now something you can move through.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/6.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/7.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid film-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/3d/9.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/3d/9.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid film-grid film-grid--no-top"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/3d/10.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/2.cube/3d/10.2.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/11.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/12.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The square became a cube. The cube found its world.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/3d/13.mp4" type="video/mp4"></source> </video> </div> <div style="display:flex;gap:0;margin:40px var(--gutter) 0;border-top:1px solid rgba(255,255,255,0.07);border-bottom:1px solid rgba(255,255,255,0.07);"> <a href="https://www.youtube.com/watch?v=2q1UYA1BzR0" target="_blank" rel="noopener" class="cs-watch-link" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:rgba(255,255,255,0.56);padding:16px 0;white-space:nowrap;text-decoration:none;transition:color 0.2s;">Watch Walkthrough<span class="xarrow" aria-hidden="true"></span></a> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Meh thanks you for staying till the end.</em></p> <div class="cs-bleed cs-bleed--no-fade"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none" style="width:100%;display:block;"> <source data-src="/2.cube/end%20of%20cube%20.mp4" type="video/mp4"></source> </video> </div> </div> </div> </div> <style>
   [data-reveal] {
     opacity: 0;
     transform: translateY(18px);

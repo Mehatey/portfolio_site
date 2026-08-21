@@ -1383,9 +1383,46 @@
         display: grid;
         grid-template-columns: minmax(132px, 158px) minmax(0, 1fr);
         gap: clamp(28px, 3vw, 48px);
-        max-width: min(1680px, 94vw);
+        /* ══ THE MEDIA SYSTEM ══════════════════════════════════════════════
+           Sid: "make sure we are having nice grids and wider images than we
+           had last time ... take a call on whether curved edges or no curve
+           and whether we have motion breathing for certain images ... make
+           sure all work details follow same styling."
+
+           Measured at 1920 before this: the picture was 1372px inside a 1920
+           frame. The shell capped at 1680, took 76.8px of padding a side, and
+           the media sat inside that — 307px of margin before the image starts,
+           16% of the screen, on a page whose entire job is showing pictures.
+
+           The cap comes up to 1880/96vw and the media claims back half the
+           shell's padding (see .cs-bleed below), which is about +7% at 1440
+           and +16% at 1920 without letting go of the frame. Prose is
+           unaffected: .cs-body has its own 640px measure and never read this. */
+        max-width: min(1880px, 96vw);
         margin: 0 auto;
         padding: 46px var(--gutter) 0;
+      }
+
+      /* Two tokens, declared once, read by every visual on all sixteen case
+         studies. The inconsistency they replace was not a styling slip, it was
+         the absence of anywhere to put the decision.
+
+         --media-radius  THE CALL ON CURVE: curved, but far less. It was
+                         clamp(18px, 2vw, 30px) — 28.8px at 1440 — set with an
+                         !important in a late override block. At the width these
+                         run, 29px stops reading as a considered edge and starts
+                         reading as a card: the picture looks like a component
+                         rather than a plate. Removing the curve entirely was
+                         the other option and it is wrong for this site, whose
+                         whole surface language is soft. 8px is the size at
+                         which the corner is a decision you notice only if you
+                         go looking for it.
+
+         --media-breathe THE CALL ON MOTION: yes, but rare and opt-in. See
+                         .breathe below. */
+      .case-story {
+        --media-radius: 8px;
+        --media-breathe: 9s;
       }
       .case-context {
         position: sticky;
@@ -1467,20 +1504,43 @@
       /* Every visual now belongs to the media rail. The !important rules also
          normalize older per-page inline margins, which were the source of the
          inconsistent oversized visual treatment. */
+      /* ── THE MEDIA IS WIDER THAN THE COLUMN IT SITS IN ────────────────────
+         This block is what actually decides media width — it is the last
+         !important on the cascade, so the base .cs-bleed rule above has been
+         inert for a long time. Changing it here rather than adding a sixth
+         competing rule underneath.
+
+         Was width: 100% with the margins zeroed, which left the picture inside
+         the shell's own --gutter padding. Measured at 1920 that put 307px of
+         margin either side of the image — 16% of the screen — on a page whose
+         only job is showing pictures.
+
+         Each media block now claims back half that padding on each side. Half
+         rather than all: a full breakout puts the image hard against the type
+         above it, and the frame is what makes a picture read as a plate rather
+         than as a background. About +7% at 1440 and +16% at 1920.
+
+         .cs-body and .cs-intro are deliberately not in this list. They keep
+         the shell's padding, which is what holds the reading column where it
+         has always been, and .cs-body has its own 640px measure anyway. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
       .case-story .cs-grid-3,
       .case-story .cs-split,
       .case-story .cs-pair {
-        width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        width: calc(100% + var(--gutter)) !important;
+        margin-left: calc(var(--gutter) * -0.5) !important;
+        margin-right: calc(var(--gutter) * -0.5) !important;
       }
+      /* margin-TOP only. This used to be a `margin` shorthand, which reset the
+         horizontal breakout above every time it was applied. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
-      .case-story .cs-grid-3 { margin-top: 28px !important; }
+      .case-story .cs-grid-3 {
+        margin-top: 28px !important;
+      }
       .case-story .cs-bleed {
         aspect-ratio: 16 / 10;
         /* Raised with the column. 64vh/640px was cropping the frame before
@@ -1665,6 +1725,16 @@
       .film-grid--no-top {
         margin-top: 0 !important;
       }
+      /* ── THE MEDIA IS WIDER THAN THE COLUMN IT SITS IN ────────────────
+         The shell already pads by --gutter so its prose has a margin. A
+         picture does not want that margin at the same strength, so every media
+         block pulls back half of it on each side. Half rather than all: a full
+         breakout puts the image hard against the type above it, and the frame
+         is what makes a picture read as a plate rather than as a background.
+
+         The three media containers only. .cs-body and .cs-intro keep the
+         shell's padding, which is what holds the reading column where it has
+         always been. */
       .cs-bleed {
         margin: 36px var(--gutter) 0;
         width: calc(100% - var(--gutter) * 2);
@@ -1736,6 +1806,12 @@
       .cs-grid {
         margin: 36px var(--gutter) 0;
         display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        /* Cells size themselves rather than stretching to the tallest in the
+           row. Stretch is the grid default and it is why a 16:9 plate beside a
+           taller one left a band of empty background under the shorter of the
+           two: the cell grew, the picture inside it did not. A ragged bottom
+           edge is what an editorial grid does; a black gap is a bug. */
+        align-items: start;
         position: relative;
         content-visibility: auto;
         contain-intrinsic-size: auto 480px;
@@ -2768,12 +2844,23 @@
       .cs-section.is-visible .cs-section-label { opacity: 1; }
 
       /* ─── CAPTIONS (global) ─── */
+      /* ── THE DEFAULT WAS WRONG, SO EVERY PAGE CORRECTED IT ────────────────
+         margin was 0, and all THIRTEEN case studies that carry a <style> block
+         set `.cube-cap { margin: 40px 0 0 }` in their own file. The same
+         declaration, thirteen times, because the shared value did not match
+         what any page actually wanted. Same story for the two adjacency rules
+         below: twelve pages each overrode 8px to 12px, and twelve overrode
+         16px to 8px.
+
+         The fix is not a fourteenth override. It is to make the default the
+         thing everyone had already independently agreed on, and delete the
+         copies — which is the whole argument for having a default at all. */
       .cube-cap {
         font-family: var(--font-mono);
         font-size: 13px;
         color: var(--ink-4);
         padding: 8px var(--gutter) 0;
-        margin: 0;
+        margin: 40px 0 0;
         line-height: 1.5;
       }
       .cube-cap em { font-style: italic; }
@@ -2838,10 +2925,16 @@
       html[data-theme="light"] .cube-cap--above::before {
         color: var(--accent-ink);
       }
-      .cube-cap--above + .cs-grid { margin-top: 8px; }
-      .cube-cap--above + .cs-bleed { margin-top: 8px; }
-      .cube-cap--above + .cs-bleed-full { margin-top: 8px; }
-      .cube-cap + .cs-bleed { margin-top: 16px; }
+      /* A caption above its image sits closer to it than one below, because
+         above it is a title and below it is an afterword. 12 and 8, which is
+         what twelve pages each wrote out by hand. */
+      .cube-cap--above + .cs-grid,
+      .cube-cap--above + .cs-grid-3,
+      .cube-cap--above + .cs-bleed,
+      .cube-cap--above + .cs-bleed-full { margin-top: 12px; }
+      .cube-cap + .cs-bleed,
+      .cube-cap + .cs-grid,
+      .cube-cap + .cs-grid-3 { margin-top: 8px; }
       .cs-grid + .cs-bleed { margin-top: 24px; }
 
       /* ─── cs-intro (global base) ─── */
@@ -3230,6 +3323,17 @@
       }
       .case-chapter-map__link.is-current::before { color: var(--accent); }
       .case-rail { display: none; }
+      /* ── AND THIS IS THE ONE THAT ACTUALLY WINS ────────────────────────────
+         Three rules in this file set the width of the same six selectors, all
+         with !important, at identical specificity. The last one in source order
+         takes it, which is this one — so the two above have been decorative for
+         as long as it has existed, and the earlier of them is what anyone
+         looking for "why is the image this wide" would have found and edited.
+         All three are corrected; this is the one that does the work.
+
+         Same breakout: half the shell's gutter reclaimed on each side, with
+         margin-top declared on its own so the shorthand cannot reset the
+         horizontal values a second time. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
@@ -3237,8 +3341,10 @@
       .case-story .cs-split,
       .case-story .cs-pair,
       .case-story .cs-bleed-full {
-        width: 100% !important;
-        margin: 32px 0 0 !important;
+        width: calc(100% + var(--gutter)) !important;
+        margin-top: 32px !important;
+        margin-left: calc(var(--gutter) * -0.5) !important;
+        margin-right: calc(var(--gutter) * -0.5) !important;
       }
       .case-story .cs-bleed,
       .case-story .cs-wide-inner,
@@ -4350,7 +4456,63 @@
 
       .case-story img,
       .case-story video {
-        border-radius: clamp(18px, 2vw, 30px) !important;
+        border-radius: var(--media-radius) !important;
+      }
+
+      /* ══ THE CALL ON MOTION ════════════════════════════════════════════════
+         Sid: "whether we have motion breathing for certain images or what."
+
+         Yes, and rarely. A still that drifts forever is a screensaver, and a
+         page where every picture is moving has no way left to say "look at
+         this one". So it stays an opt-in class on the lead visual of a section
+         and nothing else — at most two or three on a page.
+
+         What this replaces: @keyframes projBreathe was declared separately in
+         six different page files, at 6s on two of them and 7s on the rest,
+         applied three different ways — a .breathe class on the container, a
+         .breathe img/video pair, and a raw style="animation: ..." attribute on
+         two Mool images. Six copies of one idea, none of which agreed, and no
+         way to change the timing without editing six files.
+
+         The amplitude is deliberately below the threshold at which you can see
+         it happening: 0.6% of scale and three pixels of lift over nine
+         seconds. You should register that the image is alive, not that it is
+         animating. It was 0.8% over 6-7s, which on a 1700px-wide plate is a
+         visible pump.
+
+         AND IT STOPS FOR REDUCED MOTION. None of the six copies did. An
+         infinite animation with no guard is the exact case that switch exists
+         for, and it was running on every visitor who had asked for less. */
+      @keyframes projBreathe {
+        0%,
+        100% {
+          transform: scale(1) translateY(0);
+        }
+        50% {
+          transform: scale(1.006) translateY(-3px);
+        }
+      }
+      .breathe img,
+      .breathe video {
+        animation: projBreathe var(--media-breathe) ease-in-out infinite;
+        will-change: transform;
+      }
+      /* ── ONE GUARD FOR EVERY LOOP IN A CASE STUDY ─────────────────────────
+         Not just .breathe. Pages declare their own infinite decorative
+         animations too — cube-guy runs driftLeft and driftRight on its
+         conception grids at 7s, 9s and 11s, and Mind Your Feelings sways its
+         brain — and not one of them checked this setting. Scoped to media and
+         grid cells rather than to everything, so a reveal or a focus ring is
+         untouched, and !important because the page-level declarations it has
+         to beat are themselves !important. */
+      @media (prefers-reduced-motion: reduce) {
+        .case-story img,
+        .case-story video,
+        .case-story .cs-grid-item,
+        .breathe img,
+        .breathe video {
+          animation: none !important;
+        }
       }
 
       html[data-theme="light"] .hero-recruiter-brief {
@@ -6829,11 +6991,6 @@
   .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid, .cs-grid + .cs-grid { margin-top: 16px !important; }
 
-  /* Caption attachment to cube-guy globals */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
-
   /* Grid sizing matches cube-guy */
   .cs-grid {
     height: clamp(320px, 50vh, 560px);
@@ -6915,12 +7072,7 @@
   }
   html[data-theme="light"] .bb-process-link-bar a { color: rgba(7,9,15,0.6); }
   html[data-theme="light"] .bb-process-link-bar a:hover { color: #07090f; }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
-</style> <div class="cs-intro"> <div class="cs-body--insight"> <span class="insight-label">Insight</span> <p>285+ responses. 15 street interviews. A quiet thread of human thoughts, gathered in parks and on phones across New York City.</p> </div> </div> <div class="cs-bleed-full"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="auto"> <source src="/5.bb/d8.mp4" type="video/mp4"></source> </video> </div> <div class="cs-section"> <h2 class="cs-section-label">The Stand</h2> </div> <p class="cube-cap cube-cap--above"><em>A Reddit thread titled "places to cry in NYC." People looking for somewhere to feel something without being seen.</em></p> <div class="cs-bleed"> <img src="/5.bb/2.webp" alt="Reddit thread: places to cry in NYC" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/5.bb/3.webp" alt="Research references" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"> <em>What I wanted the space to feel like: quiet enough to think, open enough not to feel alone.</em> </p> <div class="cs-bleed"> <img src="/5.bb/4.webp" alt="Space reference: what it should feel like" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/5.bb/5.webp" alt="The cardboard prototype, the responses plotted by emotion, and a sketch of the stand on a Manhattan street" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/5.bb/6.webp" alt="In the city's rush, we often feel small. This space is an oasis, a break from it all" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/1.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/1.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above"><em>A stop sign already means something. Redeployed not as a warning, but as an invitation.</em></p> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board1.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/5.bb/board1.3.webp" alt="The stand" loading="lazy" decoding="async"> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board2.1.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"> <em>Moment of truth. Union Square Park.</em> </p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board2.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board3.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board4.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board5.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board6.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board7.mp4" type="video/mp4"></source> </video> </div> <div class="bb-process-link-bar"> <a href="https://www.youtube.com/watch?v=zUG-hui0tkw" target="_blank" rel="noopener">View Full Process<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-section"> <h2 class="cs-section-label">The Site</h2> </div> <p class="cube-cap cube-cap--above"><em>I had an idea to create an online, Reddit-like site to store stories.</em></p> <div class="cs-bleed-full"> <img src="/5.bb/branding.webp" alt="Broken and Beautiful branding" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d2.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"> <em>Made different versions of the poster, each one a small bet on which stranger might stop long enough to scan.</em> </p> <div class="cs-bleed"> <img src="/5.bb/d3.webp" alt="QR code poster variations" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/5.bb/d4.webp" alt="Poster variations" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"> <em>Responses coming in through the site. People writing what felt broken and what felt beautiful about the world.</em> </p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d5.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"> <em>Union Square subway.</em> </p> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d6.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d6.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above"><em>Words people kept using, given visual shape. Not illustrating, just looking.</em></p> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d7.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d7.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above"><em>An image of what we carry without knowing others carry it too.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d8.mp4" type="video/mp4"></source> </video> </div> <div class="cs-section"> <h2 class="cs-section-label">Street Interviews</h2> </div> <p class="cube-cap cube-cap--above"><em>Fifteen strangers. One question. Here are four of them.</em></p> <div class="cs-bleed interview-wrap"> <video width="1440" height="810" id="int-russell" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/russell.mp4" type="video/mp4"></source> </video> <button class="interview-audio is-muted" id="btn-russell" aria-label="Toggle audio"> <svg class="icon-sound" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"></path></svg> <svg class="icon-muted" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"></path></svg> </button> <span class="interview-name">Russell</span> </div> <div class="cs-grid"> <div class="cs-grid-item interview-wrap"> <video width="1440" height="810" id="int-john" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/john.mp4" type="video/mp4"></source> </video> <button class="interview-audio is-muted" id="btn-john" aria-label="Toggle audio"> <svg class="icon-sound" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"></path></svg> <svg class="icon-muted" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"></path></svg> </button> <span class="interview-name">John</span> </div> <div class="cs-grid-item interview-wrap"> <video width="1440" height="810" id="int-karis" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/karis.mp4" type="video/mp4"></source> </video> <button class="interview-audio is-muted" id="btn-karis" aria-label="Toggle audio"> <svg class="icon-sound" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"></path></svg> <svg class="icon-muted" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"></path></svg> </button> <span class="interview-name">Karis</span> </div> </div> <div class="cs-bleed interview-wrap"> <video width="1440" height="810" id="int-tsing" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/tsing.mp4" type="video/mp4"></source> </video> <button class="interview-audio is-muted" id="btn-tsing" aria-label="Toggle audio"> <svg class="icon-sound" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"></path></svg> <svg class="icon-muted" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"></path></svg> </button> <span class="interview-name">Tsing</span> </div> <script>
+</style> <div class="cs-intro"> <div class="cs-body--insight"> <span class="insight-label">Insight</span> <p>285+ responses. 15 street interviews. A quiet thread of human thoughts, gathered in parks and on phones across New York City.</p> </div> </div> <div class="cs-bleed-full"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="auto"> <source src="/5.bb/d8.mp4" type="video/mp4"></source> </video> </div> <div class="cs-section"> <h2 class="cs-section-label">The Stand</h2> </div> <p class="cube-cap cube-cap--above"><em>A Reddit thread: places to cry in NYC.</em></p> <div class="cs-bleed"> <img src="/5.bb/2.webp" alt="Reddit thread: places to cry in NYC" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/5.bb/3.webp" alt="Research references" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"> <em>What I wanted the space to feel like: quiet enough to think, open enough not to feel alone.</em> </p> <div class="cs-bleed"> <img src="/5.bb/4.webp" alt="Space reference: what it should feel like" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/5.bb/5.webp" alt="The cardboard prototype, the responses plotted by emotion, and a sketch of the stand on a Manhattan street" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/5.bb/6.webp" alt="In the city's rush, we often feel small. This space is an oasis, a break from it all" loading="lazy" decoding="async"> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/1.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/1.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above"><em>A stop sign already means something. Redeployed not as a warning, but as an invitation.</em></p> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board1.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/5.bb/board1.3.webp" alt="The stand" loading="lazy" decoding="async"> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board2.1.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"> <em>Moment of truth. Union Square Park.</em> </p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board2.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board3.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board4.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board5.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board6.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/board7.mp4" type="video/mp4"></source> </video> </div> <div class="bb-process-link-bar"> <a href="https://www.youtube.com/watch?v=zUG-hui0tkw" target="_blank" rel="noopener">View Full Process<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-section"> <h2 class="cs-section-label">The Site</h2> </div> <p class="cube-cap cube-cap--above"><em>I had an idea to create an online, Reddit-like site to store stories.</em></p> <div class="cs-bleed-full"> <img src="/5.bb/branding.webp" alt="Broken and Beautiful branding" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d2.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>Each poster a small bet on which stranger stops long enough to scan.</em></p> <div class="cs-bleed"> <img src="/5.bb/d3.webp" alt="QR code poster variations" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <img src="/5.bb/d4.webp" alt="Poster variations" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Responses coming in. What felt broken, and what felt beautiful.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d5.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"> <em>Union Square subway.</em> </p> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d6.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d6.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above"><em>Words people kept using, given visual shape. Not illustrating, just looking.</em></p> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d7.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d7.2.mp4" type="video/mp4"></source> </video> </div> </div> <p class="cube-cap cube-cap--above"><em>An image of what we carry without knowing others carry it too.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/d8.mp4" type="video/mp4"></source> </video> </div> <div class="cs-section"> <h2 class="cs-section-label">Street Interviews</h2> </div> <p class="cube-cap cube-cap--above"><em>Fifteen strangers. One question. Here are four of them.</em></p> <div class="cs-bleed interview-wrap"> <video width="1440" height="810" id="int-russell" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/russell.mp4" type="video/mp4"></source> </video> <button class="interview-audio is-muted" id="btn-russell" aria-label="Toggle audio"> <svg class="icon-sound" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"></path></svg> <svg class="icon-muted" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"></path></svg> </button> <span class="interview-name">Russell</span> </div> <div class="cs-grid"> <div class="cs-grid-item interview-wrap"> <video width="1440" height="810" id="int-john" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/john.mp4" type="video/mp4"></source> </video> <button class="interview-audio is-muted" id="btn-john" aria-label="Toggle audio"> <svg class="icon-sound" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"></path></svg> <svg class="icon-muted" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"></path></svg> </button> <span class="interview-name">John</span> </div> <div class="cs-grid-item interview-wrap"> <video width="1440" height="810" id="int-karis" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/karis.mp4" type="video/mp4"></source> </video> <button class="interview-audio is-muted" id="btn-karis" aria-label="Toggle audio"> <svg class="icon-sound" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"></path></svg> <svg class="icon-muted" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"></path></svg> </button> <span class="interview-name">Karis</span> </div> </div> <div class="cs-bleed interview-wrap"> <video width="1440" height="810" id="int-tsing" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/5.bb/tsing.mp4" type="video/mp4"></source> </video> <button class="interview-audio is-muted" id="btn-tsing" aria-label="Toggle audio"> <svg class="icon-sound" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0014 8.5v7a4.49 4.49 0 002.5-3.5zM14 3.23v2.06a6.51 6.51 0 010 13.42v2.06A8.51 8.51 0 0014 3.23z"></path></svg> <svg class="icon-muted" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13 3l3.6-3.6-1.4-1.4L15 10.2l-3.2-3.2-1.4 1.4L13.8 12l-3.4 3.4 1.4 1.4L15 13.6l3.2 3.2 1.4-1.4L16.2 12z"></path></svg> </button> <span class="interview-name">Tsing</span> </div> <script>
   (function () {
     document.querySelectorAll(".interview-audio").forEach(function (btn) {
       btn.addEventListener("click", function () {

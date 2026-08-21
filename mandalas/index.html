@@ -1383,9 +1383,46 @@
         display: grid;
         grid-template-columns: minmax(132px, 158px) minmax(0, 1fr);
         gap: clamp(28px, 3vw, 48px);
-        max-width: min(1680px, 94vw);
+        /* ══ THE MEDIA SYSTEM ══════════════════════════════════════════════
+           Sid: "make sure we are having nice grids and wider images than we
+           had last time ... take a call on whether curved edges or no curve
+           and whether we have motion breathing for certain images ... make
+           sure all work details follow same styling."
+
+           Measured at 1920 before this: the picture was 1372px inside a 1920
+           frame. The shell capped at 1680, took 76.8px of padding a side, and
+           the media sat inside that — 307px of margin before the image starts,
+           16% of the screen, on a page whose entire job is showing pictures.
+
+           The cap comes up to 1880/96vw and the media claims back half the
+           shell's padding (see .cs-bleed below), which is about +7% at 1440
+           and +16% at 1920 without letting go of the frame. Prose is
+           unaffected: .cs-body has its own 640px measure and never read this. */
+        max-width: min(1880px, 96vw);
         margin: 0 auto;
         padding: 46px var(--gutter) 0;
+      }
+
+      /* Two tokens, declared once, read by every visual on all sixteen case
+         studies. The inconsistency they replace was not a styling slip, it was
+         the absence of anywhere to put the decision.
+
+         --media-radius  THE CALL ON CURVE: curved, but far less. It was
+                         clamp(18px, 2vw, 30px) — 28.8px at 1440 — set with an
+                         !important in a late override block. At the width these
+                         run, 29px stops reading as a considered edge and starts
+                         reading as a card: the picture looks like a component
+                         rather than a plate. Removing the curve entirely was
+                         the other option and it is wrong for this site, whose
+                         whole surface language is soft. 8px is the size at
+                         which the corner is a decision you notice only if you
+                         go looking for it.
+
+         --media-breathe THE CALL ON MOTION: yes, but rare and opt-in. See
+                         .breathe below. */
+      .case-story {
+        --media-radius: 8px;
+        --media-breathe: 9s;
       }
       .case-context {
         position: sticky;
@@ -1467,20 +1504,43 @@
       /* Every visual now belongs to the media rail. The !important rules also
          normalize older per-page inline margins, which were the source of the
          inconsistent oversized visual treatment. */
+      /* ── THE MEDIA IS WIDER THAN THE COLUMN IT SITS IN ────────────────────
+         This block is what actually decides media width — it is the last
+         !important on the cascade, so the base .cs-bleed rule above has been
+         inert for a long time. Changing it here rather than adding a sixth
+         competing rule underneath.
+
+         Was width: 100% with the margins zeroed, which left the picture inside
+         the shell's own --gutter padding. Measured at 1920 that put 307px of
+         margin either side of the image — 16% of the screen — on a page whose
+         only job is showing pictures.
+
+         Each media block now claims back half that padding on each side. Half
+         rather than all: a full breakout puts the image hard against the type
+         above it, and the frame is what makes a picture read as a plate rather
+         than as a background. About +7% at 1440 and +16% at 1920.
+
+         .cs-body and .cs-intro are deliberately not in this list. They keep
+         the shell's padding, which is what holds the reading column where it
+         has always been, and .cs-body has its own 640px measure anyway. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
       .case-story .cs-grid-3,
       .case-story .cs-split,
       .case-story .cs-pair {
-        width: 100% !important;
-        margin-left: 0 !important;
-        margin-right: 0 !important;
+        width: calc(100% + var(--gutter)) !important;
+        margin-left: calc(var(--gutter) * -0.5) !important;
+        margin-right: calc(var(--gutter) * -0.5) !important;
       }
+      /* margin-TOP only. This used to be a `margin` shorthand, which reset the
+         horizontal breakout above every time it was applied. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
-      .case-story .cs-grid-3 { margin-top: 28px !important; }
+      .case-story .cs-grid-3 {
+        margin-top: 28px !important;
+      }
       .case-story .cs-bleed {
         aspect-ratio: 16 / 10;
         /* Raised with the column. 64vh/640px was cropping the frame before
@@ -1665,6 +1725,16 @@
       .film-grid--no-top {
         margin-top: 0 !important;
       }
+      /* ── THE MEDIA IS WIDER THAN THE COLUMN IT SITS IN ────────────────
+         The shell already pads by --gutter so its prose has a margin. A
+         picture does not want that margin at the same strength, so every media
+         block pulls back half of it on each side. Half rather than all: a full
+         breakout puts the image hard against the type above it, and the frame
+         is what makes a picture read as a plate rather than as a background.
+
+         The three media containers only. .cs-body and .cs-intro keep the
+         shell's padding, which is what holds the reading column where it has
+         always been. */
       .cs-bleed {
         margin: 36px var(--gutter) 0;
         width: calc(100% - var(--gutter) * 2);
@@ -1736,6 +1806,12 @@
       .cs-grid {
         margin: 36px var(--gutter) 0;
         display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+        /* Cells size themselves rather than stretching to the tallest in the
+           row. Stretch is the grid default and it is why a 16:9 plate beside a
+           taller one left a band of empty background under the shorter of the
+           two: the cell grew, the picture inside it did not. A ragged bottom
+           edge is what an editorial grid does; a black gap is a bug. */
+        align-items: start;
         position: relative;
         content-visibility: auto;
         contain-intrinsic-size: auto 480px;
@@ -2768,12 +2844,23 @@
       .cs-section.is-visible .cs-section-label { opacity: 1; }
 
       /* ─── CAPTIONS (global) ─── */
+      /* ── THE DEFAULT WAS WRONG, SO EVERY PAGE CORRECTED IT ────────────────
+         margin was 0, and all THIRTEEN case studies that carry a <style> block
+         set `.cube-cap { margin: 40px 0 0 }` in their own file. The same
+         declaration, thirteen times, because the shared value did not match
+         what any page actually wanted. Same story for the two adjacency rules
+         below: twelve pages each overrode 8px to 12px, and twelve overrode
+         16px to 8px.
+
+         The fix is not a fourteenth override. It is to make the default the
+         thing everyone had already independently agreed on, and delete the
+         copies — which is the whole argument for having a default at all. */
       .cube-cap {
         font-family: var(--font-mono);
         font-size: 13px;
         color: var(--ink-4);
         padding: 8px var(--gutter) 0;
-        margin: 0;
+        margin: 40px 0 0;
         line-height: 1.5;
       }
       .cube-cap em { font-style: italic; }
@@ -2838,10 +2925,16 @@
       html[data-theme="light"] .cube-cap--above::before {
         color: var(--accent-ink);
       }
-      .cube-cap--above + .cs-grid { margin-top: 8px; }
-      .cube-cap--above + .cs-bleed { margin-top: 8px; }
-      .cube-cap--above + .cs-bleed-full { margin-top: 8px; }
-      .cube-cap + .cs-bleed { margin-top: 16px; }
+      /* A caption above its image sits closer to it than one below, because
+         above it is a title and below it is an afterword. 12 and 8, which is
+         what twelve pages each wrote out by hand. */
+      .cube-cap--above + .cs-grid,
+      .cube-cap--above + .cs-grid-3,
+      .cube-cap--above + .cs-bleed,
+      .cube-cap--above + .cs-bleed-full { margin-top: 12px; }
+      .cube-cap + .cs-bleed,
+      .cube-cap + .cs-grid,
+      .cube-cap + .cs-grid-3 { margin-top: 8px; }
       .cs-grid + .cs-bleed { margin-top: 24px; }
 
       /* ─── cs-intro (global base) ─── */
@@ -3230,6 +3323,17 @@
       }
       .case-chapter-map__link.is-current::before { color: var(--accent); }
       .case-rail { display: none; }
+      /* ── AND THIS IS THE ONE THAT ACTUALLY WINS ────────────────────────────
+         Three rules in this file set the width of the same six selectors, all
+         with !important, at identical specificity. The last one in source order
+         takes it, which is this one — so the two above have been decorative for
+         as long as it has existed, and the earlier of them is what anyone
+         looking for "why is the image this wide" would have found and edited.
+         All three are corrected; this is the one that does the work.
+
+         Same breakout: half the shell's gutter reclaimed on each side, with
+         margin-top declared on its own so the shorthand cannot reset the
+         horizontal values a second time. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
@@ -3237,8 +3341,10 @@
       .case-story .cs-split,
       .case-story .cs-pair,
       .case-story .cs-bleed-full {
-        width: 100% !important;
-        margin: 32px 0 0 !important;
+        width: calc(100% + var(--gutter)) !important;
+        margin-top: 32px !important;
+        margin-left: calc(var(--gutter) * -0.5) !important;
+        margin-right: calc(var(--gutter) * -0.5) !important;
       }
       .case-story .cs-bleed,
       .case-story .cs-wide-inner,
@@ -4350,7 +4456,63 @@
 
       .case-story img,
       .case-story video {
-        border-radius: clamp(18px, 2vw, 30px) !important;
+        border-radius: var(--media-radius) !important;
+      }
+
+      /* ══ THE CALL ON MOTION ════════════════════════════════════════════════
+         Sid: "whether we have motion breathing for certain images or what."
+
+         Yes, and rarely. A still that drifts forever is a screensaver, and a
+         page where every picture is moving has no way left to say "look at
+         this one". So it stays an opt-in class on the lead visual of a section
+         and nothing else — at most two or three on a page.
+
+         What this replaces: @keyframes projBreathe was declared separately in
+         six different page files, at 6s on two of them and 7s on the rest,
+         applied three different ways — a .breathe class on the container, a
+         .breathe img/video pair, and a raw style="animation: ..." attribute on
+         two Mool images. Six copies of one idea, none of which agreed, and no
+         way to change the timing without editing six files.
+
+         The amplitude is deliberately below the threshold at which you can see
+         it happening: 0.6% of scale and three pixels of lift over nine
+         seconds. You should register that the image is alive, not that it is
+         animating. It was 0.8% over 6-7s, which on a 1700px-wide plate is a
+         visible pump.
+
+         AND IT STOPS FOR REDUCED MOTION. None of the six copies did. An
+         infinite animation with no guard is the exact case that switch exists
+         for, and it was running on every visitor who had asked for less. */
+      @keyframes projBreathe {
+        0%,
+        100% {
+          transform: scale(1) translateY(0);
+        }
+        50% {
+          transform: scale(1.006) translateY(-3px);
+        }
+      }
+      .breathe img,
+      .breathe video {
+        animation: projBreathe var(--media-breathe) ease-in-out infinite;
+        will-change: transform;
+      }
+      /* ── ONE GUARD FOR EVERY LOOP IN A CASE STUDY ─────────────────────────
+         Not just .breathe. Pages declare their own infinite decorative
+         animations too — cube-guy runs driftLeft and driftRight on its
+         conception grids at 7s, 9s and 11s, and Mind Your Feelings sways its
+         brain — and not one of them checked this setting. Scoped to media and
+         grid cells rather than to everything, so a reveal or a focus ring is
+         untouched, and !important because the page-level declarations it has
+         to beat are themselves !important. */
+      @media (prefers-reduced-motion: reduce) {
+        .case-story img,
+        .case-story video,
+        .case-story .cs-grid-item,
+        .breathe img,
+        .breathe video {
+          animation: none !important;
+        }
       }
 
       html[data-theme="light"] .hero-recruiter-brief {
@@ -6833,11 +6995,6 @@
   .cs-grid + .cs-grid, .cs-grid-3 + .cs-grid, .cs-grid + .cs-grid-3, .cs-grid-3 + .cs-grid-3 { margin-top: 16px !important; }
   .cs-grid.ma-grid + .cs-grid.ma-grid { margin-top: 16px !important; }
 
-  /* Captions match cube-guy global cube-cap */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid, .cube-cap--above + .cs-grid-3 { margin-top: 12px !important; }
-
   /* Grid sizing: fixed height like cube-guy */
   .cs-grid, .cs-grid-3 {
     height: clamp(320px, 50vh, 560px);
@@ -6932,11 +7089,6 @@
   .grid-audio-btn.muted .icon-on { display: none; }
   .grid-audio-btn:not(.muted) .icon-off { display: none; }
 
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
-
   /* Thesis docs: two-up bordered link cards at top of body */
   .thesis-docs {
     display: flex;
@@ -7008,7 +7160,7 @@
      definition for every step; there is nothing for these rules to do. */
   html[data-theme="light"] .thesis-doc-title { color: var(--ink); }
   html[data-theme="light"] .thesis-doc:hover .thesis-doc-meta { color: var(--ink); }
-</style> <div class="thesis-docs"> <a href="/4.mandala/thesis-paper.pdf" target="_blank" rel="noopener" class="thesis-doc"> <span class="thesis-doc-kicker">Thesis Paper · v1</span> <span class="thesis-doc-title">The academic write-up</span> <span class="thesis-doc-meta">PDF<span class="xarrow" aria-hidden="true"></span></span> </a> <a href="/4.mandala/bloom-diary.pdf" target="_blank" rel="noopener" class="thesis-doc"> <span class="thesis-doc-kicker">Bloom · A Visual Diary</span> <span class="thesis-doc-title">Mandala explorations, illustrated</span> <span class="thesis-doc-meta">PDF<span class="xarrow" aria-hidden="true"></span></span> </a> </div> <p class="cube-cap cube-cap--above"><em>The world I was asking people to step away from. Loud, lit, everything at once.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="metadata" style="width: 100%; display: block;"> <source src="/4.mandala/final-walking.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>The guided sit begins.</em></p> <div class="cs-bleed" style="position: relative;"> <video width="1440" height="810" id="k1-vid" autoplay="" muted="" loop="" playsinline="" preload="metadata" style="width: 100%; display: block;"> <source src="/4.mandala/k1.mp4" type="video/mp4"></source> </video> <button class="grid-audio-btn muted" id="k1-audio-btn" aria-label="Toggle audio"> <svg class="icon-on" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg> <svg class="icon-off" viewbox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg> </button> </div> <p class="cube-cap cube-cap--above"><em>Spiral concept of evolution interested me.</em></p> <div class="f-vid-wrap"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/first.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>I wanted to combine the spiral shape with the stories of shared human experience.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/people.mp4" type="video/mp4"></source> </video> </div> <div class="cs-section"> <h2 class="cs-section-label">Introspective spaces</h2> </div> <p class="cube-cap cube-cap--above"><em>The lit room. Brighter, more reflective. People found it harder to settle.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/8.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/9.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/a1.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/10.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item ai-contain"> <img src="/4.mandala/10.2.webp" alt="Mandala light thrown across a darkened room" loading="lazy" decoding="async"> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/11.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/12.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item ai-contain"> <img src="/4.mandala/12.2.webp" alt="An early projection test, a single lantern in a dark studio" loading="lazy" decoding="async"> </div> </div> <div class="cs-bleed ai-contain"> <img src="/4.mandala/9.2.webp" alt="Foil, candles and prisms on the desk, refracting the projection" loading="lazy" decoding="async"> </div> <div class="cs-grid-3"> <div class="cs-grid-item"> <img src="/4.mandala/13.1.webp" alt="The rig at night: lamps, glass and a mandala on the far wall" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/13.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/4.mandala/13.3.webp" alt="The installation lit in red, with the question What is the point on the panel" loading="lazy" decoding="async"> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Measuring the calm</h2> </div> <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim. So an EEG headband read each visitor before the room, and again after, to see what actually changed.</em></p> <div class="cs-bleed"> <video width="1440" height="814" autoplay="" muted="" loop="" playsinline="" preload="none" style="width: 100%; display: block;"> <source data-src="/4.mandala/brainbit.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled.</em></p> <div class="cs-bleed bl-contain"> <img src="/4.mandala/brainbit.jpg" alt="The Bloom operator view, with live audio levels and the session log" loading="lazy" decoding="async"> </div> <div class="cs-section"> <h2 class="cs-section-label">Mandalas</h2> </div> <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Mandalas made on festival floors, then walked over and dissolved. This started from that memory.</em></p> <div class="cs-bleed ai-contain"> <img src="/4.mandala/2.webp" alt="Painted mandalas on the studio wall, and one laid out in candles on the floor" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async"> </div> <div class="cs-bleed ai-contain"> <img src="/4.mandala/1.webp" alt="A card left outdoors: who are you, to you" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/3.2.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Sid's record. A brain scan, a name in binary, a voice. Inspired by the Voyager golden record.</em></p> <div class="cs-grid-3"> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/2.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/2.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/2.3.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Guided meditation</h2> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/6.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item ai-contain"> <img src="/4.mandala/cover.jpg" alt="A projected mandala filling a wall, with candles along the floor" loading="lazy" decoding="async"> </div> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ab.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/abc.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid"> <div class="cs-grid-item" style="position:relative;"> <video width="1280" height="720" id="mandala-compiled-vid" autoplay="" muted="" loop="" playsinline="" preload="auto"> <source src="/4.mandala/mandala-shorter.mp4" type="video/mp4"></source> </video> <button class="grid-audio-btn muted" id="mandala-audio-btn" aria-label="Toggle audio"> <svg class="icon-on" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg> <svg class="icon-off" viewbox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg> </button> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/m1.mp4" type="video/mp4"></source> </video> </div> </div> <div class="m-watch-link"> <a href="https://www.youtube.com/watch?v=v14nAzshrLs" target="_blank" rel="noopener">Watch Full Meditation<span class="xarrow" aria-hidden="true"></span></a> </div> <p class="cube-cap cube-cap--above"><em>Most people needed a prompt to begin. Without direction, reflection stayed on the surface.</em></p> <div class="cs-grid g-cover"> <div class="cs-grid-item"> <video width="1440" height="788" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/4.mandala/j.webp" alt="Research: sketching the system, and interviews about what happiness is" loading="lazy" decoding="async"> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Bloom</h2> </div> <div class="cs-bleed"> <img src="/4.mandala/bloom-logo.jpeg" alt="The Bloom sticker, holographic on white" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Experimenting with translucent acrylic shades and reflections.</em></p> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/bloom1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/4.mandala/bloom2.jpg" alt="A cut acrylic mandala catching daylight" loading="lazy" decoding="async"> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Breathe</h2> </div> <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>An earlier experiment. A 2D pixel art game asking if play could make you more still.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g3.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g4.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g5.mp4" type="video/mp4"></source> </video> </div> <div class="m-watch-link"> <a href="https://mehatey.github.io/breathe-game/" target="_blank" rel="noopener">Play Breathe<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-section"> <h2 class="cs-section-label">Mandalas style explorations</h2> </div> <p class="cube-cap cube-cap--above"><em>The goal was for people to not use the cursor. The coin is a distraction.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ma1.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>When you shake your hand, the mandala ripples.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ripple-web.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ma2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma3.mp4" type="video/mp4"></source></video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma11.mp4" type="video/mp4"></source></video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma14.mp4" type="video/mp4"></source></video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ma15.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma17.mp4" type="video/mp4"></source></video> </div> <p class="cube-cap cube-cap--above"><em>Going beyond mandalas and playing with different eye tracking forms.</em></p> <div class="cs-grid ma-grid"> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma21.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma23.mp4" type="video/mp4"></source></video></div> </div> <div class="cs-grid ma-grid"> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma30.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma31.mp4" type="video/mp4"></source></video></div> </div> <div class="cs-grid ma-grid"> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma33.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma34.mp4" type="video/mp4"></source></video></div> </div> <div class="cs-grid ma-grid"> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma36.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/blobs.mp4" type="video/mp4"></source></video></div> </div> <div class="m-watch-link"> <a href="https://mehatey.github.io/sid-mandala-camera-one/" target="_blank" rel="noopener">Try the Full Experience<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-grid"> <div class="cs-grid-item"> <img src="/4.mandala/p1.png" alt="A visitor at the installation, the mandala forming on their screen" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/4.mandala/p2.png" alt="A visitor working through the session" loading="lazy" decoding="async"> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top:40px;"><em>A report of what you stayed with, and what that might say about you.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ma37.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/5.2.mp4" type="video/mp4"></source> </video> </div> <script>
+</style> <div class="thesis-docs"> <a href="/4.mandala/thesis-paper.pdf" target="_blank" rel="noopener" class="thesis-doc"> <span class="thesis-doc-kicker">Thesis Paper · v1</span> <span class="thesis-doc-title">The academic write-up</span> <span class="thesis-doc-meta">PDF<span class="xarrow" aria-hidden="true"></span></span> </a> <a href="/4.mandala/bloom-diary.pdf" target="_blank" rel="noopener" class="thesis-doc"> <span class="thesis-doc-kicker">Bloom · A Visual Diary</span> <span class="thesis-doc-title">Mandala explorations, illustrated</span> <span class="thesis-doc-meta">PDF<span class="xarrow" aria-hidden="true"></span></span> </a> </div> <p class="cube-cap cube-cap--above"><em>The world I was asking people to step away from. Loud, lit, everything at once.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="metadata" style="width: 100%; display: block;"> <source src="/4.mandala/final-walking.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>The guided sit begins.</em></p> <div class="cs-bleed" style="position: relative;"> <video width="1440" height="810" id="k1-vid" autoplay="" muted="" loop="" playsinline="" preload="metadata" style="width: 100%; display: block;"> <source src="/4.mandala/k1.mp4" type="video/mp4"></source> </video> <button class="grid-audio-btn muted" id="k1-audio-btn" aria-label="Toggle audio"> <svg class="icon-on" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg> <svg class="icon-off" viewbox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg> </button> </div> <p class="cube-cap cube-cap--above"><em>Spiral concept of evolution interested me.</em></p> <div class="f-vid-wrap"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/first.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>I wanted to combine the spiral shape with the stories of shared human experience.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/people.mp4" type="video/mp4"></source> </video> </div> <div class="cs-section"> <h2 class="cs-section-label">Introspective spaces</h2> </div> <p class="cube-cap cube-cap--above"><em>The lit room. Brighter, more reflective. People found it harder to settle.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/8.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/9.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/a1.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/10.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item ai-contain"> <img src="/4.mandala/10.2.webp" alt="Mandala light thrown across a darkened room" loading="lazy" decoding="async"> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/11.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/12.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item ai-contain"> <img src="/4.mandala/12.2.webp" alt="An early projection test, a single lantern in a dark studio" loading="lazy" decoding="async"> </div> </div> <div class="cs-bleed ai-contain"> <img src="/4.mandala/9.2.webp" alt="Foil, candles and prisms on the desk, refracting the projection" loading="lazy" decoding="async"> </div> <div class="cs-grid-3"> <div class="cs-grid-item"> <img src="/4.mandala/13.1.webp" alt="The rig at night: lamps, glass and a mandala on the far wall" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/13.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/4.mandala/13.3.webp" alt="The installation lit in red, with the question What is the point on the panel" loading="lazy" decoding="async"> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Measuring the calm</h2> </div> <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim, so an EEG headband read every visitor.</em></p> <div class="cs-bleed"> <video width="1440" height="814" autoplay="" muted="" loop="" playsinline="" preload="none" style="width: 100%; display: block;"> <source data-src="/4.mandala/brainbit.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>Four channels, read live. The meditation score rising and drowsiness falling as attention settled.</em></p> <div class="cs-bleed bl-contain"> <img src="/4.mandala/brainbit.jpg" alt="The Bloom operator view, with live audio levels and the session log" loading="lazy" decoding="async"> </div> <div class="cs-section"> <h2 class="cs-section-label">Mandalas</h2> </div> <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Mandalas made on festival floors, then walked over and dissolved. This started from that memory.</em></p> <div class="cs-bleed ai-contain"> <img src="/4.mandala/2.webp" alt="Painted mandalas on the studio wall, and one laid out in candles on the floor" loading="lazy" decoding="async"> </div> <div class="cs-bleed ai-contain"> <img src="/4.mandala/1.webp" alt="A card left outdoors: who are you, to you" loading="lazy" decoding="async"> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/3.2.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Sid's record. A brain scan, a name in binary, a voice. Inspired by the Voyager golden record.</em></p> <div class="cs-grid-3"> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/2.1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/2.2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/2.3.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Guided meditation</h2> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/6.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item ai-contain"> <img src="/4.mandala/cover.jpg" alt="A projected mandala filling a wall, with candles along the floor" loading="lazy" decoding="async"> </div> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ab.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/abc.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-grid"> <div class="cs-grid-item" style="position:relative;"> <video width="1280" height="720" id="mandala-compiled-vid" autoplay="" muted="" loop="" playsinline="" preload="auto"> <source src="/4.mandala/mandala-shorter.mp4" type="video/mp4"></source> </video> <button class="grid-audio-btn muted" id="mandala-audio-btn" aria-label="Toggle audio"> <svg class="icon-on" viewbox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"></path></svg> <svg class="icon-off" viewbox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"></path></svg> </button> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/m1.mp4" type="video/mp4"></source> </video> </div> </div> <div class="m-watch-link"> <a href="https://www.youtube.com/watch?v=v14nAzshrLs" target="_blank" rel="noopener">Watch Full Meditation<span class="xarrow" aria-hidden="true"></span></a> </div> <p class="cube-cap cube-cap--above"><em>Most people needed a prompt to begin. Without direction, reflection stayed on the surface.</em></p> <div class="cs-grid g-cover"> <div class="cs-grid-item"> <video width="1440" height="788" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/4.mandala/j.webp" alt="Research: sketching the system, and interviews about what happiness is" loading="lazy" decoding="async"> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Bloom</h2> </div> <div class="cs-bleed"> <img src="/4.mandala/bloom-logo.jpeg" alt="The Bloom sticker, holographic on white" loading="lazy" decoding="async"> </div> <p class="cube-cap cube-cap--above"><em>Experimenting with translucent acrylic shades and reflections.</em></p> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1080" height="1920" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/bloom1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <img src="/4.mandala/bloom2.jpg" alt="A cut acrylic mandala catching daylight" loading="lazy" decoding="async"> </div> </div> <div class="cs-section"> <h2 class="cs-section-label">Breathe</h2> </div> <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>An earlier experiment. A 2D pixel art game asking if play could make you more still.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g1.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid"> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g3.mp4" type="video/mp4"></source> </video> </div> <div class="cs-grid-item"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g4.mp4" type="video/mp4"></source> </video> </div> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/g5.mp4" type="video/mp4"></source> </video> </div> <div class="m-watch-link"> <a href="https://mehatey.github.io/breathe-game/" target="_blank" rel="noopener">Play Breathe<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-section"> <h2 class="cs-section-label">Mandalas style explorations</h2> </div> <p class="cube-cap cube-cap--above"><em>The goal was for people to not use the cursor. The coin is a distraction.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ma1.mp4" type="video/mp4"></source> </video> </div> <p class="cube-cap cube-cap--above"><em>When you shake your hand, the mandala ripples.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ripple-web.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ma2.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma3.mp4" type="video/mp4"></source></video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma11.mp4" type="video/mp4"></source></video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma14.mp4" type="video/mp4"></source></video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ma15.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma17.mp4" type="video/mp4"></source></video> </div> <p class="cube-cap cube-cap--above"><em>Going beyond mandalas and playing with different eye tracking forms.</em></p> <div class="cs-grid ma-grid"> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma21.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma23.mp4" type="video/mp4"></source></video></div> </div> <div class="cs-grid ma-grid"> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma30.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma31.mp4" type="video/mp4"></source></video></div> </div> <div class="cs-grid ma-grid"> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma33.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma34.mp4" type="video/mp4"></source></video></div> </div> <div class="cs-grid ma-grid"> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/ma36.mp4" type="video/mp4"></source></video></div> <div class="cs-grid-item"><video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"><source data-src="/4.mandala/blobs.mp4" type="video/mp4"></source></video></div> </div> <div class="m-watch-link"> <a href="https://mehatey.github.io/sid-mandala-camera-one/" target="_blank" rel="noopener">Try the Full Experience<span class="xarrow" aria-hidden="true"></span></a> </div> <div class="cs-grid"> <div class="cs-grid-item"> <img src="/4.mandala/p1.png" alt="A visitor at the installation, the mandala forming on their screen" loading="lazy" decoding="async"> </div> <div class="cs-grid-item"> <img src="/4.mandala/p2.png" alt="A visitor working through the session" loading="lazy" decoding="async"> </div> </div> <p class="cube-cap cube-cap--above" style="padding-top:40px;"><em>A report of what you stayed with, and what that might say about you.</em></p> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/ma37.mp4" type="video/mp4"></source> </video> </div> <div class="cs-bleed"> <video width="1440" height="810" autoplay="" muted="" loop="" playsinline="" preload="none"> <source data-src="/4.mandala/5.2.mp4" type="video/mp4"></source> </video> </div> <script>
   (function () {
     var btn = document.getElementById("mandala-audio-btn");
     var vid = document.getElementById("mandala-compiled-vid");
