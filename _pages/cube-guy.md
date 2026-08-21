@@ -45,8 +45,18 @@ next_project:
   .cs-grid-item img, .cs-grid-item video { object-fit: contain !important; }
   .cs-grid::before { display: none !important; }
   .cs-grid-item::before { display: none !important; }
-  .cs-grid { gap: 16px !important; align-items: stretch !important; padding: 0 !important; margin-left: 0 !important; margin-right: 0 !important; }
-  .cs-grid-3 { padding: 0 !important; margin-left: 0 !important; margin-right: 0 !important; }
+  /* margin-left/right: 0 was here on both, which opted this page out of the
+     media breakout every other case study uses and left its grids sitting 13px
+     inside the plates above and below them. Padding still zeroed; the
+     horizontal position is the system's to decide. */
+  .cs-grid {
+    gap: 16px !important;
+    align-items: stretch !important;
+    padding: 0 !important;
+  }
+  .cs-grid-3 {
+    padding: 0 !important;
+  }
   .cs-bleed { margin-top: 40px !important; }
   .cs-bleed + .cs-bleed { margin-top: 16px !important; }
   .cs-grid { margin-top: 40px !important; }
@@ -54,11 +64,6 @@ next_project:
   .cs-bleed + .cs-grid { margin-top: 16px !important; }
 
   /* Section dividers use global template styling */
-
-  /* Captions */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
 
   /* Conception grids: fixed height, cover to fill, slow drift */
   .cs-grid, .cs-grid-3 {
@@ -93,20 +98,15 @@ next_project:
   .film-grid .cs-grid-item:nth-child(1), .film-grid .cs-grid-item:nth-child(2) { animation: none; }
   .film-grid--no-top { margin-top: 0 !important; }
   .cs-grid--left-heavy { grid-template-columns: 3fr 2fr; }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
 </style>
 
 <!-- 0 -->
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/2.cube/conception/0.webp" alt="The cube guy in six colours, beside a portrait" style="object-fit: contain; animation: projBreathe 7s ease-in-out infinite;" loading="lazy" decoding="async" />
+  <img class="breathe" src="{{ site.baseurl }}/2.cube/conception/0.webp" alt="The cube guy in six colours, beside a portrait" style="object-fit: contain" loading="lazy" decoding="async" />
 </div>
 
 <!-- caption + 1 -->
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>In my first year of college I began listening to a lot of music and it became a big part of my life. 11.2 km/sec is Earth's escape velocity</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>11.2 km/s is Earth's escape velocity.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/2.cube/conception/1.webp" alt="The 11.2 km/s cube, and the same mark tattooed on a forearm" style="object-fit: contain;" loading="lazy" decoding="async" />
 </div>
@@ -523,7 +523,7 @@ next_project:
 </div>
 
 <!-- TEXT: character goes 3D -->
-<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The flat drawings taken into a new dimension. The character rebuilt in Meshy AI, given volume, weight, and shadow for the first time.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 72px;"><em>The flat drawings given volume, weight and shadow for the first time.</em></p>
 
 <!-- 1 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">
@@ -540,7 +540,7 @@ next_project:
 </div>
 
 <!-- TEXT: world exploration -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Different worlds tried on. Mirror-like spaces and distorted geometry, looking for a place that felt like the inside of a mind.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Worlds tried on, looking for one that felt like the inside of a mind.</em></p>
 
 <!-- 3 + 3.1 grid -->
 <div class="cs-grid film-grid">
@@ -622,7 +622,7 @@ next_project:
 </div>
 
 <!-- TEXT: inner child -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Congratulations. Your inner child has been found and integrated. The square became a cube. The cube found its world.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The square became a cube. The cube found its world.</em></p>
 
 <!-- 13 standalone -->
 <div class="cs-bleed cs-bleed--no-fade">

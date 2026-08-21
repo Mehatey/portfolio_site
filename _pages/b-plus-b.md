@@ -54,11 +54,6 @@ next_project:
   .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid, .cs-grid + .cs-grid { margin-top: 16px !important; }
 
-  /* Caption attachment to cube-guy globals */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
-
   /* Grid sizing matches cube-guy */
   .cs-grid {
     height: clamp(320px, 50vh, 560px);
@@ -140,11 +135,6 @@ next_project:
   }
   html[data-theme="light"] .bb-process-link-bar a { color: rgba(7,9,15,0.6); }
   html[data-theme="light"] .bb-process-link-bar a:hover { color: #07090f; }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
 </style>
 
 <!-- INSIGHT -->
@@ -167,7 +157,7 @@ next_project:
   <h2 class="cs-section-label">The Stand</h2>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>A Reddit thread titled "places to cry in NYC." People looking for somewhere to feel something without being seen.</em></p>
+<p class="cube-cap cube-cap--above"><em>A Reddit thread: places to cry in NYC.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.bb/2.webp" alt="Reddit thread: places to cry in NYC" loading="lazy" decoding="async" />
 </div>
@@ -289,9 +279,7 @@ next_project:
   </video>
 </div>
 
-<p class="cube-cap cube-cap--above">
-  <em>Made different versions of the poster, each one a small bet on which stranger might stop long enough to scan.</em>
-</p>
+<p class="cube-cap cube-cap--above"><em>Each poster a small bet on which stranger stops long enough to scan.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.bb/d3.webp" alt="QR code poster variations" loading="lazy" decoding="async" />
 </div>
@@ -300,9 +288,7 @@ next_project:
   <img src="{{ site.baseurl }}/5.bb/d4.webp" alt="Poster variations" loading="lazy" decoding="async" />
 </div>
 
-<p class="cube-cap cube-cap--above">
-  <em>Responses coming in through the site. People writing what felt broken and what felt beautiful about the world.</em>
-</p>
+<p class="cube-cap cube-cap--above"><em>Responses coming in. What felt broken, and what felt beautiful.</em></p>
 <div class="cs-bleed">
   <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/5.bb/d5.mp4" type="video/mp4" />

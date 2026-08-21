@@ -53,11 +53,6 @@ next_project:
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-grid { margin-top: 16px !important; }
 
-  /* Caption attachment matches cube-guy globals */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
-
   /* Grid sizing matches cube-guy */
   .cs-grid {
     height: clamp(320px, 50vh, 560px);
@@ -76,15 +71,10 @@ next_project:
     margin-left: auto !important;
     margin-right: auto !important;
   }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.02) translateY(-6px); }
-  }
 </style>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/1.png" alt="Aananda: sat, chit, aanand" loading="eager" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
+  <img class="breathe" src="{{ site.baseurl }}/9.aananda/1.png" alt="Aananda: sat, chit, aanand" loading="eager" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -116,7 +106,7 @@ next_project:
 </div>
 
 <div class="cs-bleed cs-bleed--narrow">
-  <img src="{{ site.baseurl }}/9.aananda/8.webp" alt="Speaking Samyak, the story of Mahavira, upcoming events, and temples on a map" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
+  <img class="breathe" src="{{ site.baseurl }}/9.aananda/8.webp" alt="Speaking Samyak, the story of Mahavira, upcoming events, and temples on a map" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -125,7 +115,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Newspaper advertisement.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/10.webp" alt="A newspaper advertisement for the app" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/10.webp" alt="A newspaper advertisement for the app" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -143,7 +133,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Aananda, the book.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/14.webp" alt="The ahimsa chapter opening" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/14.webp" alt="The ahimsa chapter opening" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
@@ -166,7 +156,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Cards to be placed in temples.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/19.webp" alt="Cards explaining why the Namokar Mantra is chanted, with the mantra itself" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
+  <img class="breathe" src="{{ site.baseurl }}/9.aananda/19.webp" alt="Cards explaining why the Namokar Mantra is chanted, with the mantra itself" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">
@@ -180,7 +170,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Stands to inform about sculptures.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/9.aananda/23.webp" alt="A-frame stands carrying the app announcement" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/9.aananda/23.webp" alt="A-frame stands carrying the app announcement" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-grid">

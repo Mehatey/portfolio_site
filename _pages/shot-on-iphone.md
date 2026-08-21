@@ -53,11 +53,6 @@ next_project:
   .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 16px !important; }
 
-  /* Caption attachment matches cube-guy globals */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
-
   /* Grid sizing matches cube-guy */
   .cs-grid {
     height: clamp(320px, 50vh, 560px);
@@ -69,12 +64,6 @@ next_project:
     object-fit: cover !important;
     object-position: center center;
   }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
-  .breathe img { animation: projBreathe 7s ease-in-out infinite; }
 </style>
 
 <div class="cs-bleed breathe">

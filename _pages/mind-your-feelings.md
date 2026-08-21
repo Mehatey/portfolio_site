@@ -56,11 +56,6 @@ next_project:
   .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 16px !important; }
 
-  /* Caption attachment matches cube-guy globals */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
-
   /* Grid sizing matches cube-guy */
   .cs-grid {
     height: clamp(320px, 50vh, 560px);
@@ -73,19 +68,16 @@ next_project:
     object-position: center center;
   }
 
-  /* Gentle sway for brain */
+  /* Gentle sway for brain. The keyframes and the timing live in the layout
+     now (see --media-breathe in project.html), so this only opts in. */
   .brain-sway {
-    animation: projBreathe 8s ease-in-out infinite;
+    animation: projBreathe var(--media-breathe, 9s) ease-in-out infinite;
     max-width: 350px;
     width: 50%;
     height: auto;
     object-fit: contain;
     position: relative;
     z-index: 1;
-  }
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
   }
 
   /* Color blobs behind brain */

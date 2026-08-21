@@ -92,11 +92,6 @@ next_project:
   .cs-grid + .cs-grid, .cs-grid-3 + .cs-grid, .cs-grid + .cs-grid-3, .cs-grid-3 + .cs-grid-3 { margin-top: 16px !important; }
   .cs-grid.ma-grid + .cs-grid.ma-grid { margin-top: 16px !important; }
 
-  /* Captions match cube-guy global cube-cap */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid, .cube-cap--above + .cs-grid-3 { margin-top: 12px !important; }
-
   /* Grid sizing: fixed height like cube-guy */
   .cs-grid, .cs-grid-3 {
     height: clamp(320px, 50vh, 560px);
@@ -190,11 +185,6 @@ next_project:
   .grid-audio-btn .icon-on, .grid-audio-btn .icon-off { transition: opacity 0.15s; }
   .grid-audio-btn.muted .icon-on { display: none; }
   .grid-audio-btn:not(.muted) .icon-off { display: none; }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
 
   /* Thesis docs: two-up bordered link cards at top of body */
   .thesis-docs {
@@ -393,7 +383,7 @@ next_project:
   <h2 class="cs-section-label">Measuring the calm</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim. So an EEG headband read each visitor before the room, and again after, to see what actually changed.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim, so an EEG headband read every visitor.</em></p>
 <div class="cs-bleed">
   <video width="1440" height="814" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/4.mandala/brainbit.mp4" type="video/mp4" />
@@ -412,7 +402,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Mandalas made on festival floors, then walked over and dissolved. This started from that memory.</em></p>
 <div class="cs-bleed ai-contain">
-  <img src="{{ site.baseurl }}/4.mandala/2.webp" alt="Painted mandalas on the studio wall, and one laid out in candles on the floor" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/4.mandala/2.webp" alt="Painted mandalas on the studio wall, and one laid out in candles on the floor" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed ai-contain">

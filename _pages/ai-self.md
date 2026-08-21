@@ -56,20 +56,11 @@ next_project:
   .cs-grid + .cs-bleed { margin-top: 40px !important; }
   .cs-bleed + .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-grid { margin-top: 16px !important; }
-
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
 </style>
 
 <!-- HERO -->
 <div class="cs-bleed-full">
-  <img src="{{ site.baseurl }}/2.ai-self/1.webp" alt="Will Smith eating spaghetti, generated in 2023 and again in 2024" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/2.ai-self/1.webp" alt="Will Smith eating spaghetti, generated in 2023 and again in 2024" loading="lazy" decoding="async" />
 </div>
 
 <!-- SECTION: AI PERCEPTION -->
@@ -127,7 +118,7 @@ next_project:
   <img src="{{ site.baseurl }}/2.ai-self/12.webp" alt="Choose an AI you like: Meh the Cube, Fantastic Fox, or Baloo the Bear" loading="lazy" decoding="async" />
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Beyond the app. AR woven into everyday life, not a screen you hold up but a layer that lives with you.</em></p>
+<p class="cube-cap cube-cap--above"><em>Beyond the app. Not a screen you hold up, a layer that lives with you.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/2.ai-self/13.webp" alt="If you had to tell me something you are going through that you need help with, what would it be" loading="lazy" decoding="async" />
 </div>
@@ -166,7 +157,7 @@ next_project:
   </video>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>AI arrives in the world. Not as a tool, but as a presence trying to understand what it has inherited.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>AI arrives. Not as a tool, as a presence trying to understand what it inherited.</em></p>
 <div class="cs-bleed">
   <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/2.ai-self/19.mp4" type="video/mp4" />

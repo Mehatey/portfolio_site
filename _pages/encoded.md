@@ -92,9 +92,6 @@ next_project:
   .cs-bleed + .cs-bleed { margin-top: 40px !important; }
   .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 16px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 8px !important; }
   .enc-award-tile:hover, .enc-award-tile:focus-visible { border-color: rgba(156,198,255,0.34) !important; background: rgba(156,198,255,0.04) !important; }
 
   /* These two tiles are the only outbound links on the page that were not
@@ -156,10 +153,6 @@ next_project:
      leaves this line honest whether or not it wins. */
   html[data-theme="light"] .enc-award-sub { color: rgba(7,9,15,0.66) !important; }
   html[data-theme="light"] .enc-artists { color: rgba(7,9,15,0.66) !important; }
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
 </style>
 
 <!-- Awards
@@ -198,7 +191,7 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/1.met/1.webp" alt="Encoded" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/1.met/1.webp" alt="Encoded" loading="lazy" decoding="async" />
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Scanning in the American Wing.</em></p>

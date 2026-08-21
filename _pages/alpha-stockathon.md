@@ -76,16 +76,6 @@ next_project:
   .cs-bleed + .cs-bleed { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-grid { margin-top: 16px !important; }
-
-  /* Caption attachment matches cube-guy globals */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.02) translateY(-6px); }
-  }
 </style>
 
 <div class="cs-bleed">
@@ -108,7 +98,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Ideation for gamification.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/4.png" alt="Name your hero, and begin the adventure" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/4.png" alt="Name your hero, and begin the adventure" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -121,7 +111,7 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Characters.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/7.webp" alt="The screen set at a glance" loading="lazy" style="animation: projBreathe 8s ease-in-out infinite;" decoding="async" />
+  <img class="breathe" src="{{ site.baseurl }}/10.alpha/7.webp" alt="The screen set at a glance" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -209,5 +199,5 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Advertisement idea.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/10.alpha/30.webp" alt="Posters for the game: fun, and for everyone, and easy" loading="lazy" style="animation: projBreathe 7s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/10.alpha/30.webp" alt="Posters for the game: fun, and for everyone, and easy" loading="lazy" decoding="async" />
 </div>

@@ -54,11 +54,6 @@ next_project:
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid, .cs-grid-3 + .cs-bleed, .cs-bleed + .cs-grid-3 { margin-top: 40px !important; }
   .cs-grid + .cs-grid, .cs-grid-3 + .cs-grid, .cs-grid + .cs-grid-3 { margin-top: 16px !important; }
 
-  /* Caption attachment matches cube-guy globals */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid, .cube-cap--above + .cs-grid-3 { margin-top: 12px !important; }
-
   /* Grid sizing matches cube-guy */
   .cs-grid, .cs-grid-3 {
     height: clamp(320px, 50vh, 560px);
@@ -70,11 +65,6 @@ next_project:
     width: 100%; height: 100%;
     object-fit: cover !important;
     object-position: center center;
-  }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.02) translateY(-6px); }
   }
 </style>
 

@@ -97,11 +97,6 @@ next_project:
   .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 16px !important; }
 
-  /* Caption attachment matches cube-guy globals */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid { margin-top: 12px !important; }
-
   /* Grid sizing matches cube-guy */
   .cs-grid {
     height: clamp(320px, 50vh, 560px);
@@ -141,11 +136,6 @@ next_project:
     margin-left: auto !important;
     margin-right: auto !important;
     text-align: center;
-  }
-
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
   }
 </style>
 
@@ -188,11 +178,11 @@ next_project:
 </div>
 
 <div class="cs-bleed" style="text-align:center;">
-  <img src="{{ site.baseurl }}/5.mool/9.webp" alt="A home-ownership goal written as a question: can I buy a home in this city" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/9.webp" alt="A home-ownership goal written as a question: can I buy a home in this city" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed cs-bleed--narrow">
-  <img src="{{ site.baseurl }}/5.mool/10.webp" alt="Payments and transfers, debit card controls, and the card itself" loading="lazy" style="animation: projBreathe 6s ease-in-out infinite;" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/10.webp" alt="Payments and transfers, debit card controls, and the card itself" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">

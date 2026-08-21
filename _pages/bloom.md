@@ -91,11 +91,6 @@ next_project:
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-grid, .cs-grid-3 + .cs-grid, .cs-grid + .cs-grid-3 { margin-top: 16px !important; }
 
-  /* Captions match cube-guy global cube-cap */
-  .cube-cap { margin: 40px 0 0; }
-  .cube-cap + .cs-bleed, .cube-cap + .cs-grid, .cube-cap + .cs-grid-3 { margin-top: 8px !important; }
-  .cube-cap--above + .cs-bleed, .cube-cap--above + .cs-grid, .cube-cap--above + .cs-grid-3 { margin-top: 12px !important; }
-
   /* Grid sizing: fixed height, cover to fill (cube-guy pattern) */
   main .case-story .cs-grid,
   main .case-story .cs-grid-3 {
@@ -198,11 +193,6 @@ next_project:
     .bl-story-open-copy { padding-top: 0; }
   }
 
-  @keyframes projBreathe {
-    0%, 100% { transform: scale(1) translateY(0); }
-    50% { transform: scale(1.008) translateY(-3px); }
-  }
-
 </style>
 
 <!-- OPENING: start with the identity question, then move into spatial AI -->
@@ -216,7 +206,7 @@ next_project:
   </div>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>The first encounter is not a menu. A bodhi tree appears in the room, breathes, and begins a patient conversation.</em></p>
+<p class="cube-cap cube-cap--above"><em>The first encounter is not a menu. A tree appears, and begins talking.</em></p>
 <div class="cs-bleed" style="position: relative;">
   <video width="1440" height="810" id="tree-vid" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
     <source src="{{ site.baseurl }}/15.bloom-vp/tree.mp4" type="video/mp4" />
@@ -228,7 +218,7 @@ next_project:
 </div>
 
 <!-- VP SCENES: show the headset experience before the physical archive -->
-<p class="cube-cap cube-cap--above"><em>Inside Vision Pro, the project is about presence: the tree, the voice, the room, and the marks you leave in space.</em></p>
+<p class="cube-cap cube-cap--above"><em>Inside Vision Pro: the tree, the voice, the room, the marks you leave.</em></p>
 <div class="cs-bleed bl-focus-video">
   <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-21.mp4" type="video/mp4" />
@@ -265,14 +255,14 @@ next_project:
   <h2 class="cs-section-label">Attention is the interface</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The tree responds to where you look, not where you tap. Gaze at a branch and it stills. Look away and it drifts again.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>It answers your gaze, not your tap. Look at a branch and it stills.</em></p>
 <div class="cs-bleed">
   <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/gaze.mp4" type="video/mp4" />
   </video>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Every question it asks has no right answer. It does not evaluate what you say. It just continues, with infinite patience.</em></p>
+<p class="cube-cap cube-cap--above"><em>No question it asks has a right answer. It just continues.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video width="1440" height="810" autoplay muted loop playsinline preload="none">
@@ -291,14 +281,14 @@ next_project:
   <h2 class="cs-section-label">Draw in space</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The answer is not only spoken. Visitors can assemble and draw objects in 3D space, turning thought into a small spatial ritual.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>The answer is not only spoken. You can draw it, in the room.</em></p>
 <div class="cs-bleed bl-focus-video">
   <video width="1280" height="720" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/wall-objects-assemble.mp4" type="video/mp4" />
   </video>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>A few earlier scene studies stayed in the archive, but the story now points back to the conversational spatial experience.</em></p>
+<p class="cube-cap cube-cap--above"><em>Earlier scene studies, kept in the archive.</em></p>
 <div class="cs-grid-3 grid-compact">
   <div class="cs-grid-item">
     <video width="1440" height="810" autoplay muted loop playsinline preload="none">
