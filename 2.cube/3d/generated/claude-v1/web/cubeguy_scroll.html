@@ -1,0 +1,233 @@
+<title>Cube Guy Scrollframe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Karla:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root{
+    --ground:#06070A; --ground-2:#0E1016; --hair:#1C2029;
+    --ink:#E8E4DA; --muted:#6E7480; --dim:#3A404B;
+    --ochre:#C98B36; --teal:#4F8A86;
+    --serif:'Instrument Serif',ui-serif,Georgia,serif;
+    --sans:'Karla',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .masthead{
+    max-width:1080px; margin:0 auto; padding:56px 28px 30px;
+    display:flex; flex-wrap:wrap; align-items:flex-end; gap:22px 40px;
+    border-bottom:1px solid var(--hair);
+  }
+  .masthead h1{
+    font-family:var(--serif); font-weight:400; font-size:clamp(38px,6vw,64px);
+    line-height:1.02; margin:0; letter-spacing:-.012em; text-wrap:balance;
+  }
+  .masthead h1 em{font-style:italic; color:var(--ochre)}
+  .masthead p{margin:0; max-width:44ch; color:var(--muted)}
+  .meta{
+    font-family:var(--mono); font-size:11px; letter-spacing:.10em;
+    text-transform:uppercase; color:var(--dim); display:flex; gap:20px;
+    width:100%; padding-top:6px;
+  }
+  .meta b{color:var(--muted); font-weight:400}
+
+  /* the scroll track: its height IS the timeline */
+  .track{position:relative; height:520vh}
+  .stage{
+    position:sticky; top:0; height:100vh;
+    display:grid; grid-template-columns:1fr; place-items:center;
+    overflow:hidden;
+  }
+  canvas{
+    display:block; width:min(88vw,940px); height:auto;
+    filter:drop-shadow(0 24px 60px rgba(0,0,0,.75));
+  }
+  .loading{
+    position:absolute; inset:0; display:grid; place-items:center;
+    font-family:var(--mono); font-size:12px; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted); background:var(--ground);
+    transition:opacity .45s ease;
+  }
+  .loading.gone{opacity:0; pointer-events:none}
+  .bar{width:180px; height:2px; background:var(--hair); margin-top:14px; position:relative}
+  .bar i{position:absolute; inset:0 auto 0 0; width:0; background:var(--ochre)}
+
+  /* beat rail - the marks are the animation's real beats, not decoration */
+  .rail{
+    position:absolute; left:max(24px,3vw); top:50%; translate:0 -50%;
+    display:flex; flex-direction:column; gap:0; z-index:3;
+  }
+  .beat{
+    display:flex; align-items:center; gap:12px; height:44px;
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--dim);
+    transition:color .25s ease;
+  }
+  .beat .tick{width:22px; height:1px; background:var(--dim); transition:.25s ease}
+  .beat.on{color:var(--ink)}
+  .beat.on .tick{width:38px; background:var(--ochre)}
+  .beat.past{color:var(--muted)}
+  .beat.past .tick{background:var(--muted)}
+
+  .hud{
+    position:absolute; right:max(24px,3vw); bottom:max(24px,3vw); z-index:3;
+    text-align:right; font-family:var(--mono); font-size:11px;
+    letter-spacing:.10em; color:var(--muted); font-variant-numeric:tabular-nums;
+  }
+  .hud .tc{font-size:22px; color:var(--ink); letter-spacing:.02em; display:block}
+  .hud .fr{color:var(--dim)}
+
+  .outro{
+    max-width:640px; margin:0 auto; padding:96px 28px 140px;
+    border-top:1px solid var(--hair);
+  }
+  .outro h2{font-family:var(--serif); font-weight:400; font-size:30px; margin:0 0 14px}
+  .outro p{color:var(--muted); margin:0 0 14px}
+  .outro code{
+    font-family:var(--mono); font-size:12.5px; color:var(--teal);
+    background:var(--ground-2); padding:2px 6px; border-radius:3px;
+  }
+  a{color:var(--ochre)}
+  @media (prefers-reduced-motion:reduce){
+    .beat,.beat .tick,.loading{transition:none}
+  }
+  @media (max-width:720px){
+    .rail{display:none}
+    .masthead{padding-top:36px}
+  }
+</style>
+
+<header class="masthead">
+  <h1>Cube&nbsp;Guy,<br><em>scrubbed</em></h1>
+  <p>Seventy-two watercolour frames cut off the paper and laid on black.
+     Scroll position drives the frame — nothing plays on its own.</p>
+  <div class="meta">
+    <span><b>72</b> frames</span>
+    <span><b>6.0s</b> source at 24fps</span>
+    <span><b>560&times;441</b> webp</span>
+  </div>
+</header>
+
+<div class="track" id="track">
+  <div class="stage">
+    <nav class="rail" id="rail" aria-hidden="true"></nav>
+    <canvas id="c" aria-label="Cube Guy sits at a desk, opens a laptop and starts working"></canvas>
+    <div class="hud">
+      <span class="tc" id="tc">0.00s</span>
+      <span class="fr" id="fr">frame 01 / 48</span>
+    </div>
+    <div class="loading" id="load">
+      loading frames
+      <div class="bar"><i id="prog"></i></div>
+    </div>
+  </div>
+</div>
+
+<section class="outro">
+  <h2>How it works</h2>
+  <p>The sequence is rendered flat with an alpha channel, then watercoloured in
+     post — pigment pooling at the wash edge, granulation, a drawn line offset
+     from the colour. In cutout mode the paper is dropped and the line carries
+     its own alpha, so the ink reaches slightly past the wash the way it does on
+     a real sheet.</p>
+  <p>Scroll maps linearly to frame index across the track height. The rail marks
+     the animation's actual beats, so you can feel where the reach and the lid
+     opening sit in the timeline.</p>
+  <p>On your site, swap the inlined frames for
+     <code>/assets/cubeguy/frames/000.webp</code> … and keep the same loop.</p>
+</section>
+
+<script>
+// point this at wherever the frames live on your site
+const FRAME_DIR = 'assets/cubeguy/frames/';
+const FRAME_COUNT = 72;
+const FRAMES = Array.from({length:FRAME_COUNT},
+  (_,i)=>FRAME_DIR + String(i).padStart(3,'0') + '.webp');
+const BEATS = [
+  [0.00,'seated'],[0.29,'reaches'],[0.38,'lid opens'],
+  [0.50,'screen up'],[0.72,'thinking']
+];
+const cv = document.getElementById('c'), ctx = cv.getContext('2d');
+const railEl = document.getElementById('rail');
+const tcEl = document.getElementById('tc'), frEl = document.getElementById('fr');
+const loadEl = document.getElementById('load'), progEl = document.getElementById('prog');
+const track = document.getElementById('track');
+const N = FRAMES.length;
+const DUR = 6.0;
+
+BEATS.forEach(([p,label])=>{
+  const d = document.createElement('div');
+  d.className='beat'; d.dataset.p=p;
+  d.innerHTML = '<span class="tick"></span><span>'+label+'</span>';
+  railEl.appendChild(d);
+});
+const beatEls = [...railEl.children];
+
+const imgs = new Array(N);
+let ready = 0, cur = -1;
+
+function size(){
+  const im = imgs[0]; if(!im) return;
+  const dpr = Math.min(devicePixelRatio||1, 2);
+  const w = cv.clientWidth || 900;
+  cv.width = Math.round(w*dpr);
+  cv.height = Math.round(w*dpr*im.height/im.width);
+  cur = -1; draw();
+}
+
+function draw(){
+  const i = frame();
+  if(i===cur || !imgs[i]) return;
+  cur = i;
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.drawImage(imgs[i],0,0,cv.width,cv.height);
+  const t = (i/(N-1))*DUR;
+  tcEl.textContent = t.toFixed(2)+'s';
+  frEl.textContent = 'frame '+String(i+1).padStart(2,'0')+' / '+N;
+  const p = i/(N-1);
+  beatEls.forEach(el=>{
+    const bp = parseFloat(el.dataset.p);
+    const next = beatEls[beatEls.indexOf(el)+1];
+    const np = next ? parseFloat(next.dataset.p) : 1.01;
+    el.classList.toggle('on', p>=bp && p<np);
+    el.classList.toggle('past', p>=np);
+  });
+}
+
+function frame(){
+  const r = track.getBoundingClientRect();
+  const span = r.height - innerHeight;
+  const p = span<=0 ? 0 : Math.min(1, Math.max(0, -r.top/span));
+  return Math.min(N-1, Math.round(p*(N-1)));
+}
+
+let queued = false;
+function onScroll(){
+  if(queued) return;
+  queued = true;
+  requestAnimationFrame(()=>{ queued=false; draw(); });
+}
+
+FRAMES.forEach((src,i)=>{
+  const im = new Image();
+  im.decoding = 'async';
+  im.onload = im.onerror = ()=>{
+    imgs[i]=im; ready++;
+    progEl.style.width = (ready/N*100)+'%';
+    if(i===0) size();
+    if(ready===N){
+      loadEl.classList.add('gone');
+      size();
+      addEventListener('scroll', onScroll, {passive:true});
+      addEventListener('resize', size);
+      draw();
+    }
+  };
+  im.src = b64;
+});
+</script>

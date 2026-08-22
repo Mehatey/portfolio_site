@@ -1108,11 +1108,31 @@
   var cubeObject = document.getElementById("obj-cube");
   var morph = 0;
 
+  /* ── THE MORPH IS OFF ───────────────────────────────────────────────────
+     Sid: "i dont want the scroll animation from the cube guy to the cube, it
+     looks horrible and shaky and all sides dont form properly."
+
+     He is right on both counts and they are the same fault. The cube target
+     is 55,843 points distributed across six faces by a low-discrepancy
+     sequence, which spreads them EVENLY over the whole surface — so every
+     face is a grey haze at the same density, and none of them resolves into a
+     face with an edge. A real cube is defined by its edges and this had none.
+
+     The shake is the driver: progress is read from getBoundingClientRect on
+     every frame of a scroll, and the figure is simultaneously being pinned,
+     unpinned and re-measured across the same range, so the two fight for a
+     few frames at each boundary.
+
+     Both are fixable and neither is worth fixing, because the effect it buys
+     is a figure turning into a grey box. Held at 0, which makes every
+     morph-driven term in the shader evaluate to identity — he stands, and the
+     hero hands off to the cube section by scrolling like a normal page.
+
+     The maths stays rather than being deleted: it is the same shape the
+     Buddha and tree forms use, and it is one return statement away if a
+     better cube target ever exists. */
   function readMorph() {
-    if (REDUCED || !cubeSection) return 0;
-    var r = cubeSection.getBoundingClientRect();
-    var vh = Math.max(1, window.innerHeight);
-    return Math.max(0, Math.min(1, (vh * 0.98 - r.top) / (vh * 0.84)));
+    return 0;
   }
 
   /* The brush needs the pointer in the same clip space the vertex shader

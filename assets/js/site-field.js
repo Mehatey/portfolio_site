@@ -163,11 +163,24 @@
     "  float tint = 0.5 + 0.5 * sin(uTime * 0.21 + radius * 6.0);",
     "  vec3 injection = mix(vec3(0.03, 0.42, 0.55), vec3(0.55, 0.92, 1.0), tint);",
     "  injection *= (0.35 + filaments * 1.05);",
-    /* Baseline energy is no longer gated on the pointer. uPresence is 0
-       until someone moves, and on a page nobody has touched yet that left the
-       fluid completely empty — the field only existed if you stirred it. A
-       constant floor means it is always alive; the pointer adds to it. */
-    "  float energy = (0.012 + (0.030 + uVel * 0.26 + uBurst * 0.20) * uPresence) * max(spark, 0.22);",
+    /* ── THE FLOOR CANNOT BE UNIFORM ──────────────────────────────────────
+       Sid: "it doesn't even react properly."
+
+       He is describing a bug I wrote. `spark` is the pointer's falloff — it
+       is what makes injection LOCAL — and I clamped it with max(spark, 0.22)
+       to stop the field being empty before anyone moved. That floor applies
+       everywhere at once, so 22% of full injection was being poured into every
+       texel of the fluid on every frame. The result is exactly what the
+       screenshot shows: one uniform blob that saturates to white and barely
+       changes when the pointer moves, because the pointer's own contribution
+       is swamped by a constant.
+
+       The ambient term stays, because a page nobody has touched should not be
+       black — but it is a twentieth of the strength and it is modulated by the
+       curl field rather than being flat, so it feeds drifting wisps instead of
+       a disc. Everything else multiplies by `spark` as it always should have. */
+    "  float ambient = 0.0022 * (0.35 + filaments * 0.65);",
+    "  float energy = ambient + (0.030 + uVel * 0.26 + uBurst * 0.20) * spark * uPresence;",
 
     "  vec3 pigment = mix(center.rgb, blur.rgb, 0.062);",
     "  pigment *= 0.9925 - uDelta * 0.02;",
@@ -211,8 +224,11 @@
     "  vec3 cyan  = vec3(0.180, 0.760, 0.860);",
     "  vec3 pearl = vec3(0.840, 0.960, 1.000);",
     "  vec3 c = mix(navy, teal, smoothstep(0.00, 0.40, t));",
-    "  c = mix(c, cyan, smoothstep(0.36, 0.74, t));",
-    "  c = mix(c, pearl, smoothstep(0.72, 1.00, t));",
+    "  c = mix(c, cyan, smoothstep(0.48, 0.88, t));",
+    /* Pearl only at the very top, and never fully — a white highlight is a
+       specular, not a colour, and letting it reach 1.0 is what turns a teal
+       field into a grey one. */
+    "  c = mix(c, pearl, smoothstep(0.88, 1.00, t) * 0.7);",
     "  return c;",
     "}",
 
@@ -309,7 +325,12 @@
 
     /* Filmic-ish tonemap, then the whole thing is held well under 1 so it can
        never compete with the type in front of it. */
-    "  vec3 outc = 1.0 - exp(-color * 3.6);",
+    /* 3.6 to 2.1. At the higher exposure the tonemap pushed the whole field
+       into the top of the ramp, where the palette is pearl white — which is
+       why it rendered as a grey cloud rather than as anything teal. The
+       palette was never the problem; the exposure was reading it at the wrong
+       end. */
+    "  vec3 outc = 1.0 - exp(-color * 2.1);",
     /* On cream the field inverts its job: it has to darken rather than glow,
        so it is drawn at a fraction of the strength and cooled further. */
     "  outc = mix(outc, outc * vec3(0.42, 0.58, 0.66), uLight);",
