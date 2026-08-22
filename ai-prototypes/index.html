@@ -5682,8 +5682,42 @@
       mv.setAttribute("disable-zoom", "");
       mv.setAttribute("disable-pan", "");
       mv.setAttribute("disable-tap", "");
-      mv.setAttribute("environment-image", "neutral");
-      mv.setAttribute("exposure", "0.9");
+      /* ── THE ROOM IT REFLECTS ─────────────────────────────────────────
+         Sid: "can we re-coat it with another really nice metallic liquid
+         distortion effect and then have an inverted skybox, or basically have
+         the skybox revolving around it? It reflects, and that Buddha's face
+         rotates, and the skybox rotates, and it reflects the faces onto it."
+
+         His own abandoned_workshop_02_4k.hdr, downscaled from 4096x2048 and
+         25.7MB to 1024x512 and 1.7MB. It is set twice, deliberately:
+
+           environment-image  is what LIGHTS the model. A chrome surface has
+                              no colour of its own — everything you see on it
+                              is the room around it — so this is what makes
+                              the recoat below read as metal rather than as
+                              grey plastic. "neutral" is a synthetic studio
+                              probe with nothing in it to reflect.
+
+           skybox-image       is that same room, visible. This is the half
+                              that makes the reflection legible: without it
+                              the surface shows a place the viewer cannot see,
+                              which reads as noise. With it, the shapes moving
+                              across the metal are the shapes behind it.
+
+         The skybox revolves for free. It is fixed to the world and the camera
+         orbits on scroll (see below), so turning the figure turns the room
+         past it, and the reflections travel across the face as it goes. That
+         is the effect described, and it needs no extra machinery — only the
+         two images and the orbit that was already there.
+
+         Loaded on the same gate as the GLB: nothing here is fetched until the
+         footer is within a screen. */
+      mv.setAttribute("environment-image", "/assets/models/workshop-1k.hdr");
+      mv.setAttribute("skybox-image", "/assets/models/workshop-1k.hdr");
+      /* Down from 0.9. An HDR of a real room carries far more energy than the
+         neutral probe did, and at the old exposure the chrome blew out to
+         white across most of its curvature. */
+      mv.setAttribute("exposure", "0.62");
       mv.setAttribute("shadow-intensity", "0");
       /* NOT loading="lazy". The element is already constructed lazily by the
          observer below — it does not exist until the section is within a
@@ -5694,6 +5728,44 @@
       mv.setAttribute("loading", "eager");
       mv.setAttribute("reveal", "auto");
       mv.style.pointerEvents = "none";
+
+      /* ── THE RECOAT ───────────────────────────────────────────────────────
+         model-viewer exposes the loaded glTF materials, so the figure can be
+         re-surfaced at runtime without touching the asset — the same GLB
+         still opens the site as stone in the loader, and only this instance
+         becomes liquid metal.
+
+         metallic 1 and roughness 0.08 is the whole recipe for chrome: fully
+         conductive, almost perfectly smooth, so the surface contributes no
+         diffuse colour and every pixel on it is the environment. Not 0
+         roughness — a perfect mirror shows the room's pixels at 1:1 and any
+         seam in the HDR lands on the model as a hard line. A little roughness
+         is what makes it read as liquid rather than as a mirror ball.
+
+         Base colour goes to a near-white with a cool cast, which is what
+         tints the reflection toward the site's blue without introducing a
+         colour that could fight it. */
+      mv.addEventListener(
+        "load",
+        function () {
+          try {
+            var mats = mv.model && mv.model.materials;
+            if (!mats) return;
+            for (var i = 0; i < mats.length; i++) {
+              var pbr = mats[i].pbrMetallicRoughness;
+              if (!pbr) continue;
+              pbr.setMetallicFactor(1);
+              pbr.setRoughnessFactor(0.08);
+              pbr.setBaseColorFactor([0.82, 0.88, 0.95, 1]);
+            }
+          } catch (e) {
+            /* An older model-viewer, or a model with no PBR materials, simply
+               keeps the surface it shipped with. */
+          }
+        },
+        { once: true }
+      );
+
       mount.appendChild(mv);
     }
 
