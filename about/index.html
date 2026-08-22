@@ -985,22 +985,7 @@
           0 32px 92px rgba(0, 0, 0, 0.28),
           inset 0 1px 0 rgba(255, 255, 255, 0.34),
           inset 0 -1px 0 rgba(80, 130, 185, 0.16);
-        /* ── THE TILT IS GONE ─────────────────────────────────────────────
-           Sid: "the tilt card on my face is not really cool. Everybody does
-           that nowadays."
-
-           He is right, and the reason is not that it looks bad — it is that a
-           pointer-tracked 3D tilt is a COMPONENT. It is installable, it is on
-           a thousand portfolios, and it says nothing about the person inside
-           the frame. It also had nothing to do with the rest of this site: the
-           home page is one substance of 55,843 points that becomes a figure, a
-           Buddha, a tree and a cube, and then you arrived here and the person
-           it is all about was a flat photograph in a glass card that wobbled.
-
-           What replaces it is the same substance. See assets/js/about-portrait.js
-           and .about-cloud below: the photograph is sampled into about twenty
-           thousand points that scatter, gather into his face as the card comes
-           into view, breathe at rest, and part under the hand. */
+        transform: perspective(1000px) rotateX(var(--tilt-y, 0deg)) rotateY(var(--tilt-x, 0deg));
         transform-style: preserve-3d;
         transition:
           transform 0.25s ease-out,
@@ -1039,48 +1024,6 @@
          a percent and a half, the same slow clock as the footer wall's
          ripple, so the frame is never quite still without ever visibly
          moving. */
-      /* ── THE PORTRAIT, AS POINTS ────────────────────────────────────────
-         Layered over the real <img>, which stays in the markup and stays the
-         accessible, crawlable, no-JS answer. The canvas is decoration on top
-         of content that was already correct.
-
-         .has-cloud is added by the script only once the cloud has actually
-         been sampled and uploaded, so the photograph is never hidden in
-         favour of an empty canvas — no WebGL, a tainted canvas or a failed
-         shader compile all leave the original picture exactly as it was. */
-      .about-cloud {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        display: block;
-        z-index: 2;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 700ms ease;
-      }
-      .about-profile-card.has-cloud .about-cloud {
-        opacity: 1;
-      }
-      /* The photograph underneath drops to a trace once the points are
-         carrying it: enough to keep the darks from reading as holes where the
-         luminance floor dropped points, not enough to be a second portrait
-         showing through a first. */
-      .about-profile-card.has-cloud .about-photo.active {
-        opacity: 0.22;
-      }
-      .about-profile-card.has-cloud .about-photo:not(.active) {
-        opacity: 0;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .about-cloud {
-          display: none;
-        }
-        .about-profile-card.has-cloud .about-photo.active {
-          opacity: 1;
-        }
-      }
-
       .about-photo {
         width: 100%;
         height: 100%;
@@ -14713,7 +14656,7 @@
         }, 1600);
       })();
 
-      // Profile card: the two-photo flip on click. The tilt is gone.
+      // Profile card: a quiet 3D tilt with a deliberate two-photo flip.
       (function () {
         var wrap = document.getElementById("about-profile-card");
         if (!wrap) return;
@@ -14726,17 +14669,19 @@
           imgs[current].classList.add("active");
         }
 
-        /* The tilt came out. What answers the pointer now is the cloud
-           itself — see assets/js/about-portrait.js, where the points part
-           locally under the hand and settle back. The shine stays, because it
-           is a property of the glass rather than a 3D trick. */
         wrap.addEventListener("pointermove", function (event) {
           if (event.pointerType === "touch") return;
           var rect = wrap.getBoundingClientRect();
           var x = (event.clientX - rect.left) / rect.width - 0.5;
           var y = (event.clientY - rect.top) / rect.height - 0.5;
+          wrap.style.setProperty("--tilt-x", (x * 8).toFixed(2) + "deg");
+          wrap.style.setProperty("--tilt-y", (-y * 8).toFixed(2) + "deg");
           wrap.style.setProperty("--shine-x", ((x + 0.5) * 100).toFixed(1) + "%");
           wrap.style.setProperty("--shine-y", ((y + 0.5) * 100).toFixed(1) + "%");
+        });
+        wrap.addEventListener("pointerleave", function () {
+          wrap.style.setProperty("--tilt-x", "0deg");
+          wrap.style.setProperty("--tilt-y", "0deg");
         });
         wrap.addEventListener("click", function (e) {
           next();
@@ -14822,4 +14767,4 @@
           });
         });
       })();
-    </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> <script src="/assets/js/about-portrait.js" defer></script> </body> </html>
+    </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> </body> </html>
