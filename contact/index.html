@@ -1309,17 +1309,36 @@
         opacity: 1;
         filter: saturate(0.92) contrast(1.04) brightness(0.88);
         transform: scale(0.995);
+        /* ── SIX WELLS, NOT ONE LENS ──────────────────────────────────────
+           The cursor lens is still the first gradient. Behind it are five more,
+           one per object, whose radii are --w0 to --w4 and are opened in turn
+           by the scroll (see the script below). They are a union with each
+           other — any of them showing the photograph is enough — and the whole
+           union is then intersected with the floor gradient, which is what
+           keeps the desk sinking into the room at its edges however much has
+           been revealed. */
         -webkit-mask-image:
           radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%),
-          var(--desk-floor);
+          radial-gradient(circle var(--w0, 0px) at 11% 59.5%, #000 0 55%, transparent 100%),
+          radial-gradient(circle var(--w1, 0px) at 47% 67.5%, #000 0 55%, transparent 100%),
+          radial-gradient(circle var(--w2, 0px) at 45% 44%, #000 0 55%, transparent 100%),
+          radial-gradient(circle var(--w3, 0px) at 84% 64.5%, #000 0 55%, transparent 100%),
+          radial-gradient(circle var(--w4, 0px) at 85% 38%, #000 0 55%, transparent 100%), var(--desk-floor);
         mask-image:
           radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%),
-          var(--desk-floor);
+          radial-gradient(circle var(--w0, 0px) at 11% 59.5%, #000 0 55%, transparent 100%),
+          radial-gradient(circle var(--w1, 0px) at 47% 67.5%, #000 0 55%, transparent 100%),
+          radial-gradient(circle var(--w2, 0px) at 45% 44%, #000 0 55%, transparent 100%),
+          radial-gradient(circle var(--w3, 0px) at 84% 64.5%, #000 0 55%, transparent 100%),
+          radial-gradient(circle var(--w4, 0px) at 85% 38%, #000 0 55%, transparent 100%), var(--desk-floor);
         /* Two mask layers, intersected: the cursor lens decides where the photo
            shows through the voxels, and the floor gradient decides where either
            plate exists at all. Union would light the whole photograph up. */
-        -webkit-mask-composite: source-in;
-        mask-composite: intersect;
+        /* add, add, add, add, add, intersect — the five wells and the lens
+           accumulate, and only the floor gradient cuts. Listed per layer
+           boundary, so there are five values for six layers. */
+        -webkit-mask-composite: source-over, source-over, source-over, source-over, source-over, source-in;
+        mask-composite: add, add, add, add, add, intersect;
         -webkit-mask-repeat: no-repeat;
         mask-repeat: no-repeat;
         transition:
@@ -1330,6 +1349,105 @@
 
       .contact-desk.is-real .contact-desk__pixel {
         opacity: 0;
+      }
+
+      /* ── THE VOXELS RECEDE AS THE STORY IS TOLD ──────────────────────────
+         --told runs 0 to 1 across the five discoveries. The pixel plate does
+         not vanish — it thins, so the desk is still a made thing rather than
+         a photograph someone dropped in. */
+      .contact-desk .contact-desk__pixel {
+        opacity: calc(0.92 - var(--told, 0) * 0.46);
+      }
+
+      /* ── WHAT EACH ONE IS ────────────────────────────────────────────────
+         A mark and a line, placed on the plate in its own percentages. Both
+         arrive with the well that opens under them: the dot first, the words a
+         beat later, because a label that lands before the thing it names is a
+         caption for nothing. */
+      .desk-finds {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+      }
+      .desk-find {
+        position: absolute;
+        left: var(--fx);
+        top: var(--fy);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 700ms ease;
+      }
+      .desk-find.is-found {
+        opacity: 1;
+      }
+      .desk-find i {
+        width: 7px;
+        height: 7px;
+        flex: none;
+        border-radius: 50%;
+        background: var(--accent, rgba(160, 200, 255, 1));
+        box-shadow: 0 0 0 4px rgba(160, 200, 255, 0.16);
+        transform: scale(0);
+        transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .desk-find.is-found i {
+        transform: scale(1);
+      }
+      .desk-find b {
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        font-weight: 400;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.82);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+        opacity: 0;
+        transform: translateX(-6px);
+        transition:
+          opacity 560ms ease 180ms,
+          transform 560ms cubic-bezier(0.16, 1, 0.3, 1) 180ms;
+      }
+      .desk-find.is-found b {
+        opacity: 1;
+        transform: none;
+      }
+      html[data-theme="light"] .desk-find b {
+        color: rgba(12, 14, 20, 0.86);
+        text-shadow: 0 1px 6px rgba(255, 255, 255, 0.8);
+      }
+      /* The two on the right would run off the plate; they hang their label to
+         the left of the mark instead. */
+      .desk-find:nth-child(4),
+      .desk-find:nth-child(5) {
+        flex-direction: row-reverse;
+      }
+      .desk-find:nth-child(4) b,
+      .desk-find:nth-child(5) b {
+        transform: translateX(6px);
+      }
+      .desk-find:nth-child(4).is-found b,
+      .desk-find:nth-child(5).is-found b {
+        transform: none;
+      }
+      @media (max-width: 900px) {
+        /* The plate is mostly off-screen at this width; the labels would sit on
+           top of the form. The wells still open — the desk still tells its
+           story — it just does not caption itself. */
+        .desk-find b {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .desk-find,
+        .desk-find i,
+        .desk-find b {
+          transition: none;
+        }
       }
 
       /* Fully revealed: the lens opens out to the whole plate, but the floor
@@ -3789,7 +3907,7 @@
       })(marks[i]);
     }
   })();
-</script> <main class="contact-shell" id="main"> <div class="c-corner c-corner--tl"> <p class="contact-status">Open to product design roles</p> <h1 id="contact-title">Start a conversation.</h1> </div> <div class="c-corner c-corner--tr"> <p class="contact-intro">Based in New York. Best reached by email, for product design roles and creative technology work.</p> </div> <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk"> <img class="contact-desk__pixel" src="/assets/img/tnew2.png" alt="Sid’s pixelated desk filled with sketches, devices, and experiments"> <img class="contact-desk__real" src="/assets/img/table_new.png" alt="" aria-hidden="true"> <span class="contact-desk__fade" aria-hidden="true"></span> </div> <svg class="contact-defs" width="0" height="0" aria-hidden="true" focusable="false"> <filter id="desk-liquify" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.008 0.014" numoctaves="2" seed="3" result="warp"> <animate attributename="baseFrequency" dur="14s" values="0.008 0.014; 0.013 0.009; 0.008 0.014" calcmode="spline" keysplines="0.4 0 0.6 1; 0.4 0 0.6 1" repeatcount="indefinite"></animate> </feturbulence> <fedisplacementmap id="desk-disp" in="SourceGraphic" in2="warp" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </svg> <div class="c-corner c-corner--bl"> <div class="contact-primary"> <div class="contact-row"> <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a> <button class="contact-copybtn" type="button" data-copy="sidmehtadesign@gmail.com" aria-label="Copy email address">Copy</button> </div> <div class="contact-row"> <a href="tel:+16462877550">+1 646 287 7550</a> <button class="contact-copybtn" type="button" data-copy="+16462877550" aria-label="Copy phone number">Copy</button> </div> </div> </div> <div class="c-corner c-corner--br"> <nav class="contact-links" aria-label="Contact links"> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.behance.net/mehatey" target="_blank" rel="noopener noreferrer">Behance<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> </main> <script>
+</script> <main class="contact-shell" id="main"> <div class="c-corner c-corner--tl"> <p class="contact-status">Open to product design roles</p> <h1 id="contact-title">Start a conversation.</h1> </div> <div class="c-corner c-corner--tr"> <p class="contact-intro">Based in New York. Best reached by email, for product design roles and creative technology work.</p> </div> <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk"> <img class="contact-desk__pixel" src="/assets/img/tnew2.png" alt="Sid’s pixelated desk filled with sketches, devices, and experiments"> <img class="contact-desk__real" src="/assets/img/table_new.png" alt="" aria-hidden="true"> <span class="contact-desk__fade" aria-hidden="true"></span> <div class="desk-finds" aria-hidden="true"> <span class="desk-find" style="--fx: 11%; --fy: 59.5%"><i></i><b>The cube guy, in the room</b></span> <span class="desk-find" style="--fx: 47%; --fy: 67.5%"><i></i><b>Vision Pro. Bloom was built on this</b></span> <span class="desk-find" style="--fx: 45%; --fy: 44%"><i></i><b>The screen, drawn on</b></span> <span class="desk-find" style="--fx: 84%; --fy: 64.5%"><i></i><b>Kinect, still the best cheap depth camera</b></span> <span class="desk-find" style="--fx: 85%; --fy: 38%"><i></i><b>The lamp that is on in every late build</b></span> </div> </div> <svg class="contact-defs" width="0" height="0" aria-hidden="true" focusable="false"> <filter id="desk-liquify" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.008 0.014" numoctaves="2" seed="3" result="warp"> <animate attributename="baseFrequency" dur="14s" values="0.008 0.014; 0.013 0.009; 0.008 0.014" calcmode="spline" keysplines="0.4 0 0.6 1; 0.4 0 0.6 1" repeatcount="indefinite"></animate> </feturbulence> <fedisplacementmap id="desk-disp" in="SourceGraphic" in2="warp" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </svg> <div class="c-corner c-corner--bl"> <div class="contact-primary"> <div class="contact-row"> <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a> <button class="contact-copybtn" type="button" data-copy="sidmehtadesign@gmail.com" aria-label="Copy email address">Copy</button> </div> <div class="contact-row"> <a href="tel:+16462877550">+1 646 287 7550</a> <button class="contact-copybtn" type="button" data-copy="+16462877550" aria-label="Copy phone number">Copy</button> </div> </div> </div> <div class="c-corner c-corner--br"> <nav class="contact-links" aria-label="Contact links"> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.behance.net/mehatey" target="_blank" rel="noopener noreferrer">Behance<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> </main> <script>
       (() => {
         const desk = document.getElementById("contact-desk");
 
@@ -13997,5 +14115,103 @@
           target = 0;
           kick();
         });
+      })();
+    </script> <script>
+      /* ── THE DESK REVEALS ITSELF AS THE PAGE IS READ ─────────────────────
+         Sid: "it needs to be a lot more complex and creative and storytelling.
+         It should change and cover bit by bit."
+
+         Five wells, opened in order against how far down the page you are.
+         Each one owns a slice of the scroll and eases open across it, so the
+         desk is never doing nothing while you move and never finishes before
+         you have read anything.
+
+         Progress is taken against the page's own scrollable height rather
+         than against the desk's position, because the desk is fixed to the
+         bottom-right of the shell and barely moves — measuring it would give
+         a number that never changes. And it only ever goes UP: scrolling back
+         does not close a well again. Discovering something and then
+         un-discovering it because you looked away is not a story, it is a
+         toggle, and the whole complaint about the old lens was that it was a
+         toggle.
+
+         Written on rAF from a passive scroll listener, so the handler itself
+         does no layout and the mask is touched once a frame at most. */
+      (function () {
+        var desk = document.getElementById("contact-desk");
+        if (!desk) return;
+        var finds = [].slice.call(desk.querySelectorAll(".desk-find"));
+        var N = 5;
+        var peak = 0,
+          queued = 0;
+
+        /* Each well opens across its own fifth of the run, with the last one
+           landing at 0.82 rather than 1.0 — the bottom of a contact page is
+           the form, and the desk should have finished talking by the time
+           someone is typing into it. */
+        function apply(p) {
+          for (var i = 0; i < N; i++) {
+            var a = (i / N) * 0.82;
+            var b = ((i + 1) / N) * 0.82;
+            var t = Math.max(0, Math.min(1, (p - a) / Math.max(0.0001, b - a)));
+            t = t * t * (3 - 2 * t);
+            /* vmax so a well is the same size relative to the plate on a
+               laptop and a large display; the plate is sized in vw. */
+            desk.style.setProperty("--w" + i, (t * 26).toFixed(2) + "vmax");
+            if (finds[i]) finds[i].classList.toggle("is-found", t > 0.55);
+          }
+          desk.style.setProperty("--told", p.toFixed(3));
+        }
+
+        function read() {
+          queued = 0;
+          /* ── MEASURED AGAINST THE DESK, NOT THE DOCUMENT ─────────────────
+             The contact page is 6431px tall and the desk is in the first
+             viewport of it. Reading progress off the whole document meant the
+             fifth object opened at about 5300px — some four thousand pixels
+             after the desk had left the screen, so most of the story was told
+             to nobody.
+
+             The run is the desk's own life instead: from the moment it is in
+             view to the moment its bottom passes the top of the window, which
+             at this layout is a little over one viewport. Everything lands
+             while the thing being described is visible. */
+          var r = desk.getBoundingClientRect();
+          /* 0.12 rather than 0.35 of a viewport of lead-in. At the larger
+             value the desk was already 21% revealed before a single scroll —
+             the first object had opened and named itself on arrival, which
+             spends the beat the sequence exists to earn. It arrives as voxels
+             now and the first well opens as soon as the page moves. */
+          var run = r.height + window.innerHeight * 0.12;
+          var travelled = window.innerHeight * 0.12 - r.top;
+          var p = run > 40 ? travelled / run : 1;
+          p = Math.max(0, Math.min(1, p));
+          if (p > peak) {
+            peak = p;
+            apply(peak);
+          }
+        }
+        window.addEventListener(
+          "scroll",
+          function () {
+            if (!queued) {
+              queued = 1;
+              requestAnimationFrame(read);
+            }
+          },
+          { passive: true }
+        );
+        window.addEventListener("resize", read, { passive: true });
+
+        /* A page too short to scroll has no sequence to give, so it is simply
+           told. Same for reduced motion: the desk is complete on arrival
+           rather than withholding itself from someone who asked for less. */
+        var LESS = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (LESS || document.documentElement.scrollHeight - window.innerHeight < 40) {
+          peak = 1;
+          apply(1);
+        } else {
+          read();
+        }
       })();
     </script> </body> </html>
