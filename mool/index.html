@@ -9493,13 +9493,28 @@
      still gives them 45px, which is under a single wheel notch on most mice —
      the scrub stays continuous, it just stops charging two and a half screens
      for ten seconds of Apple Music. */
+  /* ── IT IS PLACED, NOT PINNED ─────────────────────────────────────────
+     Sid: "this should just be placed there and smaller and curved a bit. Also
+     it does a weird opacity in and zoom in — remove that."
+
+     Measured, there is no opacity fade and no scale on this anywhere: at four
+     scroll positions the device reports opacity 1 and transform none. What
+     reads as one is the PIN. The stage was position: sticky inside a 150vh
+     runway, so the phone locked to the top of the window and hung there for a
+     screen and a half while the page kept moving underneath it — and because
+     the frames scrub during that hold, the picture changed while the object
+     did not. A thing that stops when you scroll and mutates in place is doing
+     something; he asked for it to be placed.
+
+     So it sits in the flow. The runway is the section's own height, the stage
+     is static, and the scrub runs off the section's position as it crosses the
+     viewport rather than off a pinned range — same thirty frames, no hold. */
   .coda__runway {
-    height: 150vh;
+    height: auto;
   }
 
   .coda__stage {
-    position: sticky;
-    top: 0;
+    position: static;
     display: grid;
     /* Three in-flow children since the slate came out — the device, the
        playhead and the note. The title is absolutely positioned and never
@@ -9507,7 +9522,7 @@
        stop centring. */
     grid-template-rows: 1fr auto auto;
     justify-items: center;
-    height: 100svh;
+    min-height: 72svh;
     /* The top pad clears the fixed nav rather than approximating it. At
        default sizes the logo pill bottoms out at y=73 and the nav pill at
        y=73; an eyebrow set at 63 lands *behind* the logo. Both annotations
@@ -9562,9 +9577,21 @@
        in a landscape frame, so height is the constraint that actually binds.
        aspect-ratio does the rest, which keeps the canvas from ever being
        letterboxed inside its own box. */
-    height: min(62svh, 560px);
+    /* ── SMALLER, AND MORE CURVED ────────────────────────────────────────
+       Sid: "this should just be placed there and smaller and curved a bit."
+
+       62svh put a phone mockup at 560px tall in the middle of an empty screen,
+       which made a screen recording the largest object on the home page. It is
+       an artefact, not the subject. 46svh at a 400px cap reads as a device
+       someone is holding rather than a device on a plinth.
+
+       The radius comes up with it: a real phone's corner is roughly a tenth of
+       its width, and at the old size clamp(20px, 3.4svh, 34px) was resolving
+       nearer a sixteenth, which is what made the panel read as a rounded
+       rectangle rather than as hardware. */
+    height: min(46svh, 400px);
     aspect-ratio: 360 / 780;
-    border-radius: clamp(20px, 3.4svh, 34px);
+    border-radius: clamp(18px, 4.6svh, 30px);
     overflow: hidden;
     background: #0a0d12;
     box-shadow:
@@ -9668,11 +9695,21 @@
     function frame() {
       raf = 0;
       var box = sec.getBoundingClientRect();
-      var span = box.height - window.innerHeight;
-      /* 0 while the section is still below the fold, 1 once its runway is
-         spent. Clamped at both ends so overscroll on a trackpad cannot push
-         the playhead past the last frame and snap it back. */
-      var t = span > 0 ? Math.min(1, Math.max(0, -box.top / span)) : 0;
+      var vh = window.innerHeight;
+      /* ── PROGRESS IS THE CROSSING, NOT THE PIN ─────────────────────────
+         This used to be -box.top / (box.height - innerHeight), which is the
+         right maths for a section TALLER than the window: the pinned runway
+         was 150vh, so the denominator was half a screen of travel.
+
+         The section sits in the flow now and is shorter than the window, so
+         that denominator goes negative and the guard clamped the playhead to
+         frame 0 — the scrub would have silently frozen on the first frame.
+
+         The span is the full crossing instead: 0 when the section's top is at
+         the bottom of the window, 1 when its bottom clears the top. Same
+         thirty frames, spread over the time the thing is actually on screen. */
+      var span = vh + box.height;
+      var t = span > 0 ? Math.min(1, Math.max(0, (vh - box.top) / span)) : 0;
       wanted = Math.min(COUNT - 1, Math.floor(t * COUNT));
       draw(wanted);
     }
