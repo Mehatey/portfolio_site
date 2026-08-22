@@ -5608,13 +5608,29 @@
     height: 104px;
     z-index: -1;
     pointer-events: none;
-    background: linear-gradient(180deg, rgba(6, 10, 16, 0.62) 0%, rgba(6, 10, 16, 0.44) 46%, rgba(6, 10, 16, 0.16) 78%, rgba(6, 10, 16, 0) 100%);
-    -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(0.94);
-    backdrop-filter: blur(22px) saturate(1.7) brightness(0.94);
-    /* The dissolve. Masking takes the backdrop-filter with it, so the glass
-       genuinely thins out rather than stopping at an edge. */
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 52%, rgba(0, 0, 0, 0.55) 76%, transparent 100%);
-    mask-image: linear-gradient(180deg, #000 0%, #000 52%, rgba(0, 0, 0, 0.55) 76%, transparent 100%);
+    /* ── THE GLASS IS FLAT, THEN IT STOPS ─────────────────────────────────
+       Sid: "just above the navbar we have a little bit which is still kind of
+       not blurred ... it's not clear to me where the navbar really starts and
+       where that content is getting blurred. Can you just start it as a direct
+       flat from above the navbar?"
+
+       The mask ran #000 to 52%, 0.55 at 76%, transparent at 100% — a long
+       dissolve across half the panel's height. Two things went wrong with it.
+       The band nearest the top was never at full strength, so content sliding
+       under the very top of the window stayed legible through it; and because
+       the falloff was gradual there was no edge anywhere, so the nav had no
+       readable boundary at all — it was a smear of half-blur about a hundred
+       pixels deep.
+
+       Flat to 88% and out over the last twelve. The panel is one weight from
+       the top of the viewport down, which is what makes the nav a surface
+       rather than a haze, and the short feather is only there to stop the
+       bottom reading as a ruled line. */
+    background: linear-gradient(180deg, rgba(6, 10, 16, 0.72) 0%, rgba(6, 10, 16, 0.68) 62%, rgba(6, 10, 16, 0.52) 88%, rgba(6, 10, 16, 0) 100%);
+    -webkit-backdrop-filter: blur(24px) saturate(1.7) brightness(0.94);
+    backdrop-filter: blur(24px) saturate(1.7) brightness(0.94);
+    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 88%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 0%, #000 88%, transparent 100%);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
   }
   /* The specular edge, as its own element so it is not subject to the mask
@@ -6170,16 +6186,29 @@
      reads as blue / pink-green / orange / teal from across the page. Body and
      tail take the saturated tone; the three dots take the lighter one, which
      is the same figure-on-field split the plant and the old ripple used. */
+  /* ── THE CONTACT MARK COMES DOWN OFF ORANGE ───────────────────────────
+     Sid: "can you change the colour of the Contact sort of thing? That orange
+     red is way too in your face."
+
+     He is right, and the reason is that it was the only warm mark in a cool
+     row: work is blue, about is teal, and an orange sun between them is the
+     highest-contrast thing in the nav on every page. On a site whose whole
+     palette he has just asked to move toward blue and turquoise, the loudest
+     pixel on the screen was pointing at Contact.
+
+     A cooler amber, desaturated and lighter, so it is still distinguishable
+     from its neighbours — the four marks have to stay tellable apart at 24px
+     — without being the first thing the eye lands on. */
   .studio-link .nav-pixel--contact .nav-pixel__ray {
-    fill: #ef7d4e;
+    fill: #7fd6d0;
   }
   /* The corner sparks sit lighter than the rays on purpose: at 24px four
      equal-weight diagonals turn the mark back into a sun. */
   .studio-link .nav-pixel--contact .nav-pixel__spark {
-    fill: #ffb08a;
+    fill: #bdeeea;
   }
   .studio-link .nav-pixel--contact .nav-pixel__ring {
-    stroke: #ff9a72;
+    stroke: #9ae3dd;
   }
   .studio-link .nav-pixel--about .nav-pixel__tile {
     fill: #0ac0b2;
@@ -6878,6 +6907,10 @@
   .studio-link .nav-pixel {
     filter: saturate(1);
     transition: filter 260ms ease;
+    /* Sid: "the contact icon size needs to be reduced a little bit." Applied
+       to all four rather than to one, because a row of marks that are not the
+       same size stops reading as a set. */
+    transform: scale(0.88);
   }
   .studio-link:hover .nav-pixel,
   .studio-link:focus-visible .nav-pixel {
@@ -12823,12 +12856,19 @@
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 100000;
-    background: rgba(236, 245, 255, 0.95);
+    /* The dot inside. It used to be opacity 0 unless the pointer was over
+       something interactive — Sid asked for a dot inside the cursor and there
+       was one, invisible three quarters of the time. It is always on now, and
+       hover is what changes it rather than what summons it. */
+    background: rgba(236, 245, 255, 0.9);
     opacity: 0;
     transition: opacity 0.2s;
   }
+  html.has-custom-cursor #cur-core {
+    opacity: 0.7;
+  }
   html[data-theme="light"] #cur-core {
-    background: rgba(16, 24, 40, 0.9);
+    background: rgba(16, 24, 40, 0.82);
   }
   /* Over something interactive the ring opens up and the core steps back, so
      the two never read as a target reticle sitting on a link. */
@@ -12844,16 +12884,32 @@
        reticle, and over an interactive surface it opens to 21 instead of 29 —
        small enough that it stops covering the thing it is pointing at, which
        is the actual complaint underneath the size one. */
-    width: 13px;
-    height: 13px;
+    /* ── SMALLER, DIMMER, AND NOT A CIRCLE ───────────────────────────────
+       Sid: "make the cursor smaller. It's way too bright right now, and it
+       looks way too simple and not nice. Just a bright white circle with a dot
+       inside is not what I am going for ... I wanted it to be fluid."
+
+       Three faults, only one of them size. The ring sat at 0.7 alpha of a
+       near-white, which on a near-black page made it the brightest object on
+       screen at every moment — brighter than the headline. It held a perfect
+       circle at all times, so the only thing carrying motion was its gap to
+       the core. And the core was invisible except on hover, so most of the
+       time there was no dot inside anything.
+
+       11px, 0.42 alpha, and the shape is written per frame: border-radius
+       takes eight values that swell along the direction of travel, so it
+       behaves like a droplet being dragged rather than a reticle being moved.
+       See the loop below. */
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 99999;
     background: transparent;
     box-shadow:
-      0 0 0 1px rgba(214, 234, 255, 0.7),
-      0 0 12px 1px rgba(90, 150, 240, 0.1);
+      0 0 0 1px rgba(206, 230, 255, 0.42),
+      0 0 10px 1px rgba(90, 150, 240, 0.08);
     will-change: left, top, transform;
     opacity: 0;
     /* transform is driven per-frame in JS (velocity stretch + eased hover scale); only fade opacity */
@@ -12865,8 +12921,8 @@
   html[data-theme="light"] #cur-dot {
     background: transparent;
     box-shadow:
-      0 0 0 1px rgba(22, 40, 72, 0.62),
-      0 0 10px 1px rgba(20, 40, 80, 0.08);
+      0 0 0 1px rgba(22, 40, 72, 0.4),
+      0 0 10px 1px rgba(20, 40, 80, 0.06);
   }
   /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons.
      The scale itself is handled in JS; this rule only swaps the look. */
@@ -17963,6 +18019,30 @@
       /* No rotation: a circle has none to show, and rotating one was only
          ever in service of the elongation that has gone. */
       dot.style.transform = "translate(-50%, -50%) scale(" + sx * hoverScale + ", " + sy * hoverScale + ")";
+      /* ── THE DROPLET ─────────────────────────────────────────────────────
+         A circle dragged through anything deforms: it narrows at the front and
+         swells at the back. border-radius takes eight values here, eased off
+         the ring's own lag behind the pointer, so the leading edge tightens
+         and the trailing edge bulges. At rest every value settles to 50% and
+         it is a circle again.
+
+         Done in border-radius rather than in scale on purpose: scaling turns a
+         ring into an ellipse, which reads as a squashed reticle, where
+         asymmetric radii read as surface tension. */
+      var lagX = mx - rx,
+        lagY = my - ry;
+      var lagLen = Math.sqrt(lagX * lagX + lagY * lagY);
+      var lag = Math.min(1, lagLen / 26);
+      var denom = Math.max(1, Math.abs(lagX) + Math.abs(lagY));
+      var ux = lagX / denom,
+        uy = lagY / denom;
+      var lead = (50 - lag * 16).toFixed(1),
+        trail = (50 + lag * 20).toFixed(1);
+      var q = function (a, b) {
+        return (50 + (a * ux + b * uy) * lag * 15).toFixed(1) + "%";
+      };
+      dot.style.borderRadius =
+        q(-1, -1) + " " + q(1, -1) + " " + q(1, 1) + " " + q(-1, 1) + " / " + lead + "% " + lead + "% " + trail + "% " + trail + "%";
       if (core) {
         /* The core is the precise one. It takes the raw pointer position, not
            the eased one, so what you are aiming with is never behind where
