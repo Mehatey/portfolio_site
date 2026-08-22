@@ -1778,194 +1778,9 @@
         }
       }
 
-      /* ── the film ───────────────────────────────────────────────
-         The hero's floor. Two takes of the same shot live in the DOM only
-         so the browser will decode them; WebGL reads both and paints the
-         pixelated one, then lets the pointer develop the clear one back
-         in. Everything here is presentation — no copy depends on it. */
-      /* Full-bleed behind the hero, inert to the pointer so every control
-         on top of it stays reachable. */
-      .field {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        overflow: hidden;
-        pointer-events: none;
-      }
-      .field canvas {
-        position: absolute;
-        inset: 0;
-        display: block;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        transition: opacity 700ms ease;
-      }
-      .field.is-gl canvas {
-        opacity: 1;
-      }
-      .field__video {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        opacity: calc(var(--field-presence, 1) * 0.9);
-        transition: opacity 500ms ease;
-      }
-      .field.is-gl .field__video {
-        opacity: 0;
-      }
-      html[data-theme="light"] .field.is-gl canvas {
-        opacity: 0.72;
-        mix-blend-mode: multiply;
-        filter: brightness(1.1) contrast(1.04) saturate(0.72);
-      }
-      html[data-theme="light"] .field__video {
-        mix-blend-mode: multiply;
-        filter: brightness(1.1) contrast(1.04) saturate(0.72);
-      }
-      .field__depth {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      /* ── HIM, IN THE MIDDLE ───────────────────────────────────────────────
-         Sid: "what if we have him in the centre in depth map and controllable
-         interactive."
-
-         The stage sits above the field and below the copy: he is centred in
-         the hero, the headline and the sentence are in the bottom corners, so
-         the only thing that ever crosses him is empty space. z-index 1 rather
-         than 3 for exactly that reason — if the type and the figure ever do
-         meet, the type wins.
-
-         It takes pointer events, which the field deliberately does not. That
-         is the whole "controllable" half of the ask: the middle of the hero
-         is the one region of this page with nothing to click, so a drag there
-         can safely mean something. `touch-action: pan-y` keeps a vertical
-         swipe scrolling the page while a horizontal one turns him. */
-      /* ── HE IS NOT CLIPPED BY THE HERO ────────────────────────────────────
-         Sid: "you see how the cubes foot is kind of hitting that black area
-         ... it just gets cut off."
-
-         The hero is `overflow: hidden` — it has to be, the field runs full
-         bleed — and the stage lives inside it, so the figure was being cut
-         off by the section edge exactly where his sole met it. Promoting the
-         stage out of the hero's clip is not an option without breaking the
-         field, so the stage keeps its box and the FIGURE is drawn smaller
-         inside it than the box allows: the canvas now has 18% of its own
-         height as clear air under his feet, which is what the camera pull
-         below spends. Nothing to clip against. */
-      /* ── THE HERO'S OWN EXIT ─────────────────────────────────────────────
-         --hx runs 0 to 1 as the hero leaves, written by the script below. */
-      .hero-veil {
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        pointer-events: none;
-        opacity: var(--hx, 0);
-        background:
-          linear-gradient(
-            104deg,
-            transparent calc(var(--hx, 0) * 190% - 62%),
-            rgba(150, 205, 232, 0.16) calc(var(--hx, 0) * 190% - 38%),
-            rgba(226, 244, 255, 0.3) calc(var(--hx, 0) * 190% - 20%),
-            rgba(150, 205, 232, 0.14) calc(var(--hx, 0) * 190% - 6%),
-            transparent calc(var(--hx, 0) * 190% + 16%)
-          ),
-          linear-gradient(180deg, rgba(3, 6, 11, 0) 0%, rgba(3, 6, 11, calc(var(--hx, 0) * 0.72)) 100%);
-        mix-blend-mode: screen;
-      }
-      /* The second layer has to darken, and screen cannot darken — so the
-         shade is its own element underneath the sweep. */
-      .hero-veil::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        mix-blend-mode: normal;
-        background: radial-gradient(120% 90% at 50% 50%, transparent 30%, rgba(3, 6, 11, calc(var(--hx, 0) * 0.8)) 100%);
-      }
-      html[data-theme="light"] .hero-veil {
-        mix-blend-mode: multiply;
-        background: linear-gradient(
-          104deg,
-          transparent calc(var(--hx, 0) * 190% - 62%),
-          rgba(120, 170, 200, 0.14) calc(var(--hx, 0) * 190% - 20%),
-          transparent calc(var(--hx, 0) * 190% + 16%)
-        );
-      }
-      html[data-theme="light"] .hero-veil::after {
-        background: radial-gradient(120% 90% at 50% 50%, transparent 34%, rgba(232, 238, 245, calc(var(--hx, 0) * 0.85)) 100%);
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .hero-veil {
-          display: none;
-        }
-      }
-
-      /* ── THE ROOM ──────────────────────────────────────────────────────
-       --room-h is where the horizon sits, as a fraction of the hero, and
-       --room-f is the floor. Both are shared with the field's mask below so
-       the backdrop's curved cut and the line drawn on it cannot drift apart.
-       Percentages rather than pixels: the room has to hold its proportions
-       from a laptop to a 2560 display. */
-      .hero {
-        --room-h: 30%;
-        /* At 78% the line sat about 110px below his soles and he read as
-           floating above it. 66% puts it where his feet actually land at a 900
-           hero, which is the whole point of drawing a floor. */
-        --room-f: 66%;
-      }
-      .hero-room {
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-        pointer-events: none;
-      }
-      .hero-room__horizon,
-      .hero-room__floor {
-        position: absolute;
-        left: 0;
-        right: 0;
-        height: 1px;
-        /* --line-2 is rgba(255,255,255,0.2), the right weight for a divider
-         between two blocks of text and invisible as a 1px line across a
-         near-black hero. These are meant to be seen: they are the drawing
-         of the room, not a separator. */
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.34) 16%, rgba(255, 255, 255, 0.34) 84%, transparent);
-      }
-      html[data-theme="light"] .hero-room__horizon,
-      html[data-theme="light"] .hero-room__floor {
-        background: linear-gradient(90deg, transparent, rgba(12, 14, 20, 0.3) 16%, rgba(12, 14, 20, 0.3) 84%, transparent);
-      }
-      /* The horizon is fainter and sits behind the figure: it is the far wall,
-       and a far wall drawn at the same weight as the floor flattens the
-       space it is supposed to open. */
-      .hero-room__horizon {
-        top: var(--room-h);
-        opacity: 0.55;
-      }
-      .hero-room__floor {
-        top: var(--room-f);
-      }
-      /* ── THE BACKDROP CURVES AWAY ────────────────────────────────────────
-       The field used to run edge to edge and bottom to top, which is a
-       rectangle of footage with a figure in front of it. Masked to end on an
-       ellipse just under the horizon, it becomes a cyclorama: the curve is
-       what tells the eye there is depth behind him rather than a wall of
-       picture.
-
-       A mask rather than a clip so the edge can be soft — 6% of feather,
-       which at a 900px hero is about fifty pixels of falloff. A hard cut
-       reads as a crop; a soft one reads as light running out. */
-      .field {
-        -webkit-mask-image: radial-gradient(120% 86% at 50% -6%, #000 60%, rgba(0, 0, 0, 0.55) 78%, transparent 92%);
-        mask-image: radial-gradient(120% 86% at 50% -6%, #000 60%, rgba(0, 0, 0, 0.55) 78%, transparent 92%);
-      }
+      /* The .field rules went with the element. See the note where the markup
+         was: one background for the whole site, mounted from
+         _includes/site_field.html. */
       @media (max-width: 760px) {
         /* On a phone the copy sits over the middle of the frame and the room
          lines run straight through it. The floor stays, because it is what
@@ -7221,11 +7036,20 @@
              streams decode, WebGL takes over without a blank frame. The depth
              stream is never shown; it only supplies geometry to the shader.
              See assets/js/home-field.js. -->
-        <div class="field" id="field-stage" aria-hidden="true" data-base="">
-          <video class="field__video" id="field-video" src="/assets/video/sid_rooftop_4k.mp4" poster="/assets/img/sid-rooftop-poster.jpg" muted loop playsinline preload="metadata"></video>
-          <video class="field__depth" id="field-depth" src="/assets/video/sid_rooftop_depth.mp4" muted loop playsinline preload="metadata"></video>
-          <canvas id="field-gl"></canvas>
-        </div>
+        <!-- ── THE FIELD IS THE SITE'S FIELD NOW ────────────────────────────
+             Sid: "maybe one unique background shader across the entire site —
+             I don't think we should mix shaders."
+
+             What was here was the ASCII/video field: a glyph atlas over two
+             plates of his rooftop footage, five treatments on a rotation. It
+             was good on its own, it was a fifth background on a site that now
+             has one, and it is what put a raw video behind the headline — the
+             thing he asked to remove at the very start of this work.
+
+             _includes/site_field.html is mounted on every layout and draws
+             behind everything. The hero keeps its composition; it no longer
+             brings its own weather. Nine megabytes of rooftop video go with
+             it, which is most of what this page weighed. -->
 
         <!-- The cube guy. aria-hidden because he is the page's atmosphere,
              not its content: everything he stands for is already reachable as
@@ -9624,17 +9448,19 @@
      ─────────────────────────────────────────────────────────────────────── -->
 
 <footer class="site-footer" aria-label="Site footer" data-biome="pond">
-  <div class="plot__bleed" aria-hidden="true">
-    <!-- The pin is a separate element from the bleed on purpose. Sticky is
-         constrained by its containing block, so the thing that spans the whole
-         footer and the thing that stays one viewport tall cannot be the same
-         box: the bleed measures the footer, the pin rides inside it. -->
-    <div class="plot__pin" id="plot-field">
-      <canvas id="plot-wash"></canvas>
-      <canvas id="plot-caustic"></canvas>
-      <canvas id="plot-flora"></canvas>
-    </div>
-  </div>
+  <!-- ── THE POND CAME OUT ──────────────────────────────────────────────────
+       Sid: "maybe one unique background shader across the entire site — I
+       don't think we should mix shaders."
+
+       Three canvases lived here: a wash, a caustic layer and a field of green
+       ASCII flora that grew a different biome per page. It is the thing
+       showing through as green marks in every screenshot he sent of a footer,
+       underneath a site that is now navy and turquoise everywhere else, and it
+       was the loudest of the four backgrounds this work replaced.
+
+       _includes/site_field.html is fixed behind every page, so the footer
+       already stands in the same water the rest of the site does. The plot
+       script self-cancels when it cannot find #plot-field. -->
 
    
   <section class="kts" aria-label="More about Sid">
@@ -12122,7 +11948,6 @@
     </style>
 
     <script src="/assets/js/home-gl.js" defer></script>
-    <script src="/assets/js/home-field.js" defer></script>
     <script src="/assets/js/cube-guy.js" defer></script>
     <!-- The sequence that makes the figure and the film take turns. Loaded
          after both renderers and deferred like them, so it is guaranteed to
