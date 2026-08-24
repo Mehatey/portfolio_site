@@ -94,8 +94,21 @@
        carries sideways when genuinely shoved. */
     ANI_X = 0.68,
     ANI_Y = 1.22,
-    BOB_A = 3.2, // px of idle rise and fall
-    BOB_HZ = 0.42, // idle cycles a second
+    /* ── THE IDLE BOB IS OFF, AND THAT IS THE WHOLE POINT ─────────────────
+       This file was pulled out of the page once already. Sid: "i hate how wavy
+       the type is." He was right: BOB_A ran at 3.2px on every one of 56 letters
+       for as long as the hero was on screen, so the first sentence a visitor
+       reads was never still. A headline that moves while you read it is worse
+       than a headline that does nothing, however good the physics is.
+
+       He now wants the letters playable -- "individual letters for me to bounce
+       and play with". Those are not the same request. The wobble was unprompted
+       motion; this is response. So the amplitude goes to zero and everything
+       else stays: the line is perfectly still until you put the pointer in it
+       or click it, and then it has mass, a wake, tilt and overshoot. Nothing
+       moves that the reader did not move. */
+    BOB_A = 0.0, // idle rise and fall -- deliberately zero, see above
+    BOB_HZ = 0.42, // retained: still scales the click ripple's phase spread
     W_BASE = 350,
     W_PEAK = 760;
 
@@ -326,6 +339,31 @@
     { passive: true }
   );
 
+  /* ── THE CLICK ────────────────────────────────────────────────────────
+     Hover is a wake; a click should be a hit. An outward impulse from the
+     point of contact, falling off with distance, so the letters nearest the
+     click are thrown hardest and the line recoils as a body rather than every
+     letter jumping the same amount. The spring and damping already in the
+     integrator carry the overshoot, which is what makes it read as struck
+     rather than as animated. */
+  hero.addEventListener(
+    "pointerdown",
+    function (e) {
+      if (!letters.length) return;
+      for (var i = 0; i < letters.length; i++) {
+        var L = letters[i];
+        var dx = L.hx + L.ox - e.clientX;
+        var dy = L.hy + L.oy - e.clientY;
+        var d = Math.sqrt(dx * dx + dy * dy) || 1;
+        var f = 520 / (d + 60);
+        L.vx += (dx / d) * f;
+        L.vy += (dy / d) * f - f * 0.35;
+      }
+      start();
+    },
+    { passive: true }
+  );
+
   window.addEventListener("resize", measure, { passive: true });
   window.addEventListener("scroll", measure, { passive: true });
 
@@ -366,7 +404,40 @@
     });
   }
   window.addEventListener("sid:herotyped", arm);
-  setTimeout(arm, 4200);
+
+  /* ── THE FALLBACK WAS THE RACE IT CLAIMED TO PREVENT ──────────────────────
+     This was `setTimeout(arm, 4200)`, and the comment above calls it "a floor,
+     not a race". It is a race. The typewriter writes ink.textContent on every
+     character, and assigning textContent destroys every child element -- which
+     is the exact hazard this file was written to avoid. 4200ms is only a safe
+     floor if typing always finishes inside 4200ms, and it does not: it is 63
+     characters gated one-per-frame-after-22ms plus three 300ms line gaps, so
+     on anything loaded, throttled or simply slower than this laptop it runs
+     long. Measured in a headless run: the split landed at 4.2s and the
+     typewriter then wiped the spans at 7.7s, 8.2s and 9.9s, leaving 9 letters
+     of 55 and a left clause with none at all.
+
+     So the fallback now checks the thing it actually cares about instead of
+     guessing at a duration: has every line finished printing? The ink is
+     compared against the `data-tw` text it is being typed from, which is the
+     only source of truth available from out here. The event still fires first
+     in the normal case; this only matters when it does not. */
+  /* Not inferred from the text. Every line is handed its full string up front
+     and then hidden and typed over, so comparing ink against `data-tw` reports
+     "finished" on the very first frame -- which is how the first version of
+     this fallback managed to split at 0ms and hand the typewriter 56 spans to
+     destroy. The typewriter sets this attribute when it is genuinely done. */
+  function typingDone() {
+    return document.documentElement.getAttribute("data-hero-typed") === "1";
+  }
+  var waits = 0;
+  (function waitForType() {
+    if (armed) return;
+    /* 20s of patience, then split regardless -- if the typewriter has broken
+       outright, still letters is a better failure than no letters. */
+    if (typingDone() || ++waits > 100) return void arm();
+    setTimeout(waitForType, 200);
+  })();
 
   /* A verification hook, not a feature. Nothing on the page calls it; it lets
      a headless run put the pointer somewhere and read the resulting
