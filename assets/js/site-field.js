@@ -100,7 +100,7 @@
     "precision highp float;",
     "varying vec2 v;",
     "uniform sampler2D uPrev;",
-    "uniform vec2 uRes, uHand;",
+    "uniform vec2 uRes, uHand, uHandPrev;",
     "uniform float uTime, uDelta, uVel, uPresence, uBurst;",
 
     "float hash21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }",
@@ -149,8 +149,36 @@
     "  vec2 aspect = vec2(uRes.x / uRes.y, 1.0);",
     "  vec2 toHand = (v - uHand) * aspect;",
     "  float radius = length(toHand);",
+    /* ── A STROKE, NOT A ROW OF DOTS ──────────────────────────────────────
+       Injection was keyed to `radius`, the distance to where the pointer is
+       THIS frame. The sim runs once per frame, so a hand crossing 600px in
+       200ms deposits pigment at about a dozen discrete places and nothing in
+       between: at speed the wake broke into beads, which is the single most
+       artificial thing the field did, and it did it exactly when someone was
+       moving fast enough to be playing with it.
+
+       So the deposit is keyed to the distance to the SEGMENT the hand actually
+       travelled since the last frame. Same cost -- a dot product and a clamp --
+       and the stroke is continuous at any speed the mouse can manage.
+
+       The stirring still centres on `radius`, the live position, because the
+       fluid should be pushed by where the hand IS, not smeared evenly along
+       where it has been. */
+    "  vec2 segA = (v - uHandPrev) * aspect;",
+    "  vec2 segB = (uHand - uHandPrev) * aspect;",
+    "  float segT = clamp(dot(segA, segB) / max(dot(segB, segB), 1e-6), 0.0, 1.0);",
+    "  float strokeR = length(segA - segB * segT);",
     "  vec2 tangent = vec2(-toHand.y, toHand.x) / max(radius, 0.02);",
-    "  float influence = exp(-radius * radius * 11.0);",
+    /* ── HOW FAR THE HAND REACHES ─────────────────────────────────────────
+       Sid: "change the bg shader to be more interactive."
+
+       The stir was real but you could not find it. exp(-r*r*11) is down to a
+       twentieth of its value by r = 0.5, and r is measured in aspect-corrected
+       screen units, so the pointer was moving fluid inside a pool about 130px
+       wide on a 1440 screen and nothing outside it. Halving the falloff roughly
+       doubles the radius the hand is felt across, which is the difference
+       between a cursor that disturbs the field and a cursor that has a wake. */
+    "  float influence = exp(-radius * radius * 4.6);",
     /* Advection. The tangential term is what makes the pointer STIR rather
        than push — a shove displaces, a curl folds, and folding is the whole
        character of this thing. */
@@ -159,12 +187,18 @@
        instead of translating, so there is still a slow global current and it
        no longer always runs the same way. */
     "  vec2 flow = curl(v + vec2(cos(uTime * 0.013), sin(uTime * 0.011)) * 0.12) * 0.0014;",
-    "  flow += tangent * (0.0016 + uVel * 0.02) * influence * uPresence;",
-    "  flow -= normalize(toHand + 0.0001) * influence * uPresence * 0.0026;",
+    /* And it was gentle even inside that pool: the curl term alone is 0.0014,
+       so the hand was contributing about the same as the ambient weather. The
+       tangential term carries most of the increase because that is the one that
+       FOLDS -- pushing harder just displaces, turning harder makes structure. */
+    "  flow += tangent * (0.0042 + uVel * 0.075) * influence * uPresence;",
+    "  flow -= normalize(toHand + 0.0001) * influence * uPresence * 0.0062;",
     /* The click. An outward ring that expands and fades on its own clock. */
     "  if (uBurst > 0.001) {",
-    "    float ring = exp(-pow(radius - (1.0 - uBurst) * 0.55, 2.0) * 90.0);",
-    "    flow += normalize(toHand + 0.0001) * ring * uBurst * 0.02;",
+    /* The ring was 90 in the exponent, which is a hairline, and it travelled
+       only to 0.55. Wider, slower, further: a click should cross the screen. */
+    "    float ring = exp(-pow(radius - (1.0 - uBurst) * 0.95, 2.0) * 26.0);",
+    "    flow += normalize(toHand + 0.0001) * ring * uBurst * 0.055;",
     "  }",
     "  vec2 uv = fract(v - flow * min(2.0, uDelta * 60.0));",
 
@@ -182,7 +216,10 @@
        has nowhere to go that is warm. Violet arrives only at the extreme of
        the cycle, which is the "occasional subtle violet" in the brief. */
     "  float filaments = sin(radius * 62.0 - uTime * 2.4 + noise(v * 9.0) * 12.0) * 0.5 + 0.5;",
-    "  float spark = pow(max(0.0, 1.0 - radius * 6.0), 2.0);",
+    /* radius * 6.0 meant the pointer deposited pigment only within r < 0.167.
+       3.1 opens that to about a third of the screen, and the softer exponent
+       gives the deposit an edge you can see moving rather than a hard dot. */
+    "  float spark = pow(max(0.0, 1.0 - strokeR * 3.1), 1.7);",
     /* Same correction as the display palette: a cosine triple here cycles
        through every hue, so the pigment being injected INTO the fluid was
        going warm before the display shader ever saw it. The tint travels
@@ -208,10 +245,25 @@
        curl field rather than being flat, so it feeds drifting wisps instead of
        a disc. Everything else multiplies by `spark` as it always should have. */
     "  float ambient = 0.0022 * (0.35 + filaments * 0.65);",
-    "  float energy = ambient + (0.030 + uVel * 0.26 + uBurst * 0.20) * spark * uPresence;",
+    /* Velocity is the term that makes a flick leave a stroke rather than a
+       smudge, so it gets the largest lift. Base injection up too, or a slow
+       deliberate move deposits almost nothing. */
+    "  float energy = ambient + (0.052 + uVel * 0.62 + uBurst * 0.44) * spark * uPresence;",
 
-    "  vec3 pigment = mix(center.rgb, blur.rgb, 0.062);",
-    "  pigment *= 0.9925 - uDelta * 0.02;",
+    /* ── HOW LONG WHAT YOU DID STAYS ──────────────────────────────────────
+       Measured: 260ms after a fast sweep the stroke read +3.49 above the idle
+       field, and 1.2s later it was +0.25. So it was gone before you could look
+       at it, and a wake you cannot look at is not something the page did in
+       response to you -- it is a flicker.
+
+       Two terms were eating it. The decay took about a third of the pigment
+       every second, and the four-tap blur was mixed in at 0.062 per frame,
+       which at 60fps re-averages the whole field several times a second and
+       dissolves any shape before it can be read. Both eased: strokes now hold
+       their line long enough to be seen, and still clear on their own so the
+       field never silts up into a static painting. */
+    "  vec3 pigment = mix(center.rgb, blur.rgb, 0.040);",
+    "  pigment *= 0.9972 - uDelta * 0.012;",
     "  pigment += injection * energy;",
     /* The channel bleed. Two lookups offset along the tangent, which smears
        colour sideways as the fluid turns — this is what reads as silk. */
@@ -351,6 +403,27 @@
     "  float band = 1.0 - 0.30 * exp(-pow((v.y - 0.5) * 3.2, 2.0));",
     "  color *= band;",
 
+    /* ── THE HAND LIFTS THE GRADE IT IS UNDER ──────────────────────────────
+       This is the one that actually made it feel interactive, and it is not in
+       the fluid at all.
+
+       Both masks above are unconditional: the vignette takes the edges down and
+       the band takes the reading column down, permanently. So the fluid could
+       be doing something genuinely energetic and the grade would flatten it
+       back out before it reached the screen -- which is why every increase in
+       the sim alone bought so little. The response was there; the exposure was
+       the thing swallowing it.
+
+       So the pointer earns back some of its own suppression, locally. A soft
+       lift centred on the cursor, scaled by presence and hard by velocity, so
+       moving over even the protected middle band opens a bright pocket that
+       travels with you and closes behind you. The masks still do their job
+       everywhere the pointer is not, which is everywhere the reader is
+       actually reading. */
+    "  vec2 toHandD = q - hand;",
+    "  float near = exp(-dot(toHandD, toHandD) * 2.4);",
+    "  color *= 1.0 + near * uPresence * (0.80 + uVel * 2.6);",
+
     /* Filmic-ish tonemap, then the whole thing is held well under 1 so it can
        never compete with the type in front of it. */
     /* 3.6 to 2.1. At the higher exposure the tonemap pushed the whole field
@@ -414,7 +487,7 @@
     for (var i = 0; i < names.length; i++) o[names[i]] = gl.getUniformLocation(p, names[i]);
     return o;
   }
-  var uS = U(simP, ["uPrev", "uRes", "uHand", "uTime", "uDelta", "uVel", "uPresence", "uBurst"]);
+  var uS = U(simP, ["uPrev", "uRes", "uHand", "uHandPrev", "uTime", "uDelta", "uVel", "uPresence", "uBurst"]);
   var uD = U(dispP, ["uField", "uRes", "uHand", "uTime", "uVel", "uPresence", "uLight", "uFade"]);
 
   /* ── THE PING-PONG PAIR ─────────────────────────────────────────────────
@@ -577,6 +650,8 @@
     light = document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0;
   }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
+  var phx = 0.5,
+    phy = 0.5;
   var t0 = performance.now(),
     last = t0,
     fade = 0,
@@ -619,9 +694,14 @@
     var t = (now - t0) / 1000;
     governQuality(now, dt);
 
+    phx = hx;
+    phy = hy;
     hx += (thx - hx) * 0.16;
     hy += (thy - hy) * 0.16;
-    pres += (tpres - pres) * 0.05;
+    /* 0.05 was about a second to reach full presence, so the field ignored the
+       first second of every pointer arrival -- the exact moment someone is
+       testing whether the page responds to them. */
+    pres += (tpres - pres) * 0.17;
     vel *= 0.92;
     burst *= 0.972;
     if (burst < 0.002) burst = 0;
@@ -637,6 +717,7 @@
     gl.uniform1i(uS.uPrev, 0);
     gl.uniform2f(uS.uRes, sw, shh);
     gl.uniform2f(uS.uHand, hx, hy);
+    gl.uniform2f(uS.uHandPrev, phx, phy);
     gl.uniform1f(uS.uTime, t);
     gl.uniform1f(uS.uDelta, dt);
     gl.uniform1f(uS.uVel, vel);

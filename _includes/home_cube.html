@@ -91,6 +91,25 @@
     backface-visibility: hidden;
     box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.55);
   }
+  /* ── THE CUBE IS DRAGGABLE AGAIN ──────────────────────────────────────
+     Sid: "not able to drag while hovering on cube."
+
+     Each face is an <a> wrapping an <img>, and both of those are things the
+     browser has its own drag behaviour for: press and move on a link or an
+     image and it starts a native drag of that link or that image. That
+     gesture begins on pointermove and takes the pointer with it, so the
+     stage's own pointermove handler stops receiving anything and the spin
+     dies the instant you actually try to spin it. It only failed ON the cube,
+     which is the one place you would ever try.
+
+     Suppressing the native drag gives the gesture back. The links still work
+     -- a click is not a drag -- and the drag handler already distinguishes
+     the two. */
+  .obj-face,
+  .obj-face img {
+    -webkit-user-drag: none;
+    user-select: none;
+  }
   .obj-face img {
     width: 100%;
     height: 100%;
@@ -366,6 +385,12 @@
       };
       window.addEventListener("scroll", onScroll, { passive: true });
       window.addEventListener("resize", onScroll, { passive: true });
+
+      /* Firefox has no -webkit-user-drag, so the CSS above does not reach it.
+         Refusing the dragstart outright covers every engine. */
+      stage.addEventListener("dragstart", function (e) {
+        e.preventDefault();
+      });
 
       stage.addEventListener("pointerdown", function (e) {
         dragging = true;
