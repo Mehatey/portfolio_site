@@ -1422,8 +1422,39 @@
     var morphing = morph > 0.001 && morph < 0.999;
     host.classList.toggle("is-cube-morphing", morphing);
     if (hero) hero.classList.toggle("is-cube-morphing", morphing);
+    /* ── THE CUBE SECTION COMES BACK ──────────────────────────────────────
+       This read `(morph - 0.78) / 0.22`, which was right while the figure
+       actually morphed into the cube: the CSS cube was the thing the morph
+       handed off TO, so it appeared as the morph completed.
+
+       `readMorph()` now returns a hard 0 -- see the note above, the morph was
+       switched off because it looked shaky and never resolved into faces. But
+       the cube's reveal was left keyed to it, so `morph` is 0 forever, the
+       expression is negative forever, and `#obj-cube` has been sitting at
+       opacity 0 with pointer events off ever since. The whole `#hs-object`
+       section -- 720px of page, six project faces, a cube you are supposed to
+       be able to grab and spin -- rendered as an empty screen between the hero
+       and the work. Everything in it was loading correctly and painting
+       nothing.
+
+       Since the hero now hands off by scrolling like a normal page, the cube
+       reveals on the only thing that still means anything: whether you are
+       looking at it. Fades up as the section enters, holds while it is on
+       screen, fades as it leaves. The morph path is kept for the day a better
+       cube target exists -- if morph is ever non-zero again it wins, so this
+       is additive rather than a replacement. */
     if (cubeObject) {
-      var cubeReveal = Math.max(0, Math.min(1, (morph - 0.78) / 0.22));
+      var cubeReveal;
+      if (morph > 0.001) {
+        cubeReveal = Math.max(0, Math.min(1, (morph - 0.78) / 0.22));
+      } else if (cubeSection) {
+        var cr = cubeSection.getBoundingClientRect();
+        var cvh = window.innerHeight || 1;
+        cubeReveal = Math.min(cvh - cr.top, cr.bottom) / (cvh * 0.5);
+        cubeReveal = Math.max(0, Math.min(1, cubeReveal));
+      } else {
+        cubeReveal = 1;
+      }
       cubeReveal = cubeReveal * cubeReveal * (3 - 2 * cubeReveal);
       cubeObject.style.opacity = cubeReveal.toFixed(3);
       cubeObject.style.pointerEvents = cubeReveal > 0.94 ? "auto" : "none";
