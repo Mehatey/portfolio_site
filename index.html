@@ -7247,7 +7247,7 @@
     position: relative;
     z-index: 6;
     background: var(--home-bg, #05070d);
-    padding: 16vh clamp(24px, 5vw, 90px) 18vh;
+    padding: 22vh clamp(24px, 5vw, 90px) 24vh;
     text-align: center;
     overflow: hidden;
   }
@@ -7283,9 +7283,14 @@
   }
   .obj-stage {
     position: relative;
-    height: clamp(320px, 46vh, 560px);
-    perspective: 1200px;
-    perspective-origin: 50% 45%;
+    height: clamp(460px, 74vh, 840px);
+    /* Shorter camera. 1200px against a 420px cube is nearly orthographic --
+       the faces barely converge, which is what made it read as a flat sticker
+       sheet folded into a box rather than as a thing standing in a room. At
+       860 the vanishing point is close enough that the far edges visibly
+       taper. */
+    perspective: 860px;
+    perspective-origin: 50% 48%;
     touch-action: pan-y;
     cursor: grab;
   }
@@ -7296,7 +7301,16 @@
     /* Bigger. Sid: "the cube below should be a little bit bigger." With the
        chapter head gone there is room for it, and it has to hold the eye on
        its own now that nothing announces it. */
-    --size: clamp(220px, 30vw, 420px);
+    /* Sid: "i also wanted cube to be bigger" and "more space around it to feel
+       in a 3d space environment".
+
+       Sized against the stage rather than picked: a cube tumbling on two axes
+       presents its body diagonal at the extremes, which is sqrt(3) times its
+       edge -- so a 480px cube sweeps an 831px circle and the stage has to be
+       at least that or the section's own overflow clips the corners off at
+       precisely the moments the tumble is most legible. 480 against an 840
+       stage leaves 9px, which is the whole budget spent on the object. */
+    --size: clamp(260px, 34vw, 480px);
     position: absolute;
     left: 50%;
     top: 50%;
@@ -7383,8 +7397,20 @@
   .obj-face--left {
     transform: rotateY(-90deg) translateZ(calc(var(--size) / 2));
   }
+  /* ── THE LID AND THE BASE READ THE RIGHT WAY UP ──────────────────────────
+     These two were never seen before -- scroll drove one axis, so the four
+     sides were all anyone got -- and the moment they came into view both were
+     upside down. That is not a mistake in the markup, it is what a cube is: a
+     face laid flat by rotateX(90) has its own "up" pointing back down the Z
+     axis, so its artwork and its label arrive inverted to a camera looking at
+     it from outside.
+
+     A rotateZ appended after the translate turns the face about its own normal.
+     The face is square and centred, so it occupies exactly the same box; only
+     its contents come up the right way. Each needs the opposite sign, because
+     the two are mirror images of each other. */
   .obj-face--top {
-    transform: rotateX(90deg) translateZ(calc(var(--size) / 2));
+    transform: rotateX(90deg) translateZ(calc(var(--size) / 2)) rotate(180deg);
   }
   .obj-face--bottom {
     transform: rotateX(-90deg) translateZ(calc(var(--size) / 2));
@@ -7457,6 +7483,71 @@
     color: #14161b;
     background: linear-gradient(180deg, transparent, rgba(245, 243, 238, 0.9));
   }
+  /* ── THE READOUT ──────────────────────────────────────────────────────── */
+  .obj-readout {
+    margin: clamp(28px, 5vh, 64px) auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    font-family: "DM Mono", ui-monospace, monospace;
+  }
+  .obj-readout__kind {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(232, 240, 255, 0.34);
+  }
+  .obj-readout__name {
+    font-size: clamp(14px, 1.5vw, 19px);
+    letter-spacing: 0.06em;
+    color: rgba(236, 244, 255, 0.92);
+    /* The name is swapped by script the instant a new face wins, so the fade
+       has to live on the element rather than on the swap: without it the text
+       hard-cuts mid-turn and reads as a glitch rather than as a reading. */
+    animation: objReadIn 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes objReadIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  html[data-theme="light"] .obj-readout__kind {
+    color: rgba(20, 22, 27, 0.42);
+  }
+  html[data-theme="light"] .obj-readout__name {
+    color: rgba(16, 18, 24, 0.9);
+  }
+  /* ── THE SIDE YOU ARE LOOKING AT ─────────────────────────────────────────
+     Sid: "that side of the cube getting some effect."
+
+     Only the facing side, and only while it faces. Its own label lifts out of
+     the gradient it normally sits in and a cool edge picks out the border, so
+     the face reads as lit rather than as merely nearer. Everything is on the
+     face itself, so it turns away with it. */
+  .obj-face.is-facing {
+    box-shadow:
+      inset 0 0 60px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(150, 205, 255, 0.5),
+      0 26px 70px -30px rgba(90, 170, 255, 0.5);
+  }
+  .obj-face.is-facing span {
+    color: #fff;
+    letter-spacing: 0.16em;
+  }
+  html[data-theme="light"] .obj-face.is-facing {
+    box-shadow:
+      inset 0 0 60px rgba(24, 28, 38, 0.08),
+      0 0 0 1px rgba(36, 101, 174, 0.4),
+      0 26px 70px -30px rgba(36, 101, 174, 0.35);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .obj-readout__name {
+      animation: none;
+    }
+  }
+
   html[data-theme="light"] .obj-face:focus-visible {
     outline-color: #14161b;
   }
@@ -7503,6 +7594,22 @@
       </a>
     </div>
   </div>
+
+  <!-- ── WHAT YOU ARE LOOKING AT ────────────────────────────────────────────
+       Sid: "some scroll linked text to talk about ... what kinds of sid
+       projects."
+
+       Six covers turning past with a two-word label burned into each one told
+       you the names and nothing else, and the label is on the face, so it is
+       turned away or foreshortened exactly when you would want to read it.
+       This sits still under the object and names the side currently pointed at
+       you, so the object stays the thing you look at and the reading happens
+       where reading is comfortable. It is driven by the same rotation the cube
+       is, not by a timer, so it can never disagree with what is on screen. -->
+  <p class="obj-readout" aria-hidden="true">
+    <span class="obj-readout__kind">Currently facing</span>
+    <span class="obj-readout__name">Mool · Fintech</span>
+  </p>
 </section>
 
 <script>
@@ -7530,19 +7637,88 @@
       var dragY = 0; // accumulated user offset, kept on top of scroll
       var dragXAxis = 0;
       var scrollY = 0;
+      var scrollX = -16;
+      var faces = sec.querySelectorAll(".obj-face");
+      var readout = sec.querySelector(".obj-readout__name");
 
       var readScroll = function () {
         var r = sec.getBoundingClientRect();
         var vh = window.innerHeight || 1;
         // -1 (below the fold) .. 1 (scrolled past); 0 while centred.
         var p = (vh / 2 - (r.top + r.height / 2)) / (vh / 2 + r.height / 2);
-        scrollY = p * 190; // just over half a turn across its travel
+        /* ── ALL SIX SIDES ────────────────────────────────────────────────
+           Sid: "show all 6 sides."
+
+           It could not. Scroll drove rotateY alone and rotateX sat at a fixed
+           -18, and a cube spun about one axis only ever presents the four
+           faces around that axis -- the top and bottom are mathematically
+           unreachable. Naavo and Aananda have been on this object since it was
+           built and no visitor has ever seen either of them.
+
+           So the scroll drives both axes. Y turns 1.6 times across the
+           section, which walks the four sides past twice over; X sweeps from
+           -74 (looking down onto the lid) through the resting three-quarter
+           view to +46 (looking up at the base), so the two faces the old
+           mapping could not reach each get a clear moment. */
+        scrollY = p * 300;
+        scrollX = -16 + p * 58;
+      };
+
+      /* Which face is pointed most nearly at the camera, from the rotation
+         alone -- no per-frame getBoundingClientRect, no reading matrices back.
+         CSS applies `rotateX(a) rotateY(b)` as Rx*Ry, so a face's local normal
+         goes through the same product. The winner is whichever ends up with
+         the largest +Z. */
+      var FACE_N = [
+        ["front", 0, 0, 1],
+        ["back", 0, 0, -1],
+        ["right", 1, 0, 0],
+        ["left", -1, 0, 0],
+        /* rotateX(90) carries +Z to -Y, so that face is the BOTTOM. */
+        ["bottom", 0, -1, 0],
+        ["top", 0, 1, 0],
+      ];
+      var facing = "";
+      var frontOf = function (xDeg, yDeg) {
+        var a = (xDeg * Math.PI) / 180,
+          b = (yDeg * Math.PI) / 180;
+        var ca = Math.cos(a),
+          sa = Math.sin(a),
+          cb = Math.cos(b),
+          sb = Math.sin(b);
+        var best = null,
+          bestZ = -2;
+        for (var i = 0; i < FACE_N.length; i++) {
+          var n = FACE_N[i];
+          /* Ry then Rx, matching the order CSS composes them. */
+          var x1 = n[1] * cb + n[3] * sb;
+          var y1 = n[2];
+          var z1 = -n[1] * sb + n[3] * cb;
+          var z2 = y1 * sa + z1 * ca;
+          if (z2 > bestZ) {
+            bestZ = z2;
+            best = n[0];
+          }
+        }
+        return best;
       };
 
       var render = function () {
         var y = scrollY + dragY;
-        var x = Math.max(-62, Math.min(62, rotX + dragXAxis));
+        var x = Math.max(-80, Math.min(80, scrollX + dragXAxis));
         cube.style.transform = "rotateX(" + x.toFixed(2) + "deg) rotateY(" + y.toFixed(2) + "deg)";
+        var f = frontOf(x, y);
+        if (f !== facing) {
+          facing = f;
+          sec.setAttribute("data-facing", f);
+          for (var i = 0; i < faces.length; i++) {
+            faces[i].classList.toggle("is-facing", faces[i].className.indexOf("obj-face--" + f) > -1);
+          }
+          if (readout) {
+            var live = sec.querySelector(".obj-face--" + f + " span");
+            readout.textContent = live ? live.textContent : "";
+          }
+        }
       };
 
       var raf = null;
