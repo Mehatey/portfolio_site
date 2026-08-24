@@ -174,10 +174,13 @@
     "uniform float u_enter;",
     "uniform float u_z;", // depth in CSS px, positive = further from camera
     "uniform float u_persp;", // camera distance in CSS px
+    "uniform float u_fold;", // 0 = lying flat into the page, 1 = standing up
     "varying vec2 v_uv;",
     "varying float v_bend;",
+    "varying float v_fold;",
     "void main(){",
     "  v_uv = a_uv;",
+    "  v_fold = u_fold;",
     "  vec2 p = u_rect.xy + a_uv * u_rect.zw;",
     // The curl. sin across the plane's own width means the middle of the
     // image leads and the edges trail — the sheet-of-paper bend, not a skew.
@@ -203,8 +206,38 @@
     // point is the viewport centre, which is also where a plane's GL position
     // agrees most closely with its DOM rect, so links stay clickable exactly
     // where people actually click.
-    "  float w = (u_persp + u_z) / u_persp;",
-    "  vec2 ndc = vec2(p.x / u_res.x * 2.0 - 1.0, 1.0 - p.y / u_res.y * 2.0);",
+    /* ── THE FOLD ──────────────────────────────────────────────────────
+       The pop-up. Each cover is hinged along its own bottom edge, lies flat
+       into the page until you reach it, and swings up to face you.
+
+       A real rotation about a real axis, not a scaleY. The vertex is taken
+       into hinge-local space, turned about the horizontal hinge line, and the
+       depth it gains is added to the plane's own depth BEFORE the divide. So
+       the top edge of a half-open panel is genuinely further from the camera
+       than its bottom edge: the foreshortening is correct rather than tuned,
+       the texture stays perspective-correct across the tilt, and it all falls
+       out of the same divide this file was already doing. A skew gets none of
+       that and reads as paper printed on glass.
+
+       82 degrees at fold 0, not 90. A panel exactly edge-on is one hairline
+       of aliased pixels, which reads as a glitch rather than as a sheet seen
+       from its edge. */
+    "  float hingeY = u_rect.y + u_rect.w;",
+    "  float theta = radians(82.0) * (1.0 - u_fold);",
+    "  vec2 d = p - mid;",
+    "  float lyH = p.y - hingeY;",
+    "  float foldY = hingeY + lyH * cos(theta);",
+    "  float dz = -lyH * sin(theta);",
+    "  d.y = foldY - mid.y;",
+    /* baseW is the plane's own perspective term and stays exactly what it was,
+       so the CENTRE lands where it always did. vertW carries the extra depth
+       this vertex just gained from the tilt. Dividing the offset by their
+       ratio means a vertex at dz = 0 is untouched -- fold 1 reproduces the old
+       maths to the pixel, which is what keeps the plane agreeing with its DOM
+       rect and the link clickable where people actually click. */
+    "  float baseW = (u_persp + u_z) / u_persp;",
+    "  float vertW = baseW + dz / u_persp;",
+    "  vec2 ndcOff = vec2(d.x / u_res.x * 2.0, -d.y / u_res.y * 2.0) * (baseW / vertW);",
     "  vec2 midNdc = vec2(mid.x / u_res.x * 2.0 - 1.0, 1.0 - mid.y / u_res.y * 2.0);",
     // The plane's CENTRE goes through the perspective divide, so a deep plane
     // sweeps past the vanishing point more slowly than a near one — real
@@ -212,8 +245,8 @@
     // back, because the DOM rect is still the layout authority here and a
     // foreshortened plane would sit visibly inset inside its own frame.
     // Multiplying by w and letting the GPU divide keeps varyings correct.
-    "  vec2 out2 = midNdc / w + (ndc - midNdc);",
-    "  gl_Position = vec4(out2 * w, 0.0, w);",
+    "  vec2 out2 = midNdc / baseW + ndcOff;",
+    "  gl_Position = vec4(out2 * vertW, 0.0, vertW);",
     "}",
   ].join("\n");
 
@@ -221,6 +254,7 @@
     "precision highp float;",
     "varying vec2 v_uv;",
     "varying float v_bend;",
+    "varying float v_fold;",
     "uniform sampler2D u_tex;",
     "uniform vec2 u_cover;", // uv scale for object-fit: cover
     "uniform vec2 u_offset;",
@@ -253,6 +287,24 @@
     "  col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, mix(0.96, 1.12, u_hover));",
     "  col *= rest;",
     "  col += (grain(v_uv, u_time) - 0.5) * 0.018;",
+    /* ── THE CREASE ────────────────────────────────────────────────────
+       A fold you cannot see the hinge of is just a thing that got bigger.
+       Two marks, both only present while the panel is actually moving, both
+       gone by the time it is standing:
+
+       the score line, a thin bright rule along the hinge edge, brightest at
+       half open, which is where a real crease catches the most light; and
+       the contact shade, a short gradient of darkening into that same edge,
+       which is the panel occluding its own base. The shade is what makes the
+       panel read as attached to the page rather than hovering over it, and
+       it is doing the job a cast shadow would do at a fraction of the cost.
+
+       sin(pi * fold) rather than (1 - fold) so both are absent at BOTH ends:
+       flat on the page is as much a resting state as standing up is. */
+    "  float lift = sin(3.14159265 * clamp(v_fold, 0.0, 1.0));",
+    "  float toHinge = 1.0 - v_uv.y;",
+    "  col *= 1.0 - lift * 0.34 * exp(-toHinge * 9.0);",
+    "  col += vec3(0.92, 0.97, 1.0) * lift * 0.5 * exp(-toHinge * 150.0);",
     // rounded-rect coverage, antialiased in uv space
     "  vec2 q = abs(v_uv - 0.5) * 2.0 * u_aspect - (u_aspect - vec2(u_radius));",
     "  float sd = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - u_radius;",
@@ -546,6 +598,27 @@
       var seen = (H * 0.94 - r.top) / (H * 0.32);
       m.enter = lerp(m.enter, Math.max(0, Math.min(1, seen)), sm(0.16));
 
+      /* ── FOLD PROGRESS ───────────────────────────────────────────────
+         Scroll-locked rather than eased toward a target, because a pop-up
+         that keeps opening after you stop scrolling is an animation playing
+         near the scrollbar, not a thing your scrolling is doing. The lag the
+         gallery already has lives in the rect lerp above and is enough.
+
+         Keyed to the panel's BOTTOM edge, because that is the hinge. Keying
+         it to the top -- the obvious thing, and what this did first -- times
+         the fold against the edge furthest from the axis it turns about. A
+         flat panel is a sliver lying at the bottom of its own box, so with a
+         470px box the hinge was still 1.4 screens down when the fold began
+         and the entire move happened below the fold, in both senses. What
+         reached the viewport was a panel that had already finished.
+
+         So: zero while the hinge is still below 95% of the viewport, one once
+         it has risen to the halfway line. The panel opens upward into empty
+         space that is already on screen, and the whole move is visible. */
+      var fr = (H * 0.95 - (r.top + r.height)) / (H * 0.45);
+      fr = fr < 0 ? 0 : fr > 1 ? 1 : fr;
+      m.fold = fr * fr * (3 - 2 * fr);
+
       m.hoverT = m.holder.__hover ? 1 : 0;
       m.hover = lerp(m.hover, m.hoverT, sm(0.09));
       m.mouseT[0] = m.holder.__mx == null ? 0.5 : m.holder.__mx;
@@ -573,6 +646,7 @@
       gl.uniform1f(medProg.u.u_hover, m.hover);
       gl.uniform2f(medProg.u.u_mouse, m.mouse[0], m.mouse[1]);
       gl.uniform1f(medProg.u.u_enter, m.enter);
+      gl.uniform1f(medProg.u.u_fold, m.fold);
       gl.uniform1f(medProg.u.u_z, m.z || 0);
       gl.uniform1f(medProg.u.u_persp, 1200);
       gl.uniform1f(medProg.u.u_radius, 0.055 * Math.min(ax, ay) * 2.0);
