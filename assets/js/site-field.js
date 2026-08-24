@@ -279,7 +279,7 @@
     "varying vec2 v;",
     "uniform sampler2D uField;",
     "uniform vec2 uRes, uHand;",
-    "uniform float uTime, uVel, uPresence, uLight, uFade;",
+    "uniform float uTime, uVel, uPresence, uLight, uFade, uMode;",
 
     "mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }",
     "float luma(vec3 c){ return dot(c, vec3(0.299, 0.587, 0.114)); }",
@@ -297,12 +297,43 @@
        the dark, teal in the mids, cyan at the highlights, pearl only at the
        very top of the range. It cannot produce a warm pixel because there is
        no warm pixel in it. */
+    /* ── FOUR INKS, ONE CLICK APART ───────────────────────────────────────
+       Sid: "clicking shud change shader."
+
+       The click already threw a ring into the fluid; it now also advances the
+       ink the raymarch reads through. Four sets, and the constraint they all
+       obey is the one from the original brief -- "keep it bluish or teal
+       turquoise", dark negative space, no warm. Going to amber on the second
+       click would be a bigger change and the wrong one: this sits behind every
+       word on the site, and a background that can become orange is a
+       background that can stop the copy being readable.
+
+       So the four are four cold weathers rather than four hues: the teal it
+       has always been, a deep violet, a near-monochrome silver, and an abyssal
+       green. uMode is eased in JS rather than stepped, so a click crossfades
+       the whole volume instead of cutting it.
+
+       The mix is nested rather than an array lookup because GLSL ES 1.00
+       cannot index a const array with a non-constant, and a four-branch if on
+       a per-pixel value is worse than three mixes. */
     "vec3 palette(float t){",
     "  t = clamp(t, 0.0, 1.0);",
+    "  float m1 = clamp(uMode, 0.0, 1.0);",
+    "  float m2 = clamp(uMode - 1.0, 0.0, 1.0);",
+    "  float m3 = clamp(uMode - 2.0, 0.0, 1.0);",
     "  vec3 navy  = vec3(0.015, 0.055, 0.150);",
     "  vec3 teal  = vec3(0.020, 0.330, 0.430);",
     "  vec3 cyan  = vec3(0.180, 0.760, 0.860);",
     "  vec3 pearl = vec3(0.840, 0.960, 1.000);",
+    "  navy  = mix(navy,  vec3(0.055, 0.020, 0.135), m1);",
+    "  teal  = mix(teal,  vec3(0.230, 0.090, 0.430), m1);",
+    "  cyan  = mix(cyan,  vec3(0.520, 0.350, 0.900), m1);",
+    "  navy  = mix(navy,  vec3(0.055, 0.062, 0.080), m2);",
+    "  teal  = mix(teal,  vec3(0.230, 0.255, 0.290), m2);",
+    "  cyan  = mix(cyan,  vec3(0.640, 0.700, 0.760), m2);",
+    "  navy  = mix(navy,  vec3(0.010, 0.075, 0.062), m3);",
+    "  teal  = mix(teal,  vec3(0.020, 0.360, 0.250), m3);",
+    "  cyan  = mix(cyan,  vec3(0.240, 0.860, 0.620), m3);",
     "  vec3 c = mix(navy, teal, smoothstep(0.00, 0.40, t));",
     "  c = mix(c, cyan, smoothstep(0.48, 0.88, t));",
     /* Pearl only at the very top, and never fully — a white highlight is a
@@ -488,7 +519,7 @@
     return o;
   }
   var uS = U(simP, ["uPrev", "uRes", "uHand", "uHandPrev", "uTime", "uDelta", "uVel", "uPresence", "uBurst"]);
-  var uD = U(dispP, ["uField", "uRes", "uHand", "uTime", "uVel", "uPresence", "uLight", "uFade"]);
+  var uD = U(dispP, ["uField", "uRes", "uHand", "uTime", "uVel", "uPresence", "uLight", "uFade", "uMode"]);
 
   /* ── THE PING-PONG PAIR ─────────────────────────────────────────────────
      Half resolution, capped. The fluid is a diffusion field — it has no detail
@@ -596,6 +627,12 @@
      decays on its own — that decay is why a disturbance keeps developing after
      the cursor stops, which is the single most important thing about making it
      read as a fluid rather than as a spotlight. */
+  /* Eased toward the target rather than assigned, so a click crossfades the
+     volume over about a second instead of cutting it. Wrapping is handled by
+     easing along the SHORT way round the ring of four, or going 3 -> 0 would
+     sweep backwards through every other ink to get home. */
+  var mode = 0,
+    modeT = 0;
   var hx = 0.5,
     hy = 0.5,
     thx = 0.5,
@@ -619,8 +656,17 @@
   );
   window.addEventListener(
     "pointerdown",
-    function () {
+    function (e) {
       burst = 1;
+      /* ── THE CLICK ALSO TURNS THE INK OVER ──────────────────────────────
+         Not on every click. A click that lands on a link, a button or a field
+         is a click at the page, and repainting the whole background underneath
+         someone who just pressed Contact is the background interrupting them.
+         Only clicks on open ground count -- which is also the only place the
+         gesture is discoverable as a gesture. */
+      var t = e.target;
+      if (t && t.closest && t.closest("a, button, input, textarea, select, summary, [role='button'], label")) return;
+      modeT = (modeT + 1) % 4;
     },
     { passive: true }
   );
@@ -702,6 +748,12 @@
        first second of every pointer arrival -- the exact moment someone is
        testing whether the page responds to them. */
     pres += (tpres - pres) * 0.17;
+    var md = modeT - mode;
+    if (md > 2) md -= 4;
+    else if (md < -2) md += 4;
+    mode += md * 0.06;
+    if (mode < 0) mode += 4;
+    else if (mode >= 4) mode -= 4;
     vel *= 0.92;
     burst *= 0.972;
     if (burst < 0.002) burst = 0;
@@ -741,6 +793,7 @@
     gl.uniform1f(uD.uPresence, pres);
     gl.uniform1f(uD.uLight, light);
     gl.uniform1f(uD.uFade, fade);
+    gl.uniform1f(uD.uMode, mode);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
     gl.clearColor(0, 0, 0, 0);
@@ -771,6 +824,8 @@
   /* A verification hook, not a feature. Nothing on the page calls it. */
   window.__siteField = function () {
     return {
+      mode: +mode.toFixed(2),
+      modeT: modeT,
       sim: [sw, shh],
       canvas: [W, H],
       css: [Math.round(cssW), Math.round(cssH)],
