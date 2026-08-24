@@ -1,0 +1,255 @@
+{% comment %} ── THE PAGE OPENS ON HIM, PIXELLED ────────────────────────────── Sid: "we play the first sid sitting.mp4 and then this plays with the
+pixel on hover with also some intelligent crops and motion and radial blur ... and it plays once and then the cube guy gets replaced." Two copies of
+the same ten seconds, one pixelled and one not, stacked exactly where the figure will stand. The pixelled take is what you arrive on; the real take is
+underneath, and the cursor is a hole in the pixels. So the first thing the page teaches is that moving the pointer uncovers something -- which is the
+same contract every other surface here runs on, stated once, before any of them are on screen. It is not a new mechanic. /contact/ already does this
+to a photograph of his desk, with a radial mask that follows the pointer over a second copy of the image. That has been the best interaction on the
+site for months and it was on the page fewest people reach. This is the same idea moved to the front and given motion, which is the whole of what
+makes it read differently: a still lens over a still photo is a magnifier, a lens over footage is a window. It plays ONCE. When the take ends the
+layer goes and the figure is standing there, already live behind it -- so the handoff is a dissolve between two things that occupy the same box rather
+than a cut between two scenes. And it is gated on the same flag as the loader, so it happens on a first visit and never interrupts someone who came
+back to find an email address. {% endcomment %}
+
+<div class="hero-film" id="hero-film" aria-hidden="true" hidden>
+  <video class="hero-film__take hero-film__take--pixel" id="hero-film-pixel" muted playsinline preload="auto" disablepictureinpicture>
+    <source src="{{ site.baseurl }}/assets/video/sid_pixelated.mp4" type="video/mp4" />
+  </video>
+  <video class="hero-film__take hero-film__take--real" id="hero-film-real" muted playsinline preload="auto" disablepictureinpicture>
+    <source src="{{ site.baseurl }}/assets/video/sid_sitting.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<style>
+  .hero-film {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: var(--cg-w);
+    height: min(620px, 66vh);
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 900ms ease;
+  }
+  .hero-film.is-on {
+    opacity: 1;
+  }
+  /* Leaving, not merely fading: it lifts and loosens as it goes, so the eye
+     reads the figure arriving rather than the video disappearing. */
+  .hero-film.is-out {
+    opacity: 0;
+    transform: translate(-50%, -54%) scale(1.03);
+    transition:
+      opacity 1100ms ease,
+      transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hero-film__take {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+  /* The pixelled take is the surface. It is graded down and softened at the
+     rim so it sits in the hero's dark rather than on top of it. */
+  .hero-film__take--pixel {
+    filter: saturate(0.8) contrast(1.06) brightness(0.86);
+    -webkit-mask-image: radial-gradient(120% 108% at 50% 50%, #000 52%, transparent 92%);
+    mask-image: radial-gradient(120% 108% at 50% 50%, #000 52%, transparent 92%);
+  }
+  /* The real take is SECOND in the source and therefore on top, and that is
+     load-bearing rather than incidental. The lens masks this layer, and a mask
+     on the lower of two stacked videos reveals nothing at all -- the opaque
+     one above it is still painted over the hole. Built that way first and the
+     result was a frame that stayed pixelled everywhere however far the lens
+     opened, which looks exactly like a mask that is not being applied.
+
+     And the real take shows only through the cursor. Two stops rather than
+     one: a hard core and a long shoulder, because a single-stop circle has a
+     visible rim and reads as a cut-out, while a shoulder reads as focus. The
+     whole lens is then intersected with the same vignette the pixels carry, so
+     the hole can never open past the edge of the frame it lives in. */
+  .hero-film__take--real {
+    filter: saturate(0.94) contrast(1.04) brightness(0.9);
+    -webkit-mask-image:
+      radial-gradient(circle var(--lens-r, 0px) at var(--lens-x, 50%) var(--lens-y, 50%), #000 0 38%, rgba(0, 0, 0, 0.9) 58%, transparent 82%),
+      radial-gradient(120% 108% at 50% 50%, #000 52%, transparent 92%);
+    mask-image:
+      radial-gradient(circle var(--lens-r, 0px) at var(--lens-x, 50%) var(--lens-y, 50%), #000 0 38%, rgba(0, 0, 0, 0.9) 58%, transparent 82%),
+      radial-gradient(120% 108% at 50% 50%, #000 52%, transparent 92%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+  html[data-theme="light"] .hero-film__take--pixel,
+  html[data-theme="light"] .hero-film__take--real {
+    filter: saturate(0.9) contrast(1.02) brightness(1.02);
+  }
+  /* Reduced motion never gets an opening film. The figure is the resting
+     state, so there is nothing to fall back to -- it simply starts there. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-film {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    "use strict";
+    var wrap = document.getElementById("hero-film");
+    if (!wrap) return;
+    var real = document.getElementById("hero-film-real");
+    var pixel = document.getElementById("hero-film-pixel");
+    var hero = document.getElementById("hero");
+    if (!real || !pixel || !hero) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    /* Same flag the loader uses. A returning visitor has already had the
+       introduction and is here to do something. */
+    var seen = false;
+    try {
+      seen = !!(localStorage.getItem("sid_loaded") || sessionStorage.getItem("sid_loaded"));
+    } catch (e) {}
+    if (seen && !/[?&]opener=1/.test(location.search)) return;
+
+    wrap.hidden = false;
+
+    /* ── THE LENS ────────────────────────────────────────────────────────
+       Radius opens from nothing when the pointer arrives, so the hole is
+       something the visitor brought with them rather than a hole that was
+       already there. Eased in JS rather than transitioned in CSS because it
+       has to track the pointer every frame anyway, and two clocks on one
+       value is how they end up disagreeing. */
+    var lx = 50,
+      ly = 50,
+      tlx = 50,
+      tly = 50,
+      lr = 0,
+      tlr = 0,
+      raf = 0;
+
+    function tick() {
+      raf = 0;
+      lx += (tlx - lx) * 0.18;
+      ly += (tly - ly) * 0.18;
+      lr += (tlr - lr) * 0.1;
+      wrap.style.setProperty("--lens-x", lx.toFixed(2) + "%");
+      wrap.style.setProperty("--lens-y", ly.toFixed(2) + "%");
+      wrap.style.setProperty("--lens-r", lr.toFixed(1) + "px");
+      if (Math.abs(tlx - lx) > 0.05 || Math.abs(tly - ly) > 0.05 || Math.abs(tlr - lr) > 0.5) raf = requestAnimationFrame(tick);
+    }
+    function wake() {
+      if (!raf) raf = requestAnimationFrame(tick);
+    }
+
+    hero.addEventListener(
+      "pointermove",
+      function (e) {
+        var r = wrap.getBoundingClientRect();
+        if (!r.width) return;
+        tlx = ((e.clientX - r.left) / r.width) * 100;
+        tly = ((e.clientY - r.top) / r.height) * 100;
+        tlr = Math.min(320, Math.max(180, r.width * 0.26));
+        wake();
+      },
+      { passive: true }
+    );
+    hero.addEventListener(
+      "pointerleave",
+      function () {
+        tlr = 0;
+        wake();
+      },
+      { passive: true }
+    );
+
+    /* Both takes are the same ten seconds, so they are started together and
+       never resynchronised: seeking one to match the other mid-play is how a
+       pair like this ends up stuttering. If the second one cannot start, the
+       first still plays and the lens simply reveals nothing. */
+    var started = false;
+    var floor = 0;
+
+    function begin() {
+      if (started) return;
+      started = true;
+      wrap.classList.add("is-on");
+      var a = real.play();
+      var b = pixel.play();
+      if (a && a.catch) a.catch(function () {});
+      if (b && b.catch) b.catch(function () {});
+      /* ── THE FLOOR IS MEASURED, NOT GUESSED ──────────────────────────────
+         This was a flat 14s counted from script parse, and it fired while the
+         take was five seconds in: `begin` used to wait for window load, which
+         on a page carrying this much WebGL is several seconds after parse, and
+         the video then stalls and restarts on a slow decoder. So the safety
+         net was cutting the film off in the middle -- doing the exact damage
+         it existed to prevent.
+
+         It now starts when playback does and is derived from the take's own
+         duration with real slack for stalls. Traced: this pair emits `waiting`
+         repeatedly under a software decoder and never an `ended`, so the floor
+         is not an edge case here, it is the normal exit. */
+      var d = isFinite(pixel.duration) && pixel.duration > 1 ? pixel.duration : 11;
+      clearTimeout(floor);
+      floor = setTimeout(leave, d * 1000 + 6000);
+    }
+
+    var left = false;
+    function leave() {
+      if (left) return;
+      left = true;
+      clearTimeout(floor);
+      wrap.classList.add("is-out");
+      wrap.classList.remove("is-on");
+      setTimeout(function () {
+        wrap.hidden = true;
+        try {
+          real.pause();
+          pixel.pause();
+        } catch (e) {}
+      }, 1500);
+    }
+
+    pixel.addEventListener("ended", leave);
+    /* And a second exit that does not depend on `ended` either: once the take
+       is within a breath of its own end, go. A stalled decoder can sit at
+       10.6 of 10.64 indefinitely without ever firing the event. */
+    pixel.addEventListener("timeupdate", function () {
+      if (isFinite(pixel.duration) && pixel.duration > 1 && pixel.currentTime >= pixel.duration - 0.25) leave();
+    });
+
+    /* ── IT WAITS FOR THE LOADER, AND IT HAS TO ─────────────────────────────
+       Not window load, and not canplay either. On a first visit -- which is the
+       only visit this runs on -- the loader owns the screen: #loader-collage
+       sits at z-index 8500 with a solid backdrop under it. Starting the film
+       then plays the whole ten seconds behind an opaque overlay, so the
+       visitor's introduction happens while they cannot see it and is over
+       before the page appears.
+
+       Worse, and this is what the trace showed: the loader is also swallowing
+       the pointer. The lens listens on #hero, the overlay is above #hero, so
+       --lens-r never left 0 and the one interaction the opener exists to teach
+       could not be performed.
+
+       So it begins on loaderDone. If that event never comes -- the loader is
+       absent on some route, or it failed -- a timer starts it anyway, because
+       an opener that waits forever for a handshake is worse than one that
+       starts a beat early. */
+    var kicked = false;
+    function kick() {
+      if (kicked) return;
+      kicked = true;
+      if (pixel.readyState >= 3) begin();
+      else {
+        pixel.addEventListener("canplay", begin, { once: true });
+        setTimeout(begin, 3000);
+      }
+    }
+    window.addEventListener("loaderDone", kick, { once: true });
+    if (!document.getElementById("site-loader") && !document.getElementById("enter-gate")) kick();
+    setTimeout(kick, 12000);
+  })();
+</script>
