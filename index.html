@@ -12107,12 +12107,24 @@
          exactly what Sid screenshotted.
 
          There is nothing to take turns with. He stands. -->
-    <!-- The headline's letter-fluid came out. Sid: "i hate how wavy the type
-         is." It split the two clauses into 56 per-letter spans and drove each
-         one off a spring against the pointer's lag. The idea was that the line
-         should feel alive; what it actually did was make a recruiter's first
-         sentence wobble while they were trying to read it. A headline is for
-         reading. assets/js/hero-type.js is left in the tree unreferenced. -->
+    <!-- The headline's letter-fluid is back, minus the half that got it
+         removed.
+
+         It came out because of one thing. Sid: "i hate how wavy the type is."
+         It split the two clauses into 56 per-letter spans, and an idle
+         buoyancy term moved every one of them by 3.2px for as long as the hero
+         was on screen -- so the first sentence a visitor reads was never still.
+         That was the fault, and it was a real one: a headline that moves while
+         you read it is worse than a headline that does nothing.
+
+         He now wants them playable: "individual letters for me to bounce and
+         play with." That is a different request, and the difference is who
+         starts the motion. BOB_A is zero, so the line is exactly as still as
+         plain text until the pointer enters it or a click lands. Then it has
+         mass, a wake along the direction of travel, tilt into its own movement
+         and overshoot on the way home. Nothing moves that the reader did not
+         move. -->
+    <script src="/assets/js/hero-type.js" defer></script>
 
     <script>
       /* ── headline arrival ────────────────────────────────────────
@@ -12208,6 +12220,15 @@
 
                  Fired when the LAST line lands, not each one. */
               if (line >= inks.length) {
+                /* The attribute is the durable half of the handoff. The event
+                   is a moment and anything not listening at that moment misses
+                   it; hero-type.js needs to be able to ASK whether typing has
+                   finished, because its own fallback path runs on a timer and
+                   cannot rely on having been present. It must not try to infer
+                   this from the DOM: every line is given its full text up
+                   front and then hidden and typed over, so the ink already
+                   reads complete on the first frame. */
+                document.documentElement.setAttribute("data-hero-typed", "1");
                 window.dispatchEvent(new CustomEvent("sid:herotyped"));
               }
             } else {
@@ -12218,6 +12239,7 @@
         } else {
           /* Reduced motion skips the typing entirely, so the line is already
              complete and the splitter can be told immediately. */
+          document.documentElement.setAttribute("data-hero-typed", "1");
           window.dispatchEvent(new CustomEvent("sid:herotyped"));
         }
         if (hero) hero.classList.add("in");
