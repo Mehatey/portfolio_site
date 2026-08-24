@@ -1,0 +1,62 @@
+{% comment %} ── THE MOTION STACK ─────────────────────────────────────────────────────── Scanned the current Awwwards portfolio honourees for what
+they actually run. Four of six use Lenis. Three use GSAP, two of those with ScrollTrigger. Two won Site of the Day with no WebGL at all. The one thing
+every WebGL site among them shares is that the GL is on the CONTENT, not behind it. So: smooth scroll and a scroll-choreography engine site-wide, and
+the media planes on top of them. All three are vendored rather than loaded from a CDN, because every other renderer on this site is local and a
+portfolio that depends on jsdelivr being up is a portfolio that is sometimes broken. {% endcomment %}
+<style>
+  /* Lenis needs the page to stop doing its own smoothing, or the two fight and
+     the result is a scroll that overshoots and settles twice. The site set
+     scroll-behavior: smooth globally in design_tokens.html; this turns it off
+     while Lenis is driving and leaves it alone otherwise. */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  html.lenis {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  /* The GL canvas sits above the page background and below every piece of
+     chrome. It never takes the pointer: hover is read from the real <img>
+     underneath, which is still there and still the thing being pointed at. */
+  #gl-media {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+  }
+  /* An image whose GL copy is live. Opacity rather than display or visibility:
+     the element has to keep its exact layout box, because that box is what the
+     shader reads every frame to know where to draw.
+
+     !important because this is an override layer, not a participant in the
+     cascade. Every surface the GL takes over already owns its own reveal rule
+     for the same property -- .wk-cover img.is-in on the works index is the
+     loud one, at a specificity a bare img.class cannot reach -- so without it
+     the real picture stays lit underneath its own GL copy and you see both. */
+  img.gl-hidden {
+    opacity: 0 !important;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #gl-media {
+      display: none;
+    }
+    /* The script bails before it hides anything under this preference, so this
+       only matters if the setting is switched on with the page already up. */
+    img.gl-hidden {
+      opacity: 1 !important;
+    }
+  }
+</style>
+
+<script src="{{ site.baseurl }}/assets/js/lenis.min.js" defer></script>
+<script src="{{ site.baseurl }}/assets/js/gsap.min.js" defer></script>
+<script src="{{ site.baseurl }}/assets/js/ScrollTrigger.min.js" defer></script>
+<script src="{{ site.baseurl }}/assets/js/motion_stack.js" defer></script>
+<script src="{{ site.baseurl }}/assets/js/gl-media.js" defer></script>
