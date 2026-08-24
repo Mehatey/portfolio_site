@@ -110,13 +110,37 @@
     "  return mix(mix(hash21(i), hash21(i + vec2(1.0,0.0)), f.x), mix(hash21(i + vec2(0.0,1.0)), hash21(i + 1.0), f.x), f.y);",
     "}",
     /* Curl of a noise field: divergence-free, which is what makes the motion
-       look like a fluid rather than like everything drifting one way. */
+       look like a fluid rather than like everything drifting one way.
+
+       Sid: "the bg shader ... only move up and right."
+
+       It did, and for two compounding reasons, both of which are in the four
+       lines this replaces.
+
+       First, it was not a curl. A curl takes both partial derivatives of ONE
+       scalar potential. This took the y-pair from a field advanced by
+       `+uTime * 0.035` and the x-pair from a DIFFERENT field advanced by
+       `-uTime * 0.027`. Two unrelated fields differenced against each other is
+       not divergence-free, so the thing the comment promises -- fluid motion
+       rather than everything drifting one way -- was exactly what the code
+       could not deliver.
+
+       Second, `+ uTime * k` adds a SCALAR to a vec2. GLSL broadcasts it, so
+       the sample point moved along (1,1): up and to the right, forever, at a
+       fixed rate. That is the drift as literally as it can be written.
+
+       So: one potential, sampled four times, and time enters as a slow
+       circular wander of the domain instead of a constant translation. The
+       field keeps evolving and the currents keep changing direction, but there
+       is no longer a preferred heading for them to pile up along. */
+    "vec2 potGrad(vec2 p){ return p * 3.2 + vec2(sin(uTime * 0.041), cos(uTime * 0.037)) * 1.7; }",
+    "float pot(vec2 p){ return noise(potGrad(p)); }",
     "vec2 curl(vec2 p){",
     "  float e = 0.018;",
-    "  float n1 = noise(p * 3.2 + vec2(0.0, e) + uTime * 0.035);",
-    "  float n2 = noise(p * 3.2 - vec2(0.0, e) + uTime * 0.035);",
-    "  float n3 = noise(p * 3.2 + vec2(e, 0.0) - uTime * 0.027);",
-    "  float n4 = noise(p * 3.2 - vec2(e, 0.0) - uTime * 0.027);",
+    "  float n1 = pot(p + vec2(0.0, e));",
+    "  float n2 = pot(p - vec2(0.0, e));",
+    "  float n3 = pot(p + vec2(e, 0.0));",
+    "  float n4 = pot(p - vec2(e, 0.0));",
     "  return vec2(n1 - n2, n4 - n3) / (2.0 * e);",
     "}",
 
@@ -130,7 +154,11 @@
     /* Advection. The tangential term is what makes the pointer STIR rather
        than push — a shove displaces, a curl folds, and folding is the whole
        character of this thing. */
-    "  vec2 flow = curl(v + uTime * 0.006) * 0.0014;",
+    /* The same scalar-onto-vec2 broadcast was here too, a second constant
+       (1,1) drift stacked on top of the first. The domain offset now turns
+       instead of translating, so there is still a slow global current and it
+       no longer always runs the same way. */
+    "  vec2 flow = curl(v + vec2(cos(uTime * 0.013), sin(uTime * 0.011)) * 0.12) * 0.0014;",
     "  flow += tangent * (0.0016 + uVel * 0.02) * influence * uPresence;",
     "  flow -= normalize(toHand + 0.0001) * influence * uPresence * 0.0026;",
     /* The click. An outward ring that expands and fades on its own clock. */
@@ -417,20 +445,51 @@
     return ok ? { t: t, f: f } : null;
   }
 
+  /* ── HOW BIG THE RAYMARCH ACTUALLY DRAWS ────────────────────────────────
+     Sid: "the bg shader is very laggy."
+
+     The cost here is pass 2, and it is not close. Every pixel walks thirty
+     steps through the volume, and each step runs a five-iteration fold plus
+     two texture reads and two palette evaluations. So the frame cost is very
+     nearly (pixels x 30 x that), and the only term worth touching is pixels.
+
+     It was drawing at up to 1.75x device pixels, full screen. On a 1440x900
+     window that is 2520x1575 -- four million pixels, or roughly twice the work
+     of drawing it at 1x, for a soft cloud with no edge in it anywhere. Nothing
+     in this image has detail at the pixel level; it is the one layer on the
+     site that can be drawn small and stretched without anyone being able to
+     tell.
+
+     So the ceiling comes down to 1.35, and on top of that the renderer watches
+     its own frame times and moves a scale factor between 1.0 and 0.5. Adaptive
+     rather than a fixed number because the right number is a property of the
+     visitor's GPU, which is not knowable from here: the same constant that
+     keeps a base-model Air at sixty is one an M-series Max would be insulted
+     by. Backing store only -- the element stays the same size on the page, so
+     the browser's own filtering does the upscale for free. */
+  var DPR_CAP = 1.35;
   var W = 1,
     H = 1,
+    cssW = 1,
+    cssH = 1,
     dpr = 1,
+    qScale = 1,
     ok = true;
   function resize() {
     var r = host.getBoundingClientRect();
-    dpr = Math.min(1.75, window.devicePixelRatio || 1);
-    W = Math.max(2, Math.round((r.width || window.innerWidth) * dpr));
-    H = Math.max(2, Math.round((r.height || window.innerHeight) * dpr));
+    cssW = r.width || window.innerWidth;
+    cssH = r.height || window.innerHeight;
+    dpr = Math.min(DPR_CAP, window.devicePixelRatio || 1);
+    W = Math.max(2, Math.round(cssW * dpr * qScale));
+    H = Math.max(2, Math.round(cssH * dpr * qScale));
     canvas.width = W;
     canvas.height = H;
 
-    var ns = Math.min(SIM_MAX, Math.max(96, Math.round(W / dpr / 4)));
-    var nh = Math.min(SIM_MAX, Math.max(96, Math.round(H / dpr / 4)));
+    /* Deliberately off cssW, not W: the fluid's resolution is a property of
+       the composition and must not move when the render scale does, or the
+       flow would visibly change character every time the governor steps. */
+    var ns = Math.min(SIM_MAX, Math.max(96, Math.round(cssW / 4)));
+    var nh = Math.min(SIM_MAX, Math.max(96, Math.round(cssH / 4)));
     if (ns === sw && nh === shh && fbo[0]) return;
     sw = ns;
     shh = nh;
@@ -524,11 +583,41 @@
     raf = 0,
     visible = true;
 
+  /* The governor. Frame period is sampled over a window rather than reacted to
+     per frame, because a single long frame is usually a garbage collection or
+     a scroll landing and not a statement about the GPU. Thresholds are one-
+     sided on purpose: it drops quality below about 48fps but will only climb
+     back above about 74, so there is a wide dead band in the middle and it
+     cannot sit oscillating between two scales. Steps down are bigger than
+     steps up -- recovering smoothness should be quick, and reaching for more
+     detail should be reluctant. */
+  var qFrames = 0,
+    qAcc = 0,
+    qNext = 0;
+  function governQuality(now, dt) {
+    if (!qNext) {
+      qNext = now + 2000;
+      return;
+    }
+    qFrames++;
+    qAcc += dt;
+    if (now < qNext) return;
+    var avg = qAcc / Math.max(1, qFrames);
+    qFrames = 0;
+    qAcc = 0;
+    qNext = now + 1000;
+    var was = qScale;
+    if (avg > 0.0208 && qScale > 0.5) qScale = Math.max(0.5, qScale - 0.15);
+    else if (avg < 0.0135 && qScale < 1) qScale = Math.min(1, qScale + 0.1);
+    if (qScale !== was) resize();
+  }
+
   function step(now) {
     raf = 0;
     var dt = Math.min(0.05, (now - last) / 1000);
     last = now;
     var t = (now - t0) / 1000;
+    governQuality(now, dt);
 
     hx += (thx - hx) * 0.16;
     hy += (thy - hy) * 0.16;
@@ -600,6 +689,15 @@
 
   /* A verification hook, not a feature. Nothing on the page calls it. */
   window.__siteField = function () {
-    return { sim: [sw, shh], canvas: [W, H], vel: +vel.toFixed(3), pres: +pres.toFixed(3), fade: +fade.toFixed(3) };
+    return {
+      sim: [sw, shh],
+      canvas: [W, H],
+      css: [Math.round(cssW), Math.round(cssH)],
+      dpr: dpr,
+      scale: qScale,
+      vel: +vel.toFixed(3),
+      pres: +pres.toFixed(3),
+      fade: +fade.toFixed(3),
+    };
   };
 })();
