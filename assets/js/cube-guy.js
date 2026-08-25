@@ -39,6 +39,9 @@
   if (!canvas) return;
   var host = canvas.parentNode;
 
+  /* How much of him is surfaced before anyone touches him. */
+  var SOLID_FLOOR = 0.5;
+
   var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   var gl = null;
@@ -94,7 +97,7 @@
     "attribute vec3 bp;",
     "attribute vec3 bn;",
     "uniform mat3 u_rot;",
-    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break, u_melt, u_fit, u_morph;",
+    "uniform float u_time, u_hov, u_size, u_aspect, u_dpr, u_scan, u_pass, u_brushR, u_scroll, u_grow, u_break, u_melt, u_fit, u_morph, u_solid;",
     "uniform sampler2D u_paint;",
     "uniform float u_hasPaint, u_paintOnly, u_paintSize;",
     "uniform float u_form;",
@@ -107,6 +110,7 @@
     "varying float v_melt;",
     "varying vec2 v_scr;",
     "varying vec2 v_uv;",
+    "varying vec3 v_nrm;",
 
     /* One hash per point, off its own position, so the scatter is stable
        between frames — a per-frame random would boil rather than drift. */
@@ -349,7 +353,22 @@
        than `+` on the read, so the live brush is always at least as bright as
        the memory of it and the leading edge of a stroke still reads. */
     "  float painted = u_hasPaint > 0.5 ? texture2D(u_paint, uv).r : 0.0;",
-    "  float brush = max(live, painted);",
+    /* ── HE IS MADE OF SOMETHING BEFORE YOU TOUCH HIM ────────────────────
+       Sid: "give him actual material and texture ... this looks boring and
+       bland af."
+
+       The solid pass -- his own painted skin, lit, with the room reflected in
+       it -- was gated entirely behind the brush, so on arrival every visitor
+       met a grey point cloud and the material only existed for people who
+       thought to drag across him. The best thing in the file was invisible by
+       default.
+
+       A floor under the brush fixes it without losing the mechanic: he is
+       already substantially surfaced when you arrive, and the cursor still
+       fills in the rest. Painting goes from "reveal a hidden thing" to
+       "finish an unfinished one", which is a better gesture anyway -- you can
+       see what your dragging is doing to something you can already read. */
+    "  float brush = max(u_solid, max(live, painted));",
     "  v_live = live;",
     "  v_brush = brush;",
 
@@ -416,6 +435,11 @@
     /* One key light, fixed in view space so turning him turns the shading
        rather than dragging the light around with him. */
     "  v_lit = 0.16 + 0.84 * max(0.0, dot(rn, normalize(vec3(-0.52, 0.55, 0.66))));",
+    /* The normal itself goes out too. v_lit is one dot product against a fixed
+       key and cannot be used to look anything up -- a reflection needs the
+       direction the surface actually faces, not how much it happens to catch
+       one lamp. */
+    "  v_nrm = rn;",
 
     /* Depth is written by the solid pass and tested by the cloud, so it has
        to be a real number, not 0. Mapped to roughly the volume the figure
@@ -454,7 +478,8 @@
     "precision highp float;",
     "uniform vec3 u_near, u_far;",
     "uniform float u_hov, u_fade, u_light, u_pass, u_scroll, u_texMode, u_hasTex, u_hasSkin, u_time, u_break, u_paintOnly;",
-    "uniform sampler2D u_tex, u_skin;",
+    "uniform sampler2D u_tex, u_skin, u_env;",
+    "uniform float u_hasEnv, u_envAmt;",
     "uniform vec2 u_texCover;",
     "varying float v_depth;",
     "varying float v_rand;",
@@ -464,6 +489,28 @@
     "varying float v_melt;",
     "varying vec2 v_scr;",
     "varying vec2 v_uv;",
+    "varying vec3 v_nrm;",
+    /* ── THE ROOM HE IS STANDING IN ──────────────────────────────────────
+       Sid: "give him actual material and texture and put an inverted skybox
+       or a shader so there is some modern liquid glass ... this looks boring
+       and bland af."
+
+       He was lit by a single hard-coded direction and nothing else, which is
+       why he read as grey: one lamp in a void gives a surface exactly one
+       piece of information about where it is, and a material with nothing to
+       reflect cannot look like a material. The environment is the fix, and it
+       was already in the repo -- workshop-1k.hdr, his own, the one the footer
+       Buddha has been standing in this whole time. Tone-mapped to a 21KB
+       equirect and blurred, because what is wanted from it is light and
+       colour, not a photograph of a wall.
+
+       Equirectangular lookup from the reflected view vector. The camera here
+       is effectively down -Z, so the view direction is constant and the whole
+       reflection comes off the surface normal -- which is the one thing a
+       point cloud has in abundance. */
+    "vec2 equirect(vec3 d){",
+    "  return vec2(atan(d.z, d.x) * 0.15915494 + 0.5, acos(clamp(d.y, -1.0, 1.0)) * 0.31830989);",
+    "}",
     "void main() {",
     "  vec2 c = gl_PointCoord - 0.5;",
     "  float d = dot(c, c);",
@@ -530,9 +577,51 @@
     "    vec3 mat;",
     "    float m = u_texMode;",
     "    float fres = pow(1.0 - clamp(v_lit, 0.0, 1.0), 2.2);",
+    /* One environment sample, shared by every material below. The camera looks
+       down -Z here, so the view vector is constant and the reflection is
+       entirely a function of the normal -- which a point cloud has one of per
+       point, already rotated. */
+    "    vec3 N = normalize(v_nrm);",
+    "    vec3 R = reflect(vec3(0.0, 0.0, -1.0), N);",
+    "    vec3 env = u_hasEnv > 0.5 ? texture2D(u_env, equirect(R)).rgb : vec3(0.0);",
+    /* A grazing-angle fresnel, which is the whole difference between a
+       surface with an environment and a surface with a picture on it: metal
+       and glass throw the room back hardest at the edges, and it is that
+       bright rim following the silhouette that the eye reads as material. */
+    "    float rim = pow(1.0 - abs(N.z), 3.0);",
+    /* ── MATERIAL 0 IS GLASS, NOT PAINT ──────────────────────────────────
+       The plan was to show "his own painted surface". There is no painted
+       surface: cube-guy-albedo.jpg is a 2048 greyscale UV atlas with a mean of
+       (171,172,174). The model carries no colour at all, so every version of
+       "light his texture and show it" could only ever produce a white cut-out
+       on a black page -- which is exactly the bland Sid is describing, and
+       lighting it harder or reflecting more room into it made it whiter.
+
+       So the atlas stops being colour and becomes what it actually is: a
+       detail map. Its luminance drives where the surface is polished and where
+       it is scuffed, and the colour comes from the room and from the angle.
+
+       The result is a dark body that is mostly its own reflection at grazing
+       angles -- glass, not plastic. Dark matters twice: it is the only reading
+       that survives against a black page with white type on both sides, and a
+       transparent-looking thing needs somewhere dark to be transparent
+       against. */
     "    if (m < 0.5 && u_hasSkin > 0.5) {",
-    "      vec3 skin = texture2D(u_skin, vec2(v_uv.x, 1.0 - v_uv.y)).rgb;",
-    "      mat = skin * (0.34 + 1.05 * v_lit);",
+    "      float det = texture2D(u_skin, vec2(v_uv.x, 1.0 - v_uv.y)).r;",
+    /* Polish varies over him rather than being uniform, so the reflection
+       breaks up the way it does on something handled. */
+    "      float polish = 0.35 + 0.65 * smoothstep(0.35, 0.85, det);",
+    "      vec3 body = mix(vec3(0.055, 0.070, 0.105), vec3(0.20, 0.25, 0.34), det);",
+    /* The morph. A slow hue walk along his own height and around the normal,
+       so the colour travels over the surface instead of the whole figure
+       changing tint at once. */
+    "      float hue = v_uv.y * 2.2 + N.x * 1.5 + u_time * 0.09;",
+    "      vec3 sheen = 0.5 + 0.5 * cos(vec3(hue, hue + 2.09, hue + 4.19));",
+    "      sheen = mix(vec3(0.55, 0.75, 0.95), sheen, 0.55);",
+    "      mat = body;",
+    "      mat += env * polish * (0.42 + 2.30 * rim) * u_envAmt;",
+    "      mat += sheen * rim * rim * (0.75 + 0.85 * polish) * u_envAmt;",
+    "      mat += vec3(0.70, 0.84, 1.0) * pow(max(0.0, v_lit), 14.0) * polish * 1.7;",
     "    } else if (m < 1.5) {",
     /* chalk: heavy ambient, no highlight, a little grain off the point hash */
     "      float ch = 0.62 + 0.38 * v_lit;",
@@ -541,11 +630,14 @@
     /* metal: dark body, bright rim, tight highlight */
     "      float spec = pow(clamp(v_lit, 0.0, 1.0), 9.0);",
     "      mat = mix(vec3(0.06, 0.07, 0.09), vec3(0.62, 0.68, 0.78), fres * 0.9) + spec * 0.85;",
+    /* Metal is the material that is almost entirely its reflection. */
+    "      mat += env * (0.30 + 1.15 * rim) * u_envAmt;",
     "    } else if (m < 3.5) {",
     /* iridescent: angle-driven hue, no sampling at all */
     "      float a2 = fres * 3.4 + v_lit * 1.6;",
     "      mat = 0.5 + 0.5 * cos(vec3(a2, a2 + 2.09, a2 + 4.19));",
     "      mat *= 0.42 + 0.72 * v_lit;",
+    "      mat += env * (0.10 + 0.85 * rim) * u_envAmt;",
     "    } else if (u_hasTex > 0.5) {",
     "      vec2 tuv = (v_scr - 0.5) * u_texCover + 0.5;",
     "      vec3 tex = texture2D(u_tex, vec2(tuv.x, 1.0 - tuv.y)).rgb;",
@@ -637,6 +729,10 @@
     "u_hasTex",
     "u_texCover",
     "u_skin",
+    "u_env",
+    "u_solid",
+    "u_hasEnv",
+    "u_envAmt",
     "u_hasSkin",
     "u_morph",
     "u_form",
@@ -741,6 +837,38 @@
      guard below still exists and still works; it is simply reached from load
      rather than from pointerenter. Left as a function so a future change of
      mind is one call site, not a rewrite. */
+  /* ── THE ENVIRONMENT ────────────────────────────────────────────────────
+     workshop-1k.hdr tone-mapped to a 21KB equirect and blurred hard. The
+     footer Buddha has been standing in this room since it was built; the
+     figure on the hero was standing in nothing, lit by one hard-coded
+     direction, which is exactly why he read as grey plastic. A material needs
+     something to reflect before it can look like a material.
+
+     Blurred on purpose. What is wanted from it is the room's light and colour
+     and the shape of its windows, not a legible photograph of a wall bent
+     around him -- at full sharpness the graffiti reads as graffiti and he
+     turns into a mirror ball. */
+  var envTex = gl.createTexture();
+  var hasEnv = 0;
+  gl.bindTexture(gl.TEXTURE_2D, envTex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([26, 28, 36, 255]));
+  (function loadEnv() {
+    var img = new Image();
+    img.onload = function () {
+      gl.bindTexture(gl.TEXTURE_2D, envTex);
+      gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+      try {
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        hasEnv = 1;
+      } catch (e) {}
+    };
+    img.src = (canvas.getAttribute("data-base") || "") + "/assets/models/cube-guy-env.jpg";
+  })();
+
   var skinAsked = false;
   function loadSkin() {
     if (skinAsked) return;
@@ -1521,6 +1649,14 @@
     gl.bindTexture(gl.TEXTURE_2D, skinTex);
     gl.uniform1i(U.u_skin, 1);
     gl.uniform1f(U.u_hasSkin, hasSkin);
+
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, envTex);
+    gl.uniform1i(U.u_env, 4);
+    gl.uniform1f(U.u_hasEnv, hasEnv);
+    gl.uniform1f(U.u_envAmt, 1.0);
+    /* How much of him is surfaced before anyone touches him. */
+    gl.uniform1f(U.u_solid, SOLID_FLOOR);
     /* Out fast on a curve that leaves quickly, back slow on one that eases
        in — so the pieces leap and then drift home. */
     if (breakAt) {
@@ -1636,11 +1772,21 @@
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    /* PASS 1 — the solid, where the brush has claimed him. Alpha over, depth
-       written, so the nearest surface wins and the cloud behind it cannot
-       shine through. Skipped entirely when nothing is hovered, which is the
-       common case and the whole cost of the feature. */
-    if (hov > 0.004) {
+    /* PASS 1 — the solid. Alpha over, depth written, so the nearest surface
+       wins and the cloud behind it cannot shine through.
+
+       This used to read `if (hov > 0.004)`, and that single condition is why
+       the figure has always looked like grey confetti: the pass that draws his
+       MATERIAL only ran while a pointer was inside his box. Everyone who
+       arrived and read the headline -- which is everyone -- met an unlit point
+       cloud and never learned there was a surface underneath. Adding a floor
+       to the brush did nothing on its own, because the brush is read inside a
+       pass that was not running.
+
+       It runs whenever there is anything to draw. That is a second 55k-point
+       call per frame on the hero and nowhere else, which is the correct place
+       to spend it: this figure is the composition. */
+    if (hov > 0.004 || SOLID_FLOOR > 0.001) {
       gl.uniform1f(U.u_pass, 1);
       gl.enable(gl.DEPTH_TEST);
       gl.depthMask(true);
