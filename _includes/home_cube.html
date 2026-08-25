@@ -480,8 +480,30 @@
            -74 (looking down onto the lid) through the resting three-quarter
            view to +46 (looking up at the base), so the two faces the old
            mapping could not reach each get a clear moment. */
-        scrollY = p * 300;
-        scrollX = -16 + p * 58;
+        /* ── AND THE TOUR HAS TO FINISH WHILE YOU CAN STILL SEE IT ─────────
+           p reaches its ends when the SECTION has fully left the viewport,
+           which is long after the CUBE has. Measured at 1440x900, walking the
+           page in 50px steps and recording the facing face against the stage's
+           on-screen box: the cube is visible from about 400 to 1700 and the
+           six faces were winning at 400, 650, 900, 1200, 1550 and 2100. The
+           last of those is 400px after the object is gone -- the base only
+           ever came square to a camera that had nothing in front of it, and
+           roughly a third of the turn was spent above the top of the screen.
+
+           So the same fault the previous pass fixed, one layer out. That pass
+           asked "which face wins" and got six of six; it did not ask whether
+           the cube was on screen when it won, and the answer for one of the
+           two faces it existed to reveal was no.
+
+           The sweep is compressed onto the window where the object actually
+           reads, and biased slightly early because the cube enters slowly and
+           leaves fast. The ends now land near 520 and 1380, where it is about
+           half in frame at both -- and half in frame the right way round, since
+           entering from below shows its lid and leaving upward shows its base,
+           which are precisely the two faces the ends of the sweep present. */
+        var q = Math.max(-1, Math.min(1, (p + 0.08) * 2.4));
+        scrollY = q * 300;
+        scrollX = -16 + q * 58;
       };
 
       /* Which face is pointed most nearly at the camera, from the rotation
@@ -494,9 +516,17 @@
         ["back", 0, 0, -1],
         ["right", 1, 0, 0],
         ["left", -1, 0, 0],
-        /* rotateX(90) carries +Z to -Y, so that face is the BOTTOM. */
-        ["bottom", 0, -1, 0],
-        ["top", 0, 1, 0],
+        /* rotateX(90) carries +Z to -Y. CSS +Y points DOWN the screen, so -Y
+           is UP and that face is the TOP -- which is also what the stylesheet
+           builds it as, `.obj-face--top { rotateX(90deg) translateZ(...) }`.
+           These two were named the other way round, and since they are the
+           only pair the readout can disagree with silently, it did: at the
+           moment Naavo was square to the camera the line underneath read
+           "Aananda - Brand", and the cool edge and the lifted label went on
+           the face pointing directly away from the viewer. Caught by reading
+           the readout against a screenshot rather than against this table. */
+        ["top", 0, -1, 0],
+        ["bottom", 0, 1, 0],
       ];
       var facing = "";
       var frontOf = function (xDeg, yDeg) {
