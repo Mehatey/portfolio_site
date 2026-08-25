@@ -40,7 +40,7 @@
   var host = canvas.parentNode;
 
   /* How much of him is surfaced before anyone touches him. */
-  var SOLID_FLOOR = 0.5;
+  var SOLID_FLOOR = 0.55;
 
   var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -468,7 +468,20 @@
     /* Inside the brush the points grow until they overlap into a surface.
        That is the whole trick: no mesh is shipped, the solid is 55,843 points
        drawn large enough to close. */
-    "  float grow = 1.0 + 3.6 * brush;",
+    /* ── GROWTH IS NOT THE SAME THING AS COVERAGE ────────────────────────
+       This read `1.0 + 3.6 * brush`, and brush now carries a base floor so
+       that he HAS a material before anyone touches him. Those two facts
+       together inflated every one of 55,843 points by 2.8x at rest, and at
+       58vw on a large display the discs merged into one lump. Sid, with a
+       screenshot: "the character still sucks."
+
+       The two jobs were never the same. Coverage decides whether a point
+       shows its material; growth decides whether neighbouring points overlap
+       into a surface. Painting still needs the full growth, because that is
+       the gesture -- points swelling until they close. The resting floor needs
+       only enough overlap to read as skin, so it gets its own, much smaller
+       term. */
+    "  float grow = 1.0 + 3.6 * max(live, painted) + 1.05 * u_solid;",
     "  gl_PointSize = u_size * u_dpr * (2.15 / z) * (0.72 + 0.56 * n) * grow * (1.0 - 0.66 * ms);",
     "  v_depth = clamp((4.1 - z) / 2.0, 0.0, 1.0);",
     "}",
@@ -1013,7 +1026,10 @@
        he would be rendered with dots sized for a 1440px object. */
     var fw = figureWidth();
     gl.uniform1f(U.u_fit, fw / Math.max(1, r.width));
-    gl.uniform1f(U.u_size, Math.max(1.8, Math.min(4.0, fw / 250)));
+    /* Capped at 3.2, not 4.0. The cap is in POINT pixels, so on a wide
+       display it is reached long before the figure stops growing -- past that
+       the points only get fatter relative to him, which is the blob. */
+    gl.uniform1f(U.u_size, Math.max(1.8, Math.min(3.2, fw / 300)));
   }
   window.addEventListener("resize", resize);
 
