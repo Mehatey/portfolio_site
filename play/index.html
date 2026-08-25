@@ -893,7 +893,7 @@
       }
       .play-grid img.is-in:hover,
       .play-grid video.is-in:hover {
-        transform: perspective(1400px) rotateX(calc(var(--ty, 0) * -5deg)) rotateY(calc(var(--tx, 0) * 5deg)) translateZ(18px);
+        transform: perspective(1100px) rotateX(calc(var(--ty, 0) * -13deg)) rotateY(calc(var(--tx, 0) * 15deg)) translateZ(34px) scale(1.03);
         box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5);
         z-index: 3;
         position: relative;
@@ -906,12 +906,35 @@
          a card surfacing out of the field and far too slow for one answering
          a cursor. Hover gets its own, shorter, and a matching one on the
          shadow so the two arrive together. */
+      /* ── WHY THE TILT WAS JANKY ──────────────────────────────────────────
+         Sid: "its too janky and doesnt feel smooth."
+
+         --tx and --ty are rewritten on every pointermove, and `transform` was
+         in this transition list with a 420ms duration. So every mouse event
+         restarted a 420ms tween toward a target that had already moved: the
+         card never arrives, it perpetually eases toward where the cursor was
+         a third of a second ago, and each new event resets the curve. That
+         reads as lag and stutter, and no amount of tuning the duration fixes
+         it -- the transition is the bug.
+
+         So transform is not transitioned while the pointer is on the card. It
+         tracks exactly, which is what makes it feel attached to the hand.
+         Leaving is where the easing belongs, and it gets a longer, softer
+         curve than the old one, so the card settles back rather than
+         snapping. */
       .play-grid img.is-in,
       .play-grid video.is-in {
         transition:
           opacity 900ms var(--ease-out),
-          transform 420ms var(--ease-out),
           box-shadow 420ms var(--ease-out),
+          filter 900ms var(--ease-out);
+      }
+      .play-grid img.is-in:not(:hover),
+      .play-grid video.is-in:not(:hover) {
+        transition:
+          opacity 900ms var(--ease-out),
+          transform 760ms cubic-bezier(0.16, 1, 0.3, 1),
+          box-shadow 520ms var(--ease-out),
           filter 900ms var(--ease-out);
       }
       @media (hover: none), (prefers-reduced-motion: reduce) {
@@ -1063,8 +1086,18 @@
         height: var(--h);
         margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
         border-radius: 11px;
-        background: linear-gradient(146deg, rgba(150, 190, 240, 0.11), rgba(150, 190, 240, 0.025));
-        box-shadow: inset 0 0 0 1px rgba(178, 210, 246, 0.085);
+        /* Sid: "this with the side blue gradient lines is def not it."
+
+           These are the loading skeletons, and they were tinted the site's
+           blue at 11% with a lit inner border -- so before anything decoded,
+           the page was a field of glowing blue rectangles, and the columns
+           furthest from centre stayed that way longest because they load last.
+           What he was looking at was the placeholder, not the gallery.
+
+           Neutral and much fainter now. A skeleton's whole job is to hold a
+           space without claiming to be a picture. */
+        background: rgba(255, 255, 255, 0.028);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
         animation: playSkel 3.6s var(--d) ease-in-out infinite;
       }
       /* Opacity and lift together, so the row reads as cards floating at
