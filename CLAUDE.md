@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 `HANDOFF.md` at the repo root is the working guide for this site: how Sid thinks about
 design, the current state, the open items, and a list of traps that have already cost
 previous sessions real time. Read it before touching a layout. The section at the bottom,
-"STATE AS OF 11 AUG 2026", is the most current.
+"STATE AS OF 24 AUG 2026", is the most current.
 
 ## What This Repo Is
 

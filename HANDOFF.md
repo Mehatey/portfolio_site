@@ -486,3 +486,108 @@ invocation dies in `xcrun`. Xcode proper is not installed; do not point it at
 Unchanged from the lists above: Play's per-piece captions, `/mool/`'s twelve
 images with `alt="Mool"` and no words, the "PAST COLLABORATORS" label on /about/,
 and the About claim written in his voice. The disk is at 99% (6.7GB free).
+
+---
+
+# STATE AS OF 24 AUG 2026 — the homepage session, and the measurement trap that runs through it
+
+Three days of homepage work, 15 commits. The last twelve are listed by subject in
+`git log`; the commit bodies are the record and they are detailed. Read this
+section for the pattern, not the inventory.
+
+## The one thing to take from this session
+
+**Three separate features passed their own verification and were still broken for
+every real visitor.** Each was measured honestly and each measured the wrong
+quantity. If you read nothing else here, read this list and then go and check
+whatever you are about to call done against _what a visitor sees_, not against
+the arithmetic that produces it.
+
+- **The hero opener** (`_includes/hero_opener.html`) was gated on `loaderDone`,
+  correctly, and carried a blind `setTimeout(kick, 12000)` underneath. The real
+  first visit takes ~20s (the Buddha gate waits for a click, then the cube
+  sequence runs ~16s), so the failsafe won every time: the film started at 12.2s
+  with the loader still `display:flex` and was 8.2 of its 10.64 seconds gone by
+  the time the page appeared. It verified green because **the way you test an
+  opener is `?opener=1`, and that path has no loader on it at all**. The failsafe
+  only ever misfired on the one visit nobody tests.
+- **The cube's six faces** (`_includes/home_cube.html`). The pass that added the
+  lid and base verified "which face wins" and got six of six. It never asked
+  whether the cube was _on screen_ when each won. It was not: the base won at
+  scroll 2100, four hundred pixels after the object had left the viewport, so one
+  of the two faces that pass existed to reveal still had never been seen.
+- **The same cube's readout** named the wrong face on exactly that pair, because
+  `FACE_N` had the flat normals swapped. Four of six faces are named by the axis
+  you are already looking down, so only this pair can disagree silently — and it
+  did, saying "Aananda · Brand" with Naavo square to the camera.
+
+The QA suite was 628/628 green through all three.
+
+## What "verify" has to mean here
+
+`bin/portfolio-qa.cjs` checks routes, media, nav and flows. It cannot see
+composition, timing or whether an element was behind something else. For anything
+visual or time-based, drive the real page and measure the visitor-facing quantity:
+
+- **Timed things**: stamp the events, do not trust a duration. Instrument with
+  `addInitScript`, record `performance.now()` at each transition, and print the
+  sequence. The opener's fault was one line of that output.
+- **Scroll-linked things**: walk the page in 50px steps and record the state
+  _together with the element's on-screen box_. "Which face wins" and "is it
+  visible" are different columns and the bug lived between them.
+- **First-visit things**: a fresh context with no `sid_loaded`, and click through
+  `#enter-label` — not `#enter-btn`, which measures 0x0 and swallows the click
+  silently. Anything that only reproduces on a first visit will not reproduce on
+  the shortcut you reach for.
+
+## Running the loop (unchanged from 14 Aug, still correct)
+
+```bash
+bundle exec jekyll serve --port 4123
+export PORTFOLIO_CHROME="$HOME/.cache/puppeteer/chrome/mac_arm-149.0.7827.22/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+node bin/portfolio-qa.cjs http://localhost:4123
+```
+
+`git` and `python3` still need `DEVELOPER_DIR=/Library/Developer/CommandLineTools`
+exported. Playwright resolves from the repo's own `node_modules`; there is no
+puppeteer here (it is in `~/Desktop/latent-atlas`) — scripts requiring it by path
+will fail.
+
+## What the session changed
+
+The homepage now answers the pointer on every surface, which was the through-line:
+the background field is genuinely interactive and a real curl, clicking open ground
+cycles four inks, the headline letters are playable and dead still until touched,
+the work covers hinge and fold up off the page, the frame rules run a real 1D wave,
+the cube shows all six sides with a scroll-linked readout, and the page opens on a
+pixelled take of him that the cursor dissolves.
+
+- `sid_sitting_pixel.mp4` is new: `sid_sitting.mp4` through a 64x36
+  nearest-neighbour round trip, square 20px blocks, same frames, same 10.744s.
+  **The old `sid_pixelated.mp4` was never a pixelled copy of that shot** — it is a
+  black frame with a small figure, an intro animation, which `home-field.js` had
+  already worked out and dropped. It is deleted now. Do not reach for it again.
+- The opener's rim vignette was `radial-gradient(120% 108%)`, which puts the
+  mid-edges at 42% and 46% of the gradient radius, inside the opaque 52% stop — it
+  could only ever round the corners, never soften the frame. **Any vignette meant
+  to fade an element's edges needs radii below ~96% of the box**, or it is
+  decorative only.
+- A `.hero-film`-style box must carry its content's aspect ratio. At 662x594 with
+  a 16:9 take, `object-fit: contain` painted into the middle 372 rows and the
+  vignette spent its whole fade on empty letterbox.
+
+## Still open
+
+- **The disk is full.** 151Mi free on the data volume; it hard-failed a screenshot
+  mid-session. `.git` alone is 10G, with 1.71GB loose and **200 packs** — a plain
+  `git gc` would consolidate that, but repacking 8.74GB needs headroom it does not
+  currently have, so free space first. `_site` (999M) is regenerable. Sid's call.
+- Unchanged and Sid is the blocker: Play's per-piece captions, `/mool/`'s twelve
+  images with `alt="Mool"` and no words, the "PAST COLLABORATORS" label on
+  /about/, the About claim in his voice.
+- `_includes/footer_surface.html` is still in the repo unreferenced, waiting to be
+  rebuilt full-bleed behind real content.
+- Not shipped, with a reason: letters reacting to the figure. Built, measured, one
+  letter moved 0.7px — the hero puts the clauses in columns either side of him
+  with a 662px gap, so there is nothing there to interact with. Needs a different
+  idea, not a bigger constant.
