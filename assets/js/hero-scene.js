@@ -674,14 +674,36 @@
   /* Which clip, and where in it. Arise once on arrival, then walk as the
      idle; the dance is held back for a click, so the page has something to
      give back to someone who touches it. */
+  /* ── HE ANSWERS ────────────────────────────────────────────────────────
+     arise plays once on arrival and hands to walk, which is the idle. The
+     dance is held back for a click on the hero -- a thing the page gives back
+     to someone who touches it, rather than a loop that plays at everybody.
+     Clicking again while he is dancing lets it finish rather than restarting,
+     because a move that never completes reads as a stutter. */
+  var DANCE = 2;
+  window.addEventListener(
+    "pointerdown",
+    function (e) {
+      if (!FIG || clipI === DANCE) return;
+      var t = e.target;
+      /* Only open ground. A click on a link is aimed at the page. */
+      if (t && t.closest && t.closest("a, button, input, textarea, select, summary, [role='button'], label")) return;
+      var r = host.getBoundingClientRect();
+      if (e.clientY > r.bottom || e.clientY < r.top) return;
+      clipI = DANCE;
+      clipT = 0;
+    },
+    { passive: true }
+  );
+
   function advanceClip(dt) {
     if (!FIG) return;
     var c = FIG.clips[clipI];
     clipT += dt;
     if (clipT >= c.duration) {
       clipT = 0;
-      /* arise plays once and hands to walk; everything else returns to walk */
-      clipI = clipI === 0 ? 1 : 1;
+      /* arise and dance both play once and hand back to the walk idle. */
+      clipI = 1;
     }
     var f = (clipT / c.duration) * c.frames;
     var f0 = Math.floor(f) % c.frames,
