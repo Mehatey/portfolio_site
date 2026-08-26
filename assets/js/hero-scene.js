@@ -211,14 +211,34 @@
       "layout(location=1) in vec3 i_pos;",
       "layout(location=2) in vec3 i_nrm;",
       "layout(location=3) in vec2 i_uv;",
+      "layout(location=4) in vec4 i_joint;",
+      "layout(location=5) in vec4 i_weight;",
+      /* 24 joints, two frames of them, blended on the CPU-supplied factor.
+         Uploading both frames and mixing here rather than mixing on the CPU
+         keeps the per-frame JS to two array copies instead of 384 lerps. */
+      "uniform mat4 u_boneA[24];",
+      "uniform mat4 u_boneB[24];",
+      "uniform float u_boneMix;",
       "uniform mat4 u_vp;",
       "uniform mat4 u_model;",
       "uniform vec3 u_eye;",
       "uniform float u_splat, u_time, u_open;",
       "out vec3 v_nrm; out vec2 v_uv; out vec3 v_world; out vec2 v_corner;",
       "void main(){",
-      "  vec3 P = (u_model * vec4(i_pos, 1.0)).xyz;",
-      "  vec3 N = normalize(mat3(u_model) * i_nrm);",
+      /* ── SKINNING ────────────────────────────────────────────────────
+         Four joints a point, the standard weighting. The matrices arrive
+         already multiplied by their inverse binds and already interpolated
+         along the clip -- baked offline by bin/bake-figure.cjs -- so all that
+         happens here is the weighted sum. Normals go through the same matrix
+         without its translation, which is what mat3() takes. */
+      "  mat4 sk = u_boneA[int(i_joint.x)] * i_weight.x + u_boneA[int(i_joint.y)] * i_weight.y",
+      "         + u_boneA[int(i_joint.z)] * i_weight.z + u_boneA[int(i_joint.w)] * i_weight.w;",
+      "  mat4 sk2 = u_boneB[int(i_joint.x)] * i_weight.x + u_boneB[int(i_joint.y)] * i_weight.y",
+      "          + u_boneB[int(i_joint.z)] * i_weight.z + u_boneB[int(i_joint.w)] * i_weight.w;",
+      "  vec4 sp = mix(sk * vec4(i_pos, 1.0), sk2 * vec4(i_pos, 1.0), u_boneMix);",
+      "  vec3 sn = normalize(mix(mat3(sk) * i_nrm, mat3(sk2) * i_nrm, u_boneMix));",
+      "  vec3 P = (u_model * sp).xyz;",
+      "  vec3 N = normalize(mat3(u_model) * sn);",
       /* ── THE SURFACE IS LIQUID ─────────────────────────────────────────
          "some modern liquid glass morphing art direction thing." A still
          surface is a sculpture however good its material is, so the skin runs.
@@ -292,12 +312,12 @@
       "  vec3 rg = refract(-V, N, 0.672);",
       "  vec3 rb = refract(-V, N, 0.684);",
       "  vec3 thru = vec3(texture(u_env, equirect(rr)).r, texture(u_env, equirect(rg)).g, texture(u_env, equirect(rb)).b);",
-      "  vec3 col = mix(thru * 1.45 + body * 0.30, env * polish * 1.2, fres);",
-      "  col += KEY_COL * pow(key, 3.0) * polish * 0.26;",
+      "  vec3 col = mix(thru * 2.30 + body * 0.55, env * polish * 1.7, fres);",
+      "  col += KEY_COL * pow(key, 2.0) * polish * 0.75;",
       /* A tight caustic. This is what tells the eye a surface is hard and wet
          rather than merely bright. */
       "  col += KEY_COL * pow(max(0.0, dot(reflect(-KEY_DIR, N), V)), 60.0) * polish * 4.5;",
-      "  col += FILL_COL * fill * 0.12;",
+      "  col += FILL_COL * fill * 0.30;",
       /* A slow hue walk so the colour travels over him instead of the whole
        figure changing tint at once. */
       "  float hue = v_uv.y * 2.4 + N.x * 1.4 + u_time * 0.07;",
@@ -468,7 +488,19 @@
       "}",
     ].join("\n");
 
-  var subjP = program(SUBJ_VS, SUBJ_FS, ["u_vp", "u_model", "u_eye", "u_splat", "u_time", "u_open", "u_detail", "u_env"]);
+  var subjP = program(SUBJ_VS, SUBJ_FS, [
+    "u_vp",
+    "u_model",
+    "u_eye",
+    "u_splat",
+    "u_time",
+    "u_open",
+    "u_detail",
+    "u_env",
+    "u_boneA",
+    "u_boneB",
+    "u_boneMix",
+  ]);
   var gndP = program(GND_VS, GND_FS, ["u_vp", "u_eye", "u_env", "u_time"]);
   var dustP = program(DUST_VS, DUST_FS, ["u_vp", "u_eye", "u_time"]);
   var brightP = program(FS_VS, BRIGHT_FS, ["u_src"]);
@@ -534,47 +566,84 @@
     };
     img.src = base + url;
   }
-  loadTex("/assets/models/cube-guy-albedo.jpg", 1, detailTex);
+  loadTex("/assets/models/figure-albedo.jpg", 1, detailTex);
   loadTex("/assets/models/cube-guy-env.jpg", 2, envTex);
 
   /* Same 13-bytes-a-point file cube-guy.js reads: int16 positions, int8
      normals, uint16 uvs. Read once and handed straight to the GPU as
      instance data. */
   var ready = false;
-  fetch(base + "/assets/models/cube-guy-points.bin")
-    .then(function (r) {
-      if (!r.ok) throw new Error(r.status);
-      return r.arrayBuffer();
-    })
-    .then(function (ab) {
-      var n = (ab.byteLength / 13) | 0;
-      count = n;
-      var pos = new Int16Array(ab, 0, n * 3);
-      var nor = new Int8Array(ab, n * 6, n * 3);
-      var uv = new Uint16Array(ab.slice(n * 9, n * 9 + n * 4));
-      var f = new Float32Array(n * 8);
-      for (var i = 0; i < n; i++) {
-        /* ── THE MODEL IS Z-UP ─────────────────────────────────────────
-           Measured off the file, not assumed: x spans 0.53, y spans 1.17,
-           z spans 2.00. The long axis is Z, so this is a standing figure
-           exported Z-up, and reading it as Y-up lays him on his side --
-           which is precisely what the first render did.
+  var FIG = null; /* manifest */
+  var MATS = null; /* Float32Array of every baked frame */
+  var boneA = new Float32Array(24 * 16);
+  var boneB = new Float32Array(24 * 16);
+  var clipI = 0,
+    clipT = 0;
 
-           Swizzled once here at load rather than in the shader every frame:
-           (x, y, z) -> (x, z, -y). The normals take the identical swizzle or
-           the lighting stays bolted to the old orientation and he ends up lit
-           from below. */
-        var px = pos[i * 3] / 32767,
-          py = pos[i * 3 + 1] / 32767,
-          pz = pos[i * 3 + 2] / 32767;
-        f[i * 8] = px;
-        f[i * 8 + 1] = pz;
-        f[i * 8 + 2] = -py;
-        f[i * 8 + 3] = nor[i * 3] / 127;
-        f[i * 8 + 4] = nor[i * 3 + 2] / 127;
-        f[i * 8 + 5] = -nor[i * 3 + 1] / 127;
-        f[i * 8 + 6] = uv[i * 2] / 65535;
-        f[i * 8 + 7] = uv[i * 2 + 1] / 65535;
+  /* ── THE FIGURE ────────────────────────────────────────────────────────
+     bin/bake-figure.cjs turns the Meshy export -- ten GLBs, 166MB, a
+     135,628-vertex skinned mesh and a 6.3MB texture -- into 1.4MB: 44,000
+     points sampled over the surface by area, each carrying the four joint
+     indices and weights it would have had as a vertex, plus every joint
+     matrix of every frame of three clips, already multiplied through its
+     inverse bind.
+
+     Baking the matrices offline is the decision that makes this small AND
+     safe. Walking a node hierarchy, composing TRS, slerping quaternion tracks
+     and multiplying by inverse binds is a lot of code to get subtly wrong in a
+     browser, and when it is wrong the failure is a character folded inside
+     out. Done once in a script, the page indexes a flat array. */
+  Promise.all([
+    fetch(base + "/assets/models/figure.json").then(function (r) {
+      if (!r.ok) throw 0;
+      return r.json();
+    }),
+    fetch(base + "/assets/models/figure.bin").then(function (r) {
+      if (!r.ok) throw 0;
+      return r.arrayBuffer();
+    }),
+  ])
+    .then(function (res) {
+      FIG = res[0];
+      var ab = res[1],
+        n = FIG.points,
+        L = FIG.layout;
+      var pos = new Int16Array(ab.slice(L.pos, L.pos + n * 6));
+      var nor = new Int8Array(ab.slice(L.nrm, L.nrm + n * 3));
+      var uv = new Uint16Array(ab.slice(L.uv, L.uv + n * 4));
+      var ji = new Uint8Array(ab.slice(L.joints, L.joints + n * 4));
+      var jw = new Uint8Array(ab.slice(L.weights, L.weights + n * 4));
+      MATS = new Float32Array(ab.slice(L.mats));
+      count = n;
+
+      /* Interleaved: pos, nrm, uv, joint, weight = 16 floats a point. The
+         offset from the manifest stands him on the floor plane and centres
+         him on the camera axis, so the scene does not have to guess. */
+      /* No offset here. The centring translation must be applied AFTER the
+         skin, not before it: a joint matrix multiplies the point it is given,
+         so shifting the point first shifts it through the rotation as well and
+         every limb pivots about the wrong origin. Built that way first and he
+         collapsed into a ball. It lives on u_model now, which is applied after
+         the weighted sum. */
+      var f = new Float32Array(n * 16);
+      for (var i = 0; i < n; i++) {
+        f[i * 16 + 0] = pos[i * 3] / 32767;
+        f[i * 16 + 1] = pos[i * 3 + 1] / 32767;
+        f[i * 16 + 2] = pos[i * 3 + 2] / 32767;
+        f[i * 16 + 3] = nor[i * 3] / 127;
+        f[i * 16 + 4] = nor[i * 3 + 1] / 127;
+        f[i * 16 + 5] = nor[i * 3 + 2] / 127;
+        f[i * 16 + 6] = uv[i * 2] / 65535;
+        f[i * 16 + 7] = uv[i * 2 + 1] / 65535;
+        f[i * 16 + 8] = ji[i * 4];
+        f[i * 16 + 9] = ji[i * 4 + 1];
+        f[i * 16 + 10] = ji[i * 4 + 2];
+        f[i * 16 + 11] = ji[i * 4 + 3];
+        var wsum = jw[i * 4] + jw[i * 4 + 1] + jw[i * 4 + 2] + jw[i * 4 + 3] || 255;
+        f[i * 16 + 12] = jw[i * 4] / wsum;
+        f[i * 16 + 13] = jw[i * 4 + 1] / wsum;
+        f[i * 16 + 14] = jw[i * 4 + 2] / wsum;
+        f[i * 16 + 15] = jw[i * 4 + 3] / wsum;
       }
       gl.bindVertexArray(subjVAO);
       gl.bindBuffer(gl.ARRAY_BUFFER, quadVB);
@@ -582,16 +651,18 @@
       gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
       gl.bindBuffer(gl.ARRAY_BUFFER, subjVB);
       gl.bufferData(gl.ARRAY_BUFFER, f, gl.STATIC_DRAW);
-      var S = 32;
-      gl.enableVertexAttribArray(1);
-      gl.vertexAttribPointer(1, 3, gl.FLOAT, false, S, 0);
-      gl.vertexAttribDivisor(1, 1);
-      gl.enableVertexAttribArray(2);
-      gl.vertexAttribPointer(2, 3, gl.FLOAT, false, S, 12);
-      gl.vertexAttribDivisor(2, 1);
-      gl.enableVertexAttribArray(3);
-      gl.vertexAttribPointer(3, 2, gl.FLOAT, false, S, 24);
-      gl.vertexAttribDivisor(3, 1);
+      var S = 64;
+      [
+        [1, 3, 0],
+        [2, 3, 12],
+        [3, 2, 24],
+        [4, 4, 32],
+        [5, 4, 48],
+      ].forEach(function (a) {
+        gl.enableVertexAttribArray(a[0]);
+        gl.vertexAttribPointer(a[0], a[1], gl.FLOAT, false, S, a[2]);
+        gl.vertexAttribDivisor(a[0], 1);
+      });
       gl.bindVertexArray(null);
       ready = true;
       host.classList.add("is-live");
@@ -599,6 +670,29 @@
     .catch(function () {
       host.remove();
     });
+
+  /* Which clip, and where in it. Arise once on arrival, then walk as the
+     idle; the dance is held back for a click, so the page has something to
+     give back to someone who touches it. */
+  function advanceClip(dt) {
+    if (!FIG) return;
+    var c = FIG.clips[clipI];
+    clipT += dt;
+    if (clipT >= c.duration) {
+      clipT = 0;
+      /* arise plays once and hands to walk; everything else returns to walk */
+      clipI = clipI === 0 ? 1 : 1;
+    }
+    var f = (clipT / c.duration) * c.frames;
+    var f0 = Math.floor(f) % c.frames,
+      f1 = (f0 + 1) % c.frames;
+    var mix = f - Math.floor(f);
+    var J = FIG.joints,
+      stride = J * 16;
+    boneA.set(MATS.subarray((c.start + f0) * stride, (c.start + f0 + 1) * stride));
+    boneB.set(MATS.subarray((c.start + f1) * stride, (c.start + f1 + 1) * stride));
+    return mix;
+  }
 
   /* ── targets ───────────────────────────────────────────────────────── */
   var W = 1,
@@ -700,6 +794,7 @@
     vp = mat4(),
     model = mat4();
   var t0 = performance.now(),
+    last = performance.now(),
     raf = 0;
 
   function frame(now) {
@@ -709,10 +804,24 @@
       return;
     }
     var t = (now - t0) / 1000;
-    scrollP += (tScroll - scrollP) * 0.07;
-    ptrX += (tPtrX - ptrX) * 0.05;
-    ptrY += (tPtrY - ptrY) * 0.05;
-    open += ((REDUCED ? 1 : 1) - open) * 0.018;
+    var dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    var k = 1 - Math.exp(-dt * 4.2);
+    scrollP += (tScroll - scrollP) * k;
+    var kp = 1 - Math.exp(-dt * 3.0);
+    ptrX += (tPtrX - ptrX) * kp;
+    ptrY += (tPtrY - ptrY) * kp;
+    /* ── TIME, NOT FRAMES ────────────────────────────────────────────────
+       This was `open += (1 - open) * 0.018`, a per-FRAME ease, and the arrival
+       it drives pushes every point 0.55 along its own normal. So the assembly
+       took twice as long on a 60Hz display as on a 120Hz one, and on anything
+       genuinely slow it never finished at all -- the headless renderer runs at
+       about a frame a second and caught him permanently inflated into a dome,
+       which is what sent me hunting a skinning bug that did not exist.
+
+       Per second now, so he assembles in the same beat and a half everywhere.
+       Reduced motion starts him already there. */
+    open = REDUCED ? 1 : Math.min(1, open + dt * 0.75);
 
     var dist = 5.4 - scrollP * 1.5;
     var eye = [Math.sin(ptrX * 0.18) * dist * 0.85 + ptrX * 0.22, 0.28 - ptrY * 0.3 - scrollP * 0.45, Math.cos(ptrX * 0.18) * dist];
@@ -725,11 +834,22 @@
     var a = t * 0.1 + ptrX * 0.14;
     var ca = Math.cos(a),
       sa = Math.sin(a);
-    model[0] = ca;
-    model[2] = -sa;
-    model[8] = sa;
-    model[10] = ca;
-    model[13] = 0.0;
+    /* One unit tall out of the bake, which is a doll at this camera. Scaled
+       on the model rather than by pulling the camera in, so the floor, the
+       dust and the fog keep the distances they were tuned at. */
+    var MS = 2.15;
+    model[0] = ca * MS;
+    model[2] = -sa * MS;
+    model[5] = MS;
+    model[8] = sa * MS;
+    model[10] = ca * MS;
+    /* Centred on the camera axis and stood on the floor plane, from the
+       manifest's own measured bounds. */
+    if (FIG) {
+      model[12] = FIG.offset[0] * MS;
+      model[13] = FIG.offset[1] * MS - 1.02;
+      model[14] = FIG.offset[2] * MS;
+    }
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, sceneFbo);
     gl.viewport(0, 0, W, H);
@@ -764,9 +884,13 @@
        nice room rather than as a solid thing. 55,843 splats over a figure two
        units tall need roughly this to close into a surface; past it he starts
        to look inflated, which is the failure the old renderer had. */
-    gl.uniform1f(subjP.u.u_splat, 0.058);
+    gl.uniform1f(subjP.u.u_splat, 0.034);
     gl.uniform1f(subjP.u.u_time, t);
     gl.uniform1f(subjP.u.u_open, Math.min(1, open));
+    var bmix = advanceClip(Math.min(0.05, dt));
+    gl.uniformMatrix4fv(subjP.u.u_boneA, false, boneA);
+    gl.uniformMatrix4fv(subjP.u.u_boneB, false, boneB);
+    gl.uniform1f(subjP.u.u_boneMix, bmix || 0);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, detailTex);
     gl.uniform1i(subjP.u.u_detail, 1);
@@ -853,8 +977,39 @@
     }
   });
 
+  /* Jump to a clip by name. A verification hook, not a feature: the software
+     renderer used for headless checks runs at about one frame a second, so the
+     opening "arise" -- 1.87s of him getting up off the floor -- never finishes,
+     and every screenshot catches him crumpled. Nothing on the page calls it. */
+  window.__heroClip = function (name) {
+    if (!FIG) return null;
+    for (var i = 0; i < FIG.clips.length; i++) {
+      if (FIG.clips[i].name === name) {
+        clipI = i;
+        clipT = 0;
+        return name;
+      }
+    }
+    return null;
+  };
+
   /* A verification hook, not a feature. */
   window.__heroScene = function () {
-    return { instances: count, ready: ready, size: [W, H], scroll: +scrollP.toFixed(3), float: !!FLOAT };
+    var norm = 0;
+    for (var i = 0; i < boneA.length; i++) norm += Math.abs(boneA[i]);
+    return {
+      instances: count,
+      ready: ready,
+      size: [W, H],
+      scroll: +scrollP.toFixed(3),
+      float: !!FLOAT,
+      clip: FIG ? FIG.clips[clipI].name : null,
+      clipT: +clipT.toFixed(2),
+      boneSum: +norm.toFixed(2),
+      bone0: Array.from(boneA.slice(0, 16)).map(function (v) {
+        return +v.toFixed(3);
+      }),
+      joints: FIG ? FIG.joints : 0,
+    };
   };
 })();
