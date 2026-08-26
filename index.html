@@ -1845,6 +1845,36 @@
         }
       }
 
+      .hero-scene {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: min(1600px, 100vw);
+        height: min(900px, 96vh);
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1200ms ease;
+      }
+      .hero-scene.is-live {
+        opacity: 1;
+      }
+      .hero-scene canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      /* The old figure is the fallback and only shows if the scene never
+         comes up. Once it does, two versions of the same person standing in
+         the same place is the one thing that must not happen. */
+      /* display, not opacity. At opacity 0 the old canvas is still composited
+         every frame and its renderer is still drawing 55,843 points into it --
+         paying twice for one figure, and the second one invisible. */
+      .hero-scene.is-live ~ .cg-stage {
+        display: none !important;
+      }
+
       .cg-stage {
         position: absolute;
         left: 50%;
@@ -7160,6 +7190,28 @@
              other layer on the page. It drifts slowly and never loops
              visibly. -->
         <div class="hero-room" aria-hidden="true"></div>
+
+        <!-- ── THE SCENE ──────────────────────────────────────────────────
+             assets/js/hero-scene.js. A real 3D scene rather than a subject:
+             perspective camera driven by scroll and pointer, a floor he stands
+             on that takes his contact shadow and reflects the room, dust with
+             genuine world positions so near motes parallax past far ones, and
+             a bloom and tonemap pass over the lot.
+
+             He is drawn as 55,843 INSTANCED oriented quads, not gl.POINTS. A
+             point sprite cannot be rotated, cannot be lit against a real
+             normal, and its size is a hint a driver may ignore -- which is
+             exactly how the old one ended up a lump of overlapping discs on a
+             retina display. An instanced quad tilted into the model's own
+             normal is a surface element: it catches light like a surface and
+             its silhouette thins at grazing angles by itself.
+
+             The old #cg-stage stays in the markup directly underneath. If
+             WebGL2 is missing, or the point file fails, or a shader will not
+             compile, this element removes itself and the previous figure is
+             what the visitor sees -- so the hero has never had a blank state
+             and does not gain one here. -->
+        <div class="hero-scene" id="hero-scene" data-base="" aria-hidden="true"></div>
 
         <div class="cg-stage" id="cg-stage" aria-hidden="true">
           <canvas id="cg-gl" data-base=""></canvas>
@@ -12712,6 +12764,7 @@
 
     <script src="/assets/js/home-gl.js" defer></script>
     <script src="/assets/js/cube-guy.js" defer></script>
+    <script src="/assets/js/hero-scene.js" defer></script>
     <!-- ── THE CONDUCTOR IS GONE ────────────────────────────────────────────
          home-hero.js ran a seventeen-second beat: the figure holds, then
          dissolves, then the FILM holds, then he reassembles. That was correct
