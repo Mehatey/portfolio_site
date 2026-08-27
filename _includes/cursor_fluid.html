@@ -488,12 +488,84 @@
     animation: logoWave 1.4s var(--ease-out);
   }
 
+  /* ── THE MARK DRIFTS THROUGH THE SEASONS ──────────────────────────────
+     Sid: "let the fill color of cube and logo slowly change between
+     translucent beautiful nature colors."
+
+     Six colours taken off things rather than off a colour wheel: moss,
+     overcast sky, wet clay, still water, low sun, river stone. That is the
+     whole reason it does not read as an RGB cycle. A hue rotation passes
+     through magenta and electric green on its way round and nothing outdoors
+     is either of those.
+
+     144 seconds for a full round, so nobody ever watches it "animate". They
+     notice the mark is a slightly different colour than they remember, which
+     is the intended effect.
+
+     WHY A REGISTERED PROPERTY AND NOT AN ANIMATION ON THE MARK
+
+     Because that was tried and it silently lost. `.logo-cube { animation }`
+     is one class, and studio_nav.html already animates the same element as
+     `.studio-mark .logo-cube` -- three classes -- for the idle drift. The
+     animation shorthand does not merge, so the higher-specificity rule
+     simply replaced this one and the colour never moved. Light mode had a
+     second problem on top: its colour is declared !important, which beats an
+     animation outright.
+
+     So the drift does not compete for `animation` or for `color` at all. It
+     animates ONE registered custom property on the root, and the existing
+     colour declarations -- wherever they live and whatever they carry -- read
+     it as their value. @property is what makes that possible: an unregistered
+     custom property has no type, so it can only ever be swapped abruptly at
+     each keyframe, and this needs to interpolate. Where @property is not
+     supported the initial value is used and the mark is simply moss green,
+     which is a colour and not a bug.
+
+     Paused, not removed, under reduced motion. */
+  @property --nature {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: rgb(138, 166, 130);
+  }
+  @keyframes sid-nature-drift {
+    0%,
+    100% {
+      --nature: rgb(138, 166, 130);
+    }
+    17% {
+      --nature: rgb(140, 168, 194);
+    }
+    34% {
+      --nature: rgb(196, 142, 108);
+    }
+    50% {
+      --nature: rgb(112, 166, 160);
+    }
+    67% {
+      --nature: rgb(212, 168, 96);
+    }
+    84% {
+      --nature: rgb(154, 154, 166);
+    }
+  }
+  html {
+    animation: sid-nature-drift 144s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      animation-play-state: paused;
+    }
+  }
+
   /* Logo + nav-icon size override — site-wide. Beats per-layout defaults. */
   .logo-cube {
     width: 36px !important;
     height: 36px !important;
     overflow: visible;
-    color: rgba(186, 211, 244, 0.78);
+    /* The drifting colour, held back to the weight the mark had before so
+       only the hue moves and the mark never gets louder than the nav links
+       beside it. */
+    color: color-mix(in srgb, var(--nature, rgb(186, 211, 244)) 62%, rgb(186, 211, 244));
     transform-origin: center;
     transform-style: preserve-3d;
     transition:
@@ -947,7 +1019,10 @@
   }
   /* Logo cube — deep ink on cream, with the same readable gaze as dark mode. */
   html[data-theme="light"] .logo-cube {
-    color: rgba(40, 60, 100, 0.92) !important;
+    /* Same drift, taken down into ink so it reads on cream. Mixed rather
+       than given its own keyframe list: one set of six colours, two
+       renderings of it. */
+    color: color-mix(in srgb, var(--nature, rgb(40, 60, 100)) 42%, rgb(22, 36, 64)) !important;
   }
   html[data-theme="light"] .logo-cube .cube-front {
     fill: #172a4c;
