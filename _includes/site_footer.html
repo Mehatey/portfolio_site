@@ -15,6 +15,66 @@
      design_tokens.html. Sizes shift by a pixel or two in places -- that is
      the scale asserting itself, and it is the point. -->
 <style>
+  /* ── THE TIDE LINE ────────────────────────────────────────────────────
+     The surface of the footer. See the note beside the markup.
+
+     --tp is 0 before the boundary reaches the window and 1 once it has
+     crossed, written by the script at the foot of this file. The rule scales
+     from the centre outward on it and the readout fades up behind it, so the
+     line arrives first and the numbers land on it. */
+  .tideline {
+    position: relative;
+    z-index: 4;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    padding: clamp(28px, 5vh, 56px) clamp(22px, 4vw, 64px) clamp(18px, 3vh, 34px);
+    pointer-events: none;
+  }
+  .tideline__rule {
+    width: 100%;
+    height: 1px;
+    transform: scaleX(var(--tp, 0));
+    transform-origin: center;
+    transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+    /* Fades at both ends rather than stopping, which is the same hairline
+       language the hero's foot row and the section rules already use -- a
+       ruled line with two hard ends is a border, and this is a horizon. */
+    background: linear-gradient(90deg, transparent, var(--nature, rgba(180, 200, 220, 0.9)) 22%, var(--nature, rgba(180, 200, 220, 0.9)) 78%, transparent);
+    opacity: 0.42;
+  }
+  .tideline__read {
+    display: flex;
+    gap: clamp(14px, 2.4vw, 34px);
+    margin: 0;
+    font-family: "DM Mono", ui-monospace, monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--nature, rgba(180, 200, 220, 0.9));
+    opacity: calc(var(--tp, 0) * 0.62);
+    transition: opacity 700ms ease 240ms;
+    font-variant-numeric: tabular-nums;
+  }
+  .tideline__depth {
+    /* Tabular so a counter that is changing every frame does not shuffle the
+       characters either side of it. */
+    min-width: 5ch;
+    text-align: right;
+    opacity: 0.72;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tideline__rule {
+      transform: scaleX(1);
+      transition: none;
+    }
+    .tideline__read {
+      opacity: 0.62;
+      transition: none;
+    }
+  }
+
+
     /* ── GET TO KNOW SID ────────────────────────────────────────────────
        Restored. This strip was removed wholesale by ba26a361, the commit that
        put The Plot in the footer's place -- so the song screenshot, the cats,
@@ -1251,6 +1311,40 @@ pages that would have to declare it are standalone HTML layouts with no front ma
 be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains "/contact" %}{% assign _biome = "meadow" %}{% elsif page.url contains
 "/about" %}{% assign _biome = "canopy" %}{% endif %}
 <footer class="site-footer" aria-label="Site footer" data-biome="{{ include.biome | default: _biome }}">
+  <!-- ══════════════════════════════════════════════════════════════════════
+       THE TIDE LINE
+
+       Sid: "to denote that we are entering the footer, something design and
+       tech pattern or hover or environment change creatively or a light ascii
+       pattern idk be creative."
+
+       The footer of this site is a pond. Everything below this point is
+       water: the wall hangs in it, the coda floats on it, the Buddha stands
+       at the far side of it. What was missing was the SURFACE -- you simply
+       found yourself underwater with no moment of entering.
+
+       So there is a line where you go in. A hairline draws itself outward
+       from the centre of the frame as the boundary crosses the window, and a
+       row of monospace characters resolves out of noise beneath it. It is a
+       depth marker, not a caption: it says where this is and how far down,
+       in the same instrument language as the hero's "NEW YORK — 12:16 — OPEN
+       TO ROLES" stamp, and it explains nothing about itself.
+
+       The coordinates are Sid's city, to four places. The number after them
+       is the scroll depth in viewport heights, live, counting up as you go --
+       which makes it the one readout on the page that is genuinely measuring
+       the reader rather than the site.
+
+       aria-hidden: it is a mark, not content. The footer's own label already
+       tells a screen reader what this region is, and reading out a ticking
+       depth counter would be noise. -->
+  <div class="tideline" aria-hidden="true">
+    <span class="tideline__rule"></span>
+    <p class="tideline__read">
+      <span data-tide="40.7128° N">40.7128° N</span><span data-tide="73.9060° W">73.9060° W</span
+      ><span class="tideline__depth" id="tide-depth">0.0</span>
+    </p>
+  </div>
   <!-- ── THE POND CAME OUT ──────────────────────────────────────────────────
        Sid: "maybe one unique background shader across the entire site — I
        don't think we should mix shaders."
@@ -2884,5 +2978,73 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
     });
 
     resize();
+  })();
+</script>
+
+<script>
+  /* ── THE TIDE LINE ──────────────────────────────────────────────────────
+     Two jobs. Publish --tp, which is how far the footer's own top edge has
+     crossed the window, so the rule can draw and the readout can arrive. And
+     run the depth counter, which is genuine: scroll position in viewport
+     heights, to one decimal.
+
+     The coordinates scramble into place once, on arrival. Deliberately once
+     and not on a loop -- a readout that keeps re-scrambling is a decoration
+     pretending to be an instrument, and this one is supposed to read as
+     something that settled on a value. */
+  (function () {
+    var foot = document.querySelector(".site-footer");
+    var line = foot && foot.querySelector(".tideline");
+    var depth = document.getElementById("tide-depth");
+    if (!foot || !line) return;
+
+    var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var raf = 0,
+      settled = false;
+
+    var GLYPHS = "0123456789°NWSE";
+    function scramble(el) {
+      var target = el.getAttribute("data-tide") || el.textContent;
+      var i = 0;
+      var id = setInterval(function () {
+        i++;
+        var out = "";
+        for (var c = 0; c < target.length; c++) {
+          if (c < i - 2) out += target[c];
+          else if (target[c] === " ") out += " ";
+          else out += GLYPHS[(Math.floor(performance.now() / 40) + c * 7) % GLYPHS.length];
+        }
+        el.textContent = out;
+        if (i >= target.length + 2) {
+          el.textContent = target;
+          clearInterval(id);
+        }
+      }, 34);
+    }
+
+    function measure() {
+      raf = 0;
+      var r = line.getBoundingClientRect();
+      var vh = window.innerHeight || 1;
+      /* 0 when the line is a screen below the fold, 1 once it has risen a
+         third of the way up the window. It finishes well before the line
+         leaves, so the arrival is over by the time you are reading it. */
+      var t = Math.max(0, Math.min(1, (vh - r.top) / (vh * 0.66)));
+      line.style.setProperty("--tp", t.toFixed(3));
+      if (!settled && t > 0.35) {
+        settled = true;
+        if (!REDUCED) line.querySelectorAll("[data-tide]").forEach(scramble);
+      }
+      if (depth) {
+        var d = (window.scrollY || 0) / vh;
+        depth.textContent = d.toFixed(1) + " VH";
+      }
+    }
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(measure);
+    }
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    measure();
   })();
 </script>
