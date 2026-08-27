@@ -57,7 +57,76 @@
     window.__sv = function () {
       return { v: 0, a: 0 };
     };
+    /* Reduced motion still needs --hero-p: the copy's breakaway is a
+       scroll-linked POSITION, not an animation, and pinning it at 0 leaves
+       the sentence sitting on top of the section below it. */
+    heroProgress();
+    window.addEventListener("scroll", heroProgress, { passive: true });
     return;
+  }
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     HOW FAR THROUGH THE HERO
+
+     --hero-p, 0 to 1 across the first screen, smoothed. Everything in the
+     home hero that breaks away on scroll reads it: the sentence, the film
+     plate's travel and opening, the foot row.
+
+     WHY IT LIVES HERE NOW
+
+     It used to be published by cube-guy.js, inside that renderer's frame loop
+     and behind its `if (!ready || !visible || !onScreen) return`. Fine for
+     exactly as long as cube-guy was the figure on screen.
+
+     The moment hero-scene.js started rendering -- which is to say the moment
+     a one-word shader bug was fixed -- .cg-stage went display:none, its
+     IntersectionObserver stopped reporting it on screen, the loop returned
+     before the publish, and --hero-p froze at 0.000 for the life of the page.
+     That silently took the entire scroll breakaway with it, on the one screen
+     every visitor looks at first, and nothing failed loudly enough to notice.
+
+     "How far through the hero am I" was never a fact about a renderer. It is
+     a fact about the page, so it is published by the file that already owns
+     scroll, next to the velocity, where no figure being swapped for another
+     one can switch it off.
+     ═════════════════════════════════════════════════════════════════════════ */
+  var heroEl = null,
+    runwayEl = null,
+    heroQueried = false,
+    hp = 0,
+    hpShown = -1;
+  function heroProgress() {
+    if (!heroQueried) {
+      heroEl = document.getElementById("hero");
+      runwayEl = heroEl && heroEl.parentElement && heroEl.parentElement.classList.contains("hero-runway") ? heroEl.parentElement : null;
+      heroQueried = true;
+    }
+    if (!heroEl) return;
+    /* The runway, when there is one, is the scroll DISTANCE the sticky hero
+       stays put for: the wrapper's height less the one screenful the hero
+       itself occupies. Measuring the hero instead would end the sequence
+       halfway through the pin, which is the same class of error as measuring
+       a scroll effect against the element rather than against its travel.
+
+       Without a wrapper -- phone, reduced motion, any other layout -- it
+       falls back to 0.92 of the hero's own height, the number cube-guy.js
+       used, so nothing keyed to the old range shifts underneath. */
+    var runway = runwayEl
+      ? Math.max(1, runwayEl.offsetHeight - (window.innerHeight || heroEl.offsetHeight))
+      : Math.max(1, heroEl.offsetHeight * 0.92);
+    var target = Math.max(0, Math.min(1, (window.scrollY || 0) / runway));
+    /* Lightly smoothed, as before: enough to take a trackpad's stutter out
+       without the copy lagging behind the scroll, which would break the link
+       between the two. */
+    hp += (target - hp) * 0.16;
+    /* As a number too, for the renderers. A WebGL layer reading this back off
+       computed style would be a forced style resolve inside a frame loop, to
+       recover a float this file already holds. */
+    window.__heroP = hp;
+    if (Math.abs(hp - hpShown) > 0.002) {
+      hpShown = hp;
+      heroEl.style.setProperty("--hero-p", hp.toFixed(3));
+    }
   }
 
   var MAX = 2600; /* px/s that reads as 1 */
@@ -96,6 +165,7 @@
       html.style.setProperty("--sv", v.toFixed(3));
       html.style.setProperty("--sva", Math.abs(v).toFixed(3));
     }
+    heroProgress();
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);

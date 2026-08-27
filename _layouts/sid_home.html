@@ -1261,7 +1261,11 @@
         transition: opacity 1200ms ease;
       }
       .hero-scene.is-live {
-        opacity: 1;
+        /* He steps back as the film comes forward. Without this the growing
+           plate simply OCCLUDES him and he is last seen as a pair of feet
+           below its bottom edge, which reads as a clipping bug rather than
+           as a handoff. */
+        opacity: calc(1 - clamp(0, calc((var(--hero-p, 0) - 0.3) / 0.34), 1) * 0.88);
       }
       .hero-scene canvas {
         display: block;
@@ -1506,6 +1510,136 @@
         transform: scaleX(1);
       }
 
+      /* The two screens the sequence plays across. The hero sticks to the top
+         of it and the page scrolls past underneath, so --hero-p can run its
+         full range while the composition is still in front of the reader.
+
+         svh, not vh: on iOS vh is the tallest the viewport ever gets, so a
+         100vh sticky child inside a 200vh parent is taller than the visible
+         window the moment the address bar is showing, and the hero's own foot
+         row lands under the browser chrome. */
+      .hero-runway {
+        position: relative;
+        height: 200svh;
+      }
+      .hero-runway > .hero {
+        position: sticky;
+        top: 0;
+        height: 100svh;
+        min-height: 100svh;
+      }
+      /* On a phone the hero is not a viewport-tall composition -- the copy is
+         at the top and he is a backdrop -- so there is no sequence to give
+         room to, and 200svh of sticky would be a screen and a half of nothing
+         between the headline and the work. */
+      /* relative, NOT static. .hero is the containing block for everything
+         absolutely positioned inside it -- the room, the scene, the plate,
+         the foot row -- and it carries overflow: hidden to clip them. Taking
+         it out of the positioned flow let .hero-room, which is 116vw wide,
+         resolve against the page instead and escape that clip: measured as
+         86px of horizontal overflow on the body at 390. Unpinning the hero
+         means undoing `position: sticky`, and the only correct way back is
+         to the value it had before, which was relative. */
+      @media (max-width: 1000px) {
+        .hero-runway {
+          height: auto;
+        }
+        .hero-runway > .hero {
+          position: relative;
+          height: auto;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-runway {
+          height: auto;
+        }
+        .hero-runway > .hero {
+          position: relative;
+          height: auto;
+        }
+      }
+
+      /* ══════════════════════════════════════════════════════════════════════
+         THE HERO IS A SEQUENCE, NOT A PICTURE
+
+         Sid: "improve homepage drastically" and "have u used powerful
+         animations and scroll interactions."
+
+         Honestly: no, not on scroll. The hero had an arrival and a
+         composition and then it just left -- the copy lifted ninety pixels
+         and faded, which is a page scrolling, not a page performing.
+
+         --hero-p is 0 → 1 across the first screen (written by cube-guy.js,
+         which remains the only publisher). Four things now read it, and they
+         are staged so that they hand off rather than all moving at once:
+
+           p 0.00 → 0.34   the sentence breaks away, the spine stretches out
+                           past it as it goes
+           p 0.18 → 0.68   the film leaves its corner, travels to the middle
+                           of the frame and opens out of its own circle
+           p 0.30 → 1.00   the camera pushes in on him (hero-scene.js)
+           p 0.55 → 1.00   the film's ring and mark drop, the disc dims, and
+                           the work section is what you are looking at
+
+         The point of the overlap is that at no moment is the frame empty and
+         at no moment is only one thing moving. That is the difference
+         between a sequence and a stack of transitions.
+         ══════════════════════════════════════════════════════════════════════ */
+
+      /* The spine outruns the sentence. It is the one element that gets
+         LONGER as the copy leaves, so the frame reads as opening rather than
+         as emptying. */
+      .hero__spine {
+        width: calc(min(280px, 34vw) + var(--hero-p, 0) * 46vw);
+      }
+
+      /* ── THE FILM COMES TO MEET YOU ───────────────────────────────────────
+         It starts as an object at the right of the composition and ends as
+         the thing in the middle of the frame, twice the size, with its
+         circle opened out. Two custom properties do it, both driven off the
+         one clock, and the whole move is transform and border-radius, so it
+         is a composite and never a layout.
+
+         --pp is the plate's own eased progress: it does nothing for the
+         first fifth of the hero, so the sentence has the frame to itself
+         while it breaks away, and it is finished before the hero is, so the
+         handoff to the work section is not competing with it. */
+      .hero__plate {
+        --pp: clamp(0, calc((var(--hero-p, 0) - 0.18) / 0.5), 1);
+        --plate-x: calc(var(--pp) * -22vw);
+        --plate-s: calc(1 + var(--pp) * 0.72);
+      }
+      html[data-story="2"] .hero__plate,
+      html[data-story="3"] .hero__plate {
+        transform: translateY(-50%) translateX(var(--plate-x)) scale(var(--plate-s));
+      }
+      /* Out of its circle as it arrives. A disc travelling to the centre and
+         staying a disc is a disc that got bigger; opening the corners is
+         what turns it into a frame you are being shown something inside. */
+      .hero__disc-film,
+      .hero__disc-glass {
+        border-radius: calc(50% - var(--pp, 0) * 46%);
+      }
+      /* The ring and the mark are the affordances of a BUTTON, and by the
+         time it is filling the middle of the frame it has stopped being one
+         and become footage. They go before it lands. */
+      .hero__disc-ring,
+      .hero__disc-play {
+        opacity: clamp(0, calc(1 - var(--pp, 0) * 2.4), 1);
+      }
+      /* And it sits down at the end, so the work section arrives on top of a
+         surface rather than fighting a bright rectangle for the frame. */
+      .hero__plate {
+        opacity: calc(1 - clamp(0, calc((var(--hero-p, 0) - 0.62) / 0.34), 1) * 0.72);
+      }
+
+      /* The foot row and the mark leave on the sentence's clock, not the
+         film's. They belong to the composition that is breaking up. */
+      .hero__foot-row,
+      .scroll-cue {
+        will-change: opacity, transform;
+      }
+
       /* ── THE COLUMN THE SENTENCE LIVES IN ─────────────────────────────────
          Narrower and a size smaller than it was. At 8.2vw the claim ran to
          620px of a 1440 frame with the figure inside the next 560, which left
@@ -1542,9 +1676,14 @@
           opacity 800ms ease,
           transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
       }
+      /* The foot row has two claims on its opacity: the story beat that
+         brings it in, and the scroll that takes it away. They are ONE
+         declaration, because as two rules the later one in the file simply
+         won and the scroll fade never happened -- which is what was
+         measured: the row still fully visible at --hero-p 0.999. */
       html[data-story="3"] .hero__foot-row,
       html[data-story="3"] .scroll-cue {
-        opacity: 1;
+        opacity: clamp(0, calc(1 - var(--hero-p, 0) * 3.2), 1);
         transform: none;
         transition-delay: 120ms;
       }
@@ -3382,9 +3521,30 @@
     <canvas id="gl-stage" aria-hidden="true"></canvas>
 
     <main id="main">
-      <!-- ───────────────── hero ───────────────── -->
-      <section class="hero" id="hero" aria-labelledby="hero-title">
-        <!-- ── THE HERO LEAVES BEHIND A LIGHT ──────────────────────────────
+      <!-- ───────────────── hero ─────────────────
+           ── THE HERO NEEDS ROOM TO PERFORM ─────────────────────────────────
+           Sid: "improve homepage drastically" and, on scroll: "where the fuck
+           is that."
+
+           The sequence below -- copy breaking away, the film travelling to the
+           middle and opening, the camera pushing in -- was built and measured
+           and correct, and none of it could be SEEN. The hero was exactly one
+           screen tall, so by the time --hero-p reached a third the hero was a
+           third of the way off the top of the window, and the whole
+           performance played out above the fold going away.
+
+           So it gets a runway. The wrapper is two screens tall and the hero
+           sticks to the top of it, which means the first screen holds still
+           for a second screenful of scrolling while the sequence runs inside
+           it. Nothing about the composition changes; it simply stops leaving
+           before it has finished.
+
+           position: sticky and not a pinned fixed element on purpose: sticky
+           needs no scroll listener, cannot desynchronise from the scrollbar,
+           and releases by itself at the bottom of the wrapper. -->
+      <div class="hero-runway">
+        <section class="hero" id="hero" aria-labelledby="hero-title">
+          <!-- ── THE HERO LEAVES BEHIND A LIGHT ──────────────────────────────
              Sid: "instead try another scroll transition without the cube guy
              involved."
 
@@ -3398,11 +3558,11 @@
 
              Purely decorative and inert to the pointer, so nothing in the
              hero becomes unreachable while it plays. -->
-        <span class="hero-veil" aria-hidden="true"></span>
-        <!-- The film. The visible rooftop plate and its hidden depth pass stay
+          <span class="hero-veil" aria-hidden="true"></span>
+          <!-- The film. The visible rooftop plate and its hidden depth pass stay
              frame-locked. WebGL uses the latter to move near and far planes
              at different speeds under the cursor and during the hero's exit. -->
-        <!-- ── THE FIELD ──────────────────────────────────────────────────
+          <!-- ── THE FIELD ──────────────────────────────────────────────────
              Two videos used to live here, a pixelated plate and a clear one,
              crossfaded by a painted mask. Sid: "u can remove that video and
              both and have an auto switching reactive cursor new shader and
@@ -3420,7 +3580,7 @@
              streams decode, WebGL takes over without a blank frame. The depth
              stream is never shown; it only supplies geometry to the shader.
              See assets/js/home-field.js. -->
-        <!-- ── THE FIELD IS THE SITE'S FIELD NOW ────────────────────────────
+          <!-- ── THE FIELD IS THE SITE'S FIELD NOW ────────────────────────────
              Sid: "maybe one unique background shader across the entire site —
              I don't think we should mix shaders."
 
@@ -3435,10 +3595,10 @@
              brings its own weather. Nine megabytes of rooftop video go with
              it, which is most of what this page weighed. -->
 
-        <!-- The cube guy. aria-hidden because he is the page's atmosphere,
+          <!-- The cube guy. aria-hidden because he is the page's atmosphere,
              not its content: everything he stands for is already reachable as
              text and as links, and a screen reader has no use for "canvas". -->
-        <!-- ── THE ROOM ────────────────────────────────────────────────────
+          <!-- ── THE ROOM ────────────────────────────────────────────────────
              Sid: "this could be like a nice 3D space where we have these white
              lines creating the viewport ... the background will be above the
              white line, curved and cut off in the backdrop behind the 3D
@@ -3456,12 +3616,12 @@
              borders, which is the same hairline language the foot row uses.
              Inert to the pointer and hidden from assistive tech: it is a
              drawing of a space, not content. -->
-        <div class="hero-room" aria-hidden="true">
-          <span class="hero-room__horizon"></span>
-          <span class="hero-room__floor"></span>
-        </div>
+          <div class="hero-room" aria-hidden="true">
+            <span class="hero-room__horizon"></span>
+            <span class="hero-room__floor"></span>
+          </div>
 
-        <!-- ── THE ROOM BEHIND HIM ────────────────────────────────────────
+          <!-- ── THE ROOM BEHIND HIM ────────────────────────────────────────
              Sid: "put an inverted skybox ... let THERE BE A SUN OR A LIGHT and
              with some element of nature ... the bg glitchy shader which is
              just a circle in different colors and only moves top right 5mm and
@@ -3479,9 +3639,9 @@
              stay readable, which is the same constraint that governs every
              other layer on the page. It drifts slowly and never loops
              visibly. -->
-        <div class="hero-room" aria-hidden="true"></div>
+          <div class="hero-room" aria-hidden="true"></div>
 
-        <!-- ── THE SCENE ──────────────────────────────────────────────────
+          <!-- ── THE SCENE ──────────────────────────────────────────────────
              assets/js/hero-scene.js. A real 3D scene rather than a subject:
              perspective camera driven by scroll and pointer, a floor he stands
              on that takes his contact shadow and reflects the room, dust with
@@ -3501,17 +3661,17 @@
              compile, this element removes itself and the previous figure is
              what the visitor sees -- so the hero has never had a blank state
              and does not gain one here. -->
-        <div class="hero-scene" id="hero-scene" data-base="{{ site.baseurl }}" aria-hidden="true"></div>
+          <div class="hero-scene" id="hero-scene" data-base="{{ site.baseurl }}" aria-hidden="true"></div>
 
-        <div class="cg-stage" id="cg-stage" aria-hidden="true">
-          <canvas id="cg-gl" data-base="{{ site.baseurl }}"></canvas>
-        </div>
+          <div class="cg-stage" id="cg-stage" aria-hidden="true">
+            <canvas id="cg-gl" data-base="{{ site.baseurl }}"></canvas>
+          </div>
 
-        {% comment %} Sits in the same box as the figure and hands off to him when its ten seconds are up. See _includes/hero_opener.html. {%
-        endcomment %} {% include hero_opener.html %}
+          {% comment %} Sits in the same box as the figure and hands off to him when its ten seconds are up. See _includes/hero_opener.html. {%
+          endcomment %} {% include hero_opener.html %}
 
-        <div class="hero__inner">
-          <!-- The eyebrow is gone. Sid: "Sid Mehta the product designer in New
+          <div class="hero__inner">
+            <!-- The eyebrow is gone. Sid: "Sid Mehta the product designer in New
                York, we don't need to say that again. We're repeating
                information." It said his name, his role and his city directly
                above a headline whose first three words are "Product designer,
@@ -3521,14 +3681,14 @@
                The pulsing dot went with it: an availability indicator attached
                to a line nobody needed to read. -->
 
-          <!-- The headline used to be a mood — "I make hard software feel
+            <!-- The headline used to be a mood — "I make hard software feel
                obvious." True, and it told a recruiter skimming for eight
                seconds nothing checkable. The constant block now states the
                four facts a hiring manager is actually looking for (how long,
                how far through the process, whether he writes the code,
                whether he works with AI) and the line under it carries the
                taste. Facts above, character below. -->
-          <!-- ── THE SENTENCE STANDS EITHER SIDE OF HIM ──────────────────
+            <!-- ── THE SENTENCE STANDS EITHER SIDE OF HIM ──────────────────
                Sid: "we have center-aligned text instead of the bottom ... the
                text which keeps forming, we can have on the left and the right
                of the cube guy in the middle. Compose it better."
@@ -3552,7 +3712,7 @@
                than two things that happen to be centred. Below 1024 the grid
                collapses and the clauses stack: at that measure a three-column
                split is two words a line. -->
-          <!-- ── THE SENTENCE IS ONE COLUMN NOW ──────────────────────────
+            <!-- ── THE SENTENCE IS ONE COLUMN NOW ──────────────────────────
                Sid: "i dont think this hero is working with the cube model we
                can try something else also the type and in general its not
                working."
@@ -3573,21 +3733,21 @@
                standing on the floor line beside it, which is what he is good
                at and the scale at which the point cloud reads as a character
                instead of as a scan. -->
-          <h1 class="hero__title" id="hero-title">
-            <span class="sr-only">Product designer, six years. Research to shipped code, end to end.</span>
-            <span class="hero__cols" aria-hidden="true">
-              <span class="hero__col hero__col--l">
-                <span class="tw" data-tw-seq="0" data-tw="Product designer,|six years."></span>
+            <h1 class="hero__title" id="hero-title">
+              <span class="sr-only">Product designer, six years. Research to shipped code, end to end.</span>
+              <span class="hero__cols" aria-hidden="true">
+                <span class="hero__col hero__col--l">
+                  <span class="tw" data-tw-seq="0" data-tw="Product designer,|six years."></span>
+                </span>
+                <span class="hero__spine" data-story="rule"></span>
+                <span class="hero__col hero__col--r">
+                  <span class="tw" data-tw-seq="1" data-tw="Research to shipped code, end to end."></span>
+                </span>
               </span>
-              <span class="hero__spine" data-story="rule"></span>
-              <span class="hero__col hero__col--r">
-                <span class="tw" data-tw-seq="1" data-tw="Research to shipped code, end to end."></span>
-              </span>
-            </span>
-          </h1>
-        </div>
+            </h1>
+          </div>
 
-        <!-- ── THE FILM IS THE SUBJECT ────────────────────────────────────
+          <!-- ── THE FILM IS THE SUBJECT ────────────────────────────────────
              Sid: "have the intro video button circular somewhere on the
              homepage."
 
@@ -3600,35 +3760,35 @@
 
              The same #reel-modal the seal below already opens, so there is
              one showreel on this page and two ways in. -->
-        <div class="hero__plate" data-story="plate" aria-hidden="true">
-          <button type="button" id="hero-reel" class="hero__disc" aria-haspopup="dialog" aria-controls="reel-modal" aria-label="Watch the showreel">
-            <span class="hero__disc-film">
-              <video
-                id="hero-reel-loop"
-                muted
-                loop
-                playsinline
-                preload="none"
-                poster="{{ site.baseurl }}/assets/img/og-card.jpg"
-                data-src="{{ site.baseurl }}/assets/video/sid_sitting.mp4"
-              ></video>
-            </span>
-            <span class="hero__disc-glass" aria-hidden="true"></span>
-            <svg class="hero__disc-ring" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-              <defs>
-                <path id="hero-ring-path" fill="none" d="M50,50 m-41,0 a41,41 0 1,1 82,0 a41,41 0 1,1 -82,0" />
-              </defs>
-              <text>
-                <textPath href="#hero-ring-path" startOffset="0">
-                  the reel · six years in ninety seconds · the reel · six years in ninety seconds ·
-                </textPath>
-              </text>
-            </svg>
-            <span class="hero__disc-play" aria-hidden="true"></span>
-          </button>
-        </div>
+          <div class="hero__plate" data-story="plate" aria-hidden="true">
+            <button type="button" id="hero-reel" class="hero__disc" aria-haspopup="dialog" aria-controls="reel-modal" aria-label="Watch the showreel">
+              <span class="hero__disc-film">
+                <video
+                  id="hero-reel-loop"
+                  muted
+                  loop
+                  playsinline
+                  preload="none"
+                  poster="{{ site.baseurl }}/assets/img/og-card.jpg"
+                  data-src="{{ site.baseurl }}/assets/video/sid_sitting.mp4"
+                ></video>
+              </span>
+              <span class="hero__disc-glass" aria-hidden="true"></span>
+              <svg class="hero__disc-ring" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+                <defs>
+                  <path id="hero-ring-path" fill="none" d="M50,50 m-41,0 a41,41 0 1,1 82,0 a41,41 0 1,1 -82,0" />
+                </defs>
+                <text>
+                  <textPath href="#hero-ring-path" startOffset="0">
+                    the reel · six years in ninety seconds · the reel · six years in ninety seconds ·
+                  </textPath>
+                </text>
+              </svg>
+              <span class="hero__disc-play" aria-hidden="true"></span>
+            </button>
+          </div>
 
-        <!-- ══════════════════════════════════════════════════════════════
+          <!-- ══════════════════════════════════════════════════════════════
              THE FIVE HOMEPAGES
 
              Sid: "can you give me a button where i can shuffle between
@@ -3649,36 +3809,36 @@
              control itself is a real button with a real label.
              ══════════════════════════════════════════════════════════════ -->
 
-        <!-- 02 THE INDEX. No image, no object. The work stated as a list,
+          <!-- 02 THE INDEX. No image, no object. The work stated as a list,
              which is the arrangement a reader who is scanning for evidence
              actually wants, and the one thing a portfolio homepage almost
              never dares to do. -->
-        <ol class="hero-index" aria-hidden="true">
-          <li><b>Mool</b><em>Product · Fintech</em><i>Kyoorius winner</i></li>
-          <li><b>Encoded</b><em>Spatial · The Met</em><i>2,000+ activations</i></li>
-          <li><b>AI prototypes</b><em>Local AI · WebGPU</em><i>11 live experiments</i></li>
-          <li><b>Marriott</b><em>Enterprise UX</em><i>9,000 properties</i></li>
-        </ol>
+          <ol class="hero-index" aria-hidden="true">
+            <li><b>Mool</b><em>Product · Fintech</em><i>Kyoorius winner</i></li>
+            <li><b>Encoded</b><em>Spatial · The Met</em><i>2,000+ activations</i></li>
+            <li><b>AI prototypes</b><em>Local AI · WebGPU</em><i>11 live experiments</i></li>
+            <li><b>Marriott</b><em>Enterprise UX</em><i>9,000 properties</i></li>
+          </ol>
 
-        <!-- 04 THE TERMINAL. The site as an instrument reading itself out.
+          <!-- 04 THE TERMINAL. The site as an instrument reading itself out.
              Every value here is real and most of them are live: the clock is
              the same one the foot stamp runs, and the renderer line is what
              the hero is actually doing. -->
-        <div class="hero-spec" aria-hidden="true">
-          <p><span>role</span><b>product designer</b></p>
-          <p><span>years</span><b>six</b></p>
-          <p><span>base</span><b>new york</b></p>
-          <p><span>scope</span><b>research → shipped code</b></p>
-          <p><span>status</span><b class="hero-spec__on">open to roles</b></p>
-          <p><span>renderer</span><b id="spec-gl">webgl2 · 44k splats</b></p>
-        </div>
+          <div class="hero-spec" aria-hidden="true">
+            <p><span>role</span><b>product designer</b></p>
+            <p><span>years</span><b>six</b></p>
+            <p><span>base</span><b>new york</b></p>
+            <p><span>scope</span><b>research → shipped code</b></p>
+            <p><span>status</span><b class="hero-spec__on">open to roles</b></p>
+            <p><span>renderer</span><b id="spec-gl">webgl2 · 44k splats</b></p>
+          </div>
 
-        <!-- 03 THE FIELD wants a surface of its own. Created only if that
+          <!-- 03 THE FIELD wants a surface of its own. Created only if that
              direction is chosen, so four visitors in five never pay for it.
              See assets/js/home-shuffle.js. -->
-        <div class="hero-field" id="hero-field" data-base="{{ site.baseurl }}" aria-hidden="true"></div>
+          <div class="hero-field" id="hero-field" data-base="{{ site.baseurl }}" aria-hidden="true"></div>
 
-        <!-- ── THE CORNER IS EMPTY NOW ──────────────────────────────────
+          <!-- ── THE CORNER IS EMPTY NOW ──────────────────────────────────
              The "I design ___ for ___" reel lived here. Sid: "i am thinking
              the bottom-right sort of thing, we move it somewhere in the
              scroll, where on the first page we are talking about what all
@@ -3693,7 +3853,7 @@
              keep going, at a size that says it is a claim, instead of
              whispering it against the headline in the first viewport. -->
 
-        <!-- ── ONE LINE, BOTTOM LEFT ────────────────────────────────────
+          <!-- ── ONE LINE, BOTTOM LEFT ────────────────────────────────────
              Sid: "maybe in the bottom left, we can have one line of text."
 
              This is the line that was under the headline. It is the only
@@ -3706,16 +3866,16 @@
              Prefix is fixed so only the tail rewrites itself: a whole sentence
              retyping every few seconds reads as a broken page, a tail that
              swaps reads as someone still deciding. -->
-        <div class="hero__foot-row">
-          <p class="hero__base" aria-hidden="true">
-            <span class="hero__rot-fix">Building</span>
-            <span
-              class="hero__rot-val accent"
-              data-rot="quiet tools for messy human problems|emotional software out of cold tech|experiments that grow into products|interfaces for hardware not built yet|money software people actually trust"
-            ></span>
-          </p>
+          <div class="hero__foot-row">
+            <p class="hero__base" aria-hidden="true">
+              <span class="hero__rot-fix">Building</span>
+              <span
+                class="hero__rot-val accent"
+                data-rot="quiet tools for messy human problems|emotional software out of cold tech|experiments that grow into products|interfaces for hardware not built yet|money software people actually trust"
+              ></span>
+            </p>
 
-          <!-- ── THE STAMP ────────────────────────────────────────────────
+            <!-- ── THE STAMP ────────────────────────────────────────────────
                The right half of this edge was empty. Every portfolio in the
                current Awwwards honours list that has a bottom edge puts the
                same three things on it — Lama Lama runs "20+ DIGITAL FREAKS ·
@@ -3732,7 +3892,7 @@
 
                aria-hidden because the same facts are on /about/ and /contact/
                as prose, and a screen reader has no use for a ticking clock. -->
-          <!-- ── THE CONTROL NAMES WHAT IT DID ────────────────────────────
+            <!-- ── THE CONTROL NAMES WHAT IT DID ────────────────────────────
                A bare shuffle icon would leave a visitor unsure whether they
                broke the site or changed it. So the control carries the
                direction's number and its name, and both update on the press:
@@ -3743,22 +3903,22 @@
                In the foot row rather than with the floating controls at the
                corner, because this is part of the composition it changes and
                those two are browser chrome. -->
-          <button type="button" class="hero__shuffle" id="hero-shuffle" aria-live="polite">
-            <span class="hero__shuffle-mark" aria-hidden="true"></span>
-            <span class="hero__shuffle-n" id="shuffle-n">01/05</span>
-            <span class="hero__shuffle-name" id="shuffle-name">The room</span>
-          </button>
+            <button type="button" class="hero__shuffle" id="hero-shuffle" aria-live="polite">
+              <span class="hero__shuffle-mark" aria-hidden="true"></span>
+              <span class="hero__shuffle-n" id="shuffle-n">01/05</span>
+              <span class="hero__shuffle-name" id="shuffle-name">The room</span>
+            </button>
 
-          <p class="hero__stamp" aria-hidden="true">
-            <span>New York</span>
-            <span class="hero__stamp-sep"></span>
-            <span id="hero-clock">--:--</span>
-            <span class="hero__stamp-sep"></span>
-            <span class="hero__stamp-open">Open to roles</span>
-          </p>
-        </div>
+            <p class="hero__stamp" aria-hidden="true">
+              <span>New York</span>
+              <span class="hero__stamp-sep"></span>
+              <span id="hero-clock">--:--</span>
+              <span class="hero__stamp-sep"></span>
+              <span class="hero__stamp-open">Open to roles</span>
+            </p>
+          </div>
 
-        <!-- The word "Scroll" came out. Sid: "on the homepage we have scroll
+          <!-- The word "Scroll" came out. Sid: "on the homepage we have scroll
              down tooltip text can you change the animation on that or
              actually remove it all together."
 
@@ -3767,8 +3927,9 @@
              to do, and a page that has to ask is a page that has not earned
              the next screen. The animated hairline stays — it is a mark, not
              a sentence, and it points without speaking. -->
-        <div class="scroll-cue" aria-hidden="true"><span class="bar"></span></div>
-      </section>
+          <div class="scroll-cue" aria-hidden="true"><span class="bar"></span></div>
+        </section>
+      </div>
 
       <!-- ───────────────── the object ─────────────────
            Moved up out of the tail. Straight after the film you get a real

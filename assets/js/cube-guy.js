@@ -1482,6 +1482,23 @@
 
   resize();
 
+  /* Cached element, classList read. Cheap enough to ask every frame, and
+     it has to be asked every frame rather than once at boot: hero-scene
+     gains .is-live only after its 1.4MB of points has landed, and it can
+     remove itself entirely at any point before that. */
+  var _hs = null,
+    _hsQueried = false;
+  function heroSceneLive() {
+    if (!_hsQueried) {
+      _hs = document.getElementById("hero-scene");
+      _hsQueried = true;
+    }
+    if (_hs && !_hs.isConnected) {
+      _hs = null;
+    }
+    return !!(_hs && _hs.classList.contains("is-live"));
+  }
+
   function frame(now) {
     requestAnimationFrame(frame);
     var morphTarget = readMorph();
@@ -1767,12 +1784,23 @@
     /* Lightly smoothed. Enough to take the stutter out of a trackpad without
        the figure lagging behind the scroll, which would break the link. */
     scrollP += (prog - scrollP) * 0.16;
-    /* Published to CSS so the hero copy can break away on the same clock.
-       One custom property, written only when it has actually moved. */
-    if (hero && Math.abs(scrollP - lastPub) > 0.002) {
-      lastPub = scrollP;
-      hero.style.setProperty("--hero-p", scrollP.toFixed(3));
-    }
+    /* --hero-p is no longer published here. It moved to
+       assets/js/scroll-velocity.js, because it was never a fact about this
+       renderer and being inside this loop meant it stopped the moment this
+       figure stopped being the visible one. See the note in that file. */
+    /* ── HE IS NOT THE ONE ON SCREEN ANY MORE ──────────────────────────
+       hero-scene.js draws the figure now, and .hero-scene.is-live hides this
+       stage with display:none. display:none stops the browser COMPOSITING
+       the canvas; it does not stop this loop from filling it, so until now
+       55,843 points were being drawn every frame into a surface nobody could
+       see -- the exact waste that rule's own comment says it exists to
+       prevent, just one level further down.
+
+       The scroll publish above stays, because --hero-p drives the hero copy
+       and the sections below it and this is still the only place it is
+       written. Everything after this line is the draw, and the draw is what
+       is skipped. */
+    if (heroSceneLive()) return;
     /* Zero, so every scroll-driven term in the shader evaluates to identity.
        `prog` is still computed above because --hero-p drives the hero COPY's
        breakaway, which is not him and which Sid has not asked to change. */

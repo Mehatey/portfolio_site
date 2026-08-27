@@ -222,7 +222,7 @@
       "uniform mat4 u_vp;",
       "uniform mat4 u_model;",
       "uniform vec3 u_eye;",
-      "uniform float u_splat, u_time, u_open, u_look;",
+      "uniform float u_splat, u_time, u_open, u_look, u_pulse;",
       "out vec3 v_nrm; out vec2 v_uv; out vec3 v_world; out vec2 v_corner;",
       "void main(){",
       /* ── SKINNING ────────────────────────────────────────────────────
@@ -290,6 +290,11 @@
       /* The arrival. Points travel in along their own normal, so he assembles
        out of a shell rather than sliding in from one side. */
       "  P += N * (1.0 - u_open) * 0.55;",
+      /* And he flinches with it. Reusing the arrival's own displacement --
+         every splat pushed along its own normal -- so a click reads as the
+         same material behaving the same way, not as a second effect bolted
+         beside the first. */
+      "  P += N * u_pulse * 0.09;",
       "  vec3 toEye = normalize(u_eye - P);",
       /* A quad basis that faces the camera but is TILTED into the surface
        normal. Fully camera-facing is a sprite; fully normal-facing
@@ -444,12 +449,23 @@
       "layout(location=1) in vec3 i_seed;",
       "uniform mat4 u_vp;",
       "uniform vec3 u_eye;",
-      "uniform float u_time;",
+      "uniform float u_time, u_pulse;",
+      "uniform vec3 u_hit;",
       "out vec2 v_corner; out float v_bright;",
       "void main(){",
       "  vec3 P = i_seed;",
       "  P.y += sin(u_time * 0.20 + i_seed.x * 3.0) * 0.35;",
       "  P.x += cos(u_time * 0.14 + i_seed.z * 2.0) * 0.30;",
+      /* ── THE ROOM ANSWERS ──────────────────────────────────────────────
+         A ring, not a blast. The impulse is strongest at a RADIUS that
+         travels outward from where the click landed rather than everywhere
+         at once, so the air reads as carrying a wave through it instead of
+         all of it jumping. That is one line of difference and it is the
+         whole difference between a shockwave and a flicker. */
+      "  vec3 d = P - u_hit;",
+      "  float dist = length(d);",
+      "  float ring = exp(-pow((dist - (1.0 - u_pulse) * 5.5) * 1.6, 2.0));",
+      "  P += normalize(d + 1e-4) * ring * u_pulse * 0.5;",
       "  vec3 toEye = normalize(u_eye - P);",
       "  vec3 right = normalize(cross(vec3(0.0, 1.0, 0.0), toEye));",
       "  vec3 up = cross(toEye, right);",
@@ -544,6 +560,7 @@
     "u_splat",
     "u_time",
     "u_open",
+    "u_pulse",
     "u_detail",
     "u_env",
     "u_boneA",
@@ -551,7 +568,7 @@
     "u_boneMix",
   ]);
   var gndP = program(GND_VS, GND_FS, ["u_vp", "u_eye", "u_env", "u_time", "u_light"]);
-  var dustP = program(DUST_VS, DUST_FS, ["u_vp", "u_eye", "u_time"]);
+  var dustP = program(DUST_VS, DUST_FS, ["u_vp", "u_eye", "u_time", "u_pulse", "u_hit"]);
   var brightP = program(FS_VS, BRIGHT_FS, ["u_src"]);
   var blurP = program(FS_VS, BLUR_FS, ["u_src", "u_dir"]);
   var compP = program(FS_VS, COMP_FS, ["u_scene", "u_bloom", "u_time", "u_light"]);
@@ -735,6 +752,18 @@
      to someone who touches it, rather than a loop that plays at everybody.
      Clicking again while he is dancing lets it finish rather than restarting,
      because a move that never completes reads as a stutter. */
+  /* ── THE IMPULSE ────────────────────────────────────────────────────────
+     Sid: "make the environment answer."
+
+     One scalar, 1 at the moment of a click and decaying to 0 over about a
+     second and a half, plus the world point the click landed on. The dust
+     carries it outward as a travelling ring and the figure flinches with it.
+
+     Decayed per SECOND, like everything else in this file, so the wave takes
+     the same time to cross the room on any display. */
+  var pulse = 0,
+    hit = [0, 0, 0];
+
   var DANCE = 2;
   window.addEventListener(
     "pointerdown",
@@ -744,6 +773,23 @@
       /* Only open ground. A click on a link is aimed at the page. */
       if (t && t.closest && t.closest("a, button, input, textarea, select, summary, [role='button'], label")) return;
       var r = host.getBoundingClientRect();
+      /* The ring goes out from ANYWHERE in the hero, including the dead
+         space either side of him -- that is the point of it. Only the dance
+         is gated on the click being at his own height, because a dance is
+         him answering you and a wave through the air is the room doing it. */
+      var hero = document.getElementById("hero");
+      var hr = hero ? hero.getBoundingClientRect() : r;
+      if (e.clientY >= hr.top && e.clientY <= hr.bottom) {
+        pulse = 1;
+        /* Screen to a plane at his depth. Not a real unproject -- there is
+           no depth buffer read here and no need for one: the dust occupies a
+           shallow slab around z = 0, so placing the hit on that slab is
+           correct to within a few centimetres of a world that is six metres
+           across. */
+        hit[0] = (((e.clientX - r.left) / Math.max(1, r.width)) * 2 - 1) * 2.6;
+        hit[1] = -(((e.clientY - r.top) / Math.max(1, r.height)) * 2 - 1) * 1.6;
+        hit[2] = 0;
+      }
       if (e.clientY > r.bottom || e.clientY < r.top) return;
       clipI = DANCE;
       clipT = 0;
@@ -853,6 +899,23 @@
     function () {
       var r = host.getBoundingClientRect();
       var vh = window.innerHeight || 1;
+      /* ── ONE CLOCK ──────────────────────────────────────────────────────
+         This measured the scene element's own top against the viewport, and
+         that stopped working the moment the hero became a sticky child of a
+         two-screen runway: a pinned element's top IS zero for the whole
+         length of the pin, so this read 0 through the entire sequence and
+         the camera push never fired.
+
+         --hero-p is already the page's answer to "how far through the hero
+         am I", published by assets/js/scroll-velocity.js and read by the
+         copy, the film plate and the foot row. The camera reads the same
+         number, so the move it makes cannot drift out of step with the
+         things moving around it. A second measurement of the same quantity
+         is a second thing to get wrong. */
+      /* Fallback only. --hero-p is read in the frame loop instead, because it
+         is updated on a rAF and sampling it from a scroll event means reading
+         last frame's value -- measured as the camera sitting at 0 while the
+         copy was already a third of the way through its exit. */
       tScroll = Math.max(0, Math.min(1, -r.top / Math.max(1, vh * 0.9)));
     },
     { passive: true }
@@ -883,6 +946,9 @@
     var t = (now - t0) / 1000;
     var dt = Math.min(0.05, (now - last) / 1000);
     last = now;
+    /* The page's own clock wins when it exists, sampled here rather than in
+       the scroll listener so the camera is never a frame behind the copy. */
+    if (typeof window.__heroP === "number") tScroll = Math.max(0, Math.min(1, window.__heroP));
     var k = 1 - Math.exp(-dt * 4.2);
     scrollP += (tScroll - scrollP) * k;
     var kp = 1 - Math.exp(-dt * 3.0);
@@ -899,10 +965,28 @@
        Per second now, so he assembles in the same beat and a half everywhere.
        Reduced motion starts him already there. */
     open = REDUCED ? 1 : Math.min(1, open + dt * 0.75);
+    if (pulse > 0) pulse = Math.max(0, pulse - dt * 0.68);
 
-    var dist = 5.4 - scrollP * 1.5;
-    var eye = [Math.sin(ptrX * 0.18) * dist * 0.85 + ptrX * 0.22, 0.28 - ptrY * 0.3 - scrollP * 0.45, Math.cos(ptrX * 0.18) * dist];
-    var at = [0, -0.1 - scrollP * 0.2, 0];
+    /* ── THE CAMERA PUSHES IN ─────────────────────────────────────────────
+       This was `5.4 - scrollP * 1.5`: a linear creep from the first pixel of
+       scroll that ends 28% closer. Two things wrong with it. It starts
+       immediately, so it competes with the sentence breaking away instead of
+       taking over from it, and it is small enough that nobody reads it as a
+       camera move at all -- which is why a scene built around a real
+       perspective camera had never once looked like one.
+
+       It waits for the copy to be a third gone, then travels almost half the
+       distance to him. Deliberately overlapping the film plate's own move
+       rather than following it: at no point in the hero is only one thing
+       happening, which is the difference between a sequence and a queue of
+       transitions. */
+    var push = Math.max(0, (scrollP - 0.3) / 0.7);
+    var dist = 5.4 - push * 2.55;
+    var eye = [Math.sin(ptrX * 0.18) * dist * 0.85 + ptrX * 0.22, 0.28 - ptrY * 0.3 - push * 0.5, Math.cos(ptrX * 0.18) * dist];
+    /* The target rises to his chest as the camera closes, so the push reads
+       as moving TOWARD him rather than as sinking toward the floor -- at a
+       fixed target a dolly in on a standing figure crops to his knees. */
+    var at = [0, -0.1 + push * 0.34, 0];
     lookAt(view, eye, at, [0, 1, 0]);
     perspective(proj, 0.72, W / H, 0.1, 60);
     mul(vp, proj, view);
@@ -984,6 +1068,7 @@
     gl.uniform1f(subjP.u.u_splat, 0.034);
     gl.uniform1f(subjP.u.u_time, t);
     gl.uniform1f(subjP.u.u_open, Math.min(1, open));
+    gl.uniform1f(subjP.u.u_pulse, pulse);
     var bmix = advanceClip(Math.min(0.05, dt));
     gl.uniformMatrix4fv(subjP.u.u_boneA, false, boneA);
     gl.uniformMatrix4fv(subjP.u.u_boneB, false, boneB);
@@ -1016,6 +1101,8 @@
     gl.uniformMatrix4fv(dustP.u.u_vp, false, vp);
     gl.uniform3fv(dustP.u.u_eye, eye);
     gl.uniform1f(dustP.u.u_time, t);
+    gl.uniform1f(dustP.u.u_pulse, pulse);
+    gl.uniform3fv(dustP.u.u_hit, hit);
     gl.drawArraysInstanced(gl.TRIANGLES, 0, 6, DUST_N);
     gl.vertexAttribDivisor(1, 0);
     gl.depthMask(true);
