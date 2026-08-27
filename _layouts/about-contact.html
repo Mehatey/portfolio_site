@@ -341,13 +341,91 @@
       }
       .hero-ident {
         position: relative;
+        /* The bloom is deliberately wider than the card -- that horizontal
+           spill is what stops it reading as a second rectangle behind the
+           first -- and at 390 those two 14% ears put 29px of overflow on the
+           body.
+
+           overflow-x: clip with overflow-y: visible, not overflow: hidden.
+           The bloom's UPWARD spill past the top of the card is the whole
+           effect; hidden would take it with the sides. `clip` is the one
+           value that may pair with `visible` on the other axis without
+           forcing it to `auto`, which is exactly the case this is. */
+        overflow-x: clip;
+        overflow-y: visible;
       }
+      /* ── THE TOP OF THE PICTURE DISSOLVES ─────────────────────────────────
+         Sid: "can we bg blur and shader fade or animate or do some visual
+         treatment to the top of my pic."
+
+         The portrait was a hard rectangle: a sharp horizontal edge across the
+         top with the page above it and the photograph below, which is the one
+         thing that makes an image read as pasted onto a layout rather than as
+         being IN it.
+
+         Two layers do it. The image's own top eighth is masked away, so the
+         picture has no top edge at all and simply stops being opaque. And
+         behind it sits a heavily blurred, over-scaled copy of the same frame,
+         which spills upward past where the picture ends -- so what fills the
+         space the mask took is the photograph's own colour, out of focus,
+         rather than page background.
+
+         That second layer is the part that sells it. A mask alone fades a
+         picture into nothing and reads as a fade; a mask over its own bloom
+         reads as depth of field, because the colour continues and only the
+         detail goes. It is the same idea as the hero's environment map: the
+         light on a thing should come from the thing.
+
+         The bloom drifts, slowly and only vertically, so the top of the frame
+         is never quite still. Twenty-two seconds, well under any threshold
+         where a visitor would call it an animation. */
+      .about-ident-bloom {
+        position: absolute;
+        left: -14%;
+        right: -14%;
+        top: -22%;
+        height: 78%;
+        z-index: 0;
+        pointer-events: none;
+        background-image: var(--bloom-src);
+        background-size: cover;
+        background-position: center 26%;
+        filter: blur(34px) saturate(0.7) brightness(0.86);
+        opacity: 0.5;
+        -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 34%, #000 62%, transparent 100%);
+        mask-image: linear-gradient(180deg, transparent 0%, #000 34%, #000 62%, transparent 100%);
+        animation: about-bloom-drift 22s ease-in-out infinite alternate;
+      }
+      html[data-theme="light"] .about-ident-bloom {
+        opacity: 0.34;
+        filter: blur(34px) saturate(0.66) brightness(1.06);
+      }
+      @keyframes about-bloom-drift {
+        from {
+          transform: translateY(0) scale(1);
+        }
+        to {
+          transform: translateY(2.2%) scale(1.05);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-ident-bloom {
+          animation: none;
+        }
+      }
+
       .about-profile-card {
         position: relative;
+        z-index: 1;
         width: 100%;
         aspect-ratio: 4 / 5;
         min-height: 0;
         overflow: hidden;
+        /* The picture has no top edge. Held to 13% so it never reaches the
+           face -- object-position is `center 70%`, so the head sits well below
+           this. Verified against both portraits. */
+        -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.55) 6%, #000 13%);
+        mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.55) 6%, #000 13%);
         /* ── NOT A CARD ────────────────────────────────────────────────────
            Sid: "the card looks way too basic, like a Figma UI card."
 
@@ -557,6 +635,125 @@
          column was the name — a word the nav, the tab title and the URL have
          all already said — while the one sentence with a position in it was
          set at body size. */
+      /* ── THE LOOP ─────────────────────────────────────────────────────────
+         See the note beside the markup. The line draws left to right, the
+         nodes land on it one at a time, and the return arc comes last and
+         dashed. Total 1.5s, entirely on the reveal, and it does not repeat --
+         a diagram that keeps redrawing itself is an animation, and this is a
+         drawing. */
+      .about-loop {
+        margin: clamp(30px, 4vh, 46px) 0 0;
+        max-width: 460px;
+      }
+      .about-loop__svg {
+        display: block;
+        width: 100%;
+        height: auto;
+        overflow: visible;
+        color: var(--ink-3);
+      }
+      .about-loop__line,
+      .about-loop__back {
+        fill: none;
+        stroke: currentColor;
+        stroke-width: 1;
+        opacity: 0.5;
+      }
+      .about-loop__back {
+        stroke-dasharray: 3 5;
+        opacity: 0.3;
+      }
+      .about-loop__node {
+        fill: currentColor;
+        opacity: 0.75;
+      }
+      /* pathLength is not set, so the dash values are in user units and the
+         two paths are different lengths -- 284 and roughly 360. Each gets its
+         own, rather than one number that would leave the arc half drawn. */
+      [data-reveal] .about-loop__line,
+      .about-loop .about-loop__line {
+        stroke-dasharray: 284;
+        stroke-dashoffset: 284;
+      }
+      .about-loop .about-loop__back {
+        stroke-dasharray: 3 5;
+        opacity: 0;
+      }
+      .about-loop .about-loop__node {
+        opacity: 0;
+        transform: scale(0.2);
+        transform-box: fill-box;
+        transform-origin: center;
+      }
+      .about-loop.is-visible .about-loop__line {
+        animation: about-loop-draw 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      }
+      .about-loop.is-visible .about-loop__back {
+        animation: about-loop-back 700ms ease 900ms forwards;
+      }
+      .about-loop.is-visible .about-loop__node {
+        animation: about-loop-node 480ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation-delay: calc(160ms + var(--n, 0) * 280ms);
+      }
+      @keyframes about-loop-draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      @keyframes about-loop-back {
+        to {
+          opacity: 0.3;
+        }
+      }
+      @keyframes about-loop-node {
+        to {
+          opacity: 0.75;
+          transform: scale(1);
+        }
+      }
+      .about-loop__keys {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin: 10px 0 0;
+        font-family: "DM Mono", ui-monospace, monospace;
+        font-size: 9.5px;
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        line-height: 1.45;
+        color: var(--ink-3);
+      }
+      .about-loop__keys span:nth-child(2) {
+        text-align: center;
+      }
+      .about-loop__keys span:nth-child(3) {
+        text-align: right;
+      }
+      @media (max-width: 620px) {
+        .about-loop__keys {
+          grid-template-columns: 1fr;
+          gap: 4px;
+        }
+        .about-loop__keys span {
+          text-align: left !important;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-loop .about-loop__line {
+          stroke-dashoffset: 0;
+        }
+        .about-loop .about-loop__back {
+          opacity: 0.3;
+        }
+        .about-loop .about-loop__node {
+          opacity: 0.75;
+          transform: none;
+        }
+        .about-loop.is-visible * {
+          animation: none;
+        }
+      }
+
       .about-claim {
         font-family: var(--font-head);
         /* The element is an <h1> now (see the markup). Both of the defaults a
@@ -612,7 +809,21 @@
            beat and is written on the element. */
         opacity: 0;
         transform: translateY(10px);
-        animation: none;
+        /* ── THESE WERE INVISIBLE ─────────────────────────────────────────
+           Sid: "about is so less text."
+
+           It was not less text. It was the same text at opacity 0. This rule
+           set the from-state and then wrote `animation: none` while keeping
+           the animation-delay below it, so nothing ever ran and both
+           paragraphs of the hero -- half the copy on the page -- were never
+           painted at all. Measured on the live page: computed opacity 0,
+           animation-name none, on both.
+
+           @keyframes about-say-in was sitting a few lines down this same
+           file, unused, doing exactly what was wanted. `both` so the
+           from-state is held through the delay rather than flashing at full
+           opacity first. */
+        animation: about-say-in 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
         animation-delay: calc(0.32s + var(--i, 0) * 0.16s);
         transition: color 0.4s ease;
       }
@@ -1875,7 +2086,11 @@
     <main class="about-page" id="main">
       <!-- HERO -->
       <section class="about-hero">
-        <div class="hero-ident">
+        <div class="hero-ident" style="--bloom-src: url({{ site.baseurl }}/assets/img/sid_about.jpg)">
+          <!-- The out-of-focus copy of the portrait that the masked top edge
+               dissolves into. Inert, decorative, and the same file the card
+               is already loading, so it costs a paint and not a request. -->
+          <span class="about-ident-bloom" aria-hidden="true"></span>
           <div
             class="about-profile-card"
             id="about-profile-card"
@@ -1964,7 +2179,72 @@
               Most recently ENCODED at the Metropolitan Museum, 25 artworks opened through AR to 2,000+ activations and two 2026 Webby Awards. Before
               that, enterprise UX at Deloitte Digital across 9,000+ Marriott properties.
             </p>
+            <!-- ── THREE MORE, BECAUSE TWO WAS NOT AN ANSWER ────────────────
+                 Sid: "about is so less text."
+
+                 The first fault was that two paragraphs were invisible. The
+                 second is that two paragraphs were all there were, and they
+                 were both credentials. A stranger reading this page could
+                 tell you where he has worked and nothing at all about how he
+                 works or what he is like to sit next to, which is the only
+                 question an About page exists to answer.
+
+                 So: how the work actually gets made, what he does when
+                 nobody is commissioning anything, and what he is looking
+                 for. Every checkable claim in here is stated elsewhere on
+                 this site -- the prototypes are on /ai-prototypes/, the
+                 archive is /play/, the thesis is /bloom/ -- and the
+                 uncheckable parts are opinions, clearly held as opinions. -->
+            <p style="--i: 2">
+              The way I work is unglamorous. I build the smallest thing that could be wrong, put it in front of someone, and watch where their hand
+              goes. Most of my good decisions have come from that and almost none from a document.
+            </p>
+            <p style="--i: 3">
+              When nobody is commissioning anything I make prototypes. There are eleven live in the browser right now, most of them running a model
+              locally on your own machine, and they exist because the fastest way to understand a technology is to be embarrassed by it in public.
+            </p>
+            <p style="--i: 4">
+              I am in New York and looking for a product design role where the engineering is close enough to touch. If you are building something
+              that is hard in an interesting way, I would like to hear about it.
+            </p>
           </div>
+
+          <!-- ── THE SUPPORTING GRAPHIC ───────────────────────────────────────
+               Sid: "u can have other supporting graphics."
+
+               Deliberately not a fourth printing of the credentials. The
+               companies marquee, the recognition column and the footer ticker
+               already carry those three times over, and an earlier pass on
+               this page removed a set of proof cards for exactly that reason.
+
+               This illustrates the paragraph two above it instead -- the loop
+               the work actually runs on -- which is the one thing on the page
+               with no evidence attached to it and the only claim here a
+               reader cannot check anywhere else on the site.
+
+               Three nodes and a return path. The stroke draws itself in when
+               the block arrives, and the return arc is dashed because it is
+               the step people skip. Hairlines and mono labels, which is the
+               drawing language the rest of the site already uses for its
+               marks.
+
+               aria-hidden with a real text equivalent underneath: an SVG
+               diagram is a picture of a sentence, and the sentence is cheaper
+               to read. -->
+          <figure class="about-loop" data-reveal>
+            <svg class="about-loop__svg" viewBox="0 0 320 96" role="img" aria-hidden="true" focusable="false">
+              <path class="about-loop__line" d="M18 34 H302" />
+              <path class="about-loop__back" d="M302 34 C302 86, 18 86, 18 34" />
+              <circle class="about-loop__node" cx="18" cy="34" r="3.4" style="--n: 0" />
+              <circle class="about-loop__node" cx="160" cy="34" r="3.4" style="--n: 1" />
+              <circle class="about-loop__node" cx="302" cy="34" r="3.4" style="--n: 2" />
+            </svg>
+            <figcaption class="about-loop__keys">
+              <span>make the smallest wrong thing</span>
+              <span>put it in front of someone</span>
+              <span>watch where their hand goes</span>
+            </figcaption>
+          </figure>
           <!-- The "Selected work" and "Resume" links were here. Both removed:
                Work is in the nav on every screen, and a page that ends in a row
                of buttons telling a reader where to go next is doing the
