@@ -222,7 +222,7 @@
       "uniform mat4 u_vp;",
       "uniform mat4 u_model;",
       "uniform vec3 u_eye;",
-      "uniform float u_splat, u_time, u_open;",
+      "uniform float u_splat, u_time, u_open, u_look;",
       "out vec3 v_nrm; out vec2 v_uv; out vec3 v_world; out vec2 v_corner;",
       "void main(){",
       /* ── SKINNING ────────────────────────────────────────────────────
@@ -237,8 +237,26 @@
       "          + u_boneB[int(i_joint.z)] * i_weight.z + u_boneB[int(i_joint.w)] * i_weight.w;",
       "  vec4 sp = mix(sk * vec4(i_pos, 1.0), sk2 * vec4(i_pos, 1.0), u_boneMix);",
       "  vec3 sn = normalize(mix(mat3(sk) * i_nrm, mat3(sk2) * i_nrm, u_boneMix));",
-      "  vec3 P = (u_model * sp).xyz;",
-      "  vec3 N = normalize(mat3(u_model) * sn);",
+      /* ── HE TURNS TOWARD YOU ─────────────────────────────────────────
+         A yaw applied to the skinned point, weighted by how high up the body
+         it sits. The feet do not move, the hips barely, the shoulders more,
+         the head most -- which is what a person actually does when something
+         catches their attention, and it is why this reads as noticing rather
+         than as the whole model rotating.
+
+         Done here rather than by finding the neck joint and rotating it,
+         because the joint matrices are baked and adding a procedural rotation
+         into that chain means re-deriving the whole hierarchy at runtime --
+         the exact thing baking them offline was meant to avoid. A height
+         weighting gets the same read for four lines and cannot desynchronise
+         from the clip. */
+      "  float up = clamp(sp.y * 0.62, 0.0, 1.0);",
+      "  float look = u_look * smoothstep(0.10, 0.95, up) * 0.85;",
+      "  float cl = cos(look), sl = sin(look);",
+      "  vec3 lp = vec3(sp.x * cl + sp.z * sl, sp.y, -sp.x * sl + sp.z * cl);",
+      "  vec3 ln = vec3(sn.x * cl + sn.z * sl, sn.y, -sn.x * sl + sn.z * cl);",
+      "  vec3 P = (u_model * vec4(lp, 1.0)).xyz;",
+      "  vec3 N = normalize(mat3(u_model) * ln);",
       /* ── THE SURFACE IS LIQUID ─────────────────────────────────────────
          "some modern liquid glass morphing art direction thing." A still
          surface is a sculpture however good its material is, so the skin runs.
@@ -913,6 +931,10 @@
     gl.uniformMatrix4fv(subjP.u.u_boneA, false, boneA);
     gl.uniformMatrix4fv(subjP.u.u_boneB, false, boneB);
     gl.uniform1f(subjP.u.u_boneMix, bmix || 0);
+    /* Where the pointer is, in radians of yaw. Clamped hard: a figure that
+       tracks one-to-one looks possessed, and one that tracks not at all looks
+       like a video. */
+    gl.uniform1f(subjP.u.u_look, ptrX * 0.55);
     gl.activeTexture(gl.TEXTURE1);
     gl.bindTexture(gl.TEXTURE_2D, detailTex);
     gl.uniform1i(subjP.u.u_detail, 1);
