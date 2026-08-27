@@ -250,8 +250,25 @@
          the exact thing baking them offline was meant to avoid. A height
          weighting gets the same read for four lines and cannot desynchronise
          from the clip. */
-      "  float up = clamp(sp.y * 0.62, 0.0, 1.0);",
-      "  float look = u_look * smoothstep(0.10, 0.95, up) * 0.85;",
+      /* `rise`, not `up`. This was `float up` and the quad basis forty lines
+         below declares `vec3 up` in the same scope, which is a redefinition —
+         and it is the reason THE WHOLE SCENE HAS NEVER RENDERED on Sid's
+         machine. The vertex shader failed to compile, the program came back
+         null, the host element removed itself, and the older cube-guy.js
+         point cloud underneath took over and looked plausible.
+
+         Two things made it invisible for five commits. The removal path is
+         silent, and terser is configured with drop_console: true, so the
+         compile log never survived into a served build. And every headless
+         check ran without a real GPU, where the element is removed at the
+         `if (!gl)` guard above for a completely different reason — same end
+         state, so the fallback figure was what every screenshot showed and
+         nothing ever contradicted the assumption that the scene was live.
+
+         If this file ever appears not to be running again: build with
+         drop_console off before believing anything else. */
+      "  float rise = clamp(sp.y * 0.62, 0.0, 1.0);",
+      "  float look = u_look * smoothstep(0.10, 0.95, rise) * 0.85;",
       "  float cl = cos(look), sl = sin(look);",
       "  vec3 lp = vec3(sp.x * cl + sp.z * sl, sp.y, -sp.x * sl + sp.z * cl);",
       "  vec3 ln = vec3(sn.x * cl + sn.z * sl, sn.y, -sn.x * sl + sn.z * cl);",
@@ -373,7 +390,7 @@
       "in vec3 v_world;",
       "uniform vec3 u_eye;",
       "uniform sampler2D u_env;",
-      "uniform float u_time;",
+      "uniform float u_time, u_light;",
       "out vec4 outColor;",
       "float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }",
       "void main(){",
@@ -390,13 +407,27 @@
       /* Contact shadow. Not a shadow map -- one soft ellipse under him, which
        at this camera is indistinguishable and costs nothing. */
       "  float d2 = length((v_world.xz - vec2(0.0, 0.0)) * vec2(1.0, 1.35));",
-      "  col *= mix(0.06, 1.0, smoothstep(0.55, 2.6, d2));",
+      "  float shade = mix(0.06, 1.0, smoothstep(0.55, 2.6, d2));",
+      "  col *= shade;",
       "  col += (hash(floor(v_world.xz * 40.0)) - 0.5) * 0.006;",
       "  float dist = length(u_eye - v_world);",
       "  col = mix(col, FOG_COL, fogAmount(dist));",
       /* Faded off at the far edge so the plane never shows its own boundary. */
       "  float edge = 1.0 - smoothstep(9.0, 24.0, length(v_world.xz));",
-      "  outColor = vec4(col, edge);",
+      /* ── THE FLOOR IS NOT A FLOOR ON CREAM ──────────────────────────────
+         This plane is near-black (0.02) plus a reflection of a dark room, and
+         on the light theme that is a grey smear lying under him on a cream
+         page -- the single ugliest thing in the light-mode hero. The fault is
+         not the colour, it is that a DARK REFLECTIVE FLOOR is a thing you can
+         only have if the room around it is dark too.
+
+         So on cream the plane stops being a floor and becomes only what it is
+         actually needed for: the contact shadow. Alpha inverts to the shadow
+         term, so it is opaque directly under his feet and gone a metre away,
+         and there is no plane left to see the edge of. He still lands on
+         something; the something is just no longer painted. */
+      "  float lightA = edge * (1.0 - shade) * 0.62;",
+      "  outColor = vec4(mix(col, vec3(0.30, 0.31, 0.34), u_light), mix(edge, lightA, u_light));",
       "}",
     ].join("\n");
 
@@ -519,7 +550,7 @@
     "u_boneB",
     "u_boneMix",
   ]);
-  var gndP = program(GND_VS, GND_FS, ["u_vp", "u_eye", "u_env", "u_time"]);
+  var gndP = program(GND_VS, GND_FS, ["u_vp", "u_eye", "u_env", "u_time", "u_light"]);
   var dustP = program(DUST_VS, DUST_FS, ["u_vp", "u_eye", "u_time"]);
   var brightP = program(FS_VS, BRIGHT_FS, ["u_src"]);
   var blurP = program(FS_VS, BLUR_FS, ["u_src", "u_dir"]);
@@ -685,7 +716,13 @@
       ready = true;
       host.classList.add("is-live");
     })
-    .catch(function () {
+    .catch(function (err) {
+      /* Say why. This catch used to be silent, and a silent removal is the
+         single most expensive kind of failure on this page: the element
+         deletes itself, the older figure underneath takes over, and the hero
+         looks plausible — so nobody goes looking, and a session gets spent
+         tuning a figure that is not the one in the markup. */
+      if (window.console && console.warn) console.warn("[hero-scene] figure did not load:", err);
       host.remove();
     });
 
@@ -870,14 +907,33 @@
     perspective(proj, 0.72, W / H, 0.1, 60);
     mul(vp, proj, view);
 
-    /* A slow turn so he is never presenting the same face for long. */
-    var a = t * 0.1 + ptrX * 0.14;
+    /* ── HE FACES YOU ─────────────────────────────────────────────────────
+       This was `t * 0.1`, a continuous rotation — which means that for a
+       third of every minute the hero of the page is a man with his back to
+       the room. Fine for a turntable of an object, wrong for a figure who is
+       the only character on the page and whose job is to be looked at.
+
+       A sine instead, so he sways between about 28 degrees either side of
+       front and is never turned away. The pointer term still adds on top, so
+       he answers the cursor from wherever the sway has him. */
+    /* And PI, because the bake faces AWAY from the camera. The original
+       `t * 0.1` rotation hid this completely — he was always turning, so
+       whichever way he happened to be pointing read as "mid-turn" rather than
+       as wrong. Freezing the rotation into a sway is what exposed it: he
+       swayed gently, with his back to the room, permanently. */
+    var a = Math.PI + Math.sin(t * 0.14) * 0.5 + ptrX * 0.14;
     var ca = Math.cos(a),
       sa = Math.sin(a);
     /* One unit tall out of the bake, which is a doll at this camera. Scaled
        on the model rather than by pulling the camera in, so the floor, the
        dust and the fog keep the distances they were tuned at. */
-    var MS = 2.15;
+    /* 2.9, up from 2.15. He is drawn into a third of the frame now rather
+       than the whole of it (see .hero-scene), and the figure scales with the
+       element while the floor, the fog and the dust do not — they are world
+       units and were tuned at a distance. Scaling the MODEL is the only lever
+       that makes him bigger in his own patch of room without dragging the
+       camera in and flattening everything around him. */
+    var MS = 2.5;
     model[0] = ca * MS;
     model[2] = -sa * MS;
     model[5] = MS;
@@ -909,6 +965,7 @@
     gl.uniformMatrix4fv(gndP.u.u_vp, false, vp);
     gl.uniform3fv(gndP.u.u_eye, eye);
     gl.uniform1f(gndP.u.u_time, t);
+    gl.uniform1f(gndP.u.u_light, document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0);
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, envTex);
     gl.uniform1i(gndP.u.u_env, 2);
@@ -1035,6 +1092,29 @@
       }
     }
     return null;
+  };
+
+  /* ── HE ARRIVES AGAIN ───────────────────────────────────────────────────
+     Sid: "let light mode and cube guy also float in in a fun way."
+
+     `open` is the assembly term: at 0 every splat sits 0.55 along its own
+     normal, so the figure is an inflated shell of himself, and it eases to 1
+     over about a second and a half as he draws in to solid. That already
+     happens once, on load, and it is the best move this scene has — so the
+     theme toggle borrows it. Switching to cream blows him apart and lets him
+     re-form, on the same beat the view transition's circle is crossing the
+     page.
+
+     Unlike __heroClip this IS a feature and something on the page calls it:
+     the toggle in _includes/cursor_fluid.html. */
+  window.__heroArrive = function () {
+    if (REDUCED) return false;
+    open = 0;
+    if (typeof clipI === "number") {
+      clipI = 0;
+      clipT = 0;
+    }
+    return true;
   };
 
   /* A verification hook, not a feature. */
