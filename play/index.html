@@ -789,24 +789,84 @@
            of four at ~350. */
         padding: calc(var(--nav-h, 64px) + var(--sp-8, 64px)) clamp(var(--sp-5, 24px), 9vw, 190px) var(--sp-9, 96px);
       }
+      /* ── THE MASTHEAD WAS A SLIDE ─────────────────────────────────────────
+         Sid: "the play page intro button looks shit like a ppt not creative."
+
+         A centred h1 over a centred subtitle IS the default presentation
+         layout -- it is what every slide template ships with, and it is the
+         same fault the home hero had: everything on one axis, nothing
+         dominant, nothing subordinate.
+
+         Now it is an editorial masthead. The word is enormous and anchored to
+         the left margin, the sentence is small and offset against it rather
+         than centred under it, and a count sits far right as a mono
+         counterpoint so the line has two ends instead of one middle. Each part
+         rises on its own delay, so the header assembles rather than appearing. */
       .play-header {
         position: static;
-        max-width: 46ch;
-        margin: 0 auto var(--sp-8, 64px);
-        text-align: center;
+        max-width: none;
+        margin: 0 0 clamp(28px, 5vh, 72px);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: end;
+        column-gap: clamp(16px, 4vw, 64px);
+        text-align: left;
       }
       .play-header h1 {
+        grid-column: 1;
         margin: 0;
-        font: var(--type-display);
-        letter-spacing: var(--track-display);
+        font-size: clamp(3.4rem, 13vw, 11rem);
+        font-weight: 350;
+        line-height: 0.82;
+        letter-spacing: -0.05em;
         color: var(--ink);
+        animation: playHeadIn 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
       }
       .play-header p {
-        max-width: 34ch;
-        margin: var(--sp-4, 16px) auto 0;
+        grid-column: 1;
+        max-width: 32ch;
+        margin: clamp(10px, 1.4vh, 20px) 0 0;
         font: var(--type-body);
         color: var(--ink-3);
         text-wrap: pretty;
+        animation: playHeadIn 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+      }
+      .play-header__count {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        align-self: end;
+        margin: 0 0 clamp(6px, 1vh, 14px);
+        font-family: "DM Mono", ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--ink-3);
+        opacity: 0.7;
+        white-space: nowrap;
+        animation: playHeadIn 900ms cubic-bezier(0.16, 1, 0.3, 1) 240ms both;
+      }
+      @keyframes playHeadIn {
+        from {
+          opacity: 0;
+          transform: translateY(26px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .play-header h1,
+        .play-header p,
+        .play-header__count {
+          animation: none;
+        }
+      }
+      @media (max-width: 700px) {
+        .play-header {
+          grid-template-columns: minmax(0, 1fr);
+        }
+        .play-header__count {
+          grid-column: 1;
+          grid-row: auto;
+          margin-top: 10px;
+        }
       }
       /* Columns, not grid -- see the note on the markup. column-fill: balance
          is what keeps the last column from running short by half a screen. */
@@ -2808,7 +2868,7 @@
       })(marks[i]);
     }
   })();
-</script> <main class="play-stage" id="play-stage"> <header class="play-header"> <h1>Play</h1> <p>A moving selection of experiments, installations, and prototypes.</p> </header> <div class="play-grid" id="play-grid" aria-label="Play archive"></div> <ul class="sr-only" id="play-access-list" aria-label="Play pieces"></ul> </main> <div class="play-lightbox" id="play-lightbox" role="dialog" aria-modal="true" aria-labelledby="play-lightbox-title"> <button type="button" aria-label="Close selected piece">×</button> <div class="play-lightbox__media"><img alt=""></div> <div class="play-lightbox__copy"> <h2 id="play-lightbox-title">Selected experiment</h2> <p>Part of Sid’s ongoing practice across creative technology, image making, and spatial interaction.</p> </div> </div> <script>
+</script> <main class="play-stage" id="play-stage"> <header class="play-header"> <h1>Play</h1> <p>A moving selection of experiments, installations, and prototypes.</p> <span class="play-header__count" id="play-count" aria-hidden="true"></span> </header> <div class="play-grid" id="play-grid" aria-label="Play archive"></div> <ul class="sr-only" id="play-access-list" aria-label="Play pieces"></ul> </main> <div class="play-lightbox" id="play-lightbox" role="dialog" aria-modal="true" aria-labelledby="play-lightbox-title"> <button type="button" aria-label="Close selected piece">×</button> <div class="play-lightbox__media"><img alt=""></div> <div class="play-lightbox__copy"> <h2 id="play-lightbox-title">Selected experiment</h2> <p>Part of Sid’s ongoing practice across creative technology, image making, and spatial interaction.</p> </div> </div> <script>
       (function () {
       /* THE WORKS COVERS COME OUT OF PLAY.
          Sid: "play also has a lot of covers from works remove those its
@@ -3041,6 +3101,18 @@
 
            So the elements go in without src, the browser lays them out once,
            and eagerness is decided on where each picture actually is. */
+        /* The masthead's counterpoint, off the real list rather than a number
+           typed into the markup that goes stale the next time a piece is
+           added. */
+        (function () {
+          var c = document.getElementById("play-count");
+          /* Just the count. The date range I first put here was invented: the
+             works index says 2018-2026 about his PROJECTS, and carrying that
+             onto a personal archive is a claim about when these were made that
+             nothing in the data supports. */
+          if (c) c.textContent = sources.length + " pieces";
+        })();
+
         var built = sources.map(function (item, index) {
           var image;
           if (item.type === "video") {
@@ -12285,7 +12357,21 @@
          Loaded on the same gate as the GLB: nothing here is fetched until the
          footer is within a screen. */
       mv.setAttribute("environment-image", "/assets/models/workshop-1k.hdr");
-      mv.setAttribute("skybox-image", "/assets/models/workshop-1k.hdr");
+      /* ── NO SKYBOX ────────────────────────────────────────────────────────
+         Sid: "the desk image and the buddha skybox feel weird and not nice."
+
+         skybox-image paints that HDR as the visible background of the whole
+         section -- so the last thing on the site was a bronze figure standing
+         in a photograph of a derelict concrete garage with graffiti on it, at
+         the end of a page that is otherwise near-black and deliberately empty.
+         It was never an art direction decision; it is what you get by setting
+         both attributes to the same file because the names sit next to each
+         other in the docs.
+
+         environment-image stays, and it is the half that was always doing the
+         work: it LIGHTS him, which is where the bronze and the reflections
+         come from. Dropping only the skybox keeps every bit of that and gives
+         him back the dark to stand in. */
       /* Down from 0.9. An HDR of a real room carries far more energy than the
          neutral probe did, and at the old exposure the chrome blew out to
          white across most of its curvature. */
