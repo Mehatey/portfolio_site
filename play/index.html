@@ -199,7 +199,14 @@ title: Play · Sid Mehta
       .play-header h1 {
         grid-column: 1;
         margin: 0;
-        font-size: clamp(3.4rem, 13vw, 11rem);
+        /* Sid: "the play text is massive on light mode."
+           176px was set to make the masthead editorial rather than a
+           centred slide title, and it did -- but it is one word at a
+           quarter of a 1440 screen's height, and on cream, where there is
+           no dark ground to sink it into, it stops reading as a masthead
+           and starts reading as a mistake. 112px keeps the anchor and the
+           hierarchy and gives the archive underneath the frame back. */
+        font-size: clamp(2.6rem, 8.4vw, 7rem);
         font-weight: 350;
         line-height: 0.82;
         letter-spacing: -0.05em;
@@ -299,7 +306,20 @@ title: Play · Sid Mehta
       .play-grid img.is-in,
       .play-grid video.is-in {
         opacity: 1;
-        transform: none;
+        /* ── ONE TRANSFORM, THREE AUTHORS ─────────────────────────────────
+           The card is written to by the scroll curve (--cx, --cy), by hover
+           (--hs) and by nothing else. Composing them into a single
+           declaration through custom properties is what lets three
+           independent effects share one transform without the last rule in
+           the file silently winning -- which is what happened when the
+           reveal's `transform: none` and the hover's tilt were two separate
+           declarations fighting over the same property. */
+          /* No perspective() function here on purpose: .play-grid already
+             carries `perspective: 1400px`, so every card in a column shares
+             one vanishing point and the wall bends as one surface. Putting
+             it in the transform instead gives each card its own camera,
+             which is a heap of cards, not a wall. */
+          transform: translateY(var(--cy, 0px)) rotateX(var(--cx, 0deg));
         filter: blur(0);
         will-change: auto;
       }
@@ -335,10 +355,31 @@ title: Play · Sid Mehta
       .play-grid video {
         transform-origin: 50% 50%;
       }
+      /* ── THE TILT IS GONE ─────────────────────────────────────────────
+         Sid: "pls remove those horrible tilting image hover effect on play"
+         and "let the hover be smoother and a lil faster."
+
+         It turned each card up to 15 degrees toward the cursor. Two
+         problems, and the second is the one that matters. A photograph
+         rotated in perspective is a photograph you are now seeing at the
+         wrong shape -- the tilt distorts the very thing the card exists to
+         show. And a wall of 225 pictures where each one pivots
+         independently has no plane left in it; the grid stops being a wall
+         and becomes a heap.
+
+         What replaces it is what hovering a picture should do: bring it
+         forward and turn its light up, fast. 160ms rather than 420, no
+         rotation, and a lift small enough that the neighbours stay level. */
       .play-grid img.is-in:hover,
       .play-grid video.is-in:hover {
-        transform: perspective(1100px) rotateX(calc(var(--ty, 0) * -13deg)) rotateY(calc(var(--tx, 0) * 15deg)) translateZ(34px) scale(1.03);
-        box-shadow: 0 22px 48px rgba(0, 0, 0, 0.5);
+        /* `scale`, the independent longhand, NOT a scale() inside transform.
+           The scroll curve writes transform every frame, so anything sharing
+           that property cannot be transitioned without lagging a frame behind
+           the curve -- which is the identical fault the old tilt had, arrived
+           at from the other direction. scale composites separately, so hover
+           can ease on its own clock while the curve keeps writing. */
+        scale: 1.022;
+        box-shadow: 0 18px 40px rgba(0, 0, 0, 0.42);
         z-index: 3;
         position: relative;
       }
@@ -366,18 +407,31 @@ title: Play · Sid Mehta
          Leaving is where the easing belongs, and it gets a longer, softer
          curve than the old one, so the card settles back rather than
          snapping. */
+      /* Sid: "let the hover be smoother and a lil faster."
+
+         The old note below explains why transform could not be transitioned
+         during hover: --tx/--ty were rewritten on every pointermove, so each
+         event restarted a tween toward a target that had already moved. That
+         reasoning died with the tilt. Nothing tracks the pointer any more --
+         hover sets one scale, once -- so transform can be eased again, and
+         160ms is short enough to feel attached to the hand. */
       .play-grid img.is-in,
       .play-grid video.is-in {
         transition:
           opacity 900ms var(--ease-out),
-          box-shadow 420ms var(--ease-out),
-          filter 900ms var(--ease-out);
+          scale 160ms cubic-bezier(0.22, 1, 0.36, 1),
+          box-shadow 200ms var(--ease-out),
+          filter 220ms var(--ease-out);
       }
+      /* transform is deliberately absent from BOTH transition lists. The
+         scroll curve rewrites it every frame; transitioning a per-frame
+         value makes it perpetually ease toward where the page was rather
+         than where it is. Leaving is eased on `scale` instead, above. */
       .play-grid img.is-in:not(:hover),
       .play-grid video.is-in:not(:hover) {
         transition:
           opacity 900ms var(--ease-out),
-          transform 760ms cubic-bezier(0.16, 1, 0.3, 1),
+          scale 420ms cubic-bezier(0.16, 1, 0.3, 1),
           box-shadow 520ms var(--ease-out),
           filter 900ms var(--ease-out);
       }
@@ -1009,7 +1063,39 @@ title: Play · Sid Mehta
                    An element with no height has not been laid out, so it is
                    not really on screen and is skipped — without unobserving,
                    so it gets its turn once the layout settles. */
-                if (e.boundingClientRect.height < 4) return;
+                /* ── THE BLANK CARDS ──────────────────────────────────
+                   Sid: "some images vids dont show up."
+
+                   This guard is correct and it was also the bug. None of
+                   these images carries width/height or an aspect-ratio, so
+                   before it decodes a card has no height, and a card with no
+                   height has not really been laid out -- revealing it here
+                   spends the whole staggered arrival in one frame at load.
+
+                   But IntersectionObserver only calls back when intersection
+                   CHANGES. A card skipped here that stays on screen never
+                   intersects differently, so it never gets a second callback
+                   and sits at opacity 0 for the life of the page. The
+                   one-shot re-observe on `load` rescued whichever cards had
+                   decoded by then; anything that decoded later, which on a
+                   57-picture lazy grid is most of them, stayed blank.
+
+                   So the skip now schedules its own retry. Bounded, because
+                   an element that is genuinely never going to have a height
+                   should stop costing frames. */
+                if (e.boundingClientRect.height < 4) {
+                  var tries = +(e.target.dataset.reveal || 0);
+                  if (tries < 40) {
+                    e.target.dataset.reveal = tries + 1;
+                    var again = e.target;
+                    setTimeout(function () {
+                      if (again.classList.contains("is-in")) return;
+                      io.unobserve(again);
+                      io.observe(again);
+                    }, 120);
+                  }
+                  return;
+                }
                 e.target.style.setProperty("--in-delay", Math.min(i, 5) * 70 + "ms");
                 e.target.classList.add("is-in");
                 /* A clip gets its bytes at the moment it is about to be seen,
@@ -1027,7 +1113,22 @@ title: Play · Sid Mehta
           );
           /* "img, video" rather than "img" — the observer is what adds .is-in,
              and a card that never gets it stays at opacity 0 forever. */
-          grid.querySelectorAll("img, video").forEach(function (i) { io.observe(i); });
+          grid.querySelectorAll("img, video").forEach(function (i) {
+            io.observe(i);
+            /* Decoding is the moment a card first HAS a height, so it is the
+               moment worth re-asking on. Cheaper and far more precise than
+               the retry above, which stays as the backstop for cards whose
+               load event has already gone by. */
+            i.addEventListener(
+              "load",
+              function () {
+                if (i.classList.contains("is-in")) return;
+                io.unobserve(i);
+                io.observe(i);
+              },
+              { once: true }
+            );
+          });
           /* Re-observing forces a fresh callback with real rectangles. By
              `load` the pictures have decoded and the columns have their true
              heights, so this is the pass that actually reveals the cards a
@@ -1061,20 +1162,99 @@ title: Play · Sid Mehta
            Videos are included: they are pieces in the archive like everything
            else, and a strip where the stills respond and the clips do not
            would read as the clips being broken. */
+        /* ── THE CURVE ────────────────────────────────────────────────────
+           Sid: "there was supposed to be some scroll based animation for the
+           play pics and vids coming from bottom and going to the top like a
+           curve on the top and bottom to make the scroll feel more vivid and
+           motion and playful where the fuck is that."
+
+           It is here now. The wall is treated as though it were wrapped
+           around a cylinder: a card at the vertical centre of the viewport
+           faces you square on, and cards toward the top and bottom edges
+           rotate away from you around their own horizontal axis and drift
+           slightly toward the centre. Scrolling therefore reads as the wall
+           TURNING past, not as a list moving.
+
+           Two things keep it from being a gimmick.
+
+           It is driven by scroll VELOCITY, not just position. --sva is
+           published site-wide by assets/js/motion_stack.js; the curvature
+           scales with it, so easing down the page barely bends the wall and
+           throwing it bends it hard. That is what makes the effect feel like
+           a property of the motion rather than a filter over the page.
+
+           And it only touches what is on screen. An IntersectionObserver
+           keeps the visible set -- typically a dozen cards of 225 -- and the
+           loop stops entirely once the page is still and every card has
+           settled back to flat. A rAF that runs forever over 225 elements is
+           how a scroll effect becomes a scroll problem.
+
+           This replaces the pointermove handler that used to feed --tx/--ty
+           to the tilt. Nothing reads those any more. */
         (function () {
-          if (window.matchMedia && window.matchMedia("(hover: none), (prefers-reduced-motion: reduce)").matches) return;
-          grid.addEventListener(
-            "pointermove",
-            function (e) {
-              var el = e.target;
-              if (!el || (el.tagName !== "IMG" && el.tagName !== "VIDEO")) return;
+          if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+          var live = new Set();
+          var vis =
+            typeof IntersectionObserver === "function" &&
+            new IntersectionObserver(
+              function (es) {
+                es.forEach(function (e) {
+                  if (e.isIntersecting) live.add(e.target);
+                  else {
+                    live.delete(e.target);
+                    e.target.style.removeProperty("--cx");
+                    e.target.style.removeProperty("--cy");
+                  }
+                });
+                if (live.size) wake();
+              },
+              { rootMargin: "20% 0px" }
+            );
+          if (!vis) return;
+          grid.querySelectorAll("img, video").forEach(function (el) { vis.observe(el); });
+
+          var raf = 0,
+            settled = 0;
+
+          function wake() {
+            settled = 0;
+            if (!raf) raf = requestAnimationFrame(frame);
+          }
+          window.addEventListener("scroll", wake, { passive: true });
+          window.addEventListener("resize", wake, { passive: true });
+
+          function frame() {
+            raf = 0;
+            var sv = window.__sv ? window.__sv() : { a: 0 };
+            var h = window.innerHeight || 1;
+            /* A floor under the velocity term, so the wall keeps a little
+               curvature at rest. At exactly zero the effect would only ever
+               be visible WHILE moving, which means a screenshot of the page
+               shows none of it and a reader who stops sees it snap flat. */
+            var amt = 0.34 + 0.66 * Math.min(1, sv.a * 1.7);
+
+            live.forEach(function (el) {
               var r = el.getBoundingClientRect();
-              if (!r.width || !r.height) return;
-              el.style.setProperty("--tx", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
-              el.style.setProperty("--ty", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
-            },
-            { passive: true }
-          );
+              if (!r.height) return;
+              /* -1 at the top edge, 0 at centre, 1 at the bottom. */
+              var p = ((r.top + r.height / 2) / h) * 2 - 1;
+              if (p > 1.4) p = 1.4;
+              else if (p < -1.4) p = -1.4;
+              /* Rotation is odd in p so the top and bottom turn opposite
+                 ways, which is what makes it a cylinder rather than a fold.
+                 The rise is even in p, so both edges pull toward the middle
+                 by the same amount. */
+              el.style.setProperty("--cx", (p * 9.5 * amt).toFixed(2) + "deg");
+              el.style.setProperty("--cy", (-p * p * 26 * amt).toFixed(1) + "px");
+            });
+
+            /* Two still frames after the velocity is spent, then stop. */
+            if (sv.a > 0.004) settled = 0;
+            else settled++;
+            if (settled < 3) raf = requestAnimationFrame(frame);
+          }
+          wake();
         })();
 
         /* ── THE AUTO SCROLL ──────────────────────────────────────────────
@@ -1475,6 +1655,11 @@ title: Play · Sid Mehta
     {% comment %} Play never included the cursor. Sid: "on play my cursor is nothing." It is the one page on the site built as a standalone document
     rather than through a layout, so it missed the include that adds the dot, the line trail, the theme switch and the command palette — everything
     that makes the rest of the site feel like one machine. {% endcomment %} {% include cursor_fluid.html %}
+
+    <!-- The velocity the curve reads. Not the whole motion stack: this page
+         runs its own ambient auto-scroll and must not also have Lenis driving
+         the same scrollTop. -->
+    <script src="{{ site.baseurl }}/assets/js/scroll-velocity.js" defer></script>
 
     {% comment %} Play was also the one page left out of the "one footer" pass, for the same reason -- it is a standalone document rather than a
     layout, so it never picked the include up. Every other page on the site ends with the marquee, the pond, the coda and, critically, a way to get in
