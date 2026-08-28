@@ -2123,12 +2123,35 @@
          they stack under the sentence rather than being dropped — losing the
          work list is losing the whole point of direction 02. */
       @media (max-width: 1000px) {
+        /* ── AND THEY NEED THE PAGE MARGIN BACK ───────────────────────────
+           Both panels are absolutely positioned children of .hero, which has
+           no horizontal padding -- the margin lives on .hero__inner, and an
+           absolute element was never in that box to begin with. Dropping them
+           into the flow therefore dropped them to x = 0: measured at 390, the
+           spec panel's labels started at the very left edge and its values
+           ran off the right, and the index rows did the same.
+
+           They take .hero__inner's own padding, so all three blocks in the
+           phone column share one left edge. */
         html[data-home="index"] .hero-index,
         html[data-home="terminal"] .hero-spec {
           position: static;
           transform: none;
           width: 100%;
           margin-top: clamp(20px, 4vh, 36px);
+          padding-left: clamp(22px, 4vw, 64px);
+          padding-right: clamp(22px, 4vw, 64px);
+        }
+        /* The spec row is label-left / value-right, and at 390 the longest
+           pair -- SCOPE and "research to shipped code" -- cannot share a line
+           without one of them being cut. It stacks. */
+        html[data-home="terminal"] .hero-spec p {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 2px;
+        }
+        html[data-home="terminal"] .hero-spec b {
+          font-weight: 400;
         }
       }
 
@@ -2242,6 +2265,27 @@
         .hero__base {
           white-space: nowrap;
           font-size: clamp(11.5px, 3.1vw, 14px);
+        }
+        /* ── THE FOOT ROW JOINS THE COLUMN ────────────────────────────────
+           It is absolutely positioned to the bottom of .hero, which is right
+           on a viewport-tall composition and wrong the moment the hero is
+           height: auto and stacking. Two collisions came out of it on a
+           phone: the figure drew through it, and the terminal direction's
+           spec panel -- six rows tall once it stacks -- ran straight under
+           the live line and the shuffle control.
+
+           In the flow it cannot collide with anything, because it is the
+           last thing in the column and the column is what sets the height.
+           This is also why it is fixed here rather than by padding the two
+           panels: a magic number that clears the row today is a number that
+           stops clearing it the next time the row gains an item. */
+        .hero__foot-row {
+          position: static;
+          margin-top: clamp(26px, 5vh, 48px);
+          padding-bottom: 0;
+        }
+        .hero {
+          padding-bottom: clamp(28px, 6vh, 56px);
         }
       }
       /* The old figure is the fallback and only shows if the scene never
@@ -4565,7 +4609,55 @@
          — old browser, reduced motion, JS budget blown — the headline is still
          simply there, because the text does not depend on the motion. That was
          not true of the typewriter. */
+      /* ── THE STORY WAITS FOR THE DOOR ─────────────────────────────────────
+         On a real first visit this page opens behind an entry gate: the
+         Buddha scene, with an Enter affordance, and the loader sequence after
+         it. Measured on a fresh profile with no storage: the hero's typing
+         started immediately anyway, data-story reached 3 at 5.9 seconds, and
+         the gate was still up. So by the time a visitor actually pressed
+         Enter, the sentence had already written itself, the spine had drawn,
+         the film had arrived and the foot row had landed. They arrived at the
+         END of the sequence, every time, and the whole staged opening was
+         performed to a closed door.
+
+         This is the identical fault the 24 Aug handoff note documents in
+         _includes/hero_opener.html, and it survived in this block because the
+         way anyone tests an opener is ?opener=1, which has no gate on it at
+         all. The one path nobody tests is the one every real visitor takes.
+
+         `loaderDone` is the contract the loader already publishes and the
+         opener already uses. Three cases, in the order they actually occur:
+
+           · returning visitor, or reduced motion: the loader removes itself
+             and fires the event in a setTimeout(0). __loaderInstantDone is
+             set synchronously before that, so checking the flag catches the
+             case where this script runs after the timeout has already gone.
+           · first visit: the event arrives when the door opens, whenever
+             that is. There is no timer racing it.
+           · no loader on the page at all: start immediately.
+
+         The failsafe is 30 seconds, deliberately far longer than the ~20s a
+         real first visit takes. The failsafe in hero_opener was 12s against a
+         20s gate, which meant the failsafe won EVERY time and was effectively
+         the only code path. A failsafe that fires on the happy path is not a
+         failsafe, it is the implementation. */
       (function () {
+        function whenOpen(run) {
+          var loader = document.getElementById("site-loader");
+          if (!loader || window.__loaderInstantDone === true) {
+            run();
+            return;
+          }
+          var fired = false;
+          var go = function () {
+            if (fired) return;
+            fired = true;
+            run();
+          };
+          window.addEventListener("loaderDone", go, { once: true });
+          setTimeout(go, 30000);
+        }
+
         /* ── ONE SENTENCE, TWO HOSTS ──────────────────────────────────────
            This used to be `querySelector(".tw")` — one element carrying both
            clauses as two lines. The clauses live either side of the figure
@@ -4604,13 +4696,19 @@
           });
         });
 
-        if (!LESS) {
-          inks.forEach(function (o) {
-            o.ink.style.visibility = "hidden";
-          });
-          var line = 0;
-          var pos = 0;
-          /* 22ms a character with a 300ms beat between lines. Down from
+        /* Everything from here to the end of the branch is the performance,
+           and the performance waits for the door. Building the hosts above is
+           NOT deferred on purpose: every line is written out and then hidden
+           so each box reserves its final height immediately, and doing that
+           late would let the grid reflow the moment the gate opens. */
+        whenOpen(function () {
+          if (!LESS) {
+            inks.forEach(function (o) {
+              o.ink.style.visibility = "hidden";
+            });
+            var line = 0;
+            var pos = 0;
+            /* 22ms a character with a 300ms beat between lines. Down from
              28/420: there are four lines to get through now rather than two,
              and at the old rate the right-hand clause did not start until the
              third second and did not land until the fifth. Both clauses are
@@ -4620,22 +4718,22 @@
              The gap between the two HOSTS is the same 300ms as between lines
              within one, on purpose — a longer pause there would read as the
              sentence having finished. */
-          var startAt = performance.now() + 460;
-          (function type(now) {
-            if (line >= inks.length) return;
-            if (now < startAt) {
-              requestAnimationFrame(type);
-              return;
-            }
-            var o = inks[line];
-            o.ink.style.visibility = "visible";
-            pos += 1;
-            o.ink.textContent = o.txt.slice(0, pos);
-            if (pos >= o.txt.length) {
-              line += 1;
-              pos = 0;
-              startAt = now + 300;
-              /* ── THE STORY BEAT ─────────────────────────────────────────
+            var startAt = performance.now() + 460;
+            (function type(now) {
+              if (line >= inks.length) return;
+              if (now < startAt) {
+                requestAnimationFrame(type);
+                return;
+              }
+              var o = inks[line];
+              o.ink.style.visibility = "visible";
+              pos += 1;
+              o.ink.textContent = o.txt.slice(0, pos);
+              if (pos >= o.txt.length) {
+                line += 1;
+                pos = 0;
+                startAt = now + 300;
+                /* ── THE STORY BEAT ─────────────────────────────────────────
                  Sid: "can u animate the first sequence like a story see how
                  to show which at what point."
 
@@ -4657,8 +4755,8 @@
                  character and someone will change that copy; anything keyed
                  to a wall clock silently desynchronises the moment they do.
                  This cannot, because it IS the typing. */
-              document.documentElement.setAttribute("data-story", String(Math.min(3, line)));
-              /* ── THE HANDOFF ────────────────────────────────────────────
+                document.documentElement.setAttribute("data-story", String(Math.min(3, line)));
+                /* ── THE HANDOFF ────────────────────────────────────────────
                  assets/js/hero-type.js takes the finished line apart into
                  per-letter spans. It cannot do that while this loop is still
                  running, because writing textContent destroys children — and
@@ -4668,8 +4766,8 @@
                  shares had never once run on the page it was written for.
 
                  Fired when the LAST line lands, not each one. */
-              if (line >= inks.length) {
-                /* The attribute is the durable half of the handoff. The event
+                if (line >= inks.length) {
+                  /* The attribute is the durable half of the handoff. The event
                    is a moment and anything not listening at that moment misses
                    it; hero-type.js needs to be able to ASK whether typing has
                    finished, because its own fallback path runs on a timer and
@@ -4677,25 +4775,26 @@
                    this from the DOM: every line is given its full text up
                    front and then hidden and typed over, so the ink already
                    reads complete on the first frame. */
-                document.documentElement.setAttribute("data-hero-typed", "1");
-                window.dispatchEvent(new CustomEvent("sid:herotyped"));
+                  document.documentElement.setAttribute("data-hero-typed", "1");
+                  window.dispatchEvent(new CustomEvent("sid:herotyped"));
+                }
+              } else {
+                startAt = now + 22;
               }
-            } else {
-              startAt = now + 22;
-            }
-            requestAnimationFrame(type);
-          })(performance.now());
-        } else {
-          /* Reduced motion skips the typing entirely, so the line is already
+              requestAnimationFrame(type);
+            })(performance.now());
+          } else {
+            /* Reduced motion skips the typing entirely, so the line is already
              complete and the splitter can be told immediately. */
-          /* The story is over before it starts here, which is correct: the
+            /* The story is over before it starts here, which is correct: the
              beats exist to stage an animation, and this is the branch that
              has asked for none. Everything the beats gate is present. */
-          document.documentElement.setAttribute("data-story", "3");
-          document.documentElement.setAttribute("data-hero-typed", "1");
-          window.dispatchEvent(new CustomEvent("sid:herotyped"));
-        }
-        if (hero) hero.classList.add("in");
+            document.documentElement.setAttribute("data-story", "3");
+            document.documentElement.setAttribute("data-hero-typed", "1");
+            window.dispatchEvent(new CustomEvent("sid:herotyped"));
+          }
+          if (hero) hero.classList.add("in");
+        });
 
         /* The per-character cursor response that used to live here is now
            _includes/live_type.html, applied via data-livetype on each .tw

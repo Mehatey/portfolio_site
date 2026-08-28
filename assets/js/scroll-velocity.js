@@ -57,11 +57,23 @@
     window.__sv = function () {
       return { v: 0, a: 0 };
     };
-    /* Reduced motion still needs --hero-p: the copy's breakaway is a
-       scroll-linked POSITION, not an animation, and pinning it at 0 leaves
-       the sentence sitting on top of the section below it. */
-    heroProgress();
-    window.addEventListener("scroll", heroProgress, { passive: true });
+    /* And --hero-p is deliberately NOT published here.
+
+       I wrote it the other way first, reasoning that the copy's breakaway is
+       a scroll-linked position rather than an animation. That reasoning is
+       wrong: a headline that fades out and lifts as you scroll IS motion,
+       whatever drives it, and someone who has asked for less of it has asked
+       for that too.
+
+       Every rule that reads --hero-p carries a 0 fallback, so leaving it
+       unset resolves to the same thing the hero looks like before you
+       scroll: the copy at full strength, the plate in its corner, the
+       figure lit. Verified with the property absent -- opacity 1 on the
+       copy, the plate and the foot row. Nothing depends on it existing.
+
+       The hero is also unpinned under reduced motion (see .hero-runway), so
+       the section scrolls away normally rather than holding while nothing
+       happens inside it. */
     return;
   }
 
