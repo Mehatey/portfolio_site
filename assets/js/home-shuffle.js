@@ -145,6 +145,18 @@
        Started and stopped here rather than each watching the attribute for
        itself: five independent observers of one value is five chances for
        two renderers to both think they are on. */
+    /* 01 is the solid: the sentence extruded and cast in glass. If it
+       starts, the hero's figure and film plate stand down and it is the whole
+       subject; if it cannot, .is-solid is never set and the room is exactly
+       what it was. */
+    if (window.__solidType) {
+      if (i === 0) {
+        if (window.__solidType.start()) hero.classList.add("is-solid");
+      } else {
+        window.__solidType.stop();
+        hero.classList.remove("is-solid");
+      }
+    }
     if (window.__wallLight) {
       if (DIRS[i].id === "wall") window.__wallLight.start();
       else window.__wallLight.stop();
