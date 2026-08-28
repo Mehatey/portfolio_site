@@ -223,7 +223,8 @@
       "uniform mat4 u_model;",
       "uniform vec3 u_eye;",
       "uniform float u_splat, u_time, u_open, u_look, u_pulse;",
-      "out vec3 v_nrm; out vec2 v_uv; out vec3 v_world; out vec2 v_corner;",
+      "uniform vec2 u_ptr;",
+      "out vec3 v_nrm; out vec2 v_uv; out vec3 v_world; out vec2 v_corner; out float v_near;",
       "void main(){",
       /* ── SKINNING ────────────────────────────────────────────────────
          Four joints a point, the standard weighting. The matrices arrive
@@ -306,6 +307,27 @@
       "  P += (right * a_quad.x + up * a_quad.y) * s;",
       "  v_nrm = N; v_uv = i_uv; v_world = P; v_corner = a_quad;",
       "  gl_Position = u_vp * vec4(P, 1.0);",
+      /* ── THE CURSOR UNCOVERS HIM ─────────────────────────────────────
+         Sid: "look for as much interactivity ... look at award winners."
+
+         The single interaction that recurs across the 2026 honours is not a
+         transition or a particle count: the pointer is a light, and what it
+         passes over comes up to full material while everything else sits
+         back. Hubtown does it on a monolith, the Lando Norris site on a car.
+
+         Done in CLIP space, which is the only place it is cheap -- the splat
+         already has its projected position on the line above, so the
+         distance to the pointer is one subtract and one length. In world
+         space it would mean unprojecting the pointer every frame and getting
+         the depth wrong for everything off the focal plane. */
+      /* `scr`, not `sp`. This shader already has a `vec3 sp` -- the skinned
+         position, forty lines up -- and naming a second variable `sp` in the
+         same scope is the identical redefinition that stopped this entire
+         scene rendering for five commits. Caught the same way: by reading the
+         compile log rather than by looking at the page, which showed a
+         perfectly plausible hero with the older figure in it. */
+      "  vec2 scr = gl_Position.xy / max(0.0001, gl_Position.w);",
+      "  v_near = 1.0 - smoothstep(0.10, 0.62, length((scr - u_ptr) * vec2(1.0, 0.82)));",
       "}",
     ].join("\n");
 
@@ -314,7 +336,7 @@
     PREC +
     LIGHTING +
     [
-      "in vec3 v_nrm; in vec2 v_uv; in vec3 v_world; in vec2 v_corner;",
+      "in vec3 v_nrm; in vec2 v_uv; in vec3 v_world; in vec2 v_corner; in float v_near;",
       "uniform sampler2D u_detail, u_env;",
       "uniform vec3 u_eye;",
       "uniform float u_time;",
@@ -364,7 +386,16 @@
       "  col += (0.5 + 0.5 * cos(vec3(hue, hue + 2.09, hue + 4.19))) * fres * fres * 0.5;",
       "  float d = length(u_eye - v_world);",
       "  col = mix(col, FOG_COL, fogAmount(d));",
-      "  outColor = vec4(col, smoothstep(1.0, 0.30, r));",
+      /* Away from the pointer he is held back and dimmed; under it he comes
+         up to the full material. Mixed toward a TINT rather than toward grey,
+         so the held state still reads as him in that light rather than as a
+         desaturated photograph. */
+      "  vec3 held = mix(vec3(dot(col, vec3(0.32, 0.5, 0.18))), col, 0.35) * 0.52;",
+      "  col = mix(held, col, 0.34 + 0.66 * v_near);",
+      /* The splats thin out where he is held, so the reveal is a change in
+         DENSITY as well as in colour -- which is what makes it read as detail
+         emerging rather than as a spotlight sliding over a finished object. */
+      "  outColor = vec4(col, smoothstep(1.0, 0.30, r) * (0.62 + 0.38 * v_near));",
       "}",
     ].join("\n");
 
@@ -561,6 +592,7 @@
     "u_time",
     "u_open",
     "u_pulse",
+    "u_ptr",
     "u_detail",
     "u_env",
     "u_boneA",
@@ -1099,6 +1131,7 @@
     gl.uniform1f(subjP.u.u_time, t);
     gl.uniform1f(subjP.u.u_open, Math.min(1, open));
     gl.uniform1f(subjP.u.u_pulse, pulse);
+    gl.uniform2f(subjP.u.u_ptr, ptrX * 0.9, -ptrY * 0.9);
     var bmix = advanceClip(Math.min(0.05, dt));
     gl.uniformMatrix4fv(subjP.u.u_boneA, false, boneA);
     gl.uniformMatrix4fv(subjP.u.u_boneB, false, boneB);

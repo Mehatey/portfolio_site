@@ -435,26 +435,133 @@
      ═════════════════════════════════════════════════════════════════════════ */
   var wall = (function () {
     var host = null,
-      on = false;
+      on = false,
+      raf = 0,
+      last = 0,
+      cards = [];
+
     function move(e) {
       if (!host) return;
       var w = window.innerWidth || 1,
         h = window.innerHeight || 1;
       host.style.setProperty("--wx", ((e.clientX / w) * 2 - 1).toFixed(3));
       host.style.setProperty("--wy", ((e.clientY / h) * 2 - 1).toFixed(3));
+      /* ── THE HAND DISTURBS THEM ────────────────────────────────────────
+         A push into each card's angular velocity, scaled by how close the
+         pointer passed and signed by which side it passed on. Velocity, not
+         angle: shoving the position teleports a card, shoving the velocity
+         makes it swing -- which is the entire difference between an
+         animation and a physical response. */
+      for (var i = 0; i < cards.length; i++) {
+        var c = cards[i];
+        var r = c.el.getBoundingClientRect();
+        var dx = e.clientX - (r.left + r.width / 2);
+        var dy = e.clientY - (r.top + r.height / 2);
+        var d2 = dx * dx + dy * dy;
+        if (d2 > 62500) continue; /* 250px */
+        var near = 1 - Math.sqrt(d2) / 250;
+        c.w += (dx > 0 ? -1 : 1) * near * near * 0.9;
+      }
     }
+
+    /* ═══════════════════════════════════════════════════════════════════
+       PINNED PAPER IS A PENDULUM
+
+       Sid: "look for as much interactivity physics motion."
+
+       Every card on this wall hangs from a single pin at its top edge, and
+       an object suspended from one point above its centre of mass is a
+       pendulum -- so it is simulated as one rather than given a hover
+       transition.
+
+         a = -(g / L) * sin(t) - damp * w
+
+       Small-angle would let sin(t) collapse to t and the whole thing become
+       a spring, but the nonlinearity is worth keeping: it is why a big swing
+       takes longer to come back than a small one, which is exactly the thing
+       that reads as weight.
+
+       Integrated on a FIXED 1/120s step with an accumulator, not on the
+       frame delta. A variable step in a stiff oscillator changes the
+       effective damping with the framerate, so the same card settles at a
+       different rate on a 60Hz and a 120Hz display -- the framerate bug this
+       codebase has now found three times, in a form where it would have been
+       far harder to see.
+
+       Each card gets its own length from its own height, so the big
+       statement card swings slowly and the little project tags swing fast.
+       That is free and it is most of what sells it.
+       ═══════════════════════════════════════════════════════════════════ */
+    function tick(now) {
+      raf = 0;
+      if (!on) return;
+      var dt = Math.min(0.05, (now - last) / 1000) || 0.016;
+      last = now;
+
+      var sv = window.__sv ? window.__sv() : { v: 0 };
+      var acc = dt;
+      for (var i = 0; i < cards.length; i++) {
+        var c = cards[i];
+        /* Scrolling shakes the wall. Sign follows the scroll direction, so
+           throwing the page down swings everything one way and stopping lets
+           it fall back. */
+        c.w += sv.v * 0.5 * dt * c.gl;
+        var steps = 0;
+        var left = acc;
+        while (left > 0 && steps < 8) {
+          var h = Math.min(1 / 120, left);
+          var a = -c.gl * Math.sin(c.t) - 3.1 * c.w;
+          c.w += a * h;
+          c.t += c.w * h;
+          left -= h;
+          steps++;
+        }
+        /* Below a thousandth of a radian nobody can see it and the transform
+           is pure cost. Parked, and woken by the next disturbance. */
+        if (Math.abs(c.t) < 0.001 && Math.abs(c.w) < 0.004) {
+          c.t = 0;
+          c.w = 0;
+        }
+        if (c.t !== c.shown) {
+          c.shown = c.t;
+          c.el.style.setProperty("--swing", (c.t * 57.29578).toFixed(2) + "deg");
+        }
+      }
+      raf = requestAnimationFrame(tick);
+    }
+
     return {
       start: function () {
         if (on || REDUCED) return;
         host = document.querySelector(".hero-wall");
         if (!host) return;
         on = true;
+        cards = [].slice.call(host.querySelectorAll(".hero-pin")).map(function (el) {
+          var h = el.getBoundingClientRect().height || 60;
+          return {
+            el: el,
+            t: 0,
+            w: 0,
+            shown: null,
+            /* g/L. Longer card, slower swing -- the pin is the pivot and the
+               card's own height is the arm. */
+            gl: 900 / Math.max(40, h * 1.6),
+          };
+        });
         window.addEventListener("pointermove", move, { passive: true });
+        last = performance.now();
+        if (!raf) raf = requestAnimationFrame(tick);
       },
       stop: function () {
         if (!on) return;
         on = false;
         window.removeEventListener("pointermove", move);
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+        cards.forEach(function (c) {
+          c.el.style.removeProperty("--swing");
+        });
+        cards = [];
       },
     };
   })();
