@@ -52,6 +52,7 @@ window.__archiveDepth = (function () {
      is a fraction of what the hero's point cloud already holds. */
   var TEX = 384; /* px per layer */
   var FAR = 46;
+  var MIPS = 9; /* floor(log2(384)) + 1 */
 
   var host = null,
     gl = null,
@@ -78,11 +79,13 @@ window.__archiveDepth = (function () {
     "layout(location=0) in vec2 a_quad;",
     "layout(location=1) in vec4 a_pos;" /* xyz + layer */,
     "layout(location=2) in vec2 a_size;",
-    "uniform float u_z, u_aspect, u_far;",
+    "uniform float u_z, u_aspect, u_far, u_focus;",
     "uniform vec2 u_ptr;",
     "out vec2 v_uv;",
     "out float v_layer;",
     "out float v_fog;",
+    "out float v_coc;",
+    "out float v_edge;",
     "void main(){",
     "  vec3 P = a_pos.xyz;",
     /* Wrap in the shader rather than on the CPU: the position buffer never
@@ -115,6 +118,15 @@ window.__archiveDepth = (function () {
     /* Fades in from the far end and out in the last two metres, so nothing
        ever pops at either boundary of the wrap. */
     "  v_fog = smoothstep(u_far, u_far * 0.55, zz) * smoothstep(0.6, 3.0, zz);",
+    /* Circle of confusion. Zero at the focal plane and growing both ways,
+       asymmetric because a real lens defocuses the far field harder than the
+       near -- and because the near field here is arriving fast and a reader
+       tracking a card wants it to resolve as it comes. */
+    "  float off = zz - u_focus;",
+    "  v_coc = clamp(off > 0.0 ? off * 0.085 : -off * 0.30, 0.0, 5.5);",
+    /* And how far off-axis it is, for the aberration in the fragment stage:
+       a lens is only ever wrong at its edges. */
+    "  v_edge = length(proj) * 0.5;",
     "}",
   ].join("\n");
 
@@ -125,11 +137,32 @@ window.__archiveDepth = (function () {
     "in vec2 v_uv;",
     "in float v_layer;",
     "in float v_fog;",
+    "in float v_coc;",
+    "in float v_edge;",
     "uniform sampler2DArray u_tex;",
     "uniform float u_light;",
     "out vec4 o;",
     "void main(){",
-    "  vec3 c = texture(u_tex, vec3(v_uv, v_layer)).rgb;",
+    /* ── DEFOCUS, AND A LENS THAT IS WRONG AT ITS EDGES ────────────────
+       textureLod with the circle of confusion as the level: the card is
+       literally sampled from a coarser image the further it is off the
+       focal plane.
+
+       The channels are split by a fraction of a texel, scaled by distance
+       from the frame centre AND by the defocus, which is how real
+       chromatic aberration behaves -- a lens is sharp and neutral on axis
+       and neither at the corners. Applied uniformly it just looks broken;
+       this is why the note in the reference says "edges only". */
+    "  float ab = v_edge * v_edge * 0.004 * (1.0 + v_coc);",
+    "  float cr = textureLod(u_tex, vec3(v_uv + vec2(ab, 0.0), v_layer), v_coc).r;",
+    "  vec3 cg = textureLod(u_tex, vec3(v_uv, v_layer), v_coc).rgb;",
+    "  float cb = textureLod(u_tex, vec3(v_uv - vec2(ab, 0.0), v_layer), v_coc).b;",
+    "  vec3 c = vec3(cr, cg.g, cb);",
+    /* Out-of-focus highlights bloom rather than merely blurring, which is
+       the other half of what makes defocus read as a lens and not as a
+       blur filter. */
+    "  float lift = smoothstep(0.62, 1.0, dot(c, vec3(0.33)));",
+    "  c += lift * v_coc * 0.06;",
     /* Held back so the type knocked over the corridor stays readable, and
        cooled, because a wall of warm photographs at full saturation is a
        moodboard rather than an archive. */
@@ -184,7 +217,7 @@ window.__archiveDepth = (function () {
       return false;
     }
     prog.u = {};
-    ["u_z", "u_aspect", "u_far", "u_ptr", "u_tex", "u_light"].forEach(function (n) {
+    ["u_z", "u_aspect", "u_far", "u_ptr", "u_tex", "u_light", "u_focus"].forEach(function (n) {
       prog.u[n] = gl.getUniformLocation(prog, n);
     });
 
@@ -233,8 +266,20 @@ window.__archiveDepth = (function () {
        certain every layer is the same format. */
     tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, tex);
-    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, TEX, TEX, LAYERS);
-    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    /* ── MIP LEVELS, BECAUSE DEPTH OF FIELD IS MIP SELECTION ──────────
+       Nine levels rather than one. A real defocus blur is a wide gather --
+       expensive, and it needs a depth buffer and a second pass. But a
+       photograph that is out of focus and a photograph sampled from a
+       coarser mip look very nearly the same at this scale, and the mip
+       chain already exists on the GPU for free.
+
+       So the corridor gets its depth of field from textureLod: the card
+       computes its own circle of confusion from how far it is off the focal
+       plane, and that number IS the level it samples. One tap, no
+       framebuffer, no second pass, and it is per-card correct rather than a
+       screen-space approximation that bleeds across silhouettes. */
+    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, MIPS, gl.RGBA8, TEX, TEX, LAYERS);
+    gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -263,6 +308,10 @@ window.__archiveDepth = (function () {
         gl.bindTexture(gl.TEXTURE_2D_ARRAY, tex);
         gl.texSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, layer, TEX, TEX, 1, gl.RGBA, gl.UNSIGNED_BYTE, pad);
         ready++;
+        /* Rebuilt once the last layer lands rather than after each one:
+           generateMipmap on a 32-layer array is not free and doing it
+           thirty-two times to end in the same place is thirty-one wasted. */
+        if (ready === LAYERS) gl.generateMipmap(gl.TEXTURE_2D_ARRAY);
       };
       im.onerror = function () {};
       im.src = base + "/play/assets/spatial/p" + n + ".webp";
@@ -309,6 +358,10 @@ window.__archiveDepth = (function () {
     gl.uniform1f(prog.u.u_z, ((z % FAR) + FAR) % FAR);
     gl.uniform1f(prog.u.u_aspect, w / h);
     gl.uniform1f(prog.u.u_far, FAR);
+    /* The focal plane sits a few metres ahead of the camera and breathes,
+       so the corridor is never uniformly sharp and the eye is given
+       somewhere to rest. */
+    gl.uniform1f(prog.u.u_focus, 7.5 + Math.sin((now - t0) / 4200) * 2.4);
     gl.uniform2f(prog.u.u_ptr, cur.x, cur.y);
     gl.uniform1f(prog.u.u_light, document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0);
     gl.activeTexture(gl.TEXTURE0);
