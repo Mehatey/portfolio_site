@@ -1832,6 +1832,7 @@
       .hero-wall,
       .hero-archive,
       .hero-line,
+      .hero-line__gl,
       .hero-field {
         display: none;
       }
@@ -1874,6 +1875,20 @@
       }
       html[data-theme="light"] .hero-wall__img {
         filter: saturate(0.8) brightness(1.06);
+      }
+      /* The lit version of the wall. The <img> underneath stays in the DOM
+         as the fallback; once the shader is drawing the same photograph,
+         painting both is paying twice for one picture. */
+      .hero-wall__canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        z-index: 0;
+      }
+      .hero-wall.is-lit .hero-wall__img {
+        visibility: hidden;
       }
       .hero-wall__pins {
         position: absolute;
@@ -2302,6 +2317,20 @@
       html[data-home="line"] .scroll-cue {
         display: none;
       }
+      html[data-home="line"] .hero-line__gl {
+        display: block;
+      }
+      .hero-line__gl {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+      }
+      .hero-line__gl canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
       html[data-home="line"] .hero-line {
         display: block;
         position: absolute;
@@ -2397,190 +2426,6 @@
         opacity: 0.5;
       }
 
-      /* ── THE COLUMN THE SENTENCE LIVES IN ─────────────────────────────────
-         Narrower and a size smaller than it was. At 8.2vw the claim ran to
-         620px of a 1440 frame with the figure inside the next 560, which left
-         the composition with no air in it at all and is most of why "the type
-         is not working" — it was not the typeface, it was that two objects
-         were each taking half the screen and neither could be the subject.
-
-         48vw is the column, and the claim now sets to two comfortable lines
-         inside it at every width from 1280 up. */
-      .hero__cols {
-        max-width: min(48vw, 680px);
-        gap: clamp(14px, 2vh, 26px);
-      }
-      .hero__col--l {
-        font-size: clamp(2.3rem, 5.2vw, 5.4rem);
-        line-height: 0.94;
-        letter-spacing: -0.038em;
-      }
-      .hero__col--r {
-        font-size: clamp(0.95rem, 1.18vw, 1.3rem);
-        max-width: 34ch;
-        opacity: 0.58;
-      }
-
-      /* ── THE FOOT WAITS ITS TURN ──────────────────────────────────────────
-         It used to be present from the first frame, which meant the page's
-         last line was readable before its first one was. It is the last beat
-         of the story now. */
-      .hero__foot-row,
-      .scroll-cue {
-        opacity: 0;
-        transform: translateY(10px);
-        transition:
-          opacity 800ms ease,
-          transform 800ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      /* The foot row has two claims on its opacity: the story beat that
-         brings it in, and the scroll that takes it away. They are ONE
-         declaration, because as two rules the later one in the file simply
-         won and the scroll fade never happened -- which is what was
-         measured: the row still fully visible at --hero-p 0.999. */
-      html[data-story="3"] .hero__foot-row,
-      html[data-story="3"] .scroll-cue {
-        opacity: clamp(0, calc(1 - var(--hero-p, 0) * 3.2), 1);
-        transform: none;
-        transition-delay: 120ms;
-      }
-
-      /* ══════════════════════════════════════════════════════════════════════
-         THE FIVE HOMEPAGES
-
-         Sid: "a creative way for the person to try a new style and composition
-         like a creative playful homepage itself."
-
-         Five art directions over one set of facts. The rule that keeps this
-         honest and keeps it one page rather than five: NOTHING BELOW ADDS
-         CONTENT. Every direction is a rearrangement — what is emphasised,
-         what is hidden, how the type is set, which technique is running. The
-         sentence, the film, the figure and the work are the same claims in
-         all five, so there is no version of this site where a visitor is told
-         something the others do not tell them.
-
-         data-home on <html>. Absent means 01, so a visitor with no stored
-         choice and a visitor who has never pressed the control get the same
-         page, and the default costs no selector.
-
-         Each direction hides what it does not use with display:none rather
-         than opacity — the hidden ones include a WebGL canvas and a playing
-         video, and paying to composite either of those invisibly is the
-         mistake that was already made once on this page with .cg-stage.
-         ══════════════════════════════════════════════════════════════════════ */
-
-      /* ── THE FOOT ROW IS THREE THINGS NOW, NOT TWO ────────────────────────
-         space-between with three children puts the new one at dead centre,
-         which is exactly where the scroll mark's animated bar lives — the
-         same collision the comment on .hero__foot-row already describes
-         having fixed once, reintroduced by adding a third child.
-
-         So the live line takes the slack and the two fixed items sit
-         together at the right. The row reads left to right as: what he is
-         doing, which version you are looking at, where he is. */
-      .hero__base {
-        flex: 1 1 auto;
-        min-width: 0;
-      }
-      .hero__shuffle,
-      .hero__stamp {
-        flex: 0 0 auto;
-      }
-      /* An auto margin, not flex-grow on the live line: that line carries
-         max-width: min(46ch, 66vw) and cannot grow past it, so the leftover
-         space came back to justify-content and put the control at centre
-         anyway. An auto margin absorbs free space before justify-content
-         gets to distribute it, which is the only thing here that pins the
-         control to the right regardless of how long the live line is. */
-      .hero__shuffle {
-        margin-left: auto;
-      }
-
-      /* The control. Sits in the foot row and names what it did. */
-      .hero__shuffle {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: transparent;
-        border: 0;
-        padding: 6px 2px;
-        /* The auto is load-bearing, see the note above. It is written here
-           rather than in a separate rule because a plain `margin: 0` further
-           down the file silently beat it once already. */
-        margin: 0 0 0 auto;
-        cursor: pointer;
-        color: var(--home-ink, #fff);
-        font-family: "DM Mono", ui-monospace, monospace;
-        font-size: 11px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-        opacity: 0.5;
-        transition:
-          opacity 200ms ease,
-          transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .hero__shuffle:hover,
-      .hero__shuffle:focus-visible {
-        opacity: 1;
-      }
-      .hero__shuffle:active {
-        transform: scale(0.97);
-      }
-      /* A quarter circle with a head on it: a rotate mark that is drawn
-         rather than typed, so it can turn on the press. */
-      .hero__shuffle-mark {
-        width: 13px;
-        height: 13px;
-        border-radius: 50%;
-        border: 1px solid currentColor;
-        border-right-color: transparent;
-        border-bottom-color: transparent;
-        transform: rotate(-45deg);
-        transition: transform 640ms cubic-bezier(0.16, 1, 0.3, 1);
-      }
-      .hero__shuffle.is-turning .hero__shuffle-mark {
-        transform: rotate(315deg);
-      }
-      .hero__shuffle-n {
-        font-variant-numeric: tabular-nums;
-        opacity: 0.6;
-      }
-      .hero__shuffle-name {
-        letter-spacing: 0.1em;
-      }
-      /* The crossfade between directions. One class, added for the length of
-         the swap, so the page dips rather than snapping — a hard cut between
-         two compositions reads as a bug the first time you see it. */
-      .hero.is-swapping .hero__inner,
-      .hero.is-swapping .hero__plate,
-      .hero.is-swapping .hero-scene,
-      .hero.is-swapping .hero-wall,
-      .hero.is-swapping .hero-archive,
-      .hero.is-swapping .hero-line {
-        opacity: 0;
-        transition: opacity 260ms ease;
-      }
-
-      /* Furniture that belongs to one direction each. Off by default. */
-      .hero-wall,
-      .hero-archive,
-      .hero-line,
-      .hero-field {
-        display: none;
-      }
-
-      /* ── 02 · THE INDEX ───────────────────────────────────────────────────
-         No image and no object anywhere in the frame. The argument is made
-         entirely by the work being listed, which is the arrangement someone
-         scanning for evidence actually wants and the one a portfolio
-         homepage almost never risks. */
-      /* The rules are the loudest thing in this direction, so they are held
-         well back — at full strength four hairlines across the right half of
-         the frame read as a table, which is a different and worse idea. */
-      /* The sentence gets out of the way: it is no longer competing with a
-         figure, it is competing with four rows of evidence, and evidence
-         wins. */
-
       /* ── 03 · THE FIELD ───────────────────────────────────────────────────
          The one direction with no object and no list: a curl-noise particle
          field across the whole frame with the sentence floating inside it,
@@ -2629,26 +2474,6 @@
         transform-origin: center;
       }
 
-      /* ── 04 · THE TERMINAL ────────────────────────────────────────────────
-         The site as an instrument reading itself out. Everything monospace,
-         everything on a hairline grid, nothing centred. This is the direction
-         that says "I write the code" without a sentence claiming it. */
-      /* The disc stays, small and square-cornered-adjacent: a terminal has a
-         monitor in it. Half the size, no ring — the ring is a flourish and
-         this direction has no flourishes. */
-
-      /* ── 05 · THE FILM ────────────────────────────────────────────────────
-         The reel stops being an object in the composition and becomes the
-         composition: full bleed, the type over it, everything else receding.
-         The disc's own circle is dropped here rather than scaled up — a
-         circular crop at full-bleed size is a porthole, and the point of this
-         direction is that there is no frame between you and the work. */
-      /* The play mark moves out of dead centre, where it would sit on top of
-         the headline, and down to the corner as a caption-sized cue. */
-
-      /* Below the phone breakpoint the two side panels have nowhere to go, so
-         they stack under the sentence rather than being dropped — losing the
-         work list is losing the whole point of direction 02. */
       @media (max-width: 1000px) {
         /* ── THE FOOT ROW JOINS THE COLUMN ────────────────────────────────
            It is absolutely positioned to the bottom of .hero, which is right
@@ -4426,6 +4251,17 @@
              surprise, and an exact prefix is what someone typing "wo"
              expects to hit.
              ══════════════════════════════════════════════════════════════ -->
+          <!-- The raymarched field this direction is drawn against: a gyroid
+               cut by a sphere, walked per pixel, no geometry and no texture.
+               See assets/js/home-gl-line.js.
+
+               A SIBLING of .hero-line, not a child of it. .hero-line is
+               centred with translate(-50%, -50%), and a transformed ancestor
+               becomes the containing block for position: fixed -- so nested
+               inside it the field sized itself to the 720x300 input column
+               rather than to the viewport. Measured: a 432x180 canvas where a
+               full-frame one was intended. -->
+          <div class="hero-line__gl" id="hero-line-gl" aria-hidden="true"></div>
           <div class="hero-line" aria-hidden="true">
             <div class="hero-line__box">
               <span class="hero-line__prompt">›</span>
@@ -5028,6 +4864,10 @@
     <!-- The five directions. defer, and after the scene, so that switching
          away from 01 tears down a renderer that has already finished setting
          itself up rather than racing it. -->
+    <!-- One renderer per direction, each a different technique. Loaded
+         before the shuffle, which is what starts and stops them. -->
+    <script src="{{ site.baseurl }}/assets/js/home-gl-line.js" defer></script>
+    <script src="{{ site.baseurl }}/assets/js/home-gl-wall.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/home-shuffle.js" defer></script>
     <!-- The scroll sequence. Reads the property its own section publishes;
          it never listens to scroll itself. -->

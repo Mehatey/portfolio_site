@@ -107,6 +107,28 @@
     else wall.stop();
     if (DIRS[i].id === "archive") archive.build();
     if (DIRS[i].id === "line") line.focus();
+
+    /* ── ONE RENDERER PER DIRECTION ────────────────────────────────────
+       Each of the five draws by a genuinely different method, and each is
+       started only while its direction is showing:
+
+         room      instanced splats, image-based lighting  (hero-scene.js)
+         wall      a photograph lit by the cursor          (home-gl-wall.js)
+         archive   photographs in real depth               (below)
+         line      a raymarched gyroid, no geometry        (home-gl-line.js)
+         field     curl-noise particles                    (below)
+
+       Started and stopped here rather than each watching the attribute for
+       itself: five independent observers of one value is five chances for
+       two renderers to both think they are on. */
+    if (window.__wallLight) {
+      if (DIRS[i].id === "wall") window.__wallLight.start();
+      else window.__wallLight.stop();
+    }
+    if (window.__lineField) {
+      if (DIRS[i].id === "line") window.__lineField.start();
+      else window.__lineField.stop();
+    }
   }
 
   btn.addEventListener("click", function () {
