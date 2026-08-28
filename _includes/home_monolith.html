@@ -1,0 +1,338 @@
+<!-- ══════════════════════════════════════════════════════════════════════════
+     THE MONOLITH
+
+     Sid: "i want u to play with 3d and scroll page transitions look at
+     monolith project and cool storytelling scroll transitions and cool shit."
+
+     One object of 90,000 points, scrubbed through five states by the scroll.
+     The states are the hero's own sentence taken apart -- "research to
+     shipped code, end to end" -- so the sequence is not a demo sitting in the
+     middle of a portfolio, it is the page's central claim given a body.
+
+     THE PIN
+
+     Four screens of runway with the stage stuck to the top of it, which gives
+     each of the four transitions a screenful of scroll to happen in. Same
+     device as the hero's own runway and for the same reason: a scroll-linked
+     sequence in a one-screen section performs while it is leaving.
+
+     THE COPY IS NOT A CAPTION
+
+     Each beat is one word plus one line, and the line is a claim rather than
+     a description of what the object is doing. "The slab becomes a grid" is a
+     narrator explaining an animation. "Interface. Order, imposed on something
+     that had none." is the page still arguing while the object moves.
+
+     The <ol> underneath is the whole sequence as plain text, always present
+     for a screen reader and for anyone with no WebGL2 -- if the renderer
+     bails it removes only its own canvas host, and what is left is a five
+     point statement that reads perfectly well on its own.
+     ══════════════════════════════════════════════════════════════════════ -->
+<section class="mono" id="mono" aria-labelledby="mono-h">
+  <div class="mono__runway" id="mono-runway">
+    <div class="mono__stage">
+      <div class="mono__gl" id="monolith" data-p="0" aria-hidden="true"></div>
+
+      <div class="mono__head">
+        <span>01</span><span class="rule"></span>
+        <h2 class="sec-head__h" id="mono-h">Research to shipped code</h2>
+      </div>
+
+      <!-- The beats. All five are in the DOM at all times; --b, published by
+           the script below, decides which one is lit. Rendering only the
+           current beat would mean the section's copy did not exist until a
+           reader had scrolled to it, which is exactly what a search engine
+           and a screen reader see. -->
+      <ol class="mono__beats" style="--b: 0">
+        <li style="--n: 0"><b>Research</b><em>Weeks of it, before a pixel. The part nobody puts in a case study.</em></li>
+        <li style="--n: 1"><b>Interface</b><em>Order, imposed on something that had none.</em></li>
+        <li style="--n: 2"><b>Spatial</b><em>Then it stops being flat, and every rule you had stops applying.</em></li>
+        <li style="--n: 3"><b>Shipped code</b><em>Structure becomes a sequence. Somebody has to write it.</em></li>
+        <li style="--n: 4"><b>End to end</b><em>All of it, by one person, which is the only reason the demos hold up.</em></li>
+      </ol>
+
+      <!-- Five marks, one per state, filling as you pass through them. The
+           only readout in the section: it says how far through a sequence you
+           are, which is the one thing a pinned section cannot tell you by
+           itself -- the scrollbar is measuring the runway, not the story. -->
+      <ul class="mono__ticks" aria-hidden="true">
+        <li style="--n: 0"></li>
+        <li style="--n: 1"></li>
+        <li style="--n: 2"></li>
+        <li style="--n: 3"></li>
+        <li style="--n: 4"></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .mono {
+    position: relative;
+    /* Transparent, like every other section on this page: the site field runs
+       behind it and painting a ground here would punch a hole in it. */
+    background: none;
+  }
+  .mono__runway {
+    height: 400svh;
+  }
+  .mono__stage {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    overflow: hidden;
+  }
+  .mono__gl {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .mono__gl canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  .mono__head {
+    position: absolute;
+    left: clamp(22px, 4vw, 64px);
+    top: calc(var(--nav-h, 64px) + clamp(20px, 5vh, 52px));
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-family: "DM Mono", ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--home-ink, #fff);
+    opacity: 0.42;
+  }
+  .mono__head .rule {
+    width: clamp(40px, 6vw, 90px);
+    height: 1px;
+    background: currentColor;
+    opacity: 0.5;
+  }
+  .mono__head h2 {
+    margin: 0;
+    font: inherit;
+    letter-spacing: inherit;
+  }
+
+  /* ── THE BEATS ────────────────────────────────────────────────────────
+     Stacked in one box rather than laid out in a row: only one is ever
+     legible, and they have to occupy the same space or the composition
+     shifts every time the sequence advances.
+
+     The lit one is chosen by comparing --n to --b in a calc rather than by
+     a class per beat, so the script writes ONE property for the whole
+     section. abs(n - b) is not available in CSS, so the two halves are
+     max()ed -- which is the same thing and costs nothing. */
+  .mono__beats {
+    position: absolute;
+    left: clamp(22px, 4vw, 64px);
+    bottom: clamp(96px, 16vh, 190px);
+    z-index: 2;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: min(560px, 46vw);
+    height: 8.5em;
+    color: var(--home-ink, #fff);
+  }
+  .mono__beats li {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    /* 1 when this beat is current, 0 as soon as the sequence is a whole
+       state away from it. */
+    --on: clamp(0, calc(1 - max(calc(var(--n) - var(--b)), calc(var(--b) - var(--n)))), 1);
+    opacity: var(--on);
+    transform: translateY(calc((1 - var(--on)) * 18px));
+    transition:
+      opacity 420ms ease,
+      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: opacity, transform;
+  }
+  .mono__beats b {
+    display: block;
+    font-size: clamp(2rem, 4.6vw, 4.4rem);
+    font-weight: 450;
+    line-height: 0.98;
+    letter-spacing: -0.04em;
+  }
+  .mono__beats em {
+    display: block;
+    margin-top: 14px;
+    font-style: normal;
+    font-size: clamp(0.92rem, 1.15vw, 1.15rem);
+    line-height: 1.45;
+    max-width: 34ch;
+    opacity: 0.56;
+  }
+
+  /* ── THE TICKS ────────────────────────────────────────────────────────
+     Horizontal marks, not dots. Sid, on the project pages: the section nav
+     is line marks, not circles. Same language here. */
+  .mono__ticks {
+    position: absolute;
+    right: clamp(22px, 4vw, 64px);
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .mono__ticks li {
+    width: 28px;
+    height: 1px;
+    background: var(--home-ink, #fff);
+    opacity: 0.16;
+    transform-origin: right center;
+    transition:
+      opacity 320ms ease,
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* .mono__ticks li, not li. Written as a bare `li` first, and .mono has two
+     lists in it -- so `.mono.is-at-2 li:nth-child(3)` matched the third BEAT
+     as well as the third tick and put scaleX(1.7) on a 560px block of copy.
+     Measured: the lit beat rendered at x = -138 and 952 wide, with the word
+     "Spatial" reading as "atial" off the left edge of the frame.
+
+     The tick and the beat legitimately share an index -- they are two
+     readouts of the same state -- which is exactly why the selector has to
+     name which list it means. */
+  .mono.is-at-0 .mono__ticks li:nth-child(1),
+  .mono.is-at-1 .mono__ticks li:nth-child(2),
+  .mono.is-at-2 .mono__ticks li:nth-child(3),
+  .mono.is-at-3 .mono__ticks li:nth-child(4),
+  .mono.is-at-4 .mono__ticks li:nth-child(5) {
+    opacity: 0.85;
+    transform: scaleX(1.7);
+  }
+
+  /* ── ON A PHONE ───────────────────────────────────────────────────────
+     Four screens of pin on a phone is four screens of a reader's thumb, and
+     the object is drawn at a third the pixels. It keeps the sequence but at
+     half the runway, and the beats move under the object rather than beside
+     it -- at 390 there is no beside. */
+  @media (max-width: 1000px) {
+    .mono__runway {
+      height: 260svh;
+    }
+    .mono__beats {
+      width: auto;
+      right: clamp(22px, 4vw, 64px);
+      bottom: clamp(78px, 12vh, 120px);
+      height: 10.5em;
+    }
+    .mono__ticks {
+      top: auto;
+      bottom: clamp(34px, 6vh, 60px);
+      right: auto;
+      left: clamp(22px, 4vw, 64px);
+      transform: none;
+      flex-direction: row;
+    }
+    .mono__ticks li {
+      width: 20px;
+      transform-origin: center;
+    }
+  }
+
+  /* Reduced motion keeps the section and drops the pin: no scrubbing, so
+     nothing is gained by holding the reader in place, and every beat is
+     simply present in the flow as the five-point statement it already is. */
+  @media (prefers-reduced-motion: reduce) {
+    .mono__runway {
+      height: auto;
+    }
+    .mono__stage {
+      position: relative;
+      height: auto;
+      min-height: 80svh;
+      padding: clamp(80px, 12vh, 140px) 0;
+    }
+    .mono__beats {
+      position: static;
+      width: auto;
+      height: auto;
+      display: grid;
+      gap: clamp(26px, 4vh, 44px);
+      padding: 0 clamp(22px, 4vw, 64px);
+    }
+    .mono__beats li {
+      position: static;
+      opacity: 1;
+      transform: none;
+    }
+    .mono__ticks {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  /* ── THE ONE MEASUREMENT ─────────────────────────────────────────────────
+     How far through the pinned runway the reader is, 0 to 1, published three
+     ways for three consumers: data-p for the renderer, --b for the beats, and
+     an is-at-N class for the ticks.
+
+     Three surfaces off ONE measurement rather than three listeners. The
+     renderer easing toward data-p and the copy switching on --b cannot
+     disagree about which state the sequence is in, which is the failure mode
+     when a scroll effect and its caption each measure the page themselves.
+
+     The runway is the wrapper's height less one screen -- the distance the
+     stage is actually pinned for. Measuring the stage instead would end the
+     sequence a quarter of the way through the pin, which is the same class of
+     error as measuring a scroll effect against an element rather than against
+     its travel. */
+  (function () {
+    var sec = document.getElementById("mono");
+    var runway = document.getElementById("mono-runway");
+    var glHost = document.getElementById("monolith");
+    if (!sec || !runway) return;
+
+    var beats = sec.querySelector(".mono__beats");
+    var raf = 0,
+      shownB = -1,
+      shownAt = -1;
+
+    function measure() {
+      raf = 0;
+      var r = runway.getBoundingClientRect();
+      var travel = Math.max(1, runway.offsetHeight - (window.innerHeight || 1));
+      var p = Math.max(0, Math.min(1, -r.top / travel));
+
+      if (glHost) glHost.setAttribute("data-p", p.toFixed(4));
+
+      /* The beats advance on the STATE, not on the raw progress: a beat
+         should be lit while its form is held and hand over during the
+         transition, so this rounds rather than floors. Floor left every beat
+         lit through the whole transition into the next one and the copy was
+         always a state behind the object. */
+      var b = Math.round(p * 4);
+      if (b !== shownB) {
+        shownB = b;
+        if (beats) beats.style.setProperty("--b", b);
+      }
+      if (b !== shownAt) {
+        shownAt = b;
+        sec.className = sec.className.replace(/\s*is-at-\d/g, "") + " is-at-" + b;
+      }
+    }
+    function onScroll() {
+      if (!raf) raf = requestAnimationFrame(measure);
+    }
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll);
+    measure();
+  })();
+</script>
