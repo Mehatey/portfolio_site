@@ -5,28 +5,54 @@
    on homepages like a creative way for the person to try a new style and
    composition like a creative playful homepage itself."
 
-   WHAT THIS IS AND WHAT IT DELIBERATELY IS NOT
+   WHAT THIS IS
 
-   It is one hero that can be arranged five ways. It is NOT five heroes.
+   Five homepages, one document. Not five arrangements of one homepage --
+   that is what the first attempt was and it is why it failed; see the note
+   under THE ORDER below.
 
-   The distinction is the whole design. Every direction states the same
-   facts -- the sentence, the film, the work, the figure -- and differs only
-   in composition, type treatment and technique. So there is no arrangement
-   in which a visitor is told something the others withhold, nothing to keep
-   in sync, and no way for one of the five to quietly rot because nobody
-   looks at it. The markup and the copy have exactly one owner.
+   Each direction uses different material and makes a different argument.
+   What they share is the FACTS, not the presentation: the sentence, the
+   role, the city and the work appear in all five, so there is no version in
+   which a visitor is told something the others withhold, and none of them
+   can quietly rot because nobody looks at it. One markup, one set of claims,
+   five ways of standing behind them.
 
-   Almost all of the work is CSS, scoped under html[data-home]. This file
-   does three things: cycles the attribute, remembers the choice, and boots
-   the one direction that needs a renderer of its own.
+   Everything visual is CSS, scoped under html[data-home]. This file cycles
+   the attribute, remembers the choice, and starts or stops the four
+   directions that need code of their own -- a renderer, a pointer handler, a
+   grid to build, an input to focus. Each is started only when its direction
+   is showing and stopped when it is not, so a visitor pays for the one
+   homepage they are looking at.
 
    THE ORDER
 
      01  the room      the figure in his room, the film beside him
-     02  the index     no image at all. the work, listed.
-     03  the field     a curl-noise particle field, the sentence inside it
-     04  the terminal  monospace on a hairline grid, the site read out
-     05  the film      the reel full bleed, everything else receding
+     02  the wall      the pinboard above his desk, the work pinned to it
+     03  the archive   206 photographs, dense, the sentence cut out of them
+     04  the line      one input. type where you want to go.
+     05  the field     a curl-noise particle field, the sentence inside it
+
+     THE FIRST FIVE WERE NOT FIVE CONCEPTS
+
+     Sid: "they all look too similar and i wanted new concepts other than
+     cube guy and my working video."
+
+     He was right and the fault is worth writing down, because it is easy to
+     make again: three of the original five showed the same reel, two showed
+     the same figure, and all five set the same sentence the same way with
+     the same foot row beneath it. Changing what is hidden and what is
+     centred produces LAYOUTS. A concept needs different material and a
+     different argument.
+
+     So the three weakest went -- the index, the terminal and the film, which
+     were type-with-a-list, type-with-a-table, and the reel again -- and what
+     replaced them uses assets nothing else on this site touches and makes a
+     different claim in each case:
+
+       the wall      "this is the room it comes out of"
+       the archive   "this is how much I have looked at"
+       the line      "you already know what you are looking for"
 
    Deliberately a CYCLE and not a picker. A row of five labelled buttons is a
    settings panel and reads as configuration; one control that advances and
@@ -39,10 +65,10 @@
   var KEY = "sid_home_dir";
   var DIRS = [
     { id: "room", name: "The room" },
-    { id: "index", name: "The index" },
+    { id: "wall", name: "The wall" },
+    { id: "archive", name: "The archive" },
+    { id: "line", name: "The line" },
     { id: "field", name: "The field" },
-    { id: "terminal", name: "The terminal" },
-    { id: "film", name: "The film" },
   ];
 
   var html = document.documentElement;
@@ -77,6 +103,10 @@
     label();
     if (DIRS[i].id === "field") field.start();
     else field.stop();
+    if (DIRS[i].id === "wall") wall.start();
+    else wall.stop();
+    if (DIRS[i].id === "archive") archive.build();
+    if (DIRS[i].id === "line") line.focus();
   }
 
   btn.addEventListener("click", function () {
@@ -358,6 +388,222 @@
         if (raf) cancelAnimationFrame(raf);
         raf = 0;
         window.removeEventListener("pointermove", onMove);
+      },
+    };
+  })();
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     02 · THE WALL
+
+     One pointer handler writing two custom properties, and CSS doing the
+     rest. The photograph and the pinned cards travel in OPPOSITE directions
+     -- the wall against the pointer, the paper with it -- which is the whole
+     parallax: two planes at two depths rather than one image on a spring.
+
+     Listener attached only while this direction is showing, and removed when
+     it is not. A pointermove handler that survives its own direction is four
+     visitors in five paying for a picture they are not looking at.
+     ═════════════════════════════════════════════════════════════════════════ */
+  var wall = (function () {
+    var host = null,
+      on = false;
+    function move(e) {
+      if (!host) return;
+      var w = window.innerWidth || 1,
+        h = window.innerHeight || 1;
+      host.style.setProperty("--wx", ((e.clientX / w) * 2 - 1).toFixed(3));
+      host.style.setProperty("--wy", ((e.clientY / h) * 2 - 1).toFixed(3));
+    }
+    return {
+      start: function () {
+        if (on || REDUCED) return;
+        host = document.querySelector(".hero-wall");
+        if (!host) return;
+        on = true;
+        window.addEventListener("pointermove", move, { passive: true });
+      },
+      stop: function () {
+        if (!on) return;
+        on = false;
+        window.removeEventListener("pointermove", move);
+      },
+    };
+  })();
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     03 · THE ARCHIVE
+
+     Sixty tiles off the 206 in /play/assets/spatial/, built once, the first
+     time this direction is chosen, and kept.
+
+     The stride is fixed rather than random: the same visitor should get the
+     same wall on a second visit, because a mosaic that reshuffles itself is
+     a screensaver. 206/60 gives a stride of 3, which also means consecutive
+     tiles are never consecutive exports -- neighbouring files tend to be the
+     same shoot, and three abreast is what stops the wall reading as one
+     afternoon repeated.
+
+     Six numbers are skipped: 193 does not exist, and 16, 74, 194, 195, 196
+     and 205 are the clips rather than the stills. Those are the same
+     exclusions /play/ itself applies, and requesting them would be six 404s
+     behind a wall of photographs where nobody would ever notice them.
+     ═════════════════════════════════════════════════════════════════════════ */
+  var archive = (function () {
+    var built = false;
+    var SKIP = [16, 74, 193, 194, 195, 196, 205];
+    return {
+      build: function () {
+        if (built) return;
+        var host = document.getElementById("hero-archive-grid");
+        var root = document.getElementById("hero-archive");
+        if (!host || !root) return;
+        built = true;
+        var base = root.getAttribute("data-base") || "";
+        /* ── ENOUGH TILES TO BE A WALL ────────────────────────────────
+           Sixty was a guess and at 1440x900 it filled five rows of eleven
+           and left a third of the screen empty below them, with the bottom
+           of the knocked-out sentence hanging over nothing. A mosaic that
+           stops halfway down is not a mosaic.
+
+           Counted off the box instead, using the same clamp the CSS sizes
+           the cells with, plus a row of slack for the gap rounding. Capped
+           at what exists. */
+        var box = root.getBoundingClientRect();
+        var cell = Math.max(76, Math.min(130, (window.innerWidth || 1440) * 0.08));
+        var cols = Math.max(1, Math.ceil(box.width / cell));
+        var rows = Math.max(1, Math.ceil(box.height / cell)) + 1;
+        var want = Math.min(199, cols * rows);
+        /* Spread across the whole archive rather than taking the first N:
+           neighbouring export numbers tend to be the same shoot, and a wall
+           of one afternoon is a worse wall. */
+        var stride = Math.max(1, Math.floor(206 / want));
+        var frag = document.createDocumentFragment();
+        var n = 0;
+        for (var f = 1; f <= 206 && n < want; f += stride) {
+          if (SKIP.indexOf(f) !== -1) continue;
+          var im = document.createElement("img");
+          im.alt = "";
+          im.decoding = "async";
+          /* Lazy, because sixty of these is more than the first screen shows
+             at most widths and the ones below the fold can wait. */
+          im.loading = n < 30 ? "eager" : "lazy";
+          im.style.setProperty("--i", n);
+          im.src = base + "/play/assets/spatial/p" + f + ".webp";
+          /* .is-in on decode rather than on a timer, so the stagger is a
+             stagger of ARRIVALS and a slow connection degrades into a slower
+             fill rather than into a grid of empty boxes that were already
+             told to be visible. */
+          im.addEventListener("load", function () {
+            this.classList.add("is-in");
+          });
+          frag.appendChild(im);
+          n++;
+        }
+        host.appendChild(frag);
+      },
+    };
+  })();
+
+  /* ═════════════════════════════════════════════════════════════════════════
+     04 · THE LINE
+
+     Eleven destinations, matched on a plain substring, ranked only by
+     whether the match is at the start of the label. No fuzzy scoring: with
+     eleven targets a fuzzy matcher is a library and a surprise, and someone
+     typing "wo" expects Work rather than whatever scores highest.
+
+     Enter takes the top hit, arrows move through them. Everything is a real
+     <a> underneath, so the list works with no JS at all beyond the filter --
+     and the whole direction degrades to a text field and eleven links.
+     ═════════════════════════════════════════════════════════════════════════ */
+  var line = (function () {
+    var wired = false,
+      sel = 0,
+      hits = [];
+    var BASE = (document.getElementById("hero-archive") || {}).getAttribute
+      ? document.getElementById("hero-archive").getAttribute("data-base") || ""
+      : "";
+    var TARGETS = [
+      { label: "Work", note: "selected projects", url: "/works/" },
+      { label: "Play", note: "206 pieces", url: "/play/" },
+      { label: "About", note: "who this is", url: "/about/" },
+      { label: "Contact", note: "start a conversation", url: "/contact/" },
+      { label: "Mool", note: "fintech", url: "/mool/" },
+      { label: "Encoded", note: "the met", url: "/encoded/" },
+      { label: "AI prototypes", note: "eleven live", url: "/ai-prototypes/" },
+      { label: "Marriott", note: "enterprise ux", url: "/marriott/" },
+      { label: "Bloom", note: "vision pro", url: "/bloom/" },
+      { label: "Mandalas", note: "artwork", url: "/mandalas/" },
+      { label: "Resume", note: "the short version", url: "/about/" },
+    ];
+
+    function render(q) {
+      var list = document.getElementById("hero-line-hits");
+      if (!list) return;
+      var s = q.trim().toLowerCase();
+      hits = TARGETS.filter(function (t) {
+        return !s || t.label.toLowerCase().indexOf(s) !== -1 || t.note.indexOf(s) !== -1;
+      }).sort(function (a, b) {
+        var ai = a.label.toLowerCase().indexOf(s) === 0 ? 0 : 1;
+        var bi = b.label.toLowerCase().indexOf(s) === 0 ? 0 : 1;
+        return ai - bi;
+      });
+      hits = hits.slice(0, 6);
+      sel = 0;
+      list.textContent = "";
+      hits.forEach(function (t, n) {
+        var li = document.createElement("li");
+        if (n === 0) li.className = "is-on";
+        var a = document.createElement("a");
+        a.href = BASE + t.url;
+        a.innerHTML = "<span></span><em></em>";
+        a.firstChild.textContent = t.label;
+        a.lastChild.textContent = t.note;
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    }
+
+    function wire() {
+      if (wired) return;
+      var input = document.getElementById("hero-line-in");
+      var list = document.getElementById("hero-line-hits");
+      if (!input || !list) return;
+      wired = true;
+      input.addEventListener("input", function () {
+        render(input.value);
+      });
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" && hits[sel]) {
+          e.preventDefault();
+          window.location.href = BASE + hits[sel].url;
+          return;
+        }
+        if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+        e.preventDefault();
+        sel = (sel + (e.key === "ArrowDown" ? 1 : hits.length - 1)) % Math.max(1, hits.length);
+        [].forEach.call(list.children, function (li, n) {
+          li.className = n === sel ? "is-on" : "";
+        });
+      });
+      render("");
+    }
+
+    return {
+      focus: function () {
+        wire();
+        var input = document.getElementById("hero-line-in");
+        /* Focused, because a text field nobody has clicked into is a text
+           field nobody uses. Deferred past the crossfade so the focus ring
+           does not appear on an element that is still at opacity 0. */
+        if (input)
+          setTimeout(function () {
+            try {
+              input.focus({ preventScroll: true });
+            } catch (e) {
+              input.focus();
+            }
+          }, 320);
       },
     };
   })();
