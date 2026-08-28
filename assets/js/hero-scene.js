@@ -937,9 +937,39 @@
     last = performance.now(),
     raf = 0;
 
+  /* ── NOT EVERY DIRECTION WANTS HIM ──────────────────────────────────────
+     Four of the five homepage directions hide this element with display:none
+     (see assets/js/home-shuffle.js). display:none stops the browser
+     COMPOSITING the canvas; it does not stop this loop from filling it, so
+     without the check below four visitors in five would pay for 44,000
+     instanced quads a frame that nobody can see.
+
+     This is the identical fault that was just fixed in cube-guy.js, and I
+     reintroduced it here by adding the directions. Writing it down because
+     the pattern is the trap, not the file: on this page a hidden renderer
+     looks exactly like a working one.
+
+     Cached and recomputed only when data-home changes or the window
+     resizes, rather than asked every frame -- checkVisibility() resolves
+     style, and doing that sixty times a second to avoid work is its own
+     version of the same mistake. */
+  var shown = true;
+  function recheck() {
+    shown = host.isConnected && (typeof host.checkVisibility === "function" ? host.checkVisibility() : host.offsetParent !== null);
+  }
+  recheck();
+  new MutationObserver(recheck).observe(document.documentElement, { attributes: true, attributeFilter: ["data-home"] });
+  window.addEventListener("resize", recheck, { passive: true });
+
   function frame(now) {
     raf = 0;
     if (!ready) {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
+    /* Still scheduled, so the moment the direction comes back he is already
+       running rather than starting from a cold first frame. */
+    if (!shown) {
       raf = requestAnimationFrame(frame);
       return;
     }
