@@ -101,8 +101,21 @@
     if (i === 0) html.removeAttribute("data-home");
     else html.setAttribute("data-home", DIRS[i].id);
     label();
-    if (DIRS[i].id === "field") field.start();
-    else field.stop();
+    /* ── TWO FIELDS, ONE CHOSEN AT RUNTIME ─────────────────────────────
+       home-gl-field.js is a real GPGPU simulation and needs float render
+       targets, which are not core in WebGL2. If it starts, it owns the
+       direction; if the extension is missing it declines and the
+       displacement version below takes over. Both are kept: the cheaper one
+       is not dead code, it is the fallback that lets the direction exist on
+       a machine that cannot run the simulation. */
+    if (DIRS[i].id === "field") {
+      var simOn = window.__fieldSim && window.__fieldSim.start();
+      if (!simOn) field.start();
+      else field.stop();
+    } else {
+      field.stop();
+      if (window.__fieldSim) window.__fieldSim.stop();
+    }
     if (DIRS[i].id === "wall") wall.start();
     else wall.stop();
     if (DIRS[i].id === "archive") archive.build();
