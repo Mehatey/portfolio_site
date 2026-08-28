@@ -179,6 +179,13 @@
        structure. */
     "  vec3 lightCol = mix(col, vec3(1.0), 0.62) + key * pow(max(0.0, dot(N, H)), 42.0) * 0.4;",
     "  col = mix(col, lightCol, u_light);",
+    /* And the whole capsule steps back on cream. On a near-white page the
+       body of clear glass is invisible by definition -- it is the same value
+       as the paper -- so everything that DOES show is the fresnel rim, and at
+       full strength that rim is a grey outline reading as a plate. Roughly
+       half, which leaves a boundary you can see and nothing you would call a
+       shape. */
+    "  float lightDamp = mix(1.0, 0.52, u_light);",
 
     /* ── ALPHA IS WHERE GLASS IS WON OR LOST ──────────────────────────
        0.30 + h * 0.34 put the middle of the capsule at 0.64, and a
@@ -189,7 +196,7 @@
        0.06 through the middle, and the fresnel term carries the rest --
        which is exactly the physical story, and is also the only version
        where the page is genuinely visible through it. */
-    "  float a = smoothstep(0.0, -1.5, d) * (0.06 + h * 0.08 + fres * 0.62);",
+    "  float a = smoothstep(0.0, -1.5, d) * (0.06 + h * 0.08 + fres * 0.62) * lightDamp;",
     "  o = vec4(col * a, a);",
     "}",
   ].join("\n");

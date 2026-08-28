@@ -31,7 +31,7 @@
      02  the wall      the pinboard above his desk, the work pinned to it
      03  the archive   206 photographs, dense, the sentence cut out of them
      04  the line      one input. type where you want to go.
-     05  the field     a curl-noise particle field, the sentence inside it
+     05  the culture   reaction-diffusion, seeded with the sentence itself
 
      THE FIRST FIVE WERE NOT FIVE CONCEPTS
 
@@ -68,7 +68,7 @@
     { id: "wall", name: "The wall" },
     { id: "archive", name: "The archive" },
     { id: "line", name: "The line" },
-    { id: "field", name: "The field" },
+    { id: "field", name: "The culture" },
   ];
 
   var html = document.documentElement;
@@ -108,13 +108,24 @@
        displacement version below takes over. Both are kept: the cheaper one
        is not dead code, it is the fallback that lets the direction exist on
        a machine that cannot run the simulation. */
+    /* ── THREE FALLBACKS DEEP, BEST FIRST ──────────────────────────────
+       Sid: "i dont like the generic shader one with the dots be more
+       creative it needs to be award winning not generic."
+
+       He is right about the particles. A curl-noise field is the shader
+       equivalent of a stock photo -- however well it is implemented it
+       cannot be why anyone remembers a site. The reaction-diffusion culture
+       replaces it as the picture; the two particle versions stay underneath
+       purely as fallbacks for machines that cannot run it, in descending
+       order of what they require. */
     if (DIRS[i].id === "field") {
-      var simOn = window.__fieldSim && window.__fieldSim.start();
-      if (!simOn) field.start();
-      else field.stop();
+      var on = window.__culture && window.__culture.start();
+      if (!on) on = window.__fieldSim && window.__fieldSim.start();
+      if (!on) field.start();
     } else {
       field.stop();
       if (window.__fieldSim) window.__fieldSim.stop();
+      if (window.__culture) window.__culture.stop();
     }
     if (DIRS[i].id === "wall") wall.start();
     else wall.stop();
