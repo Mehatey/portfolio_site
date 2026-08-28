@@ -129,6 +129,13 @@
       if (DIRS[i].id === "line") window.__lineField.start();
       else window.__lineField.stop();
     }
+    if (window.__archiveDepth) {
+      if (DIRS[i].id === "archive") {
+        window.__archiveDepth.start();
+        var ar = document.getElementById("hero-archive");
+        if (ar && window.__archiveDepth.state().gl) ar.classList.add("is-deep");
+      } else window.__archiveDepth.stop();
+    }
   }
 
   btn.addEventListener("click", function () {
