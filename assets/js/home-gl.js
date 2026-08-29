@@ -178,6 +178,7 @@
     "varying vec2 v_uv;",
     "varying float v_bend;",
     "varying float v_fold;",
+    "varying float v_sy;",
     "void main(){",
     "  v_uv = a_uv;",
     "  v_fold = u_fold;",
@@ -198,6 +199,17 @@
     "  p.y += (1.0 - u_enter) * 46.0;",
     "  p = mid + (p - mid) * mix(0.965, 1.0, u_enter);",
     "  v_bend = bend / 34.0;",
+    /* ── HOW HIGH UP THE WINDOW THIS FRAGMENT IS ────────────────────────
+       Sid, on gionatannese.com: "i like the refraction in this site on the
+       works on the top when you scroll."
+
+       What that site does is treat the top edge of the viewport as though
+       there were a lens across it: a cover does not simply leave the screen,
+       it is DRAWN THROUGH something on the way out. The effect is entirely
+       positional -- it depends on where a pixel is in the window, not where
+       it is in the image -- so the fragment stage needs the screen height of
+       every vertex, which is the one thing it did not have. */
+    "  v_sy = p.y / max(1.0, u_res.y);",
     // Real perspective, not a parallax multiplier. The plane sits at u_z in
     // front of / behind the screen and we hand the divide to the GPU by
     // writing w instead of pre-scaling xy — so near planes genuinely sweep
@@ -255,6 +267,7 @@
     "varying vec2 v_uv;",
     "varying float v_bend;",
     "varying float v_fold;",
+    "varying float v_sy;",
     "uniform sampler2D u_tex;",
     "uniform vec2 u_cover;", // uv scale for object-fit: cover
     "uniform vec2 u_offset;",
@@ -269,19 +282,41 @@
     NOISE,
     "void main(){",
     "  vec2 uv = v_uv * u_cover + u_offset;",
+    /* ── THE LENS ALONG THE TOP OF THE WINDOW ───────────────────────────
+       A band across the top eighth of the viewport that the covers pass
+       THROUGH rather than merely behind. Two things happen inside it and
+       both are properties of a curved edge rather than of the image:
+
+       the sample is pulled toward the boundary on a cosine, hardest right at
+       the edge and gone by the bottom of the band -- which is what a
+       cylindrical lens does to what is behind it; and the channels separate
+       along the same axis, because a real edge disperses.
+
+       Scaled by scroll velocity ON TOP OF a resting term. At rest it holds a
+       little curvature, so a still page still shows it; thrown, it bends
+       hard. Zero everywhere below the band, so this costs a smoothstep for
+       every cover that is not near the top. */
+    "  float lens = smoothstep(0.14, 0.0, v_sy);",
+    "  float amt = lens * lens * (0.35 + min(abs(u_vel) * 9.0, 2.4));",
+    "  uv.y -= amt * 0.055 * cos(v_uv.x * 3.14159265 * 0.5);",
+    "  uv.x += amt * 0.012 * sin(v_uv.y * 3.14159265);",
     // hover ripple — a real ring travelling out from the cursor
     "  vec2 d = (v_uv - u_mouse) * u_aspect;",
     "  float dist = length(d);",
     "  float ring = sin(dist * 26.0 - u_time * 4.5) * exp(-dist * 4.5);",
     "  uv += normalize(d + 1e-5) * ring * 0.010 * u_hover;",
     // velocity chromatic split, strongest at the bent middle
-    "  float ca = (abs(u_vel) * 0.020 + u_hover * 0.0022) * (0.45 + abs(v_bend));",
+    "  float ca = (abs(u_vel) * 0.020 + u_hover * 0.0022) * (0.45 + abs(v_bend)) + amt * 0.010;",
     "  vec3 col;",
     "  col.r = texture2D(u_tex, uv + vec2(ca, ca * 0.35)).r;",
     "  col.g = texture2D(u_tex, uv).g;",
     "  col.b = texture2D(u_tex, uv - vec2(ca, ca * 0.35)).b;",
     // the bend catches light: the leading face brightens, the trailing dims
     "  col *= 1.0 + v_bend * 0.5;",
+    /* The rim. A lens edge is the brightest part of a lens, and without it
+       the band reads as a smudge rather than as something the image is
+       passing through. */
+    "  col += vec3(1.0, 0.94, 0.86) * pow(lens, 3.0) * 0.16 * (0.4 + min(abs(u_vel) * 6.0, 1.6));",
     // resting state sits back a touch; hover brings it fully forward
     "  float rest = mix(0.955, 1.06, u_hover);",
     "  col = mix(vec3(dot(col, vec3(0.299, 0.587, 0.114))), col, mix(0.96, 1.12, u_hover));",
