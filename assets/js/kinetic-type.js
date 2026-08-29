@@ -74,7 +74,7 @@
     W = 0,
     H = 0;
   var ptr = { x: -9999, y: -9999 },
-    burst = 0;
+    baseSize = 20;
 
   function layout() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -131,6 +131,84 @@
         x += cw;
       }
     }
+    /* ── THE ECHOES ─────────────────────────────────────────────────────
+       Sid, on noth.in: "this type of kinetic type and simplicity is so
+       beautifully animated i love it."
+
+       What that site does that mine did not: it shows the SAME sentence at
+       several stages of resolution at once. One clean instance in the middle
+       and a dozen half-formed copies scattered around it, each caught
+       somewhere between legible and dissolved. It is one idea rendered as a
+       process rather than as a state, and it is why the page reads as a thing
+       thinking rather than a thing animating.
+
+       So the band gains echoes. The centre copy is exact -- that is the one
+       you read -- and each ghost carries a `decay` that scatters its
+       characters from their homes by a fixed per-character amount, dims it,
+       and shrinks it. A ghost at 0.2 is a sentence you can almost read; one
+       at 0.9 is debris that used to be words.
+
+       The offsets are seeded off the character index rather than random, so
+       every visit shows the same arrangement -- a field that reshuffles on
+       reload is a screensaver, and this one is supposed to look like the same
+       thought, held at several depths.
+
+       Ghosts drift, obey the pointer and take the scroll shear like
+       everything else, but their springs pull them back to their DISPLACED
+       home rather than the true one. They never resolve. That is the point:
+       the middle one is the only sentence that made it. */
+    var GHOSTS = [
+      { x: 0.14, y: 0.2, d: 0.55, s: 0.52 },
+      { x: 0.82, y: 0.16, d: 0.75, s: 0.46 },
+      { x: 0.24, y: 0.78, d: 0.35, s: 0.6 },
+      { x: 0.76, y: 0.82, d: 0.62, s: 0.5 },
+      { x: 0.5, y: 0.08, d: 0.9, s: 0.4 },
+      { x: 0.08, y: 0.52, d: 0.85, s: 0.42 },
+      { x: 0.92, y: 0.55, d: 0.45, s: 0.55 },
+    ];
+    for (var gi = 0; gi < GHOSTS.length; gi++) {
+      var g = GHOSTS[gi];
+      var gsize = size * g.s;
+      ctx.font = "500 " + gsize + "px 'DM Mono', ui-monospace, monospace";
+      var glh = gsize * 2.1;
+      var gtop = h * g.y - ((LINES.length - 1) * glh) / 2;
+      for (var gl = 0; gl < LINES.length; gl++) {
+        var gt = LINES[gl];
+        var gw = ctx.measureText(gt).width;
+        var gx = w * g.x - gw / 2;
+        for (var gc = 0; gc < gt.length; gc++) {
+          var gch = gt[gc];
+          var gcw = ctx.measureText(gch).width;
+          if (gch !== " ") {
+            /* Seeded scatter. Two different multipliers on the same index so
+               x and y are not correlated, which they would visibly be with
+               one. */
+            var sx = (((n * 71) % 100) / 100 - 0.5) * gsize * 5.5 * g.d;
+            var sy = (((n * 131) % 100) / 100 - 0.5) * gsize * 3.2 * g.d;
+            out.push({
+              c: gch,
+              hx: gx + sx,
+              hy: gtop + gl * glh + sy,
+              x: gx + sx,
+              y: gtop + gl * glh + sy,
+              vx: 0,
+              vy: 0,
+              k: 20 + ((n * 29) % 18),
+              r: (((n * 53) % 100) / 100 - 0.5) * 0.5 * g.d,
+              vr: 0,
+              /* Ghosts keep their own size and their own dimness, and they
+                 are never counted as resolved -- see draw(). */
+              size: gsize,
+              ghost: 0.34 - g.d * 0.2,
+            });
+            n++;
+          }
+          gx += gcw;
+        }
+      }
+    }
+    ctx.font = "500 " + size + "px 'DM Mono', ui-monospace, monospace";
+    baseSize = size;
     chars = out;
     return true;
   }
@@ -178,6 +256,7 @@
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
+    ctx.font = "500 " + baseSize + "px 'DM Mono', ui-monospace, monospace";
     var light = document.documentElement.getAttribute("data-theme") === "light";
     for (var i = 0; i < chars.length; i++) {
       var c = chars[i];
@@ -185,11 +264,15 @@
          resolved sentence is the brightest thing in the band and a scattered
          field reads as having lost something. */
       var off = Math.min(1, (Math.abs(c.x - c.hx) + Math.abs(c.y - c.hy)) / 140);
-      var a = 0.9 - off * 0.62;
+      /* The resolved copy is bright and the echoes are not. That contrast is
+         the whole composition: one sentence made it, the rest are still
+         trying. */
+      var a = c.ghost !== undefined ? c.ghost * (1 - off * 0.5) : 0.9 - off * 0.62;
       ctx.save();
       ctx.translate(c.x, c.y);
       if (c.r) ctx.rotate(c.r);
-      ctx.globalAlpha = a;
+      ctx.globalAlpha = Math.max(0, a);
+      if (c.size && c.size !== baseSize) ctx.font = "500 " + c.size + "px 'DM Mono', ui-monospace, monospace";
       ctx.fillStyle = light ? "#14171c" : "#e9ecf2";
       ctx.fillText(c.c, 0, 0);
       ctx.restore();
