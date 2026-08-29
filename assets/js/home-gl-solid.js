@@ -243,99 +243,146 @@ window.__solidType = (function () {
     /* The extrusion. max() of the 2D field and a slab in z is the standard
        prism; subtracting a constant rounds every edge of it at once, which is
        where a piece of glass catches its light. */
-    "float map(vec3 p){",
+    /* ── THE SENTENCE, EXTRUDED ─────────────────────────────────────────── */
+    "float mapType(vec3 p){",
     "  float d2 = sdf2(p.xy);",
     "  float slab = abs(p.z) - 0.075;",
     "  return max(d2, slab) - 0.022;",
     "}",
+    /* ── THE VITRINE ─────────────────────────────────────────────────────
+       A rounded box around it, and the sentence sits inside.
+
+       Sid sent two references. Robert Aperios nests a solid orange core
+       inside a frosted shell; Scott Darby runs one enormous cube past the
+       edges of the frame with a different surface on every face. What is
+       good in both is the same thing: a single object, and something to look
+       THROUGH before you get to the thing that matters.
+
+       So the words are in a case. Not for decoration -- the shell is what
+       makes the refraction mean something, because now there are two
+       surfaces between the reader and the claim, and the outer one displaces
+       the inner one as it turns. A solid alone refracts the page behind it.
+       A solid inside a case refracts ITSELF, which is a picture you cannot
+       get from a mesh without rendering the whole thing twice.
+
+       Rounded because a hard cube reads as a UI container. The corner radius
+       is generous enough to catch a highlight along every edge, which is
+       where the case announces itself at all -- it is otherwise almost
+       invisible, and that is the intent. */
+    "float sdRoundBox(vec3 p, vec3 b, float r){",
+    "  vec3 q = abs(p) - b + r;",
+    "  return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;",
+    "}",
+    "float mapCase(vec3 p){",
+    "  return sdRoundBox(p, vec3(1.06, 0.40, 0.30), 0.10);",
+    "}",
+    /* The scene returns both the distance and WHICH surface it is, so the
+       shading stage can treat the case and the letters as different
+       materials off one march. Packing the id into y is the standard trick
+       and costs nothing. */
+    "vec2 mapAll(vec3 p){",
+    "  float a = mapType(p);",
+    "  float b = mapCase(p);",
+    "  return a < b ? vec2(a, 1.0) : vec2(b, 2.0);",
+    "}",
+    "float map(vec3 p){ return mapAll(p).x; }",
     "vec3 nrm(vec3 p){",
     "  vec2 e = vec2(1.0, -1.0) * 0.0016;",
     "  return normalize(e.xyy * map(p + e.xyy) + e.yyx * map(p + e.yyx) + e.yxy * map(p + e.yxy) + e.xxx * map(p + e.xxx));",
     "}",
 
+    /* ── TWO MARCHES, ONE COMPOSITE ──────────────────────────────────────
+       The first attempt marched the union of the case and the letters, which
+       meant the ray stopped at whichever came first -- and the case is always
+       first, because it is around them. The sentence was perfectly rendered
+       and completely invisible inside an opaque white slab.
+
+       A case you cannot see through is not a case. So the two are marched
+       SEPARATELY and composited: the letters first, then the shell over them
+       with its own low alpha. That also lets each carry its own material
+       without an id branch, and it is what makes the shell's refraction
+       displace the sentence rather than replace it. */
     "void main(){",
     "  vec2 uv = v_uv;",
     "  uv.x *= u_aspect;",
     "  vec3 ro = vec3(0.0, 0.0, 2.6);",
     "  vec3 rd = normalize(vec3(uv * 0.42, -1.0));",
-    /* The object turns rather than the camera, so the type stays centred in
-       the frame while its faces move. A sine rather than a spin: the words
-       have to be readable, and a full rotation makes them illegible for half
-       of every cycle. */
     "  float a = sin(u_time * 0.16) * 0.30 + u_ptr.x * 0.22;",
     "  float b = sin(u_time * 0.11 + 1.3) * 0.12 - u_ptr.y * 0.14;",
-    "  mat2 ry = rot(a), rx = rot(b);",
+    "  mat2 ry = rot(a), rx = rot(b), ryI = rot(-a), rxI = rot(-b);",
+    "  vec2 base = v_uv * 0.5 + 0.5;",
+    "  vec3 key = vec3(1.00, 0.86, 0.68), cool = vec3(0.30, 0.46, 0.72);",
+    "  vec3 L = normalize(vec3(-0.42, 0.68, 0.60));",
 
-    "  float t = 0.0;",
-    "  float hit = 0.0;",
-    "  vec3 p = ro;",
-    "  for (int i = 0; i < 64; i++) {",
-    "    p = ro + rd * t;",
-    "    vec3 q = p;",
-    "    q.xz *= ry;",
-    "    q.yz *= rx;",
-    "    float d = map(q);",
-    "    if (d < 0.0009) { hit = 1.0; break; }",
-    "    t += d * 0.75;",
-    "    if (t > 5.0) break;",
+    /* ── the letters ── */
+    "  vec4 typeOut = vec4(0.0);",
+    "  {",
+    "    float t = 0.0; vec3 p = ro; float hit = 0.0;",
+    "    for (int i = 0; i < 72; i++) {",
+    "      p = ro + rd * t;",
+    "      vec3 q = p; q.xz *= ry; q.yz *= rx;",
+    "      float d = mapType(q);",
+    "      if (d < 0.0009) { hit = 1.0; break; }",
+    "      t += d * 0.75;",
+    "      if (t > 5.0) break;",
+    "    }",
+    "    if (hit > 0.5) {",
+    "      vec3 q = p; q.xz *= ry; q.yz *= rx;",
+    "      vec2 e = vec2(1.0, -1.0) * 0.0016;",
+    "      vec3 n = normalize(e.xyy * mapType(q + e.xyy) + e.yyx * mapType(q + e.yyx) + e.yxy * mapType(q + e.yxy) + e.xxx * mapType(q + e.xxx));",
+    "      vec3 N = n; N.yz *= rxI; N.xz *= ryI;",
+    "      vec3 rr = refract(rd, N, 0.72), rg = refract(rd, N, 0.70), rb = refract(rd, N, 0.68);",
+    "      vec3 col;",
+    "      col.r = texture(u_bg, base + rr.xy * 0.28).r;",
+    "      col.g = texture(u_bg, base + rg.xy * 0.28).g;",
+    "      col.b = texture(u_bg, base + rb.xy * 0.28).b;",
+    "      float thick = clamp(0.5 - mapType(q + vec3(0.0, 0.0, -0.06)) * 3.0, 0.0, 1.0);",
+    "      col *= exp(-vec3(0.55, 0.38, 0.26) * thick * 1.1);",
+    "      float fres = pow(1.0 - max(0.0, dot(N, -rd)), 3.0);",
+    "      col += mix(cool, key, 0.4) * fres * 1.15;",
+    "      col += key * pow(max(0.0, dot(N, normalize(L - rd))), 60.0) * 1.8;",
+    "      col += key * max(0.0, dot(N, L)) * 0.22;",
+    "      col = mix(col, mix(col, vec3(0.10, 0.12, 0.16), 0.45), u_light);",
+    "      typeOut = vec4(col, clamp(0.62 + fres * 0.8 + thick * 0.5, 0.0, 1.0));",
+    "    }",
     "  }",
 
-    "  if (hit < 0.5) { o = vec4(0.0); return; }",
+    /* ── the case, over them ── */
+    "  vec4 caseOut = vec4(0.0);",
+    "  {",
+    "    float t = 0.0; vec3 p = ro; float hit = 0.0;",
+    "    for (int i = 0; i < 40; i++) {",
+    "      p = ro + rd * t;",
+    "      vec3 q = p; q.xz *= ry; q.yz *= rx;",
+    "      float d = mapCase(q);",
+    "      if (d < 0.0012) { hit = 1.0; break; }",
+    "      t += d * 0.9;",
+    "      if (t > 5.0) break;",
+    "    }",
+    "    if (hit > 0.5) {",
+    "      vec3 q = p; q.xz *= ry; q.yz *= rx;",
+    "      vec2 e = vec2(1.0, -1.0) * 0.002;",
+    "      vec3 n = normalize(e.xyy * mapCase(q + e.xyy) + e.yyx * mapCase(q + e.yyx) + e.yxy * mapCase(q + e.yxy) + e.xxx * mapCase(q + e.xxx));",
+    "      vec3 N = n; N.yz *= rxI; N.xz *= ryI;",
+    "      float f2 = pow(1.0 - max(0.0, dot(N, -rd)), 2.4);",
+    /* Almost nothing across the face and everything at the edges. A frosted
+       case is a surface that tells you about its own shape, not about what
+       is behind it -- and if it tells you much of anything across the middle
+       it is a wall, which is exactly what the first version built. */
+    "      vec3 cc = mix(cool, key, 0.45) * f2 * 1.35;",
+    "      cc += key * pow(max(0.0, dot(N, normalize(L - rd))), 34.0) * 1.1;",
+    "      cc = mix(cc, mix(cc, vec3(0.12, 0.14, 0.18), 0.4), u_light);",
+    "      caseOut = vec4(cc, clamp(f2 * 0.62, 0.0, 0.55));",
+    "    }",
+    "  }",
 
-    "  vec3 q = p;",
-    "  q.xz *= ry;",
-    "  q.yz *= rx;",
-    "  vec3 n = nrm(q);",
-    /* Back into world space. The inverse of a rotation is its transpose, and
-       for a 2D rotation that is the negated angle -- cheaper than carrying a
-       matrix. */
-    "  vec3 N = n;",
-    "  N.yz *= rot(-b);",
-    "  N.xz *= rot(-a);",
-
-    /* ── REFRACTION ───────────────────────────────────────────────────────
-       The view ray is bent through the surface and used to look up the page
-       behind. Three indices, so the edges carry a fringe: this is what makes
-       glass read as glass rather than as a tinted shape. */
-    "  vec2 base = v_uv * 0.5 + 0.5;",
-    "  vec3 rr = refract(rd, N, 0.72);",
-    "  vec3 rg = refract(rd, N, 0.70);",
-    "  vec3 rb = refract(rd, N, 0.68);",
-    "  float k = 0.28;",
-    "  vec3 col;",
-    "  col.r = texture(u_bg, base + rr.xy * k).r;",
-    "  col.g = texture(u_bg, base + rg.xy * k).g;",
-    "  col.b = texture(u_bg, base + rb.xy * k).b;",
-
-    /* Beer's law. The deeper the ray travels through the solid, the more is
-       absorbed -- so the thick middle of a stroke is darker than its thin
-       edge. This is the cue that says VOLUME rather than window, and it is
-       the one most glass shaders leave out. */
-    "  float thick = clamp(0.5 - map(q + vec3(0.0, 0.0, -0.06)) * 3.0, 0.0, 1.0);",
-    /* Absorption, lightened hard. The first numbers made the letters read
-       as dark chocolate rather than glass: on a near-black page a transparent
-       object that absorbs most of what passes through it is just a dark
-       shape. Enough tint to say the solid has depth, not enough to swallow
-       the page behind it. */
-    "  vec3 absorb = exp(-vec3(0.55, 0.38, 0.26) * thick * 1.1);",
-    "  col *= absorb;",
-
-    "  vec3 key = vec3(1.00, 0.86, 0.68);",
-    "  vec3 cool = vec3(0.30, 0.46, 0.72);",
-    "  float fres = pow(1.0 - max(0.0, dot(N, -rd)), 3.0);",
-    "  col += mix(cool, key, 0.4) * fres * 1.15;",
-    "  vec3 L = normalize(vec3(-0.42, 0.68, 0.60));",
-    "  vec3 H = normalize(L - rd);",
-    "  col += key * pow(max(0.0, dot(N, H)), 60.0) * 1.8;",
-    "  col += key * max(0.0, dot(N, L)) * 0.22;",
-
-    "  col = mix(col, mix(col, vec3(0.10, 0.12, 0.16), 0.45), u_light);",
-    /* Raised hard from the first pass, which was very nearly invisible on
-       a dark page. Glass is mostly edge, but a piece of glass THIS SIZE is
-       also the subject of the hero, and a subject you have to hunt for is not
-       one. */
-    "  float alpha = clamp(0.52 + fres * 0.85 + thick * 0.5, 0.0, 1.0);",
-    "  o = vec4(col * alpha, alpha);",
+    /* Case over letters over page. */
+    "  vec3 col = typeOut.rgb * typeOut.a;",
+    "  float alpha = typeOut.a;",
+    "  col = caseOut.rgb * caseOut.a + col * (1.0 - caseOut.a);",
+    "  alpha = caseOut.a + alpha * (1.0 - caseOut.a);",
+    "  if (alpha <= 0.001) { o = vec4(0.0); return; }",
+    "  o = vec4(col, alpha);",
     "}",
   ].join("\n");
 
