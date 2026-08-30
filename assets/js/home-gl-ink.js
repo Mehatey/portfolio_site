@@ -73,6 +73,8 @@ window.__ink = (function () {
   var PART_SIDE = 256;
   var SCENE_W = 1024,
     SCENE_H = 576;
+  var phrase = 0,
+    phraseT = 0;
   var vel = null,
     dye = null,
     part = null,
@@ -82,7 +84,7 @@ window.__ink = (function () {
     div = null,
     prs = null,
     txt = null;
-  var ptr = { x: 0.5, y: 0.5, px: 0.5, py: 0.5, down: 0, moved: 0 };
+  var ptr = { x: 0.5, y: 0.5, px: 0.5, py: 0.5, down: 0, held: 0, moved: 0 };
   var injectT = 0;
 
   var VS = [
@@ -362,11 +364,12 @@ window.__ink = (function () {
     [
       "uniform sampler2D u_src, u_txt;",
       "uniform float u_amt;",
+      "uniform vec3 u_tint;",
       "void main(){",
       "  float m = texture(u_txt, v_uv).r;",
       "  vec3 c = texture(u_src, v_uv).xyz;",
       /* Warm at the core, cooler at the edges of a stroke, so the ink has depth
-       the instant it lands rather than being a flat fill. */ "  vec3 tint = mix(vec3(0.30, 0.46, 0.72), vec3(1.00, 0.86, 0.68), smoothstep(0.35, 0.95, m));",
+       the instant it lands rather than being a flat fill. */ "  vec3 tint = mix(u_tint * 0.45, u_tint, smoothstep(0.35, 0.95, m));",
       "  o = vec4(c + tint * m * u_amt, 1.0);",
       "}",
     ].join("\n");
@@ -470,7 +473,25 @@ window.__ink = (function () {
     gl.uniform1i(p.u[name], unit);
   }
 
-  function makeText() {
+  /* ── THE SENTENCE IS A SEQUENCE ───────────────────────────────────────
+     The hero was one phrase being stirred, which is an effect. These are the
+     five things this site actually has to say, written one after another into
+     the same water -- so the ink is not decoration on a headline, it is how
+     the argument arrives.
+
+     Each carries its own hue and they MIX, because that is what dyes do: the
+     tail of one phrase is still dispersing while the next is being written,
+     and where they overlap the colour is the sum. Nothing crossfades. The
+     previous statement is physically still in the tank. */
+  var PHRASES = [
+    { a: "PRODUCT", b: "DESIGNER", tint: [1.0, 0.86, 0.68] },
+    { a: "SIX YEARS", b: "IN NEW YORK", tint: [0.42, 0.66, 0.95] },
+    { a: "RESEARCH TO", b: "SHIPPED CODE", tint: [0.98, 0.62, 0.42] },
+    { a: "I DESIGN IT", b: "AND I BUILD IT", tint: [0.55, 0.92, 0.78] },
+    { a: "OPEN", b: "TO ROLES", tint: [1.0, 0.78, 0.86] },
+  ];
+
+  function makeText(top, bottom) {
     var c = document.createElement("canvas");
     c.width = DYE_W;
     c.height = DYE_H;
@@ -486,9 +507,18 @@ window.__ink = (function () {
     x.filter = "blur(2px)";
     var f = 'Figtree, "Helvetica Neue", Arial, sans-serif';
     x.letterSpacing = "10px";
-    x.font = "600 " + Math.round(DYE_W * 0.088) + "px " + f;
-    x.fillText("PRODUCT", DYE_W / 2, DYE_H * 0.4);
-    x.fillText("DESIGNER", DYE_W / 2, DYE_H * 0.6);
+    /* Sized to the longest line so a fourteen-character phrase does not run
+       off the tank while a seven-character one sits in the middle of it. */
+    var size = Math.round(DYE_W * 0.088);
+    x.font = "600 " + size + "px " + f;
+    var longest = Math.max(x.measureText(top).width, x.measureText(bottom).width);
+    var cap = DYE_W * 0.82;
+    if (longest > cap) {
+      size = Math.floor(size * (cap / longest));
+      x.font = "600 " + size + "px " + f;
+    }
+    x.fillText(top, DYE_W / 2, DYE_H * 0.4);
+    x.fillText(bottom, DYE_W / 2, DYE_H * 0.6);
     var t = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, t);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
@@ -531,7 +561,7 @@ window.__ink = (function () {
     P.grad = prog(GRADIENT, ["u_prs", "u_vel", "u_texel"]);
     P.vort = prog(VORTICITY, ["u_vel", "u_texel", "u_dt", "u_curl"]);
     P.splat = prog(SPLAT, ["u_src", "u_point", "u_value", "u_radius", "u_aspect"]);
-    P.inject = prog(INJECT, ["u_src", "u_txt", "u_amt"]);
+    P.inject = prog(INJECT, ["u_src", "u_txt", "u_amt", "u_tint"]);
     P.render = prog(RENDER, ["u_dye", "u_texel", "u_light"]);
     P.psim = prog(PART_SIM, ["u_prev", "u_vel", "u_dt", "u_time"]);
     P.bright = prog(BRIGHT, ["u_src", "u_thresh"]);
@@ -576,11 +606,15 @@ window.__ink = (function () {
     dye = fbo(DYE_W, DYE_H, gl.RGBA16F, gl.RGBA);
     div = fbo(SIM_W, SIM_H, gl.R16F, gl.RED);
     prs = fbo(SIM_W, SIM_H, gl.R16F, gl.RED);
-    txt = makeText();
+    txt = PHRASES.map(function (ph) {
+      return makeText(ph.a, ph.b);
+    });
     vao = gl.createVertexArray();
 
     window.addEventListener("pointermove", onMove, { passive: true });
     window.addEventListener("pointerdown", onDown, { passive: true });
+    window.addEventListener("pointerup", onUp, { passive: true });
+    window.addEventListener("pointercancel", onUp, { passive: true });
     ready = true;
     return true;
   }
@@ -598,6 +632,10 @@ window.__ink = (function () {
     var r = host.getBoundingClientRect();
     if (e.clientY < r.top || e.clientY > r.bottom) return;
     ptr.down = 1;
+    ptr.held = 1;
+  }
+  function onUp() {
+    ptr.held = 0;
   }
 
   function splat(target, x, y, vx, vy, vz, radius) {
@@ -647,8 +685,38 @@ window.__ink = (function () {
         var a2 = (b / 8) * Math.PI * 2;
         splat(vel, ptr.x, ptr.y, Math.cos(a2) * 3800, Math.sin(a2) * 3800, 0, 0.0006);
       }
-      splat(dye, ptr.x, ptr.y, 0.5, 0.42, 0.34, 0.0004);
+      splat(dye, ptr.x, ptr.y, 0.35, 0.3, 0.24, 0.0004);
       ptr.down = 0;
+    }
+
+    /* ── HOLDING IS DIFFERENT FROM CLICKING ─────────────────────────────
+       A single impulse is a thing you did to the fluid; a sustained force is
+       a thing you are DOING to it, and holding is the most natural gesture
+       there is with water. Every frame the pointer is down it pours dye and
+       spins the field around itself -- so the longer you hold, the bigger
+       the vortex you are winding up.
+
+       Alternating sign on the tangential term by frame parity would flutter;
+       a constant sign builds a real rotation. */
+    if (ptr.held) {
+      splat(dye, ptr.x, ptr.y, 0.02, 0.017, 0.014, 0.00022);
+      var tx = -(ptr.y - 0.5),
+        ty = ptr.x - 0.5;
+      var tl = Math.hypot(tx, ty) + 0.001;
+      splat(vel, ptr.x, ptr.y, (tx / tl) * 1600, (ty / tl) * 1600, 0, 0.0004);
+    }
+
+    /* ── SCROLL MOVES THE WATER ─────────────────────────────────────────
+       The site publishes one damped scroll velocity that the Play grid, the
+       archive corridor, the covers and the kinetic type all read. This is the
+       fifth consumer and it needed no new measurement: throwing the page
+       drags the whole tank sideways, so the hero is disturbed by the act of
+       leaving it. */
+    var sv = window.__sv ? window.__sv() : { v: 0, a: 0 };
+    if (sv.a > 0.01) {
+      for (var q = 0; q < 3; q++) {
+        splat(vel, 0.5, 0.22 + q * 0.28, sv.v * -2600, sv.v * 700, 0, 0.02);
+      }
     }
 
     /* ── the sentence, written into the ink ── */
@@ -685,12 +753,34 @@ window.__ink = (function () {
        For a steady state of about 0.9 -- bright, not clipped -- the amount
        is 0.9 * (1 - 0.987). The breath is a tenth of that. */
     var amt = 0.0117 + Math.sin(injectT * 0.42) * 0.0012;
-    if (amt > 0.0005) {
+
+    /* ── ONE PHRASE AT A TIME, AND NO CROSSFADE ─────────────────────────
+       Nine seconds each, then the writing stops for two while the tank
+       clears, then the next begins. The gap is deliberate and it is the
+       opposite of the mistake made earlier in this file: back then the ink
+       stopped being written and the frame went EMPTY, because nothing else
+       was there. Now the previous phrase is still dispersing through the
+       whole gap, so what you get is not blankness but a statement coming
+       apart before the next one is written into its remains. */
+    phraseT += dtReal;
+    if (phraseT > 11.0) {
+      phraseT = 0;
+      phrase = (phrase + 1) % PHRASES.length;
+    }
+    var write = phraseT < 9.0 ? 1 : 0;
+    /* Eased in over the first second so a phrase arrives rather than
+       appearing, and out over the last, so it stops being replenished before
+       it stops being legible. */
+    if (write) write = Math.min(1, phraseT / 1.0) * Math.min(1, (9.0 - phraseT) / 1.4);
+
+    if (amt * write > 0.0004) {
+      var ph = PHRASES[phrase];
       gl.viewport(0, 0, dye.w, dye.h);
       gl.useProgram(P.inject);
       bindTex(P.inject, "u_src", dye.a.t, 0);
-      bindTex(P.inject, "u_txt", txt, 1);
-      gl.uniform1f(P.inject.u.u_amt, amt);
+      bindTex(P.inject, "u_txt", txt[phrase], 1);
+      gl.uniform1f(P.inject.u.u_amt, amt * write);
+      gl.uniform3f(P.inject.u.u_tint, ph.tint[0], ph.tint[1], ph.tint[2]);
       draw(dye.b);
       dye.swap();
     }
@@ -897,6 +987,8 @@ window.__ink = (function () {
         particles: PART_SIDE * PART_SIDE,
         bloom: !!P.bright,
         pdraw: !!P.pdraw,
+        phrase: PHRASES[phrase].a + " " + PHRASES[phrase].b,
+        held: ptr.held,
         sim: [SIM_W, SIM_H],
         dye: [DYE_W, DYE_H],
         iter: PRESSURE_ITER,
