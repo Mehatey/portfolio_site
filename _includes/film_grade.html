@@ -1,0 +1,135 @@
+{% comment %} ══════════════════════════════════════════════════════════════════ THE WHOLE PAGE IS ONE PHOTOGRAPH The hero is graded: bloom, grain,
+chromatic aberration, a vignette, an ACES shoulder. Everything below it was raw CSS on a flat ground. So the page read as a striking hero bolted onto
+a document -- the seam was visible at exactly the point where the canvas ended, because one half was photographed and the other was rendered. This is
+the grade, applied to the whole document. Two layers, fixed to the viewport, above everything and inert to the pointer: GRAIN real noise, generated
+once into a 128px tile and stepped through four positions a second. Film grain does not slide -- it is a new field of silver every frame -- so the
+movement is a steps() animation rather than a smooth translate, which is the difference between grain and a moving texture. VIGNETTE a corner falloff.
+Every lens has one, and its absence is a large part of why a CSS page reads as flat: real images are darker at the edges and the eye reads that as
+depth. WHY NOT A SHADER OVER THE PAGE Because a browser gives no way to read back rendered DOM pixels, so a full-screen post pass cannot sample what
+is underneath it. Everything here is therefore ADDITIVE or multiplicative and needs no read: grain is overlaid, the vignette multiplies. The two
+effects that would need the backbuffer -- aberration and bloom over DOM content -- stay inside the hero's own canvas, where the pixels are ours. The
+tile is generated in JS rather than shipped as a PNG. 128x128 of real random bytes is about 16KB of ImageData and costs one frame at boot; the same
+thing as a file is a network request for something the CPU can make faster than it can download. {% endcomment %}
+
+<div class="film" aria-hidden="true">
+  <div class="film__grain" id="film-grain"></div>
+  <div class="film__vig"></div>
+</div>
+
+<style>
+  .film {
+    position: fixed;
+    inset: 0;
+    /* Above the page and below the nav, so chrome stays crisp -- grain over
+       a 10px monospace label is the one place it costs legibility. */
+    z-index: 8000;
+    pointer-events: none;
+    contain: strict;
+  }
+  .film__grain {
+    position: absolute;
+    /* Oversized and offset, because the tile is animated by translation and
+       an exactly-viewport-sized layer would show its own edge as it moves. */
+    inset: -60px;
+    background-repeat: repeat;
+    background-size: 128px 128px;
+    opacity: 0.055;
+    /* soft-light rather than overlay: overlay drives midtones hard and turns
+       a dark page muddy, soft-light disturbs the surface without moving the
+       value. */
+    mix-blend-mode: soft-light;
+    animation: film-grain 0.8s steps(1) infinite;
+  }
+  /* Eight positions, stepped. A smooth translate reads as a texture sliding
+     across the page; film grain is a new field of silver every frame, and
+     the discontinuity is the whole point. */
+  @keyframes film-grain {
+    0% {
+      transform: translate(0, 0);
+    }
+    12.5% {
+      transform: translate(-14px, 9px);
+    }
+    25% {
+      transform: translate(11px, -17px);
+    }
+    37.5% {
+      transform: translate(-21px, -6px);
+    }
+    50% {
+      transform: translate(7px, 19px);
+    }
+    62.5% {
+      transform: translate(-9px, -12px);
+    }
+    75% {
+      transform: translate(18px, 5px);
+    }
+    87.5% {
+      transform: translate(-5px, 14px);
+    }
+  }
+  .film__vig {
+    position: absolute;
+    inset: 0;
+    /* ── A VIGNETTE MUST NOT COST LEGIBILITY ──────────────────────────
+       The first values -- 0.18 at 78% and 0.42 in the corner -- read as a
+       reasonable lens falloff in isolation and were measurably wrong on this
+       page: the left column of body copy sits inside the darkened band, and
+       at 1200 wide the whole "I am a product designer" paragraph came back
+       visibly dimmer than the text beside it.
+
+       A vignette is a depth cue, not a mood. It has to live outside the
+       measure. Nothing until 68%, and a third of the previous strength at
+       the very corner -- which is enough for the eye to read as an edge and
+       not enough for it to read as shade. */
+    background: radial-gradient(135% 115% at 50% 45%, transparent 68%, rgba(0, 0, 0, 0.07) 88%, rgba(0, 0, 0, 0.16) 100%);
+  }
+  /* On cream the corners cool rather than darken. A light page with black
+     corners reads as a photograph of a screen; a light page with cool
+     corners reads as paper under a lamp. */
+  html[data-theme="light"] .film__vig {
+    background: radial-gradient(135% 115% at 50% 45%, transparent 72%, rgba(46, 52, 66, 0.035) 90%, rgba(46, 52, 66, 0.08) 100%);
+  }
+  html[data-theme="light"] .film__grain {
+    opacity: 0.04;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .film__grain {
+      animation: none;
+    }
+  }
+  /* A phone is held closer, its pixels are smaller, and it is more likely to
+     be on a slow GPU compositing a full-screen blended layer. Grain comes
+     down; the vignette stays, because that one is free. */
+  @media (max-width: 760px) {
+    .film__grain {
+      opacity: 0.035;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var host = document.getElementById("film-grain");
+    if (!host) return;
+    /* Monochrome noise in the alpha channel only, so the tile tints nothing
+       and soft-light can do its job against whatever colour is underneath.
+       Random per byte rather than a repeating function: a procedural pattern
+       at this scale shows its period as a visible weave. */
+    var N = 128;
+    var c = document.createElement("canvas");
+    c.width = c.height = N;
+    var ctx = c.getContext("2d");
+    if (!ctx) return;
+    var img = ctx.createImageData(N, N);
+    var d = img.data;
+    for (var i = 0; i < N * N; i++) {
+      var v = (Math.random() * 255) | 0;
+      d[i * 4] = d[i * 4 + 1] = d[i * 4 + 2] = v;
+      d[i * 4 + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    host.style.backgroundImage = "url(" + c.toDataURL("image/png") + ")";
+  })();
+</script>
