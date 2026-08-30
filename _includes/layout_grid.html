@@ -122,4 +122,168 @@ listener of its own -- so throwing the page separates the frame from the content
       transform: none;
     }
   }
+
+  /* ══ THE IDLE DRIFT ═════════════════════════════════════════════════════
+     Styles for assets/js/idle-drift.js, kept here because this file is
+     already the document-level overlay include and a third fixed layer with
+     its own <style> block is one more thing to keep in z-order sync.
+
+     Z-ORDER. 7000: over the page and the layout grid, under the film grade at
+     8000 and under the nav. Glass that sits on top of the navigation is a
+     modal; glass that passes behind it is weather. */
+  .idle-drift {
+    position: fixed;
+    inset: 0;
+    z-index: 7000;
+    pointer-events: none;
+    opacity: 0;
+    /* In slowly, out fast. Arriving over 2.4s is what makes it ambient rather
+       than an event; leaving in 0.45 is what keeps it from ever being in the
+       way of somebody who has just decided to read something. */
+    transition: opacity 450ms ease;
+  }
+  .idle-drift.is-on {
+    opacity: 1;
+    transition: opacity 2400ms cubic-bezier(0.33, 0, 0.15, 1);
+  }
+
+  .idle-drift__p {
+    position: absolute;
+    top: 0;
+    left: 0;
+    will-change: transform;
+    border-radius: 22%;
+    /* ── THE GLASS ────────────────────────────────────────────────────
+       The only part of this that is real optics. backdrop-filter composites
+       against whatever is actually behind the element, so over a photograph
+       these carry the photograph — blurred, a little more saturated, pushed
+       slightly bright, which is what a thick piece of glass does to what is
+       behind it. Everything below is jewellery painted on top of that.
+
+       The brightness lift is small on purpose: over the dark page it is the
+       difference between a pane and a hole, and any more than this turns
+       every object into a flashlight. */
+    backdrop-filter: blur(9px) saturate(1.5) brightness(1.06);
+    -webkit-backdrop-filter: blur(9px) saturate(1.5) brightness(1.06);
+    background: linear-gradient(148deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.03) 42%, rgba(255, 255, 255, 0.1));
+    box-shadow:
+      /* the lit top edge and the shaded bottom one — a single object cannot
+         read as solid without them */
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+      /* the rim, which is where a real piece of glass keeps almost all of
+         its light */ 0 0 0 1px rgba(255, 255, 255, 0.16),
+      0 18px 40px -16px rgba(0, 0, 0, 0.55);
+  }
+
+  /* The caustic. One bright seam running across the face at an angle, which
+     is the single most recognisable thing about a curved piece of glass and
+     costs one pseudo-element. */
+  .idle-drift__p::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(115deg, transparent 34%, rgba(255, 255, 255, 0.42) 47%, transparent 56%);
+    opacity: 0.75;
+  }
+  /* The fringe. Real glass splits what it bends; two faint complementary
+     washes at opposite corners are enough to suggest it without the object
+     turning into a rainbow. */
+  .idle-drift__p::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background:
+      radial-gradient(60% 60% at 18% 14%, rgba(120, 190, 255, 0.3), transparent 70%),
+      radial-gradient(60% 60% at 82% 86%, rgba(255, 168, 120, 0.24), transparent 70%);
+    mix-blend-mode: screen;
+    opacity: 0.6;
+  }
+
+  /* ── THE CUBES ────────────────────────────────────────────────────────
+     Two of the seven. Not a real 3D cube — three faces on a flat hexagon,
+     which is the isometric convention and is legible at 60px in a way a
+     perspective cube at this size is not. The tile's own glass is switched
+     off and each face carries its own, so the three planes take the
+     background at three different angles. */
+  .idle-drift__p.is-cube {
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    border-radius: 0;
+  }
+  .idle-drift__p.is-cube::before,
+  .idle-drift__p.is-cube::after {
+    content: none;
+  }
+  .idle-drift__p .f {
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(9px) saturate(1.5);
+    -webkit-backdrop-filter: blur(9px) saturate(1.5);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+  }
+  /* The three faces of a unit isometric cube, in percentages of the box. */
+  .idle-drift__p .f--top {
+    clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);
+    background: rgba(255, 255, 255, 0.2);
+  }
+  .idle-drift__p .f--l {
+    clip-path: polygon(0% 25%, 50% 50%, 50% 100%, 0% 75%);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  .idle-drift__p .f--r {
+    clip-path: polygon(100% 25%, 100% 75%, 50% 100%, 50% 50%);
+    background: rgba(255, 255, 255, 0.11);
+  }
+
+  /* ── THE ONE WITH A FACE ──────────────────────────────────────────────
+     "u can add a face to one side." One of seven. It rides the right-hand
+     face of a cube, so it turns away and comes back as the object rotates,
+     and the two eyes are the site's own mark — the same two dots that are in
+     the logo, which is what stops it reading as a smiley. */
+  .idle-drift__p .eye,
+  .idle-drift__p .mouth {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 2px;
+  }
+  .idle-drift__p .eye {
+    width: 8%;
+    height: 8%;
+    top: 52%;
+  }
+  .idle-drift__p .eye:nth-of-type(1) {
+    left: 62%;
+  }
+  .idle-drift__p .eye:nth-of-type(2) {
+    left: 80%;
+  }
+  .idle-drift__p .mouth {
+    left: 63%;
+    top: 66%;
+    width: 24%;
+    height: 5%;
+    border-radius: 0 0 6px 6px;
+    opacity: 0.75;
+  }
+
+  html[data-theme="light"] .idle-drift__p {
+    backdrop-filter: blur(9px) saturate(1.35) brightness(0.99);
+    -webkit-backdrop-filter: blur(9px) saturate(1.35) brightness(0.99);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.85),
+      inset 0 -1px 0 rgba(46, 52, 66, 0.06),
+      0 0 0 1px rgba(46, 52, 66, 0.1),
+      0 18px 40px -16px rgba(46, 52, 66, 0.28);
+  }
+  html[data-theme="light"] .idle-drift__p .eye,
+  html[data-theme="light"] .idle-drift__p .mouth {
+    background: rgba(46, 52, 66, 0.75);
+  }
 </style>
+
+<script src="{{ site.baseurl }}/assets/js/idle-drift.js" defer></script>
