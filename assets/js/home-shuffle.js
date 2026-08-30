@@ -149,13 +149,19 @@
        starts, the hero's figure and film plate stand down and it is the whole
        subject; if it cannot, .is-solid is never set and the room is exactly
        what it was. */
-    if (window.__solidType) {
-      if (i === 0) {
-        if (window.__solidType.start()) hero.classList.add("is-solid");
-      } else {
-        window.__solidType.stop();
-        hero.classList.remove("is-solid");
-      }
+    /* 01 is mercury: the sentence as liquid metal you can stir and break.
+       The glass version stays underneath as the fallback -- it is cheaper by
+       a wide margin, and the machine that cannot afford a ninety-step march
+       with fourteen smooth minima in its inner loop should still get an
+       object rather than nothing. */
+    if (i === 0) {
+      var on01 = window.__mercury && window.__mercury.start();
+      if (!on01 && window.__solidType) on01 = window.__solidType.start();
+      if (on01) hero.classList.add("is-solid");
+    } else {
+      if (window.__mercury) window.__mercury.stop();
+      if (window.__solidType) window.__solidType.stop();
+      hero.classList.remove("is-solid");
     }
     if (window.__wallLight) {
       if (DIRS[i].id === "wall") window.__wallLight.start();
