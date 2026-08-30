@@ -1,0 +1,125 @@
+{% comment %} ══════════════════════════════════════════════════════════════════ THE PAGE HAS A STRUCTURE, AND YOU CAN SEE IT Sid: "i want the grid
+lines from the logo horizontal and vertical that we had done i think on the works page to be on every page." Six vertical hairlines and three
+horizontal ones, fixed to the viewport, at the same gutter and column rhythm the content is laid out on. This is the oldest trick in editorial design
+and it does two things at once: it tells the reader the page was set rather than assembled, and it gives every full-bleed element -- the hero canvas,
+the pond, the wall -- something to be measured against, which is what makes a big empty area read as composed rather than as empty. They are FIXED,
+not scrolled, on purpose. A grid that scrolls with the content is a texture; a grid that stays is the frame the content moves inside, and the parallax
+between the two is most of the effect. CONTRAST BUDGET. 0.045 on ink. This has to sit under body copy on every route on the site, so the number is set
+at the point where the line is visible on a flat ground and invisible under a paragraph. Anything that reads as a noticeable line at a glance is too
+strong for something that appears on 40 pages. The horizontal set breathes with scroll velocity -- one shared --sva from scroll-velocity.js, no
+listener of its own -- so throwing the page separates the frame from the content for a moment and then lets it settle. {% endcomment %}
+
+<div class="lgrid" aria-hidden="true">
+  <span class="lgrid__box">
+    <i class="lgrid__v" style="--i: 0"></i>
+    <i class="lgrid__v" style="--i: 1"></i>
+    <i class="lgrid__v" style="--i: 2"></i>
+    <i class="lgrid__v" style="--i: 3"></i>
+    <i class="lgrid__v" style="--i: 4"></i>
+    <i class="lgrid__v" style="--i: 5"></i>
+  </span>
+  <i class="lgrid__h" style="--f: 0.22"></i>
+  <i class="lgrid__h" style="--f: 0.5"></i>
+  <i class="lgrid__h" style="--f: 0.78"></i>
+</div>
+
+<style>
+  .lgrid {
+    position: fixed;
+    inset: 0;
+    /* Under the nav and under the film grade, over the page. A structural
+       guide that sits on top of the chrome is a debug overlay. */
+    z-index: 3;
+    pointer-events: none;
+    contain: strict;
+    color: var(--ink, #f0f6fc);
+  }
+
+  /* ── THE MEASURE HAS TO BE THE PAGE'S OWN ─────────────────────────────
+     First attempt put the outer pair at `--gutter`, which is 51px at 1280 and
+     is genuinely what the home hero and the footer are padded by. Measured on
+     /works/, the cards start at 32 — that page sets its measure as
+     `min(1560px, 100% - clamp(28px, 5vw, 96px))` and centres it. So the two
+     outermost lines landed nineteen pixels inside the content on the busiest
+     page on the site, which is worse than having no lines: a grid that is
+     NEAR the content reads as a mistake, where no grid reads as a choice.
+
+     One expression now, shared: .wk was changed to match this. The cap
+     matters as much as the gutter — above about 1660 the content stops
+     growing and centres, and a grid pinned to the viewport edge would walk
+     away from it. */
+  .lgrid__box {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1560px, 100% - 2 * var(--gutter, max(24px, 4vw)));
+  }
+  .lgrid__v {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: currentColor;
+    opacity: 0.045;
+    left: calc((var(--i) / 5) * 100%);
+  }
+  /* The last line would sit one pixel outside the box on the right edge. */
+  .lgrid__v:nth-child(6) {
+    left: auto;
+    right: 0;
+  }
+  /* The two outer lines are the measure itself and carry a touch more weight;
+     the four inside them are subdivisions and should read as quieter. */
+  .lgrid__v:first-child,
+  .lgrid__v:nth-child(6) {
+    opacity: 0.075;
+  }
+
+  .lgrid__h {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.03;
+    top: calc(var(--f) * 100%);
+    /* Scroll velocity, damped and shared. The horizontals are the ones that
+       move because they are perpendicular to the travel — a vertical line
+       sliding up and down is invisible, a horizontal one is the frame
+       lagging behind the page. */
+    transform: translateY(calc(var(--sva, 0) * 26px));
+    will-change: transform;
+  }
+
+  html[data-theme="light"] .lgrid {
+    color: #2e3442;
+  }
+  html[data-theme="light"] .lgrid__v {
+    opacity: 0.055;
+  }
+  html[data-theme="light"] .lgrid__v:first-child,
+  html[data-theme="light"] .lgrid__v:nth-child(6) {
+    opacity: 0.09;
+  }
+  html[data-theme="light"] .lgrid__h {
+    opacity: 0.04;
+  }
+
+  /* On a phone six columns at a 24px gutter puts a line every 55px, which is
+     a texture rather than a structure. Two lines: the measure, and nothing
+     else. The horizontals stay — they cost nothing and they are what makes a
+     small screen read as a page rather than as a feed. */
+  @media (max-width: 760px) {
+    .lgrid__v:not(:first-child):not(:nth-child(6)) {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .lgrid__h {
+      transform: none;
+    }
+  }
+</style>
