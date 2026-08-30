@@ -57,6 +57,14 @@
   cv.setAttribute("aria-hidden", "true");
   var gl = cv.getContext("webgl2", { alpha: true, antialias: false, premultipliedAlpha: false });
   if (!gl) return;
+  /* If the browser reclaims this one -- iOS Safari keeps about eight WebGL
+     contexts and drops the oldest -- take the canvas out rather than leaving
+     a frozen sheet of water under the figure. */
+  cv.addEventListener("webglcontextlost", function (e) {
+    e.preventDefault();
+    live = false;
+    cv.style.display = "none";
+  });
   stage.insertBefore(cv, stage.firstChild);
 
   var VS = ["#version 300 es", "in vec2 a;", "void main(){ gl_Position = vec4(a,0.,1.); }"].join("\n");

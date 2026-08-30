@@ -43,12 +43,23 @@
   "use strict";
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+  var raf = 0;
+
   var cv = document.createElement("canvas");
   cv.className = "caustics";
   cv.setAttribute("aria-hidden", "true");
 
   var gl = cv.getContext("webgl2", { alpha: true, antialias: false, premultipliedAlpha: false, powerPreference: "low-power" });
   if (!gl) return;
+  /* This one is on every route and is therefore the context most likely to be
+     alive when something else needs one. Losing it should cost the grade, not
+     the page. */
+  cv.addEventListener("webglcontextlost", function (e) {
+    e.preventDefault();
+    cancelAnimationFrame(raf);
+    raf = 0;
+    cv.style.display = "none";
+  });
 
   var VS = ["#version 300 es", "in vec2 a;", "void main(){ gl_Position = vec4(a,0.,1.); }"].join("\n");
 
@@ -227,8 +238,7 @@
 
   var t = 0,
     last = 0,
-    acc = 0,
-    raf = 0;
+    acc = 0;
 
   function frame(now) {
     raf = requestAnimationFrame(frame);

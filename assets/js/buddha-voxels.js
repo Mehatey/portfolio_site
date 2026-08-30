@@ -43,12 +43,30 @@
   var mount = document.getElementById("lastfig-mount");
   if (!sec || !stage || !mount) return;
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  /* ── NOT ON A PHONE ───────────────────────────────────────────────────
+     Two reasons and either would be enough. Eight thousand instanced cubes
+     with a depth buffer is a battery event on a handset, for a figure that is
+     260px wide there. And the home page opens ELEVEN WebGL contexts;
+     iOS Safari keeps about eight alive and silently drops the oldest, so
+     every context that is not carrying its weight on that device is taking a
+     working one down with it. */
+  if (matchMedia("(hover: none), (max-width: 760px)").matches) return;
 
   var cv = document.createElement("canvas");
   cv.className = "lastfig__vox";
   cv.setAttribute("aria-hidden", "true");
   var gl = cv.getContext("webgl2", { alpha: true, antialias: true, depth: true });
   if (!gl) return;
+  /* A dropped context leaves a frozen canvas sitting over the figure, which
+     is worse than no canvas at all. */
+  cv.addEventListener("webglcontextlost", function (e) {
+    e.preventDefault();
+    live = false;
+    ready = false;
+    cv.style.display = "none";
+    var mv = mount.querySelector("model-viewer");
+    if (mv) mv.style.opacity = "1";
+  });
   /* On the STAGE, not on the mount. The mount is a min(46vh, 380px) square
      sized to the figure, and cubes that are meant to leave the figure have to
      have somewhere to go -- inside that box they would be clipped at the jaw
