@@ -44,7 +44,7 @@
 <section class="wall" id="wall" aria-label="The wall above Sid's desk">
   <div class="wall__runway">
     <div class="wall__stage">
-      <div class="wall__frame" id="wall-frame">
+      <div class="wall__frame" id="wall-cloth" data-src="{{ site.baseurl }}/assets/img/room-wall-1600.webp" data-cloth>
         <img
           class="wall__img"
           src="{{ site.baseurl }}/assets/img/room-wall-1600.webp"
@@ -149,14 +149,38 @@
      photograph filling the window, and 72vw is a picture on a wall.
      Everything that framed it is gone, because the objects ARE the picture
      and a cut-out has no frame. */
+  /* ── PLACED, NOT PERFORMED ────────────────────────────────────────────
+     Sid: "no dissolve or scale or nothing", and "smaller and placed on the
+     page".
+
+     It was arriving three ways at once: scaling from 1.08, travelling seven
+     viewport-heights' worth of translate, and fading in -- three
+     simultaneous entrance animations on one photograph, which is what makes
+     a page feel like it is performing at you rather than showing you
+     something.
+
+     It is simply there. The only thing that moves is the surface itself,
+     which is a WebGL mesh behaving like a pinned sheet -- see
+     assets/js/wall-cloth.js. --p is left unread on purpose; the scroll term
+     still exists and nothing uses it. */
   .wall__frame {
     position: relative;
-    width: min(1080px, 72vw);
-    /* --p is 0 as the section enters and 1 once it is centred, written by the
-       script below. Everything reads off it. */
-    transform: scale(calc(1.08 - var(--p, 0) * 0.08)) translateY(calc((1 - var(--p, 0)) * 7vh));
-    opacity: calc(var(--p, 0) * 1.25);
-    will-change: transform, opacity;
+    width: min(760px, 54vw);
+    aspect-ratio: 4 / 3;
+  }
+  .wall__frame canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+  }
+  /* The <img> is the fallback and stays in the DOM. Hidden only once the
+     mesh is confirmed drawing the same picture, because painting both is
+     paying twice -- the mistake .cg-stage made in the hero. */
+  .wall__frame.is-cloth .wall__img {
+    visibility: hidden;
   }
 
   .wall__img {
@@ -224,18 +248,16 @@
       filter: brightness(0.72) saturate(0.95);
     }
   }
-  @media (prefers-reduced-motion: reduce) {
-    .wall__frame {
-      transform: none;
-      opacity: 1;
-    }
-  }
 </style>
 
 <script>
   (function () {
     var sec = document.getElementById("wall");
-    var frame = document.getElementById("wall-frame");
+    /* The element was renamed when the picture became a cloth mesh. It kept
+       returning null here and this whole block was silently doing nothing --
+       the exact failure mode this codebase keeps producing, where a rename
+       leaves a getElementById pointing at a name nobody owns any more. */
+    var frame = document.getElementById("wall-cloth");
     if (!sec || !frame) return;
 
     var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -322,3 +344,6 @@
     }
   })();
 </script>
+
+<!-- The sheet the pictures are pinned to. -->
+<script src="{{ site.baseurl }}/assets/js/wall-cloth.js" defer></script>

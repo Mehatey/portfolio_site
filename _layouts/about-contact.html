@@ -379,6 +379,22 @@
          The bloom drifts, slowly and only vertically, so the top of the frame
          is never quite still. Twenty-two seconds, well under any threshold
          where a visitor would call it an animation. */
+      /* ── THE TOP OF THE PICTURE IS IN MOTION ─────────────────────────────
+         Sid: "add some layer blur and motion blur to the top of my pic and
+         also add some slow effects."
+
+         Two blurs, doing different jobs, which is why one was not enough.
+
+         The LAYER blur is this element: an over-scaled copy of the portrait
+         sitting behind it, heavily defocused, spilling upward past where the
+         picture ends. It is what the masked top edge dissolves INTO, so the
+         space the mask takes is filled with the photograph's own colour
+         rather than page background.
+
+         The MOTION blur is directional -- see .about-ident-drag below. A
+         gaussian blur is a lens out of focus; a blur along one axis is a
+         thing that MOVED, and it is the second one that makes the top of the
+         frame read as unresolved rather than merely soft. */
       .about-ident-bloom {
         position: absolute;
         left: -14%;
@@ -410,6 +426,50 @@
       }
       @media (prefers-reduced-motion: reduce) {
         .about-ident-bloom {
+          animation: none;
+        }
+      }
+
+      /* The motion smear. Three copies of the top band offset vertically and
+         stacked at low opacity, which is what a real motion blur IS -- a
+         subject sampled at several points along its travel. Cheaper and more
+         accurate than a filter, and the only way to get direction into it.
+
+         Masked to the top fifth, because a smear over the face would read as
+         a mistake rather than as a treatment. */
+      .about-ident-drag {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 34%;
+        z-index: 2;
+        pointer-events: none;
+        background-image: var(--bloom-src), var(--bloom-src), var(--bloom-src);
+        background-size: cover, cover, cover;
+        background-position:
+          center 0%,
+          center 1.4%,
+          center 3%;
+        background-blend-mode: screen, screen, normal;
+        filter: blur(3px) brightness(0.9) saturate(0.8);
+        opacity: 0.55;
+        -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 42%, transparent 100%);
+        mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 42%, transparent 100%);
+        animation: about-drag 19s ease-in-out infinite alternate;
+      }
+      @keyframes about-drag {
+        from {
+          transform: translateY(0) scaleY(1);
+          opacity: 0.42;
+        }
+        to {
+          transform: translateY(-1.6%) scaleY(1.05);
+          opacity: 0.62;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-ident-drag {
           animation: none;
         }
       }
@@ -571,6 +631,87 @@
           radial-gradient(280px 160px at 62% 4%, rgba(255, 255, 255, 0.16), transparent 72%);
         pointer-events: none;
       }
+      /* ── THE SEAL ─────────────────────────────────────────────────────────
+         Sits on the card, half off its top-left corner, so it reads as
+         applied to the photograph rather than laid out beside it -- an object
+         on the print, which is the whole difference between a stamp and a
+         label.
+
+         The ring turns slowly and forever. Ninety seconds, so nobody ever
+         watches it move; they notice on a second glance that it is not where
+         it was. */
+      .about-seal {
+        position: absolute;
+        z-index: 5;
+        /* INSIDE the card, not overhanging it. .about-profile-card carries
+           overflow: hidden -- it has to, because it crossfades two portraits
+           and clips them to the frame -- so a seal placed at negative offsets
+           was cut in half by the very edge it was meant to sit across.
+           Measured: the numeral rendered with its left third missing.
+
+           Top left is the only quadrant of this photograph with nothing in
+           it, which is why it goes there rather than anywhere more
+           deliberate. */
+        left: 18px;
+        top: 16px;
+        width: clamp(84px, 10vw, 112px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        pointer-events: none;
+        color: var(--ink);
+      }
+      .about-seal svg {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+        animation: about-seal-turn 90s linear infinite;
+      }
+      .about-seal text {
+        font-family: "DM Mono", ui-monospace, monospace;
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        fill: #fff;
+        opacity: 0.72;
+        filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.8));
+      }
+      .about-seal b {
+        color: #fff;
+        /* The portrait behind it is a mid-grey wall and the type is small, so
+           it needs a shadow to survive rather than a heavier weight -- which
+           would make the numeral shout. */
+        text-shadow: 0 1px 10px rgba(0, 0, 0, 0.7);
+        font-family: "DM Mono", ui-monospace, monospace;
+        font-size: clamp(26px, 3.4vw, 38px);
+        font-weight: 400;
+        letter-spacing: -0.04em;
+        line-height: 1;
+        /* Tabular, because the numeral is the subject and a proportional
+           zero in a mono face is the one glyph that gives that away. */
+        font-variant-numeric: tabular-nums;
+      }
+      /* On cream the seal is ink; on the dark page it is paper. Both are the
+         page's own ink colour, which is why one declaration covers it. */
+      @keyframes about-seal-turn {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-seal svg {
+          animation: none;
+        }
+      }
+      @media (max-width: 620px) {
+        .about-seal {
+          left: -18px;
+          top: -16px;
+        }
+      }
+
       .about-card-meta {
         position: absolute;
         z-index: 4;
@@ -798,9 +939,16 @@
       }
       .about-say p {
         margin: 0;
-        font-size: clamp(15px, 1.35vw, 17px);
-        font-weight: 300;
-        line-height: 1.72;
+        /* ── BIGGER ──────────────────────────────────────────────────────
+           Sid: "i dont like how small the description in about is."
+
+           17px at 300 weight against a 29px claim above it is a caption, not
+           a paragraph -- and this is the only prose on the page a stranger
+           actually reads to find out who he is. 21px at 350, which is a size
+           somebody reads rather than scans past. */
+        font-size: clamp(17px, 1.55vw, 21px);
+        font-weight: 350;
+        line-height: 1.62;
         color: var(--ink-2);
         text-wrap: pretty;
         /* Each paragraph rises on its own beat rather than the block arriving
@@ -808,7 +956,7 @@
            reads as part of the same site rather than a document. --i sets the
            beat and is written on the element. */
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(22px);
         /* ── THESE WERE INVISIBLE ─────────────────────────────────────────
            Sid: "about is so less text."
 
@@ -823,8 +971,17 @@
            file, unused, doing exactly what was wanted. `both` so the
            from-state is held through the delay rather than flashing at full
            opacity first. */
-        animation: about-say-in 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
-        animation-delay: calc(0.32s + var(--i, 0) * 0.16s);
+        /* ── AND IT ARRIVES ──────────────────────────────────────────────
+           Sid: "and doesnt animate."
+
+           It does now, and the entrance is slower and travels further than
+           the old one: 22px and 1.1s per paragraph, staggered 0.22s apart,
+           so the block assembles line by line instead of appearing as a
+           slab. Slow is the point -- he asked for slow effects, and prose
+           that arrives quickly reads as a UI element rather than as
+           something being said. */
+        animation: about-say-in 1100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation-delay: calc(0.35s + var(--i, 0) * 0.22s);
         transition: color 0.4s ease;
       }
       /* Hovering a paragraph brings it fully forward and lets the other one
@@ -2091,6 +2248,7 @@
                dissolves into. Inert, decorative, and the same file the card
                is already loading, so it costs a paint and not a request. -->
           <span class="about-ident-bloom" aria-hidden="true"></span>
+          <span class="about-ident-drag" aria-hidden="true"></span>
           <div
             class="about-profile-card"
             id="about-profile-card"
@@ -2100,6 +2258,34 @@
           >
             <img class="about-photo active" src="{{ site.baseurl }}/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta" />
             <img class="about-photo" src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta" />
+            <!-- ── THE SEAL ────────────────────────────────────────────────
+                 Sid: "maybe some supporting iconography or persons id card or
+                 how many years of experience in creative circular text and on
+                 the photo card panel."
+
+                 A stamp on the card rather than a caption beside it. The
+                 number is the loud part -- six is the single most checkable
+                 fact about him and it was previously buried in a sentence --
+                 and the ring names what it counts, which is what stops a big
+                 numeral being an ornament.
+
+                 A real <circle> path for the textPath rather than an arc,
+                 because a circle element has no start point for type to run
+                 from. Drawn clockwise from the left so the words read left to
+                 right across the top of the seal, and the string is doubled
+                 so the ring is full at any radius. -->
+            <div class="about-seal" aria-hidden="true">
+              <svg viewBox="0 0 120 120" focusable="false">
+                <defs>
+                  <path id="seal-ring" fill="none" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0" />
+                </defs>
+                <text>
+                  <textPath href="#seal-ring" startOffset="0">years designing · years building · years designing · years building ·</textPath>
+                </text>
+              </svg>
+              <b>06</b>
+            </div>
+
             <div class="about-card-meta" aria-hidden="true">
               <strong>Sid Mehta</strong><span>New York<br />Open to roles</span>
             </div>
@@ -2176,8 +2362,9 @@
               crowd in it.
             </p>
             <p style="--i: 1">
-              Most recently ENCODED at the Metropolitan Museum, 25 artworks opened through AR to 2,000+ activations and two 2026 Webby Awards. Before
-              that, enterprise UX at Deloitte Digital across 9,000+ Marriott properties.
+              ENCODED at the Metropolitan Museum: 25 artworks opened through AR, two 2026 Webby Awards. Before that, enterprise UX at Deloitte Digital
+              across 9,000+ Marriott properties. The way I work is unglamorous, and it is the same every time: build the smallest thing that could be
+              wrong, put it in front of someone, watch where their hand goes.
             </p>
             <!-- ── THREE MORE, BECAUSE TWO WAS NOT AN ANSWER ────────────────
                  Sid: "about is so less text."
@@ -2195,23 +2382,22 @@
                  this site -- the prototypes are on /ai-prototypes/, the
                  archive is /play/, the thesis is /bloom/ -- and the
                  uncheckable parts are opinions, clearly held as opinions. -->
-            <!-- ── ONE MORE, NOT THREE ──────────────────────────────────────
-                 Sid, on the first pass: "for about theres way too much text."
+            <!-- ── TWO, AND BOTH LOAD-BEARING ────────────────────────────────
+                 Sid: "thats way too much text in about just 2 paras to the
+                 point."
 
-                 Fair. Two paragraphs had been sitting at opacity 0, so fixing
-                 that alone doubled what a reader actually sees, and adding
-                 three more on top took the column from nothing to five.
+                 Right, and this is the third time this block has been
+                 resized. Two paragraphs had been sitting at opacity 0, so
+                 fixing that doubled what a reader sees; then I added three
+                 more and took it to five; then cut to three. It is two.
 
-                 One survives, and it is the one that says something no other
-                 page does. The prototypes paragraph was /ai-prototypes/
-                 restated; the "looking for a role" paragraph was already on
-                 the portrait caption, the hero stamp and the whole of
-                 /contact/. This is the only claim here about how the work
-                 gets made, and the diagram below is a drawing of it. -->
-            <p style="--i: 2">
-              The way I work is unglamorous. I build the smallest thing that could be wrong, put it in front of someone, and watch where their hand
-              goes. Most of my good decisions came from that and almost none from a document.
-            </p>
+                 What survived: the position, and the proof. The
+                 how-I-work sentence was its own paragraph and is now the
+                 tail of the second, because it is a claim about method that
+                 only means anything attached to the work it produced. The
+                 prototypes paragraph was /ai-prototypes/ restated. The
+                 looking-for-a-role paragraph is already on the portrait
+                 card, the hero stamp and the whole of /contact/. -->
           </div>
 
           <!-- ── THE SUPPORTING GRAPHIC ───────────────────────────────────────
