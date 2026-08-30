@@ -130,6 +130,27 @@
      So it sits in the flow. The runway is the section's own height, the stage
      is static, and the scrub runs off the section's position as it crosses the
      viewport rather than off a pinned range — same thirty frames, no hold. */
+  /* ── AND NOW IT IS PINNED AGAIN ───────────────────────────────────────
+     Sid: "the apple music phone which needs to be scroll activated in terms
+     of u stay on scree nand scroll liek the buddha. also can you make the
+     phone bigger."
+
+     This reverses the note above, deliberately. What he rejected the first
+     time was a pin that held for a screen and a half while the ONLY thing
+     moving was the picture inside a nailed-down rectangle -- the object stood
+     still and mutated, which is the uncanny version. What the Buddha does,
+     and what he is asking for here, is a pin where the object itself is being
+     turned and lifted by the scroll: you stop travelling and start operating.
+
+     The device now rises, turns on its vertical axis and tips with scroll
+     velocity across the held range, all off the same --cp. Held is 110svh --
+     a little over one screen. The footer-height toll in the note above is
+     real and this is what it costs; it is charged once per route and it buys
+     the last object on the site actually being handled.
+
+     Below 760 it stays in the flow. A 210svh runway on a phone is two thirds
+     of a minute of thumb, and a pinned object on a touch screen cannot be
+     tipped by a pointer anyway. */
   .coda__runway {
     height: auto;
   }
@@ -151,6 +172,25 @@
        something the chrome is sitting on. */
     padding: clamp(104px, 13vh, 132px) clamp(24px, 5vw, 80px) clamp(34px, 5vh, 60px);
     overflow: hidden;
+  }
+
+  /* After the base rule, not before it. A media query adds no specificity, so
+     the earlier placement lost the position declaration to `position: static`
+     below and the stage silently never stuck -- measured, the device ran 802px
+     past the top of the window at the end of the runway. */
+  @media (min-width: 761px) and (prefers-reduced-motion: no-preference) {
+    .coda__runway {
+      /* 160, not 210. The hold has to be long enough that the turn reads as
+         something you are doing and short enough that it is not a room you
+         walk through -- and this section is charged to the bottom of every
+         route on the site, so the difference is half a screen on /works/ too. */
+      height: 160svh;
+    }
+    .coda__stage {
+      position: sticky;
+      top: 0;
+      min-height: 100svh;
+    }
   }
 
   /* ── The coda's annotations were hushed past the point of speech ──
@@ -264,9 +304,15 @@
        the script below, and it carries a rise and a slight turn on the
        vertical axis. --sv is the site's scroll velocity, so throwing the page
        tips it further than easing does. */
-    height: min(58svh, 520px);
+    /* 58svh/520 was sized for an object standing in the flow. Pinned, it is
+       the subject of its own screen and has to hold it. */
+    height: min(74svh, 660px);
     aspect-ratio: 360 / 780;
-    transform: perspective(1400px) translateY(calc((0.5 - var(--cp, 0.5)) * 9vh)) rotateY(calc((var(--cp, 0.5) - 0.5) * -13deg))
+    /* The turn is wider now that the hold is real: 13deg across a crossing was
+       a lean, 30 across a pin is the object being rotated in front of you,
+       which is the whole difference between pinned-and-mutating and pinned-
+       and-handled. */
+    transform: perspective(1400px) translateY(calc((0.5 - var(--cp, 0.5)) * 12vh)) rotateY(calc((var(--cp, 0.5) - 0.5) * -30deg))
       rotateX(calc(var(--sv, 0) * -3.4deg));
     will-change: transform;
     border-radius: clamp(18px, 4.6svh, 30px);
@@ -410,8 +456,24 @@
          The span is the full crossing instead: 0 when the section's top is at
          the bottom of the window, 1 when its bottom clears the top. Same
          thirty frames, spread over the time the thing is actually on screen. */
-      var span = vh + box.height;
-      var t = span > 0 ? Math.min(1, Math.max(0, (vh - box.top) / span)) : 0;
+      /* ── AND NOW IT IS THE PIN AGAIN ────────────────────────────────
+         Two ranges, chosen by which one the section is actually in. Pinned
+         (desktop, motion allowed) the section is taller than the window, and
+         the honest progress is how far through the held range the scroll has
+         gone -- that is the range over which the object is under the reader's
+         hand. Unpinned (phone, or reduced motion) that denominator goes
+         negative, so the crossing is used instead.
+
+         Picking by measurement rather than by matchMedia: the media query is
+         in the stylesheet and duplicating its breakpoint here is one edit away
+         from the two disagreeing silently. */
+      var held = box.height - vh;
+      var t =
+        held > 40
+          ? Math.min(1, Math.max(0, -box.top / held))
+          : vh + box.height > 0
+            ? Math.min(1, Math.max(0, (vh - box.top) / (vh + box.height)))
+            : 0;
       wanted = Math.min(COUNT - 1, Math.floor(t * COUNT));
       /* The same crossing the scrubber uses, published for the device's own
          rise and turn. One measurement, two consumers -- the frame the panel
