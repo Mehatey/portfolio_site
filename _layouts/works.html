@@ -247,6 +247,18 @@
          Scale lives on the <img> and overflow is clipped on the frame, so the
          picture grows into its own edges rather than pushing its neighbours —
          a grid where hovering moves the row is a grid you cannot aim at. */
+      /* ── THE LENS ─────────────────────────────────────────────────────
+         --lens is written per card by assets/js/works-lens.js: how far into
+         the band at the top of the window that card has travelled. See that
+         file for why the displacement is per element rather than per pixel.
+
+         Everything here is driven off that one number, and it is applied to
+         the COVER rather than to the whole card: the picture is what a lens
+         does something interesting to, and blurring the project title as it
+         goes past is not refraction, it is illegibility. */
+      .wk-card {
+        --lens: 0;
+      }
       .wk-cover {
         position: relative;
         aspect-ratio: 4 / 3;
@@ -254,6 +266,79 @@
         border-radius: 3px;
         background: rgba(140, 165, 200, 0.06);
         isolation: isolate;
+      }
+
+      .wk-cover > * {
+        /* Squeezed vertically, spread horizontally to keep its volume, and
+           bent on its own axis -- which is what a cylindrical lens does to
+           something passing behind it. The rotateX is small on purpose: past
+           about four degrees it stops reading as glass and starts reading as
+           a card falling over. */
+        transform: perspective(900px) scaleY(calc(1 - var(--lens) * 0.16)) scaleX(calc(1 + var(--lens) * 0.055)) rotateX(calc(var(--lens) * -3.6deg));
+        transform-origin: 50% 0%;
+        /* Along the direction of travel only. An isotropic blur is a card out
+           of focus; a vertical one is a card moving through something. */
+        filter: blur(calc(var(--lens) * 2.4px)) brightness(calc(1 + var(--lens) * 0.14)) saturate(calc(1 + var(--lens) * 0.2));
+        will-change: transform, filter;
+      }
+      /* The rim. A lens returns more light at its edge than through its
+         middle, and without it the whole thing reads as the page going soft
+         at the top rather than as an object being there. */
+      .wk-cover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 3;
+        opacity: var(--lens);
+        background: linear-gradient(to bottom, rgba(190, 220, 255, 0.22), transparent 38%, transparent 70%, rgba(190, 220, 255, 0.1));
+        mix-blend-mode: screen;
+      }
+
+      /* ── THE GLASS ITSELF ─────────────────────────────────────────────
+         Two hairlines and a very slight tint, fixed under the nav. A lens has
+         edges, and the edges are what make it an object rather than a mystery
+         about why the top of the page is soft. */
+      .wk-lens {
+        position: fixed;
+        left: 0;
+        right: 0;
+        z-index: 4;
+        pointer-events: none;
+        background: linear-gradient(to bottom, rgba(190, 220, 255, 0.055), rgba(190, 220, 255, 0.015) 50%, rgba(190, 220, 255, 0.05));
+      }
+      .wk-lens__e {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(to right, transparent, rgba(200, 226, 255, 0.3) 12%, rgba(200, 226, 255, 0.3) 88%, transparent);
+      }
+      .wk-lens__e--t {
+        top: 0;
+      }
+      .wk-lens__e--b {
+        bottom: 0;
+      }
+      html[data-theme="light"] .wk-lens {
+        background: linear-gradient(to bottom, rgba(46, 52, 66, 0.04), rgba(46, 52, 66, 0.012) 50%, rgba(46, 52, 66, 0.035));
+      }
+      html[data-theme="light"] .wk-lens__e {
+        background: linear-gradient(to right, transparent, rgba(46, 52, 66, 0.16) 12%, rgba(46, 52, 66, 0.16) 88%, transparent);
+      }
+      /* A phone scrolls in long throws and the band would be most of what is
+         on screen. */
+      @media (max-width: 760px) {
+        .wk-lens {
+          display: none;
+        }
+        .wk-cover > * {
+          transform: none;
+          filter: none;
+        }
+        .wk-cover::after {
+          opacity: 0;
+        }
       }
       .wk-cover img {
         width: 100%;
@@ -825,6 +910,7 @@
     scroll_progress.html %}
     <!-- scroll_length.html (the right-edge reading rail) removed: two
          indicators for one thing. The top .progress-bar is the one kept. -->
+    <script src="{{ site.baseurl }}/assets/js/works-lens.js" defer></script>
     {% include motion_stack.html %}
   </body>
 </html>
