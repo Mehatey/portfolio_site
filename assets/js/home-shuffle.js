@@ -155,10 +155,15 @@
        with fourteen smooth minima in its inner loop should still get an
        object rather than nothing. */
     if (i === 0) {
-      var on01 = window.__mercury && window.__mercury.start();
+      /* Ink first: a real fluid solve. Mercury and then glass underneath,
+         each cheaper than the last, so a machine that cannot afford half
+         float render targets still gets an object rather than nothing. */
+      var on01 = window.__ink && window.__ink.start();
+      if (!on01 && window.__mercury) on01 = window.__mercury.start();
       if (!on01 && window.__solidType) on01 = window.__solidType.start();
       if (on01) hero.classList.add("is-solid");
     } else {
+      if (window.__ink) window.__ink.stop();
       if (window.__mercury) window.__mercury.stop();
       if (window.__solidType) window.__solidType.stop();
       hero.classList.remove("is-solid");
