@@ -145,20 +145,100 @@
       border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
     }
 
+    /* ── THE CHAPTER OPENING ──────────────────────────────────────────
+       Was a flex row: bold name, small label beside it, both baseline
+       aligned. Read as a caption on the rail rather than as the top of
+       anything, which is exactly the complaint.
+
+       Now it is a stack -- rule, kicker, name, line -- because a stack has a
+       top and a caption does not. */
     .sid-strip__head {
-      display: flex;
-      align-items: baseline;
-      gap: 12px;
+      display: grid;
+      justify-items: start;
+      gap: 10px;
+      position: relative;
+      z-index: 1;
       padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
-      margin-bottom: clamp(22px, 3vw, 40px);
+      margin-bottom: clamp(26px, 3.4vw, 46px);
+    }
+
+    /* Full measure, one pixel, drawn from the left when the section arrives.
+       The transform origin is what makes it read as a line being drawn rather
+       than a line fading up. */
+    .sid-strip__rule {
+      display: block;
+      width: 100%;
+      height: 1px;
+      background: currentColor;
+      opacity: 0.16;
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      transition: transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sid-strip.is-open .sid-strip__rule {
+      transform: scaleX(1);
+    }
+
+    .sid-strip__kicker {
+      font: var(--type-micro);
+      letter-spacing: var(--track-micro);
+      text-transform: uppercase;
+      color: var(--ink-3);
     }
 
     .sid-strip__head b {
       font: var(--type-heading);
+      /* Up from the shared heading size. This one is competing with a rail of
+         photographs directly under it and lost at the inherited scale. */
+      font-size: clamp(30px, 4.4vw, 58px);
+      line-height: 1.02;
       letter-spacing: var(--track-tight);
     }
 
-    .sid-strip__head span {
+    .sid-strip__sub {
+      font: var(--type-body-s, var(--type-micro));
+      color: var(--ink-3);
+      max-width: 34ch;
+    }
+
+    /* The three parts arrive after the rule, in order, so the eye is walked
+       down into the rail instead of being handed the whole block. */
+    .sid-strip__kicker,
+    .sid-strip__head b,
+    .sid-strip__sub {
+      opacity: 0;
+      transform: translateY(14px);
+      transition: opacity 700ms ease, transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sid-strip.is-open .sid-strip__kicker {
+      transition-delay: 140ms;
+    }
+    .sid-strip.is-open .sid-strip__head b {
+      transition-delay: 240ms;
+    }
+    .sid-strip.is-open .sid-strip__sub {
+      transition-delay: 340ms;
+    }
+    .sid-strip.is-open .sid-strip__kicker,
+    .sid-strip.is-open .sid-strip__head b,
+    .sid-strip.is-open .sid-strip__sub {
+      opacity: 1;
+      transform: none;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sid-strip__rule {
+        transform: scaleX(1);
+      }
+      .sid-strip__kicker,
+      .sid-strip__head b,
+      .sid-strip__sub {
+        opacity: 1;
+        transform: none;
+        transition: none;
+      }
+    }
+
+    .sid-strip__head span.sid-strip__legacy {
       font: var(--type-micro);
       letter-spacing: var(--track-micro);
       text-transform: uppercase;
@@ -173,10 +253,49 @@
       color: var(--ink-3);
     }
 
+    /* ── THE GROUND ───────────────────────────────────────────────────
+       The dither field from strip-ascii.js. Behind everything in the section,
+       inert, and clipped by the section's own overflow. It is what turns the
+       strip from a rail that floats up into a section that opens. */
+    .sid-field {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.5;
+    }
+    html[data-theme="light"] .sid-field {
+      opacity: 0.34;
+    }
+
     /* Scanline / dither veil. Sits above the media, below nothing — it is the
        one thing in the strip that reads as a screen rather than a shelf. */
     .sid-strip__rows {
       position: relative;
+      z-index: 1;
+    }
+
+    /* The per-tile ASCII pass. Above the pictures, below the scanline, and
+       inert — the tile underneath still owns its own hover. */
+    .sid-ascii {
+      position: absolute;
+      left: 0;
+      right: 0;
+      /* top and height come from the script, which owns the vertical bleed. */
+      top: 0;
+      z-index: 3;
+      pointer-events: none;
+    }
+    /* The photograph does not vanish, it recedes: at 0.16 it is still the
+       thing giving the glyphs their ground, and the crossfade reads as the
+       image losing resolution rather than as a panel being swapped in. */
+    .sid-tile.is-ascii img,
+    .sid-tile.is-ascii video {
+      opacity: 0.16;
+    }
+    .sid-tile img,
+    .sid-tile video {
+      transition: opacity 260ms ease, filter 480ms ease;
     }
 
     .sid-strip__rows::after {
@@ -385,9 +504,10 @@
       transition: opacity 480ms ease;
     }
 
-    .sid-tile:hover {
-      transform: translate3d(0, -6px, 0);
-    }
+    /* The hover lift moved into the rail's frame loop. It writes an inline
+       transform every frame to place the tile against the centre, and an
+       inline transform beats a stylesheet — so a rule here would simply never
+       apply, which is worse than not existing. */
 
     .sid-tile:hover img,
     .sid-tile:hover video {
@@ -1438,8 +1558,13 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
 
   <section class="sid-strip" aria-label="Get to know Sid">
     <div class="sid-strip__head">
+      {% comment %} The rule is the beat. Sid: "that whole section needs to feel like ok this is the start of a new footer section rn it kind of just
+      floats up randomly". A heading with nothing above it is a paragraph that happens to be bold; a heading under a line that draws itself across the
+      page is a chapter. {% endcomment %}
+      <i class="sid-strip__rule" aria-hidden="true"></i>
+      <span class="sid-strip__kicker" aria-hidden="true">off the clock</span>
       <b>Get to know Sid</b>
-      <span>off the clock</span>
+      <span class="sid-strip__sub">the reading, the records, the cats, the people</span>
     </div>
     <div class="sid-strip__rows">
       <div class="sid-row">
@@ -1725,7 +1850,9 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
       var x = 0,
         vel = 0,
         steer = 0,
-        drift = reduce ? 0 : -0.42,
+        /* Sid: "can the images move a lil faster". -0.42 crossed the band
+           in about ninety seconds, which is slower than anybody waits. */
+        drift = reduce ? 0 : -1.05,
         dragging = false,
         lastPx = 0,
         raf = 0,
@@ -1893,6 +2020,7 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
         row.style.transform = "translate3d(" + x.toFixed(2) + "px,0,0)";
 
         /* ── the edge ramp ─────────────────────────────────────────────── */
+        var hovered = row.querySelector(".sid-tile:hover");
         if (!reduce && bandW > 0) {
           var fade = bandW * 0.22;
           for (var i = 0; i < tiles.length; i++) {
@@ -1904,10 +2032,35 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
             /* Eased so the middle of the rail is flat and all of the change
                happens in the outer band, where it is the point. */
             k = k * k * (3 - 2 * k);
+
+            /* ── AND THE CENTRE IS THE STAGE ───────────────────────────────
+               Sid: "when they come to center they get bigger."
+
+               The edge ramp above only says how far a tile is from LEAVING.
+               It has nothing to say about the middle, so every tile between
+               the two fades was identical -- a conveyor, where what is wanted
+               is a procession past a point.
+
+               `c` is 1 at the centre of the band and 0 at either edge, raised
+               to a power so the peak is narrow: a wide falloff makes half the
+               rail large and reads as a zoom, a narrow one makes exactly the
+               tile you are looking at the subject. */
+            var c = 1 - Math.abs(mid - bandW / 2) / (bandW / 2);
+            c = Math.max(0, c);
+            c = c * c * c;
             var st = tiles[i].style;
             st.opacity = (0.16 + 0.84 * k).toFixed(3);
-            st.transform = "scale(" + (0.9 + 0.1 * k).toFixed(3) + ")";
-            st.filter = "saturate(" + (0.3 + 0.7 * k).toFixed(2) + ")";
+            /* Scale and lift together. A tile that only grows reads as being
+               pushed toward you; one that also rises reads as being picked
+               up, which is the difference between a carousel and a hand. */
+            /* The hover lift, which used to be a CSS rule and could not
+               survive a per-frame inline transform. */
+            var hv = tiles[i] === hovered ? 1 : 0;
+            st.transform = "translateY(" + (-14 * c - 6 * hv).toFixed(1) + "px) scale(" + (0.86 + 0.1 * k + 0.24 * c + 0.03 * hv).toFixed(3) + ")";
+            st.filter = "saturate(" + (0.3 + 0.7 * k + 0.5 * c).toFixed(2) + ") brightness(" + (0.9 + 0.3 * c).toFixed(2) + ")";
+            /* The one at the centre sits above its neighbours, or a larger
+               tile is cropped by whatever happens to follow it in the DOM. */
+            st.zIndex = c > 0.15 ? 3 : 1;
           }
         }
 
@@ -3119,4 +3272,5 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
 </script>
 
 <!-- The kinetic type in the band above the colophon. -->
+<script src="{{ site.baseurl }}/assets/js/strip-ascii.js" defer></script>
 <script src="{{ site.baseurl }}/assets/js/kinetic-type.js" defer></script>
