@@ -1719,6 +1719,164 @@
       body.contact-page {
         overflow: auto;
       }
+
+      /* ══ THE CONTACT PAGE IS A PAGE, NOT FOUR CORNERS ══════════════════
+         Sid: "I DONT LIKE THE contact page design too much."
+
+         What was wrong with it, from the screenshot:
+
+         · FOUR CORNERS AND NO CENTRE. The email sat top-left, the blurb
+           top-right, the phone bottom-left, the links bottom-right, and a
+           translucent slab held a small picture in the middle. There was
+           nowhere for the eye to land first, and 550px of nothing between the
+           email and the phone number.
+         · THE SLAB. A large empty pane of glass with a small image floating
+           in the top half of it. The pane was doing no work; the picture was
+           not big enough to be the subject and the glass was not holding
+           anything.
+         · TWO TEXT ALIGNMENTS. Left-ragged on the left, right-ragged on the
+           right, which is the poster-corners cliche and needs a subject in
+           the middle to justify it. There wasn't one.
+
+         So: one reading column on the left in the order somebody actually
+         needs it -- am I available, what is this, how do I reach you, where
+         else are you -- and the room on the right at full column height. Two
+         columns is the honest structure for a contact page: the person's
+         details, and the person's room.
+
+         Scoped above 901 because the phone layout below that breakpoint
+         already stacks and is fine. */
+      @media (min-width: 901px) {
+        .contact-shell {
+          grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
+          /* Four min-content rows and a fifth that eats everything left over.
+             With `auto auto auto 1fr` the slack was distributed BETWEEN the
+             blocks -- measured, 145px between the email and the blurb and
+             another 150 before the links -- which is the same disconnected
+             page in a different arrangement. All the space belongs at the
+             bottom; the reading column has to read as one thing. */
+          grid-template-rows: repeat(4, min-content) minmax(0, 1fr);
+          align-content: start;
+          column-gap: clamp(40px, 6vw, 96px);
+          row-gap: clamp(18px, 2.4vh, 34px);
+        }
+
+        /* Reading order down one column. The grid areas are re-pointed rather
+           than the markup being reordered, so the document still reads
+           status, email, blurb, phone, links to a screen reader in exactly
+           the order it reads on screen. */
+        /* The blocks measured 189, 144, 146 and 172px tall for 12, 48, 37 and
+           136px of ink. The height was not the grid -- the rows measured
+           min-content correctly -- it was --sp-3 between every child of every
+           corner: a token sized for separating sections, asked to separate
+           the three lines of an address. One value for the whole reading
+           column, set to the leading it actually wants. */
+        .c-corner {
+          gap: clamp(8px, 1.1vh, 14px);
+        }
+        .c-corner--tl {
+          grid-area: 1 / 1;
+        }
+        .c-corner--tr {
+          grid-area: 2 / 1;
+          align-items: flex-start;
+          text-align: left;
+          padding-top: clamp(16px, 2.2vh, 28px);
+        }
+        .c-corner--bl {
+          grid-area: 3 / 1;
+          justify-content: flex-start;
+          padding-top: clamp(18px, 2.6vh, 32px);
+        }
+        .c-corner--br {
+          grid-area: 4 / 1;
+          align-items: flex-start;
+          text-align: left;
+          justify-content: flex-start;
+          /* The lift that kept this clear of the floating theme and chat
+             buttons is not needed once it is in the left column -- those
+             controls are bottom RIGHT. */
+          margin-bottom: 0;
+          padding-bottom: 0;
+          padding-top: clamp(22px, 3vh, 38px);
+        }
+
+        /* The room. Full height of the column, so it is the second subject on
+           the page rather than an illustration parked in the middle of it. */
+        .contact-desk {
+          grid-area: 1 / 2 / 6 / 3;
+          position: relative;
+          inset: auto;
+          /* Wider than its column and bled off the right edge of the window.
+             A room that stops inside the page is a picture of a room; one
+             that runs out of frame is a room you are looking into. */
+          width: min(74vw, 1180px);
+          justify-self: end;
+          margin-right: calc(-1 * var(--sp-6));
+          /* Grounded at the bottom of the window, not floated in the middle of
+             the column. Centred, the desk sat in the upper right with 300px of
+             nothing under it and the page had two separate top-weighted
+             halves; sitting on the floor it fills the quarter of the screen
+             the reading column does not use, and a desk belongs on a floor. */
+          align-self: end;
+          margin-bottom: calc(-1 * var(--sp-5));
+          height: auto;
+          /* min-height: 58vh was mine and it was the whole problem. The desk
+             spans all four rows, so a 522px floor on a 900px window is
+             distributed BACK into those rows as min-content -- which is why
+             the reading column had 80 to 150px of dead air after every block
+             and why tightening the gaps between them changed nothing. A
+             spanning item must contribute nothing, and stretch to whatever
+             the column turns out to be. */
+          min-height: 0;
+        }
+
+        /* The slab goes. It was a pane of glass with nothing in it; the
+           picture is the object, and it can hold its own edge. */
+        .contact-slab {
+          display: none;
+        }
+
+        .contact-intro {
+          max-width: 42ch;
+        }
+
+        /* The links stop being a right-ruled block and become a list you read
+           down, with the rule under each one rather than over it. */
+        .c-corner .contact-links {
+          align-items: flex-start;
+          width: min(100%, 380px);
+        }
+        .c-corner .contact-links a {
+          justify-content: space-between;
+          width: 100%;
+          text-align: left;
+        }
+
+        /* The email is the one thing on this page anybody came for, so it
+           gets the hover the rest of the site gives a primary link: a rule
+           that draws under it from the left rather than appearing. */
+        .contact-address a {
+          position: relative;
+          text-decoration: none;
+        }
+        .contact-address a::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -0.12em;
+          height: 1px;
+          background: currentColor;
+          transform: scaleX(0);
+          transform-origin: 0 50%;
+          transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .contact-address a:hover::after,
+        .contact-address a:focus-visible::after {
+          transform: scaleX(1);
+        }
+      }
     </style>
   </head>
 
