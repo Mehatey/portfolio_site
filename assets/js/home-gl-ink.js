@@ -70,8 +70,15 @@ window.__ink = (function () {
     live = false,
     ready = false;
   var P = {};
+  var PART_SIDE = 256;
+  var SCENE_W = 1024,
+    SCENE_H = 576;
   var vel = null,
     dye = null,
+    part = null,
+    scene = null,
+    bloomA = null,
+    bloomB = null,
     div = null,
     prs = null,
     txt = null;
@@ -188,6 +195,144 @@ window.__ink = (function () {
       "  g /= length(g) + 1e-5;",
       "  vec2 force = vec2(g.y, -g.x) * c * u_curl;",
       "  o = vec4(texture(u_vel, v_uv).xy + force * u_dt, 0.0, 1.0);",
+      "}",
+    ].join("\n");
+
+  /* ── PARTICLES, RIDING THE SAME FLUID ─────────────────────────────────
+     Sid: "can u try more visual heavy and highly interactive versions these
+     are too basic."
+
+     The fault was singular, in both senses: each hero did exactly ONE thing.
+     A dense scene is not one effect done harder, it is several systems
+     visibly sharing a world.
+
+     So sixty-five thousand particles are advected by the SAME velocity field
+     the ink is. Not a second simulation running alongside -- the identical
+     texture, sampled per particle. That is what makes them read as being in
+     the fluid rather than drawn over it: when you stir the ink, the sparks
+     turn with it, because they are being carried by the same numbers.
+
+     Position is state in a float texture, ping-ponged, with an age in the
+     alpha channel so a particle that drifts into a corner is reseeded rather
+     than sitting there forever. */
+  var PART_SIM =
+    HEAD +
+    [
+      "uniform sampler2D u_prev, u_vel;",
+      "uniform float u_dt, u_time;",
+      "float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }",
+      "void main(){",
+      "  vec4 s = texture(u_prev, v_uv);",
+      "  vec2 p = s.xy;",
+      "  float age = s.w;",
+      "  if (age <= 0.0) {",
+      /* Reseeded across the frame, biased toward the middle band where the
+       sentence lives, so the density follows the composition rather than
+       being uniform wallpaper. */ "    float a = hash(v_uv + u_time);",
+      "    float b = hash(v_uv.yx - u_time);",
+      "    o = vec4(a, 0.28 + b * 0.44, 0.0, 0.55 + hash(v_uv * 3.1) * 0.45);",
+      "    return;",
+      "  }",
+      "  vec2 vel = texture(u_vel, p).xy;",
+      "  p += vel * u_dt * 0.0016;",
+      /* Wrapped rather than clamped: a particle that leaves the right edge
+     arrives at the left, so the population is conserved and the field never
+     thins out on one side. */ "  p = fract(p + 1.0);",
+      "  o = vec4(p, 0.0, age - u_dt * 0.11);",
+      "}",
+    ].join("\n");
+
+  var PART_VS = [
+    "#version 300 es",
+    "precision highp float;",
+    "uniform sampler2D u_pos;",
+    "uniform float u_side, u_size;",
+    "out float v_a;",
+    "void main(){",
+    "  int id = gl_VertexID;",
+    "  ivec2 tc = ivec2(id % int(u_side), id / int(u_side));",
+    "  vec4 s = texelFetch(u_pos, tc, 0);",
+    "  gl_Position = vec4(s.xy * 2.0 - 1.0, 0.0, 1.0);",
+    "  gl_PointSize = u_size;",
+    /* Fades in and out across its life, so a reseed is a spark appearing
+     rather than one blinking into place. */ "  v_a = smoothstep(0.0, 0.2, s.w) * smoothstep(1.0, 0.75, s.w);",
+    "}",
+  ].join("\n");
+
+  var PART_FS = [
+    "#version 300 es",
+    "precision highp float;",
+    "in float v_a;",
+    "out vec4 o;",
+    "void main(){",
+    "  vec2 c = gl_PointCoord - 0.5;",
+    "  float d = dot(c, c) * 4.0;",
+    "  if (d > 1.0) discard;",
+    "  float a = (1.0 - d) * v_a * 0.30;",
+    "  o = vec4(vec3(1.0, 0.88, 0.72) * a, a);",
+    "}",
+  ].join("\n");
+
+  /* ── BLOOM ────────────────────────────────────────────────────────────
+     Cut the brightest part of the frame, blur it separably, add it back.
+     This is the pass that turns a correct render into a photographed one:
+     light that spills past the edge of the thing emitting it is what a lens
+     does and what a raw framebuffer never shows. */
+  var BRIGHT =
+    HEAD +
+    [
+      "uniform sampler2D u_src;",
+      "uniform float u_thresh;",
+      "void main(){",
+      "  vec3 c = texture(u_src, v_uv).rgb;",
+      "  float l = dot(c, vec3(0.299, 0.587, 0.114));",
+      "  o = vec4(c * smoothstep(u_thresh, u_thresh + 0.35, l), 1.0);",
+      "}",
+    ].join("\n");
+
+  var BLUR =
+    HEAD +
+    [
+      "uniform sampler2D u_src;",
+      "uniform vec2 u_dir;",
+      "void main(){",
+      "  vec3 c = texture(u_src, v_uv).rgb * 0.227027;",
+      "  c += texture(u_src, v_uv + u_dir * 1.3846).rgb * 0.316216;",
+      "  c += texture(u_src, v_uv - u_dir * 1.3846).rgb * 0.316216;",
+      "  c += texture(u_src, v_uv + u_dir * 3.2308).rgb * 0.070270;",
+      "  c += texture(u_src, v_uv - u_dir * 3.2308).rgb * 0.070270;",
+      "  o = vec4(c, 1.0);",
+      "}",
+    ].join("\n");
+
+  var COMPOSITE =
+    HEAD +
+    [
+      "uniform sampler2D u_scene, u_bloom;",
+      "uniform float u_time, u_light;",
+      "float hash(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }",
+      "void main(){",
+      /* Chromatic aberration, weighted by distance from the centre. A lens is
+     neutral on axis and wrong at the corners; applied uniformly it just
+     looks broken. */ "  vec2 d = v_uv - 0.5;",
+      "  float r2 = dot(d, d);",
+      "  vec2 off = d * r2 * 0.020;",
+      "  vec3 c;",
+      "  c.r = texture(u_scene, v_uv + off).r;",
+      "  c.g = texture(u_scene, v_uv).g;",
+      "  c.b = texture(u_scene, v_uv - off).b;",
+      "  float a = texture(u_scene, v_uv).a;",
+      "  vec3 bl = texture(u_bloom, v_uv).rgb;",
+      "  c += bl * 0.9;",
+      "  a = clamp(a + dot(bl, vec3(0.6)), 0.0, 1.0);",
+      /* ACES-ish shoulder. A hard clamp is what makes a bright scene look like
+     plastic. */ "  c = (c * (2.51 * c + 0.03)) / (c * (2.43 * c + 0.59) + 0.14);",
+      /* Grain seeded by screen position, not by frame, so it sits on the image
+     rather than boiling on top of it. */ "  c += (hash(v_uv * 900.0) - 0.5) * 0.020;",
+      "  float vig = smoothstep(1.25, 0.30, length(d * vec2(1.1, 1.0)) * 1.6);",
+      "  c *= 0.55 + 0.45 * vig;",
+      "  c = mix(c, mix(c, vec3(0.10, 0.12, 0.16), 0.5), u_light);",
+      "  o = vec4(c * a, a);",
       "}",
     ].join("\n");
 
@@ -388,6 +533,28 @@ window.__ink = (function () {
     P.splat = prog(SPLAT, ["u_src", "u_point", "u_value", "u_radius", "u_aspect"]);
     P.inject = prog(INJECT, ["u_src", "u_txt", "u_amt"]);
     P.render = prog(RENDER, ["u_dye", "u_texel", "u_light"]);
+    P.psim = prog(PART_SIM, ["u_prev", "u_vel", "u_dt", "u_time"]);
+    P.bright = prog(BRIGHT, ["u_src", "u_thresh"]);
+    P.blur = prog(BLUR, ["u_src", "u_dir"]);
+    P.comp = prog(COMPOSITE, ["u_scene", "u_bloom", "u_time", "u_light"]);
+    /* The particle draw has its own vertex stage -- it reads positions by
+       gl_VertexID instead of using the fullscreen triangle -- so it cannot go
+       through prog(). */
+    (function () {
+      var a = sh(gl.VERTEX_SHADER, PART_VS),
+        b2 = sh(gl.FRAGMENT_SHADER, PART_FS);
+      if (!a || !b2) return;
+      var pp = gl.createProgram();
+      gl.attachShader(pp, a);
+      gl.attachShader(pp, b2);
+      gl.linkProgram(pp);
+      if (!gl.getProgramParameter(pp, gl.LINK_STATUS)) {
+        if (window.console && console.warn) console.warn("[ink] particle link", gl.getProgramInfoLog(pp));
+        return;
+      }
+      pp.u = { u_pos: gl.getUniformLocation(pp, "u_pos"), u_side: gl.getUniformLocation(pp, "u_side"), u_size: gl.getUniformLocation(pp, "u_size") };
+      P.pdraw = pp;
+    })();
     for (var k in P)
       if (!P[k]) {
         host.remove();
@@ -396,6 +563,16 @@ window.__ink = (function () {
       }
 
     vel = fbo(SIM_W, SIM_H, gl.RG16F, gl.RG);
+    /* 256x256 = 65,536 particles. Square because a simulation target must
+       be; the count follows from the texture rather than the other way
+       round. */
+    part = fbo(PART_SIDE, PART_SIDE, gl.RGBA16F, gl.RGBA);
+    /* The scene and its bloom. Bloom at a quarter of the frame: it is a wide
+       blur of a bright cut, and blurring at full resolution is paying four
+       times for detail the blur is about to destroy. */
+    scene = fbo(SCENE_W, SCENE_H, gl.RGBA16F, gl.RGBA);
+    bloomA = fbo(SCENE_W >> 2, SCENE_H >> 2, gl.RGBA16F, gl.RGBA);
+    bloomB = fbo(SCENE_W >> 2, SCENE_H >> 2, gl.RGBA16F, gl.RGBA);
     dye = fbo(DYE_W, DYE_H, gl.RGBA16F, gl.RGBA);
     div = fbo(SIM_W, SIM_H, gl.R16F, gl.RED);
     prs = fbo(SIM_W, SIM_H, gl.R16F, gl.RED);
@@ -612,7 +789,67 @@ window.__ink = (function () {
     draw(dye.b);
     dye.swap();
 
-    /* ── to the screen ── */
+    /* ── advance the particles, on the fluid's own velocity ── */
+    gl.viewport(0, 0, PART_SIDE, PART_SIDE);
+    gl.useProgram(P.psim);
+    bindTex(P.psim, "u_prev", part.a.t, 0);
+    bindTex(P.psim, "u_vel", vel.a.t, 1);
+    gl.uniform1f(P.psim.u.u_dt, dt);
+    gl.uniform1f(P.psim.u.u_time, (now - t0) / 1000);
+    draw(part.b);
+    part.swap();
+
+    var lightNow = document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0;
+
+    /* ── the scene: ink, then sparks over it, into an offscreen target ── */
+    gl.bindFramebuffer(gl.FRAMEBUFFER, scene.a.f);
+    gl.viewport(0, 0, scene.w, scene.h);
+    gl.clearColor(0, 0, 0, 0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.useProgram(P.render);
+    bindTex(P.render, "u_dye", dye.a.t, 0);
+    gl.uniform2f(P.render.u.u_texel, dye.texel[0], dye.texel[1]);
+    gl.uniform1f(P.render.u.u_light, lightNow);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    if (P.pdraw) {
+      /* Additive, because sparks are light and light sums. Over the ink
+         rather than under it, so a particle passing in front of a stroke
+         brightens it. */
+      gl.blendFunc(gl.ONE, gl.ONE);
+      gl.useProgram(P.pdraw);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, part.a.t);
+      gl.uniform1i(P.pdraw.u.u_pos, 0);
+      gl.uniform1f(P.pdraw.u.u_side, PART_SIDE);
+      gl.uniform1f(P.pdraw.u.u_size, 1.8);
+      gl.drawArrays(gl.POINTS, 0, PART_SIDE * PART_SIDE);
+      gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    }
+
+    /* ── bloom: cut the highlights, blur separably, keep it ── */
+    gl.disable(gl.BLEND);
+    gl.viewport(0, 0, bloomA.w, bloomA.h);
+    gl.useProgram(P.bright);
+    bindTex(P.bright, "u_src", scene.a.t, 0);
+    gl.uniform1f(P.bright.u.u_thresh, 0.42);
+    draw(bloomA.b);
+    bloomA.swap();
+    gl.useProgram(P.blur);
+    for (var pass = 0; pass < 2; pass++) {
+      bindTex(P.blur, "u_src", bloomA.a.t, 0);
+      gl.uniform2f(P.blur.u.u_dir, 1.4 / bloomA.w, 0);
+      draw(bloomA.b);
+      bloomA.swap();
+      bindTex(P.blur, "u_src", bloomA.a.t, 0);
+      gl.uniform2f(P.blur.u.u_dir, 0, 1.4 / bloomA.h);
+      draw(bloomA.b);
+      bloomA.swap();
+    }
+
+    /* ── composite to the screen ── */
     var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     var w = Math.max(1, Math.round(host.clientWidth * dpr));
     var h = Math.max(1, Math.round(host.clientHeight * dpr));
@@ -626,10 +863,11 @@ window.__ink = (function () {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
-    gl.useProgram(P.render);
-    bindTex(P.render, "u_dye", dye.a.t, 0);
-    gl.uniform2f(P.render.u.u_texel, dye.texel[0], dye.texel[1]);
-    gl.uniform1f(P.render.u.u_light, document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0);
+    gl.useProgram(P.comp);
+    bindTex(P.comp, "u_scene", scene.a.t, 0);
+    bindTex(P.comp, "u_bloom", bloomA.a.t, 1);
+    gl.uniform1f(P.comp.u.u_time, (now - t0) / 1000);
+    gl.uniform1f(P.comp.u.u_light, lightNow);
     draw(null);
     gl.bindVertexArray(null);
     raf = requestAnimationFrame(frame);
@@ -656,6 +894,9 @@ window.__ink = (function () {
       return {
         live: live,
         gl: !!gl,
+        particles: PART_SIDE * PART_SIDE,
+        bloom: !!P.bright,
+        pdraw: !!P.pdraw,
         sim: [SIM_W, SIM_H],
         dye: [DYE_W, DYE_H],
         iter: PRESSURE_ITER,
