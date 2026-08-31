@@ -42,6 +42,10 @@
 (function () {
   "use strict";
   if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  /* Ask before building. This layer is on every route, so it is the single
+     biggest contributor to the context count; on a phone it is also the least
+     visible thing we spend a context on. */
+  if (window.SidGL && !window.SidGL.claim("caustics")) return;
 
   var raf = 0;
 

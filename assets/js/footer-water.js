@@ -49,6 +49,7 @@
   var sec = document.getElementById("lastfig");
   if (!stage || !sec) return;
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (window.SidGL && !window.SidGL.claim("footer-water")) return;
 
   var mount = document.getElementById("lastfig-mount");
 

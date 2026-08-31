@@ -69,6 +69,12 @@
 
   var host = document.getElementById("site-field");
   if (!host) return;
+  /* Same contract as the no-context path below: the layout already paints its
+     own background, so removing the host leaves the page correct, not bare. */
+  if (window.SidGL && !window.SidGL.claim("site-field")) {
+    host.remove();
+    return;
+  }
 
   var canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");

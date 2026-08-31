@@ -51,6 +51,9 @@
 
   var host = document.getElementById("wall-cloth");
   if (!host) return;
+  /* Refused on phones: the cloth reads as a still photograph at 390px, and
+     the still is what stays behind when this returns early. */
+  if (window.SidGL && !window.SidGL.claim("wall-cloth")) return;
 
   var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
