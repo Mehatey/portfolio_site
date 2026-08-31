@@ -1,0 +1,1 @@
+window.WORLDLINE_CONFIG={apiUrl:""};
