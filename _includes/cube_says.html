@@ -14,10 +14,6 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
 </div>
 
 <style>
-  /* Anchored to the cube's own corner: the FAB is fixed at bottom 22 / right
-     22 and is 52 square, so sitting the bubble on the same baseline and
-     clearing 52+14 to its right puts the two on one line with the tail
-     landing on the cube rather than near it. */
   /* ── IT IS A THOUGHT, NOT A TOOLTIP ─────────────────────────────────────
      Sid: "I don't like the way you style the cube comment. It feels like some
      tooltip and not like a living being ... it shouldn't feel like a tooltip
@@ -37,23 +33,56 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
      Readability without a plate comes from a soft radial glow behind the text
      rather than a filled surface: it lifts the words off whatever is behind
      them without drawing an edge anyone can point at. */
+  /* ── IT SPEAKS FROM THE LOGO, NOT FROM THE FLOOR ───────────────────────
+     Sid: "when the cube talks, I was thinking it can nicely animate on the
+     top, in between the cube logo and the navbar icons on the left. It feels
+     like the cube logo is talking rather than the AI chatbot. It's showing up
+     from the bottom. It looks very weird and random, and I can't even tell
+     it's someone talking. It feels like a caption lost."
+
+     He is right about the cause, and it is a positioning bug rather than a
+     styling one. The line was pinned above the bottom-right FAB, which is a
+     corner with no face in it — so the words had no speaker, and text rising
+     from the bottom edge of a screen is the exact grammar of a subtitle.
+
+     The cube logo is the one place on every page where the character is
+     actually visible. Sitting the line on the logo's own baseline, starting
+     just past its right edge, gives the words a mouth to come out of: the
+     bar is 14px from the top and the mark is 42px tall in a 48px row, so
+     matching those numbers puts the speech optically level with the face.
+     It now enters sideways, out of the cube, rather than upward off the
+     floor. */
   #cube-says {
     position: fixed;
-    /* Clear of the hero's foot row, which carries the location, the clock and
-       the availability line along the same edge. At 30px the thought landed
-       directly under that stamp and the two read as one block of chrome,
-       which is the opposite of the point. */
-    bottom: 116px;
-    right: calc(22px + 52px + 20px);
-    z-index: 199;
-    max-width: min(300px, calc(100vw - 150px));
-    padding: 10px 4px;
+    top: 14px;
+    /* Nav inset + the 42px mark + a gap, so the line begins where the logo
+       ends rather than under it. Matches .studio-nav's own inset expression. */
+    left: calc(clamp(18px, 2.5vw, 40px) + 42px + 18px);
+    height: 48px;
+    display: flex;
+    align-items: center;
+    /* Stops well short of the links pill on the right. */
+    max-width: min(52ch, calc(100vw - 560px));
+    z-index: 8999;
+    padding: 0 4px;
     pointer-events: none;
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateX(-10px);
     transition:
       opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
       transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* Below the point where the links pill would meet the speech, there is no
+     room on the logo's line. The bar becomes a full-width band on small
+     screens, so the thought sits just under it and still reads downward from
+     the cube rather than upward from the floor. */
+  @media (max-width: 900px) {
+    #cube-says {
+      top: 68px;
+      left: clamp(18px, 2.5vw, 40px);
+      height: auto;
+      max-width: min(44ch, calc(100vw - 48px));
+    }
   }
   #cube-says::before {
     /* The glow. Wide, weak and behind everything, so the words sit in a
@@ -62,11 +91,15 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
     position: absolute;
     inset: -26px -30px;
     z-index: -1;
-    background: radial-gradient(60% 60% at 70% 60%, rgba(8, 14, 24, 0.92), rgba(8, 14, 24, 0.55) 55%, transparent 78%);
+    /* Anchored left now that the line starts at the logo: the old 70% put
+       the densest part of the pocket under the tail of the sentence, which
+       was correct when it sat to the LEFT of a bottom-right cube and wrong
+       now that it runs rightward away from one. */
+    background: radial-gradient(62% 62% at 22% 55%, rgba(4, 8, 15, 0.96), rgba(4, 8, 15, 0.7) 55%, transparent 80%);
     filter: blur(6px);
   }
   html[data-theme="light"] #cube-says::before {
-    background: radial-gradient(60% 60% at 70% 60%, rgba(246, 246, 242, 0.95), rgba(246, 246, 242, 0.6) 55%, transparent 78%);
+    background: radial-gradient(62% 62% at 22% 55%, rgba(246, 246, 242, 0.95), rgba(246, 246, 242, 0.6) 55%, transparent 78%);
   }
   #cube-says.is-in {
     opacity: 1;
@@ -79,7 +112,10 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
      decision. */
   #cube-says.is-out {
     opacity: 0;
-    transform: translateY(-26px);
+    /* Drifts back toward the cube and thins, rather than rising off the top
+       of the screen. Leaving in the direction it came from keeps the logo as
+       the speaker for the whole beat. */
+    transform: translateX(-18px);
     transition:
       opacity 1.5s ease,
       transform 1.5s cubic-bezier(0.33, 0, 0.67, 1);
@@ -124,10 +160,17 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
     margin: 0;
     font-family: var(--font-head);
     font-size: 14px;
-    font-weight: 400;
+    /* Lifted from 400/--ink-2 when the line moved up to the logo. Down at the
+       bottom-right corner it sat over page content, which is the darkest part
+       of every layout; on the logo's line it sits over the nav scrim, which
+       is the one band on the page that is deliberately lighter. Measured
+       there, secondary ink at 400 was too faint to read at a glance, which
+       for a character's one spoken line is the whole point lost. */
+    font-weight: 450;
     line-height: 1.5;
     letter-spacing: -0.008em;
-    color: var(--ink-2);
+    color: var(--ink);
+    opacity: 0.92;
     text-wrap: pretty;
   }
 

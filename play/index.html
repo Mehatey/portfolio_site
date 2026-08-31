@@ -1031,6 +1031,49 @@ title: Play · Sid Mehta
         /* Reveal on entry. The images arrive over a long scroll, and fading
            each one in as it lands is what keeps a 57-picture column from
            reading as a contact sheet dumped on the page. */
+        /* ── THE OPENING IS A SEQUENCE, NOT A DUMP ────────────────────────
+           Sid: "improve run time play. start with a couple showing and then a
+           lot and then scroll starting."
+
+           The reveal below is tuned for ARRIVING BY SCROLL: sort the batch
+           left to right, 70ms apart, capped at five. That is right once you
+           are moving, and wrong at load, where the observer hands it every
+           card the first screen holds at once and the page snaps from empty
+           to full in about a third of a second. Nothing is staged, so there
+           is no moment where the page is introducing itself.
+
+           So the first few reveals of the page's life run on their own curve:
+           two pictures land alone with a real beat between them, then the
+           rest of the first screen floods in behind them. After that the
+           scroll stagger takes over unchanged.
+
+           The drift then waits for this to finish rather than for a fixed
+           three seconds, so the tour starts when the page has finished
+           arriving instead of on top of it. */
+        var OPEN_LEAD = 2;      /* "a couple" */
+        var OPEN_BEAT = 520;    /* the gap that makes them read as separate */
+        var OPEN_WAVE = 1350;   /* when "a lot" begins */
+        var OPEN_STEP = 55;
+        /* Has to cover the WHOLE first batch, not an estimate of it. At 9 the
+           observer handed back thirteen cards on a 1440x900 window, so four of
+           them fell through to the scroll stagger and painted at 0-140ms --
+           landing on top of the two that are supposed to arrive alone, which
+           is the exact effect this block exists to remove. Measured delays
+           were 0, 520, 1680, 0, 70, ... 24 is comfortably past a screenful at
+           any viewport, and by the time a reader has scrolled that far the
+           count is spent and the scroll stagger takes over as before. */
+        var OPEN_COUNT = 24;
+        var openedSoFar = 0;
+        /* Read by the auto-scroll below. Milliseconds from page start at
+           which the opening has finished painting. */
+        window.__playOpenEndsAt = OPEN_WAVE + (OPEN_COUNT - OPEN_LEAD) * OPEN_STEP + 400;
+
+        function revealDelay(batchIndex) {
+          if (openedSoFar >= OPEN_COUNT) return Math.min(batchIndex, 5) * 70;
+          var n = openedSoFar;
+          return n < OPEN_LEAD ? n * OPEN_BEAT : OPEN_WAVE + (n - OPEN_LEAD) * OPEN_STEP;
+        }
+
         if (typeof IntersectionObserver === "function") {
           var io = new IntersectionObserver(
             function (entries) {
@@ -1096,7 +1139,8 @@ title: Play · Sid Mehta
                   }
                   return;
                 }
-                e.target.style.setProperty("--in-delay", Math.min(i, 5) * 70 + "ms");
+                e.target.style.setProperty("--in-delay", revealDelay(i) + "ms");
+                openedSoFar += 1;
                 e.target.classList.add("is-in");
                 /* A clip gets its bytes at the moment it is about to be seen,
                    and starts. `play()` returns a promise that rejects on any
@@ -1285,7 +1329,11 @@ title: Play · Sid Mehta
              as something that moves — and it is only the OPENING hold: an
              interrupt still resumes on RESUME_MS as before, because by then
              the reader has met the header and is somewhere else. */
-          var START_MS = 3000;
+          /* Was a flat 3000. It now defers to the opening choreography above
+             when that runs long, so the tour never begins while pictures are
+             still landing. Still at least 3000, because the header has to be
+             readable whatever the grid is doing. */
+          var START_MS = Math.max(3000, window.__playOpenEndsAt || 0);
           var t0 = performance.now();
           var last = 0, idle = 0, auto = true, returning = false;
           /* The drift position is kept as a float here and only handed to
