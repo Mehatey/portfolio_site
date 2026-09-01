@@ -53,6 +53,46 @@
   var timer = 0;
   var hideTimer = 0;
   var node = null;
+  var cube = null;
+
+  /* ── THE POINTER BECOMES THE CUBE WHILE IT SPEAKS ──────────────────────
+     Sid: "would it be nice for the dot to change into a cube when it says
+     this statement, and then goes back into the dot nicely animated."
+
+     cursor_fluid.html argues, correctly, that "a pointer that changes shape
+     as you move is a worse pointer" -- that is why the old velocity-stretch
+     was thrown out. This is not that. The old shape change was CONTINUOUS
+     and driven by movement, so the pointer was never one thing. This one is
+     discrete and driven by an event: the cube is speaking, so the pointer is
+     the cube for as long as the line is up, and a dot again after. It answers
+     the same question the logo anchor answers, which is who is talking.
+
+     Built as a child of #cur-core rather than a new fixed element, so it
+     inherits the position the cursor loop is already writing every frame and
+     that loop does not have to know this exists. */
+  function ensureCube() {
+    if (cube) return cube;
+    var core = document.getElementById("cur-core");
+    if (!core) return null;
+    cube = document.createElement("span");
+    cube.id = "cur-cube";
+    cube.setAttribute("aria-hidden", "true");
+    cube.innerHTML =
+      '<svg viewBox="0 0 24 24" focusable="false">' +
+      '<path class="cc-top" d="M12 2.5 21.5 8 12 13.5 2.5 8Z"/>' +
+      '<path class="cc-left" d="M2.5 8 12 13.5 12 21.5 2.5 16Z"/>' +
+      '<path class="cc-right" d="M21.5 8 12 13.5 12 21.5 21.5 16Z"/>' +
+      "</svg>";
+    core.appendChild(cube);
+    return cube;
+  }
+
+  function setCube(on) {
+    var core = document.getElementById("cur-core");
+    if (!core) return;
+    if (on) ensureCube();
+    core.classList.toggle("is-cube", !!on);
+  }
 
   function ensure() {
     if (node) return node;
@@ -64,6 +104,7 @@
   }
 
   function hide() {
+    setCube(false);
     if (!node) return;
     node.classList.remove("is-in");
   }
@@ -88,6 +129,7 @@
     el.style.top = Math.max(8, top) + "px";
 
     el.classList.add("is-in");
+    setCube(true);
     clearTimeout(hideTimer);
     hideTimer = setTimeout(hide, DWELL);
 
