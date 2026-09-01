@@ -53,7 +53,13 @@
     dpr = 1;
 
   function size() {
-    var r = sec.getBoundingClientRect();
+    /* ── MEASURE THE BOX YOU ARE ACTUALLY IN ───────────────────────────
+       The canvas is inset:0 inside .obj-stage, but the first version sized
+       it from #hs-object and read the pointer relative to #hs-object too.
+       The stage is shorter than the section and offset down inside it, so
+       the field was both the wrong height and shifted: the bloom appeared
+       well below the cursor. Measured against the stage, the two agree. */
+    var r = stage.getBoundingClientRect();
     if (!r.width || !r.height) return false;
     dpr = Math.min(2, window.devicePixelRatio || 1);
     W = Math.round(r.width);
@@ -67,28 +73,49 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.font = '12px ui-monospace, "DM Mono", Menlo, monospace';
     ctx.textBaseline = "top";
+    readInk();
     return true;
+  }
+
+  /* ── THE COLOUR HAS TO BE READ, NOT INHERITED ─────────────────────────
+     The .obj-ascii rule sets `color`, and a canvas does not care: 2D drawing
+     uses ctx.fillStyle, which defaults to black. So the first version painted
+     black glyphs and then mix-blend-mode: screen composited them to exactly
+     nothing over a near-black page. It measured as working -- 10,077 pixels
+     with alpha above the floor -- and rendered as an empty section, which is
+     the whole reason a pixel count is not a substitute for looking.
+
+     Reading the computed colour keeps the CSS as the single source of truth,
+     so the light-theme rule and any future palette change still drive it. */
+  var ink = "rgba(214, 232, 255, 0.9)";
+  function readInk() {
+    try {
+      var c = getComputedStyle(cv).color;
+      if (c) ink = c;
+    } catch (e) {}
   }
 
   /* A cheap value-noise field. Two offset sine products rather than a real
      gradient noise: at this cell size the difference is invisible and this
      costs no table and no allocation. */
   function ambient(x, y, t) {
-    return (
-      0.5 +
-      0.25 * Math.sin(x * 0.21 + t * 0.00021) * Math.cos(y * 0.27 - t * 0.00017) +
-      0.25 * Math.sin((x + y) * 0.11 - t * 0.00009)
-    );
+    return 0.5 + 0.25 * Math.sin(x * 0.21 + t * 0.00021) * Math.cos(y * 0.27 - t * 0.00017) + 0.25 * Math.sin((x + y) * 0.11 - t * 0.00009);
   }
 
   /* Pointer state in canvas space. -999 parks it off the field so the bump
      contributes nothing before the first move and after the pointer leaves. */
   var px = -999,
     py = -999,
-    warmth = 0, /* eased 0..1 presence, so arriving and leaving are not steps */
+    warmth = 0 /* eased 0..1 presence, so arriving and leaving are not steps */,
     targetWarmth = 0;
 
   var RADIUS = 230;
+  /* 0.62 against an ink floor of 0.55, so only the crests of the noise clear
+     it: a sparse scatter of characters at rest rather than a field. The first
+     value was 0.42, which is BELOW the floor -- measured, the section painted
+     exactly zero pixels until you hovered it, so the "quiet texture" this was
+     supposed to have did not exist at all. */
+  var AMBIENT = 0.62;
 
   var live = false;
   var raf = 0;
@@ -109,17 +136,22 @@
       for (var gx = 0; gx < cols; gx++) {
         var cx = gx * CW;
 
-        var v = ambient(gx, gy, now) * 0.42;
+        var v = ambient(gx, gy, now) * AMBIENT;
 
         if (warmth > 0.01) {
-          var dx = cx - px,
-            dy = cy - py;
+          /* From the cell's CENTRE, not its top-left corner. Measuring from
+             the corner biases every cell half a cell up and left, and with
+             textBaseline "top" painting downward from that same corner the
+             two compound: measured, the bloom's centroid sat consistently
+             below the pointer. */
+          var dx = cx + CW * 0.5 - px,
+            dy = cy + CH * 0.5 - py;
           var d2 = dx * dx + dy * dy;
           if (d2 < r2) {
             /* Smooth falloff, squared so the edge of the bloom is soft rather
                than a visible disc. */
             var f = 1 - d2 / r2;
-            v += f * f * warmth * 0.95;
+            v += f * f * warmth * 0.82;
           }
         }
 
@@ -130,6 +162,7 @@
         var ch = RAMP[Math.min(RAMP.length - 1, Math.round(t * (RAMP.length - 1)))];
         if (ch === " ") continue;
 
+        ctx.fillStyle = ink;
         ctx.globalAlpha = 0.06 + t * 0.5;
         ctx.fillText(ch, cx, cy);
       }
@@ -181,7 +214,7 @@
     sec.addEventListener(
       "pointermove",
       function (e) {
-        var r = sec.getBoundingClientRect();
+        var r = stage.getBoundingClientRect();
         px = e.clientX - r.left;
         py = e.clientY - r.top;
         targetWarmth = 1;
@@ -210,6 +243,15 @@
     },
     { passive: true }
   );
+
+  /* A theme switch changes the computed colour, and the field is often a
+     still frame at that moment, so it has to be told to repaint. */
+  try {
+    new MutationObserver(function () {
+      readInk();
+      paintStill();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  } catch (e) {}
 
   init();
 })();
