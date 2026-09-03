@@ -220,7 +220,17 @@ async function checkPlay(results, viewport, route, page) {
       // The gallery is the page; an empty grid is a dead page even though
       // nothing errors.
       firstTilePainted: Boolean(firstImg && firstImg.complete && firstImg.naturalWidth > 0),
-      accessItems: document.querySelectorAll("#play-access-list li, #play-access-list a").length,
+      // Every tile has to be REACHABLE BY NAME. This used to count a
+      // screen-reader-only <ul> that mirrored the grid, and that list has been
+      // deleted: it held 225 entries beside 201 already-named images, so a
+      // non-visual reader met the whole archive twice. Counting the mirror was
+      // asserting the duplication rather than the accessibility.
+      //
+      // What matters is that no tile is anonymous, so that is what is counted:
+      // images with a non-empty alt, and videos with an aria-label.
+      namedTiles: [...document.querySelectorAll(".play-grid img, .play-grid video")].filter(
+        (el) => (el.getAttribute("alt") || el.getAttribute("aria-label") || "").trim().length > 0
+      ).length,
       hasLightbox: Boolean(document.querySelector(".play-lightbox")),
       // Play is where a recruiter lands after they like the work. Without the
       // footer that path dead-ends — it has been missing once already.
@@ -234,9 +244,9 @@ async function checkPlay(results, viewport, route, page) {
     results,
     viewport,
     route,
-    playHealth.accessItems >= playHealth.tiles,
-    "play mirrors every tile in its accessible list",
-    `${playHealth.accessItems} listed for ${playHealth.tiles} tiles`
+    playHealth.namedTiles >= playHealth.tiles,
+    "every play tile has an accessible name",
+    `${playHealth.namedTiles} named of ${playHealth.tiles} tiles`
   );
   record(results, viewport, route, playHealth.hasLightbox, "play can open a piece full size");
   record(results, viewport, route, playHealth.hasFooter, "play carries the site footer");
