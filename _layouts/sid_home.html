@@ -233,27 +233,26 @@
 
          --lx is written by the pointer handler at the foot of the page, 0 at
          the left edge and 1 at the right. */
+      /* ── THE SENTENCE IS INK, NOT A SHEEN ───────────────────────────────
+         This was a pointer-tracked gradient clipped to the glyphs: bright
+         where --lx put the highlight and rgba(255,255,255,0.58) at the left
+         edge, falling to 0.6 by 82%. Which means the FIRST three words of the
+         page's only claim were painted at a bit over half white on near-black
+         and the last two at 0.6, with one moving band of full white in
+         between. That is a specular pass over a headline, and it is most of
+         why Sid said "its so dim": the h1's own colour is rgb(244,247,251)
+         and was never used, because color:transparent handed the glyphs to
+         the gradient.
+
+         Solid ink now, both themes. A hero headline is the one piece of type
+         on the site that has no budget for atmosphere -- it is the sentence
+         the whole page exists to make. The --lx highlight was the only thing
+         that gradient bought and it was invisible against the cost. */
       .hero__col--l {
-        background-image: linear-gradient(
-          100deg,
-          rgba(255, 255, 255, 0.58) 0%,
-          rgba(255, 255, 255, 0.98) calc(var(--lx, 0.5) * 62% + 12%),
-          rgba(255, 244, 226, 1) calc(var(--lx, 0.5) * 62% + 26%),
-          rgba(255, 255, 255, 0.6) 82%
-        );
-        -webkit-background-clip: text;
-        background-clip: text;
-        color: transparent;
-        -webkit-text-fill-color: transparent;
+        color: var(--home-ink, #f4f7fb);
       }
       html[data-theme="light"] .hero__col--l {
-        background-image: linear-gradient(
-          100deg,
-          rgba(18, 22, 30, 0.72) 0%,
-          rgba(10, 13, 19, 1) calc(var(--lx, 0.5) * 62% + 14%),
-          rgba(40, 30, 12, 1) calc(var(--lx, 0.5) * 62% + 28%),
-          rgba(18, 22, 30, 0.74) 84%
-        );
+        color: #0b0e14;
       }
       /* Parallax. He lives at scene depth and the type at page depth, so they
          separate as you scroll instead of travelling as one flat card -- which
@@ -2827,25 +2826,38 @@
       .film.is-static canvas {
         display: none;
       }
-      /* The veil. Explicit rgba stops rather than `transparent`, because a
-         gradient to `transparent` interpolates through transparent BLACK
-         and leaves a grey bruise across the middle of the fade. */
-      .film::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        background:
-          linear-gradient(
-            90deg,
-            rgba(var(--film-veil), 0.97) 0%,
-            rgba(var(--film-veil), 0.9) 38%,
-            rgba(var(--film-veil), 0.52) 58%,
-            rgba(var(--film-veil), 0) 84%
-          ),
-          linear-gradient(0deg, rgba(var(--film-veil), 0.94) 0%, rgba(var(--film-veil), 0.3) 34%, rgba(var(--film-veil), 0) 62%),
-          linear-gradient(180deg, rgba(var(--film-veil), 0.9) 0%, rgba(var(--film-veil), 0) 34%);
-      }
+      /* ══════════════════════════════════════════════════════════════════
+         THE VEIL IS DELETED, AND IT IS WHY THE PAGE WAS DIM
+
+         Sid: "wtf is happening on the homepage its so dim".
+
+         This was a class-name collision, and it is the most expensive kind
+         because every computed style reads correct while the screen does not.
+
+         `.film` means two unrelated things in this repo. In
+         _includes/film_grade.html it is the SITE-WIDE grade: a fixed layer at
+         inset 0, z-index 8000, holding the grain and the vignette, present on
+         every page. Here it meant the HERO FILM -- footage behind the type --
+         and this ::after was its veil, a near-opaque wash that darkened the
+         left of the frame so the headline had a clean field to sit on.
+
+         The hero film was removed some commits ago. Its element went; these
+         seventeen rules did not. And because the grade layer answers to the
+         same class name, the veil simply moved onto it: a
+         rgba(4,6,11,0.97) -> 0.9 gradient across the left 38% of the VIEWPORT,
+         fixed, at z-index 8000, on top of everything on every page.
+
+         Measured rather than argued. Peak luminance inside the headline's own
+         box was 42 of 255 while the nav label beside it measured 247, with
+         every computed value on the h1 reporting rgb(244,247,251) at opacity
+         1 -- because nothing was wrong with the text. Hiding this one
+         pseudo-element takes the same headline to 247.
+
+         The other sixteen .film rules here are dead too (.film__still,
+         .film.is-gl canvas, .film__hint have no markup left), but they target
+         children that do not exist on the grade layer, so they land on
+         nothing. This one had no child to miss.
+         ══════════════════════════════════════════════════════════════════ */
       .film__hint {
         position: absolute;
         right: clamp(22px, 5vw, 92px);
@@ -5112,9 +5124,40 @@
     <script src="{{ site.baseurl }}/assets/js/home-gl-archive.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/home-gl-field.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/home-gl-culture.js" defer></script>
-    <script src="{{ site.baseurl }}/assets/js/home-gl-ink.js" defer></script>
-    <script src="{{ site.baseurl }}/assets/js/home-gl-mercury.js" defer></script>
-    <script src="{{ site.baseurl }}/assets/js/home-gl-solid.js" defer></script>
+    <!-- ── THE SOLID IS NOT LOADED ────────────────────────────────────────
+         Sid: "can u remove the typography thing whatever you ahve tried",
+         and separately "the homepage is very laggy".
+
+         home-gl-solid.js raymarched "Product designer, six years." as an
+         extruded slab of glass: the sentence rendered to a canvas, converted
+         to a real signed distance field with 8SSEDT, then marched and
+         refracted every frame. It is the best-argued file in this repo and it
+         is the thing he was pointing at -- the headline arrived as smoke and
+         you could not read it.
+
+         Not loading it is the entire fix, because the CSS below keys off the
+         `is-solid` class THAT FILE ADDS: with the class never applied,
+         `html:not([data-home]) .hero.is-solid .hero__col--l { opacity: 0 }`
+         stops matching and the real DOM sentence -- which was there the whole
+         time, at opacity 0, behind the canvas -- simply becomes visible.
+
+         AND IT WAS ONLY THE FALLBACK. home-shuffle.js tries direction 01 in
+         three descending tiers -- __ink (home-gl-ink.js, a real fluid solve),
+         then __mercury (liquid metal), then __solidType (the glass) -- and
+         sets `is-solid` if ANY of them starts. So removing the glass alone
+         left the headline hidden behind whichever of the other two came up,
+         which is what the smoke in his screenshot actually was: the ink.
+
+         All three are unloaded. With none of them able to start, `on01` is
+         false, `is-solid` is never added, and the branch in home-shuffle.js
+         costs three property reads that find nothing. Direction 01 falls back
+         to the room, which is a composition rather than an effect.
+
+         Three WebGL renderers off the page a visitor lands on: a fluid solve
+         with half-float render targets, a metaball march, and a ninety-step
+         SDF march with fourteen smooth minima in its inner loop. All three
+         files stay in the repo.
+         assets/js/home-gl-ink.js · home-gl-mercury.js · home-gl-solid.js -->
     <script src="{{ site.baseurl }}/assets/js/home-shuffle.js" defer></script>
     <!-- The scroll sequence. Reads the property its own section publishes;
          it never listens to scroll itself. -->
