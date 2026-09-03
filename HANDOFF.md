@@ -695,3 +695,96 @@ painted pixels, not the computed value: `#loader-skip` looked like it needed a
 light-theme rule from its computed backdrop (cream) and did not, because the cube
 video paints over that backdrop in both themes. A theme branch there would have
 fixed a problem that is not on screen.
+
+---
+
+# STATE AS OF 3 SEP 2026, LATER — the pass where Sid went through every page
+
+Twelve commits. The first five are recorded in the section above; what follows
+is the rest, and the one finding worth carrying forward.
+
+## The bug that explains the whole "it looks so dim" thread
+
+`.film` means TWO unrelated things in this repo:
+
+- `_includes/film_grade.html` — the site-wide grade. Fixed, inset 0, z-index
+  8000, grain and vignette, present on every page.
+- `_layouts/sid_home.html` — the HERO FILM, footage behind the type, with a
+  `::after` "veil" that darkened the left of the frame so the headline had a
+  clean field to sit on.
+
+The hero film was deleted some commits ago. Its element went; **seventeen of
+its rules did not**, and the grade layer answers to the same class name. So the
+veil moved onto it: `rgba(4,6,11,0.97) → 0.9` across the left 38% of the
+VIEWPORT, fixed, above everything, on every page.
+
+Peak luminance inside the headline's own box measured **42 of 255** while the
+nav label beside it measured **247**, with every computed style on the h1
+reporting `rgb(244,247,251)` at opacity 1. Nothing was wrong with the text.
+Deleting one pseudo-element took it to 247.
+
+**If a colour looks wrong and every computed value says it is right, sample the
+painted pixels and then bisect by hiding layers.** That is what found this, and
+nothing else would have.
+
+## The hero typography
+
+`home-shuffle.js` runs direction 01 in three descending tiers and sets
+`is-solid` if ANY of them starts: `__ink` (a real fluid solve), then
+`__mercury`, then `__solidType` (the sentence raymarched as glass).
+`html:not([data-home]) .hero.is-solid .hero__col--l { opacity: 0 }` is what hid
+the real sentence. Removing one renderer just handed the page to the next one
+down. All three are unloaded now; the files remain. **71fps → 108fps, p95 frame
+33.4ms → 16.6ms.**
+
+## Everything else that landed
+
+- **/works/** — captions were 0.62 ink over a live shader running at full
+  strength. 0.8 ink, tags 0.72, `--field-opacity: 0.5` **declared on body**,
+  because the field is a fixed SIBLING and a property set on `.wk` never
+  reaches it.
+- **Get to know Sid** — head text gone (aria-label kept), ASCII hover gone, and
+  the tiles now hang on a **clothesline**: a damped pendulum off the rail's own
+  per-frame acceleration, pivot above each tile, per-tile multiplier plus a
+  phase-shifted breeze so they never move in lockstep.
+- **The Buddha no longer shatters.** `buddha-voxels.js` is not loaded — that
+  also takes 11,000 instanced cubes and a WebGL context off the shared footer.
+- **The wall is more cloth** — displacement ceiling 11 → 26, settle 0.94 →
+  0.925, and the filter region grew to -12%/124% because a feDisplacementMap
+  can only move a pixel to somewhere inside its own region.
+- **/contact/** — four corners around a big central desk. The desk is written
+  in SIX places and three use `.contact-shell > .contact-desk`, which outranks
+  the plain class; one block at the end settles where it goes.
+- **The music panel held for 45px.** The stage is sticky at `min-height:100svh`
+  inside a `105svh` runway, so the held range is the DIFFERENCE — five svh for
+  thirty frames. 240svh now. **That number is a difference, not a duration; do
+  not "optimise" it again without reading this.**
+- **The footer** was rebuilt: pixel plate with a pointer lens onto the real
+  take, big CTA, copyable email, backup nav, socials, and a date. The kinetic
+  type and the Jekyll colophon are gone.
+- **Nav** — pills removed from logo and links (they were partly painted by a
+  `nav-glass.js` canvas, not only CSS), blur band 104 → 72px.
+- **Play** — the scroll cylinder is off; it was a rotateX plus a
+  getBoundingClientRect per card per frame across 57 items.
+- **The cube speaks on all six pages**, not three.
+- **New:** `assets/js/ambient.js` (pixel birds, a light shaft, a lens flare —
+  one event at a time, 3-7 minutes apart, nothing at rest but a timer) and
+  `assets/js/sound.js` (synthesised hover/click, off by default, waveform
+  toggle with no label).
+- **The idle scene** is glass clouds, a river and two trees instead of tiles
+  and cubes.
+
+## Still open
+
+**The About icons.** Sid: "the icons are next to each other, and when you click
+on one, it animates and becomes a dynamic thing. It gets bigger and then
+replaces that." The dashed arc with three dots visible in his screenshot of the
+LIVE /about/ could not be reproduced on a local build at any scroll position or
+width — no matching element exists in `about-contact.html`. It needs him to
+point at it before anything is built, and building the wrong control here is
+worse than leaving it.
+
+**Rain and thunder** were asked for and deliberately not built. Rain over a page
+of photographs is either invisible or a filter over somebody's work, and thunder
+is sound arriving unrequested — which now has a home behind the sound toggle if
+he wants it.
