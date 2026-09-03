@@ -24,13 +24,19 @@
        when it ends. Idle cost is one setTimeout. This matters: the same person
        asking for this asked, on the same day, why the site was laggy.
 
-   WHY NO RAIN AND NO THUNDER HERE
+   RAIN AND THUNDER, ON THE SECOND PASS
 
-   He asked for both and both are deliberately absent. Rain over a page of
-   photographs and video is either invisible or it is a filter over somebody's
-   work, and thunder is sound that arrives without being asked for -- the site
-   has a sound toggle now (see sound.js) and anything audible belongs behind
-   it. The three that landed are the three that can be quiet.
+   Both were held back once, and the reason still holds -- it shaped how they
+   are built rather than whether. Rain over a page of photographs is either
+   invisible or it is a filter sitting on somebody's work, and thunder is
+   sound arriving unrequested.
+
+   So the rain is not a filter. It is a narrow diagonal band of streaks,
+   masked at both edges, placed left or right of centre and never across the
+   middle where the reading is: a squall passing the window rather than
+   weather applied to the document. And the thunder is a call into sound.js,
+   which returns immediately unless the visitor has turned sound on. A storm
+   with the toggle off is a silent one, and it still looks right.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
@@ -222,7 +228,122 @@
     frame();
   }
 
-  var EVENTS = [birds, birds, shaft, flare];
+  /* ── A SQUALL ────────────────────────────────────────────────────────────
+     A band of rain crossing the window on a diagonal, not a full-screen
+     overlay. The distinction is the whole reason this one is allowed to
+     exist: rain drawn over everything is a filter sitting on somebody's
+     photographs, and rain drawn in a band is weather passing the window.
+
+     The streaks are lines rather than dots because at any believable fall
+     speed a raindrop IS a line -- the eye integrates it, and a camera would
+     too. Each one carries its own length and speed so the band has depth,
+     and the whole thing is masked at both ends so it has no edges.
+
+     The flashes are the interesting part. A lightning flash is not a fade: it
+     is two or three strikes a few frames apart, and the thunder arrives after
+     it -- late by however far away the storm is. Both come from the same
+     `far` value, so a distant flash is dimmer AND its thunder is later and
+     duller, which is the only thing that makes a storm read as having a
+     position rather than being an effect. */
+  function squall(ctx, done) {
+    var life = 0;
+    var span = 900;
+    var far = Math.random();
+    /* The band sits left or right of centre, never across it. */
+    var side = Math.random() < 0.5 ? 0 : 1;
+    var bandW = innerWidth * (0.3 + Math.random() * 0.16);
+    var bandX = side ? innerWidth - bandW - innerWidth * 0.04 : innerWidth * 0.04;
+    var slant = 0.22 + Math.random() * 0.1;
+    var drops = [];
+    var N = 90;
+    for (var i = 0; i < N; i++) {
+      drops.push({
+        x: Math.random(),
+        y: Math.random(),
+        len: 12 + Math.random() * 26,
+        v: 0.011 + Math.random() * 0.014,
+      });
+    }
+    /* Two or three strikes, each a cluster of one to three flashes. */
+    var strikes = [];
+    var nStrikes = 1 + Math.floor(Math.random() * 2);
+    for (var k = 0; k < nStrikes; k++) {
+      strikes.push({ at: 120 + Math.random() * (span - 360), fired: false });
+    }
+    var flash = 0;
+
+    function frame() {
+      life += 1;
+      if (life >= span) {
+        done();
+        return;
+      }
+      /* One envelope for the whole squall so it arrives and leaves. */
+      var pres = Math.min(1, life / 120) * Math.min(1, (span - life) / 160);
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+
+      for (var k = 0; k < strikes.length; k++) {
+        var st = strikes[k];
+        if (!st.fired && life >= st.at) {
+          st.fired = true;
+          flash = 1;
+          /* Sound is optional and always late. Light first, then the sound
+             catches up -- 300ms at the near end, two and a half seconds at
+             the far. */
+          if (typeof window.__thunder === "function") {
+            setTimeout(
+              function () {
+                window.__thunder(far);
+              },
+              300 + far * 2200
+            );
+          }
+        }
+      }
+
+      if (flash > 0.001) {
+        /* Not a wash over the page: a broad soft glow at the top of the band,
+           so the light has a source. */
+        var fg = ctx.createRadialGradient(bandX + bandW * 0.5, -60, 0, bandX + bandW * 0.5, -60, innerHeight * 1.1);
+        var fa = flash * (0.14 - far * 0.08) * pres;
+        fg.addColorStop(0, "rgba(226,238,255," + fa.toFixed(4) + ")");
+        fg.addColorStop(1, "rgba(226,238,255,0)");
+        ctx.fillStyle = fg;
+        ctx.fillRect(0, 0, innerWidth, innerHeight);
+        /* Sharp decay with a bounce, which is what a multi-stroke flash does
+           and what separates lightning from a lamp being switched on. */
+        flash *= life % 3 === 0 ? 0.42 : 0.78;
+      }
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(bandX, 0, bandW, innerHeight);
+      ctx.clip();
+      ctx.lineWidth = 1;
+      for (var i = 0; i < drops.length; i++) {
+        var d = drops[i];
+        d.y += d.v;
+        if (d.y > 1.1) {
+          d.y = -0.1;
+          d.x = Math.random();
+        }
+        var x = bandX + d.x * bandW;
+        var y = d.y * (innerHeight + 120) - 60;
+        /* Fades at both ends of the band so the squall has no vertical edge. */
+        var edge = Math.min(1, Math.min(d.x, 1 - d.x) / 0.22);
+        ctx.strokeStyle = "rgba(198,220,248," + (0.2 * pres * edge).toFixed(4) + ")";
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        ctx.lineTo(x - d.len * slant, y + d.len);
+        ctx.stroke();
+      }
+      ctx.restore();
+      raf = requestAnimationFrame(frame);
+    }
+    frame();
+  }
+
+  var EVENTS = [birds, birds, shaft, flare, squall];
 
   function run() {
     if (document.hidden) {
@@ -236,6 +357,24 @@
       schedule();
     });
   }
+
+  /* A hook, not a HUD. Sid's standing rule is that nothing on the screen may
+     explain itself to the visitor, and these effects fire once every few
+     minutes at random -- which makes them close to untestable by waiting.
+     window.__weather("squall") renders one on demand. It draws nothing that a
+     real event would not draw, so what QA sees is what a visitor gets. */
+  window.__weather = function (name) {
+    var map = { birds: birds, shaft: shaft, flare: flare, squall: squall };
+    var fn = map[name] || EVENTS[Math.floor(Math.random() * EVENTS.length)];
+    clear();
+    clearTimeout(timer);
+    var ctx = stage();
+    fn(ctx, function () {
+      clear();
+      schedule();
+    });
+    return name || "random";
+  };
 
   function schedule() {
     clearTimeout(timer);

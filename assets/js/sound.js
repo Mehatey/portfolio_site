@@ -142,6 +142,73 @@
     }
   }
 
+  /* ── THUNDER ─────────────────────────────────────────────────────────────
+     Exposed for ambient.js, which owns the rain and decides when a storm
+     happens. It is published rather than imported so the two files stay
+     independent: the weather does not need audio to work, and the audio does
+     not need to know what the weather is doing.
+
+     A thunderclap is not a note. It is a wide band of noise with almost no
+     attack shape and a very long, filtered decay, plus a low sine underneath
+     that carries the part you feel rather than hear. Six seconds of buffer is
+     generated on demand -- a sample would be a 200KB download for something a
+     visitor might hear twice.
+
+     It respects the toggle like everything else here. Sid asked for thunder;
+     nobody asked to be startled by a website. */
+  window.__thunder = function (distance) {
+    if (!on) return;
+    var c = audio();
+    if (!c) return;
+    var far = typeof distance === "number" ? distance : 0.5; /* 0 close, 1 far */
+    var dur = 2.4 + far * 3.4;
+    var n = Math.floor(c.sampleRate * dur);
+    var buf = c.createBuffer(1, n, c.sampleRate);
+    var d = buf.getChannelData(0);
+    /* Brownian rather than white. White noise is static; integrating it tilts
+       the spectrum toward the low end, which is what makes it read as weather
+       instead of as a broken speaker. */
+    var last = 0;
+    for (var i = 0; i < n; i++) {
+      var w = Math.random() * 2 - 1;
+      last = (last + 0.02 * w) / 1.02;
+      /* The rumble rolls in rather than starting at full -- a clap that begins
+         at its peak is a gunshot. */
+      var env = Math.min(1, i / (c.sampleRate * 0.12)) * Math.pow(1 - i / n, 2.1);
+      d[i] = last * 3.4 * env;
+    }
+    var src = c.createBufferSource();
+    src.buffer = buf;
+    var lp = c.createBiquadFilter();
+    lp.type = "lowpass";
+    /* Distance is a filter, not a volume. Far thunder loses its top long
+       before it loses its level, which is the only cue that makes one clap
+       sound closer than another. */
+    lp.frequency.setValueAtTime(1400 - far * 900, c.currentTime);
+    lp.frequency.exponentialRampToValueAtTime(220, c.currentTime + dur);
+    var g = c.createGain();
+    g.gain.value = 0.55 - far * 0.3;
+    src.connect(lp);
+    lp.connect(g);
+    g.connect(master);
+    src.start();
+
+    /* The body of it. Sub content the small speakers will not reproduce and
+       the good ones will, which is the right way round. */
+    var o = c.createOscillator();
+    var og = c.createGain();
+    o.type = "sine";
+    o.frequency.setValueAtTime(58 - far * 14, c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(32, c.currentTime + dur * 0.8);
+    og.gain.setValueAtTime(0, c.currentTime);
+    og.gain.linearRampToValueAtTime(0.5 - far * 0.28, c.currentTime + 0.09);
+    og.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + dur * 0.85);
+    o.connect(og);
+    og.connect(master);
+    o.start();
+    o.stop(c.currentTime + dur);
+  };
+
   /* ── THE CONTROL ────────────────────────────────────────────────────────── */
   var BARS = 5;
   var btn = document.createElement("button");
