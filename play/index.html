@@ -672,7 +672,22 @@ title: Play · Sid Mehta
            the wheel, and a grid of artwork is self-evidently clickable.
            Telling someone what they are already watching is the same narrator
            voice being cut everywhere else on this site. -->
-      <ul class="sr-only" id="play-access-list" aria-label="Play pieces"></ul>
+      <!-- ── THE DUPLICATE INDEX CAME OUT ────────────────────────────────
+           This was a screen-reader-only <ul> that listed every piece a second
+           time. Measured on the rendered page: 225 list items alongside 201
+           images that each already carry a name, so a non-visual reader met
+           the entire archive twice -- once as images, once as a list saying
+           the same words.
+
+           It was added for a real reason. The video cards take an early
+           return in the render path, and the worry was that a piece missing
+           from the list is a piece a non-visual reader is told does not
+           exist. But those cards carry an aria-label of their own, so they
+           were never missing; the list was insurance against a problem that
+           had already been solved a few lines above it.
+
+           The grid itself is the index now. It has a label, and every child
+           has a name. -->
     </main>
 
     <div class="play-lightbox" id="play-lightbox" role="dialog" aria-modal="true" aria-labelledby="play-lightbox-title">
@@ -761,8 +776,26 @@ title: Play · Sid Mehta
          The clips above are the exception, and they are hand-written, because
          a title that says what a thing is is only worth having when somebody
          knows. */
+      /* Real titles come from _data/play_pieces.yml, keyed by file number.
+         Anything not in that file falls back to the honest generic -- see the
+         note at the top of the data file for why the generic is the default
+         and why it is not this repo's place to replace it. */
+      var PIECES = {{ site.data.play_pieces | default: empty_hash | jsonify }};
+      function pieceFor(file) {
+        return (PIECES && PIECES[String(file)]) || null;
+      }
       function titleFor(file) {
-        return "Archive piece";
+        var pc = pieceFor(file);
+        return pc && pc.title ? pc.title : "Archive piece";
+      }
+      /* The accessible name. A number distinguishes one piece from another and
+         that is all it does; a title, a medium and a year is what a person
+         would actually say about the thing. */
+      function nameFor(file, fallbackTitle) {
+        var pc = pieceFor(file);
+        if (!pc || !pc.title) return fallbackTitle;
+        var tail = [pc.medium, pc.year].filter(Boolean).join(", ");
+        return tail ? pc.title + ". " + tail : pc.title;
       }
       /* ── PLAY MOVES AGAIN ───────────────────────────────────────────────
          Sid: "why can't play play videos it was playing videos earlier."
@@ -836,7 +869,8 @@ title: Play · Sid Mehta
           // camera jpgs are 4608px masters; nothing on this page ever draws
           // a card that large, so shipping them was 42MB of pure ballast.
           hi: `{{ site.baseurl }}/play/assets/hi/p${file}.webp`,
-          title: `${titleFor(file)} ${String(file).padStart(3, "0")}`,
+          title: pieceFor(file) && pieceFor(file).title ? titleFor(file) : `${titleFor(file)} ${String(file).padStart(3, "0")}`,
+          name: nameFor(file, `${titleFor(file)} ${String(file).padStart(3, "0")}`),
         }))
       );
 
@@ -887,7 +921,7 @@ title: Play · Sid Mehta
           window.playOpen = function (item) {
             lastFocus = document.activeElement;
             img.src = item.hi || item.src;
-            img.alt = item.title;
+            img.alt = item.name || item.title;
             if (title) title.textContent = item.title;
             box.classList.add("is-open");
             if (closeBtn) closeBtn.focus();
@@ -908,7 +942,6 @@ title: Play · Sid Mehta
         })();
 
         var grid = document.getElementById("play-grid");
-        var accessList = document.getElementById("play-access-list");
         /* Built in two passes, for two reasons.
 
            `image.src` used to be assigned before `image.loading`, which is the
@@ -967,27 +1000,21 @@ title: Play · Sid Mehta
             image.preload = "none";
             image.poster = item.src;
             image.dataset.clip = item.video;
-            image.setAttribute("aria-label", item.title);
+            image.setAttribute("aria-label", item.name || item.title);
             grid.appendChild(image);
             /* It still gets its line in the screen-reader index — the early
                return below skips the shared path, and a piece that is missing
                from the list is a piece a non-visual reader is told does not
                exist. */
-            var vli = document.createElement("li");
-            vli.textContent = index + 1 + ". " + item.title;
-            accessList.appendChild(vli);
             return image;
           }
           image = document.createElement("img");
-          image.alt = item.title;
+          image.alt = item.name || item.title;
           image.decoding = "async";
           image.addEventListener("click", function () {
             if (window.playOpen) window.playOpen(item);
           });
           grid.appendChild(image);
-          var li = document.createElement("li");
-          li.textContent = index + 1 + ". " + item.title;
-          accessList.appendChild(li);
           return image;
         });
         /* Which pictures are on screen is a question about columns, not about
