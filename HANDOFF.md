@@ -945,3 +945,77 @@ silently. **Jekyll served the page with an empty data file rather than failing**
 twelve prototypes rendered, zero capability lines, no error anywhere. The only
 signal was a count coming back 0 of 12. Quote anything going into a data file
 that a human wrote a sentence into.
+
+---
+
+# STATE AS OF 3 SEP 2026, FIFTH PASS — the performance session
+
+Four fixes, all found by measuring rather than guessing, and the site went from
+"fine" to fast.
+
+| route     | before      | after      | fps before | fps after |
+| --------- | ----------- | ---------- | ---------- | --------- |
+| `/`       | 9.12MB      | 6.00MB     | 93         | 102       |
+| `/works/` | 1.99MB      | 1.92MB     | 66         | 113       |
+| `/play/`  | **10.70MB** | **2.77MB** | 66         | 120       |
+| `/about/` | 2.65MB      | 2.59MB     | 57         | 109       |
+| `/mool/`  | 2.37MB      | 2.30MB     | **48**     | **120**   |
+
+## 1. The case-study water was 79% of the page's CPU
+
+Profiled with CDP: `draw` held 79.1% of self time on /mool/, a second copy
+14.8%, nothing else registered. Per pixel, per frame, it summed **twelve
+Math.sin calls** — about three quarters of a million per frame — and allocated
+a fresh `createImageData` each time.
+
+`sin((x*ax + y*ay)*f + wt*s)` = `sin(X)cos(Y) + cos(X)sin(Y)` where
+`X = x*ax*f` depends only on x and the wave, **not on y and not on time**. So X
+is a table built once per resize, Y is twelve sin/cos per row, and the inner
+loop is two multiplies and an add. **This is an identity, not an
+approximation** — the field it draws is the same field.
+
+It also now stops when scrolled off screen. There was a `visibilitychange`
+handler for a hidden tab, which does not cover the common case: the reader is
+three screens down while a full frame of invisible water is still computed.
+
+## 2. /play/ shipped 9.32MB before a scroll, with lazy loading inert
+
+239 images fetched, four in the viewport, 193 carrying `loading="lazy"`.
+
+**An `<img>` with no src and no dimensions has no intrinsic size**, so 201 of
+them in a `columns` flow all sit at y=0. Every one is "in the viewport" when the
+browser decides what to defer, so it defers nothing. This page had already met
+the same collapse from the other direction — the eager/lazy arithmetic says so
+in its own comment — and it was treated as a quirk of one calculation rather
+than as the whole loading strategy.
+
+A 3/4 aspect-ratio placeholder gives the flow real height before any byte
+arrives. Released on **load**, not on reveal: an image can decode long before it
+scrolls into view, and keying it to `.is-in` left one of the first six drawn at
+3/4 when its real ratio was 0.69.
+
+## 3. The hero opener downloaded 3.1MB it had decided not to play
+
+`preload="auto"` with a plain `<source src>` on both takes. The script forty
+lines below returns early for anyone who has been here before — so on a return
+visit the film never plays, and 3.1MB had already been spent before that line
+ran.
+
+## 4. gsap was fetched twice on every page
+
+Two tags, `cursor_fluid.html` and `motion_stack.html`. Removed from
+motion_stack: cursor_fluid is a **superset** of those pages (it also covers 404
+and default.liquid) and its copy is synchronous, so code there can use the
+library at parse time.
+
+## A testing note that cost four attempts
+
+**`scrollIntoView` does not work under Lenis.** Lenis translates the page, so
+the element's rect does not follow the call — the canvas reported `top: -1656`
+after being "scrolled into view". A computed `scrollTo` target then failed too,
+because lazy content had changed the layout underneath it. The measurement that
+finally held scrolls in steps and tests at whichever step the element is
+genuinely in view.
+
+Also worth keeping: `display: none` on a canvas stops compositing but **not its
+rAF loop**, so hiding one to test its cost measures nothing. Profile instead.
