@@ -1728,6 +1728,23 @@ include film_grade.html %}
       height: 42px;
     }
   }
+  /* ── THE SHELF ──────────────────────────────────────────────────────────
+     A hairline with things resting on it. The rule is the floor -- without it
+     the sprites float in the footer and read as decoration that got loose. */
+  .ftr__shelf {
+    margin-top: clamp(18px, 2.6vh, 30px);
+    padding-top: 14px;
+    border-top: 1px solid var(--line-2, rgba(255, 255, 255, 0.12));
+    max-width: 420px;
+  }
+  .ftr__shelf[hidden] {
+    display: none;
+  }
+  .ftr__shelf-canvas {
+    display: block;
+    width: 100%;
+    height: 38px;
+  }
 </style>
 
 <!-- No record contains a space: multi-word facts are written with `~` and put
@@ -2543,6 +2560,25 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
         <span id="site-footer-time"></span>
         <span>Updated {{ site.time | date: "%b %Y" }}</span>
       </p>
+
+      <!-- ── THE SHELF ───────────────────────────────────────────────────
+           Where the things you clicked end up. See assets/js/collect.js.
+
+           It is EMPTY until you have picked something up, and it is never
+           labelled. A row of nine grey slots with "0/9 collected" over it
+           would be an achievement tracker, which is a different and much
+           worse idea: it turns a thing somebody finds into a thing somebody
+           is failing at. So the shelf simply is not there until it has
+           something on it, and then it is a quiet row of small objects with
+           no score, no total and no invitation.
+
+           Rendered by the script rather than by Liquid because the contents
+           live in sessionStorage -- Jekyll builds one page for everyone and
+           this row is different for every visitor. -->
+      <div class="ftr__shelf" id="ftr-shelf" hidden>
+        <canvas class="ftr__shelf-canvas" aria-hidden="true"></canvas>
+        <p class="sr-only" id="ftr-shelf-text"></p>
+      </div>
     </div>
   </section>
 </footer>
@@ -3794,3 +3830,97 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
      until somebody turns it on. -->
 <script src="{{ site.baseurl }}/assets/js/ambient.js" defer></script>
 <script src="{{ site.baseurl }}/assets/js/sound.js" defer></script>
+
+<script>
+  /* ── DRAWING THE SHELF ──────────────────────────────────────────────────
+     Reads the same sprite table collect.js owns rather than keeping a second
+     copy, so a sprite added there appears here with no further work.
+
+     Redraws on the `sid:collected` event and once on load. The screen-reader
+     line is a real sentence rather than a list of nine nouns, because "a star,
+     a moon and a leaf" is what a person would say and "star moon leaf" is what
+     a database would. */
+  (function () {
+    var shelf = document.getElementById("ftr-shelf");
+    if (!shelf) return;
+    /* These are read BEFORE the guard below. `var` hoists the declaration but
+       not the assignment, so leaving them under an early return left `cv`
+       undefined when start() ran later off DOMContentLoaded -- which threw on
+       `cv.width` on every paint. */
+    var cv = shelf.querySelector(".ftr__shelf-canvas");
+    var label = document.getElementById("ftr-shelf-text");
+    /* 3, not 2. At a 2px cell a nine-row sprite is 18px tall and the shapes
+       stop being readable as a bird or a fish -- they read as specks, which
+       defeats the point of collecting distinct things. 27px fits the band. */
+    var PX = 3;
+
+    /* collect.js is deferred, so it has not defined window.__collected at the
+       moment this inline script runs. Deferred scripts finish before
+       DOMContentLoaded, so waiting for that is enough and needs no ready flag
+       passed between the two files. */
+    if (typeof window.__collected !== "function") {
+      document.addEventListener("DOMContentLoaded", start);
+    } else {
+      start();
+    }
+
+    function start() {
+      if (typeof window.__collected !== "function" || !cv) return;
+      document.addEventListener("sid:collected", paint);
+      addEventListener("resize", paint, { passive: true });
+      paint();
+    }
+
+    function paint() {
+      var data = window.__collected();
+      if (!data.got.length) {
+        shelf.hidden = true;
+        return;
+      }
+      shelf.hidden = false;
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      var w = shelf.clientWidth;
+      var h = 38;
+      cv.width = Math.round(w * dpr);
+      cv.height = Math.round(h * dpr);
+      var g = cv.getContext("2d");
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.clearRect(0, 0, w, h);
+
+      var names = data.got;
+      var step = 34;
+      for (var i = 0; i < names.length; i++) {
+        var sp = null;
+        for (var k = 0; k < data.sprites.length; k++) if (data.sprites[k].name === names[i]) sp = data.sprites[k];
+        if (!sp) continue;
+        g.fillStyle = sp.ink;
+        var ox = 4 + i * step;
+        /* Each one sits ON the floor rather than centred in the band, so the
+           row has a baseline. A pixel object floating mid-band is a sticker. */
+        var oy = h - sp.rows.length * PX - 4;
+        for (var r = 0; r < sp.rows.length; r++) {
+          for (var c = 0; c < sp.rows[r].length; c++) {
+            if (sp.rows[r][c] === "#") g.fillRect(ox + c * PX, oy + r * PX, PX, PX);
+          }
+        }
+      }
+      if (label) {
+        var list = names.slice();
+        var sentence =
+          list.length === 1
+            ? "a " + list[0]
+            : list
+                .slice(0, -1)
+                .map(function (n) {
+                  return "a " + n;
+                })
+                .join(", ") +
+              " and a " +
+              list[list.length - 1];
+        label.textContent = "Picked up along the way: " + sentence + ".";
+      }
+    }
+  })();
+</script>
+
+<script src="{{ site.baseurl }}/assets/js/collect.js" defer></script>
