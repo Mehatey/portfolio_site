@@ -274,6 +274,39 @@ title: Play · Sid Mehta
          happens to sit in it. Only two things differ, below the shared block:
          it is not zoomable, and it does not brighten on hover, since it is
          already the brightest thing in its column. */
+      /* ── WHY THESE RESERVE HEIGHT BEFORE THEY LOAD ────────────────────
+         Measured: 239 images and 9.32MB were fetched before a single scroll,
+         with FOUR of them in the viewport, even though 193 of the 201 carry
+         loading="lazy".
+
+         The attribute was doing nothing, and the reason is in this rule. An
+         <img> with no src and no dimensions has no intrinsic size, so it
+         collapses to zero height -- and 201 zero-height elements in a columns
+         flow all sit at y=0. Every one of them is "in the viewport" at the
+         moment the browser decides what to defer, so it defers nothing. The
+         eager/lazy arithmetic further down already ran into the same collapse
+         from the other direction and says so in its own comment.
+
+         An aspect-ratio gives the flow real height before any byte arrives, so
+         the columns are genuinely tall and lazy loading has something to be
+         lazy about. 3/4 is a placeholder, not a claim about any picture: it is
+         dropped the moment the real image lands (see .is-in below), and from
+         then on the natural size governs. Being wrong about a tile's shape for
+         one frame costs nothing; being wrong about all of them costs 8MB. */
+      .play-grid img:not(.is-sized),
+      .play-grid video:not(.is-sized) {
+        aspect-ratio: 3 / 4;
+      }
+      /* Released on LOAD, not on reveal. Those are different events: an image
+         can finish decoding well before it scrolls into view, and keying the
+         release to .is-in left such a tile drawn at 3/4 while its real ratio
+         was 0.69 -- measured, one of six in the first sample. .is-sized is set
+         by the load handler, so the placeholder lasts exactly as long as there
+         is nothing better to use. */
+      .play-grid img.is-sized,
+      .play-grid video.is-sized {
+        aspect-ratio: auto;
+      }
       .play-grid img,
       .play-grid video {
         display: block;
@@ -1022,6 +1055,15 @@ title: Play · Sid Mehta
           image = document.createElement("img");
           image.alt = item.name || item.title;
           image.decoding = "async";
+          /* The moment a real size is available, the 3/4 placeholder that let
+             lazy loading work is no longer the best information we have. */
+          image.addEventListener(
+            "load",
+            function () {
+              this.classList.add("is-sized");
+            },
+            { once: true }
+          );
           image.addEventListener("click", function () {
             if (window.playOpen) window.playOpen(item);
           });
