@@ -196,6 +196,48 @@
         color: var(--wk-faint);
       }
 
+      /* ── the lanes ─────────────────────────────────────────────────────────
+         A lane head is a chapter mark, not a second page title, so it takes
+         the mono micro the rest of the site uses for labels rather than
+         competing with .wk-head h2 at 2.3rem. The rule above it does the
+         separating; the type stays quiet.
+
+         The first lane needs no top margin: .wk-head already ends in a rule
+         and 52px of air, and a second rule immediately under it reads as a
+         mistake. */
+      .wk-lane + .wk-lane {
+        margin-top: clamp(56px, 8vh, 104px);
+        padding-top: clamp(28px, 4vh, 48px);
+        border-top: 1px solid var(--wk-hair);
+      }
+      .wk-lane-head {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px 22px;
+        margin-bottom: clamp(22px, 3vh, 38px);
+      }
+      .wk-lane-head h3 {
+        margin: 0;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        font-weight: 400;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--wk-ink, inherit);
+      }
+      /* The note is the half of this that a recruiter actually reads, so it
+         is set as prose at reading size rather than as another tracked label.
+         Capped in ch: at 1560px the container is wide enough to run this to
+         120 characters, which is a line nobody finishes. */
+      .wk-lane-head p {
+        margin: 0;
+        max-width: 62ch;
+        font-size: clamp(0.82rem, 1vw, 0.94rem);
+        line-height: 1.45;
+        color: var(--wk-faint);
+      }
+
       /* ── the grid ──────────────────────────────────────────────────────── */
       .wk-grid {
         list-style: none;
@@ -738,16 +780,49 @@
           <p>{{ site.data.works | size }} projects</p>
         </div>
 
-        <ul class="wk-grid">
-          {% for w in site.data.works %}
-          <li>
-            <!-- data-cube is the cube's remark on this piece, not a
+        <!-- ── WHY THIS PAGE IS IN THREE PARTS NOW ────────────────────────
+             Seventeen projects competed equally in one grid, which asked a
+             single grid to do three different jobs: convince a product-design
+             hiring manager that Sid ships products with numbers on them,
+             convince a creative-technology studio that he builds systems, and
+             show that there is a real image-making practice underneath both.
+             A reader who wants the first one had to read all seventeen to find
+             the four, and the four are the whole reason they opened the page.
+
+             Lanes, not filter chips. A filter starts every visitor at "all",
+             which is the state that was already failing, and hides the other
+             two-thirds behind a control a stranger has to notice and trust.
+             Three labelled sections make the curation itself the message and
+             cost no interaction at all.
+
+             The numbering restarts in each lane, and it took a rendered page
+             to see why it has to. Kept portfolio-wide it produced 01, 06, 07,
+             08 down the product column — a visible gap in a printed sequence,
+             which reads as four missing projects rather than as a rank. The
+             rank was never legible anyway: nothing on the page tells a
+             visitor the list is ordered by importance, so it was decoding to
+             nothing while looking like a defect. Per lane, each column leads
+             with its own strongest piece, which is the more useful claim. -->
+        {% assign lanes = "product,ai,culture" | split: "," %} {% for lane in lanes %} {% case lane %} {% when "product" %} {% assign lane_name =
+        "Product design" %} {% assign lane_note = "Shipped work with numbers attached: consumer banking, healthcare scheduling, enterprise inventory."
+        %} {% when "ai" %} {% assign lane_name = "AI and creative technology" %} {% assign lane_note = "Where the model or the sensor is the material:
+        in-browser AI, spatial computing, live systems." %} {% when "culture" %} {% assign lane_name = "Culture, brand and image" %} {% assign
+        lane_note = "Identity systems, exhibitions, and the drawing practice underneath the rest of it." %} {% endcase %}
+        <section class="wk-lane" aria-labelledby="lane-{{ lane }}">
+          <div class="wk-lane-head">
+            <h3 id="lane-{{ lane }}">{{ lane_name }}</h3>
+            <p>{{ lane_note }}</p>
+          </div>
+          <ul class="wk-grid">
+            {% assign lane_works = site.data.works | where: "lane", lane %} {% for w in lane_works %}
+            <li>
+              <!-- data-cube is the cube's remark on this piece, not a
                  description of it, and it is optional on purpose: an entry
                  with nothing worth saying stays silent rather than being
                  handed a summary. See assets/js/cube-cursor.js. -->
-            <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}" {% if w.cube %} data-cube="{{ w.cube }}" {% endif %}>
-              <div class="wk-cover">
-                <!-- ── SIZES ────────────────────────────────────────────────
+              <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}" {% if w.cube %} data-cube="{{ w.cube }}" {% endif %}>
+                <div class="wk-cover">
+                  <!-- ── SIZES ────────────────────────────────────────────────
                      The covers are 1500 to 1920px wide and this grid draws
                      them at about 450 device pixels, so the page was shipping
                      4.7MB to paint sixteen thumbnails. al-folio's imagemagick
@@ -760,36 +835,72 @@
                      columns above 1080, two above 640, one below, inside a
                      container capped at 1560. Getting this wrong is worse than
                      omitting srcset, because the browser trusts it. -->
-                {%- comment -%} `w.img | split: "." | first` looked right and was wrong: these paths carry dots in their DIRECTORY names —
-                /1.met/0.webp, /6.mindu/cover2.webp, /10.alpha/cover.webp — so splitting on "." returned "/1", "/6", "/10" and the page requested
-                /1-900.webp. Three 404s on the works grid, invisible because the browser fell back to the plain src in the srcset list. Removing the
-                known extensions touches only the end of the string. {%- endcomment -%} {% assign img_base = w.img | remove: ".webp" | remove: ".jpg"
-                | remove: ".jpeg" | remove: ".png" %}
-                <img
-                  src="{{ site.baseurl }}{{ img_base }}-900.webp"
-                  srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} {{ w.imgw }}w"
-                  sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)"
-                  alt="{{ w.title }}"
-                  loading="{% if forloop.index <= 6 %}eager{% else %}lazy{% endif %}"
-                  decoding="async"
-                  width="1200"
-                  height="900"
-                />
-                <span class="wk-mark">
-                  <b class="wk-num">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</b>
-                  <b class="wk-year">{{ w.year }}</b>
-                </span>
-                {% if w.award %}<span class="wk-award">{{ w.award }}</span>{% endif %}
-              </div>
-              <div class="wk-body">
-                <h3 class="wk-name">{{ w.title }}<i aria-hidden="true">&rarr;</i></h3>
-                <p class="wk-tags">{% for t in w.tags %}<span>{{ t }}</span>{% endfor %}</p>
-                <p class="wk-desc"><span>{{ w.desc }}</span></p>
-              </div>
-            </a>
-          </li>
-          {% endfor %}
-        </ul>
+                  {%- comment -%} `w.img | split: "." | first` looked right and was wrong: these paths carry dots in their DIRECTORY names —
+                  /1.met/0.webp, /6.mindu/cover2.webp, /10.alpha/cover.webp — so splitting on "." returned "/1", "/6", "/10" and the page requested
+                  /1-900.webp. Three 404s on the works grid, invisible because the browser fell back to the plain src in the srcset list. Removing the
+                  known extensions touches only the end of the string. `loading` below is eager for the first lane only. It used to be `forloop.index
+                  <= 6`, the top six by importance, which was a position on the page when there was one grid and stopped being one when there were
+                  three: it was handing `eager` to Encoded at rank four, two lanes and a full scroll below the fold. A comment cannot live inside the
+                  img tag's attribute list — prettier's Liquid parser fails on it — so it lives here. {%- endcomment -%} {% assign img_base = w.img |
+                  remove: ".webp" | remove: ".jpg" | remove: ".jpeg" | remove: ".png" %}
+                  <img
+                    src="{{ site.baseurl }}{{ img_base }}-900.webp"
+                    srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} {{ w.imgw }}w"
+                    sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)"
+                    alt="{{ w.title }}"
+                    loading="{% if lane == 'product' %}eager{% else %}lazy{% endif %}"
+                    decoding="async"
+                    width="1200"
+                    height="900"
+                  />
+                  <span class="wk-mark">
+                    <b class="wk-num">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</b>
+                    <b class="wk-year">{{ w.year }}</b>
+                  </span>
+                  {% if w.award %}<span class="wk-award">{{ w.award }}</span>{% endif %}
+                </div>
+                <div class="wk-body">
+                  <h3 class="wk-name">{{ w.title }}<i aria-hidden="true">&rarr;</i></h3>
+                  <p class="wk-tags">{% for t in w.tags %}<span>{{ t }}</span>{% endfor %}</p>
+                  <p class="wk-desc"><span>{{ w.desc }}</span></p>
+                </div>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endfor %}
+
+        <!-- ── THE GUARD ──────────────────────────────────────────────────
+             `where` renders what matches and says nothing about what did
+             not, so an entry added to works.yml without a `lane` — or with
+             one typo'd — would drop off this page completely and the only
+             symptom would be a project nobody can find. This catches it and
+             says so on the page rather than swallowing it. -->
+        {% assign laned = 0 %} {% for lane in lanes %} {% assign n = site.data.works | where: "lane", lane | size %} {% assign laned = laned | plus: n
+        %} {% endfor %} {% if laned < site.data.works.size %}
+        <section class="wk-lane" aria-labelledby="lane-unfiled">
+          <div class="wk-lane-head">
+            <h3 id="lane-unfiled">Unfiled</h3>
+            <p>
+              These entries carry no recognised <code>lane</code> in <code>_data/works.yml</code>. Give each one <code>product</code>,
+              <code>ai</code> or <code>culture</code> and this section disappears.
+            </p>
+          </div>
+          <ul class="wk-grid">
+            {% for w in site.data.works %}{% unless w.lane == "product" or w.lane == "ai" or w.lane == "culture" %}
+            <li>
+              <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}">
+                <div class="wk-body">
+                  <h3 class="wk-name">{{ w.title }}<i aria-hidden="true">&rarr;</i></h3>
+                  <p class="wk-desc"><span>{{ w.desc }}</span></p>
+                </div>
+              </a>
+            </li>
+            {% endunless %}{% endfor %}
+          </ul>
+        </section>
+        {% endif %}
 
         <p class="wk-end">
           <span>{{ site.data.works | size }} projects · 2018-2026</span>

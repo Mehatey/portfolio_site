@@ -413,6 +413,86 @@
         }
       }
 
+      /* ── THE ONE THING A RECRUITER CAME FOR ───────────────────────────────
+         Measured on the live site rather than assumed: a fresh visit reveals
+         the home page with ZERO links matching /resume|cv/ anywhere on it.
+         The résumé was on the Enter gate the whole time — and the gate is
+         destroyed four seconds later, so the only page every visitor lands
+         on was the one page that could not hand them the PDF. /contact/ has
+         it, which makes it two clicks and a guess.
+
+         It sits on this row because the row already carries the three facts
+         a stranger checks first (is he real, where is he, can I hire him)
+         and this is the fourth one. Outside .hero__stamp, not inside it:
+         that <p> is aria-hidden by design (a ticking clock is noise to a
+         screen reader) and a link buried under aria-hidden is a link that
+         does not exist for the people most likely to be tabbing.
+
+         It also has to outlive the stamp. .hero__stamp is display:none below
+         900px, so anything placed in it is desktop-only — and a recruiter
+         reading on a phone is the likeliest recruiter there is. */
+      .hero__resume {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font: var(--type-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--accent-ink);
+        text-decoration: none;
+        white-space: nowrap;
+        padding: 4px 0;
+      }
+      /* The rule is on the words, not on the anchor. On mobile the anchor
+         takes `flex-basis: 100%` to claim its own line (see below), and a
+         border on the anchor stretched into a 346px hairline running the
+         full width of the page under a 96px label — it read as a divider
+         someone had left in, not as a link. On the span it hugs the words
+         at every width, and the anchor keeps the full-width hit area. */
+      .hero__resume span {
+        border-bottom: 1px solid color-mix(in srgb, var(--accent-ink) 34%, transparent);
+        padding-bottom: 2px;
+        transition: border-color 0.2s ease;
+      }
+      .hero__resume:hover span,
+      .hero__resume:focus-visible span {
+        border-bottom-color: var(--accent-ink);
+      }
+      /* ── IT TOOK 128px OFF THE LIVE LINE ────────────────────────────────
+         Caught by measuring rather than by looking, and it was ugly: this
+         row is a flex line and .hero__base is the only item on it that
+         flexes, so a third fixed-width item is paid for entirely by the
+         line. At 390 the stamp is already hidden, leaving base + shuffle,
+         and adding 96px of link crushed .hero__base from 175px to 47px —
+         the rotating sentence went from two lines to seven and wrapped
+         mid-word, "quiet t / ools fo / r mess / y huma / n probl / ems".
+
+         So below the stamp's own breakpoint the row wraps and the link
+         takes a line of its own. `flex: 1 1 100%` on the last item and
+         nothing else: line one stays exactly the composition that shipped,
+         base and shuffle, and the link sits under it. */
+      @media (max-width: 900px) {
+        .hero__foot-row {
+          flex-wrap: wrap;
+          row-gap: 10px;
+        }
+        .hero__resume {
+          flex: 1 1 100%;
+        }
+      }
+      /* The mark, not a word. "↗" is the site's existing external cue and it
+         is drawn rather than typed so it keeps its weight at micro size. */
+      .hero__resume::after {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-top: 1px solid currentColor;
+        border-right: 1px solid currentColor;
+        transform: rotate(45deg);
+        opacity: 0.75;
+      }
+
       .hero__base {
         margin: 0;
         min-width: 0;
@@ -4469,6 +4549,11 @@
               <span class="hero__stamp-sep"></span>
               <span class="hero__stamp-open">Open to roles</span>
             </p>
+
+            <!-- Not aria-hidden, unlike its two neighbours on this row: this
+                 is the row's only actionable item and the only one that is
+                 not repeated as prose on /about/ and /contact/. -->
+            <a class="hero__resume" href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer"><span>Resume PDF</span></a>
           </div>
 
           <!-- The word "Scroll" came out. Sid: "on the homepage we have scroll

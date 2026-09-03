@@ -591,3 +591,107 @@ pixelled take of him that the cursor dissolves.
   letter moved 0.7px — the hero puts the clauses in columns either side of him
   with a 662px gap, so there is nothing there to interact with. Needs a different
   idea, not a bigger constant.
+
+---
+
+# STATE AS OF 3 SEP 2026 — a recruiter pass, then Sid opened the whole site
+
+Two halves. The first was a planned recruiter-experience pass. The second was
+Sid going through the live site page by page and finding a lot. Nothing in this
+session is committed: ten files sit in the working tree.
+
+## The measurement that started it
+
+Run against the LIVE site in a fresh context, because that is the only way a
+recruiter's visit reproduces:
+
+- Land and do not click and you see nothing, forever. The Buddha gate waits.
+- Click Enter and wait: **19.4s** before the page is revealed.
+- A "Skip intro" button already existed and got you there in **4.3s**. It worked.
+  It was 113x32px of 9px mono at 0.68 alpha in the corner of a moving film.
+- **No resume link anywhere on the revealed home page.** It was on the Enter gate
+  the whole time, and the gate is destroyed four seconds later.
+
+## What landed (all verified on a real page, 628/628 throughout)
+
+- **Resume CTA** in the hero foot row. Outside `.hero__stamp` because that `<p>` is
+  aria-hidden, and not inside it because the stamp is `display:none` below 900px.
+- **Escape ends the intro** (3.5s vs 19.4s). Skip button to 10.5px / 0.86 alpha.
+- **`/works/` lanes** — `lane:` on all 17 entries in works.yml, three sections.
+  Numbering restarts per lane: kept portfolio-wide it produced 01, 06, 07, 08 down
+  the product column, which reads as four missing projects.
+- **`/ai-prototypes/`** — a three-link "places to start" sentence in the header. NOT
+  the featured band the July audit asked for: that page's own note says "nothing is
+  featured, nothing appears twice" and it is right.
+- **Onboarding rebuilt.** One message in two beats. Icon map deleted, portal ring
+  deleted, hover glitch fixed (the label lifted 6px out from under the cursor).
+- **Nav pills gone**, logo and links, both themes. They were not only CSS —
+  `nav-glass.js` paints a canvas that kept drawing both rims. Blur band 104 -> 72px.
+- **Play scroll cylinder removed.** rotateX + getBoundingClientRect per card per
+  frame across 57 items. Now 60fps, p95 17.3ms.
+- **`#global-vignette`** was black at 0.55 from 55% of the radius, i.e. inside the
+  measure. Now 0.2 from 74%.
+
+## THE HERO — read this before touching it
+
+Three findings, in order, each of which killed the previous theory:
+
+1. The real DOM headline is at **`opacity: 0`**. A canvas paints the smoky copy.
+2. It is **not `#gl-stage`** — hiding that changes nothing. It is a different,
+   anonymous full-bleed canvas at z-index 1.
+3. Hide that canvas and force the DOM type visible and **the real headline appears
+   correctly** ("Product designer, six years.") and is STILL DIM. So a third layer
+   is dimming it, most likely `#hero-solid` (z:2, full-bleed). Not yet confirmed.
+
+Do not rip out `hero-scene.js` (59KB) on the strength of 1 and 2 alone; it also
+draws the figure. Start from finding 3.
+
+The home page carries **20 canvases, 14 of them full-size**, and 8 WebGL direction
+renderers plus the shuffle. That is the lag.
+
+## Sid's open queue, in his words
+
+**Fixes:** `/works/` card text barely legible · "Get to know Sid": remove the hover
+ASCII AND all the text (photos already imply a divider) · Buddha sculpture shatters
+and falls off screen, do neither · the room-pic hover reads like real cloth, make it
+bigger · homepage still dim, still laggy, "wtf is this cover pic".
+
+**Builds:**
+
+- **Footer.** The clearest brief he has given. Kill the kinetic type and "Siddharth
+  Mehta, product designer, built with Jekyll" — it repeats About and the homepage.
+  Wants: a real CTA, copyable email, backup nav, socials, last-updated, minimal.
+  The homepage video of him working, in pixel form, with a black gradient/motion
+  blur off the top so scrolling into it is not abrupt; hover reveals the real video
+  in that area. The two-video concept from the entry, moved to the footer.
+- **Contact.** Desk in the CENTRE and much bigger, info placed around it (four
+  corners or below). Currently a left column stack with a small desk right, and he
+  says it "looks so bad like a ppt". Structure is `.c-corner--tl` / `--tr` around
+  `#contact-desk` in `_layouts/contact.html`.
+- **Phone/music section** scrolls start-to-end in about a second. Pin it so the
+  section holds and you can actually scroll the songs.
+- **"Get to know Sid" entry physics** — images and videos coming in on a clothesline,
+  real cloth motion, plus a better hover.
+- **Replace the falling squares** — not cubes of different materials. Liquid-glass
+  clouds, a tree, a river, properly animated.
+- **About** — the icons sit next to each other; clicking one animates it, it grows
+  and becomes a dynamic thing that replaces what was there.
+- **Nav** — page-specific captions in his voice, Gandalf-ish, an intro to each page,
+  shown between the nav labels and the cube logo. **`_includes/cube_says.html`
+  ALREADY DOES THIS** (`#cube-says`, `data-line`, is-in/is-out) and is included by
+  sid_home, contact and ai-prototypes. Extend it per page rather than building a
+  second system. He also wants the nav itself more creative/dynamic with every
+  state designed, selected and unselected, for every page.
+- **Ambient, occasional, must not overwhelm** — rain and thunder, sunlight, pixel
+  birds across the screen, a lens flare now and then. "little little creative things
+  which others might miss."
+- **Sound design** — futuristic, high quality hover and click sounds; a waveform
+  icon that moves when sound is on and is a still line when off. No text.
+
+## Standing constraint reconfirmed this session
+
+He notices dimness, lag and anything that moves when you point at it. Measure the
+painted pixels, not the computed value: `#loader-skip` looked like it needed a
+light-theme rule from its computed backdrop (cream) and did not, because the cube
+video paints over that backdrop in both themes. A theme branch there would have
+fixed a problem that is not on screen.
