@@ -47,51 +47,96 @@
   if (matchMedia("(hover: none)").matches) return;
 
   var IDLE_MS = 15000;
-  var N = 7;
+
+  /* ── WHAT ARRIVES NOW ────────────────────────────────────────────────────
+     Sid: "no squares and cubes of different materials be creative come on ...
+     instead lets have some nice liquid glass clouds and a tree and a river and
+     all very well animated."
+
+     Fair. Seven tiles and two cubes is a set of primitives, and a primitive is
+     what you draw when you have a material and no subject. The material was
+     never the problem -- backdrop-filter genuinely refracts the page behind it
+     and that is why this is DOM and not a shader (see the note above) -- so
+     the glass stays and the shapes become a place.
+
+     A scene, not a scatter. Three kinds of thing, each on its own clock:
+
+       RIVER   one wide band low on the screen. It does not cross and leave; it
+               sits and flows, because a river is the only thing here that is
+               a location rather than an event. Its surface is two very slow
+               skewed highlights travelling at different speeds, which is what
+               reads as water rather than as a moving rectangle.
+
+       CLOUDS  three, drifting sideways at different heights and speeds. Built
+               from overlapping radial lobes on one element rather than a
+               border-radius blob, because a cloud is a silhouette of several
+               masses and a rounded rectangle is a lozenge.
+
+       TREE    one, standing still. It is the only object that does not move,
+               and that is the point of including it: without something fixed,
+               the other two read as screensaver. It sways a degree and a half
+               off its base, which is enough to be alive and not enough to be
+               a flag.
+
+     Still seven objects. Still "not trying to swarm your whole screen", which
+     was the constraint in the original brief and has not changed. */
+  var SCENE = [
+    { kind: "river", y: 0.74, w: 1.34, h: 0.13, dur: 68, phase: 0 },
+    { kind: "cloud", y: 0.16, w: 0.3, h: 0.1, dur: 96, phase: 0.1 },
+    { kind: "cloud", y: 0.31, w: 0.22, h: 0.075, dur: 132, phase: 0.55 },
+    { kind: "cloud", y: 0.08, w: 0.17, h: 0.055, dur: 154, phase: 0.82 },
+    { kind: "tree", x: 0.18, y: 0.74, w: 0.11, h: 0.3, dur: 26, phase: 0.2 },
+    { kind: "tree", x: 0.83, y: 0.74, w: 0.07, h: 0.19, dur: 31, phase: 0.66 },
+    { kind: "cloud", y: 0.23, w: 0.13, h: 0.05, dur: 118, phase: 0.36 },
+  ];
 
   var layer = document.createElement("div");
   layer.className = "idle-drift";
   layer.setAttribute("aria-hidden", "true");
 
   var pieces = [];
-  for (var i = 0; i < N; i++) {
+  for (var i = 0; i < SCENE.length; i++) {
+    var d = SCENE[i];
     var el = document.createElement("div");
-    el.className = "idle-drift__p";
-    /* One of the seven is a cube rather than a tile — three faces, so it
-       reads as an object with a far side rather than as a pane. Two of them,
-       out of seven, because a set that is all one thing is a texture. */
-    var cube = i === 1 || i === 5;
-    if (cube) el.classList.add("is-cube");
-    if (cube) {
-      el.innerHTML = '<i class="f f--top"></i><i class="f f--l"></i><i class="f f--r"></i>';
+    el.className = "idle-drift__p is-" + d.kind;
+    /* The tree is the one shape that cannot be made from a single box: a
+       canopy and a trunk are two masses with different glass in them, so it
+       gets two children and the canopy carries the face. */
+    if (d.kind === "tree") {
+      el.innerHTML = '<i class="t-canopy"></i><i class="t-trunk"></i>';
     }
-    /* "u can add a face to one side." One of them. A face on every object is
-       a mascot; a face on one of seven is the moment you realise one of them
-       has been looking at you. It rides the right-hand face of a cube, so it
-       turns away and comes back as the object rotates. */
-    if (i === 5) {
+    if (d.kind === "river") {
+      /* Two highlights at different speeds. One is the surface, two is a
+         current -- the parallax between them is the entire illusion. */
+      el.innerHTML = '<i class="r-glint r-glint--a"></i><i class="r-glint r-glint--b"></i>';
+    }
+    /* "u can add a face to one side" survives from the original brief, and it
+       is better placed now: on the larger tree, once, so the thing that has
+       been standing there the whole time turns out to have been watching. */
+    if (i === 4) {
       el.classList.add("has-face");
-      var f = el.querySelector(".f--r") || el;
-      f.innerHTML = '<b class="eye"></b><b class="eye"></b><b class="mouth"></b>';
+      el.querySelector(".t-canopy").innerHTML = '<b class="eye"></b><b class="eye"></b><b class="mouth"></b>';
     }
     layer.appendChild(el);
     pieces.push({
       el: el,
-      size: 34 + ((i * 37) % 62) /* 34..96, no two alike, no randomness */,
-      x: 0.08 + ((i * 0.1618 * 5) % 1) * 0.84 /* golden-ratio stride: spread without clumping */,
-      dur: 34 + ((i * 11) % 29) /* seconds to cross */,
-      phase: (i * 0.7654) % 1,
-      sway: 26 + ((i * 13) % 34),
-      swayHz: 0.035 + (i % 4) * 0.012,
-      spin: (i % 2 ? 1 : -1) * (3 + (i % 3)),
+      kind: d.kind,
+      x: d.x,
+      y: d.y,
+      w: d.w,
+      h: d.h,
+      dur: d.dur,
+      phase: d.phase,
     });
   }
   document.body.appendChild(layer);
 
   for (var k = 0; k < pieces.length; k++) {
-    var p = pieces[k];
-    p.el.style.width = p.size + "px";
-    p.el.style.height = p.size + "px";
+    var q = pieces[k];
+    q.el.style.width = (q.w * 100).toFixed(2) + "vw";
+    q.el.style.height = (q.h * 100).toFixed(2) + "vh";
+    q.el.style.top = (q.y * 100).toFixed(2) + "vh";
+    if (q.kind === "tree" || q.kind === "river") q.el.style.left = ((q.x || -0.17) * 100).toFixed(2) + "vw";
   }
 
   /* ── idle ─────────────────────────────────────────────────────────────── */
@@ -141,17 +186,33 @@
        the whole set, which is the tell that it is a loop. */
     if (on) clock += dt;
 
-    var H = innerHeight,
-      W = innerWidth;
+    var W = innerWidth;
     for (var i = 0; i < pieces.length; i++) {
       var p = pieces[i];
       var u = (((clock / p.dur + p.phase) % 1) + 1) % 1;
-      /* Off the top and off the bottom, so nothing ever pops into being at
-         the edge of the window. */
-      var y = -160 + u * (H + 320);
-      var x = p.x * W + Math.sin(clock * p.swayHz * 6.28 + p.phase * 6.28) * p.sway;
-      p.el.style.transform =
-        "translate3d(" + x.toFixed(1) + "px," + y.toFixed(1) + "px,0) rotate(" + (clock * p.spin * 0.6 + p.phase * 360).toFixed(1) + "deg)";
+
+      if (p.kind === "cloud") {
+        /* Left to right and off the far side, starting and ending well clear
+           of the window so nothing appears at an edge. Clouds do not spin and
+           they do not bob much: a cloud that rotates is a balloon. */
+        var cx = -0.34 * W + u * (W * 1.68);
+        var lift = Math.sin(clock * 0.11 + p.phase * 6.28) * 8;
+        p.el.style.transform = "translate3d(" + cx.toFixed(1) + "px," + lift.toFixed(1) + "px,0)";
+      } else if (p.kind === "river") {
+        /* It stays. Only its two highlights move, and they are children, so
+           the band itself never leaves the composition. A very slight vertical
+           breathe keeps the surface from reading as a printed stripe. */
+        var swell = Math.sin(clock * 0.07) * 5;
+        p.el.style.transform = "translate3d(0," + swell.toFixed(1) + "px,0)";
+        p.el.style.setProperty("--a", ((clock * 0.06 + p.phase) % 1).toFixed(4));
+        p.el.style.setProperty("--b", ((clock * 0.037 + p.phase * 0.5) % 1).toFixed(4));
+      } else {
+        /* The tree is rooted. It sways about its BASE, which is what
+           transform-origin does in the stylesheet -- swaying about the centre
+           makes it hover, and a hovering tree is a shrub in an earthquake. */
+        var tilt = Math.sin(clock * 0.19 + p.phase * 6.28) * 1.4;
+        p.el.style.transform = "rotate(" + tilt.toFixed(2) + "deg)";
+      }
     }
 
     /* Keeps running for a beat after it is dismissed, so the fade-out is
