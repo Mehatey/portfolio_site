@@ -11,13 +11,39 @@ and the figure is standing there, already live behind it -- so the handoff is a 
 between two scenes. And it is gated on the same flag as the loader, so it happens on a first visit and never interrupts someone who came back to find
 an email address. {% endcomment %}
 
+<!-- ── THESE TWO ARE NOT REQUESTED UNTIL THE OPENER IS GOING TO RUN ───────
+     They were `preload="auto"` with a plain <source src>, which is an
+     instruction to download the whole file immediately -- and both did, at
+     0.2s, on every visit. Measured on the home page: sid_sitting.mp4 2,142KB
+     and sid_sitting_pixel.mp4 987KB, 3.1MB of the page's 9.12MB.
+
+     The waste is the sharp part. The script below returns at line ~145 for
+     anyone who has been here before, so on a RETURN visit this film never
+     plays -- and 3.1MB had already been spent on it before that line ran. The
+     markup was downloading something the code had already decided not to use.
+
+     data-src instead, hydrated inside the script after the `seen` gate. A
+     first visit pays exactly what it paid before; everybody else pays
+     nothing. -->
 <div class="hero-film" id="hero-film" aria-hidden="true" hidden>
-  <video class="hero-film__take hero-film__take--pixel" id="hero-film-pixel" muted playsinline preload="auto" disablepictureinpicture>
-    <source src="{{ site.baseurl }}/assets/video/sid_sitting_pixel.mp4" type="video/mp4" />
-  </video>
-  <video class="hero-film__take hero-film__take--real" id="hero-film-real" muted playsinline preload="auto" disablepictureinpicture>
-    <source src="{{ site.baseurl }}/assets/video/sid_sitting.mp4" type="video/mp4" />
-  </video>
+  <video
+    class="hero-film__take hero-film__take--pixel"
+    id="hero-film-pixel"
+    muted
+    playsinline
+    preload="none"
+    disablepictureinpicture
+    data-src="{{ site.baseurl }}/assets/video/sid_sitting_pixel.mp4"
+  ></video>
+  <video
+    class="hero-film__take hero-film__take--real"
+    id="hero-film-real"
+    muted
+    playsinline
+    preload="none"
+    disablepictureinpicture
+    data-src="{{ site.baseurl }}/assets/video/sid_sitting.mp4"
+  ></video>
 </div>
 
 <style>
@@ -143,6 +169,17 @@ an email address. {% endcomment %}
       seen = !!(localStorage.getItem("sid_loaded") || sessionStorage.getItem("sid_loaded"));
     } catch (e) {}
     if (seen && !/[?&]opener=1/.test(location.search)) return;
+
+    /* Past the gate, so this visit is actually going to show the film. Only
+       now do the two takes get a source; see the note beside the markup. */
+    [pixel, real].forEach(function (v) {
+      if (v && v.dataset.src && !v.getAttribute("src")) {
+        v.src = v.dataset.src;
+        v.removeAttribute("data-src");
+        v.preload = "auto";
+        v.load();
+      }
+    });
 
     wrap.hidden = false;
 
