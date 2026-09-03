@@ -81,7 +81,11 @@
        SMIL rather than JS because this needs no state and no rAF; the browser
        animates the filter itself and stops when the tab is hidden. -->
   <svg class="wall__defs" width="0" height="0" aria-hidden="true" focusable="false">
-    <filter id="wall-ripple" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">
+    <!-- The region grew with the displacement ceiling. A feDisplacementMap can
+         only move a pixel to somewhere inside the filter region, so at scale 26
+         a -6% margin clips the stir at the frame's own edge and the cloth goes
+         stiff exactly where it should be loosest. -->
+    <filter id="wall-ripple" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
       <feTurbulence type="fractalNoise" baseFrequency="0.011 0.019" numOctaves="2" seed="7" result="noise">
         <animate
           attributeName="baseFrequency"
@@ -317,7 +321,10 @@
         lastT = 0;
 
       function relax() {
-        stir *= 0.94;
+        /* 0.94 was tuned against a ceiling of 11. From 26 the same rate takes
+           roughly fifteen extra frames to look still, which reads as the wall
+           being slow rather than as it settling. */
+        stir *= 0.925;
         if (disp) disp.setAttribute("scale", (7 + stir).toFixed(2));
         stirRaf = stir > 0.05 ? requestAnimationFrame(relax) : 0;
       }
@@ -334,10 +341,19 @@
           lastX = e.clientX;
           lastY = e.clientY;
           lastT = now;
-          /* px per frame, clamped. A flick across the whole wall is worth
-             about 11 extra units of displacement on top of the resting 7. */
+          /* px per frame, clamped. A flick across the whole wall used to be
+             worth about 11 extra units of displacement on top of the resting
+             7. Sid: "i love the hover on the room pic it looks so real like
+             an actual cloth, can we make it bigger."
+
+             So the ceiling goes to 26 and a single sweep can add more per
+             move, which is the difference between the sheet rippling and the
+             sheet actually taking the shape of the hand going past it. The
+             resting 7 is untouched: at rest this is still a wall with a
+             picture on it, and the whole effect is that touching it is what
+             makes it cloth. */
           var v = (Math.sqrt(dx * dx + dy * dy) / dt) * 16;
-          stir = Math.min(11, stir + Math.min(2.4, v * 0.5));
+          stir = Math.min(26, stir + Math.min(5.2, v * 1.05));
           if (!stirRaf) stirRaf = requestAnimationFrame(relax);
         },
         { passive: true }

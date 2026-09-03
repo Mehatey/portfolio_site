@@ -290,13 +290,15 @@ include film_grade.html %}
       z-index: 3;
       pointer-events: none;
     }
-    /* The photograph does not vanish, it recedes: at 0.16 it is still the
-       thing giving the glyphs their ground, and the crossfade reads as the
-       image losing resolution rather than as a panel being swapped in. */
-    .sid-tile.is-ascii img,
-    .sid-tile.is-ascii video {
-      opacity: 0.16;
-    }
+    /* ── THE ASCII HOVER IS OFF ──────────────────────────────────────
+       Sid: "i dont like the hover asci effect on the get to know sid".
+
+       Hovering a tile used to drop the photograph to 0.16 and paint glyphs
+       over it, so pointing at a picture was the one gesture that took the
+       picture away. The ambient .sid-ascii field behind the row stays — it
+       is texture and nobody asked for it to go — but the media no longer
+       recedes when you reach for it. The class is no longer added; see the
+       note in assets/js/strip-ascii.js. */
     .sid-tile img,
     .sid-tile video {
       transition: opacity 260ms ease, filter 480ms ease;
@@ -403,6 +405,10 @@ include film_grade.html %}
       flex: 0 0 auto;
       margin: 0;
       --ab: 4px;
+      /* The pivot is ABOVE the tile, which is the whole difference between a
+         picture hanging from a line and a picture spinning on its own middle.
+         See the pendulum note in the rail's frame() below. */
+      transform-origin: 50% -24%;
       /* ── BIGGER, AND FEWER ────────────────────────────────────────────────
          Sid: "u can increase size of the get to know sid a little i mean the
          images and media not text so we can reduce the amount we are shwoing
@@ -1561,15 +1567,21 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
   </svg>
 
   <section class="sid-strip" aria-label="Get to know Sid">
-    <div class="sid-strip__head">
-      {% comment %} The rule is the beat. Sid: "that whole section needs to feel like ok this is the start of a new footer section rn it kind of just
-      floats up randomly". A heading with nothing above it is a paragraph that happens to be bold; a heading under a line that draws itself across the
-      page is a chapter. {% endcomment %}
-      <i class="sid-strip__rule" aria-hidden="true"></i>
-      <span class="sid-strip__kicker" aria-hidden="true">off the clock</span>
-      <b>Get to know Sid</b>
-      <span class="sid-strip__sub">the reading, the records, the cats, the people</span>
-    </div>
+    <!-- ── THE HEAD IS GONE ────────────────────────────────────────────
+         Sid: "i dont like the line and text off the clock and readings just
+         remove all text here i think a bunch of photos already implies it a
+         section divider we dont need text."
+
+         It was a rule, a kicker, a heading and a subtitle explaining that
+         the photographs below are photographs of his life. He is right that
+         the row already says it: nine tiles of streets, cats, records and
+         people do not need a label telling you they are off the clock, and
+         the four lines were the only thing making this read as a titled
+         module rather than as a breath between sections.
+
+         The section keeps its aria-label, so the row is still announced to
+         a screen reader as "Get to know Sid". What went is the visible
+         apparatus, not the meaning. -->
     <div class="sid-strip__rows">
       <div class="sid-row">
         {% for dupe in (1..2) %}
@@ -1853,6 +1865,9 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
 
       var x = 0,
         vel = 0,
+        /* Pendulum state for the clothesline — see the note in frame(). */
+        swing = 0,
+        swingV = 0,
         steer = 0,
         /* Sid: "can the images move a lil faster". -0.42 crossed the band
            in about ninety seconds, which is slower than anybody waits. */
@@ -2007,11 +2022,38 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
         var dt = lastT ? Math.min(2.5, (now - lastT) / 16.667) : 1;
         lastT = now;
 
+        var xBefore = x;
         if (!dragging) {
           x += (drift + steer) * dt + vel;
           vel *= Math.pow(0.94, dt);
           if (Math.abs(vel) < 0.02) vel = 0;
         }
+
+        /* ── THE RAIL IS A CLOTHESLINE ────────────────────────────────────
+           Sid: "see how we can creatively maybe get the edges when images and
+           vids are moving in to have realisitc physics so they feel motion and
+           liuke they have clothsline or somehting."
+
+           So the tiles hang rather than slide. A thing suspended from a moving
+           line does not stay vertical: it trails the motion, overshoots when
+           the line stops, and settles. That is a damped pendulum driven by the
+           rail's ACCELERATION, and the honest version of it is three lines.
+
+           `swing` is the angle, `swingV` its rate. The target leans against
+           the direction of travel (negative, because trailing means leaning
+           back into where you came from) and the spring pulls the angle
+           toward it while the damping term stops it ringing forever. Throw the
+           rail with a drag and the whole line kicks and swings back; leave it
+           on its 66s drift and it holds a degree or so of lean.
+
+           Measured per frame from the real position delta rather than from
+           `vel`, because `vel` is only the throw — it says nothing about the
+           drift, the steer or a finger that is currently dragging. */
+        var moveDelta = x - xBefore;
+        var swingTarget = Math.max(-11, Math.min(11, -moveDelta * 0.9));
+        swingV += (swingTarget - swing) * 0.11 * dt;
+        swingV *= Math.pow(0.87, dt);
+        swing += swingV * dt;
 
         if (half > 0) {
           /* Modulo into [-half, 0). JS % keeps the sign of the dividend, so
@@ -2060,7 +2102,33 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
             /* The hover lift, which used to be a CSS rule and could not
                survive a per-frame inline transform. */
             var hv = tiles[i] === hovered ? 1 : 0;
-            st.transform = "translateY(" + (-14 * c - 6 * hv).toFixed(1) + "px) scale(" + (0.86 + 0.1 * k + 0.24 * c + 0.03 * hv).toFixed(3) + ")";
+            /* ── EACH TILE HANGS SLIGHTLY DIFFERENTLY ──────────────────
+               One shared angle applied to every tile reads as the whole row
+               being rotated, which is a billboard on a hinge, not cloth. Two
+               things break the lockstep, and both are free.
+
+               `hang` is a fixed per-tile multiplier from its index, so a
+               lighter tile swings further than the one beside it — the
+               unevenness is what makes it read as separate objects on one
+               line rather than as a single rigid bar.
+
+               `breeze` is a slow sine, phase-shifted per tile, so the row is
+               never perfectly still even when the rail is. A clothesline at
+               rest still moves.
+
+               The hovered tile stiffens toward vertical: you are looking at
+               it, so it stops swinging and presents itself. */
+            var hang = 0.72 + ((i * 7) % 5) * 0.14;
+            var breeze = reduce ? 0 : Math.sin(now * 0.0009 + i * 0.7) * 0.55;
+            var ang = (swing * hang + breeze) * (1 - hv * 0.85);
+            st.transform =
+              "translateY(" +
+              (-14 * c - 6 * hv).toFixed(1) +
+              "px) rotate(" +
+              ang.toFixed(2) +
+              "deg) scale(" +
+              (0.86 + 0.1 * k + 0.24 * c + 0.03 * hv).toFixed(3) +
+              ")";
             st.filter = "saturate(" + (0.3 + 0.7 * k + 0.5 * c).toFixed(2) + ") brightness(" + (0.9 + 0.3 * c).toFixed(2) + ")";
             /* The one at the centre sits above its neighbours, or a larger
                tile is cropped by whatever happens to follow it in the DOM. */

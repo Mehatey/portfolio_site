@@ -157,6 +157,15 @@
     if (!m) return;
     if (m.tagName === "IMG" && !m.complete) return;
     if (m.tagName === "VIDEO" && m.readyState < 2) return;
+    /* ── THE PER-TILE ASCII HOVER IS RETIRED ─────────────────────────
+       Sid: "i dont like the hover asci effect on the get to know sid".
+       Pointing at a photograph used to replace the photograph. The ambient
+       field this file also paints behind the row is untouched; only the
+       hover takeover is gone, so nothing below runs and no tile is ever
+       given .is-ascii. Kept as an early return rather than deleted because
+       the sampling code underneath is what draws the ambient field. */
+    return;
+    /* eslint-disable no-unreachable */
     hot = t;
     hotMedia = m;
     t.classList.add("is-ascii");
