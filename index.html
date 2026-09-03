@@ -1081,6 +1081,86 @@
         }
       }
 
+      /* ── THE ONE THING A RECRUITER CAME FOR ───────────────────────────────
+         Measured on the live site rather than assumed: a fresh visit reveals
+         the home page with ZERO links matching /resume|cv/ anywhere on it.
+         The résumé was on the Enter gate the whole time — and the gate is
+         destroyed four seconds later, so the only page every visitor lands
+         on was the one page that could not hand them the PDF. /contact/ has
+         it, which makes it two clicks and a guess.
+
+         It sits on this row because the row already carries the three facts
+         a stranger checks first (is he real, where is he, can I hire him)
+         and this is the fourth one. Outside .hero__stamp, not inside it:
+         that <p> is aria-hidden by design (a ticking clock is noise to a
+         screen reader) and a link buried under aria-hidden is a link that
+         does not exist for the people most likely to be tabbing.
+
+         It also has to outlive the stamp. .hero__stamp is display:none below
+         900px, so anything placed in it is desktop-only — and a recruiter
+         reading on a phone is the likeliest recruiter there is. */
+      .hero__resume {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font: var(--type-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: var(--accent-ink);
+        text-decoration: none;
+        white-space: nowrap;
+        padding: 4px 0;
+      }
+      /* The rule is on the words, not on the anchor. On mobile the anchor
+         takes `flex-basis: 100%` to claim its own line (see below), and a
+         border on the anchor stretched into a 346px hairline running the
+         full width of the page under a 96px label — it read as a divider
+         someone had left in, not as a link. On the span it hugs the words
+         at every width, and the anchor keeps the full-width hit area. */
+      .hero__resume span {
+        border-bottom: 1px solid color-mix(in srgb, var(--accent-ink) 34%, transparent);
+        padding-bottom: 2px;
+        transition: border-color 0.2s ease;
+      }
+      .hero__resume:hover span,
+      .hero__resume:focus-visible span {
+        border-bottom-color: var(--accent-ink);
+      }
+      /* ── IT TOOK 128px OFF THE LIVE LINE ────────────────────────────────
+         Caught by measuring rather than by looking, and it was ugly: this
+         row is a flex line and .hero__base is the only item on it that
+         flexes, so a third fixed-width item is paid for entirely by the
+         line. At 390 the stamp is already hidden, leaving base + shuffle,
+         and adding 96px of link crushed .hero__base from 175px to 47px —
+         the rotating sentence went from two lines to seven and wrapped
+         mid-word, "quiet t / ools fo / r mess / y huma / n probl / ems".
+
+         So below the stamp's own breakpoint the row wraps and the link
+         takes a line of its own. `flex: 1 1 100%` on the last item and
+         nothing else: line one stays exactly the composition that shipped,
+         base and shuffle, and the link sits under it. */
+      @media (max-width: 900px) {
+        .hero__foot-row {
+          flex-wrap: wrap;
+          row-gap: 10px;
+        }
+        .hero__resume {
+          flex: 1 1 100%;
+        }
+      }
+      /* The mark, not a word. "↗" is the site's existing external cue and it
+         is drawn rather than typed so it keeps its weight at micro size. */
+      .hero__resume::after {
+        content: "";
+        width: 6px;
+        height: 6px;
+        border-top: 1px solid currentColor;
+        border-right: 1px solid currentColor;
+        transform: rotate(45deg);
+        opacity: 0.75;
+      }
+
       .hero__base {
         margin: 0;
         min-width: 0;
@@ -4728,13 +4808,43 @@
     align-items: center;
     gap: 7px;
     padding: 9px 12px;
-    border: 1px solid rgba(170, 215, 250, 0.18);
+    /* ── IT WAS THERE AND NOBODY COULD FIND IT ──────────────────────────
+       Measured on the live site: from Enter, the button is actionable at
+       0.5s and taking it puts a visitor on the revealed page at 4.3s
+       instead of 19s. The escape hatch works. It was simply 113x32px of
+       9px mono at 0.68 alpha, in the top-right corner of a sixteen-second
+       film that is moving in the middle of the screen — so the visitor who
+       needs it most is the one who never sees it.
+
+       This is not a licence to shout. The intro is the door and it stays.
+       10.5px, a stronger hairline and a readable alpha is the difference
+       between a control a stranger can find and one only its author knows
+       about, and it is still the quietest thing on the screen.
+
+       ── WHY THERE IS NO html[data-theme="light"] RULE FOR THIS ──────────
+       Because the premise for one is false, and it took sampling the real
+       pixels to find that out. #enter-backdrop IS cream in light theme, so
+       a computed read says this pill sits on rgb(245,243,238) and needs
+       inverting. It does not: the button only exists while `.is-running`,
+       and for the whole of that window the cube video and #loader-collage
+       paint over the backdrop, so the ground behind it is the dark film in
+       both themes. A theme branch here would have solved a problem that is
+       not on screen and made the control louder in light than in dark for
+       no reason.
+
+       The pill is 0.72 rather than 0.42 so it does not depend on that being
+       true. Over the dark film it is still a dark pill; over bare cream —
+       the narrow case where the video never arrives and the 25s failsafe is
+       what ends the sequence — it composites to about rgb(74,78,85) and
+       holds the pale text at roughly 6.4:1 instead of 2.4:1. One value,
+       correct on either ground. */
+    border: 1px solid rgba(170, 215, 250, 0.34);
     border-radius: 999px;
-    background: rgba(8, 14, 26, 0.28);
-    color: rgba(215, 235, 250, 0.68);
+    background: rgba(8, 14, 26, 0.72);
+    color: rgba(226, 241, 252, 0.86);
     cursor: pointer;
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
     opacity: 0;
     pointer-events: none;
@@ -4812,212 +4922,16 @@
     display: block;
   }
 
-  /* Portfolio memory tiles — a few real pieces of work orbit the cube during
-     onboarding. They are deliberately small and use dedicated 480px WebPs
-     (72KB total) so the opening stays quick rather than becoming a gallery
-     preload. The existing nav icons still explain the site's destinations. */
-  #sl-memory-field {
-    position: absolute;
-    inset: 0;
-    z-index: 9;
-    pointer-events: none;
-    perspective: 1200px;
-  }
-  .sl-memory-tile {
-    --twist: 0deg;
-    position: absolute;
-    width: clamp(86px, 10vw, 142px);
-    margin: 0;
-    opacity: 0;
-    transform: translateY(22px) rotateZ(var(--twist)) rotateY(82deg) scale(0.42);
-    transform-style: preserve-3d;
-    will-change: opacity, transform, filter;
-  }
-  .sl-memory-tile:nth-child(1) {
-    top: 35%;
-    left: clamp(28px, 9vw, 152px);
-    --twist: -7deg;
-  }
-  .sl-memory-tile:nth-child(2) {
-    top: 55%;
-    left: clamp(88px, 18vw, 290px);
-    --twist: 6deg;
-  }
-  .sl-memory-tile:nth-child(3) {
-    top: 34%;
-    right: clamp(28px, 9vw, 152px);
-    --twist: 7deg;
-  }
-  .sl-memory-tile:nth-child(4) {
-    top: 55%;
-    right: clamp(88px, 18vw, 290px);
-    --twist: -6deg;
-  }
-  .sl-memory-face {
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 3 / 2;
-    border: 1px solid rgba(200, 230, 255, 0.28);
-    background: rgba(35, 55, 80, 0.36);
-    box-shadow:
-      0 14px 30px rgba(0, 0, 0, 0.48),
-      0 0 22px rgba(125, 190, 255, 0.12),
-      inset 0 0 20px rgba(190, 230, 255, 0.08);
-  }
-  .sl-memory-face::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 0 0 4px rgba(4, 8, 16, 0.22);
-    pointer-events: none;
-  }
-  .sl-memory-face img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: saturate(0.82) contrast(1.08) brightness(0.78);
-  }
-  .sl-memory-label {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding-top: 7px;
-    color: rgba(222, 238, 252, 0.78);
-    font-family: var(--font-mono);
-    font-size: 7px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .sl-memory-label::before {
-    content: attr(data-kind);
-    color: rgba(138, 205, 255, 0.54);
-    font-size: 6px;
-    letter-spacing: 0.1em;
-  }
-  .sl-memory-tile.is-visible {
-    animation: slMemoryArrive 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
-  }
-  .sl-memory-tile.is-visible .sl-memory-face,
-  .sl-memory-tile.is-visible .sl-memory-label {
-    animation: slMemoryDrift 7s ease-in-out 1s infinite alternate;
-  }
-  @keyframes slMemoryArrive {
-    0% {
-      opacity: 0;
-      filter: blur(8px);
-      transform: translateY(22px) rotateZ(var(--twist)) rotateY(82deg) scale(0.42);
-    }
-    65% {
-      opacity: 0.94;
-      filter: blur(0);
-      transform: translateY(-4px) rotateZ(var(--twist)) rotateY(-8deg) scale(1.04);
-    }
-    100% {
-      opacity: 0.88;
-      filter: blur(0);
-      transform: translateY(0) rotateZ(var(--twist)) rotateY(0) scale(1);
-    }
-  }
-  @keyframes slMemoryDrift {
-    from {
-      transform: translateY(0) rotateZ(0.001deg);
-    }
-    to {
-      transform: translateY(-7px) rotateZ(0.001deg);
-    }
-  }
-
-  /* Onboarding icon row — names the four parts of the site as they appear. */
-  #sl-onboard-icons {
-    position: absolute;
-    bottom: 9%;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    gap: 32px;
-    z-index: 11;
-  }
-  .sl-onboard-item {
-    display: flex;
-    min-width: 50px;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-  #sl-onboard-icons img {
-    width: 40px;
-    height: 40px;
-    image-rendering: pixelated;
-    image-rendering: -moz-crisp-edges;
-    image-rendering: crisp-edges;
-    opacity: 0;
-    transform: scale(0.55);
-    filter: blur(4px);
-    transition:
-      opacity 0.7s ease,
-      transform 0.7s cubic-bezier(0.2, 1.2, 0.3, 1),
-      filter 0.6s ease;
-  }
-  #sl-onboard-icons img.show {
-    opacity: 0.9;
-    transform: scale(1);
-    filter: blur(0);
-  }
-  .sl-onboard-label {
-    color: rgba(210, 230, 245, 0.56);
-    font-family: var(--font-mono);
-    font-size: 8px;
-    letter-spacing: 0.15em;
-    opacity: 0;
-    text-transform: uppercase;
-    transform: translateY(4px);
-    transition:
-      opacity 0.5s ease 0.18s,
-      transform 0.5s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1)) 0.18s;
-  }
-  .sl-onboard-item.is-visible .sl-onboard-label {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  /* ── REMOVED: the memory tiles and the onboarding icon row ───────────
+     The four .sl-memory-tile rules had no markup left to style at all — the
+     JS still queries for them and gets an empty list — and the icon row went
+     with the nav map it drew. Roughly 170 lines of CSS for two things that
+     are not on the screen. */
   @media (max-width: 700px) {
-    #sl-memory-field {
-      display: none;
-    }
     #loader-skip {
       top: max(16px, env(safe-area-inset-top));
       right: 16px;
       font-size: 8.5px;
-    }
-    #sl-onboard-icons {
-      bottom: 7%;
-      gap: 14px;
-    }
-    .sl-onboard-item {
-      min-width: 42px;
-      gap: 6px;
-    }
-    #sl-onboard-icons img {
-      width: 32px;
-      height: 32px;
-    }
-    .sl-onboard-label {
-      font-size: 7px;
-      letter-spacing: 0.1em;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #sl-memory-field {
-      display: none;
-    }
-    .sl-memory-tile,
-    .sl-memory-tile.is-visible,
-    .sl-memory-tile.is-visible .sl-memory-face,
-    .sl-memory-tile.is-visible .sl-memory-label {
-      animation: none;
     }
   }
 </style>
@@ -5106,43 +5020,18 @@
     filter: drop-shadow(0 0 18px rgba(180, 220, 255, 0.15));
     animation: buddhaBreathe 6s ease-in-out infinite;
   }
-  /* A quiet portal holds the first paint while the 3D model streams in. */
-  #enter-3d-stage::before {
-    content: "";
-    position: absolute;
-    inset: 23%;
-    z-index: 0;
-    border: 1px solid rgba(185, 220, 255, 0.32);
-    border-radius: 50%;
-    background:
-      radial-gradient(circle at 36% 30%, rgba(230, 245, 255, 0.4), rgba(128, 186, 255, 0.1) 38%, transparent 68%),
-      radial-gradient(circle at 62% 66%, rgba(108, 150, 255, 0.16), transparent 58%);
-    box-shadow:
-      0 0 26px rgba(115, 178, 255, 0.16),
-      inset 0 0 24px rgba(180, 220, 255, 0.08);
-    opacity: 0.85;
-    pointer-events: none;
-    transition:
-      opacity 0.6s ease,
-      transform 0.6s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
-    animation: enterPortalPulse 2.8s ease-in-out infinite;
-  }
-  #enter-3d-stage.is-model-ready::before {
-    opacity: 0;
-    transform: scale(1.16);
-    animation: none;
-  }
-  @keyframes enterPortalPulse {
-    0%,
-    100% {
-      transform: scale(0.94);
-      opacity: 0.56;
-    }
-    50% {
-      transform: scale(1.04);
-      opacity: 0.9;
-    }
-  }
+  /* ── THE PORTAL RING IS GONE ────────────────────────────────────────────
+     Sid: "in the beginning there is a circle and then the buddha enters."
+
+     It was a pulsing ring holding the first paint while the GLB streams in,
+     and that is exactly how it read: a loading spinner, then the actual
+     object, so the door had two openings. A threshold that announces itself
+     twice is not a threshold. The stage simply stays empty until the model
+     arrives and then the model fades in, which is one event instead of two.
+
+     The is-model-ready class still does its job — it is what the script
+     waits on and what .is-model-absent is measured against — it just no
+     longer has a ring to dismiss. */
   #enter-3d-stage.is-on {
     opacity: 1;
   }
@@ -5214,10 +5103,21 @@
     /* The entry affordance is present before hover, so first-time visitors do
        not have to infer that the sculpture is interactive. */
     opacity: 0.62;
-    transform: translateY(6px);
-    transition:
-      opacity 0.3s ease,
-      transform 0.35s var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+    /* ── THE GLITCH WAS THE BUTTON MOVING OUT FROM UNDER THE CURSOR ──────
+       Sid: "when i hover on enter portfolio the button glitches a bit."
+
+       It rested at translateY(6px) and hovered to translateY(0), so the
+       control lifted 6px toward the cursor. Land on its lower edge and it
+       slides up out from under the pointer, hover is lost, it drops back
+       down, hover is regained — a flicker loop at the transition's own
+       frequency. #enter-buddha-wrap:hover does not save it either: the wrap
+       is pointer-events:none, so the moment the label leaves the cursor
+       there is nothing under it to hold the hover.
+
+       The lift is gone and only opacity animates. A hit target that moves
+       when you point at it is a broken control, and the fade alone already
+       says the thing is live. */
+    transition: opacity 0.3s ease;
     cursor: pointer;
     pointer-events: auto;
     padding-left: 0.32em;
@@ -5225,7 +5125,6 @@
   #enter-label:hover,
   #enter-label:focus-visible {
     opacity: 1;
-    transform: translateY(0);
   }
   #enter-label:focus-visible {
     outline: 1px solid rgba(180, 220, 255, 0.7);
@@ -5233,7 +5132,6 @@
   }
   #enter-buddha-wrap:hover #enter-label {
     opacity: 1;
-    transform: translateY(0);
   }
   /* The arrow's own trigger is `:hover > .xarrow`, keyed to its direct parent,
      which is deliberate everywhere else on the site — it stops an ancestor
@@ -5589,6 +5487,9 @@
   html[data-theme="light"] #enter-label:focus-visible {
     outline-color: rgba(7, 9, 15, 0.55);
   }
+  /* #loader-skip deliberately has NO light-theme rule. See its own note in
+     the block above for why, and for the measurement that nearly put a
+     wrong one here. */
   html[data-theme="light"] .enter-quick-links a {
     color: rgba(7, 9, 15, 0.72);
     border-bottom-color: rgba(7, 9, 15, 0.28);
@@ -5970,21 +5871,11 @@
   <!-- Hello text — persists across phases. Top: 22% (was 14%) so it sits below cube head, not above it. -->
   <span id="sl-hello" style="position: absolute; top: 22%; left: 50%; transform: translateX(-50%); z-index: 10"></span>
 
-  <!-- Onboarding icons — a small map of the four destinations -->
-  <div id="sl-onboard-icons">
-    <div class="sl-onboard-item" id="sl-item-1">
-      <img id="sl-icon-1" src="/assets/img/nav/cube.png" alt=""><span class="sl-onboard-label">Work</span>
-    </div>
-    <div class="sl-onboard-item" id="sl-item-2">
-      <img id="sl-icon-2" src="/assets/img/nav/flower.png" alt=""><span class="sl-onboard-label">Play</span>
-    </div>
-    <div class="sl-onboard-item" id="sl-item-3">
-      <img id="sl-icon-3" src="/assets/img/nav/sparkle.png" alt=""><span class="sl-onboard-label">Contact</span>
-    </div>
-    <div class="sl-onboard-item" id="sl-item-4">
-      <img id="sl-icon-4" src="/assets/img/nav/cross.png" alt=""><span class="sl-onboard-label">About</span>
-    </div>
-  </div>
+  <!-- The four-icon nav map was here. Removed: it named Work, Play, Contact
+       and About at the exact moment the visitor is four seconds from being
+       handed a nav that names Work, Play, Contact and About, and it was the
+       bulk of what made this screen busy. Its CSS (#sl-onboard-icons,
+       .sl-onboard-item, .sl-onboard-label) went with it. -->
 
   <div class="sl-phase" id="sl-video-phase">
     <video id="sl-video" playsinline muted preload="none" data-src="/assets/video/cube_gettingup-web.mp4"></video>
@@ -6365,7 +6256,6 @@
       var hello = document.getElementById("sl-hello");
       var loadingPhase = document.getElementById("sl-loading-phase");
       var loadingVideo = document.getElementById("sl-loading-video");
-      var memoryTiles = Array.prototype.slice.call(document.querySelectorAll(".sl-memory-tile"));
 
       function hydrateVideo(media) {
         if (!media || media.getAttribute("src") || !media.dataset.src) return;
@@ -6379,28 +6269,8 @@
       // with the initial Buddha/model render or a return visitor's first paint.
       hydrateVideo(video);
 
-      // The cards are intentionally deferred until someone chooses Enter. Each
-      // optimized image is only a few kilobytes, but waiting preserves the
-      // first-frame calm of the entry gate and avoids requests on mobile.
-      if (window.matchMedia && !window.matchMedia("(max-width: 700px), (prefers-reduced-motion: reduce)").matches) {
-        memoryTiles.forEach(function (tile, index) {
-          setTimeout(
-            function () {
-              var image = tile.querySelector("img[data-src]");
-              if (!image) return;
-              function reveal() {
-                tile.classList.add("is-visible");
-              }
-              image.addEventListener("load", reveal, { once: true });
-              image.addEventListener("error", reveal, { once: true });
-              image.src = image.dataset.src;
-              image.removeAttribute("data-src");
-              if (image.complete) reveal();
-            },
-            400 + index * 600
-          );
-        });
-      }
+      // (The memory-tile hydration loop was here. Its markup and CSS are
+      //  both gone, so it was iterating an empty list every entry.)
 
       // (typing.mp3 sound removed — Hello/scramble effect doesn't need it)
 
@@ -6447,28 +6317,25 @@
       videoPhase.classList.add("active");
       video.play().catch(function () {});
 
-      var lines = [
-        { text: "Hello, I'm Sid.", startAt: 800 },
-        { text: "Designer × Creative Technologist", startAt: 3500 },
-        { text: "Start with the work.", startAt: 6200 },
-      ];
+      /* ── ONE THING TO SAY ───────────────────────────────────────────────
+         Sid: "in the first onboarding theres too much other info it needs to
+         be concise ... it should be hey I'm Sid, welcome to my portfolio. I
+         hope you feel the love I put into it."
 
-      // Onboarding icons reveal — all four stagger in across the cube animation,
-      // independently of the three headline beats above.
-      var iconIds = ["sl-icon-1", "sl-icon-2", "sl-icon-3", "sl-icon-4"];
-      // Reveal the complete site map before the handoff, even on connections
-      // where the source video finishes faster than its nominal duration.
-      var iconDelays = [600, 1050, 1500, 1950];
-      iconIds.forEach(function (id, idx) {
-        setTimeout(function () {
-          var ic = document.getElementById(id);
-          if (ic) {
-            ic.classList.add("show");
-            var item = document.getElementById("sl-item-" + (idx + 1));
-            if (item) item.classList.add("is-visible");
-          }
-        }, iconDelays[idx]);
-      });
+         It was three beats that each replaced the one before it — a name, a
+         job title, and an instruction — over a sixteen second film, plus a
+         four-icon map of the nav, which is a nav a visitor is about to be
+         handed anyway and was on screen the whole time. Four things saying
+         four different things at a door.
+
+         It is one sentence now, in two beats because the sentence has two
+         halves and the scramble needs somewhere to land. The greeting, then
+         the reason. Nothing instructs, nothing lists, nothing duplicates the
+         nav. The film carries the rest. */
+      var lines = [
+        { text: "Hey, I'm Sid. Welcome to my portfolio.", startAt: 800 },
+        { text: "I hope you feel the love I put into it.", startAt: 5200 },
+      ];
 
       // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
       // Replaces the typewriter; reads as a creative-tech / hacker reveal that suits the Inter 200 face.
@@ -6564,6 +6431,26 @@
 
       var skipButton = document.getElementById("loader-skip");
       if (skipButton) skipButton.addEventListener("click", onLoadingEnd, { once: true });
+
+      /* Escape ends the intro too. The button is a 113px target in one
+         corner of a moving screen; Escape is what a person who wants out of
+         something already reaches for, and it costs nothing to honour. Not
+         Enter or Space — those are the gate's own keys a moment earlier
+         (see the keyHandler above), and a visitor still holding Space from
+         opening the door would skip the film they just chose to watch.
+
+         Removed on the way out rather than { once: true }, so a stray
+         Escape during the sequence's own teardown cannot re-enter it. */
+      function skipKeyHandler(e) {
+        if (e.key === "Escape" || e.key === "Esc") {
+          window.removeEventListener("keydown", skipKeyHandler);
+          onLoadingEnd();
+        }
+      }
+      window.addEventListener("keydown", skipKeyHandler);
+      window.addEventListener("loaderDone", function () {
+        window.removeEventListener("keydown", skipKeyHandler);
+      });
 
       function onVideoEnd() {
         if (videoEnded) return;
@@ -8464,6 +8351,67 @@
       transition-duration: 1ms;
     }
   }
+  /* ══════════════════════════════════════════════════════════════════════
+     THE CAPSULES ARE GONE, AND THE BLUR BAND IS A HEADER AGAIN
+
+     Sid: "remove the pills on the icons and the logo" and "the blur region
+     is a little too big for a header right?"
+
+     Both capsules are written in several places — the dark rule, the light
+     rule, a Play override, a nav-lifted state, and again inside individual
+     layouts — which is why this is one retirement block rather than edits
+     scattered across eight definitions that would drift apart again. It is
+     last in the sheet on purpose.
+
+     The nav keeps everything that was doing work: the marks, the labels,
+     the active underline, the top band that protects them from whatever
+     scrolls underneath. What goes is the glass surface those things were
+     sitting on, which was two floating objects competing with the page.
+
+     THE BAND. It was 104px on a 64px nav (--nav-h), so forty pixels of the
+     blur belonged to no header at all and read as a smeared strip hanging
+     under the bar. 72px is the nav plus its 14px offset and a little air.
+     ══════════════════════════════════════════════════════════════════════ */
+  .studio-nav::before {
+    height: 72px;
+  }
+  .studio-links,
+  html[data-theme="light"] .studio-links,
+  body.nav-lifted .studio-links,
+  html[data-theme="light"] .play-page .studio-links {
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    border-color: transparent;
+  }
+  .studio-links::before,
+  .studio-links::after,
+  html[data-theme="light"] .studio-links::before,
+  html[data-theme="light"] .play-page .studio-links::before {
+    display: none;
+  }
+  .studio-mark,
+  html[data-theme="light"] .studio-mark {
+    background: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    border: 0;
+  }
+  .studio-mark::before,
+  .studio-mark::after {
+    display: none;
+  }
+  /* The capsules were not only CSS. nav-glass.js appends a .nav-glass canvas
+     that paints the screen-space refraction and the rim for both pills, and
+     with the CSS surfaces gone it was the only thing still drawing them —
+     two outlines floating with nothing inside. Hidden here rather than by
+     deleting the script, so the technique stays in the repo; it also takes a
+     full-width canvas and its rAF loop off a page that had twenty of them. */
+  .nav-glass {
+    display: none;
+  }
 </style>
 
 <script>
@@ -9831,6 +9779,11 @@
               <span class="hero__stamp-sep"></span>
               <span class="hero__stamp-open">Open to roles</span>
             </p>
+
+            <!-- Not aria-hidden, unlike its two neighbours on this row: this
+                 is the row's only actionable item and the only one that is
+                 not repeated as prose on /about/ and /contact/. -->
+            <a class="hero__resume" href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer"><span>Resume PDF</span></a>
           </div>
 
           <!-- The word "Scroll" came out. Sid: "on the homepage we have scroll
@@ -20899,7 +20852,25 @@
     inset: 0;
     z-index: 8;
     pointer-events: none;
-    background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
+    /* ── THIS IS WHY THE PAGE READ AS DIM ────────────────────────────────
+       Sid: "wtf is happening on the homepage its so dim".
+
+       It was transparent to 55% and then black at 0.55 in the corners. Two
+       things wrong with that, and film_grade.html had already written down
+       both of them for its own vignette without this one being brought in
+       line: it starts at 55%, which is INSIDE the measure — the hero
+       headline spans 1325px of a 1440px frame, so its first and last words
+       sit in the darkened band — and 0.55 is shade, not falloff. The h1 is
+       rgb(244,247,251) at full opacity and still reads grey, because the
+       colour was never the problem; half a stop of black was sitting on it.
+
+       Nothing until 74%, and 0.2 at the very corner. Same reasoning as
+       .film__vig: enough for the eye to read an edge, not enough to read as
+       shade, and it stays clear of anything anyone has to read.
+
+       The two also STACK — .film__vig is a second full-page vignette above
+       this one — which is the other half of why the corners went so heavy. */
+    background: radial-gradient(ellipse at center, transparent 74%, rgba(0, 0, 0, 0.2) 100%);
   }
 
   /* ── CURSOR SPOTLIGHT ── soft pool of cyan light. Smaller + dimmer than before so it doesn't
