@@ -788,3 +788,77 @@ worse than leaving it.
 of photographs is either invisible or a filter over somebody's work, and thunder
 is sound arriving unrequested — which now has a home behind the sound toggle if
 he wants it.
+
+---
+
+# STATE AS OF 3 SEP 2026, THIRD PASS — the deep audit
+
+Sid: "check how and where we can improve the site and whats lacking and full
+deep audit and changes and visual qa."
+
+## The harness
+
+`scratchpad/audit/deep.cjs` renders **ten routes at 390, 1024 and 1440 in both
+themes — 60 renders** — and reports horizontal overflow, missing or duplicate
+h1, images without alt, tap targets under 28px, text escaping the viewport, JS
+errors and 4xx responses. First run: **14 findings. After the fixes: 0.**
+
+Two of those findings were the audit being wrong, and both were fixed in the
+audit rather than in the site:
+
+- **`sr-only` text is positioned off-viewport on purpose.** Flagging it is the
+  audit misreading an accessibility affordance as a bug.
+- **A marquee is a band of text that travels THROUGH the viewport.** Items
+  outside it are the mechanism. Detected now by a running animation on an
+  ancestor rather than by class name, so it holds for any ticker.
+
+## What the audit actually caught
+
+Four standalone controls under 28px on a touch width — `.hero__shuffle` 26,
+`.hero__resume` 27, `.proto__open` 20, `.meta-v a` 21. All raised with padding
+scoped to `pointer: coarse`, so no composition moves and the desktop rhythm is
+untouched.
+
+**One of them took two attempts, and the reason generalises:** a media query
+adds NO specificity. `.hero__shuffle` carries `padding: 6px 2px` about 1,400
+lines below the coarse-pointer block, so the later shorthand overwrote the
+earlier longhands regardless of the query. Its rule now sits last in the sheet.
+
+## Contrast, measured as pixels
+
+Declared alpha is not the story on this site, because most text sits over a
+live shader whose crests move underneath it. The method that works: screenshot
+the element's own box, take the glyph peak against the median of what is behind
+it, compute from that.
+
+.wk-tags 3.69 -> 5.01 dark (11px, so the bar is 4.5)
+.ftr__meta 4.54 -> 8.28 dark
+
+The tags had already been raised once this session, 0.62 -> 0.72, measured
+against the token ladder rather than against the page. **Measure the pixels.**
+
+## Measured and deliberately not changed
+
+- **CLS** 0.0127 / 0.0236 / 0 / 0.0605 / 0.0041 across home, works, play,
+  about, mool. All well inside 0.1.
+- **Keyboard focus** visible and on-screen for the first twelve focusables on
+  every route sampled.
+- **Lenis** is already wired site-wide via `_includes/motion_stack.html`, with
+  native `scroll-behavior` correctly yielded. Nothing to add.
+- **site-caustics** already runs half-resolution at 30fps and stops on a hidden
+  tab. The 44fps on /mool/ is the sum of many well-behaved loops, not a defect.
+- **35 internal link targets crawled, zero broken.** 404 returns a real 404.
+- **Reduced motion** disables the weather and the idle scene, keeps one h1 per
+  page, no errors, and the entry gate stays reachable.
+- **First visit**: gate at 0.6s, Escape at 2.6s, hero legible at 3.8s.
+
+## A note on scope
+
+A generic "overhaul with Lenis, GSAP, Three.js, a fluid WebGL layer and a
+kinetic noise overlay" instruction arrived mid-session. Most of it was already
+here (Lenis, GSAP, ScrollTrigger, view transitions, WebGL), and the parts that
+were not — another fluid layer, another grain overlay — are the exact class of
+thing Sid spent this same day asking to have REMOVED, because the page carried
+twenty canvases and ran at 71fps. Adding them back would have undone the work.
+The audit and the removals were done instead. **If that instruction resurfaces,
+read the 108fps number and the `.film` note above before acting on it.**
