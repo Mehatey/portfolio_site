@@ -1627,6 +1627,101 @@ include film_grade.html %}
       transition: none;
     }
   }
+  /* ══ THE SOUND TOGGLE ════════════════════════════════════════════════════
+     Sid: "an icon of a waveform for when sound is on to move slowly and when
+     off to be a still line we dont need text look at the pro sites."
+
+     No label, and the two states are a shape difference rather than a size
+     difference: travelling bars when it is on, one flat line when it is off.
+     A smaller version of the same waveform would read as "quieter", and the
+     state being communicated is not quieter, it is off.
+
+     It joins the existing floating stack rather than inventing a new corner --
+     #theme-toggle sits at bottom 88 right 24 and the chat below it, so this
+     takes the next rung up. See assets/js/sound.js. */
+  .sound-toggle {
+    position: fixed;
+    bottom: 152px;
+    right: 24px;
+    z-index: 200;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    background:
+      radial-gradient(38px 24px at 30% 8%, rgba(255, 255, 255, 0.2), transparent 70%),
+      linear-gradient(168deg, rgba(126, 165, 208, 0.26), rgba(6, 11, 20, 0.6) 58%, rgba(88, 132, 180, 0.2));
+    -webkit-backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    backdrop-filter: blur(32px) saturate(1.8) brightness(0.84);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: rgba(255, 255, 255, 0.92);
+    transition:
+      transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 240ms ease;
+  }
+  .sound-toggle:hover,
+  .sound-toggle:focus-visible {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+  .sound-wave {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 18px;
+  }
+  .sound-wave i {
+    display: block;
+    width: 2px;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+    /* Off is the resting state and it is a straight line: every bar at the
+       minimum, no animation running at all. */
+    transition: height 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* On, each bar runs the same slow cycle with a stagger off its index, so the
+     movement travels across the icon rather than pulsing as a block. 1.6s is
+     deliberately slower than a level meter -- this is a state, not a signal. */
+  .sound-toggle.is-on .sound-wave i {
+    animation: soundWave 1.6s ease-in-out infinite;
+    animation-delay: calc(var(--i) * 0.13s);
+  }
+  @keyframes soundWave {
+    0%,
+    100% {
+      height: 3px;
+    }
+    50% {
+      height: 15px;
+    }
+  }
+  html[data-theme="light"] .sound-toggle {
+    background:
+      radial-gradient(38px 24px at 30% 8%, rgba(255, 255, 255, 0.9), transparent 70%),
+      linear-gradient(168deg, rgba(255, 255, 255, 0.86), rgba(206, 222, 238, 0.66));
+    border-color: rgba(24, 48, 78, 0.16);
+    color: rgba(12, 16, 24, 0.9);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sound-toggle.is-on .sound-wave i {
+      animation: none;
+      height: 9px;
+    }
+  }
+  @media (max-width: 700px) {
+    .sound-toggle {
+      bottom: 140px;
+      right: 16px;
+      width: 42px;
+      height: 42px;
+    }
+  }
 </style>
 
 <!-- No record contains a space: multi-word facts are written with `~` and put
@@ -3686,3 +3781,10 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
 <!-- The kinetic type in the band above the colophon. -->
 <script src="{{ site.baseurl }}/assets/js/strip-ascii.js" defer></script>
 <script src="{{ site.baseurl }}/assets/js/kinetic-type.js" defer></script>
+
+<!-- Two grace notes, loaded from the one include every layout pulls in.
+     Both are deliberately idle by default: ambient.js holds a single timer and
+     creates nothing until an event fires, and sound.js builds no AudioContext
+     until somebody turns it on. -->
+<script src="{{ site.baseurl }}/assets/js/ambient.js" defer></script>
+<script src="{{ site.baseurl }}/assets/js/sound.js" defer></script>
