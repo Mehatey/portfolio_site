@@ -1753,16 +1753,29 @@
          Scoped above 901 because the phone layout below that breakpoint
          already stacks and is fine. */
       @media (min-width: 901px) {
+        /* ── THE FOUR CORNERS COME BACK, WITH SOMETHING IN THE MIDDLE ────
+           Sid: "in contact page i want the desk in the center much bigger and
+           i want info placed around it 4 corners or below rn this looks so bad
+           like a ppt."
+
+           The note above this one is the record of the LAST time this page was
+           four corners, and it is right about why that failed: "the
+           poster-corners cliche ... needs a subject in the middle to justify
+           it. There wasn't one." The middle held a translucent slab with a
+           small picture floating in it.
+
+           That objection is answered rather than overruled. The desk is the
+           subject now, spanning the entire grid at full bleed with the four
+           blocks sitting on top of it -- so the corners are framing a room
+           rather than framing a hole. Two columns solved the problem by
+           removing the middle; this solves it by filling the middle.
+
+           The middle row takes all the slack, which is what pins the top pair
+           to the ceiling and the bottom pair to the floor. */
         .contact-shell {
-          grid-template-columns: minmax(0, 0.94fr) minmax(0, 1.06fr);
-          /* Four min-content rows and a fifth that eats everything left over.
-             With `auto auto auto 1fr` the slack was distributed BETWEEN the
-             blocks -- measured, 145px between the email and the blurb and
-             another 150 before the links -- which is the same disconnected
-             page in a different arrangement. All the space belongs at the
-             bottom; the reading column has to read as one thing. */
-          grid-template-rows: repeat(4, min-content) minmax(0, 1fr);
-          align-content: start;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+          grid-template-rows: min-content minmax(0, 1fr) min-content;
+          align-content: stretch;
           column-gap: clamp(40px, 6vw, 96px);
           row-gap: clamp(18px, 2.4vh, 34px);
         }
@@ -1782,22 +1795,26 @@
         }
         .c-corner--tl {
           grid-area: 1 / 1;
+          max-width: 42ch;
         }
         .c-corner--tr {
-          grid-area: 2 / 1;
-          align-items: flex-start;
-          text-align: left;
-          padding-top: clamp(16px, 2.2vh, 28px);
+          grid-area: 1 / 2;
+          align-items: flex-end;
+          text-align: right;
+          justify-self: end;
+          max-width: 38ch;
         }
         .c-corner--bl {
           grid-area: 3 / 1;
-          justify-content: flex-start;
-          padding-top: clamp(18px, 2.6vh, 32px);
+          justify-content: flex-end;
+          align-self: end;
         }
         .c-corner--br {
-          grid-area: 4 / 1;
-          align-items: flex-start;
-          text-align: left;
+          grid-area: 3 / 2;
+          align-items: flex-end;
+          text-align: right;
+          justify-self: end;
+          align-self: end;
           justify-content: flex-start;
           /* The lift that kept this clear of the floating theme and chat
              buttons is not needed once it is in the left column -- those
@@ -1810,22 +1827,31 @@
         /* The room. Full height of the column, so it is the second subject on
            the page rather than an illustration parked in the middle of it. */
         .contact-desk {
-          grid-area: 1 / 2 / 6 / 3;
+          /* Every row, every column. It is the ground the page is written on,
+             not a picture in a cell. */
+          grid-area: 1 / 1 / 4 / 3;
           position: relative;
           inset: auto;
           /* Wider than its column and bled off the right edge of the window.
              A room that stops inside the page is a picture of a room; one
              that runs out of frame is a room you are looking into. */
-          width: min(74vw, 1180px);
-          justify-self: end;
-          margin-right: calc(-1 * var(--sp-6));
+          /* "much bigger", and centred rather than bled off one edge. The
+             old value hung a 1180px plate off the right of the window so the
+             left third of the room was never on screen. */
+          width: min(88vw, 1460px);
+          justify-self: center;
+          margin-right: 0;
           /* Grounded at the bottom of the window, not floated in the middle of
              the column. Centred, the desk sat in the upper right with 300px of
              nothing under it and the page had two separate top-weighted
              halves; sitting on the floor it fills the quarter of the screen
              the reading column does not use, and a desk belongs on a floor. */
-          align-self: end;
-          margin-bottom: calc(-1 * var(--sp-5));
+          /* Centred in the frame now that there are blocks above AND below
+             it. Grounded at the floor was the right call when the whole
+             right-hand column was empty underneath; with the phone and the
+             links on that floor it would sit on top of them. */
+          align-self: center;
+          margin-bottom: 0;
           height: auto;
           /* min-height: 58vh was mine and it was the whole problem. The desk
              spans all four rows, so a 522px floor on a 900px window is
@@ -1881,6 +1907,57 @@
         .contact-address a:hover::after,
         .contact-address a:focus-visible::after {
           transform: scaleX(1);
+        }
+      }
+      /* ══════════════════════════════════════════════════════════════════
+         THE DESK, SETTLED LAST
+
+         `.contact-desk` is written in six places in this file and three of
+         them use `.contact-shell > .contact-desk`, which outranks the plain
+         class wherever it sits. So the desk took my row span and kept the old
+         column start -- computed grid-area came back `1 / 2 / 4 / 3` -- and a
+         `width: 100%` from one of those rules resolved against a single
+         column, so "much bigger and centred" rendered as 645px in the right
+         half of the page.
+
+         Rather than thread one change through all six, this is a single block
+         at the end at matching specificity. It is the last word on where the
+         desk GOES; everything above still owns how it looks.
+         ══════════════════════════════════════════════════════════════════ */
+      @media (min-width: 901px) {
+        .contact-shell > .contact-desk {
+          grid-area: 1 / 1 / 4 / 3;
+          position: relative;
+          inset: auto;
+          order: 0;
+          width: min(88vw, 1460px);
+          justify-self: center;
+          align-self: center;
+          margin: 0;
+          min-height: 0;
+          /* The plates inside are absolutely positioned, so this box has no
+             content to be tall from: with `height: auto` alone it measured
+             1267x0 and the room vanished. The base rule's aspect-ratio is
+             restated here because one of the rules this block is overruling
+             replaced it with an explicit height. */
+          height: auto;
+          aspect-ratio: 1200 / 669;
+        }
+        /* The four blocks sit ON the room now, so they have to stay above it. */
+        .contact-shell > .c-corner {
+          z-index: 4;
+        }
+        /* ── THE BOTTOM-RIGHT CORNER SHARES A RECTANGLE ────────────────────
+           The theme toggle and the cube chat are fixed to the bottom right of
+           every page on the site, and this is the only block anywhere that
+           tries to occupy the same corner. An older version of this rule
+           carried the same lift and it was dropped when the layout became one
+           left-hand column, because nothing was in that corner any more.
+           Putting the links back there brings the problem back with them:
+           measured, "Instagram" and "Behance" ran directly under both
+           buttons. 118px is the control stack plus air. */
+        .contact-shell > .c-corner--br {
+          padding-bottom: 118px;
         }
       }
     </style>
