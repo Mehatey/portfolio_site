@@ -9277,13 +9277,23 @@
 
            
 
+<!-- ── THESE TWO ARE NOT REQUESTED UNTIL THE OPENER IS GOING TO RUN ───────
+     They were `preload="auto"` with a plain <source src>, which is an
+     instruction to download the whole file immediately -- and both did, at
+     0.2s, on every visit. Measured on the home page: sid_sitting.mp4 2,142KB
+     and sid_sitting_pixel.mp4 987KB, 3.1MB of the page's 9.12MB.
+
+     The waste is the sharp part. The script below returns at line ~145 for
+     anyone who has been here before, so on a RETURN visit this film never
+     plays -- and 3.1MB had already been spent on it before that line ran. The
+     markup was downloading something the code had already decided not to use.
+
+     data-src instead, hydrated inside the script after the `seen` gate. A
+     first visit pays exactly what it paid before; everybody else pays
+     nothing. -->
 <div class="hero-film" id="hero-film" aria-hidden="true" hidden>
-  <video class="hero-film__take hero-film__take--pixel" id="hero-film-pixel" muted playsinline preload="auto" disablepictureinpicture>
-    <source src="/assets/video/sid_sitting_pixel.mp4" type="video/mp4"></source>
-  </video>
-  <video class="hero-film__take hero-film__take--real" id="hero-film-real" muted playsinline preload="auto" disablepictureinpicture>
-    <source src="/assets/video/sid_sitting.mp4" type="video/mp4"></source>
-  </video>
+  <video class="hero-film__take hero-film__take--pixel" id="hero-film-pixel" muted playsinline preload="none" disablepictureinpicture data-src="/assets/video/sid_sitting_pixel.mp4"></video>
+  <video class="hero-film__take hero-film__take--real" id="hero-film-real" muted playsinline preload="none" disablepictureinpicture data-src="/assets/video/sid_sitting.mp4"></video>
 </div>
 
 <style>
@@ -9409,6 +9419,17 @@
       seen = !!(localStorage.getItem("sid_loaded") || sessionStorage.getItem("sid_loaded"));
     } catch (e) {}
     if (seen && !/[?&]opener=1/.test(location.search)) return;
+
+    /* Past the gate, so this visit is actually going to show the film. Only
+       now do the two takes get a source; see the note beside the markup. */
+    [pixel, real].forEach(function (v) {
+      if (v && v.dataset.src && !v.getAttribute("src")) {
+        v.src = v.dataset.src;
+        v.removeAttribute("data-src");
+        v.preload = "auto";
+        v.load();
+      }
+    });
 
     wrap.hidden = false;
 
@@ -9698,8 +9719,23 @@
              one showreel on this page and two ways in. -->
           <div class="hero__plate" data-story="plate" aria-hidden="true">
             <button type="button" id="hero-reel" class="hero__disc" aria-haspopup="dialog" aria-controls="reel-modal" aria-label="Watch the showreel">
+              <!-- ── THE POSTER WAS THE SHARE CARD ───────────────────────
+                   The video below used to poster with og-card.jpg, which is
+                   the 1200x630 Open Graph image and has the headline set into
+                   it. This disc is a CIRCLE, so cropping a wide text layout to
+                   it landed mid-word: the badge read "signer, six years. / o
+                   shipped code," under a ring that says THE REEL. It looked
+                   like a rendering bug, and it was the page quoting itself
+                   back at the viewer in the one place that should have been a
+                   picture of the film.
+
+                   reel-poster.webp is a real frame from the film this button
+                   opens -- 3.5s into sid_sitting.mp4, square cropped so the
+                   subject is centred in the disc rather than cut by it. A
+                   poster should be the first frame of what you are about to
+                   watch. -->
               <span class="hero__disc-film">
-                <video id="hero-reel-loop" muted loop playsinline preload="none" poster="/assets/img/og-card.jpg" data-src="/assets/video/sid_sitting.mp4"></video>
+                <video id="hero-reel-loop" muted loop playsinline preload="none" poster="/assets/img/reel-poster.webp" data-src="/assets/video/sid_sitting.mp4"></video>
               </span>
               <span class="hero__disc-glass" aria-hidden="true"></span>
               <svg class="hero__disc-ring" viewbox="0 0 100 100" aria-hidden="true" focusable="false">
@@ -25720,7 +25756,22 @@
 </style>
 
 <script src="/assets/js/lenis.min.js" defer></script>
-<script src="/assets/js/gsap.min.js" defer></script>
+<!-- ── GSAP IS NOT LOADED HERE ─────────────────────────────────────────────
+     It was, and the home page fetched gsap.min.js TWICE -- 71KB each, two
+     separate responses in the waterfall. _includes/cursor_fluid.html already
+     loads it, and that copy is not deferred, so it has executed before any
+     deferred script on the page runs.
+
+     Removing this tag rather than that one, for two reasons. cursor_fluid is a
+     SUPERSET of the pages that include this file -- every layout with
+     motion_stack also has cursor_fluid, plus 404 and default.liquid, which
+     have cursor_fluid alone -- so this is the copy that can go without
+     leaving a page without GSAP. And cursor_fluid's is synchronous, so code
+     there can use the library at parse time; making that one deferred to
+     replace this one would break whatever depends on that.
+
+     ScrollTrigger stays here: it is loaded once, only on these pages, and
+     motion_stack.js is what hands it Lenis's clock. -->
 <script src="/assets/js/ScrollTrigger.min.js" defer></script>
 <script src="/assets/js/motion_stack.js" defer></script>
 <!-- ── gl-media.js IS OFF ──────────────────────────────────────────────────
