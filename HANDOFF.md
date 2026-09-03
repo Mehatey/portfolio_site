@@ -862,3 +862,86 @@ thing Sid spent this same day asking to have REMOVED, because the page carried
 twenty canvases and ran at 71fps. Adding them back would have undone the work.
 The audit and the removals were done instead. **If that instruction resurfaces,
 read the 108fps number and the `.film` note above before acting on it.**
+
+---
+
+# STATE AS OF 3 SEP 2026, FOURTH PASS — collect, nav, print, Play, capabilities
+
+## The click collection
+
+`assets/js/collect.js`. Nine pixel objects — star, moon, leaf, bird, fish,
+flower, cloud, circle, dashed line — one per click, **in a fixed order**, each
+falling with one damped bounce and settling flat before it fades. The permanent
+copy is the shelf in the footer.
+
+**One of each is the whole design.** Click forty times and you still have nine;
+the fall still answers the gesture but the shelf does not grow. The shelf is
+hidden until something is on it and is never labelled — a row of nine grey
+slots reading "0/9" turns a thing somebody finds into a thing they are failing
+at. The ninth earns one line in the cube's voice.
+
+Idle cost is zero: the canvas is built on the first click and removed 2.5s
+after the last landing. Clicks on links still navigate (capture phase, no
+preventDefault, canvas is `pointer-events: none`).
+
+## The nav
+
+Active page keeps its word; the other three are just their mark; the word
+arrives on hover. `max-width` animates rather than opacity, so the nav is
+genuinely narrower at rest. **Two states that are easy to get wrong and are
+covered:** home shows no word (no active item, the logo is the home
+affordance), and a phone shows all four (no hover to reveal them).
+
+The reference Sid sent fills the active item with a white pill. That is right
+on a light chrome bar and would be the loudest object on this page — the
+capsules were removed from this nav hours earlier for exactly that reason.
+
+## Two stale things that were defending bugs
+
+**The print stylesheet was aimed at `.nav`** — the class before the studio nav.
+So the bar printed on every page, `.film` printed, and **fifteen canvases**
+printed as black slabs across the content. Canvases are now hidden as a class,
+not by id, because this site adds them from a dozen scripts.
+
+**A QA check was asserting the duplication it should have caught.** "play
+mirrors every tile in its accessible list" counted a screen-reader-only `<ul>`
+against the tile count — 225 entries beside 201 already-named images, so a
+non-visual reader met the whole archive twice, and the check would have passed
+forever. It now asserts every tile has a name.
+
+> **A check that encodes an implementation rather than a requirement will
+> defend that implementation against its own replacement.** This is the second
+> time a stale checker has stood between this page and a real fix.
+
+## /play/
+
+Removing the duplicate index exposed that **`main` held fifteen characters** at
+390 — "Play / 225 PIECES". The intro line exists and was `display: none` below
+760px, so the sr-only list had accidentally been the page's only prose. The
+header now takes `min(62vw, 280px)` and the line stays.
+
+`_data/play_pieces.yml` is the caption scaffold: keyed by file number, anything
+present is used, anything absent falls back to "Archive piece". **It ships
+empty on purpose.** Inventing a medium and a year for his artwork is not this
+repo's to do. Proved with a temporary entry, then reverted.
+
+## What is deliberately NOT built
+
+**Three AI case studies.** The July audit asked for them. "What design question
+was this exploring, what would it become as a product" is Sid's judgement about
+his own work, and three fabricated pages of it is the Play-caption fault in a
+longer form. What landed instead is `proves` — one line per prototype naming
+the design capability it demonstrates, derived strictly from the tagline and
+caption he already wrote.
+
+**Time-on-site.** Asked about, argued against: it is surveillant and it is
+information about the visitor rather than about him. `Updated Sep 2026` beside
+`Open to roles` already does the job it was reaching for.
+
+## A YAML trap worth remembering
+
+`proves: Search as navigation: finding by meaning` broke `_data/ai_prototypes.yml`
+silently. **Jekyll served the page with an empty data file rather than failing** —
+twelve prototypes rendered, zero capability lines, no error anywhere. The only
+signal was a count coming back 0 of 12. Quote anything going into a data file
+that a human wrote a sentence into.
