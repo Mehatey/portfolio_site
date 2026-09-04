@@ -128,6 +128,12 @@
     --font-title: "Figtree", sans-serif;
 
     /* ── Layout ── */
+    /* The distance from the window edge to the first vertical grid line, and
+       therefore to the left edge of every measured thing on the site. It is
+       the same expression layout_grid.html centres its box with, hoisted to a
+       token because three files now need to agree with it and two of them
+       were previously restating it by hand. */
+    --grid-left: max(var(--gutter, max(24px, 4vw)), calc((100vw - 1560px) / 2));
     --nav-h: 64px;
     --gutter: max(24px, 4vw);
     --content-max: 1440px;
@@ -7166,6 +7172,25 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* ── THE MARK SITS IN THE MARGIN, NOT ON THE LINE ─────────────────────
+     Sid: "My logo needs to be a lot more towards the left so that it's in
+     that sort of space ... all the way towards the middle of that sort of
+     square section of the top left."
+
+     Putting the mark's left edge ON the first grid line was the previous
+     answer and it was half right: it stopped the line cutting through the
+     mark, but it also parked the mark hard against the line with the whole
+     left margin empty beside it. The space he means is that margin.
+
+     Centred in it now. The mark's centre lands on --grid-left / 2, so the
+     column of white space to the left of the measure has the mark in the
+     middle of it and the first vertical line runs cleanly past its right
+     side with air between them.
+
+     The `min()` is a floor, not a preference. Below about 1500px the margin
+     is narrower than the mark plus a sensible edge gap, and a mark centred in
+     a 51px margin would sit 7px from the window edge. Where there is room it
+     centres; where there is not it holds 12px off the edge and stops. */
   .studio-mark {
     position: relative;
     display: flex;
@@ -7173,6 +7198,14 @@
     gap: 8px;
     min-height: 48px;
     outline: none;
+    transform: translateX(calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px)));
+  }
+  /* The bar becomes a full-width band on small screens and there is no margin
+     left to sit in. */
+  @media (max-width: 900px) {
+    .studio-mark {
+      transform: none;
+    }
   }
 
   .studio-mark .logo-cube {
@@ -11784,8 +11817,6 @@
     <i class="lgrid__v" style="--i: 1"></i>
     <i class="lgrid__v" style="--i: 2"></i>
     <i class="lgrid__v" style="--i: 3"></i>
-    <i class="lgrid__v" style="--i: 4"></i>
-    <i class="lgrid__v" style="--i: 5"></i>
   </span>
   <i class="lgrid__h" style="--f: 0.22"></i>
   <i class="lgrid__h" style="--f: 0.5"></i>
@@ -11796,9 +11827,19 @@
   .lgrid {
     position: fixed;
     inset: 0;
-    /* Under the nav and under the film grade, over the page. A structural
-       guide that sits on top of the chrome is a debug overlay. */
-    z-index: 3;
+    /* ── UNDER THE CONTENT, NOT OVER IT ────────────────────────────────
+       Sid: "some of them are coming on top of the images, and I don't know
+       whether we need so much of a square grid ... look at what people
+       usually do online with grid lines."
+
+       They were at z-index 3, which is above the cards, so every vertical
+       ruled straight across seventeen photographs. That is the one thing
+       printed grid guides never do -- a guide is what the content is placed
+       ON, so it is visible in the gutters and hidden behind anything set on
+       top of it. At 0 it sits behind the page's own content, which all
+       declares 1 or above, so the lines now show in the space between cards
+       and stop at their edges. */
+    z-index: 0;
     pointer-events: none;
     contain: strict;
     color: var(--ink, #f0f6fc);
@@ -11832,17 +11873,17 @@
     width: 1px;
     background: currentColor;
     opacity: 0.045;
-    left: calc((var(--i) / 5) * 100%);
+    left: calc((var(--i) / 3) * 100%);
   }
   /* The last line would sit one pixel outside the box on the right edge. */
-  .lgrid__v:nth-child(6) {
+  .lgrid__v:nth-child(4) {
     left: auto;
     right: 0;
   }
   /* The two outer lines are the measure itself and carry a touch more weight;
      the four inside them are subdivisions and should read as quieter. */
   .lgrid__v:first-child,
-  .lgrid__v:nth-child(6) {
+  .lgrid__v:nth-child(4) {
     opacity: 0.075;
   }
 
@@ -11869,7 +11910,7 @@
     opacity: 0.055;
   }
   html[data-theme="light"] .lgrid__v:first-child,
-  html[data-theme="light"] .lgrid__v:nth-child(6) {
+  html[data-theme="light"] .lgrid__v:nth-child(4) {
     opacity: 0.09;
   }
   html[data-theme="light"] .lgrid__h {
@@ -11881,7 +11922,7 @@
      else. The horizontals stay — they cost nothing and they are what makes a
      small screen read as a page rather than as a feed. */
   @media (max-width: 760px) {
-    .lgrid__v:not(:first-child):not(:nth-child(6)) {
+    .lgrid__v:not(:first-child):not(:nth-child(4)) {
       display: none;
     }
   }
@@ -12430,101 +12471,10 @@
     background: linear-gradient(90deg, transparent, var(--nature, rgba(180, 200, 220, 0.9)) 22%, var(--nature, rgba(180, 200, 220, 0.9)) 78%, transparent);
     opacity: 0.42;
   }
-  /* ── THE PIXEL BAND ───────────────────────────────────────────────────
-     Thirty-six squares, six colours, on the same arrival as the rule above:
-     --tp fades them up once the boundary has crossed the window.
-
-     At rest they sit at a fifth of their colour, which is enough to read as a
-     coloured texture across the band and not enough to become a row of
-     buttons. The pointer is what makes it pixel ART rather than a pattern --
-     a square under the hand goes to full colour and lifts, and its immediate
-     neighbours come partway, so moving along the row pushes a small bright
-     wave ahead of the cursor. */
-  .tideline__pix {
-    display: flex;
-    gap: 3px;
-    margin: 0;
-    padding: 0;
-    opacity: calc(var(--tp, 0) * 1);
-    transition: opacity 700ms ease 240ms;
-    /* The container turns pointer events off for the whole tideline; this row
-       is the one thing in it that needs them. */
-    pointer-events: auto;
-  }
-  .tideline__pix .px {
-    width: 8px;
-    height: 8px;
-    display: block;
-    /* 0.22 photographed as a row of identical faint blue-grey squares: the
-       six colours were there and none of them were legible, which is the same
-       fault the idle glass had. 0.44 is where the palette actually reads as a
-       palette across the band while the row still sits under the content
-       rather than competing with it. */
-    background: rgba(var(--px, 180, 200, 220), 0.44);
-    /* Square. A rounded pixel is a dot, and a row of dots is a loading
-       indicator. */
-    border-radius: 1px;
-    transition:
-      background 260ms ease,
-      transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .tideline__pix .px:hover {
-    background: rgba(var(--px, 180, 200, 220), 0.95);
-    transform: translateY(-4px) scale(1.25);
-  }
-  /* The wave. `+` and `~ * +` reach the next square and the one after it, so
-     the lift falls off across three rather than stopping dead at one. */
-  .tideline__pix .px:hover + .px {
-    background: rgba(var(--px, 180, 200, 220), 0.6);
-    transform: translateY(-2px) scale(1.1);
-  }
-  .tideline__pix .px:hover + .px + .px {
-    background: rgba(var(--px, 180, 200, 220), 0.38);
-    transform: translateY(-1px);
-  }
-  /* Six colours, the mark's nature palette and the accent family. No orange,
-     the same call as the mark's drift and the idle glass. */
-  .px--aqua {
-    --px: 120, 226, 220;
-  }
-  .px--blue {
-    --px: 96, 190, 240;
-  }
-  .px--dusk {
-    --px: 148, 156, 202;
-  }
-  .px--moss {
-    --px: 138, 176, 150;
-  }
-  .px--slate {
-    --px: 122, 142, 172;
-  }
-  .px--ice {
-    --px: 196, 224, 246;
-  }
   @media (prefers-reduced-motion: reduce) {
     .tideline__rule {
       transform: scaleX(1);
       transition: none;
-    }
-    .tideline__pix {
-      opacity: 1;
-      transition: none;
-    }
-    .tideline__pix .px {
-      transition: none;
-    }
-    .tideline__pix .px:hover,
-    .tideline__pix .px:hover + .px,
-    .tideline__pix .px:hover + .px + .px {
-      transform: none;
-    }
-  }
-  /* On a phone there is no pointer to answer and 36 squares at a 4px gap is
-     wider than the screen. Fewer, and no hover states to be stuck in. */
-  @media (max-width: 760px) {
-    .tideline__pix .px:nth-child(n + 21) {
-      display: none;
     }
   }
 
@@ -14483,36 +14433,20 @@
        aria-hidden: it is a mark, not content. The footer's own label already
        tells a screen reader what this region is, and reading out a ticking
        depth counter would be noise. -->
-    <!-- ── THE READOUT WAS TELEMETRY ──────────────────────────────────────
-         Sid: "instead of that sort of numbered key type, that's not looking
-         nice. Can we have different colored pixels and play around with pixel
-         art, maybe on hover, as a background?"
+    <!-- ── THE BOUNDARY IS JUST A RULE NOW ────────────────────────────────
+         This held the coordinate readout, then a row of thirty-six coloured
+         squares. Sid on that row: "I want that to be a hover effect on the
+         background, like a bunch of different pixels, interestingly done, not
+         just a line of blue and blue squares which you hover on."
 
-         What was here was `40.7128° N  73.9060° W  0.0 VH` -- a latitude, a
-         longitude and a live counter of how many viewport heights had been
-         scrolled, in tabular mono. It is the same instinct that put dB and ms
-         readouts on the art pieces, and the same answer applies: a number
-         that updates while you scroll is an instrument panel, and it tells a
-         visitor how far down a page they are, which is a fact about them
-         rather than about him.
-
-         A band of pixels instead. Thirty-six of them on the site's own
-         palette -- the mark's nature colours and the accent family -- resting
-         at a low opacity so the row reads as texture, and lighting up under
-         the pointer. It is the page's pixel-art language, which already runs
-         through the works cards and the play grid, doing the job the
-         coordinates were doing: marking the boundary where the page becomes
-         the footer.
-
-         `pointer-events` is turned back ON for this row specifically. The
-         .tideline container disables them because a decorative band should
-         never eat a click, and that is still right for everything else in it
-         -- but a row that answers the pointer has to be able to see it. -->
+         Fair, and the fault is the shape rather than the idea. A line of
+         squares in one fixed place is a legend: you hover it once and it is
+         spent. The pixels moved to the ground instead -- see
+         assets/js/pixel-field.js, which lights a field of them around the
+         cursor anywhere on the page. What stays here is the hairline, which
+         was always the thing marking where the page becomes the footer. -->
     <div class="tideline" aria-hidden="true">
       <span class="tideline__rule"></span>
-      <p class="tideline__pix">
-        <i class="px px--blue" style="--n: 1"></i><i class="px px--dusk" style="--n: 2"></i><i class="px px--moss" style="--n: 3"></i><i class="px px--slate" style="--n: 4"></i><i class="px px--ice" style="--n: 5"></i><i class="px px--aqua" style="--n: 6"></i><i class="px px--blue" style="--n: 7"></i><i class="px px--dusk" style="--n: 8"></i><i class="px px--moss" style="--n: 9"></i><i class="px px--slate" style="--n: 10"></i><i class="px px--ice" style="--n: 11"></i><i class="px px--aqua" style="--n: 12"></i><i class="px px--blue" style="--n: 13"></i><i class="px px--dusk" style="--n: 14"></i><i class="px px--moss" style="--n: 15"></i><i class="px px--slate" style="--n: 16"></i><i class="px px--ice" style="--n: 17"></i><i class="px px--aqua" style="--n: 18"></i><i class="px px--blue" style="--n: 19"></i><i class="px px--dusk" style="--n: 20"></i><i class="px px--moss" style="--n: 21"></i><i class="px px--slate" style="--n: 22"></i><i class="px px--ice" style="--n: 23"></i><i class="px px--aqua" style="--n: 24"></i><i class="px px--blue" style="--n: 25"></i><i class="px px--dusk" style="--n: 26"></i><i class="px px--moss" style="--n: 27"></i><i class="px px--slate" style="--n: 28"></i><i class="px px--ice" style="--n: 29"></i><i class="px px--aqua" style="--n: 30"></i><i class="px px--blue" style="--n: 31"></i><i class="px px--dusk" style="--n: 32"></i><i class="px px--moss" style="--n: 33"></i><i class="px px--slate" style="--n: 34"></i><i class="px px--ice" style="--n: 35"></i><i class="px px--aqua" style="--n: 36"></i>
-      </p>
     </div>
     <!-- ── THE POND CAME OUT ──────────────────────────────────────────────────
        Sid: "maybe one unique background shader across the entire site — I
@@ -18168,6 +18102,10 @@
   </script>
 
   <script src="/assets/js/collect.js" defer></script>
+  <!-- The pointer lights a field of pixels on the ground. Replaces both the
+     row of squares that used to sit above this footer and the fluid shader
+     that used to sit behind the page. See assets/js/pixel-field.js. -->
+  <script src="/assets/js/pixel-field.js" defer></script>
   <script>
     /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
      Sets `body.controls-near`, which site_footer's stylesheet has referenced
