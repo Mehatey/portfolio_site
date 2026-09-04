@@ -1690,9 +1690,13 @@ include film_grade.html %}
     justify-content: flex-end;
     gap: clamp(12px, 1.6vw, 26px);
   }
+  /* `.ftr__meta` used to be in this selector list and it did nothing here.
+     The base `.ftr__meta` rule about sixty lines below re-declares
+     `justify-content: flex-end`, same specificity and later in the sheet, so
+     it won at every width and the row stayed right-aligned on phones. The
+     override now lives directly after that base rule, where it can win. */
   @media (max-width: 760px) {
-    .ftr__nav,
-    .ftr__meta {
+    .ftr__nav {
       justify-content: flex-start;
     }
   }
@@ -1707,6 +1711,44 @@ include film_grade.html %}
   .ftr__nav a:hover,
   .ftr__nav a:focus-visible {
     color: var(--ink-1, #f4f7fb);
+  }
+
+  /* ── THE FOOTER LINKS WERE 16px TALL ──────────────────────────────────
+     Audited across every route: Work, Play, About, Contact, LinkedIn and the
+     email address came back as 33x16, 42x16, 59x16 and 193x21 on a 390px
+     screen -- on 22 of the 43 pages, because they are in the shared footer.
+     WCAG 2.2 target size (minimum) is 24x24, and the exception for links
+     inline in a sentence does not apply: this is a navigation row, not prose.
+
+     The type does not change. `--type-micro` is doing real work here -- the
+     footer is reference material and it should sit quietly under the ask --
+     so the fix is the HIT AREA, not the glyphs. inline-flex with a min-height
+     centres the same text in a taller box.
+
+     44px only under `pointer: coarse`. A mouse is precise and does not need
+     it, and forcing 44px rows on the desktop footer would open gaps the
+     design does not want. A thumb is not precise, and that is the device
+     where every one of these measurements failed. */
+  .ftr__nav a,
+  .ftr__mail a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+  }
+  @media (pointer: coarse) {
+    .ftr__nav a,
+    .ftr__mail a {
+      min-height: 44px;
+    }
+    .ftr__copy {
+      min-height: 44px;
+      padding-inline: 16px;
+    }
+    /* The row was laid out for 16px children. Giving them 44px without
+       taking the gap down turns one tidy row into a loose stack. */
+    .ftr__nav {
+      gap: 4px clamp(12px, 1.6vw, 26px);
+    }
   }
 
   /* The date is the point of this row. "Open to roles" with no date on it is
@@ -1727,6 +1769,24 @@ include film_grade.html %}
     font: var(--type-micro);
     letter-spacing: var(--track-micro);
     text-transform: uppercase;
+  }
+
+  /* ── AND ON A PHONE IT RAN UNDER THE FLOATING CONTROLS ────────────────
+     Right-aligned, this row ended at x=364 on a 390px screen -- inside the
+     viewport, so no overflow check ever caught it, but underneath the column
+     of round buttons that floats at the bottom right. Captured at 390px the
+     row read "NEW YORK 12:30 NY" and "UPDATED SEP 20": the time and the date
+     were painted, then covered. The date is the whole point of the row.
+
+     Left-aligning it on phones moves it out from under them and matches the
+     nav above it, which has been left-aligned at this width all along. */
+  @media (max-width: 760px) {
+    .ftr__meta {
+      justify-content: flex-start;
+      /* The buttons are ~64px of gutter at the right. Reserving it means a
+         long third item wraps early rather than sliding under them. */
+      padding-right: 72px;
+    }
   }
 
   @media (max-width: 700px) {
