@@ -199,7 +199,9 @@
        FOLDS -- pushing harder just displaces, turning harder makes structure. */
     "  flow += tangent * (0.0042 + uVel * 0.075) * influence * uPresence;",
     "  flow -= normalize(toHand + 0.0001) * influence * uPresence * 0.0062;",
-    /* The click. An outward ring that expands and fades on its own clock. */
+    /* The click ring is gone with the click handler that set uBurst to 1 --
+       see the note there. uBurst is still fed by scroll velocity, which is
+       what this now expresses: a fling disturbs the fluid, a click does not. */
     "  if (uBurst > 0.001) {",
     /* The ring was 90 in the exponent, which is a hairline, and it travelled
        only to 0.55. Wider, slower, further: a click should cross the screen. */
@@ -663,16 +665,25 @@
   window.addEventListener(
     "pointerdown",
     function (e) {
-      burst = 1;
-      /* ── THE CLICK ALSO TURNS THE INK OVER ──────────────────────────────
-         Not on every click. A click that lands on a link, a button or a field
-         is a click at the page, and repainting the whole background underneath
-         someone who just pressed Contact is the background interrupting them.
-         Only clicks on open ground count -- which is also the only place the
-         gesture is discoverable as a gesture. */
-      var t = e.target;
-      if (t && t.closest && t.closest("a, button, input, textarea, select, summary, [role='button'], label")) return;
-      modeT = (modeT + 1) % 4;
+      /* ── THE CLICK NO LONGER DOES ANYTHING TO THE BACKGROUND ──────────
+         Sid: "remove the color changing orb on click ... the work page is
+         getting too chaotic."
+
+         It did two things and both are gone. It threw an expanding ring into
+         the fluid, and it advanced the palette one of four cold weathers.
+         Neither was wrong on its own; together, on a page where a click is
+         usually aimed at a project, the whole ground moved and recoloured
+         under the thing you were reaching for.
+
+         There is also a click effect on this site now that DOES belong to the
+         visitor -- the pixel objects in assets/js/collect.js. Two different
+         responses to one gesture is one too many, and the one that spawns an
+         object you can collect is the one worth keeping.
+
+         `burst` and `modeT` stay declared: burst is still driven by scroll
+         velocity below, and the palette still eases toward whatever modeT is,
+         which is now simply never changed. */
+      void e;
     },
     { passive: true }
   );

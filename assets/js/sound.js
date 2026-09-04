@@ -109,24 +109,101 @@
     src.start();
   }
 
+  /* ── HOVER IS ALMOST SILENT NOW ───────────────────────────────────────
+     Sid: "the hover sound on each and everything is way too much audio also
+     can we have something more futuristic."
+
+     The 90ms gate was solving the wrong problem. It stopped a nav sweep
+     becoming an arpeggio, but it still let every single deliberate hover make
+     a noise -- and on a page of seventeen cards, a strip of tiles and four
+     nav marks, that is a sound every time the pointer moves anywhere. The
+     failure was not the rate, it was that hover was audible at all.
+
+     A hover is not an event. It is the pointer being somewhere. So it only
+     speaks for elements that are genuinely a destination -- and even then at
+     a third of the level, once every 700ms at most. Everything else is
+     silent and the click carries the interaction.
+
+     FUTURISTIC, CONCRETELY. The old hover was a 1180Hz sine plus a bright
+     noise tick, which is a UI beep. This is a short two-oscillator chime a
+     perfect fifth apart with the upper voice detuned four cents, run through
+     a lowpass that opens as it sounds -- so it arrives soft and resolves,
+     rather than clicking. That opening filter is most of what separates
+     "spacecraft" from "notification". */
   function hover() {
     if (!on) return;
     var now = Date.now();
-    /* Sweeping a nav of six links fires six hovers in half a second. A gate
-       turns that from a arpeggio into a single event. */
-    if (now - lastHover < 90) return;
+    if (now - lastHover < 700) return;
     lastHover = now;
-    /* Walks up a few cents each time and resets, so consecutive hovers rise
-       very slightly rather than being identical. */
-    detune = ((detune + 7) % 28) - 14;
-    tone(1180, 0.055, "sine", 0.5);
-    tick(0.018, 3600, 0.1);
+    detune = ((detune + 5) % 20) - 10;
+    var c = audio();
+    if (!c) return;
+    var g = c.createGain();
+    var lp = c.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(700, c.currentTime);
+    lp.frequency.exponentialRampToValueAtTime(4200, c.currentTime + 0.07);
+    lp.Q.value = 0.7;
+    g.gain.setValueAtTime(0, c.currentTime);
+    g.gain.linearRampToValueAtTime(0.16, c.currentTime + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.13);
+    [880, 1320].forEach(function (f, i) {
+      var o = c.createOscillator();
+      o.type = "sine";
+      o.frequency.value = f;
+      o.detune.value = detune + (i ? 4 : 0);
+      o.connect(lp);
+      o.start();
+      o.stop(c.currentTime + 0.16);
+    });
+    lp.connect(g);
+    g.connect(master);
+    pulse();
   }
 
+  /* The click is the same instrument an octave down, with the noise layer
+     kept -- that burst is what makes it read as a mechanism closing rather
+     than as a second chime. It is the sound that matters now that hover has
+     stepped back, so it is the one allowed to be definite. */
   function click() {
     if (!on) return;
-    tone(760, 0.09, "triangle", 0.6, 420);
-    tick(0.03, 2100, 0.22);
+    var c = audio();
+    if (!c) return;
+    var g = c.createGain();
+    var lp = c.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(520, c.currentTime);
+    lp.frequency.exponentialRampToValueAtTime(3200, c.currentTime + 0.05);
+    g.gain.setValueAtTime(0, c.currentTime);
+    g.gain.linearRampToValueAtTime(0.34, c.currentTime + 0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.22);
+    [440, 660].forEach(function (f, i) {
+      var o = c.createOscillator();
+      o.type = "sine";
+      o.frequency.setValueAtTime(f, c.currentTime);
+      o.frequency.exponentialRampToValueAtTime(f * 0.86, c.currentTime + 0.2);
+      o.detune.value = i ? 5 : 0;
+      o.connect(lp);
+      o.start();
+      o.stop(c.currentTime + 0.24);
+    });
+    lp.connect(g);
+    g.connect(master);
+    tick(0.022, 1800, 0.13);
+    pulse();
+  }
+
+  /* The waveform only travels while something is sounding -- see the note on
+     .is-playing in site_footer.html. */
+  var pulseT = 0;
+  function pulse() {
+    var el = document.getElementById("sound-toggle");
+    if (!el) return;
+    el.classList.add("is-playing");
+    clearTimeout(pulseT);
+    pulseT = setTimeout(function () {
+      el.classList.remove("is-playing");
+    }, 420);
   }
 
   /* The toggle's own sounds ignore `on`, because the press that turns sound ON
@@ -209,6 +286,164 @@
     o.stop(c.currentTime + dur);
   };
 
+  /* ═════════════════════════════════════════════════════════════════════
+     THE BED
+
+     Sid: "the bg can be a relaxing lofi channel like the claude fm channel
+     very light."
+
+     SYNTHESISED, LIKE EVERYTHING ELSE HERE. A lofi stream is a 3MB file on
+     loop, and a loop is the one thing that kills the effect -- you notice the
+     seam on the second pass and after that you only hear the seam. This is a
+     generative bed: four voices that never line up the same way twice, so it
+     has no length to notice.
+
+     WHAT IT IS. Three sine voices held on a chord, plus a slow filtered noise
+     wash that breathes. The chord moves once every twelve to twenty seconds
+     between four positions of the same scale, and each move is a glide rather
+     than a change, so nothing ever "starts". A lowpass at 900Hz takes the top
+     off everything, which is what makes it sit under a page instead of on it,
+     and a very slow LFO on that cutoff is the tape-warble the genre is built
+     on.
+
+     "VERY LIGHT" IS A NUMBER. The bed runs at 0.055 against a master of 0.05,
+     so its absolute peak is under a thousandth of full scale. It is below the
+     hover chime and well below the click. On laptop speakers in a quiet room
+     it is barely there; that is the intent -- somebody should have to notice
+     it rather than be played at.
+
+     It only ever exists behind the same toggle as everything else, it starts
+     on a fade so turning sound on is not a cut, and it stops entirely on a
+     hidden tab -- nobody wants a portfolio humming in a background window.
+     ═════════════════════════════════════════════════════════════════════ */
+  var bed = null;
+
+  function startBed() {
+    var c = audio();
+    if (!c || bed) return;
+
+    var out = c.createGain();
+    out.gain.setValueAtTime(0, c.currentTime);
+    out.gain.linearRampToValueAtTime(0.055, c.currentTime + 3.5);
+
+    var lp = c.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.value = 900;
+    lp.Q.value = 0.4;
+    lp.connect(out);
+    out.connect(master);
+
+    /* The warble. A slow wobble on the cutoff, which is the tape artefact
+       that separates this from an ambient pad. */
+    var lfo = c.createOscillator();
+    var lfoGain = c.createGain();
+    lfo.frequency.value = 0.07;
+    lfoGain.gain.value = 260;
+    lfo.connect(lfoGain);
+    lfoGain.connect(lp.frequency);
+    lfo.start();
+
+    /* Fmaj9-ish, low and open. Voiced in fourths and fifths so no two voices
+       beat against each other at this level. */
+    var CHORDS = [
+      [174.61, 261.63, 349.23],
+      [196.0, 293.66, 392.0],
+      [155.56, 233.08, 311.13],
+      [174.61, 277.18, 349.23],
+    ];
+    var voices = CHORDS[0].map(function (f, i) {
+      var o = c.createOscillator();
+      var g = c.createGain();
+      o.type = "sine";
+      o.frequency.value = f;
+      o.detune.value = i * 3 - 3;
+      g.gain.value = 0.34;
+      o.connect(g);
+      g.connect(lp);
+      o.start();
+      return o;
+    });
+
+    /* The wash. Brown noise, heavily filtered, breathing on its own clock --
+       it is the room the chord is played in. */
+    var n = Math.floor(c.sampleRate * 4);
+    var buf = c.createBuffer(1, n, c.sampleRate);
+    var d = buf.getChannelData(0);
+    var last = 0;
+    for (var i = 0; i < n; i++) {
+      var w = Math.random() * 2 - 1;
+      last = (last + 0.02 * w) / 1.02;
+      d[i] = last * 2.4;
+    }
+    var noise = c.createBufferSource();
+    noise.buffer = buf;
+    noise.loop = true;
+    var nf = c.createBiquadFilter();
+    nf.type = "lowpass";
+    nf.frequency.value = 420;
+    var ng = c.createGain();
+    ng.gain.value = 0.05;
+    noise.connect(nf);
+    nf.connect(ng);
+    ng.connect(out);
+    noise.start();
+
+    var breathe = c.createOscillator();
+    var bg = c.createGain();
+    breathe.frequency.value = 0.045;
+    bg.gain.value = 0.03;
+    breathe.connect(bg);
+    bg.connect(ng.gain);
+    breathe.start();
+
+    var chordAt = 0;
+    var timer = setInterval(
+      function () {
+        if (!bed) return;
+        chordAt = (chordAt + 1) % CHORDS.length;
+        var next = CHORDS[chordAt];
+        /* A glide, not a change. Six seconds, so the move is under the
+         threshold at which somebody would call it an event. */
+        voices.forEach(function (o, k) {
+          o.frequency.exponentialRampToValueAtTime(next[k], c.currentTime + 6);
+        });
+      },
+      12000 + Math.random() * 8000
+    );
+
+    bed = {
+      stop: function () {
+        clearInterval(timer);
+        try {
+          out.gain.cancelScheduledValues(c.currentTime);
+          out.gain.setValueAtTime(out.gain.value, c.currentTime);
+          out.gain.linearRampToValueAtTime(0, c.currentTime + 1.2);
+        } catch (e) {}
+        setTimeout(function () {
+          try {
+            voices.forEach(function (o) {
+              o.stop();
+            });
+            noise.stop();
+            lfo.stop();
+            breathe.stop();
+          } catch (e) {}
+        }, 1400);
+      },
+    };
+  }
+
+  function stopBed() {
+    if (!bed) return;
+    bed.stop();
+    bed = null;
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stopBed();
+    else if (on) startBed();
+  });
+
   /* ── THE CONTROL ────────────────────────────────────────────────────────── */
   var BARS = 5;
   var btn = document.createElement("button");
@@ -244,6 +479,8 @@
        may be suspended and has to be asked. */
     if (c && c.state === "suspended") c.resume();
     confirm(on);
+    if (on) startBed();
+    else stopBed();
   });
 
   function mount() {
@@ -253,7 +490,21 @@
     /* Delegated, so anything added to the page later is covered without this
        file knowing about it. The selector is the site's real interactive
        surface rather than every element that happens to be clickable. */
-    var SEL = "a[href], button, [role='button'], .wk-card, .studio-link, .proto__open";
+    /* ── ONLY DESTINATIONS SPEAK ──────────────────────────────────────
+       The old list included every anchor and every button on the site, which
+       on /works/ alone is seventeen cards plus their titles, plus the lane
+       links, plus the nav, plus the footer. Moving the pointer across the
+       page made noise more or less continuously.
+
+       A hover sound is worth having on things that ARE somewhere -- a
+       project, a nav destination, the prototype you are about to open. It is
+       not worth having on a copy button, a theme toggle, an inline link in a
+       paragraph, or a tile in a drifting strip. Those still click; they just
+       do not announce themselves as the pointer passes. */
+    var SEL = ".wk-card, .studio-link, .proto__open, .ftr__cta, .hero__resume, .contact-address a";
+    /* Click is broader than hover on purpose: pressing a thing should always
+       answer, even when passing over it should not. */
+    var CLICK_SEL = "a[href], button, [role='button']";
     document.addEventListener(
       "pointerover",
       function (e) {
@@ -267,7 +518,7 @@
       "pointerdown",
       function (e) {
         if (!on) return;
-        var t = e.target.closest && e.target.closest(SEL);
+        var t = e.target.closest && e.target.closest(CLICK_SEL);
         if (t && t !== btn && !btn.contains(t)) click();
       },
       { passive: true }
@@ -276,4 +527,19 @@
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
   else mount();
+
+  /* A visitor who turned sound on earlier gets the bed back, but only after a
+     real gesture -- an AudioContext created without one is born suspended, and
+     a silent context that thinks it is playing is worse than no bed at all. */
+  if (on) {
+    var wake = function () {
+      var c = audio();
+      if (c && c.state === "suspended") c.resume();
+      startBed();
+      window.removeEventListener("pointerdown", wake);
+      window.removeEventListener("keydown", wake);
+    };
+    window.addEventListener("pointerdown", wake, { once: true });
+    window.addEventListener("keydown", wake, { once: true });
+  }
 })();
