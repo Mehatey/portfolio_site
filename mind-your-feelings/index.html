@@ -9502,34 +9502,101 @@
     background: linear-gradient(90deg, transparent, var(--nature, rgba(180, 200, 220, 0.9)) 22%, var(--nature, rgba(180, 200, 220, 0.9)) 78%, transparent);
     opacity: 0.42;
   }
-  .tideline__read {
+  /* ── THE PIXEL BAND ───────────────────────────────────────────────────
+     Thirty-six squares, six colours, on the same arrival as the rule above:
+     --tp fades them up once the boundary has crossed the window.
+
+     At rest they sit at a fifth of their colour, which is enough to read as a
+     coloured texture across the band and not enough to become a row of
+     buttons. The pointer is what makes it pixel ART rather than a pattern --
+     a square under the hand goes to full colour and lifts, and its immediate
+     neighbours come partway, so moving along the row pushes a small bright
+     wave ahead of the cursor. */
+  .tideline__pix {
     display: flex;
-    gap: clamp(14px, 2.4vw, 34px);
+    gap: 3px;
     margin: 0;
-    font-family: "DM Mono", ui-monospace, monospace;
-    font-size: 10.5px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--nature, rgba(180, 200, 220, 0.9));
-    opacity: calc(var(--tp, 0) * 0.62);
+    padding: 0;
+    opacity: calc(var(--tp, 0) * 1);
     transition: opacity 700ms ease 240ms;
-    font-variant-numeric: tabular-nums;
+    /* The container turns pointer events off for the whole tideline; this row
+       is the one thing in it that needs them. */
+    pointer-events: auto;
   }
-  .tideline__depth {
-    /* Tabular so a counter that is changing every frame does not shuffle the
-       characters either side of it. */
-    min-width: 5ch;
-    text-align: right;
-    opacity: 0.72;
+  .tideline__pix .px {
+    width: 8px;
+    height: 8px;
+    display: block;
+    /* 0.22 photographed as a row of identical faint blue-grey squares: the
+       six colours were there and none of them were legible, which is the same
+       fault the idle glass had. 0.44 is where the palette actually reads as a
+       palette across the band while the row still sits under the content
+       rather than competing with it. */
+    background: rgba(var(--px, 180, 200, 220), 0.44);
+    /* Square. A rounded pixel is a dot, and a row of dots is a loading
+       indicator. */
+    border-radius: 1px;
+    transition:
+      background 260ms ease,
+      transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .tideline__pix .px:hover {
+    background: rgba(var(--px, 180, 200, 220), 0.95);
+    transform: translateY(-4px) scale(1.25);
+  }
+  /* The wave. `+` and `~ * +` reach the next square and the one after it, so
+     the lift falls off across three rather than stopping dead at one. */
+  .tideline__pix .px:hover + .px {
+    background: rgba(var(--px, 180, 200, 220), 0.6);
+    transform: translateY(-2px) scale(1.1);
+  }
+  .tideline__pix .px:hover + .px + .px {
+    background: rgba(var(--px, 180, 200, 220), 0.38);
+    transform: translateY(-1px);
+  }
+  /* Six colours, the mark's nature palette and the accent family. No orange,
+     the same call as the mark's drift and the idle glass. */
+  .px--aqua {
+    --px: 120, 226, 220;
+  }
+  .px--blue {
+    --px: 96, 190, 240;
+  }
+  .px--dusk {
+    --px: 148, 156, 202;
+  }
+  .px--moss {
+    --px: 138, 176, 150;
+  }
+  .px--slate {
+    --px: 122, 142, 172;
+  }
+  .px--ice {
+    --px: 196, 224, 246;
   }
   @media (prefers-reduced-motion: reduce) {
     .tideline__rule {
       transform: scaleX(1);
       transition: none;
     }
-    .tideline__read {
-      opacity: 0.62;
+    .tideline__pix {
+      opacity: 1;
       transition: none;
+    }
+    .tideline__pix .px {
+      transition: none;
+    }
+    .tideline__pix .px:hover,
+    .tideline__pix .px:hover + .px,
+    .tideline__pix .px:hover + .px + .px {
+      transform: none;
+    }
+  }
+  /* On a phone there is no pointer to answer and 36 squares at a 4px gap is
+     wider than the screen. Fewer, and no hover states to be stuck in. */
+  @media (max-width: 760px) {
+    .tideline__pix .px:nth-child(n + 21) {
+      display: none;
     }
   }
 
@@ -12584,44 +12651,26 @@
     })();
   </script> <script>
     /* ── THE TIDE LINE ──────────────────────────────────────────────────────
-     Two jobs. Publish --tp, which is how far the footer's own top edge has
-     crossed the window, so the rule can draw and the readout can arrive. And
-     run the depth counter, which is genuine: scroll position in viewport
-     heights, to one decimal.
+     One job now: publish --tp, which is how far the footer's own top edge has
+     crossed the window, so the rule can draw itself and the pixel band can
+     fade up behind it.
 
-     The coordinates scramble into place once, on arrival. Deliberately once
-     and not on a loop -- a readout that keeps re-scrambling is a decoration
-     pretending to be an instrument, and this one is supposed to read as
-     something that settled on a value. */
+     THE COUNTER AND THE SCRAMBLE ARE BOTH GONE with the readout they served.
+     The counter reported scroll position in viewport heights to one decimal,
+     updating every frame -- and a live number in the corner of a page is an
+     instrument panel, which is the same note Sid has given about the art
+     pieces. It also measured the visitor rather than the work.
+
+     The scramble was forty lines of setInterval spelling two coordinates into
+     place one glyph at a time. Nice, and attached to text that no longer
+     exists; kept only in git, where it can be read if a future readout wants
+     it. What remains is the one measurement the CSS actually consumes. */
     (function () {
       var foot = document.querySelector(".site-footer");
       var line = foot && foot.querySelector(".tideline");
-      var depth = document.getElementById("tide-depth");
       if (!foot || !line) return;
 
-      var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var raf = 0,
-        settled = false;
-
-      var GLYPHS = "0123456789°NWSE";
-      function scramble(el) {
-        var target = el.getAttribute("data-tide") || el.textContent;
-        var i = 0;
-        var id = setInterval(function () {
-          i++;
-          var out = "";
-          for (var c = 0; c < target.length; c++) {
-            if (c < i - 2) out += target[c];
-            else if (target[c] === " ") out += " ";
-            else out += GLYPHS[(Math.floor(performance.now() / 40) + c * 7) % GLYPHS.length];
-          }
-          el.textContent = out;
-          if (i >= target.length + 2) {
-            el.textContent = target;
-            clearInterval(id);
-          }
-        }, 34);
-      }
+      var raf = 0;
 
       function measure() {
         raf = 0;
@@ -12632,14 +12681,6 @@
          leaves, so the arrival is over by the time you are reading it. */
         var t = Math.max(0, Math.min(1, (vh - r.top) / (vh * 0.66)));
         line.style.setProperty("--tp", t.toFixed(3));
-        if (!settled && t > 0.35) {
-          settled = true;
-          if (!REDUCED) line.querySelectorAll("[data-tide]").forEach(scramble);
-        }
-        if (depth) {
-          var d = (window.scrollY || 0) / vh;
-          depth.textContent = d.toFixed(1) + " VH";
-        }
       }
       function onScroll() {
         if (!raf) raf = requestAnimationFrame(measure);
