@@ -73,25 +73,35 @@
 
   var html = document.documentElement;
   var hero = document.getElementById("hero");
-  var btn = document.getElementById("hero-shuffle");
-  var elN = document.getElementById("shuffle-n");
-  var elName = document.getElementById("shuffle-name");
-  if (!hero || !btn || !elN || !elName) return;
+  /* ── TWO ARROWS INSTEAD OF ONE NAMED BUTTON ────────────────────────────
+     Sid: "Have arrows on the left and the right, very subtle on the bottom,
+     and start with the fifth one ... Don't mention icons, and you don't need
+     to mention the culture."
+
+     The old control was a single button printing "03/05" and the direction's
+     name. Both are gone. A direction that announces itself is a menu, and
+     these five are meant to be come across rather than picked from a list --
+     which is what the file header has always said they were for. */
+  var prev = document.getElementById("hero-prev");
+  var next = document.getElementById("hero-next");
+  if (!hero || !prev || !next) return;
 
   var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var i = 0;
+  /* Fifth by default, on Sid's instruction. A returning visitor still gets
+     whichever one they last moved to -- a stored preference outranks a
+     default, or the arrows would appear not to work across a reload. */
+  var i = DIRS.length - 1;
   try {
     var saved = localStorage.getItem(KEY);
     for (var k = 0; k < DIRS.length; k++) if (DIRS[k].id === saved) i = k;
   } catch (e) {}
 
   function label() {
-    /* Padded so the control does not change width as the number changes,
-       which at 11px monospace in the corner of a hero is a visible twitch. */
-    elN.textContent = "0" + (i + 1) + "/0" + DIRS.length;
-    elName.textContent = DIRS[i].name;
-    btn.setAttribute("aria-label", "Homepage direction " + (i + 1) + " of " + DIRS.length + ", " + DIRS[i].name + ". Press for the next one.");
+    /* The arrows carry no text. What they carry is where they will take you,
+       for anybody listening rather than looking. */
+    prev.setAttribute("aria-label", "Previous homepage layout, " + DIRS[(i - 1 + DIRS.length) % DIRS.length].name);
+    next.setAttribute("aria-label", "Next homepage layout, " + DIRS[(i + 1) % DIRS.length].name);
   }
 
   function paint() {
@@ -185,16 +195,17 @@
     }
   }
 
-  btn.addEventListener("click", function () {
-    i = (i + 1) % DIRS.length;
+  function go(step) {
+    i = (i + step + DIRS.length) % DIRS.length;
     try {
       localStorage.setItem(KEY, DIRS[i].id);
     } catch (e) {}
 
-    btn.classList.add("is-turning");
+    var pressed = step > 0 ? next : prev;
+    pressed.classList.add("is-turning");
     setTimeout(function () {
-      btn.classList.remove("is-turning");
-    }, 660);
+      pressed.classList.remove("is-turning");
+    }, 480);
 
     if (REDUCED) {
       paint();
@@ -210,6 +221,13 @@
         hero.classList.remove("is-swapping");
       });
     }, 260);
+  }
+
+  prev.addEventListener("click", function () {
+    go(-1);
+  });
+  next.addEventListener("click", function () {
+    go(1);
   });
 
   /* ═════════════════════════════════════════════════════════════════════════
