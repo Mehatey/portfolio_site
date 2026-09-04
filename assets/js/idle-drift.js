@@ -93,14 +93,41 @@
      height plus the vertical sway stays inside 0.06 and 0.88 of the window.
      They enter and leave at the SIDES, which is the one edge a drifting
      object can cross without looking broken. */
+  /* ── BIGGER, QUIETER, AND IT ARRIVES IN STAGES ───────────────────────
+     Sid: "I just saw the screensaver of the colored cubes. It doesn't show
+     enough of the background. It still has too much color on it, and they can
+     be much bigger, like Microsoft, like that landscape and the water ... From
+     my cube logo, in the screensaver position, a river of refraction and
+     blending mode sort of slowly emerges and animates across the scene ...
+     you can add more stuff on the page as time goes on."
+
+     Four changes, and the first two are the same change. The objects roughly
+     double in size and the tint drops by more than half: a small object with
+     a strong tint is a coloured chip, and what he is describing -- the
+     Windows landscape screensavers -- are large, nearly clear sheets that you
+     read the room THROUGH. Size and transparency together are what make glass
+     read as glass rather than as plastic.
+
+     `at` is the third change. Every piece now has a time, in seconds of
+     continued stillness, at which it arrives. Nothing appears all at once:
+     the river comes first out of the mark, then a cube, then a lens, and the
+     last piece does not turn up for the better part of a minute. Sitting
+     still for longer is rewarded with more of it, which is the "add more
+     stuff on the page as time goes on".
+
+     RIVER is the fourth. One wide band, rotated off the horizontal, that
+     grows out of the top-left corner where the mark sits and travels across
+     the composition. It is the only piece that does not drift past -- it
+     extends, which is what a river does. */
   var SCENE = [
-    { kind: "cube", y: 0.14, w: 0.075, h: 0.13, dur: 104, phase: 0.05, tint: "aqua", face: true, spin: 0.9 },
-    { kind: "lens", y: 0.36, w: 0.03, h: 0.115, dur: 138, phase: 0.42, tint: "blue", spin: -0.5 },
-    { kind: "cube", y: 0.58, w: 0.05, h: 0.088, dur: 122, phase: 0.71, tint: "moss", spin: -1.2 },
-    { kind: "lens", y: 0.2, w: 0.022, h: 0.082, dur: 168, phase: 0.18, tint: "dusk", spin: 0.7 },
-    { kind: "cube", y: 0.44, w: 0.096, h: 0.166, dur: 92, phase: 0.6, tint: "slate", face: true, spin: 0.55 },
-    { kind: "lens", y: 0.68, w: 0.026, h: 0.096, dur: 150, phase: 0.88, tint: "aqua", spin: -0.85 },
-    { kind: "cube", y: 0.28, w: 0.038, h: 0.066, dur: 186, phase: 0.31, tint: "ice", spin: 1.4 },
+    /* Out of the mark, first, before anything else. */
+    { kind: "river", at: 0.6, y: 0.22, w: 1.5, h: 0.22, dur: 150, phase: 0, tint: "ice" },
+    { kind: "cube", at: 3, y: 0.3, w: 0.15, h: 0.26, dur: 118, phase: 0.05, tint: "aqua", face: true, spin: 0.7 },
+    { kind: "lens", at: 8, y: 0.14, w: 0.055, h: 0.2, dur: 164, phase: 0.42, tint: "blue", spin: -0.4 },
+    { kind: "cube", at: 15, y: 0.56, w: 0.1, h: 0.17, dur: 136, phase: 0.71, tint: "moss", spin: -0.9 },
+    { kind: "lens", at: 24, y: 0.44, w: 0.042, h: 0.15, dur: 186, phase: 0.18, tint: "dusk", spin: 0.6 },
+    { kind: "cube", at: 34, y: 0.16, w: 0.185, h: 0.32, dur: 104, phase: 0.6, tint: "slate", face: true, spin: 0.45 },
+    { kind: "lens", at: 46, y: 0.66, w: 0.05, h: 0.18, dur: 172, phase: 0.88, tint: "aqua", spin: -0.7 },
   ];
 
   var layer = document.createElement("div");
@@ -129,6 +156,7 @@
       dur: d.dur,
       phase: d.phase,
       spin: d.spin || 0,
+      at: d.at || 0,
     });
   }
   document.body.appendChild(layer);
@@ -138,6 +166,10 @@
     q.el.style.width = (q.w * 100).toFixed(2) + "vw";
     q.el.style.height = (q.h * 100).toFixed(2) + "vh";
     q.el.style.top = (q.y * 100).toFixed(2) + "vh";
+    /* The river starts AT the mark rather than at the window edge, because
+       the brief is that it comes out of the logo. 24px is where the mark's
+       own left edge sits once it is centred in the margin. */
+    if (q.kind === "river") q.el.style.left = "24px";
   }
 
   /* ── idle ─────────────────────────────────────────────────────────────── */
@@ -192,17 +224,46 @@
       var p = pieces[i];
       var u = (((clock / p.dur + p.phase) % 1) + 1) % 1;
 
-      /* One motion for both kinds, because they are both objects adrift in
-         the same medium -- what separates them is shape and rate, not
-         behaviour. Across the window and off the far side, entering and
-         leaving well clear of both edges so nothing ever appears or vanishes
+      /* ── ARRIVAL ─────────────────────────────────────────────────────
+         Each piece fades up over four seconds once the clock passes its own
+         `at`. Before that it is not drawn at all, which is what makes sitting
+         still for a minute a different experience from sitting still for
+         fifteen seconds. */
+      var age = clock - p.at;
+      if (age < 0) {
+        p.el.style.opacity = "0";
+        continue;
+      }
+      p.el.style.opacity = Math.min(1, age / 4).toFixed(3);
+
+      if (p.kind === "river") {
+        /* It does not cross, it EXTENDS. Anchored at the mark's corner and
+           growing along its own axis, so what you see is a band reaching out
+           of the logo and across the scene rather than a rectangle sliding
+           in from off-screen. Scale rather than translate for exactly that
+           reason: a translated band has a leading edge that arrived from
+           somewhere, a scaled one has a leading edge that is being made.
+
+           It keeps growing for two and a half minutes and then holds, which
+           is longer than almost anybody will sit -- the point is that it is
+           never seen to finish. */
+        var grow = Math.min(1, age / 150);
+        var ease = 1 - Math.pow(1 - grow, 3);
+        var sag = Math.sin(clock * 0.05) * 10;
+        p.el.style.transform = "translate3d(0," + sag.toFixed(1) + "px,0) rotate(-9deg) scaleX(" + (0.04 + ease * 0.96).toFixed(4) + ")";
+        continue;
+      }
+
+      /* One motion for both of the other kinds, because they are both
+         objects adrift in the same medium -- what separates them is shape and
+         rate, not behaviour. Across the window and off the far side, entering
+         and leaving well clear of both edges so nothing appears or vanishes
          at a boundary.
 
-         The vertical term is a slow sine of a few pixels. It is deliberately
-         small: this is glass drifting, not floating, and anything larger
-         reads as a balloon. Combined with the y values in SCENE it keeps
-         every object inside the window at all times, which is the top-edge
-         clipping Sid saw.
+         The vertical term is a slow sine of a few pixels. Deliberately small:
+         this is glass drifting, not floating. Combined with the y values in
+         SCENE it keeps every object inside the window at all times, which is
+         the top-edge clipping Sid saw.
 
          The rotation is per-object and signed, so some turn one way and some
          the other. A group all rotating together is a carousel. */
