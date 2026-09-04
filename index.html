@@ -14172,15 +14172,39 @@
      being made -- .is-playing is set for a beat by sound.js on each hover and
      click -- so the waveform reports rather than idles. Off is still one flat
      line, which was right and has not changed. */
+  /* ── AND THE CLASS THAT DID THAT WAS NEVER SET ────────────────────────
+     Sid, again: "the audio sign: I see it all the time. I told you to remove
+     it and show it just when things are being shown."
+
+     He had. The rule above describes a control that "comes up on hover, focus
+     or a pointer anywhere near that corner" -- and `body.controls-near` is
+     written in this stylesheet and set by nothing, anywhere in the repo. The
+     proximity behaviour was designed, described in a comment, and never
+     wired, so what actually shipped was a permanent button at 0.4. A comment
+     asserting behaviour that no code produces is worse than no comment: it
+     reads as done.
+
+     It rests at 0 now rather than 0.4, because 0.4 in a fixed corner is still
+     a thing you see on every page forever. It comes back for a pointer near
+     that corner, for keyboard focus, and whenever sound is actually ON --
+     that last one matters, because a control you cannot find is how you end
+     up with audio you cannot switch off.
+
+     `pointer-events` follows the opacity so an invisible button never eats a
+     click meant for the page behind it. */
   .sound-toggle {
-    opacity: 0.4;
+    opacity: 0;
+    pointer-events: none;
     transition:
       transform 320ms cubic-bezier(0.16, 1, 0.3, 1),
       border-color 240ms ease,
       opacity 300ms ease;
   }
-  body.controls-near .sound-toggle {
-    opacity: 0.85;
+  body.controls-near .sound-toggle,
+  .sound-toggle.is-on,
+  .sound-toggle:focus-visible {
+    opacity: 1;
+    pointer-events: auto;
   }
   /* On, the bars hold a low steady line and only travel while something is
      sounding. */
@@ -18042,6 +18066,68 @@
 </script>
 
 <script src="/assets/js/collect.js" defer></script>
+<script>
+  /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
+     Sets `body.controls-near`, which site_footer's stylesheet has referenced
+     since the sound toggle was first made to recede and which nothing has
+     ever set. Without this the audio control is simply always on screen.
+
+     A box around the bottom-right cluster rather than a hover on the button
+     itself: the button is 48px and invisible at rest, so requiring a hover ON
+     it means finding something you cannot see. The region is deliberately
+     taller than it is wide because the controls stack vertically.
+
+     Coarse pointers get the class permanently. There is no hover on a phone,
+     so proximity cannot be expressed, and the alternative is a control that
+     can never be reached to turn sound off. */
+  (function () {
+    var body = document.body;
+    if (!body) return;
+    var fine = window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!fine) {
+      body.classList.add("controls-near");
+      return;
+    }
+    var NEAR_X = 190;
+    var NEAR_Y = 300;
+    var near = false,
+      raf = 0,
+      mx = -1,
+      my = -1;
+    function check() {
+      raf = 0;
+      var dx = window.innerWidth - mx;
+      var dy = window.innerHeight - my;
+      var now = mx >= 0 && dx >= 0 && dx < NEAR_X && dy >= 0 && dy < NEAR_Y;
+      if (now !== near) {
+        near = now;
+        body.classList.toggle("controls-near", near);
+      }
+    }
+    window.addEventListener(
+      "pointermove",
+      function (e) {
+        mx = e.clientX;
+        my = e.clientY;
+        if (!raf) raf = requestAnimationFrame(check);
+      },
+      { passive: true }
+    );
+    /* The pointer leaving the window does not fire pointermove, so without
+       this the controls stay up after the cursor is gone. */
+    window.addEventListener(
+      "pointerleave",
+      function () {
+        mx = -1;
+        if (near) {
+          near = false;
+          body.classList.remove("controls-near");
+        }
+      },
+      { passive: true }
+    );
+  })();
+</script>
 <!-- The mark casts an effect over the page while it is hovered. Loaded from
      the shared footer so it exists on every route; it costs one pointerenter
      listener at rest and builds nothing until the mark is touched.
@@ -19558,24 +19644,47 @@
     inherits: true;
     initial-value: rgb(138, 166, 130);
   }
+  /* ── AND TWO OF THE SIX WERE ORANGE ───────────────────────────────────
+     Sid: "My cube logo: why is it orange? I don't want orange, and I don't
+     know why it becomes orange sometimes."
+
+     This keyframe list was the answer to both halves. "Wet clay"
+     rgb(196, 142, 108) at 34% and "low sun" rgb(212, 168, 96) at 67% are
+     both plainly orange, and on a 144-second loop the mark spends roughly a
+     third of its time in or near one of them. "Sometimes" is exactly right,
+     and it is also why it never looked like a setting anybody chose -- you
+     see it, come back, and it has gone.
+
+     The two warm stops are replaced with cool ones from the same source
+     idea: storm slate and dusk. Six nature colours still, still nothing off
+     a colour wheel, and the family now agrees with the accent blue and
+     turquoise the rest of the site is built on -- and with the tint the mark
+     itself runs in the nav. Moss stays because it is the initial value and
+     the mark's resting colour. */
   @keyframes sid-nature-drift {
     0%,
     100% {
+      /* moss */
       --nature: rgb(138, 166, 130);
     }
     17% {
+      /* overcast sky */
       --nature: rgb(140, 168, 194);
     }
     34% {
-      --nature: rgb(196, 142, 108);
+      /* storm slate, was wet clay */
+      --nature: rgb(122, 142, 172);
     }
     50% {
+      /* still water */
       --nature: rgb(112, 166, 160);
     }
     67% {
-      --nature: rgb(212, 168, 96);
+      /* dusk, was low sun */
+      --nature: rgb(148, 156, 202);
     }
     84% {
+      /* river stone */
       --nature: rgb(154, 154, 166);
     }
   }
