@@ -26,12 +26,17 @@
    coloured fringe — is painted on top of that real sample. The glass is
    doing the optics; the CSS is doing the jewellery.
 
-   ── THE FALL ────────────────────────────────────────────────────────────
-   Slow, and unequal. Each object gets its own duration between 34 and 62
-   seconds, its own horizontal sway period, its own rotation rate — all
-   irrational against each other, so the group never resolves into a pattern
-   and never loops visibly. "Like on water" is mostly this: things adrift are
-   never in step.
+   ── THE DRIFT ───────────────────────────────────────────────────────────
+   Slow, and unequal. Each object crosses on its own duration — 92 to 186
+   seconds — with its own bob period and its own signed rotation rate, none of
+   them a neat multiple of any other, so the group never resolves into a
+   pattern and never visibly loops. "Like on water" is mostly this: things
+   adrift are never in step.
+
+   (This said "34 to 62 seconds" long after the numbers in SCENE had been
+   rewritten twice. A range in a comment is a fact with an expiry date; it is
+   restated here because it is genuinely the design, and it is worth checking
+   against the table below rather than trusting.)
 
    ── AND IT LEAVES ───────────────────────────────────────────────────────
    In 2.4s, and it goes in 0.45. Arriving slowly is what makes it ambient;
@@ -48,46 +53,54 @@
 
   var IDLE_MS = 15000;
 
-  /* ── WHAT ARRIVES NOW ────────────────────────────────────────────────────
-     Sid: "no squares and cubes of different materials be creative come on ...
-     instead lets have some nice liquid glass clouds and a tree and a river and
-     all very well animated."
+  /* ── AND NOW IT IS GLASS AGAIN, WITH THE MARK IN IT ──────────────────
+     Sid: "those clouds ... look so bad. They look so kiddish, and the trees
+     look so bad. That's not the vibe ... just have different colored, super
+     nice refractive motion liquid glass, different shapes and sizes, cubes
+     with my sort of face on it, the small directional ellipses (vertical),
+     and the small little no-emotion smile that we have in our logo."
 
-     Fair. Seven tiles and two cubes is a set of primitives, and a primitive is
-     what you draw when you have a material and no subject. The material was
-     never the problem -- backdrop-filter genuinely refracts the page behind it
-     and that is why this is DOM and not a shader (see the note above) -- so
-     the glass stays and the shapes become a place.
+     He is right about why they failed, and it is not the material. A cloud
+     drawn as four radial lobes and a tree drawn as three is illustration, and
+     illustration at this size and this opacity reads as clip art -- the glass
+     underneath was doing real optics for a shape that had no business being
+     rendered in glass. The primitives were never the problem; the subject
+     was.
 
-     A scene, not a scatter. Three kinds of thing, each on its own clock:
+     So the scene is objects again, and this time they are the site's own
+     objects rather than generic ones:
 
-       RIVER   one wide band low on the screen. It does not cross and leave; it
-               sits and flows, because a river is the only thing here that is
-               a location rather than an event. Its surface is two very slow
-               skewed highlights travelling at different speeds, which is what
-               reads as water rather than as a moving rectangle.
+       CUBE  the mark. A rounded square in the same proportion as the logo,
+             and two of them carry the face -- the two tall capsule eyes and
+             the short flat mouth, at the logo's own ratios. Not a smiley: the
+             mouth is a line, which is the whole reason the logo reads as a
+             device that happens to have a face rather than as a character.
 
-       CLOUDS  three, drifting sideways at different heights and speeds. Built
-               from overlapping radial lobes on one element rather than a
-               border-radius blob, because a cloud is a silhouette of several
-               masses and a rounded rectangle is a lozenge.
+       LENS  a vertical ellipse. "Directional" is the useful word in the
+             brief: an upright ellipse has an axis, so a group of them has an
+             orientation, and that is what stops a field of glass shapes
+             reading as bubbles.
 
-       TREE    one, standing still. It is the only object that does not move,
-               and that is the point of including it: without something fixed,
-               the other two read as screensaver. It sways a degree and a half
-               off its base, which is enough to be alive and not enough to be
-               a flag.
+     Each gets its own --tint. Six colours off the site's own accent family
+     and the nature palette, and NOT orange -- the same decision as the mark's
+     drift, for the same reason.
 
-     Still seven objects. Still "not trying to swarm your whole screen", which
-     was the constraint in the original brief and has not changed. */
+     ── AND NOTHING IS CUT OFF AT THE TOP ─────────────────────────────────
+     Sid: "The clouds are also cut off from the top." They were: a cloud at
+     y 0.08 with height 0.055 sat at the very top of the viewport and the
+     lift sine pushed it past the edge, so the first thing you saw was a
+     shape with its head sliced off. Every y below is chosen so that y plus
+     height plus the vertical sway stays inside 0.06 and 0.88 of the window.
+     They enter and leave at the SIDES, which is the one edge a drifting
+     object can cross without looking broken. */
   var SCENE = [
-    { kind: "river", y: 0.74, w: 1.34, h: 0.13, dur: 68, phase: 0 },
-    { kind: "cloud", y: 0.16, w: 0.3, h: 0.1, dur: 96, phase: 0.1 },
-    { kind: "cloud", y: 0.31, w: 0.22, h: 0.075, dur: 132, phase: 0.55 },
-    { kind: "cloud", y: 0.08, w: 0.17, h: 0.055, dur: 154, phase: 0.82 },
-    { kind: "tree", x: 0.18, y: 0.74, w: 0.11, h: 0.3, dur: 26, phase: 0.2 },
-    { kind: "tree", x: 0.83, y: 0.74, w: 0.07, h: 0.19, dur: 31, phase: 0.66 },
-    { kind: "cloud", y: 0.23, w: 0.13, h: 0.05, dur: 118, phase: 0.36 },
+    { kind: "cube", y: 0.14, w: 0.075, h: 0.13, dur: 104, phase: 0.05, tint: "aqua", face: true, spin: 0.9 },
+    { kind: "lens", y: 0.36, w: 0.03, h: 0.115, dur: 138, phase: 0.42, tint: "blue", spin: -0.5 },
+    { kind: "cube", y: 0.58, w: 0.05, h: 0.088, dur: 122, phase: 0.71, tint: "moss", spin: -1.2 },
+    { kind: "lens", y: 0.2, w: 0.022, h: 0.082, dur: 168, phase: 0.18, tint: "dusk", spin: 0.7 },
+    { kind: "cube", y: 0.44, w: 0.096, h: 0.166, dur: 92, phase: 0.6, tint: "slate", face: true, spin: 0.55 },
+    { kind: "lens", y: 0.68, w: 0.026, h: 0.096, dur: 150, phase: 0.88, tint: "aqua", spin: -0.85 },
+    { kind: "cube", y: 0.28, w: 0.038, h: 0.066, dur: 186, phase: 0.31, tint: "ice", spin: 1.4 },
   ];
 
   var layer = document.createElement("div");
@@ -98,24 +111,12 @@
   for (var i = 0; i < SCENE.length; i++) {
     var d = SCENE[i];
     var el = document.createElement("div");
-    el.className = "idle-drift__p is-" + d.kind;
-    /* The tree is the one shape that cannot be made from a single box: a
-       canopy and a trunk are two masses with different glass in them, so it
-       gets two children and the canopy carries the face. */
-    if (d.kind === "tree") {
-      el.innerHTML = '<i class="t-canopy"></i><i class="t-trunk"></i>';
-    }
-    if (d.kind === "river") {
-      /* Two highlights at different speeds. One is the surface, two is a
-         current -- the parallax between them is the entire illusion. */
-      el.innerHTML = '<i class="r-glint r-glint--a"></i><i class="r-glint r-glint--b"></i>';
-    }
-    /* "u can add a face to one side" survives from the original brief, and it
-       is better placed now: on the larger tree, once, so the thing that has
-       been standing there the whole time turns out to have been watching. */
-    if (i === 4) {
+    el.className = "idle-drift__p is-" + d.kind + " t-" + d.tint;
+    /* Two of the seven, not all of them. A face on every object is a crowd
+       looking at you; on two it is the mark turning up in the weather. */
+    if (d.face) {
       el.classList.add("has-face");
-      el.querySelector(".t-canopy").innerHTML = '<b class="eye"></b><b class="eye"></b><b class="mouth"></b>';
+      el.innerHTML = '<b class="eye"></b><b class="eye"></b><b class="mouth"></b>';
     }
     layer.appendChild(el);
     pieces.push({
@@ -127,6 +128,7 @@
       h: d.h,
       dur: d.dur,
       phase: d.phase,
+      spin: d.spin || 0,
     });
   }
   document.body.appendChild(layer);
@@ -136,7 +138,6 @@
     q.el.style.width = (q.w * 100).toFixed(2) + "vw";
     q.el.style.height = (q.h * 100).toFixed(2) + "vh";
     q.el.style.top = (q.y * 100).toFixed(2) + "vh";
-    if (q.kind === "tree" || q.kind === "river") q.el.style.left = ((q.x || -0.17) * 100).toFixed(2) + "vw";
   }
 
   /* ── idle ─────────────────────────────────────────────────────────────── */
@@ -191,28 +192,24 @@
       var p = pieces[i];
       var u = (((clock / p.dur + p.phase) % 1) + 1) % 1;
 
-      if (p.kind === "cloud") {
-        /* Left to right and off the far side, starting and ending well clear
-           of the window so nothing appears at an edge. Clouds do not spin and
-           they do not bob much: a cloud that rotates is a balloon. */
-        var cx = -0.34 * W + u * (W * 1.68);
-        var lift = Math.sin(clock * 0.11 + p.phase * 6.28) * 8;
-        p.el.style.transform = "translate3d(" + cx.toFixed(1) + "px," + lift.toFixed(1) + "px,0)";
-      } else if (p.kind === "river") {
-        /* It stays. Only its two highlights move, and they are children, so
-           the band itself never leaves the composition. A very slight vertical
-           breathe keeps the surface from reading as a printed stripe. */
-        var swell = Math.sin(clock * 0.07) * 5;
-        p.el.style.transform = "translate3d(0," + swell.toFixed(1) + "px,0)";
-        p.el.style.setProperty("--a", ((clock * 0.06 + p.phase) % 1).toFixed(4));
-        p.el.style.setProperty("--b", ((clock * 0.037 + p.phase * 0.5) % 1).toFixed(4));
-      } else {
-        /* The tree is rooted. It sways about its BASE, which is what
-           transform-origin does in the stylesheet -- swaying about the centre
-           makes it hover, and a hovering tree is a shrub in an earthquake. */
-        var tilt = Math.sin(clock * 0.19 + p.phase * 6.28) * 1.4;
-        p.el.style.transform = "rotate(" + tilt.toFixed(2) + "deg)";
-      }
+      /* One motion for both kinds, because they are both objects adrift in
+         the same medium -- what separates them is shape and rate, not
+         behaviour. Across the window and off the far side, entering and
+         leaving well clear of both edges so nothing ever appears or vanishes
+         at a boundary.
+
+         The vertical term is a slow sine of a few pixels. It is deliberately
+         small: this is glass drifting, not floating, and anything larger
+         reads as a balloon. Combined with the y values in SCENE it keeps
+         every object inside the window at all times, which is the top-edge
+         clipping Sid saw.
+
+         The rotation is per-object and signed, so some turn one way and some
+         the other. A group all rotating together is a carousel. */
+      var cx = -0.3 * W + u * (W * 1.6);
+      var bob = Math.sin(clock * 0.13 + p.phase * 6.28) * (p.kind === "lens" ? 9 : 6);
+      var turn = Math.sin(clock * 0.055 + p.phase * 6.28) * (p.spin * 7);
+      p.el.style.transform = "translate3d(" + cx.toFixed(1) + "px," + bob.toFixed(1) + "px,0) rotate(" + turn.toFixed(2) + "deg)";
     }
 
     /* Keeps running for a beat after it is dismissed, so the fade-out is
