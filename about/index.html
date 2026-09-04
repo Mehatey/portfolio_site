@@ -5098,12 +5098,29 @@
     top: 14px;
     /* Nav inset + the 42px mark + a gap, so the line begins where the logo
        ends rather than under it. Matches .studio-nav's own inset expression. */
-    left: calc(clamp(18px, 2.5vw, 40px) + 42px + 18px);
+    /* ── CENTRED IN THE BAR ────────────────────────────────────────────
+       Sid: "I want that piece of text to be in the middle of the logo and in
+       the middle of the nav icons ... spaced properly so that it has enough
+       space from the cube logo."
+
+       It was anchored to the mark with a hand-written copy of the nav's old
+       inset expression -- `clamp(18px, 2.5vw, 40px) + 42px + 18px` -- which
+       stopped being true the moment the nav moved onto the grid measure and
+       the mark moved into the left margin. It sat wherever that stale sum
+       happened to land, hard against the logo.
+
+       Centred on the window now, which is the middle of the run between the
+       mark on the far left and the links on the far right. --grid-left keeps
+       it clear of both: the text can never grow past the point where the
+       links begin, so there is no width at which they can meet. */
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
     height: 48px;
     display: flex;
     align-items: center;
-    /* Stops well short of the links pill on the right. */
-    max-width: min(52ch, calc(100vw - 560px));
+    justify-content: center;
+    text-align: center;
+    max-width: min(56ch, calc(100vw - 2 * var(--grid-left) - 420px));
     /* ── ABOVE THE SCRIM, NOT UNDER IT ─────────────────────────────────
        .studio-nav is z-index 9000 and paints a scrim across the whole top
        band, so at 8999 the line was rendered UNDERNEATH it. In dark mode the
@@ -5145,15 +5162,23 @@
        the densest part of the pocket under the tail of the sentence, which
        was correct when it sat to the LEFT of a bottom-right cube and wrong
        now that it runs rightward away from one. */
-    background: radial-gradient(62% 62% at 22% 55%, rgba(4, 8, 15, 0.96), rgba(4, 8, 15, 0.7) 55%, transparent 80%);
-    filter: blur(6px);
+    /* ── AND THE BLUR GOES ─────────────────────────────────────────────
+       Sid: "the top-left text is blurry, has this weird blur on it."
+
+       Two separate blurs were on it and both were mine. This glow carried
+       `filter: blur(6px)`, which on an element sitting directly behind live
+       text is a smear the eye reads as the TEXT being out of focus -- a soft
+       edge on a backing plate is indistinguishable from a soft edge on the
+       thing in front of it. The gradient is already soft; blurring a gradient
+       achieves nothing except that. */
+    background: radial-gradient(58% 58% at 50% 55%, rgba(4, 8, 15, 0.94), rgba(4, 8, 15, 0.66) 58%, transparent 82%);
   }
   html[data-theme="light"] #cube-says::before {
-    background: radial-gradient(62% 62% at 22% 55%, rgba(246, 246, 242, 0.95), rgba(246, 246, 242, 0.6) 55%, transparent 78%);
+    background: radial-gradient(58% 58% at 50% 55%, rgba(246, 246, 242, 0.95), rgba(246, 246, 242, 0.6) 58%, transparent 80%);
   }
   #cube-says.is-in {
     opacity: 1;
-    transform: none;
+    transform: translateX(-50%) translateY(0);
   }
   /* ── AND IT LEAVES BY DRIFTING ────────────────────────────────────────
      Not by disappearing. A thought that vanishes was closed; a thought that
@@ -5165,34 +5190,37 @@
     /* Drifts back toward the cube and thins, rather than rising off the top
        of the screen. Leaving in the direction it came from keeps the logo as
        the speaker for the whole beat. */
-    transform: translateX(-18px);
+    transform: translateX(-50%) translateY(-6px);
     transition:
       opacity 1.5s ease,
       transform 1.5s cubic-bezier(0.33, 0, 0.67, 1);
   }
-  /* Each word arrives on its own beat, condensing out of a blur. --i is set
-     per word by the script. */
+  /* Each word arrives on its own beat. --i is set per word by the script.
+
+     The second blur was here: every word animated in from `blur(8px)`, so
+     for the first two thirds of a second the sentence was genuinely out of
+     focus -- and with an 85ms stagger over a twelve-word line the last words
+     were still blurred a second after the first had settled. On a line that
+     is only on screen for a few seconds that is most of its life. The words
+     rise and fade in now, which reads as the same thought assembling without
+     ever making the type unreadable. */
   .cube-says__w {
     display: inline-block;
     opacity: 0;
-    filter: blur(8px);
-    transform: translateY(6px);
+    transform: translateY(7px);
     transition:
-      opacity 0.7s ease,
-      filter 0.7s ease,
-      transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-    transition-delay: calc(var(--i, 0) * 85ms);
+      opacity 0.5s ease,
+      transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: calc(var(--i, 0) * 55ms);
   }
   #cube-says.is-in .cube-says__w {
     opacity: 1;
-    filter: blur(0);
     transform: none;
   }
   @media (prefers-reduced-motion: reduce) {
     .cube-says__w {
       transition: none;
       opacity: 1;
-      filter: none;
       transform: none;
     }
   }
@@ -5268,7 +5296,6 @@
     var el = document.getElementById("cube-says");
     if (!el) return;
     var line = (el.getAttribute("data-line") || "").trim();
-    if (!line) return;
 
     /* ── WHY THERE IS A BUDGET ────────────────────────────────────────────
        A character that speaks every time you arrive anywhere is Clippy. Two
@@ -5291,8 +5318,12 @@
          than risk repeating itself on every navigation. */
       return;
     }
-    if (store.getItem(MUTED_KEY) || store.getItem(PAGE_KEY)) return;
-    if (parseInt(store.getItem(COUNT_KEY) || "0", 10) >= SESSION_CAP) return;
+    /* The budget governs the UNPROMPTED remark only. A line the visitor
+       asked for by pointing at something is not the cube interrupting, so
+       hovering a card speaks whatever the budget says -- see the hover
+       binding at the foot of this file. */
+    var budgetSpent =
+      !line || !!store.getItem(MUTED_KEY) || !!store.getItem(PAGE_KEY) || parseInt(store.getItem(COUNT_KEY) || "0", 10) >= SESSION_CAP;
 
     var textEl = el.querySelector(".cube-says__text");
     var shown = false;
@@ -5309,7 +5340,7 @@
     }
 
     function show() {
-      if (shown) return;
+      if (shown || budgetSpent) return;
       shown = true;
       /* The tail is only honest if the cube is actually on screen. The home
          page hides the FAB entirely, so check what is painted rather than
@@ -5355,6 +5386,7 @@
        moving it never speaks. */
     var timer = null;
     function arm() {
+      if (budgetSpent) return;
       clearTimeout(timer);
       timer = setTimeout(show, 6000);
     }
@@ -5366,6 +5398,84 @@
       { passive: true }
     );
     arm();
+
+    /* ── AND IT SPEAKS FOR WHATEVER YOU POINT AT ──────────────────────────
+       Sid: "I also want you to show that piece of text for each one", and
+       separately, about the idea of a cursor that carries an insight: "We
+       don't do the interesting cursor thing. We just show it up there on the
+       top between the nav bar and the cube logo. The cursor-on-hover thing
+       looks weird and feels strange."
+
+       So the insight lives in the bar, and pointing at a card is what asks
+       for it. Every work card already carries `data-cube` -- one line per
+       project, written by Sid in _data/works.yml ("Most banks speak only to
+       those who already have.") and until now rendered by nothing at all.
+       Seventeen curated lines that had never been on screen.
+
+       This is deliberately NOT the card's own description, which is already
+       printed two inches below the pointer. Repeating visible text in the
+       chrome is noise; the `cube` line is the remark that is not on the page.
+
+       Delegated from the document so it covers every card without this file
+       knowing the grid's markup, and it beats the session budget: an
+       unprompted remark has to be rationed, an answer to a deliberate hover
+       does not. */
+    var hoverTimer = null;
+    var hovering = false;
+
+    function speak(text) {
+      clearTimeout(timer);
+      textEl.textContent = "";
+      var ws = String(text).split(/\s+/).filter(Boolean);
+      for (var i = 0; i < ws.length; i++) {
+        var sp = document.createElement("span");
+        sp.className = "cube-says__w";
+        sp.style.setProperty("--i", i);
+        sp.textContent = ws[i];
+        textEl.appendChild(sp);
+        if (i < ws.length - 1) textEl.appendChild(document.createTextNode(" "));
+      }
+      el.hidden = false;
+      el.classList.remove("is-out");
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          el.classList.add("is-in");
+        });
+      });
+    }
+
+    document.addEventListener(
+      "pointerover",
+      function (e) {
+        var card = e.target.closest && e.target.closest("[data-cube]");
+        if (!card) return;
+        var t = (card.getAttribute("data-cube") || "").trim();
+        if (!t) return;
+        hovering = true;
+        clearTimeout(hoverTimer);
+        /* A short hold, so sweeping the pointer across a grid on the way
+           somewhere else does not fire seventeen lines in a row. */
+        hoverTimer = setTimeout(function () {
+          if (hovering) speak(t);
+        }, 130);
+      },
+      { passive: true }
+    );
+
+    document.addEventListener(
+      "pointerout",
+      function (e) {
+        var card = e.target.closest && e.target.closest("[data-cube]");
+        if (!card) return;
+        if (e.relatedTarget && card.contains(e.relatedTarget)) return;
+        hovering = false;
+        clearTimeout(hoverTimer);
+        hoverTimer = setTimeout(function () {
+          if (!hovering && !el.hidden) hide();
+        }, 220);
+      },
+      { passive: true }
+    );
   })();
 </script> <main class="about-page" id="main"> <section class="about-hero"> <div class="hero-ident" style="--bloom-src: url(/assets/img/sid_about.jpg)"> <span class="about-ident-bloom" aria-hidden="true"></span> <span class="about-ident-drag" aria-hidden="true"></span> <div class="about-profile-card" id="about-profile-card" tabindex="0" role="button" aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."> <img class="about-photo active" src="/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta"> <img class="about-photo" src="/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta"> <div class="about-seal" aria-hidden="true"> <svg viewbox="0 0 120 120" focusable="false"> <defs> <path id="seal-ring" fill="none" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"></path> </defs> <text> <textpath href="#seal-ring" startoffset="0">years designing · years building · years designing · years building ·</textpath> </text> </svg> <b>06</b> </div> <div class="about-card-meta" aria-hidden="true"> <strong>Sid Mehta</strong><span>New York<br>Open to roles</span> </div> </div> </div> <div class="hero-bio-col"> <h1 class="about-claim" data-livetype data-livetype-zone=".about-intro, section, main" data-livetype-base="400" data-livetype-peak="780" data-livetype-radius="140"> Most spatial and AI work demos beautifully and falls apart the moment a real person uses it in a real room. </h1> <div class="about-say"> <p style="--i: 0"> I design it and I build it. Research through to shipped code, which is why the demos hold up in a room with real light and a moving crowd in it. </p> <p style="--i: 1"> ENCODED at the Metropolitan Museum: 25 artworks opened through AR, two 2026 Webby Awards. Before that, enterprise UX at Deloitte Digital across 9,000+ Marriott properties. The way I work is unglamorous, and it is the same every time: build the smallest thing that could be wrong, put it in front of someone, watch where their hand goes. </p> </div> </div> </section> <section class="marquee marquee--companies" aria-labelledby="collaborators-heading"> <h2 class="marquee-kicker" id="collaborators-heading">Brands I have worked with, directly and through agency work</h2> <p class="sr-only"> Brands Sid has worked with, directly and through agency work, include Deloitte, EyeJack, Philips, Marriott, M Health Fairview, Leaf Design Studio, Dabur, KFC, Google, Pizza Hut, Taco Bell, and Del Taco. </p> <div class="marquee-mask"> <div class="marquee-track" aria-hidden="true"> <span class="m-logo" style="--h: 28px; --ar: 450/84" data-tip="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94" data-tip="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200" data-tip="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136" data-tip="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200" data-tip="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195" data-tip="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42" data-tip="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200" data-tip="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148" data-tip="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200" data-tip="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200" data-tip="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200" data-tip="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 28px; --ar: 450/84" data-tip="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94" data-tip="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200" data-tip="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136" data-tip="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200" data-tip="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195" data-tip="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42" data-tip="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200" data-tip="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148" data-tip="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200" data-tip="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200" data-tip="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200" data-tip="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span> </div> </div> </section> <div class="about-grid" id="about-grid"> <div class="gcol" data-reveal> <h2 class="g-label">Experience</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Senior UX Designer</span> <span class="exp-co">Deloitte Digital</span> </div> <span class="exp-yr">2022-23</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Product Designer</span> <span class="exp-co">EyeJack</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Visual Designer</span> <span class="exp-co">Leaf Design Studio</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">UX Designer</span> <span class="exp-co">Philips</span> </div> <span class="exp-yr">2020</span> </li> </ul> <h2 class="g-label" style="margin-top: 36px">Education</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">MFA Design &amp; Technology</span> <span class="exp-co">Parsons · The New School</span> </div> <span class="exp-yr">2024-2026</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">BDes Communication Design</span> <span class="exp-co">Indian School of Design and Innovation, Mumbai</span> </div> <span class="exp-yr">2019</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Recognition</h2> <ul class="recog-list"> <li class="recog-item"> <span class="recog-name">Webby Award · Best Use of AR, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Webby Award · Best Community Engagement, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">MIT Reality Hack</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Kyoorius Design Award, Mool</span> <span class="recog-yr">2021</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Capabilities</h2> <div class="cap-tags"> <span class="cap-tag" data-reveal>Product Design</span> <span class="cap-tag" data-reveal>UX Research</span> <span class="cap-tag" data-reveal>AR / XR</span> <span class="cap-tag" data-reveal>Unity</span> <span class="cap-tag" data-reveal>Figma</span> <span class="cap-tag" data-reveal>TouchDesigner</span> <span class="cap-tag" data-reveal>Unreal Engine</span> <span class="cap-tag" data-reveal>JavaScript</span> <span class="cap-tag" data-reveal>Python</span> <span class="cap-tag" data-reveal>Branding</span> <span class="cap-tag" data-reveal>Arduino</span> <span class="cap-tag" data-reveal>Premiere Pro</span> </div> <h2 class="g-label">Currently</h2> <dl class="now-list"> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 1.6c-2.4 0-4.3 1.9-4.3 4.3 0 3.2 4.3 8.5 4.3 8.5s4.3-5.3 4.3-8.5c0-2.4-1.9-4.3-4.3-4.3z"></path> <circle class="now-dot" cx="8" cy="5.9" r="1.6"></circle> </svg> <span class="sr-only">Based in</span> </dt> <dd>Brooklyn, New York</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <circle cx="8" cy="8" r="6.1"></circle> <path class="now-hand" d="M8 4.4V8l2.6 1.6"></path> </svg> <span class="sr-only">Local time</span> </dt> <dd><span id="now-clock">Eastern Time</span></dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M2 5.4h12v8H2z"></path> <path class="now-hand" d="M6 5.4V3.4h4v2"></path> </svg> <span class="sr-only">Availability</span> </dt> <dd>Open to remote, hybrid, or relocating</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 2.4 14.4 5.8 8 9.2 1.6 5.8z"></path> <path class="now-hand" d="M4.4 7.4v3.2c0 1 1.6 1.9 3.6 1.9s3.6-.9 3.6-1.9V7.4"></path> </svg> <span class="sr-only">Studying</span> </dt> <dd>MFA Design &amp; Technology, Parsons</dd> </div> </dl> </div> </div> <div class="faq-section"> <h2 class="g-label">Working together</h2> <div class="faq-list"> <details class="faq-item" data-reveal> <summary>Which project taught you the most?</summary> <div class="faq-panel"> <div> <p> Mool. Designing a banking app for users new to digital meant unlearning every shortcut I'd taken in design. Every interaction had to earn its place. It rewired how I think about clarity. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What kind of team brings out your best work?</summary> <div class="faq-panel"> <div> <p> Small. Curious. People who can hold strong opinions loosely. I do my best work when there's room to prototype before there's a brief, and a team that treats design as part of the thinking, not the polish at the end. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What do you do when you're stuck?</summary> <div class="faq-panel"> <div> <p> I leave the screen. Most of my best ideas have come on a walk, in the shower, or while drawing in a sketchbook. The wall is usually a sign I haven't gone wide enough on the inputs yet. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What's the one thing you wish people asked more?</summary> <div class="faq-panel"> <div> <p> Why I make. Cube, mandalas, the AR work, the bank, the small daily illustrations. They all come from the same place: a curiosity about how design can shift the way people feel about themselves and the world. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Lead end-to-end or join mid-sprint?</summary> <div class="faq-panel"> <div> <p> Both. I've shipped solo projects from concept to install, and I've joined product teams to translate research into flows. Async-friendly, comfortable across timezones, fast at finding the shape of a problem. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Where are you based?</summary> <div class="faq-panel"> <div><p>Brooklyn, NYC. Eastern Time. Open to remote, hybrid, or relocating for the right team.</p></div> </div> </details> </div> </div> </main> <style>
   /* Inline-block so each character can carry its own weight. No transition:
