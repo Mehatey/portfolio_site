@@ -1457,7 +1457,16 @@ include film_grade.html %}
   .ftr__film {
     position: relative;
     width: 100%;
-    height: clamp(300px, 46vh, 560px);
+    /* Sid: "below where you have my sitting video I like, but the bottom you
+       can extend so that the copy is also visible."
+
+       The plate used to end, then the words began, so at any scroll position
+       you had one or the other. It is taller now AND the body sits on top of
+       its lower third with a negative margin, so the CTA reads against the
+       bottom of the film rather than after it. The long bottom fade below is
+       what makes that legible: the image is already dissolving where the type
+       lands. One composition instead of two stacked blocks. */
+    height: clamp(360px, 60vh, 680px);
     overflow: hidden;
     cursor: crosshair;
     --lens-x: 50%;
@@ -1472,8 +1481,34 @@ include film_grade.html %}
        wall on /works/ was fixed for. The bottom fade is shorter because the
        eye is travelling downward into type and does not need as long to let
        go of the image. */
-    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 14%, #000 34%, #000 84%, rgba(0, 0, 0, 0.5) 94%, transparent 100%);
-    mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 14%, #000 34%, #000 84%, rgba(0, 0, 0, 0.5) 94%, transparent 100%);
+    /* The bottom fade is long now because the copy sits in it. It starts
+       giving way at 58% so the type has clear ground by the time it arrives,
+       and the image is gone entirely before the nav row. */
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 30%, #000 58%, rgba(0, 0, 0, 0.45) 82%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 12%, #000 30%, #000 58%, rgba(0, 0, 0, 0.45) 82%, transparent 100%);
+  }
+  /* ── THE TYPE NEEDS GROUND ────────────────────────────────────────────
+     With the body pulled up into the plate, the CTA and the reference column
+     landed on the busiest part of the picture -- foliage and a pixel grid,
+     which is the worst possible backing for 11px mono. The mask alone was not
+     enough: it fades the image toward the page, and the page here is not
+     uniform either.
+
+     A scrim inside the plate, bottom-weighted and stopping well before the
+     subject, so it darkens exactly the band the words occupy and nothing
+     above it. It sits over the video and under the body, which is why it is
+     on the film rather than behind the text: one gradient for both columns
+     keeps them on the same ground. */
+  .ftr__film::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+    background: linear-gradient(180deg, transparent 44%, rgba(6, 9, 14, 0.55) 68%, rgba(6, 9, 14, 0.88) 100%);
+  }
+  html[data-theme="light"] .ftr__film::after {
+    background: linear-gradient(180deg, transparent 44%, rgba(245, 243, 238, 0.62) 68%, rgba(245, 243, 238, 0.94) 100%);
   }
   .ftr__film video {
     position: absolute;
@@ -1511,18 +1546,67 @@ include film_grade.html %}
      One column, left, on the site's own gutter. Centred was half the problem
      he named: a centred stack of unrelated lines has no reading order, so the
      eye lands in the middle and works outwards. */
+  /* ── LEFT AND RIGHT, NOT ONE COLUMN ───────────────────────────────────
+     Sid: "there's too much text arranged in one line on left ... maybe we
+     divide info left and right."
+
+     He is right that it was a stack. Five blocks in one rail, each a
+     different kind of thing, all left-aligned at the same x -- so the eye had
+     no reason to stop anywhere and the CTA had no more weight than the time
+     of day.
+
+     Two columns with different jobs. LEFT is the ask: one sentence and the
+     address to answer it at. RIGHT is the reference: where else to go, where
+     else he is, and when this was last true. A recruiter reads the left and
+     acts; anyone still deciding reads the right.
+
+     The negative top margin pulls this into the bottom of the film -- see the
+     note on .ftr__film. */
   .ftr__body {
     display: grid;
-    gap: clamp(20px, 3.4vh, 38px);
-    padding: clamp(38px, 6vh, 72px) var(--gutter, clamp(22px, 4vw, 64px)) 0;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: clamp(32px, 6vw, 120px);
+    row-gap: clamp(20px, 3.4vh, 38px);
+    padding: 0 var(--gutter, clamp(22px, 4vw, 64px)) 0;
     max-width: 1560px;
-    margin: 0 auto;
+    margin: clamp(-220px, -22vh, -120px) auto 0;
+    position: relative;
+    z-index: 2;
+  }
+  .ftr__ask {
+    display: grid;
+    gap: clamp(14px, 2vh, 22px);
+    align-content: start;
+  }
+  .ftr__ref {
+    display: grid;
+    gap: clamp(12px, 1.8vh, 18px);
+    align-content: start;
+    justify-items: end;
+    text-align: right;
+  }
+  @media (max-width: 760px) {
+    .ftr__body {
+      grid-template-columns: minmax(0, 1fr);
+      margin-top: clamp(-120px, -14vh, -70px);
+    }
+    .ftr__ref {
+      justify-items: start;
+      text-align: left;
+    }
   }
   .ftr__cta {
     justify-self: start;
-    display: inline-flex;
-    align-items: baseline;
-    gap: 0.5em;
+    /* Block, not inline-flex. As a flex container with a max-width the text
+       wrapped inside the first item and the arrow was laid out as the SECOND
+       item beside the whole wrapped block -- so it floated in the middle of
+       the composition, unattached to either line. As a block with inline
+       children the arrow simply follows the last word, which is where an
+       arrow after a sentence belongs. */
+    display: block;
+    max-width: 15ch;
+    text-wrap: balance;
     text-decoration: none;
     color: var(--ink-1, #f4f7fb);
     font-size: clamp(1.9rem, 4.6vw, 3.6rem);
@@ -1531,6 +1615,7 @@ include film_grade.html %}
     line-height: 1.02;
   }
   .ftr__cta span {
+    display: inline;
     background-image: linear-gradient(currentColor, currentColor);
     background-repeat: no-repeat;
     background-position: 0 100%;
@@ -1540,6 +1625,19 @@ include film_grade.html %}
   .ftr__cta:hover span,
   .ftr__cta:focus-visible span {
     background-size: 100% 1px;
+  }
+  .ftr__cta .xarrow {
+    display: inline-block;
+    margin-left: 0.34em;
+    vertical-align: baseline;
+  }
+  /* The bottom of the scrim carries the smallest type on the page, so it goes
+     opaque rather than merely dark. */
+  .ftr__film::after {
+    background: linear-gradient(180deg, transparent 40%, rgba(6, 9, 14, 0.5) 62%, rgba(6, 9, 14, 0.9) 84%, rgba(6, 9, 14, 0.97) 100%);
+  }
+  html[data-theme="light"] .ftr__film::after {
+    background: linear-gradient(180deg, transparent 40%, rgba(245, 243, 238, 0.58) 62%, rgba(245, 243, 238, 0.94) 84%, rgba(245, 243, 238, 0.99) 100%);
   }
 
   .ftr__mail {
@@ -1589,7 +1687,14 @@ include film_grade.html %}
   .ftr__nav {
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: clamp(12px, 1.6vw, 26px);
+  }
+  @media (max-width: 760px) {
+    .ftr__nav,
+    .ftr__meta {
+      justify-content: flex-start;
+    }
   }
   .ftr__nav a {
     color: var(--ink-3, rgba(244, 247, 251, 0.64));
@@ -1610,6 +1715,7 @@ include film_grade.html %}
     margin: 0;
     display: flex;
     flex-wrap: wrap;
+    justify-content: flex-end;
     gap: 8px 20px;
     /* --ink-4 is the decoration step and measured 4.54:1 painted -- over the
        line for 11px text by four hundredths, which is not a margin. This row
@@ -2595,17 +2701,27 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
     </div>
 
     <div class="ftr__body">
-      <a class="ftr__cta" id="ftr-cta" href="{{ site.baseurl }}/contact/">
-        <span>Let’s make something useful.</span>
-        <i class="xarrow xarrow--right" aria-hidden="true"></i>
-      </a>
+      <!-- LEFT: the ask. One sentence, and the address to answer it at.
+           The email stays. Sid: "idk if we need email" -- a recruiter who has
+           decided wants to write to him in that second, and making them go to
+           /contact/ for an address the footer could have given them is a step
+           that loses people. It is the one thing in this footer with a job. -->
+      <div class="ftr__ask">
+        <a class="ftr__cta" id="ftr-cta" href="{{ site.baseurl }}/contact/">
+          <span>Let’s make something useful.</span>
+          <i class="xarrow xarrow--right" aria-hidden="true"></i>
+        </a>
 
-      <div class="ftr__mail">
-        <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a>
-        <button type="button" class="ftr__copy" data-copy="sidmehtadesign@gmail.com" aria-label="Copy email address">Copy</button>
+        <div class="ftr__mail">
+          <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a>
+          <button type="button" class="ftr__copy" data-copy="sidmehtadesign@gmail.com" aria-label="Copy email address">Copy</button>
+        </div>
       </div>
 
-      <div class="ftr__cols">
+      <!-- RIGHT: the reference. Where else to go, where else he is, and when
+           this was last true. Right-aligned so the two columns close the frame
+           rather than both leaning left. -->
+      <div class="ftr__ref">
         <nav class="ftr__nav" aria-label="Footer navigation">
           <a href="{{ site.baseurl }}/works/">Work</a>
           <a href="{{ site.baseurl }}/play/">Play</a>
@@ -2618,13 +2734,13 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
           <a href="https://www.behance.net/siddharthmehta" target="_blank" rel="noopener noreferrer">Behance</a>
           <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>
         </nav>
-      </div>
 
-      <p class="ftr__meta">
-        <span>New York</span>
-        <span id="site-footer-time"></span>
-        <span>Updated {{ site.time | date: "%b %Y" }}</span>
-      </p>
+        <p class="ftr__meta">
+          <span>New York</span>
+          <span id="site-footer-time"></span>
+          <span>Updated {{ site.time | date: "%b %Y" }}</span>
+        </p>
+      </div>
 
       <!-- ── THE SHELF ───────────────────────────────────────────────────
            Where the things you clicked end up. See assets/js/collect.js.
