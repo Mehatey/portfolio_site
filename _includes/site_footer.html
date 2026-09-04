@@ -443,7 +443,18 @@ include film_grade.html %}
       height: calc(var(--h) * var(--s, 1));
       width: calc(var(--h) * var(--s, 1) * var(--ar, 1));
       isolation: isolate;
-      transition: transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+      /* No `transition: transform` here on purpose, and it is worth saying
+         why, because putting one back looks like an obvious improvement.
+
+         The rail writes this tile's transform EVERY FRAME. A transition on a
+         property that is rewritten every frame never completes: each write
+         re-aims it from wherever it had reached, so instead of easing the
+         hover it low-passes the drift, the centre scale and the pendulum too
+         -- the whole rail arrives late and the hover feels soft rather than
+         responsive. The 620ms that used to be here was the reason the hover
+         had no snap to it.
+
+         The easing lives in the frame loop now, as `hoverAmt` per tile. */
     }
 
     /* ── THE TILES BECOME LEGIBLE ──────────────────────────────────────
@@ -2385,6 +2396,24 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
         offs = [],
         widths = [];
 
+      /* ── THE HOVER IS A VALUE, NOT A FLAG ──────────────────────────────
+         `hv` used to be `tile === hovered ? 1 : 0`, read fresh every frame,
+         and the softening came from `transition: transform 620ms` on the
+         tile. That does not work when the same property is rewritten every
+         frame: each write re-targets the transition from wherever it had got
+         to, so the ease never completes and what it produces is lag on ALL
+         of the rail's motion rather than an ease on the hover.
+
+         So the ease moves here. `hoverAmt[i]` is a real number per tile
+         chasing 0 or 1, and everything the hover does is multiplied by it --
+         lift, scale, stiffen, colour. `rowFocus` is the same number for the
+         row as a whole, which is what lets the OTHER tiles react to a tile
+         being hovered instead of only the one under the pointer. */
+      var hoverAmt = tiles.map(function () {
+        return 0;
+      });
+      var rowFocus = 0;
+
       function measure() {
         half = row.scrollWidth / 2;
         bandW = rows.clientWidth;
@@ -2604,6 +2633,11 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
 
         /* ── the edge ramp ─────────────────────────────────────────────── */
         var hovered = row.querySelector(".sid-tile:hover");
+        var hoverIdx = hovered ? tiles.indexOf(hovered) : -1;
+        /* One number for "is the row being looked at", eased on the same
+           clock as the tiles so the row settles with them. */
+        rowFocus += ((hoverIdx >= 0 ? 1 : 0) - rowFocus) * 0.16 * dt;
+        if (rowFocus < 0.002) rowFocus = 0;
         if (!reduce && bandW > 0) {
           var fade = bandW * 0.22;
           for (var i = 0; i < tiles.length; i++) {
@@ -2632,13 +2666,16 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
             c = Math.max(0, c);
             c = c * c * c;
             var st = tiles[i].style;
-            st.opacity = (0.16 + 0.84 * k).toFixed(3);
+            /* Opacity is set at the foot of this block instead, because it
+               now depends on the hover as well as on the edge ramp. */
             /* Scale and lift together. A tile that only grows reads as being
                pushed toward you; one that also rises reads as being picked
                up, which is the difference between a carousel and a hand. */
             /* The hover lift, which used to be a CSS rule and could not
                survive a per-frame inline transform. */
-            var hv = tiles[i] === hovered ? 1 : 0;
+            hoverAmt[i] += ((tiles[i] === hovered ? 1 : 0) - hoverAmt[i]) * 0.19 * dt;
+            if (hoverAmt[i] < 0.002) hoverAmt[i] = 0;
+            var hv = hoverAmt[i];
             /* ── EACH TILE HANGS SLIGHTLY DIFFERENTLY ──────────────────
                One shared angle applied to every tile reads as the whole row
                being rotated, which is a billboard on a hinge, not cloth. Two
@@ -2657,19 +2694,61 @@ be explicit. {% endcomment %}{% assign _biome = "pond" %}{% if page.url contains
                it, so it stops swinging and presents itself. */
             var hang = 0.72 + ((i * 7) % 5) * 0.14;
             var breeze = reduce ? 0 : Math.sin(now * 0.0009 + i * 0.7) * 0.55;
-            var ang = (swing * hang + breeze) * (1 - hv * 0.85);
+
+            /* ── THE LINE TAKES THE WEIGHT ─────────────────────────────
+               Steadying one picture on a washing line does not leave the
+               others where they were: the line dips under your hand and the
+               pictures either side lean in toward it. So the neighbours tilt
+               TOWARD the hovered tile, by an angle that falls off with
+               distance -- the two beside it clearly, the next two barely, and
+               nothing after that.
+
+               This is the part that makes the hover read as touching one
+               object on a shared line rather than as one tile running its own
+               animation while eleven others ignore it. */
+            var lean = 0;
+            if (hoverIdx >= 0 && i !== hoverIdx) {
+              var d = i - hoverIdx;
+              lean = (d > 0 ? -1 : 1) * 2.4 * Math.exp(-Math.abs(d) / 1.7) * rowFocus;
+            }
+            var ang = (swing * hang + breeze) * (1 - hv * 0.85) + lean;
             st.transform =
               "translateY(" +
-              (-14 * c - 6 * hv).toFixed(1) +
+              (-14 * c - 10 * hv).toFixed(1) +
               "px) rotate(" +
               ang.toFixed(2) +
               "deg) scale(" +
-              (0.86 + 0.1 * k + 0.24 * c + 0.03 * hv).toFixed(3) +
+              (0.86 + 0.1 * k + 0.24 * c + 0.05 * hv).toFixed(3) +
               ")";
-            st.filter = "saturate(" + (0.3 + 0.7 * k + 0.5 * c).toFixed(2) + ") brightness(" + (0.9 + 0.3 * c).toFixed(2) + ")";
+
+            /* ── AND THE HOVER HAS TO BEAT THE POSITION ────────────────
+               The grade was `saturate(0.3 + 0.7k + 0.5c)` -- entirely a
+               function of where the tile sits. Hovering did nothing to it, so
+               pointing at a tile out near the edge of the band, where k is
+               low, left it at about 0.3 saturation: you were looking straight
+               at a picture the rail was still treating as peripheral. The
+               inner <img> cleared its own grayscale on hover, which is why
+               this was easy to miss -- half the grade responded and half did
+               not.
+
+               Hover now pulls saturation and brightness to a fixed target
+               regardless of position, and the rest of the row gives up a
+               little of both while it does. The row defers to the thing you
+               are pointing at; that is the whole effect. */
+            var sat = 0.3 + 0.7 * k + 0.5 * c;
+            var bri = 0.9 + 0.3 * c;
+            sat += (1.25 - sat) * hv;
+            bri += (1.06 - bri) * hv;
+            var others = 1 - hv;
+            sat *= 1 - 0.2 * rowFocus * others;
+            bri *= 1 - 0.12 * rowFocus * others;
+            st.filter = "saturate(" + sat.toFixed(2) + ") brightness(" + bri.toFixed(2) + ")";
+            st.opacity = ((0.16 + 0.84 * k) * (1 - 0.3 * rowFocus * others)).toFixed(3);
             /* The one at the centre sits above its neighbours, or a larger
-               tile is cropped by whatever happens to follow it in the DOM. */
-            st.zIndex = c > 0.15 ? 3 : 1;
+               tile is cropped by whatever happens to follow it in the DOM.
+               The hovered one sits above both, since it is now the largest
+               and would otherwise be cropped by the tile after it. */
+            st.zIndex = hv > 0.05 ? 5 : c > 0.15 ? 3 : 1;
           }
         }
 
