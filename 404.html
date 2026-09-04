@@ -1924,7 +1924,12 @@
   .studio-mark .logo-scan {
     fill: rgba(5, 12, 23, 0.82);
     stroke: currentColor;
-    stroke-width: 1.55;
+    /* Sid: "can you make the stroke of my box of the logo cube a little
+       thinner it's a little too thick." 1.55 with non-scaling-stroke means a
+       true 1.55 device px at every size, and on a 36px mark that is a heavy
+       outline relative to the 21-unit body it draws. 1.15 keeps the mark
+       crisp at 36px without it reading as a thick-ruled icon. */
+    stroke-width: 1.15;
     vector-effect: non-scaling-stroke;
   }
 
@@ -6597,21 +6602,7 @@
        aria-hidden: it is a mark, not content. The footer's own label already
        tells a screen reader what this region is, and reading out a ticking
        depth counter would be noise. -->
-    <!-- ── THE BOUNDARY IS JUST A RULE NOW ────────────────────────────────
-         This held the coordinate readout, then a row of thirty-six coloured
-         squares. Sid on that row: "I want that to be a hover effect on the
-         background, like a bunch of different pixels, interestingly done, not
-         just a line of blue and blue squares which you hover on."
-
-         Fair, and the fault is the shape rather than the idea. A line of
-         squares in one fixed place is a legend: you hover it once and it is
-         spent. The pixels moved to the ground instead -- see
-         assets/js/pixel-field.js, which lights a field of them around the
-         cursor anywhere on the page. What stays here is the hairline, which
-         was always the thing marking where the page becomes the footer. -->
-    <div class="tideline" aria-hidden="true">
-      <span class="tideline__rule"></span>
-    </div>
+    
     <!-- ── THE POND CAME OUT ──────────────────────────────────────────────────
        Sid: "maybe one unique background shader across the entire site — I
        don't think we should mix shaders."
@@ -10356,23 +10347,42 @@
   [data-tip] {
     position: relative;
   }
+  /* ── THE PLATE CAME OFF, AND THE LABEL MOVED TO THE LEFT ───────────────
+     Sid, twice. On the plate: "there's this weird gradient black thing which
+     comes on it i don't know why that is there please remove that behind the
+     text." And on the placement: "when I'm in dark mode and on the cube, you
+     have these text labels when you hover over it to show what it is. Those
+     are spawning right in the middle, so they're not legible. They should
+     spawn on the left of it so that I can read what it is."
+
+     Both faults were in the same three lines. The tip carried a 72% black
+     fill, a 14px backdrop blur and a border -- a floating slab, which is the
+     one treatment this site has removed everywhere else it appeared (the
+     cube's own speech lost its plate for exactly this reason). And it was
+     centred above the control with `left: 50%`, which for a button pinned to
+     the right edge of the window means half the label renders past the edge
+     or over the page, which is the "spawning in the middle, not legible"
+     part.
+
+     No plate now: the words sit in a pocket of shadow, the same grammar the
+     cube's line uses. And these controls are all in the fixed right-hand
+     column, so the label reads leftward out of the button, which is the only
+     direction with room. */
   [data-tip]::after {
     content: attr(data-tip);
     position: absolute;
-    bottom: calc(100% + 12px);
-    left: 50%;
-    transform: translate(-50%, 4px);
+    top: 50%;
+    right: calc(100% + 12px);
+    transform: translate(6px, -50%);
     font-family: var(--font-mono, ui-monospace, monospace);
     font-size: 10px;
     letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--ink, #f4f7fb);
-    background: rgba(0, 0, 0, 0.72);
-    -webkit-backdrop-filter: blur(14px);
-    backdrop-filter: blur(14px);
-    padding: 7px 11px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 4px;
+    text-shadow:
+      0 1px 10px rgba(2, 6, 12, 0.95),
+      0 0 22px rgba(2, 6, 12, 0.85);
+    padding: 0;
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
@@ -10383,13 +10393,14 @@
   }
   [data-tip]:hover::after,
   [data-tip]:focus-visible::after {
-    opacity: 1;
-    transform: translate(-50%, 0);
+    opacity: 0.92;
+    transform: translate(0, -50%);
   }
   html[data-theme="light"] [data-tip]::after {
     color: #0a1727;
-    background: rgba(246, 246, 242, 0.88);
-    border-color: rgba(10, 23, 39, 0.12);
+    text-shadow:
+      0 1px 10px rgba(246, 246, 242, 0.95),
+      0 0 22px rgba(246, 246, 242, 0.9);
   }
   /* A tooltip that needs hover is dead weight on a phone, and on iOS the
      first tap fires the hover state instead of the button. */
