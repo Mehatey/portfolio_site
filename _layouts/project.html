@@ -942,15 +942,32 @@
          .cs-body and .cs-intro are deliberately not in this list. They keep
          the shell's padding, which is what holds the reading column where it
          has always been, and .cs-body has its own 640px measure anyway. */
+      /* ── THE BREAKOUT WAS MEASURED AGAINST A CONTAINER THAT IS GONE ────
+         This used to widen media by half a gutter on each side, and against
+         the old `min(1680px, 94vw)` shell that landed it at x=86 on a 1728
+         screen -- two pixels off the grid's outer line at 84, near enough to
+         look deliberate.
+
+         With `.case-study-layout` now carrying the grid's own measure, the
+         same breakout puts media at 49: thirty-five pixels OUTSIDE the line
+         instead of two inside it, which is the misalignment Sid is pointing
+         at, just in the other direction. The container is the measure now, so
+         media sits on it and every picture starts and ends exactly on the
+         outer grid lines.
+
+         The width this gives up is smaller than it looks: the old shell was
+         wider but spent a gutter of padding inside itself, so the media box
+         goes from 1629px to 1560px at 1728 -- about 4%, in exchange for every
+         image edge landing on a line. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
       .case-story .cs-grid-3,
       .case-story .cs-split,
       .case-story .cs-pair {
-        width: calc(100% + var(--gutter)) !important;
-        margin-left: calc(var(--gutter) * -0.5) !important;
-        margin-right: calc(var(--gutter) * -0.5) !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
       }
       /* margin-TOP only. This used to be a `margin` shorthand, which reset the
          horizontal breakout above every time it was applied. */
@@ -2000,6 +2017,149 @@
       .refl-quote p:last-child { margin-bottom: 0; }
 
       /* ─── NEXT PROJECTS — first project dominant ─── */
+      /* ══ THE HANDOVER ══════════════════════════════════════════════════
+         220vh of section holding one sticky viewport-tall panel. The height
+         IS the interaction: it is the distance over which the reader decides,
+         and it is why turning back costs nothing. Shorter than about 2x and
+         the gesture is over before it registers as a choice; much longer and
+         it reads as the page being broken. */
+      .nextscroll {
+        position: relative;
+        height: 220vh;
+        border-top: 1px solid var(--border);
+        margin-top: clamp(60px, 8vh, 120px);
+      }
+      .nextscroll__pin {
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        display: grid;
+        align-content: center;
+        gap: clamp(14px, 2vh, 26px);
+        padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        isolation: isolate;
+      }
+      /* The cover sits behind everything and arrives with the scroll. Both
+         custom properties are written by the script; the defaults are what a
+         reader sees with no JS, which is a legible card rather than a blank
+         screen. */
+      .nextscroll__visual {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        border-radius: 0;
+      }
+      .nextscroll__cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        opacity: var(--ns-cover-o, 0.34);
+        transform: scale(var(--ns-cover-s, 1.06));
+        transition: none;
+      }
+      /* Without this the title sits on whatever the photograph happens to be
+         doing behind it, which on a bright cover is unreadable. */
+      .nextscroll__visual::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(4, 6, 10, 0.62) 0%, rgba(4, 6, 10, 0.42) 45%, rgba(4, 6, 10, 0.82) 100%);
+      }
+      .nextscroll__copy {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: clamp(8px, 1.2vh, 16px);
+        max-width: 46ch;
+        transform: translateY(var(--ns-copy-y, 0px));
+      }
+      .nextscroll__label {
+        font: var(--type-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.62);
+      }
+      .nextscroll__title {
+        font-family: var(--font-title, var(--font-head));
+        font-size: clamp(40px, 7vw, 104px);
+        line-height: 0.98;
+        letter-spacing: -0.02em;
+        color: #fff;
+      }
+      .nextscroll__tags {
+        display: flex;
+        gap: 14px;
+        font: var(--type-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.56);
+      }
+      .nextscroll__desc {
+        font: var(--type-meta);
+        color: rgba(255, 255, 255, 0.78);
+        max-width: 44ch;
+      }
+      .nextscroll__foot {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 10px;
+        max-width: 420px;
+      }
+      /* The loader. It is a readout of the gesture, not a timer -- it only
+         ever moves because the reader moved, which is what makes arriving at
+         the end of it feel like a decision. */
+      .nextscroll__meter {
+        display: block;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.16);
+        overflow: hidden;
+      }
+      .nextscroll__fill {
+        display: block;
+        height: 100%;
+        width: calc(var(--ns-p, 0) * 100%);
+        background: #fff;
+      }
+      .nextscroll__hint {
+        font: var(--type-micro);
+        letter-spacing: var(--track-micro);
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.5);
+      }
+      .nextscroll.is-ready .nextscroll__hint {
+        color: #fff;
+      }
+      /* No JS and no motion: collapse the runway so the panel is one screen
+         you read and click, with nothing to scroll through and no meter
+         pretending to fill. */
+      @media (prefers-reduced-motion: reduce) {
+        .nextscroll {
+          height: auto;
+        }
+        .nextscroll__pin {
+          position: static;
+          height: auto;
+          padding-block: clamp(60px, 12vh, 140px);
+        }
+        .nextscroll__meter {
+          display: none;
+        }
+      }
+      @media (max-width: 760px) {
+        .nextscroll {
+          height: 200vh;
+        }
+        .nextscroll__title {
+          font-size: clamp(34px, 12vw, 62px);
+        }
+      }
+
       .proj-next-row {
         display: grid;
         grid-template-columns: 3fr 2fr;
@@ -2689,11 +2849,37 @@
          at 1180 on purpose — those hold prose, and prose past about 75
          characters a line is harder to read, not more impressive. So the
          overview stays a readable measure and the work gets the width. */
+      /* ── THE CONTENT SITS ON THE GRID NOW ──────────────────────────────
+         Sid: "the grid lines are good, but they're not aligning with the
+         stuff on the page. Can you have it such that the images are aligned
+         with the directional lines?"
+
+         Measured at 1728: the grid's outer lines are at x=84 and x=1644, and
+         this container put its content at 121 and 1607. Thirty-seven pixels
+         inside on both sides -- close enough to look intended, far enough to
+         look wrong, which is the worst of both. layout_grid.html says exactly
+         this about itself: "a grid that is NEAR the content reads as a
+         mistake, where no grid reads as a choice."
+
+         Two different measures were in play. The grid is
+         `min(1560px, 100% - 2 * gutter)`; this was `min(1680px, 94vw)` and
+         then a gutter of padding INSIDE that, so the numbers could never
+         agree at any width. It now uses the grid's own expression and adds no
+         horizontal padding of its own -- the container is the measure, and
+         its children start on the line. /works/ was already changed to match
+         this when the grid was introduced; the case studies were missed. */
       .case-study-layout {
         display: block;
-        max-width: min(1680px, 94vw);
+        width: min(1560px, 100% - 2 * var(--gutter, max(24px, 4vw)));
+        max-width: none;
         margin: 0 auto;
-        padding: 48px var(--gutter) 104px;
+        padding: 48px 0 104px;
+      }
+      /* The sections used to supply the inset themselves. With the container
+         carrying the measure, a second gutter here would push them a further
+         69px off the line at 1728. */
+      .case-study-layout .cs-section {
+        padding-inline: 0;
       }
       .case-context {
         position: static;
@@ -2771,6 +2957,11 @@
          Same breakout: half the shell's gutter reclaimed on each side, with
          margin-top declared on its own so the shorthand cannot reset the
          horizontal values a second time. */
+      /* This is the copy that actually wins -- it is later and it carries
+         `.cs-bleed-full` -- so the alignment change has to be made here as
+         well as in the block above. Measured proof that editing only the
+         first one changes nothing: media stayed at x=49 against a grid line
+         at 84 until this rule was changed too. */
       .case-story .cs-bleed,
       .case-story .cs-wide,
       .case-story .cs-grid,
@@ -2778,10 +2969,10 @@
       .case-story .cs-split,
       .case-story .cs-pair,
       .case-story .cs-bleed-full {
-        width: calc(100% + var(--gutter)) !important;
+        width: 100% !important;
         margin-top: 32px !important;
-        margin-left: calc(var(--gutter) * -0.5) !important;
-        margin-right: calc(var(--gutter) * -0.5) !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
       }
       .case-story .cs-bleed,
       .case-story .cs-wide-inner,
@@ -4914,36 +5105,125 @@
         </a>
         {% endfor %}
       </div>
-      {% elsif page.next_project %} {% assign npPage = site.pages | where: "permalink", page.next_project.url | first %}
-      <div class="proj-next-row" style="grid-template-columns: 1fr">
-        <a href="{{ site.baseurl }}{{ page.next_project.url }}" class="proj-next proj-next--solo" data-reveal>
-          <div class="next-visual" style="background: {{ page.next_project.bg | default: '#060608' }};">
+      {% elsif page.next_project %} {% assign npPage = site.pages | where: "permalink", page.next_project.url | first %} {% comment %} ── THE CASE
+      STUDY DOES NOT END, IT HANDS OVER ───────────── Sid: "when you're scrolling on a project you continue scrolling, and then you automatically go
+      to the Bloom project ... we can have a loader across, maybe full screen, and the loader could be on the cover image, with a little bit about the
+      artwork, which you then keep scrolling. If you scroll back, then you don't go, and you go up on the page." Every part of that is load-bearing,
+      including the last sentence. The section is 220vh with a sticky full-viewport panel inside it, so scrolling through it drives a progress value
+      from 0 to 1 rather than triggering anything at a threshold. Cover, copy and meter all read that one number. Reaching 1 opens the next project;
+      turning around takes the number back down and nothing happens. Committing is something you do by continuing, and it is reversible for the entire
+      length of the gesture, which is exactly what he described and the opposite of a scroll-jack. It is a real anchor element wrapping the whole
+      panel, so it is a link before it is an effect: middle-click, cmd-click, right-click and the keyboard all behave, and with JS or reduced motion
+      the panel is simply a large card you click. {% endcomment %}
+      <section
+        class="nextscroll"
+        id="project-next-step"
+        data-next-url="{{ site.baseurl }}{{ page.next_project.url }}"
+        aria-label="Next project: {{ page.next_project.title | default: npPage.project_title }}"
+      >
+        <a class="nextscroll__pin" href="{{ site.baseurl }}{{ page.next_project.url }}">
+          <span class="nextscroll__visual" style="background: {{ page.next_project.bg | default: '#060608' }};">
             {% if npPage.hero_image %}
-            <img class="next-cover" src="{{ site.baseurl }}/{{ npPage.hero_image }}" alt="" loading="lazy" decoding="async" />
+            <img class="nextscroll__cover" src="{{ site.baseurl }}/{{ npPage.hero_image }}" alt="" loading="lazy" decoding="async" />
             {% endif %}
-          </div>
-          <div class="next-info">
-            <p class="next-label">Next Project</p>
-            <div class="next-title-row">
-              <div>
-                <p class="next-title">{{ page.next_project.title | default: npPage.project_title }}</p>
-                {% if npPage.category or npPage.year %}
-                <p class="next-tags">
-                  {% if npPage.category %}<span>{{ npPage.category }}</span>{% endif %} {% if npPage.year %}<span>{{ npPage.year }}</span>{% endif %}
-                </p>
-                {% endif %}
-                <p class="next-desc">{{ page.next_project.desc | default: npPage.tagline | strip_html | truncate: 170 }}</p>
-              </div>
-              <span class="next-arrow">&rarr;</span>
-            </div>
-          </div>
+          </span>
+          <span class="nextscroll__copy">
+            <span class="nextscroll__label">Next project</span>
+            <span class="nextscroll__title">{{ page.next_project.title | default: npPage.project_title }}</span>
+            {% if npPage.category or npPage.year %}
+            <span class="nextscroll__tags">
+              {% if npPage.category %}<span>{{ npPage.category }}</span>{% endif %} {% if npPage.year %}<span>{{ npPage.year }}</span>{% endif %}
+            </span>
+            {% endif %}
+            <span class="nextscroll__desc">{{ page.next_project.desc | default: npPage.tagline | strip_html | truncate: 170 }}</span>
+          </span>
+          <span class="nextscroll__foot">
+            <span class="nextscroll__meter" aria-hidden="true"><span class="nextscroll__fill"></span></span>
+            <span class="nextscroll__hint">Keep scrolling to open</span>
+          </span>
         </a>
-      </div>
+      </section>
       {% endif %}
     </main>
 
-    {% include live_type.html %} {% include motion.html %} {% include hero_morph.html %} {% include case_lightbox.html %} {% include site_footer.html
-    %}
+    {% include live_type.html %} {% include motion.html %} {% include hero_morph.html %} {% include case_lightbox.html %} {% comment %} `bare` keeps
+    every script and the layout grid and drops only the visible footer composition. A case study ends with the handover below. Kept on one line: the
+    Liquid formatter cannot parse an include tag wrapped across a newline. {% endcomment %} {% include site_footer.html bare=true %}
+
+    <script>
+      /* ══ THE HANDOVER ═══════════════════════════════════════════════════
+         One number, read from the scroll position, written to the panel as a
+         custom property. Everything visible -- the cover's opacity and scale,
+         the copy's drift, the meter -- is a function of it, so there is only
+         ever one thing to be right about.
+
+         WHY IT NAVIGATES AT THE END RATHER THAN SNAPPING PART-WAY. A
+         threshold ("past 60%, go") takes the decision off the reader mid
+         gesture, and the one thing Sid asked for by name is that turning back
+         works: "if you scroll back, then you don't go, and you go up on the
+         page." Progress that runs both ways gives that for free -- there is
+         no committed state until the very end, and reversing is just the
+         number going down.
+
+         The navigation fires once, at the bottom of a 220vh runway the reader
+         has to actively travel. `armed` prevents it repeating if the browser
+         restores scroll or a rubber-band overshoots the end. */
+      (function () {
+        var section = document.querySelector(".nextscroll");
+        if (!section) return;
+        var url = section.getAttribute("data-next-url");
+        if (!url) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        var fill = section.querySelector(".nextscroll__fill");
+        var hint = section.querySelector(".nextscroll__hint");
+        var went = false;
+        var armed = false;
+        var raf = 0;
+
+        function read() {
+          raf = 0;
+          var r = section.getBoundingClientRect();
+          var travel = r.height - window.innerHeight;
+          if (travel <= 0) return;
+          /* 0 when the panel first pins, 1 when the runway is spent. */
+          var p = Math.max(0, Math.min(1, -r.top / travel));
+
+          section.style.setProperty("--ns-p", p.toFixed(4));
+          section.style.setProperty("--ns-cover-o", (0.34 + 0.56 * p).toFixed(3));
+          section.style.setProperty("--ns-cover-s", (1.06 - 0.06 * p).toFixed(4));
+          section.style.setProperty("--ns-copy-y", (18 - 18 * p).toFixed(1) + "px");
+
+          if (p > 0.985) {
+            if (!armed) {
+              armed = true;
+              section.classList.add("is-ready");
+              if (hint) hint.textContent = "Opening " + (section.getAttribute("aria-label") || "").replace(/^Next project:\s*/, "");
+            }
+            /* Only travel that ENDS here counts. Landing at the bottom
+               because the browser restored a position is not a gesture. */
+            if (!went && armed) {
+              went = true;
+              window.location.href = url;
+            }
+          } else if (p < 0.9 && armed) {
+            armed = false;
+            section.classList.remove("is-ready");
+            if (hint) hint.textContent = "Keep scrolling to open";
+          }
+        }
+
+        function onScroll() {
+          if (!raf) raf = requestAnimationFrame(read);
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll, { passive: true });
+        /* Not on load: a restored scroll position at the foot of the page
+           would navigate before the reader has done anything. The first
+           genuine scroll event starts it. */
+        if (fill) fill.style.width = "0%";
+      })();
+    </script>
 
     <!-- Back to top -->
     <!-- back-to-top removed -->
