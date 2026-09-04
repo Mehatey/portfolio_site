@@ -2,13 +2,13 @@
 
 ## Base colors
 
-| Surface | Base color | Roughness | Transmission | Clearcoat |
-| --- | --- | ---: | ---: | ---: |
-| Face, luminous ivory paper | `#E8DCC4` | 0.24 | 0.04 | 0.55 |
-| Cobalt water side | `#174DB8` | 0.12 | 0.18 | 0.95 |
-| Turquoise top | `#6C9FAA` | 0.16 | 0.12 | 0.82 |
-| Pale blue grey rear | `#BACBCD` | 0.22 | 0.08 | 0.68 |
-| Graphite face and edge lines | `#17202D` | 0.42 | 0.00 | 0.05 |
+| Surface                      | Base color | Roughness | Transmission | Clearcoat |
+| ---------------------------- | ---------- | --------: | -----------: | --------: |
+| Face, luminous ivory paper   | `#E8DCC4`  |      0.24 |         0.04 |      0.55 |
+| Cobalt water side            | `#174DB8`  |      0.12 |         0.18 |      0.95 |
+| Turquoise top                | `#6C9FAA`  |      0.16 |         0.12 |      0.82 |
+| Pale blue grey rear          | `#BACBCD`  |      0.22 |         0.08 |      0.68 |
+| Graphite face and edge lines | `#17202D`  |      0.42 |         0.00 |      0.05 |
 
 ## PBR settings
 
