@@ -47,7 +47,7 @@ the two big interactive pieces.
 
 ## 5 · Play page: the phone
 
-- [ ] Pixel icons: more detail, more colour or shadow. They read flat.
+- [x] Pixel icons: more detail, more colour or shadow. They read flat.
 - [x] A different piano note on every click.
 - [x] Hovering the phone plays nature and music.
 - [x] Clicking explodes it into voxels across the scene and reforms it. Real
@@ -62,8 +62,8 @@ the two big interactive pieces.
 
 ## 7 · Collectible pixel icons
 
-- [ ] Dropped in the same place they stack, like Candy Crush.
-- [ ] Real physics, colliding with images and headings on the page. Stretch
+- [x] Dropped in the same place they stack, like Candy Crush.
+- [x] Real physics, colliding with images and headings on the page. Stretch
       goal and understood as such.
 
 ## 8 · The play grid unfurls
