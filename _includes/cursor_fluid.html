@@ -2463,6 +2463,91 @@
     }
   }
 
+  /* ══ THE CORNER IS ONE ICON UNTIL YOU REACH FOR IT ═══════════════════════
+     Sid: "what if we have just one icon on the bottom right, say, just the Ask
+     the Cube icon? ... you hover on the cube, ask the cube, and then that
+     opens up the dark mode and the audio icon, like those sort of Apple
+     futuristic augmented reality interfaces where we don't show everything at
+     once. It's based on what you need, and it really nicely animates in with
+     smooth rounded corners, emerging from that one logo, one icon."
+
+     Three equally loud glass circles stacked up the right edge of every page
+     was the state before this, and it caused the other complaint in the same
+     message -- they sit close enough together that the magnetic pull made
+     them hard to aim at. Collapsing two of them into the third fixes the
+     clutter and the aiming at once.
+
+     THE COLLAPSE IS A TRANSFORM, NOT A DISPLAY SWITCH. Both controls keep
+     their real positions in the layout and are translated down onto the cube
+     when closed: 64px for the theme toggle, 128px for the sound. So opening
+     is the same element travelling back to where it already lives, which is
+     why it can be a spring rather than a fade, and why focus and hit-testing
+     work without the script knowing anything about it.
+
+     `body.controls-near` is the trigger and it already exists -- the footer's
+     proximity script sets it inside a box around this corner. Reusing it
+     means the cluster opens as your hand arrives rather than only on a direct
+     hover of a 52px target, which is the difference between this feeling
+     anticipatory and feeling like a menu.
+
+     The stagger is 0 / 40 / 80ms outward, so they read as coming OUT of the
+     cube in order rather than all appearing at once. */
+  #theme-toggle,
+  .sound-toggle {
+    transform-origin: 50% 100%;
+    transition:
+      transform 0.52s cubic-bezier(0.22, 1.2, 0.36, 1),
+      opacity 0.32s ease;
+  }
+  html:not(.no-js) #theme-toggle {
+    transform: translateY(64px) scale(0.55);
+    opacity: 0;
+    pointer-events: none;
+  }
+  html:not(.no-js) .sound-toggle {
+    transform: translateY(128px) scale(0.55);
+    opacity: 0;
+    pointer-events: none;
+  }
+  body.controls-near #theme-toggle,
+  body.controls-near .sound-toggle,
+  #cube-chat-fab:hover ~ #theme-toggle,
+  #theme-toggle:focus-visible,
+  .sound-toggle:focus-visible,
+  #cube-chat-fab.is-open ~ #theme-toggle {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  body.controls-near #theme-toggle {
+    transition-delay: 40ms;
+  }
+  body.controls-near .sound-toggle {
+    transition-delay: 80ms;
+  }
+  /* Keyboard users never get a `controls-near`, so focus has to open the
+     cluster on its own and must not be delayed. */
+  #theme-toggle:focus-visible,
+  .sound-toggle:focus-visible {
+    transition-delay: 0ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #theme-toggle,
+    .sound-toggle {
+      transition: opacity 0.2s ease;
+      transform: none !important;
+    }
+  }
+  /* Touch has no pointer to approach with, so the cluster is simply open. */
+  @media (hover: none), (pointer: coarse) {
+    html:not(.no-js) #theme-toggle,
+    html:not(.no-js) .sound-toggle {
+      transform: none;
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
   /* ── CUBE CHAT ── floating companion bottom-right; opens to a small chat panel */
   #cube-chat-fab {
     position: fixed;
@@ -2510,13 +2595,17 @@
       0 0 0 1px rgba(180, 220, 255, 0.1),
       0 0 36px rgba(120, 180, 255, 0.3);
   }
+  /* ── THE PULSE IS OFF ──────────────────────────────────────────────────
+     Sid: "for the AI cube, remove the animation where it sort of glows."
+
+     A ring expanding out of a round button in the bottom-right corner every
+     3.4 seconds forever is precisely the support-widget gesture this site's
+     own notes argue against -- cube_says.html says it in as many words: "the
+     pulse does not help; pulsing is exactly what those widgets do." It was
+     still here. The element stays so the markup and the light-theme rules do
+     not need touching; it simply draws nothing. */
   #cube-chat-fab .fab-pulse {
-    position: absolute;
-    inset: -3px;
-    border-radius: 18px;
-    border: 1px solid rgba(180, 220, 255, 0.4);
-    animation: fabPulse 3.4s ease-out infinite;
-    pointer-events: none;
+    display: none;
   }
   @keyframes fabPulse {
     0% {
@@ -5365,7 +5454,7 @@
 </script>
 
 <!-- Theme toggle (dark/light) -->
-<button type="button" id="theme-toggle" aria-label="Toggle theme" data-tip="Theme">
+<button type="button" id="theme-toggle" aria-label="Toggle theme" data-tip="Go to light mode">
   <svg
     class="theme-moon"
     viewBox="0 0 24 24"
@@ -5423,6 +5512,24 @@
     live.style.cssText = "position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%)";
     document.body.appendChild(live);
     var btn = document.getElementById("theme-toggle");
+    /* ── THE LABEL NAMES THE DESTINATION, NOT THE SUBJECT ────────────────
+       Sid: "when you hover on, say, light or dark mode, it should show 'Go to
+       light mode' or 'Go to dark mode' instead of 'Theme'."
+
+       Right, and it is the difference between a category and an action. A
+       control labelled "Theme" tells you what it is about; one labelled "Go
+       to light mode" tells you what pressing it will do, which is the only
+       thing anybody hovering it wants to know. It has to be kept in step with
+       the actual state, so it is written here and on every switch rather than
+       stated once in the markup. */
+    function tipForTheme() {
+      if (!btn) return;
+      var cur = html.getAttribute("data-theme") || "dark";
+      var t = cur === "light" ? "Go to dark mode" : "Go to light mode";
+      btn.setAttribute("data-tip", t);
+      btn.setAttribute("aria-label", t);
+    }
+    tipForTheme();
     if (btn) {
       btn.addEventListener("click", function (e) {
         var cur = html.getAttribute("data-theme") || "dark";
@@ -5434,6 +5541,7 @@
             localStorage.setItem(KEY, next);
           } catch (_) {}
           live.textContent = "Theme switched to " + next;
+          tipForTheme();
           /* ── HE COMES WITH IT ──────────────────────────────────────────
              Sid: "let light mode and cube guy also float in in a fun way."
 

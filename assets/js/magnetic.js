@@ -56,16 +56,29 @@
     ".contact-links a",
     ".ftr__cta",
     ".ftr__copy",
-    "#theme-toggle",
-    "#cube-chat-fab",
     ".nextscroll__pin",
+    /* ── THE CORNER CLUSTER IS DELIBERATELY NOT IN THIS LIST ────────────
+       Sid: "I feel like the magnetic thing is happening like crazy. It's way
+       too much because the bottom-right theme, audio, and cube icons are so
+       close together. It's kind of like the magnetic is making me not able to
+       click something I want to do nicely."
+
+       He is describing a real failure, not a taste. Those three sit about
+       eight pixels apart, so their 120px radii overlap almost completely:
+       approaching any one of them pulls all three, each toward a slightly
+       different point, and the thing you were aiming at moves out from under
+       the cursor as you arrive. Magnetism works on targets with space around
+       them and actively fights targets that are stacked. #theme-toggle and
+       #cube-chat-fab are out. */
   ].join(",");
 
-  var RADIUS = 120;
-  var STRENGTH = 0.32;
+  /* Softened with them. 120/0.32 was tuned against a wide CTA; on a nav item
+     it was enough to make a row of links feel loose. */
+  var RADIUS = 96;
+  var STRENGTH = 0.24;
   /* Capped so a control never leaves its own footprint far enough to look
      detached from the thing it labels. */
-  var MAX = 14;
+  var MAX = 10;
   var EASE = 0.14;
 
   var items = [];

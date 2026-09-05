@@ -486,19 +486,20 @@
       visible = true,
       raf = 0;
 
-    var label = document.createElement("span");
-    label.className = "ide__mode";
-    label.textContent = MODES[0];
-    host.appendChild(label);
+    /* ── NO MODE LABEL ─────────────────────────────────────────────────
+       Sid: "u dont need to mention the type of mode on the particles pic of
+       me - this is exactly ther useless text i was talking about - that text
+       mightbee been for me when we were trouble shooting why the fuck would
+       a recruiter care what mode they care about the experience."
+
+       Right, and the history is exactly that: it named DUST, HALFTONE, WEAVE,
+       TOPO, SHARDS and RAIN so I could tell which shader was running while
+       building the thing. It is a debug readout that survived into the page.
+       The modes still cycle on click; they just stop announcing themselves. */
 
     function setMode(next) {
       mode = next % MODES.length;
       burst = 1;
-      label.textContent = MODES[mode];
-      label.classList.remove("is-hit");
-      /* restart the flash */
-      void label.offsetWidth;
-      label.classList.add("is-hit");
     }
 
     /* Where the pointer is on the plate, in the same 0..1 space the shader
@@ -539,7 +540,18 @@
       want = 1;
     });
     host.addEventListener("pointerleave", function () {
-      want = 0;
+      /* ── IT STAYS RESOLVED ───────────────────────────────────────────
+         Sid: "once i enable the particles even when i move out of frame let
+         the shape be enabled not go back to particles."
+
+         It used to set `want = 0` here, so the portrait fell back to dust the
+         instant the pointer left -- which means the only way to look at the
+         photograph was to keep the cursor on it, and you cannot read the
+         column of text beside it at the same time. Now the reveal is a latch:
+         once you have brought him out of the particles he stays out.
+
+         The LENS still lets go, because that one is a pointer effect and a
+         magnifier with no pointer under it is a smudge. */
       lensTo = 0;
     });
     host.addEventListener("pointerdown", function () {

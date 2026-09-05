@@ -1687,6 +1687,63 @@ include film_grade.html %}
       justify-content: flex-start;
     }
   }
+  /* The city sits in the same row as the links and is deliberately not one:
+     same size, same tracking, no underline on hover, one step quieter. It is
+     the only item in the row that does not go anywhere. */
+  .ftr__where {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    font: var(--type-micro);
+    letter-spacing: var(--track-micro);
+    text-transform: uppercase;
+    color: var(--ink-4, rgba(244, 247, 251, 0.44));
+  }
+  /* ── THE SIGN-OFF ──────────────────────────────────────────────────────
+     The heart is the only glyph on this site that is purely warm, so it is
+     small, it is outlined rather than filled, and it beats once every eight
+     seconds rather than continuously -- a heart that never stops is a loading
+     spinner. */
+  .ftr__made {
+    margin: 14px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font: var(--type-micro);
+    letter-spacing: var(--track-micro);
+    text-transform: uppercase;
+    color: var(--ink-4, rgba(244, 247, 251, 0.44));
+  }
+  .ftr__heart {
+    font-size: 12px;
+    line-height: 1;
+    color: var(--accent-ink, #9fd0ff);
+    animation: ftrBeat 8s ease-in-out infinite;
+  }
+  @keyframes ftrBeat {
+    0%,
+    88%,
+    100% {
+      transform: scale(1);
+    }
+    92% {
+      transform: scale(1.28);
+    }
+    95% {
+      transform: scale(1.04);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__heart {
+      animation: none;
+    }
+  }
+  @media (max-width: 760px) {
+    .ftr__made {
+      justify-content: flex-start;
+    }
+  }
+
   .ftr__nav a {
     color: var(--ink-3, rgba(244, 247, 251, 0.64));
     text-decoration: none;
@@ -1890,11 +1947,120 @@ include film_grade.html %}
     animation: soundWave 1.1s ease-in-out infinite;
     animation-delay: calc(var(--i) * 0.09s);
   }
+  /* ── ONE LINE, NOT A MONOGRAM ──────────────────────────────────────────
+     Sid: "the icons for the audio: can you just make it a simple line? It
+     doesn't need to be this massive audio monogram with five lines. Just a
+     simple line, which, when enabled, becomes a simple two-curved line, and
+     when it's not, it's just a simple line horizontally."
+
+     Exactly that. The five bars are still in the markup -- sound.js builds
+     them and drives .is-playing off them -- but they are not drawn any more.
+     What is drawn is the container: a 16px rule when sound is off, and two
+     arcs when it is on, which is the universal shape for something sounding
+     and reads at 48px in a way five 2px bars never did.
+
+     The arcs are borders on a rotated square with three sides removed, which
+     is the cheapest way to get a true arc with a round cap and no SVG. */
   .sound-wave {
-    display: flex;
-    align-items: center;
-    gap: 3px;
+    position: relative;
+    display: block;
+    width: 18px;
     height: 18px;
+  }
+  /* OFF: one horizontal rule through the middle. */
+  .sound-wave::before {
+    content: "";
+    position: absolute;
+    left: 1px;
+    right: 1px;
+    top: 50%;
+    height: 1.5px;
+    margin-top: -0.75px;
+    border-radius: 1px;
+    background: currentColor;
+    transition:
+      opacity 0.26s ease,
+      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* ON: the rule gives way to two arcs opening rightward. */
+  .sound-toggle.is-on .sound-wave::before {
+    opacity: 0;
+    transform: scaleX(0.3);
+  }
+  .sound-wave::after {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    margin-top: -3.5px;
+    border: 1.5px solid currentColor;
+    border-left-color: transparent;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 0.26s ease 0.06s,
+      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1) 0.06s;
+  }
+  .sound-toggle.is-on .sound-wave::after {
+    opacity: 1;
+    transform: scale(1);
+  }
+  /* The second, larger arc. Drawn on the button rather than the wave because
+     both pseudo-elements of .sound-wave are already spent. */
+  .sound-toggle::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 13px;
+    height: 13px;
+    margin: -6.5px 0 0 -6px;
+    border: 1.5px solid currentColor;
+    border-left-color: transparent;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+      opacity 0.26s ease 0.12s,
+      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
+    pointer-events: none;
+  }
+  .sound-toggle.is-on::after {
+    opacity: 0.75;
+    transform: scale(1);
+  }
+  /* While something is actually sounding the outer arc breathes. This is the
+     one piece of motion kept from the old level-meter idea, and it is honest
+     now: it only runs when audio is playing. */
+  .sound-toggle.is-on.is-playing::after {
+    animation: soundArc 1.5s ease-in-out infinite;
+  }
+  @keyframes soundArc {
+    0%,
+    100% {
+      opacity: 0.4;
+      transform: scale(0.92);
+    }
+    50% {
+      opacity: 0.85;
+      transform: scale(1.08);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sound-toggle.is-on.is-playing::after {
+      animation: none;
+    }
+  }
+  /* The five bars stay in the DOM and stop being drawn. */
+  .sound-wave i {
+    display: none !important;
   }
   .sound-wave i {
     display: block;
@@ -2871,24 +3037,24 @@ wall and the Buddha all sit inside the one `
            this was last true. Right-aligned so the two columns close the frame
            rather than both leaning left. -->
         <div class="ftr__ref">
-          <nav class="ftr__nav" aria-label="Footer navigation">
-            <a href="{{ site.baseurl }}/works/">Work</a>
-            <a href="{{ site.baseurl }}/play/">Play</a>
-            <a href="{{ site.baseurl }}/about/">About</a>
-            <a href="{{ site.baseurl }}/contact/">Contact</a>
-          </nav>
-          <nav class="ftr__nav ftr__nav--out" aria-label="Profiles">
+          {% comment %} ── ONE LINE, AND ONLY THE THINGS THAT LEAVE THE SITE ────────────────── Sid: "We don't need links to work, play, about,
+          contact, LinkedIn, and Instagram. Maybe just LinkedIn, Instagram, Behance, resume, and New York. We don't need the work, play, about,
+          contact line ... also have 'Built with love' on the bottom right ... make it a little bit more personal." The Work / Play / About / Contact
+          row was the navigation printed a second time. It is in the bar at the top of every screen on this site, including this one, and a footer
+          that repeats the nav is a footer explaining how to use a page the reader has already used. What is left is the four destinations that are
+          NOT on this site, plus the city -- everything here now takes you somewhere the nav cannot. The clock went with it. A live time in a footer
+          is a party trick that says nothing a recruiter needs; "New York" says the useful half of it and stays still. {% endcomment %}
+          <nav class="ftr__nav ftr__nav--out" aria-label="Elsewhere">
             <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
             <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram</a>
             <a href="https://www.behance.net/siddharthmehta" target="_blank" rel="noopener noreferrer">Behance</a>
             <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>
+            <span class="ftr__where">New York</span>
           </nav>
 
-          <p class="ftr__meta">
-            <span>New York</span>
-            <span id="site-footer-time"></span>
-            <span>Updated {{ site.time | date: "%b %Y" }}</span>
-          </p>
+          {% comment %} Sid: "also have 'Built with love' on the bottom right ... make it a little bit more personal." The one line on this page that
+          is not a fact or a destination. It sits under the row rather than beside it so the links stay a clean single line. {% endcomment %}
+          <p class="ftr__made">Built with love<span class="ftr__heart" aria-hidden="true">&#9825;</span></p>
         </div>
 
         <!-- ── THE SHELF ───────────────────────────────────────────────────
@@ -4241,10 +4407,12 @@ wall and the Buddha all sit inside the one `
   </script>
 
   <script src="{{ site.baseurl }}/assets/js/collect.js" defer></script>
-  <!-- The pointer lights a field of pixels on the ground. Replaces both the
-     row of squares that used to sit above this footer and the fluid shader
-     that used to sit behind the page. See assets/js/pixel-field.js. -->
-  <script src="{{ site.baseurl }}/assets/js/pixel-field.js" defer></script>
+  {% comment %} The pixel field is off. Sid: "I don't want any of that pixel hover. Just remove that pixel hover and instead just make it a sort of
+  wind or a light movement." It was the second answer to the same brief -- first a row of squares above the footer, then a field of them lit around
+  the cursor -- and the note in that file argued the field was the honest version of "pixel art". It is still a grid of squares switching on and off
+  under the pointer, and a grid switching on and off reads as a readout however it is drawn. What he keeps asking for is MOVEMENT, not marks. What
+  replaces it is assets/js/wind.js. assets/js/pixel-field.js stays in the repo and nothing loads it. {% endcomment %}
+  <script src="{{ site.baseurl }}/assets/js/wind.js" defer></script>
   <!-- Controls lean toward the cursor as it approaches. Loaded from the shared
      footer so every page's buttons behave the same way; it costs one
      pointermove listener and a rAF loop that stops when nothing is moving.
