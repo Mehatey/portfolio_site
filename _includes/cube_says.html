@@ -504,168 +504,29 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
     }
 
     /* ── SAMPLING THE COVER ───────────────────────────────────────────────
-       One 28x28 canvas reused for every card. Downsampling to 784 pixels is
-       the quantisation: the browser's own image scaler averages each region
-       for us, so what comes back is already the picture's broad colours
-       rather than its noise, and the whole read is under a millisecond.
-
-       Near-black and near-white are dropped before counting. Almost every
-       cover on this site is a UI screenshot on a dark page, so without that
-       filter all sixteen projects return the same four greys and the strip
-       says nothing. What is wanted is what makes this cover different from
-       the next one, which is its chroma, not its ground. */
+       Moved out to assets/js/hue.js. It was written here first, and the
+       moment the cursor panel and the photo-strip field wanted the same
+       read, the choice was to copy forty lines of colour science twice or to
+       move them once. Three copies drift, and then two parts of one page
+       disagree about what colour a photograph is. The note at the top of
+       that file explains why the score is chroma rather than population. */
     var hueEl = el.querySelector(".cube-says__hues");
-    var swatchCache = Object.create(null);
-    var sampler = null;
 
-    function paletteOf(img) {
-      var key = img.currentSrc || img.src;
-      if (!key) return null;
-      if (swatchCache[key]) return swatchCache[key];
-      if (!img.complete || !img.naturalWidth) return null;
-      if (!sampler) {
-        sampler = document.createElement("canvas");
-        sampler.width = sampler.height = 40;
-      }
-      var c = sampler.getContext("2d", { willReadFrequently: true });
-      if (!c) return null;
-      var data;
-      try {
-        c.clearRect(0, 0, 40, 40);
-        c.drawImage(img, 0, 0, 40, 40);
-        data = c.getImageData(0, 0, 40, 40).data;
-      } catch (err) {
-        /* A cross-origin cover taints the canvas. Nothing to show, and the
-           null is cached so it is not attempted again on every hover. */
-        swatchCache[key] = null;
-        return null;
-      }
+    /* ── HOW MANY ──────────────────────────────────────────────────────
+       Sid: "I want more colours, maybe all colours to be shown there."
 
-      /* ── FREQUENCY IS THE WRONG SCORE ──────────────────────────────────
-         First pass took the four commonest bins and returned, for Mool, a
-         dark navy and two browns: the covers are photographs, so the most
-         common colour in one is almost always its shadow. What the strip is
-         for is the difference between one project and the next, and that
-         lives in the chroma, not the mass.
-
-         So a bin's score is its count weighted by saturation and by how far
-         its lightness sits from either end. A large dull region and a small
-         vivid one now compete on even terms, which is the judgement a person
-         makes when they say what colour something is. */
-      var bins = Object.create(null);
-      for (var i = 0; i < data.length; i += 4) {
-        if (data[i + 3] < 200) continue;
-        var r = data[i],
-          g = data[i + 1],
-          b = data[i + 2];
-        var mx = Math.max(r, g, b),
-          mn = Math.min(r, g, b);
-        if (mx < 52 || mn > 236) continue;
-        if (mx - mn < 16) continue;
-        var k = ((r >> 5) << 6) | ((g >> 5) << 3) | (b >> 5);
-        var bin = bins[k] || (bins[k] = { n: 0, r: 0, g: 0, b: 0 });
-        bin.n++;
-        bin.r += r;
-        bin.g += g;
-        bin.b += b;
-      }
-
-      var list = [];
-      for (var key2 in bins) {
-        var q = bins[key2];
-        if (q.n < 3) continue;
-        q.r = Math.round(q.r / q.n);
-        q.g = Math.round(q.g / q.n);
-        q.b = Math.round(q.b / q.n);
-        var qmx = Math.max(q.r, q.g, q.b),
-          qmn = Math.min(q.r, q.g, q.b);
-        var sat = qmx ? (qmx - qmn) / qmx : 0;
-        var lum = (qmx + qmn) / 510;
-        /* Peaks at mid lightness, falls off toward black and toward white. */
-        var lit = 1 - Math.abs(lum - 0.56) * 1.7;
-        q.score = q.n * (0.25 + sat * 1.9) * Math.max(0.15, lit);
-        list.push(q);
-      }
-      list.sort(function (a, z) {
-        return z.score - a.score;
-      });
-
-      var out = [];
-      for (var j = 0; j < list.length && out.length < 4; j++) {
-        var c2 = list[j];
-        /* Four squares that are four shades of the same blue is a gradient,
-           not a palette. A candidate within 70 of one already chosen is the
-           same colour as far as the eye at the top of the window is
-           concerned, so it is skipped for the next distinct one. */
-        var near = false;
-        for (var m = 0; m < out.length; m++) {
-          var o = out[m];
-          if (Math.abs(o[0] - c2.r) + Math.abs(o[1] - c2.g) + Math.abs(o[2] - c2.b) < 70) {
-            near = true;
-            break;
-          }
-        }
-        if (near) continue;
-        out.push([c2.r, c2.g, c2.b]);
-      }
-      /* ── AND IF THE COVER IS SIMPLY DARK ───────────────────────────────
-         Marriott's cover is a dashboard on near-black and it returned one
-         chip. Rather than show a lonely square, the shortfall is filled from
-         the same bins with the chroma test dropped: a neutral strip is the
-         honest answer for a neutral picture, and it still differs from the
-         next project's. */
-      if (out.length < 3) {
-        var all = [];
-        for (var k2 in bins) all.push(bins[k2]);
-        all.sort(function (a, z) {
-          return z.n - a.n;
-        });
-        for (var n2 = 0; n2 < all.length && out.length < 4; n2++) {
-          var c3 = all[n2];
-          var far = true;
-          for (var m2 = 0; m2 < out.length; m2++) {
-            if (Math.abs(out[m2][0] - c3.r) + Math.abs(out[m2][1] - c3.g) + Math.abs(out[m2][2] - c3.b) < 70) far = false;
-          }
-          if (far) out.push([c3.r, c3.g, c3.b]);
-        }
-      }
-
-      /* ── THE CHIPS ARE A READING, NOT AN AVERAGE ───────────────────────
-         A mean over a bin of photograph pixels always drifts toward mud, and
-         four mud squares at the top of the window say nothing at all. Each
-         chip keeps the HUE it was sampled at and is brought up to a floor of
-         saturation and into a usable band of lightness -- which is exactly
-         what a person does when they pull a palette off an image by eye. A
-         genuinely neutral sample stays neutral, because a hueless colour has
-         no hue to bring up. */
-      out = out.map(function (o) {
-        var r = o[0] / 255,
-          g = o[1] / 255,
-          b = o[2] / 255;
-        var mx = Math.max(r, g, b),
-          mn = Math.min(r, g, b);
-        var l = (mx + mn) / 2,
-          d = mx - mn,
-          h = 0,
-          sat = 0;
-        if (d) {
-          sat = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
-          if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-          else if (mx === g) h = ((b - r) / d + 2) / 6;
-          else h = ((r - g) / d + 4) / 6;
-        }
-        if (sat > 0.08) sat = Math.min(0.82, Math.max(0.42, sat * 1.35));
-        l = Math.min(0.72, Math.max(0.44, l * 1.25));
-        return "hsl(" + (h * 360).toFixed(0) + " " + (sat * 100).toFixed(0) + "% " + (l * 100).toFixed(0) + "%)";
-      });
-      swatchCache[key] = out.length ? out : null;
-      return swatchCache[key];
-    }
+       Ten, not four, and not all of them -- "all" is a few thousand and the
+       honest version of it is a gradient, which says nothing. Ten is the
+       most the strip can hold before it stops being a palette you can read
+       at a glance and starts being a bar. hue.js relaxes its own
+       distinctness threshold as the count goes up, so the tenth chip is a
+       real near-miss rather than a duplicate of the second. */
+    var HUE_N = 10;
 
     function showHues(card) {
       if (!hueEl) return;
-      var img = card.querySelector("img");
-      var cols = img ? paletteOf(img) : null;
+      var img = window.SidHue && window.SidHue.pictureIn(card);
+      var cols = img ? window.SidHue.palette(img, HUE_N) : null;
       hueEl.textContent = "";
       if (!cols) return;
       for (var i = 0; i < cols.length; i++) {

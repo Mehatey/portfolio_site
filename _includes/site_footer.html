@@ -2126,6 +2126,123 @@ include film_grade.html %}
       transform: none;
     }
   }
+
+  /* ══ THE CURSOR'S OWN PANEL ════════════════════════════════════════════
+     Sid: "not button-like pill but a creative voice box with personality."
+
+     So: no pill, no plate, no border box. What holds it together is an
+     asymmetric blob -- four different corner radii, which is the cheapest
+     way to make a shape read as drawn rather than as a component -- over a
+     backdrop blur at low alpha, with a hairline that catches light on one
+     edge only. It has a tail, because a voice needs a speaker, and the tail
+     points back at the pointer that summoned it.
+
+     Positioned by transform from the top left, so the script can spring it
+     without fighting the layout. */
+  .curhue {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9500;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 15px 9px 12px;
+    max-width: 340px;
+    pointer-events: none;
+    /* Uneven on purpose. Equal radii make a pill; this makes a shape. */
+    border-radius: 16px 16px 16px 5px;
+    background: linear-gradient(150deg, rgba(126, 165, 208, 0.16), rgba(8, 12, 20, 0.62) 62%, rgba(88, 132, 180, 0.12));
+    -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(0.92);
+    backdrop-filter: blur(22px) saturate(1.7) brightness(0.92);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 20px 46px -22px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    transform-origin: 0 100%;
+    scale: 0.86;
+    transition:
+      opacity 260ms cubic-bezier(0.16, 1, 0.3, 1),
+      scale 380ms cubic-bezier(0.22, 1.2, 0.36, 1);
+    will-change: transform;
+  }
+  .curhue.is-in {
+    opacity: 1;
+    scale: 1;
+  }
+  /* The tail. A rotated square tucked under the lower-left corner, which is
+     the corner the radius already flattens for it. */
+  .curhue::after {
+    content: "";
+    position: absolute;
+    left: 7px;
+    bottom: -4px;
+    width: 11px;
+    height: 11px;
+    border-radius: 2px 0 3px 0;
+    background: rgba(10, 15, 24, 0.72);
+    box-shadow: 1px 1px 0 rgba(255, 255, 255, 0.08);
+    transform: rotate(45deg) skew(6deg, 6deg);
+  }
+  .curhue__chips {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+  }
+  .curhue__chips i {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    background: var(--c);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 2px 7px -3px var(--c);
+    animation: curhue-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 46ms);
+  }
+  @keyframes curhue-pop {
+    from {
+      opacity: 0;
+      transform: translateY(4px) scale(0.4);
+      border-radius: 50%;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      border-radius: 4px;
+    }
+  }
+  .curhue__say {
+    font-family: var(--font-sans, inherit);
+    font-style: italic;
+    font-size: 12.5px;
+    line-height: 1.25;
+    letter-spacing: 0.005em;
+    color: rgba(236, 241, 247, 0.82);
+    white-space: nowrap;
+  }
+  .curhue__say:empty {
+    display: none;
+  }
+  html[data-theme="light"] .curhue {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.88), rgba(226, 236, 246, 0.72));
+    -webkit-backdrop-filter: blur(22px) saturate(1.4);
+    backdrop-filter: blur(22px) saturate(1.4);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 0 0 1px rgba(24, 48, 78, 0.12),
+      0 18px 40px -22px rgba(24, 48, 78, 0.4);
+  }
+  html[data-theme="light"] .curhue::after {
+    background: rgba(240, 246, 252, 0.92);
+    box-shadow: 1px 1px 0 rgba(24, 48, 78, 0.08);
+  }
+  html[data-theme="light"] .curhue__say {
+    color: rgba(20, 28, 40, 0.8);
+  }
 </style>
 
 <!-- No record contains a space: multi-word facts are written with `~` and put
@@ -4391,6 +4508,12 @@ wall and the Buddha all sit inside the one `
      pointermove listener and a rAF loop that stops when nothing is moving.
      See assets/js/magnetic.js. -->
   <script src="{{ site.baseurl }}/assets/js/magnetic.js" defer></script>
+
+  {% comment %} The colour reader, and the cursor that uses it. hue.js is a plain module with no side effects and must load first; cursor-hue.js is
+  the panel that follows the pointer, and the photo-strip field in strip-hue.js reads the same palettes. See the note at the top of assets/js/hue.js
+  for why this is one shared file rather than three copies of the same colour science. {% endcomment %}
+  <script src="{{ site.baseurl }}/assets/js/hue.js" defer></script>
+  <script src="{{ site.baseurl }}/assets/js/cursor-hue.js" defer></script>
   <script>
     /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
      Sets `body.controls-near`, which site_footer's stylesheet has referenced
