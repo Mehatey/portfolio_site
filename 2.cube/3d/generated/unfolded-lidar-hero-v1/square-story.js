@@ -13,6 +13,9 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPrefere
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
+// Documentary images render after the cinematic pass. This keeps their source
+// pixels clear of bloom, RGB splitting, motion blur, contrast, and vignette.
+const photoScene = new THREE.Scene();
 // Soft environmental lighting supports the reflective cube without turning it
 // into a chrome product render.
 scene.add(new THREE.HemisphereLight(0xdff8ff, 0x16333a, 2.2));
@@ -88,6 +91,11 @@ const background = new THREE.ShaderMaterial({
     float cloudChapter=smoothstep(.18,.27,progress)*(1.-smoothstep(.43,.52,progress));
     float cloud=smoothstep(.61,.82,fbm(vec2(vUv.x*2.1-time*.012,vUv.y*.9+6.)));
     col=mix(col,vec3(.74,.79,.79),cloud*cloudChapter*.10);
+    // Give the unfolding identity a calm pocket without adding a card, glow,
+    // or artificial spotlight. The watercolor remains visible at the edges.
+    vec2 stage=(vUv-.5)*vec2(aspect,1.);float quiet=exp(-dot(stage,stage)*1.75);
+    float netChapter=smoothstep(.018,.07,progress)*(1.-smoothstep(.33,.44,progress));
+    col=mix(col,vec3(.075,.20,.245),quiet*netChapter*.16);
     gl_FragColor=vec4(col,1.);
   }`,
 });
@@ -243,14 +251,14 @@ void main(){
   gl_FragColor=vec4(col,1.);
 }`;
 
-const bases = ["#e5ddd0", "#172f66", "#263f65", "#d7d4cc", "#4c65a6", "#b8aa92"];
-const accents = ["#99a8a4", "#5c79ad", "#6580a0", "#8b9895", "#273f79", "#71817b"];
+const bases = ["#e5ddd0", "#c9d0cb", "#263f65", "#d8d9d1", "#334f98", "#9fb7ad"];
+const accents = ["#99a8a4", "#8ea2a4", "#6580a0", "#7f9894", "#7489c5", "#587a76"];
 const panels = [],
   chips = [],
   uniforms = [];
 const imageFaces = [];
 const grid = 8; // Legacy chip geometry remains dormant; the authored ending uses continuous lines.
-const panelGeometry = new THREE.BoxGeometry(2.5, 2.5, 0.036, 24, 24, 1);
+const panelGeometry = new THREE.BoxGeometry(2.5, 2.5, 0.012, 24, 24, 1);
 panelGeometry.setAttribute("aTile", new THREE.Float32BufferAttribute(new Float32Array(panelGeometry.attributes.position.count * 3), 3));
 for (let face = 0; face < 6; face++) {
   const u = {
@@ -286,7 +294,7 @@ for (let face = 0; face < 6; face++) {
   root.add(group);
   panels.push(group);
   uniforms.push(u);
-  const geo = new THREE.BoxGeometry(2.5 / grid, 2.5 / grid, 0.036, 1, 1, 1);
+  const geo = new THREE.BoxGeometry(2.5 / grid, 2.5 / grid, 0.012, 1, 1, 1);
   const tile = new Float32Array(grid * grid * 3);
   for (let y = 0; y < grid; y++)
     for (let x = 0; x < grid; x++) {
@@ -316,15 +324,18 @@ const addImageFace = (face, path) => {
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
   const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, depthWrite: true, toneMapped: false, side: THREE.FrontSide });
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.54, 2.54), material);
-  mesh.position.z = 0.032;
+  const anchor = new THREE.Object3D();
+  anchor.position.z = 0.045;
+  panels[face].add(anchor);
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.62, 2.62), material);
+  mesh.matrixAutoUpdate = false;
   mesh.userData.face = face;
-  panels[face].add(mesh);
-  imageFaces.push({ face, mesh, material });
+  photoScene.add(mesh);
+  imageFaces.push({ face, anchor, mesh, material });
 };
-addImageFace(2, "./assets/sid-eye-clean.png");
+addImageFace(2, "./assets/sid-eye-natural.png?v=2");
 // The scan is the final tile in the reading order, beyond the three practices.
-addImageFace(1, "./assets/sid-brain-clean.png");
+addImageFace(1, "./assets/sid-brain-face.jpg");
 
 // Inside is a compact moving archive. Each clip is cropped to cover its wall,
 // muted, and only exposed from within the cube.
@@ -387,21 +398,20 @@ root.add(logoMark);
 
 // Typography belongs to the geometry, so perspective and occlusion stay honest.
 // Each practice behaves like a quiet periodic-table specimen: index, symbol,
-// discipline, descriptor, and one small discipline-specific construction.
+// and discipline only. Restraint keeps the three tiles readable in motion.
 const disciplineLabels = [];
 new FontLoader().load(
   "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/fonts/helvetiker_regular.typeface.json",
   (font) => {
     const specs = [
-      { face: 4, number: "01", symbol: "PD", lines: ["PRODUCT", "DESIGN"], descriptor: "OBJECT / INTERFACE" },
-      { face: 5, number: "02", symbol: "BD", lines: ["BRAND", "DESIGN"], descriptor: "VOICE / IDENTITY" },
-      { face: 3, number: "03", symbol: "CT", lines: ["CREATIVE", "TECHNOLOGY"], descriptor: "CODE / SPACE / MOTION" },
+      { face: 4, number: "01", symbol: "PD", lines: ["PRODUCT", "DESIGN"] },
+      { face: 5, number: "02", symbol: "BD", lines: ["BRAND", "DESIGN"] },
+      { face: 3, number: "03", symbol: "CT", lines: ["CREATIVE", "TECHNOLOGY"] },
     ];
     for (const spec of specs) {
       const label = new THREE.Group();
       const material = new THREE.MeshBasicMaterial({ color: 0xf4efdf, transparent: true, opacity: 0, toneMapped: false });
       const sideMaterial = new THREE.MeshBasicMaterial({ color: 0xbab7ae, transparent: true, opacity: 0, toneMapped: false });
-      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xf4efdf, transparent: true, opacity: 0, toneMapped: false });
       sideMaterial.color.multiplyScalar(0.65);
       const addText = (text, size, x, y) => {
         const geometry = new TextGeometry(text, { font, size, depth: 0.008, curveSegments: 6, bevelEnabled: false });
@@ -411,31 +421,9 @@ new FontLoader().load(
       };
       addText(spec.number, 0.115, -1.04, 0.96);
       addText(spec.symbol, 0.48, -1.06, 0.24);
-      addText(spec.descriptor, 0.072, -1.03, -0.26);
-      spec.lines.forEach((line, i) => addText(line, 0.16, -1.04, -0.69 - i * 0.23));
-
-      const z = 0.064;
-      let icon;
-      if (spec.face === 4) {
-        // Product: nested interface/object frames.
-        icon = [[0.42,0.74,1.02,0.74],[1.02,0.74,1.02,0.14],[1.02,0.14,0.42,0.14],[0.42,0.14,0.42,0.74],[0.56,0.60,0.88,0.60],[0.88,0.60,0.88,0.28],[0.88,0.28,0.56,0.28],[0.56,0.28,0.56,0.60]];
-      } else if (spec.face === 5) {
-        // Brand: a modular identity mark with a controlled offset.
-        icon = [[0.42,0.72,0.96,0.72],[0.42,0.52,0.82,0.52],[0.42,0.32,1.04,0.32],[0.42,0.12,0.72,0.12],[0.96,0.72,0.96,0.52],[0.82,0.52,0.82,0.32],[1.04,0.32,1.04,0.12]];
-      } else {
-        // Creative technology: a small node system, not a generic tech glyph.
-        icon = [[0.44,0.70,0.72,0.48],[0.72,0.48,1.02,0.67],[0.72,0.48,0.98,0.18],[0.44,0.70,0.48,0.20],[0.48,0.20,0.98,0.18]];
-      }
-      const points = [];
-      for (const segment of icon) points.push(new THREE.Vector3(segment[0], segment[1], z), new THREE.Vector3(segment[2], segment[3], z));
-      label.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), lineMaterial));
-      for (const [x, y] of [[0.44,0.70],[0.72,0.48],[0.98,0.18]]) {
-        const dot = new THREE.Mesh(new THREE.CircleGeometry(0.027, 16), material);
-        dot.position.set(x, y, z + 0.002);
-        label.add(dot);
-      }
+      spec.lines.forEach((line, i) => addText(line, 0.16, -1.04, -0.58 - i * 0.23));
       panels[spec.face].add(label);
-      disciplineLabels.push({ group: label, material, sideMaterial, lineMaterial, materials: [material, sideMaterial, lineMaterial], face: spec.face, ink: material.color.clone() });
+      disciplineLabels.push({ group: label, material, sideMaterial, materials: [material, sideMaterial], face: spec.face, ink: material.color.clone() });
     }
   },
   undefined,
@@ -691,7 +679,9 @@ function pose(p) {
   const shellOpen = ease(0.735, 0.86, p);
   const door = ease(0.48, 0.555, p) * (1 - ease(0.84, 0.90, p));
   const dock = ease(0.885, 0.985, p);
-  const netScale = mix(1.03, 0.58, ease(0.02, 0.22, p));
+  // Start intimate, then retain enough scale for the details to read once all
+  // six sides are present. The former 0.58 endpoint felt like a thumbnail.
+  const netScale = mix(1.11, 0.70, ease(0.02, 0.22, p));
   const baseScale = mix(netScale, 1.08, fold) * (1 + cubeHold * 0.12);
   const responsive = Math.min(1, camera.aspect / 0.98);
   const logoScale = (innerWidth < 700 ? 0.23 : 0.19) * responsive;
@@ -744,9 +734,10 @@ function pose(p) {
   }
   for (const image of imageFaces) {
     const facePeel = ease(0.74 + peelDelay[image.face], 0.855 + peelDelay[image.face], p);
-    // Geometry growth performs the reveal. Keep photographs fully opaque so
-    // the blue substrate and post stack cannot contaminate their pixels.
-    const alpha = (growth[image.face] > 0.001 ? 1 : 0) * (1 - ease(0.48, 0.56, p)) * (1 - facePeel);
+    // Eye remains source-opaque. MRI fades in only after its hinged panel has
+    // meaningful width, preventing its black field from reading as an eye border.
+    const sourceAlpha = image.face === 1 ? ease(0.68, 0.96, growth[image.face]) : growth[image.face] > 0.001 ? 1 : 0;
+    const alpha = sourceAlpha * (1 - ease(0.48, 0.56, p)) * (1 - facePeel);
     image.mesh.visible = alpha > 0.001;
     image.material.opacity = alpha;
   }
@@ -794,6 +785,7 @@ function animate() {
   pointer.lerp(onCanvas ? pointerTarget : centeredPointer, 1 - Math.exp(-5 * dt));
   pose(progress);
   scene.updateMatrixWorld(true);
+  for (const image of imageFaces) image.mesh.matrix.copy(image.anchor.matrixWorld);
   pickFace();
   document.body.classList.toggle("over-cube", hover >= 0);
   document.body.classList.toggle("dragging", dragging);
@@ -822,12 +814,11 @@ function animate() {
     u.uAwake.value = awake;
   }
   for (const label of disciplineLabels) {
-    const base = colorTargets[label.face].base;
+    const base = uniforms[label.face].uBase.value;
     const luminance = base.r * 0.2126 + base.g * 0.7152 + base.b * 0.0722;
     label.ink.set(luminance < 0.34 ? 0xf4efdf : 0x112d3c);
     label.material.color.lerp(label.ink, 1 - Math.exp(-3 * dt));
     label.sideMaterial.color.copy(label.material.color).multiplyScalar(0.65);
-    label.lineMaterial.color.copy(label.material.color);
   }
   for (let i = pondResponses.length - 1; i >= 0; i--) {
     const boat = pondResponses[i];
@@ -855,6 +846,10 @@ function animate() {
   finish.uniforms.time.value = reduced ? 0 : time;
   finish.uniforms.velocity.value = reduced ? 0 : scrollVelocity;
   composer.render();
+  renderer.autoClear = false;
+  renderer.clearDepth();
+  renderer.render(photoScene, camera);
+  renderer.autoClear = true;
   requestAnimationFrame(animate);
 }
 animate();

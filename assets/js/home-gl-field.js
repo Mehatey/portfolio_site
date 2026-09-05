@@ -52,7 +52,14 @@ window.__fieldSim = (function () {
   /* 256x256 = 65,536 particles. The texture is square because a simulation
      target must be, and the count follows from the texture rather than the
      other way round. */
-  var SIDE = 256;
+  /* ── MORE OF THEM ─────────────────────────────────────────────────────
+     Sid: "make the particles better and more and better designed."
+
+     256 to 340 a side: 65,536 becomes 115,600. The simulation is on the GPU
+     and the cost is per texel, so the count is close to free -- what it buys
+     is density, and density is what turns a scatter of dots into a volume you
+     can see the shape of. */
+  var SIDE = 340;
   var N = SIDE * SIDE;
 
   var host = null,
@@ -176,11 +183,19 @@ window.__fieldSim = (function () {
     "  vec3 p = s.xyz;",
     "  gl_Position = vec4(p.x / u_aspect, p.y, 0.0, 1.0);",
     "  float depth = 0.5 + 0.5 * p.z;",
-    "  gl_PointSize = u_size * mix(0.5, 2.0, depth);",
+    /* A much wider size spread than mix(0.5, 2.0). A field where every point
+       is nearly the same size reads as noise at one distance; one where the
+       near points are five times the far ones reads as a volume. The cube
+       makes the falloff steep, so most points are small and a few are close. */
+    "  float near = pow(depth, 3.0);",
+    "  gl_PointSize = u_size * mix(0.35, 3.4, near);",
     /* Fades in and out with age, so a respawn is a particle appearing rather
        than a particle jumping. */
     "  float fade = smoothstep(0.0, 0.12, s.w) * smoothstep(1.0, 0.82, s.w);",
-    "  v_fade = mix(0.05, 0.42, depth) * fade * (1.0 - smoothstep(0.8, 1.25, length(p.xy)));",
+    /* Brighter, and biased toward the near points, so the volume has a lit
+       face instead of being uniformly dim. It was 0.05 to 0.42, which
+       photographed as grey dust. */
+    "  v_fade = mix(0.06, 0.78, near) * fade * (1.0 - smoothstep(0.85, 1.3, length(p.xy)));",
     "  v_seed = float(id) * 0.0000153;",
     "}",
   ].join("\n");
@@ -197,9 +212,23 @@ window.__fieldSim = (function () {
     "  float r = dot(c, c) * 4.0;",
     "  if (r > 1.0) discard;",
     "  float a = (1.0 - r) * v_fade;",
-    "  vec3 warm = vec3(1.00, 0.86, 0.68);",
-    "  vec3 cool = vec3(0.30, 0.46, 0.72);",
-    "  vec3 col = mix(cool, warm, smoothstep(0.3, 0.8, fract(v_seed)));",
+    /* ── THE SITE'S OWN PALETTE, NOT SAND ──────────────────────────────
+       It was a cream and a slate mixed by seed, which over a black page is
+       grey dust with a warm tint. Three stops from the palette everything
+       else here runs on -- ice blue, warm yellow, light crimson -- assigned
+       by seed so the volume has colour running through it rather than being
+       one hue at two temperatures. No violet in the ramp: the yellow sits
+       between the blue and the crimson so they cannot interpolate through
+       magenta.
+
+       The core of each point is pushed toward white, which is what makes a
+       bright particle read as a light source rather than as a coloured dot. */
+    "  vec3 ice = vec3(0.62, 0.85, 1.00);",
+    "  vec3 sun = vec3(1.00, 0.86, 0.52);",
+    "  vec3 rose = vec3(1.00, 0.60, 0.66);",
+    "  float t = fract(v_seed * 7.31);",
+    "  vec3 col = t < 0.5 ? mix(ice, sun, t * 2.0) : mix(sun, rose, (t - 0.5) * 2.0);",
+    "  col = mix(col, vec3(1.0), (1.0 - r) * 0.45);",
     "  col = mix(col, vec3(0.10, 0.12, 0.16), u_light);",
     "  o = vec4(col * a, a);",
     "}",

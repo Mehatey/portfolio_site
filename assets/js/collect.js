@@ -156,6 +156,21 @@
     } catch (e) {}
   }
 
+  /* Where the pointer is, for the shove in frame(). Tracked here rather than
+     read from an event inside the loop, because the loop runs on rAF and the
+     pointer does not. */
+  var mx = -9999,
+    my = -9999;
+  addEventListener(
+    "pointermove",
+    function (e) {
+      mx = e.clientX;
+      my = e.clientY;
+      if (piled.length && !raf) raf = requestAnimationFrame(frame);
+    },
+    { passive: true }
+  );
+
   var got = load();
   var live = [];
   var cv = null;
@@ -305,10 +320,22 @@
     return (window.scrollY || 0) + innerHeight - 26;
   }
 
-  /* Capped. A page that accumulates every sprite you ever dropped is litter,
-     which is the reason the old version faded them out. Sixty is more than
-     anybody will make by accident and cheap to draw. */
+  /* ── THEY DO NOT STAY ──────────────────────────────────────────────────
+     Sid: "the pixel things pile on each other but don't go away slowly from
+     the bottom, they should fade and fall and go away."
+
+     So a landed sprite has a life. It rests for a while, then loses its
+     footing and falls off the bottom of the page, fading as it goes. The
+     stacking he asked for still happens -- drop three in one place and they
+     pile -- it is just that the pile is temporary, which is the difference
+     between a thing you made happen and a thing accumulating on the page.
+
+     REST is deliberately long enough to admire the stack and short enough
+     that a page you have been clicking around is clean again by the time you
+     scroll back. */
   var MAX_PILE = 60;
+  var REST_MS = 4200;
+  var FALL_MS = 1600;
   var piled = [];
 
   function frame() {
@@ -343,6 +370,7 @@
              a stack of coins, and these are things that fell. */
           o.vy = 0;
           o.rot = (Math.random() - 0.5) * 0.22;
+          o.restAt = performance.now();
           piled.push(o);
           if (piled.length > MAX_PILE) piled.shift();
           live.splice(i, 1);
@@ -352,11 +380,83 @@
 
     /* Drawn after the falling ones are resolved so a sprite that landed this
        frame is not drawn twice. */
-    for (var k = 0; k < piled.length; k++) {
+    var nowT = performance.now();
+    for (var k = piled.length - 1; k >= 0; k--) {
       var q = piled[k];
+      var age = nowT - q.restAt;
+
+      /* ── THE SHOVE ────────────────────────────────────────────────────
+         Sid: "when I hover on one it should act as a physics force applied
+         and move it a little distance and interact with the other pixel
+         icons and then it should kinda fade away."
+
+         The pointer is a force, not a hover state: it pushes the sprite away
+         along the vector between them, harder the closer it is, and the
+         sprite carries that velocity so it slides, bumps whatever is beside
+         it and settles. Touching one also starts it dying -- its rest clock
+         jumps forward -- which is the "and then it kinda fades away". */
+      var hx = q.x - mx,
+        hy = q.y - vy - my;
+      var hd = Math.sqrt(hx * hx + hy * hy);
+      if (hd < 46 && hd > 0.01 && mx > -9000) {
+        var push = (1 - hd / 46) * 2.6;
+        q.vx = (q.vx || 0) + (hx / hd) * push;
+        q.vy = (q.vy || 0) + (hy / hd) * push * 0.5;
+        /* Touched things go sooner. */
+        q.restAt = Math.min(q.restAt, nowT - REST_MS * 0.72);
+      }
+
+      /* Sprites shoulder each other aside. One pass, nearest neighbours
+         only: a full n-body solve on sixty sprites is not what this is for,
+         and one pass is enough for a pile to look like it settled rather
+         than like it was placed. */
+      for (var n2 = 0; n2 < piled.length; n2++) {
+        if (n2 === k) continue;
+        var o2 = piled[n2];
+        var ddx = q.x - o2.x,
+          ddy = q.y - o2.y;
+        var dd = Math.sqrt(ddx * ddx + ddy * ddy);
+        if (dd < 22 && dd > 0.01) {
+          var sep = ((22 - dd) / 22) * 0.5;
+          q.vx = (q.vx || 0) + (ddx / dd) * sep;
+          q.vy = (q.vy || 0) + (ddy / dd) * sep * 0.4;
+        }
+      }
+
+      /* Integrate whatever force it picked up, with heavy damping so a shove
+         is a slide rather than a launch. */
+      if (q.vx || q.vy) {
+        q.x += q.vx;
+        q.y += q.vy;
+        q.rot += q.vx * 0.01;
+        q.vx *= 0.86;
+        q.vy *= 0.86;
+        if (Math.abs(q.vx) < 0.02) q.vx = 0;
+        if (Math.abs(q.vy) < 0.02) q.vy = 0;
+        /* It cannot be pushed through the floor it is resting on. */
+        var sfc = surfaceUnder(q);
+        if (q.y > sfc) q.y = sfc;
+      }
+
+      var alpha = 1;
+      if (age > REST_MS) {
+        /* ── AND THEN IT LETS GO ────────────────────────────────────────
+           Falls off the bottom under its own gravity rather than fading in
+           place: a sprite that dissolves where it sits reads as a timeout,
+           one that drops reads as having been there and then not. */
+        var ft = (age - REST_MS) / FALL_MS;
+        q.y += 2.2 + ft * 16;
+        q.rot += 0.04;
+        alpha = Math.max(0, 1 - ft);
+        if (ft >= 1) {
+          piled.splice(k, 1);
+          continue;
+        }
+      }
+
       var sy = q.y - vy;
-      if (sy < -60 || sy > innerHeight + 60) continue;
-      draw(q.sprite, q.x, sy, q.rot, 1, 1, true);
+      if (sy < -60 || sy > innerHeight + 120) continue;
+      draw(q.sprite, q.x, sy, q.rot, alpha, 1, age <= REST_MS);
     }
     for (var m = 0; m < live.length; m++) {
       var f = live[m];
