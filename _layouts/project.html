@@ -1314,8 +1314,22 @@
          smudge along the top and bottom edge. Cells align to the top so a
          short one next to a tall one does not float in the middle of its
          column with nothing to sit on. */
+      /* ── AND THE PAIR STILL HAS TO LINE UP ─────────────────────────────
+         `align-items: start` was the first answer and it left the two cells
+         ending 197 pixels apart on this page: a 1500x844 audit board beside a
+         1400x1188 needs diagram, both fitted to the same column width. Two
+         images side by side that finish at different heights read as a
+         layout that was not looked at, which is the one thing Sid asks about
+         every page ("consistent image sizes").
+
+         Cropping them to match is what the variant exists to avoid, so the
+         ROW is equalised instead of the pictures: both cells take the height
+         of the taller, and the shorter one is centred in its cell. Nothing is
+         cut, both edges line up, and the air around the smaller image reads
+         as mounting rather than as a mistake -- which is exactly what a
+         person does laying two prints of different sizes on one board. */
       .cs-grid--fit {
-        align-items: start;
+        align-items: stretch;
       }
       .cs-grid--fit::before {
         display: none;
@@ -1324,6 +1338,15 @@
         aspect-ratio: auto;
         background: transparent;
         border-radius: 6px;
+        display: flex;
+        /* Top, not centre. Centring was tried and it floats the shorter of
+           the two pictures with air above AND below, so neither its top edge
+           nor its bottom edge lines up with anything -- worse than the ragged
+           bottom it was meant to cure. Sharing a top edge under a caption
+           that sits above the pair is the stronger read; the equal CELL
+           heights are what keep everything after the grid on the same line. */
+        align-items: flex-start;
+        justify-content: center;
       }
       .cs-grid--fit .cs-grid-item::before {
         display: none;
@@ -1331,7 +1354,20 @@
       .cs-grid--fit .cs-grid-item img,
       .cs-grid--fit .cs-grid-item video {
         height: auto;
+        /* The cap is the shared one from .cs-grid-item -- `max-height: 100%`
+           against the stretched cell. It resolves circularly, and that turns
+           out to be the behaviour this wants: a pair of portrait screenshots
+           settles at a height that fits the pair rather than at 970px, which
+           is a whole screen spent on one phone. A window-relative ceiling was
+           tried instead and broke the equalisation, because then the picture
+           and the cell were sized by two different rules. */
         object-fit: contain;
+      }
+      /* Stacked below the breakpoint, where there is no pair to align to. */
+      @media (max-width: 720px) {
+        .cs-grid--fit .cs-grid-item {
+          display: block;
+        }
       }
 
       /* Three-up grid */
@@ -2141,7 +2177,15 @@
          says two things now. */
       .nextscroll {
         position: relative;
-        height: 220vh;
+        /* ── THE RUNWAY ──────────────────────────────────────────────────
+           Sid: the handover "arrives too suddenly."
+
+           220vh gave 120vh of travel between the panel pinning and the
+           navigation firing, which on a trackpad is about a second and a
+           half. Three hundred doubles it: the next project's cover has time
+           to fill, be read, and be refused by scrolling back up. A handover
+           you cannot change your mind about halfway through is a redirect. */
+        height: 300vh;
         border-top: 1px solid var(--border);
         margin-top: clamp(60px, 8vh, 120px);
       }
@@ -5311,6 +5355,8 @@
         var hint = section.querySelector(".nextscroll__hint");
         var went = false;
         var armed = false;
+        var armedAt = 0;
+        var hold = 0;
         var raf = 0;
 
         function read() {
@@ -5321,27 +5367,48 @@
           /* 0 when the panel first pins, 1 when the runway is spent. */
           var p = Math.max(0, Math.min(1, -r.top / travel));
 
-          section.style.setProperty("--ns-p", p.toFixed(4));
-          section.style.setProperty("--ns-cover-o", (0.34 + 0.56 * p).toFixed(3));
-          section.style.setProperty("--ns-cover-s", (1.06 - 0.06 * p).toFixed(4));
-          section.style.setProperty("--ns-copy-y", (18 - 18 * p).toFixed(1) + "px");
+          /* Eased for the paint, linear for the decision. A smoothstep makes
+             the cover begin to fill slowly, run through the middle of the
+             runway, and settle rather than slam -- which is the half of
+             "too sudden" that is about how it looks. The other half is how
+             fast it commits, and that is the dwell below. */
+          var pe = p * p * (3 - 2 * p);
+          section.style.setProperty("--ns-p", pe.toFixed(4));
+          section.style.setProperty("--ns-cover-o", (0.34 + 0.56 * pe).toFixed(3));
+          section.style.setProperty("--ns-cover-s", (1.06 - 0.06 * pe).toFixed(4));
+          section.style.setProperty("--ns-copy-y", (18 - 18 * pe).toFixed(1) + "px");
 
           if (p > 0.985) {
             if (!armed) {
               armed = true;
+              armedAt = performance.now();
               section.classList.add("is-ready");
-              if (hint) hint.textContent = "Opening " + (section.getAttribute("aria-label") || "").replace(/^Next project:\s*/, "");
             }
-            /* Only travel that ENDS here counts. Landing at the bottom
+            /* ── A BEAT BEFORE IT COMMITS ─────────────────────────────────
+               Reaching the end of the runway used to navigate on the same
+               frame, so the last flick of a trackpad and the page change were
+               one event and the handover read as a trapdoor. Holding for four
+               hundred milliseconds is below the threshold where it feels like
+               waiting and above the one where it feels like a slip: the cover
+               is fully drawn, you see the project you are about to open, and
+               scrolling back up in that window still cancels it.
+
+               Only travel that ENDS here counts. Landing at the bottom
                because the browser restored a position is not a gesture. */
-            if (!went && armed) {
+            if (!went && performance.now() - armedAt > 400) {
               went = true;
               window.location.href = url;
+            } else if (!went && !hold) {
+              hold = setTimeout(function () {
+                hold = 0;
+                onScroll();
+              }, 430);
             }
           } else if (p < 0.9 && armed) {
             armed = false;
+            clearTimeout(hold);
+            hold = 0;
             section.classList.remove("is-ready");
-            if (hint) hint.textContent = "Keep scrolling to open";
           }
         }
 
