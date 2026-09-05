@@ -542,25 +542,7 @@
          so a sibling positioned against the page cannot line up with it at any
          breakpoint. As a child filling its box it is correct at every one, for
          free. */
-      .contact-slab {
-        position: absolute;
-        inset: -2.5% -2% -6% -2%;
-        z-index: 0;
-        border-radius: 18px;
-        pointer-events: none;
-        /* the block itself */
-        background: linear-gradient(148deg, rgba(180, 214, 255, 0.1) 0%, rgba(150, 190, 240, 0.03) 38%, rgba(10, 16, 28, 0.1) 100%);
-        box-shadow:
-          /* rim, lit from the sun side */
-          inset 2px 2px 0 rgba(214, 236, 255, 0.55),
-          inset 1px 1px 12px rgba(190, 224, 255, 0.22),
-          /* thickness on the shadow side */ inset -3px -3px 0 rgba(6, 10, 20, 0.55),
-          inset -10px -14px 34px rgba(6, 10, 20, 0.5),
-          /* the caustic, pooled below */ 0 46px 90px -34px rgba(150, 200, 255, 0.42),
-          0 90px 150px -60px rgba(120, 180, 255, 0.3);
-        -webkit-backdrop-filter: blur(1.5px);
-        backdrop-filter: blur(1.5px);
-      }
+      /* .contact-slab is removed; see the note in the markup. */
       /* the specular sweep across the face */
       .contact-slab::before {
         content: "";
@@ -678,15 +660,70 @@
         position: relative;
         z-index: 1;
       }
-      .contact-desk__pixel,
-      .contact-desk__real {
+      /* ── THE WARP IS NOT ON BY DEFAULT ANY MORE ───────────────────────
+         Sid: "the warping ... I don't like it, I wanted it to be a PNG, and
+         on hold hover it should liquify the whole desk."
+
+         It used to displace on plain hover, so simply moving the pointer
+         across the page bent the artwork. Now the filter is only attached
+         while the pointer is actually held down: at rest and on hover the
+         plates are the untouched PNG. The class is put on by the script. */
+      .contact-desk.is-melting .contact-desk__pixel,
+      .contact-desk.is-melting .contact-desk__real {
         filter: url(#desk-liquify);
       }
       @media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
-        .contact-desk__pixel,
-        .contact-desk__real {
+        .contact-desk.is-melting .contact-desk__pixel,
+        .contact-desk.is-melting .contact-desk__real {
           filter: none;
         }
+      }
+
+      /* ── AND IT BREATHES ──────────────────────────────────────────────
+         Sid: "let the desk breathe and animate slowly."
+
+         A very small scale and lift on a long period. Deliberately under the
+         threshold where you would call it an animation: the room should feel
+         inhabited rather than look animated, and anything you can measure by
+         eye on a still photograph of a desk reads as a wobble. Suspended
+         while it is being melted, because two motions on one object at once
+         is neither. */
+      @keyframes deskBreathe {
+        0%,
+        100% {
+          transform: perspective(1400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) scale(1) translateY(0);
+        }
+        50% {
+          transform: perspective(1400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) scale(1.006) translateY(-4px);
+        }
+      }
+      .contact-desk {
+        animation: deskBreathe 11s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      .contact-desk.is-melting {
+        animation-play-state: paused;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .contact-desk {
+          animation: none;
+        }
+      }
+
+      /* ── HOVER SHOWS THE WHOLE DESK ───────────────────────────────────
+         Sid: "on hover let it reveal the entire desk."
+
+         The lens is a 290px circle that follows the pointer, which answers
+         "what is under my cursor" and not "what is this". Hovering anywhere
+         on the plate now opens the lens to cover the whole artwork, so the
+         pointer arriving lifts the voxels off the entire scene and the
+         scroll-driven wells become the thing that shows it to a reader who
+         never touches it. */
+      .contact-desk {
+        --lens-r: min(25vw, 290px);
+      }
+      .contact-desk:hover,
+      .contact-desk:focus-visible {
+        --lens-r: 190vmax;
       }
 
       /* ── THE PAGE STANDS IN THE SAME WATER AS THE FOOTER ─────────────────
@@ -788,14 +825,24 @@
            keeps the desk sinking into the room at its edges however much has
            been revealed. */
         -webkit-mask-image:
-          radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%),
+          radial-gradient(
+            circle var(--lens-r, min(25vw, 290px)) at var(--reveal-x) var(--reveal-y),
+            #000 0 42%,
+            rgba(0, 0, 0, 0.94) 57%,
+            transparent 76%
+          ),
           radial-gradient(circle var(--w0, 0px) at 11% 59.5%, #000 0 55%, transparent 100%),
           radial-gradient(circle var(--w1, 0px) at 47% 67.5%, #000 0 55%, transparent 100%),
           radial-gradient(circle var(--w2, 0px) at 45% 44%, #000 0 55%, transparent 100%),
           radial-gradient(circle var(--w3, 0px) at 84% 64.5%, #000 0 55%, transparent 100%),
           radial-gradient(circle var(--w4, 0px) at 85% 38%, #000 0 55%, transparent 100%), var(--desk-floor);
         mask-image:
-          radial-gradient(circle min(25vw, 290px) at var(--reveal-x) var(--reveal-y), #000 0 42%, rgba(0, 0, 0, 0.94) 57%, transparent 76%),
+          radial-gradient(
+            circle var(--lens-r, min(25vw, 290px)) at var(--reveal-x) var(--reveal-y),
+            #000 0 42%,
+            rgba(0, 0, 0, 0.94) 57%,
+            transparent 76%
+          ),
           radial-gradient(circle var(--w0, 0px) at 11% 59.5%, #000 0 55%, transparent 100%),
           radial-gradient(circle var(--w1, 0px) at 47% 67.5%, #000 0 55%, transparent 100%),
           radial-gradient(circle var(--w2, 0px) at 45% 44%, #000 0 55%, transparent 100%),
@@ -2129,7 +2176,9 @@
       </div>
 
       <div class="contact-desk" id="contact-desk" tabindex="0" role="button" aria-label="Reveal Sid’s desk">
-        <span class="contact-slab" aria-hidden="true"></span>
+        {% comment %} The slab is gone. Sid: "the warping and the colour rectangle around the desk image, I don't like it, I wanted it to be a PNG."
+        It was a rounded rectangle behind the artwork carrying a blue gradient fill, a lit rim and a pooled caustic -- a frame, and a frame is exactly
+        what a cut-out PNG should not have. The desk now sits on the page with nothing behind it but the room. {% endcomment %}
         <img
           class="contact-desk__pixel"
           src="{{ site.baseurl }}/assets/img/tnew2.png"
@@ -2379,39 +2428,85 @@
         if (!desk || !disp) return;
         if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
 
-        var MAX = 26;
-        var target = 0,
-          cur = 0,
-          raf = 0;
+        /* ══ HOLD TO MELT ══════════════════════════════════════════════════
+           Sid: "on hold hover it should liquify the whole desk ... let's say
+           5 sec is the max, it liquifies and warps a crazy amount at 5, and
+           it increases exponentially the longer you hover, and when you leave
+           it returns to normal."
 
-        function step() {
-          /* Rising is slow (0.028) and falling is quicker (0.075): it should
-             take a couple of seconds of dwell to really warp, and let go
-             promptly when the pointer leaves. */
-          cur += (target - cur) * (target > cur ? 0.028 : 0.075);
+           So the warp is a function of HOW LONG the pointer has been held
+           down, not of whether it is over the plate. Plain hover no longer
+           bends anything -- it opens the lens instead, which is the other
+           half of the same brief.
+
+           THE CURVE IS CUBIC, not linear. A linear ramp to a large number
+           spends the first second doing something visible and boring; t^3
+           spends it doing almost nothing, and then the last second doing
+           everything, which is what "increases exponentially" describes when
+           somebody is watching rather than plotting. At one second in it is
+           at 0.8% of full; at four it is at 51%; at five it is unrecognisable.
+
+           RELEASE IS FAST AND EASED, not instant. Snapping back would undo in
+           one frame what took five seconds to build, and the return is half
+           the pleasure of the gesture. */
+        var MAX = 190;
+        var FULL = 5000;
+        var held = 0,
+          cur = 0,
+          raf = 0,
+          melting = false;
+
+        function step(now) {
+          var want = 0;
+          if (melting) {
+            var t = Math.min(1, (now - held) / FULL);
+            want = MAX * t * t * t;
+          }
+          /* Rise is driven by the clock above and only smoothed a little;
+             the fall is a spring, so letting go reads as the surface
+             relaxing rather than as the effect being switched off. */
+          cur += (want - cur) * (melting ? 0.35 : 0.09);
           disp.setAttribute("scale", cur.toFixed(2));
-          raf = Math.abs(target - cur) > 0.08 ? requestAnimationFrame(step) : 0;
+
+          if (melting || cur > 0.15) raf = requestAnimationFrame(step);
+          else {
+            raf = 0;
+            cur = 0;
+            disp.setAttribute("scale", "0");
+            desk.classList.remove("is-melting");
+          }
         }
         function kick() {
           if (!raf) raf = requestAnimationFrame(step);
         }
-        desk.addEventListener("pointerenter", function (e) {
-          if (e.pointerType === "touch") return;
-          target = MAX;
+
+        function start(e) {
+          if (e && e.pointerType === "touch") return;
+          melting = true;
+          held = performance.now();
+          desk.classList.add("is-melting");
           kick();
-        });
-        desk.addEventListener("pointerleave", function () {
-          target = 0;
+        }
+        function stop() {
+          melting = false;
           kick();
+        }
+
+        desk.addEventListener("pointerdown", start);
+        /* Released anywhere, not only on the plate. A press that ends with
+           the pointer off the edge would otherwise leave the desk melted. */
+        window.addEventListener("pointerup", stop);
+        window.addEventListener("pointercancel", stop);
+        desk.addEventListener("pointerleave", stop);
+        /* Keyboard gets the same gesture: hold the key, hold the melt. */
+        desk.addEventListener("keydown", function (e) {
+          if ((e.key === " " || e.key === "Enter") && !melting) {
+            e.preventDefault();
+            start();
+          }
         });
-        desk.addEventListener("focus", function () {
-          target = MAX;
-          kick();
-        });
-        desk.addEventListener("blur", function () {
-          target = 0;
-          kick();
-        });
+        desk.addEventListener("keyup", stop);
+        desk.addEventListener("blur", stop);
       })();
     </script>
     <script>

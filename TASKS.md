@@ -31,11 +31,11 @@ the two big interactive pieces.
 
 ## 3 · Contact desk
 
-- [ ] Lose the warp and the colour rectangle around the image. It should be a
+- [x] Lose the warp and the colour rectangle around the image. It should be a
       clean PNG at rest.
-- [ ] The desk breathes and animates slowly on its own.
-- [ ] Hover reveals the whole desk.
-- [ ] HOLD to liquify: the longer the press, the more it warps, exponentially,
+- [x] The desk breathes and animates slowly on its own.
+- [x] Hover reveals the whole desk.
+- [x] HOLD to liquify: the longer the press, the more it warps, exponentially,
       hitting a crazy amount at about five seconds. Returns to rest on
       release.
 
