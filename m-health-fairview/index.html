@@ -2612,7 +2612,11 @@
            window frame computed against that, coming out at its 18px floor
            on an 11,572px page. An indicator whose size is always the floor
            is not indicating anything. */
-        height: 62vh;
+        /* Sid: "the thumbnail image on the right? It's way too long. We can
+           make it a little bit shorter. It just needs to be a simple
+           preview." 62vh of thumbnails down the edge of a case study is a
+           second column of content; 34vh is a preview. */
+        height: 34vh;
         display: flex;
         flex-direction: column;
         gap: 3px;
@@ -2685,6 +2689,16 @@
          and it is why turning back costs nothing. Shorter than about 2x and
          the gesture is over before it registers as a choice; much longer and
          it reads as the page being broken. */
+      /* ══ THE HANDOVER ══════════════════════════════════════════════════
+         220vh with a sticky viewport-tall panel. The height IS the
+         interaction: it is the distance over which the reader decides, and it
+         is why turning back costs nothing.
+
+         Sid, on the first version: "I wasn't expecting this page. Come on."
+         It stacked a display-size name, a category line, a tagline, a meter
+         and a "keep scrolling to open" instruction in one column over a
+         darkened photograph -- five pieces of chrome to say two things. It
+         says two things now. */
       .nextscroll {
         position: relative;
         height: 220vh;
@@ -2696,110 +2710,109 @@
         top: 0;
         height: 100vh;
         display: grid;
-        align-content: center;
-        gap: clamp(14px, 2vh, 26px);
-        padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
+        grid-template-rows: 1fr auto;
+        align-items: end;
+        gap: clamp(20px, 3vh, 34px);
+        padding: clamp(64px, 9vh, 110px) var(--grid-left, 5vw) clamp(48px, 7vh, 84px);
+        box-sizing: border-box;
         overflow: hidden;
         text-decoration: none;
         color: inherit;
         isolation: isolate;
       }
-      /* The cover sits behind everything and arrives with the scroll. Both
-         custom properties are written by the script; the defaults are what a
-         reader sees with no JS, which is a legible card rather than a blank
-         screen. */
+
+      /* ── THE PICTURE IS THE PROGRESS ───────────────────────────────────
+         Two copies of the cover. The base is dim and desaturated; the fill is
+         full strength and clipped from the right by --ns-p, so scrolling
+         paints the image in from the left edge. At 0 you are looking at a
+         ghost of the next project; at 1 it is fully there and the page turns.
+         Nothing else needs to announce the progress. */
       .nextscroll__visual {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
+        position: relative;
+        grid-row: 1;
+        align-self: stretch;
+        border-radius: 4px;
         overflow: hidden;
-        border-radius: 0;
       }
       .nextscroll__cover {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
         display: block;
-        opacity: var(--ns-cover-o, 0.34);
-        transform: scale(var(--ns-cover-s, 1.06));
-        transition: none;
       }
-      /* Without this the title sits on whatever the photograph happens to be
-         doing behind it, which on a bright cover is unreadable. */
-      .nextscroll__visual::after {
-        content: "";
+      .nextscroll__cover--base {
+        opacity: 0.22;
+        filter: grayscale(1) brightness(0.7);
+      }
+      .nextscroll__cover--fill {
+        opacity: 1;
+        clip-path: inset(0 calc((1 - var(--ns-p, 0)) * 100%) 0 0);
+      }
+      /* The wet edge. A single bright hairline riding the boundary between
+         the filled and unfilled halves, which is what makes it read as
+         something being painted rather than a box being resized. */
+      .nextscroll__edge {
         position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(4, 6, 10, 0.62) 0%, rgba(4, 6, 10, 0.42) 45%, rgba(4, 6, 10, 0.82) 100%);
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        left: calc(var(--ns-p, 0) * 100%);
+        margin-left: -1px;
+        background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+        opacity: calc(var(--ns-p, 0) * (1 - var(--ns-p, 0)) * 4);
+        pointer-events: none;
       }
-      .nextscroll__copy {
-        position: relative;
-        z-index: 1;
+
+      /* ── TWO THINGS, ONE ROW ───────────────────────────────────────────
+         Name bottom left, tagline to its right. The name is
+         --type-title rather than a display size: at 104px "Marriott Bonvoy
+         SPOG" ran three lines and became the loudest thing on a page whose
+         subject is the picture above it. */
+      .nextscroll__row {
+        grid-row: 2;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: clamp(24px, 5vw, 80px);
+        flex-wrap: wrap;
+      }
+      .nextscroll__lead {
         display: grid;
-        gap: clamp(8px, 1.2vh, 16px);
-        max-width: 46ch;
-        transform: translateY(var(--ns-copy-y, 0px));
+        gap: 8px;
+        min-width: 0;
       }
       .nextscroll__label {
         font: var(--type-micro);
         letter-spacing: var(--track-micro);
         text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.62);
+        color: rgba(255, 255, 255, 0.5);
       }
       .nextscroll__title {
-        font-family: var(--font-title, var(--font-head));
-        font-size: clamp(40px, 7vw, 104px);
-        line-height: 0.98;
+        font: var(--type-title);
         letter-spacing: -0.02em;
         color: #fff;
-      }
-      .nextscroll__tags {
-        display: flex;
-        gap: 14px;
-        font: var(--type-micro);
-        letter-spacing: var(--track-micro);
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.56);
+        text-wrap: balance;
       }
       .nextscroll__desc {
         font: var(--type-meta);
-        color: rgba(255, 255, 255, 0.78);
-        max-width: 44ch;
+        color: rgba(255, 255, 255, 0.62);
+        max-width: 34ch;
+        text-align: right;
       }
-      .nextscroll__foot {
-        position: relative;
-        z-index: 1;
-        display: grid;
-        gap: 10px;
-        max-width: 420px;
+      @media (max-width: 860px) {
+        .nextscroll__row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .nextscroll__desc {
+          text-align: left;
+        }
       }
-      /* The loader. It is a readout of the gesture, not a timer -- it only
-         ever moves because the reader moved, which is what makes arriving at
-         the end of it feel like a decision. */
-      .nextscroll__meter {
-        display: block;
-        height: 2px;
-        background: rgba(255, 255, 255, 0.16);
-        overflow: hidden;
-      }
-      .nextscroll__fill {
-        display: block;
-        height: 100%;
-        width: calc(var(--ns-p, 0) * 100%);
-        background: #fff;
-      }
-      .nextscroll__hint {
-        font: var(--type-micro);
-        letter-spacing: var(--track-micro);
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.5);
-      }
-      .nextscroll.is-ready .nextscroll__hint {
-        color: #fff;
-      }
-      /* No JS and no motion: collapse the runway so the panel is one screen
-         you read and click, with nothing to scroll through and no meter
-         pretending to fill. */
+      /* No JS and no motion: one screen with the cover fully painted, read
+         and clicked, with no runway to scroll through. */
       @media (prefers-reduced-motion: reduce) {
         .nextscroll {
           height: auto;
@@ -2807,18 +2820,13 @@
         .nextscroll__pin {
           position: static;
           height: auto;
-          padding-block: clamp(60px, 12vh, 140px);
+          min-height: 70vh;
         }
-        .nextscroll__meter {
+        .nextscroll__cover--fill {
+          clip-path: none;
+        }
+        .nextscroll__edge {
           display: none;
-        }
-      }
-      @media (max-width: 760px) {
-        .nextscroll {
-          height: 200vh;
-        }
-        .nextscroll__title {
-          font-size: clamp(34px, 12vw, 62px);
         }
       }
 
@@ -6280,6 +6288,60 @@
     transform: translateY(-2px);
   }
 
+  /* ── THE LABEL TAKES THE ICON'S COLOUR ────────────────────────────────
+     Sid: "the color of the text on the nav bar icons (like Play and Contact):
+     don't make the text white. Let it be the color of that icon. For Play,
+     it's pink, or for Contact, it's that yellow ... I think that will look a
+     lot better than a white icon next to a colored pixel art icon."
+
+     Each mark is already a specific colour -- the work spiral is blue, play
+     is pink, contact is yellow, about is green -- and the word beside it was
+     white in every case, so the pair read as two unrelated objects that
+     happened to be adjacent. Tinting the word to its own icon makes each nav
+     item one thing.
+
+     Stated per item rather than inherited, because the colours live inside
+     the SVGs as fills and there is no single custom property to read. The
+     values are sampled from those marks. */
+  .studio-link:nth-child(1).is-active b,
+  .studio-link:nth-child(1):hover b {
+    color: #6fb7ff;
+  }
+  .studio-link:nth-child(2).is-active b,
+  .studio-link:nth-child(2):hover b {
+    color: #f2a0c4;
+  }
+  .studio-link:nth-child(3).is-active b,
+  .studio-link:nth-child(3):hover b {
+    color: #f0c56a;
+  }
+  .studio-link:nth-child(4).is-active b,
+  .studio-link:nth-child(4):hover b {
+    color: #7fd6a8;
+  }
+  /* The underline follows the word, so the whole item is one colour rather
+     than a tinted word with a white rule under it. */
+  .studio-link.is-active::after,
+  .studio-link:hover::after {
+    background: currentColor;
+  }
+  .studio-link:nth-child(1).is-active,
+  .studio-link:nth-child(1):hover {
+    color: #6fb7ff;
+  }
+  .studio-link:nth-child(2).is-active,
+  .studio-link:nth-child(2):hover {
+    color: #f2a0c4;
+  }
+  .studio-link:nth-child(3).is-active,
+  .studio-link:nth-child(3):hover {
+    color: #f0c56a;
+  }
+  .studio-link:nth-child(4).is-active,
+  .studio-link:nth-child(4):hover {
+    color: #7fd6a8;
+  }
+
   .studio-link:hover::after,
   .studio-link:focus-visible::after,
   .studio-link.is-active::after {
@@ -8202,7 +8264,7 @@
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
     else init();
   })();
-</script> <section class="proj-reflection" id="reflection-section"> <img class="refl-bg-img" id="refl-bg-img" src="/assets/img/fairview/13-impact.webp" alt="" loading="lazy"> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>The hardest part of this project was not visual, it was deciding what a patient should see first. A person looking for care is often anxious and short on time, so every extra option is a small tax on someone who is already stressed. We kept returning to one test, does this help someone in the first ten seconds know where to go. Sorting the whole experience by urgency, rather than by how the health system is organised internally, was the decision that made everything else fall into place.</p> <p>I also learned how much a single clear entry point can do for a business. By centralising every care option in one place and pushing the right patients toward virtual and preventive care, the same demand produced far better outcomes for both patients and the system.</p> </blockquote> </div> </section> <section class="nextscroll" id="project-next-step" data-next-url="/marriott/" aria-label="Next project: Marriott Bonvoy SPOG"> <a class="nextscroll__pin" href="/marriott/"> <span class="nextscroll__visual" style="background: #060608;"> <img class="nextscroll__cover" src="/assets/img/marriott/cover.webp" alt="" loading="lazy" decoding="async"> </span> <span class="nextscroll__copy"> <span class="nextscroll__label">Next project</span> <span class="nextscroll__title">Marriott Bonvoy SPOG</span> <span class="nextscroll__tags"> <span>Enterprise UX · Design Systems</span> <span>2023</span> </span> <span class="nextscroll__desc">A single pane of glass for the world's largest hotel network.</span> </span> <span class="nextscroll__foot"> <span class="nextscroll__meter" aria-hidden="true"><span class="nextscroll__fill"></span></span> <span class="nextscroll__hint">Keep scrolling to open</span> </span> </a> </section> </main> <style>
+</script> <section class="proj-reflection" id="reflection-section"> <img class="refl-bg-img" id="refl-bg-img" src="/assets/img/fairview/13-impact.webp" alt="" loading="lazy"> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>The hardest part of this project was not visual, it was deciding what a patient should see first. A person looking for care is often anxious and short on time, so every extra option is a small tax on someone who is already stressed. We kept returning to one test, does this help someone in the first ten seconds know where to go. Sorting the whole experience by urgency, rather than by how the health system is organised internally, was the decision that made everything else fall into place.</p> <p>I also learned how much a single clear entry point can do for a business. By centralising every care option in one place and pushing the right patients toward virtual and preventive care, the same demand produced far better outcomes for both patients and the system.</p> </blockquote> </div> </section> <section class="nextscroll" id="project-next-step" data-next-url="/marriott/" aria-label="Next project: Marriott Bonvoy SPOG"> <a class="nextscroll__pin" href="/marriott/"> <span class="nextscroll__visual" style="background: #060608;"> <img class="nextscroll__cover nextscroll__cover--base" src="/assets/img/marriott/cover.webp" alt="" loading="lazy" decoding="async"> <img class="nextscroll__cover nextscroll__cover--fill" src="/assets/img/marriott/cover.webp" alt="" loading="lazy" decoding="async"> <span class="nextscroll__edge" aria-hidden="true"></span> </span> <span class="nextscroll__row"> <span class="nextscroll__lead"> <span class="nextscroll__label">Next project</span> <span class="nextscroll__title">Marriott Bonvoy SPOG</span> </span> <span class="nextscroll__desc">A single pane of glass for the world's largest hotel network.</span> </span> </a> </section> </main> <style>
   /* Inline-block so each character can carry its own weight. No transition:
      the per-frame values come from script and the easing already lives in the
      loop, so a CSS transition on top would fight it. `will-change` is
@@ -9143,7 +9205,7 @@
       }
     });
   })();
-</script> <div class="lgrid" aria-hidden="true"> <span class="lgrid__box"> <i class="lgrid__v" style="--i: 0"></i> <i class="lgrid__v" style="--i: 1"></i> <i class="lgrid__v" style="--i: 2"></i> <i class="lgrid__v" style="--i: 3"></i> </span> <i class="lgrid__h" style="--f: 0.22"></i> <i class="lgrid__h" style="--f: 0.5"></i> <i class="lgrid__h" style="--f: 0.78"></i> </div> <style>
+</script> <div class="lgrid" aria-hidden="true"> <span class="lgrid__box"> <i class="lgrid__v" style="--i: 0"></i> <i class="lgrid__v" style="--i: 3"></i> </span> </div> <style>
   .lgrid {
     position: fixed;
     inset: 0;
@@ -9186,24 +9248,42 @@
     transform: translateX(-50%);
     width: min(1560px, 100% - 2 * var(--gutter, max(24px, 4vw)));
   }
+  /* ── TWO LINES, NOT NINE ───────────────────────────────────────────────
+     Sid: "I was thinking just the left and right grid lines, and I don't
+     think we need another middle column guideline ... You have these random
+     background grid lines, which are faint, which I don't want. Please only
+     keep the grid lines that we need."
+
+     There were four verticals and three horizontals, fixed to the viewport on
+     every route. The two inner verticals were subdivisions of a measure that
+     nothing on the site is actually laid out against -- no page has a column
+     break at a third or two thirds -- so they were decoration wearing the
+     costume of structure. The three horizontals were worse: they float at
+     22%, 50% and 78% of the WINDOW, which corresponds to nothing in the
+     document at all, so they drift across the content as you scroll. That is
+     the "random background line which is staying there" on /works/ and the
+     faint lines on /about/.
+
+     What is left is the measure: one line down each edge of the content
+     column, which is the only pair that describes something true. */
   .lgrid__v {
     position: absolute;
     top: 0;
     bottom: 0;
     width: 1px;
     background: currentColor;
-    opacity: 0.045;
+    opacity: 0.05;
     left: calc((var(--i) / 3) * 100%);
   }
   /* The last line would sit one pixel outside the box on the right edge. */
-  .lgrid__v:nth-child(4) {
+  .lgrid__v:nth-child(2) {
     left: auto;
     right: 0;
   }
   /* The two outer lines are the measure itself and carry a touch more weight;
      the four inside them are subdivisions and should read as quieter. */
   .lgrid__v:first-child,
-  .lgrid__v:nth-child(4) {
+  .lgrid__v:nth-child(2) {
     opacity: 0.075;
   }
 
@@ -9230,7 +9310,7 @@
     opacity: 0.055;
   }
   html[data-theme="light"] .lgrid__v:first-child,
-  html[data-theme="light"] .lgrid__v:nth-child(4) {
+  html[data-theme="light"] .lgrid__v:nth-child(2) {
     opacity: 0.09;
   }
   html[data-theme="light"] .lgrid__h {
@@ -9242,7 +9322,7 @@
      else. The horizontals stay — they cost nothing and they are what makes a
      small screen read as a page rather than as a feed. */
   @media (max-width: 760px) {
-    .lgrid__v:not(:first-child):not(:nth-child(4)) {
+    .lgrid__v:not(:first-child):not(:nth-child(2)) {
       display: none;
     }
   }
@@ -13382,7 +13462,6 @@
         /* Not on load: a restored scroll position at the foot of the page
            would navigate before the reader has done anything. The first
            genuine scroll event starts it. */
-        if (fill) fill.style.width = "0%";
       })();
     </script> <style>
   /* ── TOOLTIPS ARE OURS, NOT THE OPERATING SYSTEM'S ─────────────────────
@@ -18399,7 +18478,20 @@
     // honest lever: the settle time is set by the chase rate below, not by the
     // node count, so a longer chain draws more line at the same speed without
     // taking any longer to come to rest.
-    var N = 14,
+    /* ── LONGER AGAIN, AND THIS TIME IT IS LIGHT ─────────────────────────
+       Sid: "Can you increase the amount of the trail that my cursor has, and
+       can you make it a glowing streak with future digital tech colors?
+       Rethink the cursor."
+
+       It has been both extremes now: 34 nodes drew a ribbon most of a screen
+       long and he called it "too much trail"; 14 drew a stub. The length was
+       never the real problem -- what made 34 feel like too much is that it
+       was one flat blue line at a uniform width, so all of that length read
+       as a drawn stroke rather than as light. 30 nodes rendered ADDITIVELY
+       with colour running along their length reads as a streak, because that
+       is what light does: it accumulates where the line doubles back and
+       falls away at the tail on its own. */
+    var N = 30,
       pts = [],
       i;
     for (i = 0; i < N; i++) pts.push({ x: -200, y: -200, vx: 0, vy: 0 });
@@ -18480,11 +18572,21 @@
       if (life < 0.01) return;
 
       var light = isLight();
-      var rgb = light ? "26,44,74" : "158,200,255";
-      var base = (light ? 0.14 : 0.2) * life;
+      var base = (light ? 0.5 : 0.72) * life;
 
       ctx.lineCap = "round";
       ctx.lineJoin = "round";
+      /* ── ADDITIVE, WHICH IS WHAT MAKES IT GLOW ─────────────────────────
+         `lighter` sums what is already on the canvas instead of covering it,
+         so the wide soft pass and the narrow bright pass add where they
+         overlap and the core of the streak goes hot without any single stroke
+         being opaque. A normal composite at these alphas is a grey line; this
+         is the same geometry and it reads as light.
+
+         Kept off in the light theme: additive blending over cream only ever
+         goes toward white, so the trail would vanish. There it draws normally
+         in ink. */
+      ctx.globalCompositeOperation = light ? "source-over" : "lighter";
 
       // Three tapered passes over decreasing spans of the chain. Overlapping
       // strokes is what produces the width falloff without having to stroke each
@@ -18500,16 +18602,51 @@
          of a screen long. Now it is 14 nodes chased tightly, two passes, at
          roughly half the alpha: a short wake behind the ring rather than a
          streamer, and it disappears almost immediately once you stop. */
+      /* ── THE COLOUR RUNS ALONG THE STREAK ──────────────────────────────
+         A gradient down the length rather than one colour, laid on the actual
+         head-to-tail axis so it stays correct whichever way the pointer is
+         travelling. Cyan at the head, electric blue through the body, a light
+         crimson and a warm yellow at the tail.
+
+         Sid on the palette: "don't do purples. I don't like purples. Do
+         blues, little light crimsons, and yellows." Blue into crimson passes
+         through magenta if you let it interpolate directly, so the crimson
+         stop sits late and the yellow after it pulls the last of the ramp
+         warm rather than violet.
+
+         In the light theme it is one ink colour: four bright stops
+         additively blended over cream is a smear. */
+      function streak() {
+        var g = ctx.createLinearGradient(pts[0].x, pts[0].y, pts[N - 1].x, pts[N - 1].y);
+        if (light) {
+          g.addColorStop(0, "rgba(26,44,74," + (base * 0.5).toFixed(3) + ")");
+          g.addColorStop(1, "rgba(26,44,74,0)");
+        } else {
+          g.addColorStop(0, "rgba(190,245,255," + base.toFixed(3) + ")");
+          g.addColorStop(0.28, "rgba(96,190,240," + (base * 0.8).toFixed(3) + ")");
+          g.addColorStop(0.62, "rgba(120,150,235," + (base * 0.5).toFixed(3) + ")");
+          g.addColorStop(0.84, "rgba(235,120,140," + (base * 0.3).toFixed(3) + ")");
+          g.addColorStop(1, "rgba(240,205,120,0)");
+        }
+        return g;
+      }
+
+      /* Three passes: a wide haze, the body, and a hot thin core. Additively
+         these stack into a streak with a bright centre and a soft edge, which
+         is one gaussian's worth of glow for three strokes. */
       var passes = [
-        [N, 0.5, 1.0],
-        [Math.round(N * 0.5), 1.1, 0.5],
+        [N, 7, 0.16],
+        [N, 2.4, 0.42],
+        [Math.round(N * 0.72), 0.9, 1],
       ];
+      var grad = streak();
       for (var p = 0; p < passes.length; p++) {
         var upto = passes[p][0],
           w = passes[p][1],
           a = passes[p][2];
         if (upto < 3) continue;
-        ctx.strokeStyle = "rgba(" + rgb + "," + (base * a).toFixed(3) + ")";
+        ctx.globalAlpha = a;
+        ctx.strokeStyle = grad;
         ctx.lineWidth = w;
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
@@ -18520,6 +18657,8 @@
         }
         ctx.stroke();
       }
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
     })();
   })();
 </script> <script src="/assets/js/gsap.min.js"></script> <script>
