@@ -531,6 +531,41 @@
           position: static;
         }
       }
+      /* The blob breathes. Three of the four mask layers move; the fourth is
+         the top fade and stays put, or the dissolve into the nav would slide
+         up and down the page. */
+      @keyframes aboutBlob {
+        0%,
+        100% {
+          --blob-a: 62% 58% at 34% 40%;
+          --blob-b: 58% 64% at 68% 56%;
+          --blob-c: 70% 52% at 50% 74%;
+        }
+        33% {
+          --blob-a: 66% 54% at 40% 46%;
+          --blob-b: 54% 70% at 62% 50%;
+          --blob-c: 64% 58% at 56% 70%;
+        }
+        66% {
+          --blob-a: 58% 62% at 30% 44%;
+          --blob-b: 62% 58% at 72% 60%;
+          --blob-c: 72% 50% at 46% 78%;
+        }
+      }
+      /* Registered so the percentages interpolate. An unregistered custom
+         property has no type and can only be swapped at each keyframe, which
+         would make the blob jump three times a cycle instead of drifting. */
+      @property --blob-a {
+        syntax: "*";
+        inherits: false;
+        initial-value: 62% 58% at 34% 40%;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-profile-card {
+          animation: none !important;
+        }
+      }
+
       .about-profile-card {
         position: relative;
         z-index: 1;
@@ -538,11 +573,41 @@
         aspect-ratio: 4 / 5;
         min-height: 0;
         overflow: hidden;
-        /* The picture has no top edge. Held to 13% so it never reaches the
-           face -- object-position is `center 70%`, so the head sits well below
-           this. Verified against both portraits. */
-        -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.55) 6%, #000 13%);
-        mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.55) 6%, #000 13%);
+        /* ── NOT A RECTANGLE ANY MORE ──────────────────────────────────
+           Sid: "At the top of my image, I wanted it to nicely blur into the
+           background, like it's still connected to the nav bar. Please remove
+           that extra dark gray thing, and can you make it an abstract, like a
+           moving animated blob, instead of a rectangle cutout?"
+
+           The mask was a straight horizontal fade across the top and hard
+           edges everywhere else, which is a rectangle with one soft side --
+           and the soft side stopped at 13%, leaving a grey band above it that
+           read as a separate object sitting between the photograph and the
+           nav.
+
+           Two masks composited instead. A BLOB, built from four radial
+           gradients whose centres drift on their own long cycles, so the
+           silhouette is never the same shape twice and never repeats; and the
+           same top fade, now running to 26% so the picture genuinely
+           dissolves upward into the page rather than stopping under a band.
+           Intersected, so the blob shape is cut by the fade and the top of
+           the head goes to nothing.
+
+           The drift is on the MASK, not on the image: moving the picture
+           would make the face swim, which is the difference between an
+           abstract frame and a broken one. */
+        --blob-a: 62% 58% at 34% 40%;
+        --blob-b: 58% 64% at 68% 56%;
+        --blob-c: 70% 52% at 50% 74%;
+        -webkit-mask-image:
+          radial-gradient(var(--blob-a), #000 58%, transparent 74%), radial-gradient(var(--blob-b), #000 56%, transparent 76%),
+          radial-gradient(var(--blob-c), #000 54%, transparent 78%), linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 12%, #000 26%);
+        mask-image:
+          radial-gradient(var(--blob-a), #000 58%, transparent 74%), radial-gradient(var(--blob-b), #000 56%, transparent 76%),
+          radial-gradient(var(--blob-c), #000 54%, transparent 78%), linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 12%, #000 26%);
+        -webkit-mask-composite: source-in;
+        mask-composite: add, add, intersect;
+        animation: aboutBlob 26s ease-in-out infinite;
         /* ── NOT A CARD ────────────────────────────────────────────────────
            Sid: "the card looks way too basic, like a Figma UI card."
 
@@ -626,7 +691,15 @@
         position: absolute;
         inset: 0;
         opacity: 0;
-        filter: saturate(0.62) contrast(1.06) brightness(0.9);
+        /* ── BLACK AND WHITE UNTIL YOU LOOK AT IT ──────────────────────
+           Sid: "Let it start in black and white, and also let it be more
+           perspective ... add some more hover and interactivity for my image."
+
+           Fully desaturated at rest rather than the previous 0.62, which was
+           a half-measure that read as a slightly flat photograph rather than
+           as a decision. Colour arriving on hover is then an event, and the
+           picture has something to give back for being looked at. */
+        filter: saturate(0) contrast(1.08) brightness(0.88);
         transform: scale(1.02);
         transition:
           opacity 0.6s ease,
@@ -640,9 +713,29 @@
       }
       .about-profile-card:hover .about-photo,
       .about-profile-card:focus-visible .about-photo {
-        filter: saturate(1.04) contrast(1) brightness(1);
-        transform: scale(1.045);
+        filter: saturate(1.06) contrast(1) brightness(1.02);
+        transform: scale(1.05);
         animation-play-state: paused;
+      }
+      /* ── AND IT TURNS ──────────────────────────────────────────────────
+         The card tilts toward the pointer. --tilt-x and --tilt-y are written
+         by the script at the foot of this file from the cursor's position
+         within the card, so the rotation follows where you actually are
+         rather than being a fixed hover pose.
+
+         `perspective` on the card and the rotation on the card itself, not on
+         the photograph: rotating the image inside a fixed mask would slide
+         the picture out from under its own blob. The whole object turns. */
+      .about-profile-card {
+        transform: perspective(1100px) rotateY(calc(var(--tilt-x, 0) * 7deg)) rotateX(calc(var(--tilt-y, 0) * -6deg));
+        transform-style: preserve-3d;
+        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        will-change: transform;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-profile-card {
+          transform: none;
+        }
       }
       @keyframes about-photo-breathe {
         0%,
@@ -2987,6 +3080,44 @@
         window.addEventListener("scroll", onScroll, { passive: true });
         window.addEventListener("resize", onScroll, { passive: true });
         read();
+      })();
+    </script>
+    <script>
+      /* The portrait turns toward the pointer. Two numbers, -1..1, written on
+         the card; the CSS above turns them into a rotation. Eased in the
+         stylesheet rather than here, so the transform is a single declaration
+         and the script does nothing but report where the cursor is. */
+      (function () {
+        var card = document.getElementById("about-profile-card");
+        if (!card) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (!window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+        var raf = 0,
+          mx = 0,
+          my = 0;
+        function write() {
+          raf = 0;
+          card.style.setProperty("--tilt-x", mx.toFixed(3));
+          card.style.setProperty("--tilt-y", my.toFixed(3));
+        }
+        card.addEventListener(
+          "pointermove",
+          function (e) {
+            var r = card.getBoundingClientRect();
+            mx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+            my = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+            if (!raf) raf = requestAnimationFrame(write);
+          },
+          { passive: true }
+        );
+        card.addEventListener(
+          "pointerleave",
+          function () {
+            mx = my = 0;
+            if (!raf) raf = requestAnimationFrame(write);
+          },
+          { passive: true }
+        );
       })();
     </script>
   </body>

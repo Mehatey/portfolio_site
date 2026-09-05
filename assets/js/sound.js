@@ -59,7 +59,17 @@
     master = ctx.createGain();
     /* Everything here sits under a single low master. These are punctuation,
        not content, and the ceiling is what keeps them that way. */
-    master.gain.value = 0.05;
+    /* ── QUIETER, ACROSS THE BOARD ─────────────────────────────────────
+       Sid: "make sure to try to make the audio hover sounds a lot more subtle
+       and gentler. They're way too much. Too much is happening right now."
+
+       The master is the honest place to take it out of, because every voice
+       in this file is mixed against it -- dropping individual peaks would
+       just move the problem to whichever sound happened to be loudest. 0.05
+       to 0.028 is a little over half, and the hover and click peaks below
+       come down again on top of that so the interface reads as a texture you
+       notice rather than a thing that answers you. */
+    master.gain.value = 0.028;
     master.connect(ctx.destination);
     return ctx;
   }
@@ -145,8 +155,11 @@
     lp.frequency.exponentialRampToValueAtTime(4200, c.currentTime + 0.07);
     lp.Q.value = 0.7;
     g.gain.setValueAtTime(0, c.currentTime);
-    g.gain.linearRampToValueAtTime(0.16, c.currentTime + 0.012);
-    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.13);
+    /* Hover: halved again and given a longer tail, so it is a breath rather
+       than a tick. A short sharp envelope is what made a row of cards sound
+       like a keyboard. */
+    g.gain.linearRampToValueAtTime(0.07, c.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.22);
     [880, 1320].forEach(function (f, i) {
       var o = c.createOscillator();
       o.type = "sine";
@@ -175,8 +188,10 @@
     lp.frequency.setValueAtTime(520, c.currentTime);
     lp.frequency.exponentialRampToValueAtTime(3200, c.currentTime + 0.05);
     g.gain.setValueAtTime(0, c.currentTime);
-    g.gain.linearRampToValueAtTime(0.34, c.currentTime + 0.008);
-    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.22);
+    /* Click stays the loudest thing, because it confirms something happened,
+       but 0.34 against a 0.028 master was the one sound people flinched at. */
+    g.gain.linearRampToValueAtTime(0.18, c.currentTime + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.26);
     [440, 660].forEach(function (f, i) {
       var o = c.createOscillator();
       o.type = "sine";
@@ -324,7 +339,10 @@
 
     var out = c.createGain();
     out.gain.setValueAtTime(0, c.currentTime);
-    out.gain.linearRampToValueAtTime(0.055, c.currentTime + 3.5);
+    /* Sid: "Let it start with a nice background lo-fi nature-type sound, very
+       light." The pad comes down with everything else and the air below it
+       carries the "nature" half. */
+    out.gain.linearRampToValueAtTime(0.04, c.currentTime + 4.5);
 
     var lp = c.createBiquadFilter();
     lp.type = "lowpass";
@@ -378,11 +396,34 @@
     var noise = c.createBufferSource();
     noise.buffer = buf;
     noise.loop = true;
+    /* ── THE AIR IS THE NATURE LAYER, AND IT WAS ALREADY HERE ──────────
+       Sid: "Let it start with a nice background lo-fi nature-type sound, very
+       light."
+
+       This brown-noise wash already existed under the pad and is the right
+       instrument for it -- a loop of real rain is recognisable, and once you
+       recognise it you start hearing the loop point, whereas shaped noise has
+       no loop to find. What it lacked was movement and the right band: a flat
+       420Hz lowpass is a hiss, and it is the drift across the band that makes
+       noise read as weather rather than as a broken speaker.
+
+       So the filter opens up and its cutoff now wanders on a two-minute
+       cycle, and the level comes up slightly against the quieter master --
+       0.05 to 0.075 -- because with the pad at 0.04 the air should be the
+       thing you are mostly hearing. */
     var nf = c.createBiquadFilter();
     nf.type = "lowpass";
-    nf.frequency.value = 420;
+    nf.frequency.value = 620;
+    nf.Q.value = 0.5;
+    var ndrift = c.createOscillator();
+    var ndriftGain = c.createGain();
+    ndrift.frequency.value = 0.0085;
+    ndriftGain.gain.value = 240;
+    ndrift.connect(ndriftGain);
+    ndriftGain.connect(nf.frequency);
+    ndrift.start();
     var ng = c.createGain();
-    ng.gain.value = 0.05;
+    ng.gain.value = 0.075;
     noise.connect(nf);
     nf.connect(ng);
     ng.connect(out);
@@ -426,6 +467,7 @@
             });
             noise.stop();
             lfo.stop();
+            ndrift.stop();
             breathe.stop();
           } catch (e) {}
         }, 1400);
