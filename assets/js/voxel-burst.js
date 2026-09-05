@@ -94,11 +94,21 @@
            dissolved into a light sprinkle instead of coming apart. A caller
            whose object is genuinely dark can keep them all. */
         if (!keepDark && r + g + b < 12) continue;
+        /* ── NOT ALL THE SAME SIZE ────────────────────────────────────
+           Sid: "let the cubes be bigger, and some of the cube sizes should
+           be bigger."
+
+           A uniform grid of squares is a mosaic; real debris has a size
+           distribution. Each cell keeps its position but takes a scale from
+           its own hash, so about a fifth come out noticeably larger and a
+           few are small chips. Stable per cell, so a cell is the same size
+           for the whole flight. */
+        var vary = 0.86 + Math.pow(Math.abs(Math.sin((j * 73.1 + i * 31.7) * 12.9898)), 3) * 1.5;
         cells.push({
           x: i * cw,
           y: j * ch,
-          w: cw,
-          h: ch,
+          w: cw * vary,
+          h: ch * vary,
           c: "rgb(" + r + "," + g + "," + b + ")",
           a: a / 255,
         });
@@ -176,7 +186,11 @@
          is still standing. */
       p.delay = rand(i, 4) * 0.45;
       /* And it comes back in a different order than it left. */
-      p.rback = rand(i, 5) * 0.34;
+      /* Tighter than the outward stagger. Coming apart in patches reads as
+         a surface failing; coming BACK over a wide spread reads as stragglers,
+         and the last few cells arriving long after the picture is otherwise
+         whole is exactly what made the return feel unfinished. */
+      p.rback = rand(i, 5) * 0.16;
     }
 
     var cv = document.createElement("canvas");
@@ -199,7 +213,10 @@
     host.__voxBusy = true;
     if (opts.onStart) opts.onStart();
 
-    var G = opts.gravity || 900;
+    /* Lighter. At 900 the cloud was on the floor before the hold was over
+       and the return had to haul everything back up, which is the other half
+       of why the reform looked abrupt. */
+    var G = opts.gravity || 520;
     var t0 = 0;
 
     function frame(now) {
@@ -226,16 +243,29 @@
           px = p.x + p.vx * s;
           py = p.y + p.vy * s + 0.5 * G * s * s;
           rot = p.spin * s;
-          /* Shrinks as it goes, so the cloud thins instead of staying a
-             constant mass of squares moving apart. */
-          sc = 1 - 0.4 * Math.min(1, t);
+          /* ── IT NO LONGER SHRINKS AWAY ─────────────────────────────
+             Sid: "it feels like it breaks and vanishes for a bit."
+
+             That was this: cells shrank to 60% on the way out and the return
+             began from 0.6, so mid-flight the cloud thinned to the point
+             where there was visibly nothing on screen for a beat, and then
+             something reappeared. The pieces keep almost all of their size
+             now; the thinning that was wanted comes from the spread, which
+             is what actually produces it. */
+          sc = 1 - 0.12 * Math.min(1, t);
         } else {
           /* ── BACK ─────────────────────────────────────────────────────
              From wherever it got to, home, on an ease. Not the physics in
              reverse: that reads as a rewind. */
           var bt = (el - OUT - HOLD) / BACK;
           var tb = Math.max(0, Math.min(1, (bt - p.rback) / (1 - p.rback)));
-          var e = EASE_OUT(tb);
+          /* Smoother than a cubic on the way home. Sid: "when it forms back
+             together it needs to animate properly and be much smoother." A
+             cubic ease-out is nearly at rest for the last third of its
+             duration, which reads as the pieces hesitating just before they
+             land; a quintic in-out leaves slowly, travels, and arrives, so
+             the reassembly has a shape rather than a stall. */
+          var e = tb < 0.5 ? 16 * tb * tb * tb * tb * tb : 1 - Math.pow(-2 * tb + 2, 5) / 2;
           var so = OUT / 1000;
           var fx = p.x + p.vx * so;
           var fy = p.y + p.vy * so + 0.5 * G * so * so;
@@ -244,7 +274,7 @@
           rot = p.spin * so * (1 - e);
           /* A whisper of overshoot on the way in, so cells arrive rather
              than stop. */
-          sc = 0.6 + 0.4 * e + Math.sin(e * Math.PI) * 0.12;
+          sc = 0.88 + 0.12 * e + Math.sin(e * Math.PI) * 0.05;
         }
 
         if (px < -120 || px > W + 120 || py > H + 200) continue;
