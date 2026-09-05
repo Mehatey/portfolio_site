@@ -10545,6 +10545,101 @@
     mix-blend-mode: multiply;
     opacity: 0.3;
   }
+
+  /* ══ RAIN, CLOUDS AND THE HOLE ═════════════════════════════════════════
+     See assets/js/idle-drift.js for what drives these. */
+  .idle-rain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0.9;
+  }
+  html[data-theme="light"] .idle-rain {
+    opacity: 0.42;
+    mix-blend-mode: multiply;
+  }
+
+  /* ── LIQUID GLASS CLOUD ─────────────────────────────────────────────
+     Sid: "some liquid glass clouds which do a lot of refraction."
+
+     Built the way the cubes are -- a real backdrop-filter, so the page
+     genuinely bends through it -- but masked into a cloud silhouette by four
+     overlapping radial gradients rather than being a rounded rectangle. The
+     refraction is pushed much harder than on the cubes because a cloud is
+     thick: blur 16 against their 6, and a saturate that pulls colour out of
+     whatever is behind it. */
+  .idle-drift__p.is-cloud {
+    border-radius: 50%;
+    backdrop-filter: blur(16px) saturate(2) brightness(1.06) contrast(1.08);
+    -webkit-backdrop-filter: blur(16px) saturate(2) brightness(1.06) contrast(1.08);
+    background: linear-gradient(180deg, rgba(var(--tint, 200, 226, 246), 0.16), rgba(255, 255, 255, 0.04) 56%, rgba(var(--tint, 200, 226, 246), 0.1));
+    box-shadow: none;
+    -webkit-mask-image:
+      radial-gradient(46% 60% at 30% 62%, #000 58%, transparent 72%), radial-gradient(40% 78% at 52% 46%, #000 58%, transparent 74%),
+      radial-gradient(34% 54% at 72% 60%, #000 58%, transparent 74%), radial-gradient(30% 40% at 88% 70%, #000 56%, transparent 76%);
+    mask-image:
+      radial-gradient(46% 60% at 30% 62%, #000 58%, transparent 72%), radial-gradient(40% 78% at 52% 46%, #000 58%, transparent 74%),
+      radial-gradient(34% 54% at 72% 60%, #000 58%, transparent 74%), radial-gradient(30% 40% at 88% 70%, #000 56%, transparent 76%);
+  }
+  .idle-drift__p.is-cloud::before {
+    /* A single soft highlight along the top, which is where a cloud catches
+       whatever light there is. */
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 42%);
+    opacity: 0.7;
+    animation: none;
+  }
+  .idle-drift__p.is-cloud::after,
+  .idle-drift__p.is-cloud > .flare {
+    display: none;
+  }
+
+  /* ── THE SINGULARITY ────────────────────────────────────────────────
+     The dark well itself. The warp around it is an SVG displacement on the
+     page; this is the object at its centre, and the two are sized off the
+     same number so they read as one thing.
+
+     A hard black disc with a bright rim: the rim is the only part of a black
+     hole anybody has ever actually seen, and without it a dark circle on a
+     dark page is a hole in the render rather than an object. */
+  .idle-hole {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(80px + var(--hole, 0) * 300px);
+    height: calc(80px + var(--hole, 0) * 300px);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+    opacity: calc(var(--hole, 0) * 0.96);
+    background: radial-gradient(circle, #000 38%, rgba(0, 0, 0, 0.86) 52%, rgba(10, 18, 34, 0.36) 68%, transparent 78%);
+    box-shadow:
+      0 0 40px 6px rgba(120, 178, 255, 0.16),
+      inset 0 0 26px 2px rgba(150, 200, 255, 0.22);
+  }
+  .idle-hole::after {
+    /* The accretion rim, turning. */
+    content: "";
+    position: absolute;
+    inset: 26%;
+    border-radius: 50%;
+    border: 1.5px solid rgba(186, 224, 255, 0.5);
+    box-shadow: 0 0 22px 2px rgba(140, 196, 255, 0.34);
+    animation: holeSpin 9s linear infinite;
+  }
+  @keyframes holeSpin {
+    to {
+      transform: rotate(360deg) scale(1.04);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-hole::after {
+      animation: none;
+    }
+  }
 </style> <script src="/assets/js/idle-drift.js" defer></script> <script src="/assets/js/site-caustics.js" defer></script> <div class="film" aria-hidden="true"> <div class="film__grain" id="film-grain"></div> <div class="film__vig"></div> </div> <style>
   .film {
     position: fixed;
@@ -13023,6 +13118,57 @@
   .ftr__body {
     padding-bottom: 78px;
   }
+
+    /* ══ OUT OF FOCUS, NOT FADED ═══════════════════════════════════════════
+       Sid: "instead of low opacity let the other images and vids be blurred,
+       low opacity doesn't look good."
+
+       He is right and the reason is worth writing down. Lowering opacity
+       mixes a picture with the PAGE, so what you get is a washed-out
+       photograph sitting in front of a dark ground -- it reads as broken or
+       unloaded rather than as distant. Blur keeps every bit of the picture's
+       own contrast and colour and only takes away its detail, which is what
+       distance actually does to something you are not looking at.
+
+       So the rail has a depth of field. The tile the colour field is reading
+       is sharp and at full strength; every other tile is softened, and only
+       slightly desaturated, so the row still reads as photographs. */
+    .sid-strip__rows .sid-tile img,
+    .sid-strip__rows .sid-tile video {
+      filter: blur(3.4px) saturate(0.86) contrast(1.02);
+      opacity: 1;
+      transition:
+        filter 700ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sid-strip__rows .sid-tile.is-source img,
+    .sid-strip__rows .sid-tile.is-source video,
+    .sid-strip__rows .sid-tile:hover img,
+    .sid-strip__rows .sid-tile:hover video {
+      filter: blur(0) saturate(1.04) contrast(1.02);
+    }
+    /* And the one being read is lifted, so focus is carried by two cues
+       rather than one -- a blur difference alone is easy to miss on a small
+       tile at the edge of the rail. */
+    .sid-strip__rows .sid-tile.is-source {
+      transform: scale(1.05);
+      z-index: 3;
+    }
+    .sid-strip__rows .sid-tile.is-source::after {
+      content: "";
+      position: absolute;
+      inset: -7px;
+      border-radius: 4px;
+      pointer-events: none;
+      /* Lit in the colour it is currently giving the wall. */
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .sid-strip__rows .sid-tile img,
+      .sid-strip__rows .sid-tile video {
+        transition: none;
+      }
+    }
 </style> <script>
     /* ── THE CLOSE: the lens, the videos and the copy button ────────────────
      The two takes are the same shot at two resolutions, so neither is
