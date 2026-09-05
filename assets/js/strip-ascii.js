@@ -185,7 +185,7 @@
     acc = 0;
 
   function frame(now) {
-    raf = live || mix > 0.002 ? requestAnimationFrame(frame) : 0;
+    raf = live || mix > 0.002 || palT < 1 ? requestAnimationFrame(frame) : 0;
     var dt = t0 ? Math.min(0.05, (now - t0) / 1000) : 0.016;
     t0 = now;
     var t = now / 1000;
@@ -196,61 +196,171 @@
     /* The ground runs at half rate. A dither field that updates every frame
        is a static-noise television; at 30fps it reads as a slow machine
        thinking, which is the intended register. */
+    /* Two and a half seconds for the front to cross. Slower than a
+       transition and faster than a mood: long enough to watch the colour
+       arrive, short enough that a tile is still near the middle when it
+       finishes. Stepped by the real frame time rather than inside the 30fps
+       gate below, or the change runs at whatever rate the gate happens to
+       fire at. */
+    if (palT < 1) palT = Math.min(1, palT + dt / 2.5);
+
     acc += dt;
     if (acc > 1 / 30) {
       acc = 0;
+      findFocus();
       drawGround(t);
     }
-    drawAscii();
+    /* drawAscii() is no longer called. Sid: "instead of the ASCII or pattern
+       behind the images". The per-tile character pass is what he is pointing
+       at, and the colour field above replaces the ground it sat on. The
+       function is left defined rather than deleted because `mix` and `hot`
+       still drive whether the loop runs. */
+  }
+
+  /* ══ THE GROUND IS THE PICTURE'S OWN COLOUR ═════════════════════════════
+     Sid: "instead of the ASCII or pattern behind the images, the image which
+     is in the centre, right in focus -- use a colour picker and have a pixel
+     art background with squares of the colours that animate live based on
+     which pic is in focus."
+
+     So the field is a grid of squares rather than a grid of characters, and
+     the palette is not invented: it is read off whichever tile is currently
+     nearest the middle of the strip, through assets/js/hue.js, the same
+     reader the cursor panel and the mark use.
+
+     ── WHY THE CHANGE SPREADS OUTWARD ──────────────────────────────────
+     A crossfade where every cell turns at once is a colour-grade slider. The
+     new palette arrives as a FRONT travelling out from the tile that caused
+     it, so what you see is the picture colouring the room it is standing in
+     -- cause and effect, in the right order. Each cell holds its own
+     progress and its own delay, taken from its distance to the focused tile,
+     which is one subtraction per cell and no per-cell state to allocate.
+
+     ── AND IT STAYS A GROUND ───────────────────────────────────────────
+     Low alpha, and squares smaller than the gap between the tiles. The row
+     of photographs is the subject; a legible field of saturated colour
+     behind it is a competing image, which is the same reason the character
+     version was kept faint. */
+  var CELL = 26; // square pitch, including its gap
+  var PAL_N = 8;
+  var palA = null, // what the field is showing
+    palB = null, // what it is moving to
+    palT = 1, // 0..1 through the change
+    focusX = 0.5, // where the change started, as a fraction of the width
+    focusEl = null;
+
+  /* Which tile is nearest the middle. The rail drifts continuously and scales
+     tiles up as they cross the centre, so "in focus" is a position, not a
+     hover -- reading it from geometry means it stays true while nobody is
+     touching the page at all. */
+  function findFocus() {
+    var r = strip.getBoundingClientRect();
+    var mid = r.left + r.width / 2;
+    var best = null,
+      bestD = Infinity;
+    var tiles = rows.querySelectorAll(".sid-tile");
+    for (var i = 0; i < tiles.length; i++) {
+      var tr = tiles[i].getBoundingClientRect();
+      if (tr.width < 8) continue;
+      var d = Math.abs(tr.left + tr.width / 2 - mid);
+      if (d < bestD) {
+        bestD = d;
+        best = tiles[i];
+      }
+    }
+    if (!best || best === focusEl) return;
+    var img = window.SidHue && window.SidHue.pictureIn(best);
+    var cols = img && window.SidHue.palette(img, PAL_N);
+    if (!cols || !cols.length) return;
+    focusEl = best;
+    var br = best.getBoundingClientRect();
+    focusX = Math.max(0, Math.min(1, (br.left + br.width / 2 - r.left) / r.width));
+    /* The first read has nothing to come from, so it arrives already there
+       rather than fading up out of the previous section's colour. */
+    palA = palB || cols;
+    palB = cols;
+    palT = palA === cols ? 1 : 0;
+  }
+
+  /* A stable pseudo-random per cell. The same cell must draw the same colour
+     every frame or the field boils. */
+  function cellHash(i, j) {
+    var n = Math.sin(i * 127.1 + j * 311.7) * 43758.5453;
+    return n - Math.floor(n);
   }
 
   function drawGround(t) {
     bgx.clearRect(0, 0, W, H);
-    if (reduce) return;
-    var cols = Math.ceil(W / CW),
-      rowsN = Math.ceil(H / CH);
-    bgx.font = "12px ui-monospace, SFMono-Regular, Menlo, monospace";
-    bgx.textBaseline = "top";
-    /* One fillStyle for the whole pass. Per-glyph colour on 3,000 cells is
-       3,000 state changes and it is the difference between free and 6ms. */
-    var lit = getComputedStyle(strip).color;
-    bgx.fillStyle = lit;
+    if (reduce || !palB) return;
 
-    /* Where the sweep front is, in pixels, and how wide its wake is. */
-    var front = sweep < 0 ? -1 : (-0.25 + sweep * 1.5) * W;
+    var cols = Math.ceil(W / CELL) + 1,
+      rowsN = Math.ceil(H / CELL) + 1;
+    var fx = focusX * W;
+    /* How far the front has travelled. It has to clear the whole width, so
+       the reach is the longer of the two sides plus a margin for the wake. */
+    var reach = Math.max(fx, W - fx) + 240;
+    var front = palT * reach;
 
     for (var j = 0; j < rowsN; j++) {
-      var y = j * CH;
+      var y = j * CELL;
       for (var i = 0; i < cols; i++) {
-        var x = i * CW;
+        var x = i * CELL;
+        var h = cellHash(i, j);
 
-        /* Two drifting sine plates crossed with a third at an angle. Cheap,
-           and it does not tile visibly at this cell size — which is all a
-           background field has to achieve. */
-        var v = Math.sin(x * 0.013 + t * 0.31) * 0.5 + Math.sin(y * 0.021 - t * 0.24) * 0.5 + Math.sin((x + y) * 0.008 + t * 0.17) * 0.45;
-        v = v * 0.34 + 0.5;
+        /* Which chip this cell wears. Held per cell across a palette change,
+           so a cell keeps its INDEX and only changes its colour -- the field
+           recolours rather than reshuffling, which is what makes it read as
+           the same wall under different light. */
+        var idx = (h * 1000) | 0;
 
-        /* The sweep: a bright front with a long tail behind it, so the
-           section fills in from the left rather than blinking on. */
-        if (front > 0) {
-          var d = x - front;
-          if (d > 0) v = 0; /* ahead of the front: nothing yet */
-          else v += Math.exp(-Math.pow(d / 190, 2)) * 0.55;
-        }
+        /* Not every cell is filled. A field at full density is a solid
+           rectangle; leaving two in five empty is what makes it read as
+           pixels scattered on a ground. */
+        if (h > 0.62) continue;
 
-        /* The pointer. exp() falloff rather than a hard radius: a circle of
-           characters following the mouse is a cursor, a warm patch is light. */
+        var dx = x - fx;
+        var d = Math.abs(dx) + Math.abs(y - H / 2) * 0.35;
+        var flipped = d < front;
+        var pal = flipped ? palB : palA;
+        if (!pal || !pal.length) continue;
+        bgx.fillStyle = pal[idx % pal.length];
+
+        /* Cells right at the front flare briefly, so the change has a visible
+           edge rather than being a boundary you can only infer. */
+        var edge = Math.abs(d - front);
+        var flare = front > 0 && front < reach ? Math.exp(-(edge * edge) / 5200) : 0;
+
+        /* The slow ambient breath the character field had, kept: two drifting
+           sines so the wall is never completely still. */
+        var v = Math.sin(x * 0.011 + t * 0.24) * 0.5 + Math.sin(y * 0.019 - t * 0.19) * 0.5;
+        /* The character field it replaces ran at two to eight per cent,
+           because a legible field of GLYPHS behind photographs is a second
+           image competing for the same read. Colour squares are not glyphs:
+           they carry no detail to compete with, and at the same alpha they
+           simply were not there. This is the level at which the wall is
+           visibly the colour of the picture and still obviously behind it. */
+        var a = 0.2 + v * 0.07 + flare * 0.55;
+
+        /* The pointer. A warm patch rather than a circle of cells, same
+           reasoning as before: a hard radius following the mouse is a
+           cursor, a falloff is light. */
         if (warm > 0) {
-          var dx = x - px,
-            dy = (y - py) * 1.6; /* squashed: the section is wide and short */
-          v += Math.exp(-(dx * dx + dy * dy) / 12000) * 0.75 * warm;
+          var wx = x - px,
+            wy = (y - py) * 1.6;
+          a += Math.exp(-(wx * wx + wy * wy) / 12000) * 0.34 * warm;
         }
+        if (a <= 0.012) continue;
 
-        if (v <= 0.06) continue;
-        var k = Math.min(RAMP.length - 1, (v * RAMP.length) | 0);
-        if (k <= 0) continue;
-        bgx.globalAlpha = Math.min(0.4, v * 0.2);
-        bgx.fillText(RAMP.charAt(k), x, y);
+        bgx.globalAlpha = Math.min(0.72, a);
+        /* Two pixels of gap, and a radius that grows with the flare, so a
+           cell the front is passing through swells into a rounder, brighter
+           dot and settles back to a square. */
+        var sz = CELL - 4 + flare * 3;
+        var rad = 2 + flare * 4;
+        bgx.beginPath();
+        if (bgx.roundRect) bgx.roundRect(x + 2, y + 2, sz, sz, rad);
+        else bgx.rect(x + 2, y + 2, sz, sz);
+        bgx.fill();
       }
     }
     bgx.globalAlpha = 1;
