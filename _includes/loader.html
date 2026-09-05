@@ -19,6 +19,46 @@
     background: #000;
     pointer-events: none;
   }
+
+  /* ── THE SQUARE ──────────────────────────────────────────────────────────
+     What the opening starts on. Sid: "just keep a square in the beginning
+     which then smoothly animates into the pic of my eyes."
+
+     It is the mark reduced to its outline, at the size the eye will occupy,
+     so the film does not appear beside it or over it -- it resolves out of
+     it. The scale and the fade are written by the scrub, not by a keyframe,
+     because it has to track the visitor's own hand. */
+  .sl-square {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: clamp(64px, 7vw, 104px);
+    height: clamp(64px, 7vw, 104px);
+    transform: translate(-50%, -50%);
+    border: 1.5px solid rgba(244, 247, 251, 0.82);
+    border-radius: 10px;
+    box-shadow:
+      0 0 0 1px rgba(0, 0, 0, 0.4),
+      0 0 60px -10px rgba(176, 226, 255, 0.4);
+    z-index: 8;
+    pointer-events: none;
+    /* Breathes while it waits, so a visitor who has not scrolled yet can see
+       that the page is alive and holding rather than stuck. */
+    animation: slSquareHold 3.4s ease-in-out infinite;
+  }
+  @keyframes slSquareHold {
+    0%,
+    100% {
+      opacity: 0.9;
+      border-radius: 10px;
+    }
+    50% {
+      opacity: 0.55;
+      border-radius: 26px;
+    }
+  }
+  /* .sl-phase.active owns the fade in. It briefly carried `opacity: 0` here
+     for the scrub version, which then had nothing to turn it back on. */
   .sl-phase {
     position: absolute;
     inset: 0;
@@ -1181,9 +1221,20 @@
        bulk of what made this screen busy. Its CSS (#sl-onboard-icons,
        .sl-onboard-item, .sl-onboard-label) went with it. -->
 
-  <div class="sl-phase" id="sl-video-phase">
-    <video id="sl-video" playsinline muted preload="none" data-src="{{ site.baseurl }}/assets/video/cube_gettingup-web.mp4"></video>
-  </div>
+  <!-- ── THE CUBE STANDING UP IS GONE ────────────────────────────────────
+       Sid: "what if we remove the segment of the cube guy standing up."
+
+       cube_gettingup-web.mp4 was 10.8 seconds of the 17 a first-time visitor
+       sat through before reaching any work. It was the largest single thing
+       between a recruiter and the portfolio, and the sequence that follows it
+       -- the eye, the scan, the break into voxels -- is the one that actually
+       says something about him. The file stays in the repo; nothing loads it.
+
+       The square below is what the opening starts on now. Sid: "just keep a
+       square in the beginning which then smoothly animates into the pic of my
+       eyes." It is the mark, reduced to its outline, and it is the thing the
+       first frame of the film resolves out of. -->
+  <div class="sl-square" id="sl-square" aria-hidden="true"></div>
 
   <div class="sl-phase" id="sl-loading-phase">
     <video id="sl-loading-video" playsinline muted preload="none" data-src="{{ site.baseurl }}/assets/video/loading-ani-web.mp4"></video>
@@ -1446,7 +1497,20 @@
       return;
     }
 
-    // Wait for Enter click
+    /* ── NO DOOR ────────────────────────────────────────────────────────
+       Sid: "we don't need the initial enter button landing page."
+
+       The gate existed so the first video request and the first audio context
+       both began inside a real gesture. Neither is needed now: the remaining
+       film is muted, and the audio context is already created on the first
+       gesture of any kind anywhere on the site by sound.js. What the gate
+       actually cost was a full screen a visitor had to dismiss before the
+       site would admit that it had any work on it.
+
+       The sequence therefore starts on load, and the visitor's first scroll
+       is what moves it. onEnter is still the single entry point, so the
+       storage flag, the reduced-motion path and the Buddha handoff all keep
+       working exactly as they did. */
     function onEnter() {
       try {
         localStorage.setItem("sid_loaded", "1");
@@ -1498,31 +1562,14 @@
         proceed();
       }
     }
-    // Wire mobile enter button
-    var mobileBtn = document.getElementById("enter-btn-mobile");
-    if (mobileBtn) mobileBtn.addEventListener("click", onEnter);
-    if (enterLabel) {
-      enterLabel.addEventListener("click", function () {
-        if (enterBtn) enterBtn.click();
-      });
-    }
-
-    if (enterBtn) {
-      enterBtn.addEventListener("click", onEnter);
-      // Keyboard: Enter or Space anywhere triggers entry while gate is showing
-      var keyHandler = function (e) {
-        if (document.activeElement && document.activeElement.id === "skip-intro") return;
-        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
-          // Don't fire if user is typing in an input (defensive — no inputs on this scene, but safe)
-          var tag = document.activeElement && document.activeElement.tagName;
-          if (tag === "INPUT" || tag === "TEXTAREA") return;
-          e.preventDefault();
-          onEnter();
-          window.removeEventListener("keydown", keyHandler);
-        }
-      };
-      window.addEventListener("keydown", keyHandler);
-    }
+    /* Straight in. The gate's markup is removed rather than hidden, because
+       it is a fixed layer at z-index 10000 with `cursor: none` on it and an
+       invisible one of those over the whole window is a site nobody can
+       click. Everything it used to wire -- the mobile button, the label, the
+       keyboard shortcut -- went with it; the sequence needs no gesture to
+       begin now. */
+    if (enterGate && enterGate.parentNode) enterGate.remove();
+    onEnter();
 
     function startLoader() {
       /* ── SHOW THE THING ───────────────────────────────────────────────────
@@ -1555,8 +1602,7 @@
         }
       }, 25000);
 
-      var videoPhase = document.getElementById("sl-video-phase");
-      var video = document.getElementById("sl-video");
+      var square = document.getElementById("sl-square");
       var hello = document.getElementById("sl-hello");
       var loadingPhase = document.getElementById("sl-loading-phase");
       var loadingVideo = document.getElementById("sl-loading-video");
@@ -1568,10 +1614,9 @@
         media.load();
       }
 
-      // The first cinematic request begins only after the explicit Enter gesture.
-      // The handoff animation waits until phase two, so neither video competes
-      // with the initial Buddha/model render or a return visitor's first paint.
-      hydrateVideo(video);
+      /* The film is hydrated by the scrub block below, at the moment the
+         sequence begins, rather than here. This line used to hydrate the cube
+         video, which no longer exists. */
 
       // (The memory-tile hydration loop was here. Its markup and CSS are
       //  both gone, so it was iterating an empty list every entry.)
@@ -1617,25 +1662,132 @@
         drawDust();
       })();
 
-      // Phase 1: cube video + the scramble-reveal headline
-      videoPhase.classList.add("active");
-      video.play().catch(function () {});
+      /* ══ THE FILM RUNS UNDER YOUR THUMB ═══════════════════════════════════
+         Sid: "the square smoothly animates into the pic of my eyes, and then
+         the brain scan, and the brain scan breaks into pixels and voxels, and
+         this is all done through a scroll linked behaviour, so we don't need
+         the initial enter button landing page."
 
-      /* ── ONE THING TO SAY ───────────────────────────────────────────────
-         Sid: "in the first onboarding theres too much other info it needs to
-         be concise ... it should be hey I'm Sid, welcome to my portfolio. I
-         hope you feel the love I put into it."
+         So there is no gate and no timer. The opening is one film -- his eye,
+         his own MRI, and the scan breaking into tiles -- and the visitor
+         scrubs it by scrolling. Hold still and it holds on the square. Flick
+         once and you are through it in under a second, which is the whole
+         point: a recruiter sets their own pace instead of waiting out
+         somebody else's.
 
-         It was three beats that each replaced the one before it — a name, a
-         job title, and an instruction — over a sixteen second film, plus a
-         four-icon map of the nav, which is a nav a visitor is about to be
-         handed anyway and was on screen the whole time. Four things saying
-         four different things at a door.
+         WHY SCRUB A VIDEO RATHER THAN BUILD IT. Every frame of this already
+         exists, shot by him, including the MRI with his own name on the
+         header. Rebuilding it as DOM would be a worse-looking copy of an
+         asset that is already in the repo.
 
-         It is one sentence now, in two beats because the sentence has two
-         halves and the scramble needs somewhere to land. The greeting, then
-         the reason. Nothing instructs, nothing lists, nothing duplicates the
-         nav. The film carries the rest. */
+         WHY IT STILL RUNS ITSELF IF NOBODY SCROLLS. A scroll-linked opening
+         that a visitor does not realise is scroll-linked is a frozen page.
+         After two and a half seconds of no input it starts playing forward on
+         its own, and any real scroll takes control back. Nobody can be
+         stranded, and nobody who understands it has to wait. */
+      loadingPhase.classList.add("active");
+      /* ── IT HAS TO BE ASKED TO BUFFER ──────────────────────────────────
+         The element carries preload="none", which was right when the film
+         was played on a timer after a click: nothing should be fetched
+         before the visitor commits. A scrubbed film is the opposite case --
+         it is the first thing on screen and there is no play() anywhere to
+         trigger the fetch, so with preload none the video stayed empty and
+         every seek landed on a black frame. Photographed as a black square
+         inside the outline, which is exactly what it was. */
+      loadingVideo.preload = "auto";
+      hydrateVideo(loadingVideo);
+
+      /* ── SCROLL DRIVES THE RATE, NOT THE PLAYHEAD ─────────────────────
+         The first version of this scrubbed currentTime directly from the
+         scroll position, which is the obvious reading of "scroll linked" and
+         is not worth what it costs. Frame accurate seeking needs a keyframe
+         on every frame (this file had one in a hundred and fifty two, so the
+         re-encode below), a server that answers Range requests (the local
+         one did not, which reported the film as unseekable and cost an hour),
+         and even then Chrome will happily move currentTime without painting
+         the frame you asked for.
+
+         Driving the RATE instead is immune to all of it, and it also means
+         the film does not need re-encoding: an all-keyframe version was built
+         for the scrub at 1.0MB against the original's 415KB, and it is not
+         needed, so the opening stays light. The film plays --
+         which browsers are extremely good at -- and scrolling makes it play
+         faster, up to eight times. Hold still and it runs at its own pace and
+         is over in five seconds. Flick and you are through in one. There is
+         no seek anywhere, so there is no frame that can fail to paint, and
+         the visitor still feels the film answer their hand.
+
+         The rate decays back toward 1 so a single flick is a shove rather
+         than a setting. */
+      var rate = 1,
+        want = 1,
+        sraf = 0;
+
+      function takeover(d) {
+        if (d <= 0) return;
+        want = Math.min(8, want + d / 260);
+        if (!sraf) sraf = requestAnimationFrame(tick);
+      }
+
+      function tick() {
+        sraf = 0;
+        if (loadingEnded) return;
+        want += (1 - want) * 0.035;
+        rate += (want - rate) * 0.18;
+        try {
+          loadingVideo.playbackRate = Math.max(1, Math.min(8, rate));
+        } catch (e) {}
+        if (square) {
+          /* The square gives way over the first fifth of the film, so the
+             eye assembles out of it rather than replacing it. */
+          var t = Math.min(1, loadingVideo.currentTime / 1.1);
+          square.style.animation = "none";
+          square.style.opacity = (1 - t).toFixed(3);
+          square.style.transform = "translate(-50%, -50%) scale(" + (1 + t * 1.5).toFixed(3) + ")";
+        }
+        if (rate > 1.02) sraf = requestAnimationFrame(tick);
+      }
+
+      window.addEventListener(
+        "wheel",
+        function (e) {
+          takeover(e.deltaY);
+        },
+        { passive: true }
+      );
+      var ty = 0;
+      window.addEventListener(
+        "touchstart",
+        function (e) {
+          ty = e.touches[0].clientY;
+        },
+        { passive: true }
+      );
+      window.addEventListener(
+        "touchmove",
+        function (e) {
+          var y = e.touches[0].clientY;
+          takeover((ty - y) * 2.4);
+          ty = y;
+        },
+        { passive: true }
+      );
+      window.addEventListener("keydown", function (e) {
+        if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") takeover(340);
+      });
+
+      loadingVideo.addEventListener("ended", onLoadingEnd);
+      /* A ceiling in case `ended` never fires, which happens if the element
+         is torn out from under a decode. */
+      setTimeout(onLoadingEnd, 9000);
+      loadingVideo.play().catch(function () {
+        /* Autoplay refused. Muted inline video is allowed everywhere this
+           runs, but if it is ever blocked the opening must not become a
+           locked door. */
+        onLoadingEnd();
+      });
+      if (!sraf) sraf = requestAnimationFrame(tick);
+
       var lines = [
         { text: "Hey, I'm Sid. Welcome to my portfolio.", startAt: 800 },
         { text: "I hope you feel the love I put into it.", startAt: 5200 },
@@ -1711,15 +1863,13 @@
         hello.style.filter = "blur(6px)";
       };
 
-      // Video ends → loading animation → dissolve
-      var videoEnded = false;
+      // The scrub reaches its end → dissolve.
       var loadingEnded = false;
 
       function onLoadingEnd() {
         if (loadingEnded) return;
         loadingEnded = true;
         loader.classList.remove("is-running");
-        video.pause();
         loadingVideo.pause();
         // Brief hold, then dissolve
         setTimeout(function () {
@@ -1756,25 +1906,14 @@
         window.removeEventListener("keydown", skipKeyHandler);
       });
 
-      function onVideoEnd() {
-        if (videoEnded) return;
-        videoEnded = true;
-        videoPhase.classList.remove("active");
-        videoPhase.classList.add("exit");
-        // Fade Hello out — it overstayed its welcome past the cube exit
-        fadeHelloOnVideoEnd();
-        video.pause();
-        hydrateVideo(loadingVideo);
-        loadingPhase.classList.add("active");
-        loadingVideo.play().catch(function () {});
+      /* onVideoEnd and the eleven second timer went with the cube phase.
+         There is one film now and the scrub above owns both its start and its
+         end -- it calls onLoadingEnd itself the moment the progress passes
+         98%, so nothing here has to guess how long anything takes.
 
-        loadingVideo.addEventListener("ended", onLoadingEnd);
-        // Fallback: clamp duration to 5.5s in case 'ended' doesn't fire
-        setTimeout(onLoadingEnd, 5500);
-      }
-
-      video.addEventListener("ended", onVideoEnd);
-      setTimeout(onVideoEnd, 11000);
+         The Hello still fades on the same beat it always did; it is driven by
+         its own line timings below rather than by the video that is gone. */
+      setTimeout(fadeHelloOnVideoEnd, 4200);
     } // end startLoader
   })();
 </script>

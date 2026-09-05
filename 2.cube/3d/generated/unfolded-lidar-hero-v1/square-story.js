@@ -22,7 +22,7 @@ scene.add(cityKey);
 const cityRim = new THREE.DirectionalLight(0x72b9ff, 2.1);
 cityRim.position.set(6, 2, -4);
 scene.add(cityRim);
-const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.1, 100);
+const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.01, 100);
 camera.position.z = 11;
 const root = new THREE.Group();
 scene.add(root);
@@ -173,7 +173,7 @@ void main(){vec3 p=position;vec3 norm=normal;
   gl_Position=projectionMatrix*viewMatrix*world;
 }`;
 const fragmentShader = `${noise}
-uniform vec3 uBase,uAccent;uniform float uTime,uHover,uHold,uPulse,uFace,uBlink,uAwake,uBreak,uSettle,uSheen,uFocus,uChip,uPanelFade;
+uniform vec3 uBase,uAccent;uniform float uTime,uHover,uHold,uPulse,uFace,uBlink,uAwake,uBreak,uSettle,uSheen,uFocus,uChip,uPanelFade,uMode;
 uniform vec2 uTouch,uGaze;varying vec2 vUv;varying vec3 vNormal,vWorld;varying float vFront,vDissolve;
 float oval(vec2 p,vec2 size){float d=length(p/size);return 1.-smoothstep(.92,1.08,d);}
 void main(){
@@ -217,6 +217,17 @@ void main(){
   vec3 reflected=reflect(-V,N);
   float softbox=exp(-pow(abs((reflected.x+.45)/.19),2.)-pow(abs((reflected.y-.65)/.65),4.));
   col+=vec3(.32,.39,.42)*softbox*(uSheen*.6+settle*.7);
+  float glassMode=smoothstep(.55,.95,uMode)*(1.-smoothstep(1.28,1.7,uMode));
+  float mirrorMode=smoothstep(1.45,1.9,uMode)*(1.-smoothstep(2.3,2.7,uMode));
+  float pearlMode=smoothstep(2.45,2.9,uMode);
+  float glassDepth=fbm(p*8.+flow*2.);
+  vec3 glassCol=mix(uBase,uAccent,glassDepth*.45);
+  col=mix(col,glassCol*.62+vec3(.11,.25,.28)*fres*1.55,glassMode*.82);
+  float bands=.5+.5*sin((reflected.x+reflected.y*.65)*13.+uTime*.32+wet*4.);
+  vec3 mirrorCol=mix(vec3(.035,.09,.14),vec3(.66,.82,.85),bands);
+  col=mix(col,mirrorCol+vec3(.22,.38,.42)*softbox,mirrorMode*.9);
+  vec3 pearl=.55+.45*cos(6.28318*(fres+vec3(.08,.31,.58))+uTime*.05);
+  col=mix(col,mix(uBase,uAccent,.32)+pearl*.26,pearlMode*.82);
   float border=min(min(p.x,p.y),min(1.-p.x,1.-p.y));
   float rough=fbm(p*170.);
   col=mix(col,col*.36,(1.-smoothstep(.001,.007,border+rough*.0015))*.6*(1.-settle));
@@ -259,6 +270,7 @@ for (let face = 0; face < 6; face++) {
     uIndex: { value: face },
     uSheet: { value: new THREE.Vector3(8, 8, 74) },
     uSheen: { value: 0 },
+    uMode: { value: 0 },
     uFocus: { value: 1 },
     uChip: { value: 0 },
     uPanelFade: { value: 0 },
@@ -305,55 +317,6 @@ for (let face = 0; face < 6; face++) {
 // Typography belongs to the geometry, so perspective and occlusion stay honest.
 const disciplineLabels = [];
 let identityLabel = null;
-const patternField = new THREE.Group();
-const patternCards = [];
-root.add(patternField);
-
-function makePatternCard(label, index) {
-  const c = document.createElement("canvas");
-  c.width = c.height = 384;
-  const ctx = c.getContext("2d");
-  const palette = [
-    ["#eef2e8", "#8fb9b3", "#173d83"],
-    ["#dce8ef", "#5e88ad", "#163d56"],
-    ["#c7ddd6", "#2f7771", "#f3ecdb"],
-    ["#eff0df", "#86a3bd", "#173d83"],
-  ][index % 4];
-  const g = ctx.createLinearGradient(0, 0, 384, 384);
-  g.addColorStop(0, palette[0]);
-  g.addColorStop(0.55, palette[1]);
-  g.addColorStop(1, palette[0]);
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 384, 384);
-  for (let i = 0; i < 1800; i++) {
-    const a = Math.random() * 0.055;
-    ctx.fillStyle = `rgba(18,48,70,${a})`;
-    const s = 1 + Math.random() * 4;
-    ctx.fillRect(Math.random() * 384, Math.random() * 384, s, s);
-  }
-  ctx.strokeStyle = "rgba(255,255,255,.28)";
-  ctx.lineWidth = 2;
-  ctx.strokeRect(9, 9, 366, 366);
-  ctx.fillStyle = palette[2];
-  ctx.font = "500 25px Space Grotesk, sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  const words = label.split(" ");
-  if (words.length > 1) {
-    ctx.fillText(words.slice(0, -1).join(" "), 192, 174);
-    ctx.fillText(words[words.length - 1], 192, 210);
-  } else ctx.fillText(label, 192, 192);
-  const texture = new THREE.CanvasTexture(c);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, depthWrite: false });
-  const mesh = new THREE.Mesh(new THREE.BoxGeometry(1.22, 1.22, 0.055), material);
-  mesh.userData.material = material;
-  patternField.add(mesh);
-  patternCards.push(mesh);
-}
-const disciplineNames = ["Product design", "Branding", "Agentic design", "UI / UX"];
-for (let i = 0; i < 20; i++) makePatternCard(disciplineNames[i % 4], i);
-
 new FontLoader().load(
   "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/fonts/optimer_regular.typeface.json",
   (font) => {
@@ -413,6 +376,10 @@ let active = false,
   held = false,
   dragging = false,
   travel = 0;
+let dragPitch = 0,
+  dragYaw = 0,
+  dragPitchTarget = 0,
+  dragYawTarget = 0;
 let lastX = 0,
   lastY = 0,
   downX = 0,
@@ -420,88 +387,67 @@ let lastX = 0,
 const pulses = new Float32Array(6),
   touches = uniforms.map(() => new THREE.Vector2(0.5, 0.5));
 const surfaceLooks = [
-  ["#2d6971", "#8ac9bc", 0.64],
-  ["#315d99", "#7ba7d1", 0.82],
-  ["#2b6759", "#95bea4", 0.52],
-  ["#617a8e", "#d9e3df", 0.34],
+  { base: "#2d6971", accent: "#8ac9bc", sheen: 0.64, mode: 0 },
+  { base: "#bdded8", accent: "#326f8d", sheen: 1.08, mode: 1 },
+  { base: "#0b2634", accent: "#a6cfcc", sheen: 1.2, mode: 2 },
+  { base: "#d9e4dc", accent: "#789ab8", sheen: 0.95, mode: 3 },
+  { base: "#e2d8c3", accent: "#2d6590", sheen: 0.55, mode: 0 },
 ];
 const lookIndex = new Uint8Array(6);
-const colorTargets = uniforms.map((u) => ({ base: u.uBase.value.clone(), accent: u.uAccent.value.clone(), sheen: 0 }));
+lookIndex.fill(1);
+const colorTargets = uniforms.map((u) => ({ base: u.uBase.value.clone(), accent: u.uAccent.value.clone(), sheen: 0, mode: 0 }));
 const portfolioIntro = document.querySelector(".portfolio-intro");
 
-// One restrained atmospheric beat. Birds only cross while the six sides learn depth.
-const birdGroup = new THREE.Group();
-scene.add(birdGroup);
-const birdMaterial = new THREE.LineBasicMaterial({ color: 0xdbe8df, transparent: true, opacity: 0 });
-for (let i = 0; i < 4; i++) {
-  const span = 0.16 + i * 0.022;
-  const geometry = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(-span, 0, 0),
-    new THREE.Vector3(0, -0.055 - i * 0.004, 0),
-    new THREE.Vector3(span, 0, 0),
-  ]);
-  const bird = new THREE.Line(geometry, birdMaterial.clone());
-  bird.userData.offset = i * 1.35;
-  birdGroup.add(bird);
-}
-
-// Final fragments do not vanish into an abstract sheet. They land and rebuild
-// as a restrained New York silhouette made from the cube's own material family.
+// The same blue fragments rebuild into one unmistakable Empire State silhouette.
 const skylineData = [];
-const skylineGeometry = new THREE.BoxGeometry(0.09, 0.098, 0.09);
+const skylineGeometry = new THREE.BoxGeometry(0.1, 0.106, 0.1);
 const skylineMaterial = new THREE.MeshBasicMaterial({
-  color: 0xd8ebe7,
+  color: 0x8fc9c1,
   transparent: true,
   opacity: 0,
   vertexColors: false,
   toneMapped: false,
 });
-const skylineProfile = [4, 6, 8, 5, 10, 7, 14, 22, 16, 9, 26, 18, 12, 8, 15, 7, 10, 6, 4];
+const empireTiers = [
+  { start: 0, height: 14, width: 18, depth: 7 },
+  { start: 14, height: 10, width: 14, depth: 6 },
+  { start: 24, height: 9, width: 10, depth: 5 },
+  { start: 33, height: 7, width: 7, depth: 4 },
+  { start: 40, height: 7, width: 4, depth: 3 },
+  { start: 47, height: 7, width: 2, depth: 2 },
+  { start: 54, height: 13, width: 1, depth: 1 },
+];
 let skylineCount = 0;
-for (let bx = 0; bx < skylineProfile.length; bx++) {
-  const height = skylineProfile[bx];
-  const width = bx === 10 ? 2 : bx === 7 ? 2 : 1 + (bx % 3 === 0 ? 1 : 0);
-  for (let wx = 0; wx < width; wx++) {
-    for (let y = 0; y < height; y++) {
-      for (let z = 0; z < 2; z++) {
+for (const tier of empireTiers) {
+  for (let y = 0; y < tier.height; y++) {
+    const level = tier.start + y;
+    for (let x = 0; x < tier.width; x++) {
+      for (let z = 0; z < tier.depth; z++) {
         skylineData.push({
-          x: (bx - skylineProfile.length / 2) * 0.31 + wx * 0.11,
-          y: -2.35 + y * 0.112,
-          z: -1.1 + z * 0.12,
-          delay: bx / skylineProfile.length * 0.18 + y / Math.max(height, 1) * 0.32,
-          seed: (((bx * 47 + y * 83 + z * 19) % 101) / 101),
+          x: (x - (tier.width - 1) * 0.5) * 0.1,
+          y: -2.75 + level * 0.105,
+          z: -1.22 + (z - (tier.depth - 1) * 0.5) * 0.1,
+          delay: level / 67 * 0.5,
+          seed: ((x * 47 + level * 83 + z * 19) % 101) / 101,
         });
         skylineCount++;
       }
     }
   }
 }
-// A stepped central spire makes the final silhouette read as Manhattan,
-// rather than an arbitrary equal-height city grid.
-for (let s = 0; s < 11; s++) {
-  skylineData.push({
-    x: 0.095,
-    y: -2.35 + (26 + s) * 0.112,
-    z: -1.04,
-    delay: 0.58 + s * 0.017,
-    seed: ((s * 37 + 11) % 101) / 101,
-  });
-  skylineCount++;
-}
 const skyline = new THREE.InstancedMesh(skylineGeometry, skylineMaterial, skylineCount);
 skyline.frustumCulled = false;
 skyline.visible = false;
 const skylineMatrix = new THREE.Matrix4();
-const skylineColor = new THREE.Color();
 for (let i = 0; i < skylineCount; i++) {
   const d = skylineData[i];
   skylineMatrix.makeTranslation(d.x, d.y, d.z);
   skyline.setMatrixAt(i, skylineMatrix);
-  skylineColor.set(["#dceee8", "#72b7ad", "#5b86bb", "#f0e8d5"][i % 4]);
-  skyline.setColorAt(i, skylineColor);
 }
-skyline.instanceColor.needsUpdate = true;
 scene.add(skyline);
+skyline.position.x = 2.35;
+skyline.position.y = -0.12;
+skyline.scale.setScalar(0.82);
 
 function updateSkyline(amount) {
   skyline.visible = amount > 0.001;
@@ -515,7 +461,7 @@ function updateSkyline(amount) {
     const scatterY = 0.8 + Math.abs(Math.sin(d.seed * 41)) * 4.2;
     const scatterZ = d.z + Math.cos(d.seed * 53) * 2.5;
     const sx = mix(scatterX, d.x, land);
-    const sy = mix(scatterY, -2.48, land) + (d.y + 2.48) * rise;
+    const sy = mix(scatterY, -2.75, land) + (d.y + 2.75) * rise;
     const sz = mix(scatterZ, d.z, land);
     const chaos = 1 - Math.max(land, rise);
     skylineMatrix.compose(
@@ -528,48 +474,62 @@ function updateSkyline(amount) {
   skyline.instanceMatrix.needsUpdate = true;
 }
 
-// Empty clicks launch a small architectural echo of the cube. It arcs out, lands,
-// and remains quiet in the composition before dissolving.
-const echoGeometry = new THREE.EdgesGeometry(new THREE.BoxGeometry(0.7, 0.7, 0.7));
-const echoCubes = [];
-const echoPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-const echoTarget = new THREE.Vector3();
-const echoOrigin = new THREE.Vector3();
-function spawnEcho() {
+// Empty clicks disturb the pond, then launch one folded paper boat from behind the cube.
+const pondResponses = [];
+const pondPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const pondTarget = new THREE.Vector3();
+const pondOrigin = new THREE.Vector3();
+function makeBoat() {
+  const group = new THREE.Group();
+  const paper = new THREE.MeshPhysicalMaterial({ color: 0xeee8d9, roughness: 0.3, clearcoat: 0.75, clearcoatRoughness: 0.18, side: THREE.DoubleSide });
+  const hull = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.82, 3), paper);
+  hull.rotation.z = Math.PI / 2;
+  hull.scale.z = 0.32;
+  group.add(hull);
+  const sailShape = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(-0.06, 0.03, 0),
+    new THREE.Vector3(-0.06, 0.62, 0),
+    new THREE.Vector3(0.43, 0.03, 0),
+  ]);
+  sailShape.setIndex([0, 1, 2]);
+  sailShape.computeVertexNormals();
+  const sail = new THREE.Mesh(sailShape, paper.clone());
+  sail.position.z = 0.02;
+  group.add(sail);
+  return group;
+}
+function spawnPondResponse() {
   raycaster.setFromCamera(pointerTarget, camera);
-  if (!raycaster.ray.intersectPlane(echoPlane, echoTarget)) return;
-  echoTarget.x = clamp(echoTarget.x, -4.8, 4.8);
-  echoTarget.y = clamp(echoTarget.y, -2.7, 2.7);
-  root.getWorldPosition(echoOrigin);
-  const material = new THREE.LineBasicMaterial({
-    color: [0xdce9ef, 0x7fc3bd, 0x5f83ba][echoCubes.length % 3],
-    transparent: true,
-    opacity: 0.78,
-    blending: THREE.AdditiveBlending,
-  });
-  const cube = new THREE.LineSegments(echoGeometry, material);
-  cube.position.copy(echoOrigin);
-  cube.scale.setScalar(0.02);
-  cube.userData = {
+  if (!raycaster.ray.intersectPlane(pondPlane, pondTarget)) return;
+  pondTarget.x = clamp(pondTarget.x, -4.8, 4.8);
+  pondTarget.y = clamp(pondTarget.y, -2.7, 2.7);
+  root.getWorldPosition(pondOrigin);
+  const boat = makeBoat();
+  boat.position.copy(pondOrigin).add(new THREE.Vector3(0, -0.3, -0.7));
+  boat.scale.setScalar(0.01);
+  const rippleMaterial = new THREE.MeshBasicMaterial({ color: 0xb9e5dc, transparent: true, opacity: 0.45, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false });
+  const ripple = new THREE.Mesh(new THREE.RingGeometry(0.24, 0.275, 64), rippleMaterial);
+  ripple.position.copy(pondTarget);
+  ripple.position.z = -0.04;
+  boat.userData = {
     age: 0,
-    start: echoOrigin.clone(),
-    end: echoTarget.clone(),
-    arc: 0.55 + Math.random() * 0.7,
-    spin: new THREE.Vector3(0.65 + Math.random(), 0.8 + Math.random(), 0.25 + Math.random() * 0.5),
+    start: boat.position.clone(),
+    end: pondTarget.clone(),
+    ripple,
   };
-  scene.add(cube);
-  echoCubes.push(cube);
-  while (echoCubes.length > 5) {
-    const old = echoCubes.shift();
-    scene.remove(old);
-    old.material.dispose();
+  scene.add(boat, ripple);
+  pondResponses.push(boat);
+  while (pondResponses.length > 3) {
+    const old = pondResponses.shift();
+    scene.remove(old, old.userData.ripple);
   }
 }
 function changeSurface(i) {
   const look = surfaceLooks[lookIndex[i]++ % surfaceLooks.length];
-  colorTargets[i].base.set(look[0]);
-  colorTargets[i].accent.set(look[1]);
-  colorTargets[i].sheen = look[2];
+  colorTargets[i].base.set(look.base);
+  colorTargets[i].accent.set(look.accent);
+  colorTargets[i].sheen = look.sheen;
+  colorTargets[i].mode = look.mode;
   pulses[i] = 1;
   const label = disciplineLabels.find((item) => item.face === i);
   if (label) label.ink.set(0x163d56);
@@ -591,7 +551,7 @@ function activate() {
   active = true;
   document.body.classList.add("awakened");
   document.querySelector("#instructions").textContent =
-    "Scroll from Hey, I'm Sid into Product design, Branding, Agentic design and UI / UX. The tiles multiply, condense into a cube, then become New York. Click a face to change its material. Hold to move pigment.";
+    "Scroll from Hey, I'm Sid into Product design, Branding, Agentic design and UI / UX. The six sides fold into a cube, open from within, then become New York. Click a face to change its material. Drag the cube to alter perspective. Click the pond to launch a paper boat.";
   canvas.setAttribute("aria-label", "Watercolor identity square. Scroll to reveal disciplines, form a cube, and build a New York skyline.");
   pulses[0] = 1;
   ScrollTrigger.refresh();
@@ -631,6 +591,10 @@ canvas.addEventListener("pointermove", (e) => {
   if (held) {
     travel = Math.hypot(e.clientX - downX, e.clientY - downY);
     if (travel > 6 && active && progress < 0.85) dragging = true;
+    if (dragging) {
+      dragYawTarget += (e.clientX - lastX) * 0.0042;
+      dragPitchTarget = clamp(dragPitchTarget + (e.clientY - lastY) * 0.0032, -0.42, 0.42);
+    }
     lastX = e.clientX;
     lastY = e.clientY;
   }
@@ -656,7 +620,7 @@ canvas.addEventListener("pointerup", (e) => {
     } else if (active && hover >= 0) {
       changeSurface(hover);
     } else if (active) {
-      spawnEcho();
+      spawnPondResponse();
     }
   }
   held = false;
@@ -718,50 +682,40 @@ function pose(p) {
   panels[1].position.set(h + L * c + h * Math.cos(theta + phi) * growth[1], 0, frontZ - L * s - h * Math.sin(theta + phi));
   panels[1].rotation.y = theta + phi;
   panels[1].scale.x = Math.max(growth[1], 0.001);
-  // Four disciplines replicate into a designed field, then converge on the hinge.
-  const patternIn = ease(0.145, 0.225, p);
-  const patternOut = ease(0.285, 0.435, p);
-  const patternPresence = patternIn * (1 - patternOut);
-  for (let i = 0; i < patternCards.length; i++) {
-    const card = patternCards[i];
-    const col = i % 5;
-    const row = Math.floor(i / 5);
-    const tx = (col - 2) * 1.46;
-    const ty = (1.5 - row) * 1.22;
-    const tz = -1.15 + (i % 3) * 0.075;
-    card.position.set(mix(tx, 0, patternOut), mix(ty, 0, patternOut), mix(tz, 0, patternOut));
-    card.rotation.set((row - 1.5) * 0.018 * (1 - patternOut), (col - 2) * -0.028 * (1 - patternOut), Math.sin(i * 2.4) * 0.018);
-    const cardScale = 0.54 * patternPresence * mix(1, 0.26, patternOut);
-    card.scale.setScalar(Math.max(0.001, cardScale));
-    card.userData.material.opacity = patternPresence * 0.88;
-    card.visible = patternPresence > 0.002;
-  }
-
-  const cubeHold = ease(0.455, 0.53, p) * (1 - ease(0.625, 0.71, p));
-  const hollowTurn = ease(0.59, 0.755, p);
-  const breakup = ease(0.745, 0.905, p);
-  const skylineBuild = ease(0.81, 1, p);
-  const scale = mix(1.03, 0.73, ease(0.02, 0.2, p)) * (1 + fold * 0.55) * (1 + cubeHold * 0.1) * (1 - breakup * 0.12);
+  const cubeHold = ease(0.455, 0.54, p) * (1 - ease(0.675, 0.76, p));
+  const insideIn = ease(0.57, 0.67, p);
+  const insideOut = ease(0.73, 0.83, p);
+  const inside = insideIn * (1 - insideOut);
+  const hollowTurn = ease(0.59, 0.8, p);
+  const breakup = ease(0.755, 0.93, p);
+  const skylineBuild = ease(0.84, 1, p);
+  const scale = mix(1.03, 0.73, ease(0.02, 0.2, p)) * (1 + fold * 0.55) * (1 + cubeHold * 0.24) * (1 - breakup * 0.08);
   const responsiveScale = scale * Math.min(1, camera.aspect / 0.98);
   root.scale.setScalar(responsiveScale);
   root.position.x = -1.25 * growth[1] * (1 - fold) * responsiveScale;
   root.position.y = (reduced ? 0 : Math.sin(clock.elapsedTime * 0.7) * 0.025) * (1 - fold * 0.6);
   root.rotation.set(
-    fold * 0.12 + hollowTurn * 0.34 + pointer.y * 0.018 * cubeHold,
-    -0.025 + fold * 0.24 + cubeHold * 0.78 + hollowTurn * 1.02 + pointer.x * 0.024 * cubeHold,
+    fold * 0.12 + hollowTurn * 0.34 + pointer.y * 0.018 * cubeHold + dragPitch * fold * (1 - breakup),
+    -0.025 + fold * 0.24 + cubeHold * 0.78 + hollowTurn * 1.02 + pointer.x * 0.024 * cubeHold + dragYaw * fold * (1 - breakup),
     Math.sin(ease(0.31, 0.76, p) * Math.PI) * 0.032
   );
-  camera.position.z = mix(10.45, 11.85, skylineBuild);
+  camera.position.z = mix(mix(9.6, 0.78, insideIn), 12.4, insideOut);
+  camera.position.x = inside * 0.22;
+  camera.position.y = inside * -0.12;
+  camera.fov = mix(35, 64, inside);
+  camera.updateProjectionMatrix();
+  skyline.position.x = w < 700 ? 0.82 : 2.35;
+  skyline.scale.setScalar(w < 700 ? 0.62 : 0.82);
   const sheetHeight = 2 * (camera.position.z + 2) * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * 1.12;
   const cols = Math.round(Math.sqrt(grid * grid * 6 * camera.aspect));
   for (let i = 0; i < 6; i++) {
     uniforms[i].uBreak.value = breakup;
-    uniforms[i].uOutline.value = ease(0.575, 0.77, p);
-    uniforms[i].uPanelFade.value = ease(0.59, 0.75, p);
-    uniforms[i].uSettle.value = ease(0.885, 0.975, p);
+    uniforms[i].uOutline.value = ease(0.57, 0.8, p);
+    uniforms[i].uPanelFade.value = ease(0.62, 0.81, p);
+    uniforms[i].uSettle.value = ease(0.91, 0.995, p);
     uniforms[i].uSheet.value.set(sheetHeight * camera.aspect, sheetHeight, cols);
-    panels[i].children[0].visible = p < 0.755;
-    chips[i].visible = p >= 0.55 && p < 0.972;
+    panels[i].children[0].visible = p < 0.81;
+    chips[i].visible = p >= 0.55 && p < 0.995;
   }
   if (identityLabel) {
     const alpha = 1 - ease(0.055, 0.105, p);
@@ -804,6 +758,8 @@ function animate() {
     time = clock.elapsedTime;
   progress = damp(progress, targetProgress, 5.5, dt);
   awake = damp(awake, active ? 1 : 0, 4, dt);
+  dragPitch = damp(dragPitch, dragPitchTarget, 7, dt);
+  dragYaw = damp(dragYaw, dragYawTarget, 7, dt);
   const onCanvas = pointerTarget.x < 2;
   pointer.lerp(onCanvas ? pointerTarget : centeredPointer, 1 - Math.exp(-5 * dt));
   pose(progress);
@@ -828,6 +784,7 @@ function animate() {
     u.uBase.value.lerp(colorTargets[i].base, 1 - Math.exp(-4 * dt));
     u.uAccent.value.lerp(colorTargets[i].accent, 1 - Math.exp(-4 * dt));
     u.uSheen.value = damp(u.uSheen.value, colorTargets[i].sheen, 4, dt);
+    u.uMode.value = damp(u.uMode.value, colorTargets[i].mode, 4, dt);
     u.uGaze.value.copy(pointer);
     pulses[i] *= Math.exp(-1.8 * dt);
     u.uPulse.value = pulses[i];
@@ -838,30 +795,28 @@ function animate() {
     label.material.color.lerp(label.ink, 1 - Math.exp(-3 * dt));
     label.sideMaterial.color.copy(label.material.color).multiplyScalar(0.65);
   }
-  const birdChapter = ease(0.2, 0.27, progress) * (1 - ease(0.42, 0.5, progress));
-  birdGroup.visible = birdChapter > 0.002;
-  for (let i = 0; i < birdGroup.children.length; i++) {
-    const bird = birdGroup.children[i];
-    const flight = (time * 0.055 + bird.userData.offset * 0.11) % 1;
-    bird.position.set(mix(-7.5, 7.5, flight), 1.5 + i * 0.34 + Math.sin(time * 0.7 + i) * 0.12, -2.5 - i * 0.18);
-    bird.rotation.z = Math.sin(time * 1.1 + i) * 0.05;
-    bird.material.opacity = birdChapter * 0.3;
-  }
-  for (let i = echoCubes.length - 1; i >= 0; i--) {
-    const echo = echoCubes[i];
-    echo.userData.age += dt;
-    const age = echo.userData.age;
-    const travelT = ease(0, 0.82, Math.min(age, 1));
-    echo.position.lerpVectors(echo.userData.start, echo.userData.end, travelT);
-    echo.position.y += Math.sin(travelT * Math.PI) * 1.35;
-    echo.rotation.set(age * 0.44, age * 0.72, age * 0.23);
-    const arrival = ease(0.66, 0.94, Math.min(age, 1));
-    echo.scale.setScalar(mix(0.15, 1, arrival));
-    echo.material.opacity = 0.72 * (1 - ease(3.8, 5.5, age));
-    if (age > 5.5) {
-      scene.remove(echo);
-      echo.material.dispose();
-      echoCubes.splice(i, 1);
+  for (let i = pondResponses.length - 1; i >= 0; i--) {
+    const boat = pondResponses[i];
+    boat.userData.age += dt;
+    const age = boat.userData.age;
+    const travelT = ease(0, 2.9, age);
+    boat.position.lerpVectors(boat.userData.start, boat.userData.end, travelT);
+    boat.position.y += Math.sin(travelT * Math.PI) * 0.34 + Math.sin(age * 2.1) * 0.025;
+    boat.rotation.z = Math.atan2(boat.userData.end.y - boat.userData.start.y, boat.userData.end.x - boat.userData.start.x) * 0.14;
+    boat.rotation.y = Math.sin(age * 0.72) * 0.1;
+    boat.scale.setScalar(mix(0.01, 0.62, ease(0, 0.65, age)) * (1 - ease(4.1, 5.2, age)));
+    const ripple = boat.userData.ripple;
+    ripple.scale.setScalar(1 + age * 2.8);
+    ripple.material.opacity = 0.42 * (1 - ease(0.7, 2.8, age));
+    if (age > 5.2) {
+      scene.remove(boat, ripple);
+      ripple.geometry.dispose();
+      ripple.material.dispose();
+      boat.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      });
+      pondResponses.splice(i, 1);
     }
   }
   background.uniforms.time.value = reduced ? 0 : time;
