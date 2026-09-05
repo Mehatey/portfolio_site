@@ -108,15 +108,6 @@ const finish = new ShaderPass({
   void main(){float speed=clamp(abs(velocity),0.,1.);vec2 dir=vec2(sign(velocity),-.18)*speed/resolution*5.;
   vec3 c=texture2D(tDiffuse,vUv).rgb;c=mix(c,(texture2D(tDiffuse,vUv-dir).rgb+texture2D(tDiffuse,vUv+dir).rgb)*.5,speed*.18);
   float split=(.35+speed*1.8)/max(resolution.x,1.);c.r=texture2D(tDiffuse,vUv+vec2(split,0.)).r;c.b=texture2D(tDiffuse,vUv-vec2(split,0.)).b;
-  vec2 p=floor(vUv*resolution);
-  vec3 grain=vec3(hash(p+floor(time*24.)),hash(p+23.+floor(time*24.)),hash(p-41.+floor(time*24.)))-.5;
-  c+=grain*.023;
-  // Sparse, soft film dust, not a decorative particle field.
-  vec2 film=vUv*vec2(resolution.x/max(resolution.y,1.),1.)*44.+vec2(time*.021,-time*.043);
-  vec2 cell=floor(film),f=fract(film);float seed=hash(cell+81.);
-  vec2 center=vec2(hash(cell+12.),hash(cell-51.))*.7+.15;
-  float dust=exp(-dot(f-center,f-center)*900.)*step(.987,seed);
-  c+=vec3(.62,.75,.69)*dust*.09*(.5+.5*sin(time*.7+seed*80.));
   c=(c-.5)*1.075+.5;c*=1.-.25*dot(vUv-.5,vUv-.5);gl_FragColor=vec4(c,1.);}`,
 });
 composer.addPass(finish);
@@ -324,15 +315,16 @@ const addImageFace = (face, path) => {
   const texture = textureLoader.load(path);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, toneMapped: false, side: THREE.FrontSide });
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material);
-  mesh.position.z = 0.021;
+  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, depthWrite: true, toneMapped: false, side: THREE.FrontSide });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.54, 2.54), material);
+  mesh.position.z = 0.032;
   mesh.userData.face = face;
   panels[face].add(mesh);
   imageFaces.push({ face, mesh, material });
 };
-addImageFace(2, "./assets/sid-eye-face.jpg");
-addImageFace(3, "./assets/sid-brain-face.jpg");
+addImageFace(2, "./assets/sid-eye-clean.png");
+// The scan is the final tile in the reading order, beyond the three practices.
+addImageFace(1, "./assets/sid-brain-clean.png");
 
 // Inside is a compact moving archive. Each clip is cropped to cover its wall,
 // muted, and only exposed from within the cube.
@@ -394,31 +386,56 @@ logoMark.add(logoMouth);
 root.add(logoMark);
 
 // Typography belongs to the geometry, so perspective and occlusion stay honest.
+// Each practice behaves like a quiet periodic-table specimen: index, symbol,
+// discipline, descriptor, and one small discipline-specific construction.
 const disciplineLabels = [];
 new FontLoader().load(
-  "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/fonts/optimer_regular.typeface.json",
+  "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/fonts/helvetiker_regular.typeface.json",
   (font) => {
     const specs = [
-      { face: 4, lines: ["Product", "Design"], color: 0xf4efdf },
-      { face: 5, lines: ["Brand", "Design"], color: 0x163d56 },
-      { face: 1, lines: ["Creative", "Technology"], color: 0xf4efdf },
+      { face: 4, number: "01", symbol: "PD", lines: ["PRODUCT", "DESIGN"], descriptor: "OBJECT / INTERFACE" },
+      { face: 5, number: "02", symbol: "BD", lines: ["BRAND", "DESIGN"], descriptor: "VOICE / IDENTITY" },
+      { face: 3, number: "03", symbol: "CT", lines: ["CREATIVE", "TECHNOLOGY"], descriptor: "CODE / SPACE / MOTION" },
     ];
     for (const spec of specs) {
       const label = new THREE.Group();
-      const material = new THREE.MeshBasicMaterial({ color: spec.color, transparent: true, opacity: 0 });
-      const sideMaterial = new THREE.MeshBasicMaterial({ color: spec.color, transparent: true, opacity: 0 });
+      const material = new THREE.MeshBasicMaterial({ color: 0xf4efdf, transparent: true, opacity: 0, toneMapped: false });
+      const sideMaterial = new THREE.MeshBasicMaterial({ color: 0xbab7ae, transparent: true, opacity: 0, toneMapped: false });
+      const lineMaterial = new THREE.LineBasicMaterial({ color: 0xf4efdf, transparent: true, opacity: 0, toneMapped: false });
       sideMaterial.color.multiplyScalar(0.65);
-      const addLine = (text, size, y) => {
+      const addText = (text, size, x, y) => {
         const geometry = new TextGeometry(text, { font, size, depth: 0.008, curveSegments: 6, bevelEnabled: false });
-        geometry.computeBoundingBox();
-        const width = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
         const mesh = new THREE.Mesh(geometry, [material, sideMaterial]);
-        mesh.position.set(-width / 2, y, 0.06);
+        mesh.position.set(x, y, 0.06);
         label.add(mesh);
       };
-      spec.lines.forEach((line, i) => addLine(line, 0.3, (spec.lines.length - 1) * 0.2 - i * 0.4 - 0.1));
+      addText(spec.number, 0.115, -1.04, 0.96);
+      addText(spec.symbol, 0.48, -1.06, 0.24);
+      addText(spec.descriptor, 0.072, -1.03, -0.26);
+      spec.lines.forEach((line, i) => addText(line, 0.16, -1.04, -0.69 - i * 0.23));
+
+      const z = 0.064;
+      let icon;
+      if (spec.face === 4) {
+        // Product: nested interface/object frames.
+        icon = [[0.42,0.74,1.02,0.74],[1.02,0.74,1.02,0.14],[1.02,0.14,0.42,0.14],[0.42,0.14,0.42,0.74],[0.56,0.60,0.88,0.60],[0.88,0.60,0.88,0.28],[0.88,0.28,0.56,0.28],[0.56,0.28,0.56,0.60]];
+      } else if (spec.face === 5) {
+        // Brand: a modular identity mark with a controlled offset.
+        icon = [[0.42,0.72,0.96,0.72],[0.42,0.52,0.82,0.52],[0.42,0.32,1.04,0.32],[0.42,0.12,0.72,0.12],[0.96,0.72,0.96,0.52],[0.82,0.52,0.82,0.32],[1.04,0.32,1.04,0.12]];
+      } else {
+        // Creative technology: a small node system, not a generic tech glyph.
+        icon = [[0.44,0.70,0.72,0.48],[0.72,0.48,1.02,0.67],[0.72,0.48,0.98,0.18],[0.44,0.70,0.48,0.20],[0.48,0.20,0.98,0.18]];
+      }
+      const points = [];
+      for (const segment of icon) points.push(new THREE.Vector3(segment[0], segment[1], z), new THREE.Vector3(segment[2], segment[3], z));
+      label.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(points), lineMaterial));
+      for (const [x, y] of [[0.44,0.70],[0.72,0.48],[0.98,0.18]]) {
+        const dot = new THREE.Mesh(new THREE.CircleGeometry(0.027, 16), material);
+        dot.position.set(x, y, z + 0.002);
+        label.add(dot);
+      }
       panels[spec.face].add(label);
-      disciplineLabels.push({ group: label, material, sideMaterial, face: spec.face, ink: material.color.clone() });
+      disciplineLabels.push({ group: label, material, sideMaterial, lineMaterial, materials: [material, sideMaterial, lineMaterial], face: spec.face, ink: material.color.clone() });
     }
   },
   undefined,
@@ -516,8 +533,6 @@ function changeSurface(i) {
   colorTargets[i].sheen = look.sheen;
   colorTargets[i].mode = look.mode;
   pulses[i] = 1;
-  const label = disciplineLabels.find((item) => item.face === i);
-  if (label) label.ink.set(0x163d56);
 }
 history.scrollRestoration = "manual";
 window.scrollTo(0, 0);
@@ -536,7 +551,7 @@ function activate() {
   active = true;
   document.body.classList.add("awakened");
   document.querySelector("#instructions").textContent =
-    "Scroll from Sid's face into his eye, brain scan, Product Design, Brand Design and Creative Technology. Enter the cube and look across five moving chapters of work, then pull back as the shell becomes the portfolio logo.";
+    "Scroll from Sid's face into his eye, Creative Technology, Product Design, Brand Design, and brain scan. Enter the cube and look across five moving chapters of work, then pull back as the shell becomes the portfolio logo.";
   canvas.setAttribute("aria-label", "Interactive identity square. Scroll to unfold Sid's visual story, enter a moving archive inside the cube, and transform it into the portfolio logo.");
   for (const video of interiorVideos) video.play().catch(() => {});
   pulses[0] = 1;
@@ -635,7 +650,7 @@ canvas.addEventListener("keydown", (e) => {
 
 // The cube net has real hinges. Back face is hinged to the right face's outer edge.
 function pose(p) {
-  // Biography arrives one side at a time: face, eye, brain, then three practices.
+  // Biography arrives one side at a time: face, eye, three practices, then mind.
   const growth = [1, ease(0.235, 0.30, p), ease(0.04, 0.095, p), ease(0.085, 0.145, p), ease(0.135, 0.195, p), ease(0.185, 0.245, p)];
   const fold = ease(0.285, 0.43, p),
     theta = (fold * Math.PI) / 2,
@@ -725,12 +740,13 @@ function pose(p) {
   for (const label of disciplineLabels) {
     const alpha = growth[label.face] * (1 - ease(0.47, 0.55, p));
     label.group.visible = alpha > 0.001;
-    label.material.opacity = alpha;
-    label.sideMaterial.opacity = alpha;
+    for (const material of label.materials) material.opacity = alpha;
   }
   for (const image of imageFaces) {
     const facePeel = ease(0.74 + peelDelay[image.face], 0.855 + peelDelay[image.face], p);
-    const alpha = growth[image.face] * (1 - ease(0.48, 0.56, p)) * (1 - facePeel);
+    // Geometry growth performs the reveal. Keep photographs fully opaque so
+    // the blue substrate and post stack cannot contaminate their pixels.
+    const alpha = (growth[image.face] > 0.001 ? 1 : 0) * (1 - ease(0.48, 0.56, p)) * (1 - facePeel);
     image.mesh.visible = alpha > 0.001;
     image.material.opacity = alpha;
   }
@@ -806,8 +822,12 @@ function animate() {
     u.uAwake.value = awake;
   }
   for (const label of disciplineLabels) {
+    const base = colorTargets[label.face].base;
+    const luminance = base.r * 0.2126 + base.g * 0.7152 + base.b * 0.0722;
+    label.ink.set(luminance < 0.34 ? 0xf4efdf : 0x112d3c);
     label.material.color.lerp(label.ink, 1 - Math.exp(-3 * dt));
     label.sideMaterial.color.copy(label.material.color).multiplyScalar(0.65);
+    label.lineMaterial.color.copy(label.material.color);
   }
   for (let i = pondResponses.length - 1; i >= 0; i--) {
     const boat = pondResponses[i];
