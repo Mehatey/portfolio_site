@@ -13,7 +13,23 @@
      `data-tip`, so the floating controls and the logo marquee stop falling
      back to browser chrome. Instant, themed, and gone on touch, where a
      hover tooltip is a tooltip nobody can dismiss. */
-  [data-tip] {
+  /* ── AND IT MUST NOT MOVE WHAT IT LABELS ──────────────────────────────
+     The tip is an absolutely positioned ::after, so its host needs to be a
+     containing block. `position: relative` is the obvious way to say that
+     and it is a trap: it is a single-class rule in a file that loads after
+     the component stylesheets, so opting an element in with `data-tip`
+     silently OVERWRITES whatever position that element already had. The
+     sound button is `position: fixed` in the corner cluster, and the moment
+     it grew a tip it dropped out of the cluster and landed nine thousand
+     pixels down the page in normal flow.
+
+     Only elements that are still `static` need promoting, and that is
+     exactly what `position: relative` on a `:not()` list cannot express in
+     CSS. So the rule is inverted: nothing is promoted by default, and the
+     one thing a tip actually needs -- a containing block -- is taken from
+     the element's own positioning, which every control here already has. A
+     genuinely static host opts in with `data-tip-anchor`. */
+  [data-tip][data-tip-anchor] {
     position: relative;
   }
   /* ── THE PLATE CAME OFF, AND THE LABEL MOVED TO THE LEFT ───────────────
@@ -5357,7 +5373,7 @@
       <span class="cc-name">Sid's Cube</span>
       <span class="cc-status">Online · Ask anything</span>
     </div>
-    <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close">✕</button>
+    <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close" data-tip-anchor>✕</button>
   </div>
   <div class="cc-body" id="cc-body" aria-live="polite"></div>
   <div class="cc-suggestions" id="cc-suggestions"></div>

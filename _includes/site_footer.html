@@ -1936,17 +1936,7 @@ include film_grade.html %}
     opacity: 1;
     pointer-events: auto;
   }
-  /* On, the bars hold a low steady line and only travel while something is
-     sounding. */
-  .sound-toggle.is-on .sound-wave i {
-    animation: none;
-    height: 5px;
-    transition: height 200ms ease;
-  }
-  .sound-toggle.is-on.is-playing .sound-wave i {
-    animation: soundWave 1.1s ease-in-out infinite;
-    animation-delay: calc(var(--i) * 0.09s);
-  }
+  /* The five bars are gone from the markup, not just from the paint. */
   /* ── ONE LINE, NOT A MONOGRAM ──────────────────────────────────────────
      Sid: "the icons for the audio: can you just make it a simple line? It
      doesn't need to be this massive audio monogram with five lines. Just a
@@ -1964,142 +1954,68 @@ include film_grade.html %}
   .sound-wave {
     position: relative;
     display: block;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 14px;
   }
-  /* OFF: one horizontal rule through the middle. */
-  .sound-wave::before {
-    content: "";
-    position: absolute;
-    left: 1px;
-    right: 1px;
-    top: 50%;
-    height: 1.5px;
-    margin-top: -0.75px;
-    border-radius: 1px;
-    background: currentColor;
-    transition:
-      opacity 0.26s ease,
-      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  .sound-wave svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
   }
-  /* ON: the rule gives way to two arcs opening rightward. */
-  .sound-toggle.is-on .sound-wave::before {
+  /* ── OFF IS A FLAT LINE, ON IS A WAVE ───────────────────────────────
+     Two paths crossfading, not one path being squashed. A transform on an
+     SVG path scales the geometry and the stroke goes with it, so a scaleY
+     small enough to look flat leaves nothing visible at all. */
+  .sound-wave__flat,
+  .sound-wave__line {
+    transition: opacity 300ms ease;
+  }
+  .sound-wave__line {
     opacity: 0;
-    transform: scaleX(0.3);
   }
-  .sound-wave::after {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: 50%;
-    width: 7px;
-    height: 7px;
-    margin-top: -3.5px;
-    border: 1.5px solid currentColor;
-    border-left-color: transparent;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
-    border-radius: 50%;
+  .sound-toggle.is-on .sound-wave__flat {
     opacity: 0;
-    transform: scale(0.6);
-    transition:
-      opacity 0.26s ease 0.06s,
-      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1) 0.06s;
   }
-  .sound-toggle.is-on .sound-wave::after {
+  /* ── ON, IT TRAVELS ─────────────────────────────────────────────────
+     The path is drawn from x -10 so there is a full wavelength of slack on
+     the left; translating by exactly one wavelength (10 units, two half
+     periods of 5) puts the shape back where it started, so the loop has no
+     seam and needs no fade. `overflow: visible` on the svg is deliberate:
+     the button's own border-radius does the clipping.
+
+     Four seconds. Slower than a level meter on purpose -- this is a state
+     that is true, not a signal that is measuring something. */
+  .sound-toggle.is-on .sound-wave__line {
     opacity: 1;
-    transform: scale(1);
+    animation: soundTravel 4s linear infinite;
   }
-  /* The second, larger arc. Drawn on the button rather than the wave because
-     both pseudo-elements of .sound-wave are already spent. */
-  .sound-toggle::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 13px;
-    height: 13px;
-    margin: -6.5px 0 0 -6px;
-    border: 1.5px solid currentColor;
-    border-left-color: transparent;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
-    border-radius: 50%;
-    opacity: 0;
-    transform: scale(0.6);
-    transition:
-      opacity 0.26s ease 0.12s,
-      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
-    pointer-events: none;
-  }
-  .sound-toggle.is-on::after {
-    opacity: 0.75;
-    transform: scale(1);
-  }
-  /* While something is actually sounding the outer arc breathes. This is the
-     one piece of motion kept from the old level-meter idea, and it is honest
-     now: it only runs when audio is playing. */
-  .sound-toggle.is-on.is-playing::after {
-    animation: soundArc 1.5s ease-in-out infinite;
-  }
-  @keyframes soundArc {
-    0%,
-    100% {
-      opacity: 0.4;
-      transform: scale(0.92);
+  @keyframes soundTravel {
+    from {
+      transform: translateX(0);
     }
-    50% {
-      opacity: 0.85;
-      transform: scale(1.08);
+    to {
+      transform: translateX(10px);
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .sound-toggle.is-on.is-playing::after {
+    .sound-toggle.is-on .sound-wave__line {
       animation: none;
     }
   }
-  /* The five bars stay in the DOM and stop being drawn. */
-  .sound-wave i {
-    display: none !important;
+  /* Both arcs are gone. See the note in assets/js/sound.js: a partial circle
+     border at this size is a crescent, and the theme toggle immediately below
+     is a moon, so the corner had two crescents in a column. */
+  .sound-toggle::after {
+    content: none;
   }
-  .sound-wave i {
-    display: block;
-    width: 2px;
-    height: 2px;
-    border-radius: 1px;
-    background: currentColor;
-    /* Off is the resting state and it is a straight line: every bar at the
-       minimum, no animation running at all. */
-    transition: height 260ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  /* On, each bar runs the same slow cycle with a stagger off its index, so the
-     movement travels across the icon rather than pulsing as a block. 1.6s is
-     deliberately slower than a level meter -- this is a state, not a signal. */
-  .sound-toggle.is-on .sound-wave i {
-    animation: soundWave 1.6s ease-in-out infinite;
-    animation-delay: calc(var(--i) * 0.13s);
-  }
-  @keyframes soundWave {
-    0%,
-    100% {
-      height: 3px;
-    }
-    50% {
-      height: 15px;
-    }
-  }
+
   html[data-theme="light"] .sound-toggle {
     background:
       radial-gradient(38px 24px at 30% 8%, rgba(255, 255, 255, 0.9), transparent 70%),
       linear-gradient(168deg, rgba(255, 255, 255, 0.86), rgba(206, 222, 238, 0.66));
     border-color: rgba(24, 48, 78, 0.16);
     color: rgba(12, 16, 24, 0.9);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .sound-toggle.is-on .sound-wave i {
-      animation: none;
-      height: 9px;
-    }
   }
   @media (max-width: 700px) {
     .sound-toggle {

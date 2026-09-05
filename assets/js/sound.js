@@ -487,27 +487,52 @@
   });
 
   /* ── THE CONTROL ────────────────────────────────────────────────────────── */
-  var BARS = 5;
+  /* ── ONE LINE, AND IT MOVES ─────────────────────────────────────────────
+     Sid: "the audio icon doesn't say a sound label, and it should be a simple
+     wave line that animates again and again. What is this sound icon. Keep it
+     minimal."
+
+     It was five bars, then a rule that opened into two arcs. The arcs were
+     the mistake: a partial circle border at eighteen pixels is a crescent,
+     and the theme toggle directly below it is a MOON, so the corner had two
+     crescents stacked on top of each other and neither said anything.
+
+     A waveform is the one shape that means sound and nothing else. This is a
+     single stroked path of six half-periods across a viewBox two thirds that
+     wide, translated by exactly one wavelength on a loop -- so the wave
+     travels forever and the seam is invisible, because the frame it ends on
+     is the frame it starts on.
+
+     Off is a second, straight path that crossfades with it. Squashing the
+     one path with scaleY was tried first and it disappeared outright: a
+     transform on an SVG path scales the geometry, the stroke rides it, and
+     at three per cent there is nothing left to see. Two paths is one more
+     element and it is exact. */
   var btn = document.createElement("button");
   btn.type = "button";
   btn.id = "sound-toggle";
   btn.className = "sound-toggle";
   btn.setAttribute("aria-pressed", on ? "true" : "false");
-  btn.setAttribute("aria-label", "Sound");
   var wave = document.createElement("span");
   wave.className = "sound-wave";
   wave.setAttribute("aria-hidden", "true");
-  for (var i = 0; i < BARS; i++) {
-    var bar = document.createElement("i");
-    bar.style.setProperty("--i", i);
-    wave.appendChild(bar);
-  }
+  wave.innerHTML =
+    '<svg viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<path class="sound-wave__flat" d="M2 7 H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />' +
+    '<path class="sound-wave__line" d="M-10 7 q2.5 -4.2 5 0 t5 0 t5 0 t5 0 t5 0 t5 0 t5 0 t5 0" ' +
+    'stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />' +
+    "</svg>";
   btn.appendChild(wave);
 
   function paint() {
     btn.classList.toggle("is-on", on);
     btn.setAttribute("aria-pressed", on ? "true" : "false");
-    btn.setAttribute("aria-label", on ? "Sound on" : "Sound off");
+    /* The label is the tooltip. Every other control in this corner names what
+       pressing it will DO ("Go to light mode"), and the sound button was the
+       one that named a state instead, so it was the one with no tip at all. */
+    var t = on ? "Turn sound off" : "Turn sound on";
+    btn.setAttribute("aria-label", t);
+    btn.setAttribute("data-tip", t);
   }
 
   btn.addEventListener("click", function () {
