@@ -18,24 +18,24 @@ the two big interactive pieces.
 
 ## 2 · Footer rebuild
 
-- [ ] Everything to the bottom left and bottom right. Nothing at the top
+- [x] Everything to the bottom left and bottom right. Nothing at the top
       right, which no real footer does.
-- [ ] Extend the working-laptop video to the bottom so it is the ground the
+- [x] Extend the working-laptop video to the bottom so it is the ground the
       links sit on.
-- [ ] Animated circle: available to work, plus the local time in New York.
-- [ ] "Built with lots of love and coffee."
-- [ ] "Let's make something useful" becomes "Let's build something together".
-- [ ] Drop the pixel icons and the email from the left. Keep the left clean.
-- [ ] No underline on the headline. The arrow is bad: replace it with
+- [x] Animated circle: available to work, plus the local time in New York.
+- [x] "Built with lots of love and coffee."
+- [x] "Let's make something useful" becomes "Let's build something together".
+- [x] Drop the pixel icons and the email from the left. Keep the left clean.
+- [x] No underline on the headline. The arrow is bad: replace it with
       something with a shader or an animation behind it.
 
 ## 3 · Contact desk
 
-- [ ] Lose the warp and the colour rectangle around the image. It should be a
+- [x] Lose the warp and the colour rectangle around the image. It should be a
       clean PNG at rest.
-- [ ] The desk breathes and animates slowly on its own.
-- [ ] Hover reveals the whole desk.
-- [ ] HOLD to liquify: the longer the press, the more it warps, exponentially,
+- [x] The desk breathes and animates slowly on its own.
+- [x] Hover reveals the whole desk.
+- [x] HOLD to liquify: the longer the press, the more it warps, exponentially,
       hitting a crazy amount at about five seconds. Returns to rest on
       release.
 
