@@ -2591,6 +2591,89 @@
       .refl-quote p:last-child { margin-bottom: 0; }
 
       /* ─── NEXT PROJECTS — first project dominant ─── */
+      /* ══ THE SCROLL FILM ═══════════════════════════════════════════════
+         A miniature of the case study's own pictures down the right edge,
+         with a frame marking the window. See assets/js/scroll-film.js for
+         why it is built from the DOM rather than from data.
+
+         26px wide, which is enough to recognise a photograph you have already
+         seen and not enough to be a second column. It sits at 0 opacity until
+         the page moves. */
+      .sfilm {
+        position: fixed;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 60;
+        width: 26px;
+        /* `height`, not `max-height`. The cells are `flex: 1 1 0` so they
+           divide whatever height the rail has -- with only a max, the rail
+           shrank to its content (eleven 8px minimums, about 118px) and the
+           window frame computed against that, coming out at its 18px floor
+           on an 11,572px page. An indicator whose size is always the floor
+           is not indicating anything. */
+        height: 62vh;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 420ms ease;
+      }
+      .sfilm.is-live {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .sfilm__cell {
+        appearance: none;
+        border: 0;
+        padding: 0;
+        margin: 0;
+        flex: 1 1 0;
+        min-height: 8px;
+        background-size: cover;
+        background-position: center;
+        border-radius: 1px;
+        cursor: pointer;
+        opacity: 0.34;
+        filter: saturate(0.6);
+        transition:
+          opacity 220ms ease,
+          filter 220ms ease;
+      }
+      .sfilm__cell:hover,
+      .sfilm__cell:focus-visible {
+        opacity: 0.9;
+        filter: saturate(1);
+      }
+      /* The one you are looking at. Full colour rather than an outline: a
+         border on a 26px cell is most of the cell. */
+      .sfilm__cell.is-here {
+        opacity: 1;
+        filter: saturate(1);
+      }
+      /* The window. A hairline box rather than a filled bar, so the pictures
+         stay readable underneath it. */
+      .sfilm__view {
+        position: absolute;
+        left: -3px;
+        right: -3px;
+        top: 0;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 2px;
+        pointer-events: none;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+      }
+      html[data-theme="light"] .sfilm__view {
+        border-color: rgba(20, 26, 38, 0.8);
+        box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+      }
+      @media (max-width: 1199px) {
+        .sfilm {
+          display: none;
+        }
+      }
+
       /* ══ THE HANDOVER ══════════════════════════════════════════════════
          220vh of section holding one sticky viewport-tall panel. The height
          IS the interaction: it is the distance over which the reader decides,
@@ -9528,9 +9611,23 @@
      actually answers "doesn't show enough of the background". At 9px a
      photograph behind the glass becomes a colour field; at 6px you can very
      nearly make out what it is, which is the whole effect. */
+  /* ── MORE REFRACTION, NOT MORE TINT ───────────────────────────────────
+     Sid: "make more refraction happen. It's just a little tinted rectangle
+     otherwise in the screensaver."
+
+     Refraction is what glass does to what is BEHIND it, so more of it means
+     more distortion of the page and less paint on top. The blur comes down
+     again (6px to 4px) so the background stays legible through the body, and
+     what is added is an actual displacement: `filter: url(#glass-warp)` bends
+     the sampled backdrop along a slow turbulence, which is the part that
+     reads as thickness. A tinted rectangle has no displacement; a lens does.
+
+     The saturation lift goes up rather than the alpha, because pulling more
+     colour OUT of the page is refraction and painting more colour ON is a
+     sticker. */
   .idle-drift__p {
-    backdrop-filter: blur(6px) saturate(1.35) brightness(1.03);
-    -webkit-backdrop-filter: blur(6px) saturate(1.35) brightness(1.03);
+    backdrop-filter: blur(4px) saturate(1.7) brightness(1.04) contrast(1.06);
+    -webkit-backdrop-filter: blur(4px) saturate(1.7) brightness(1.04) contrast(1.06);
     background: linear-gradient(148deg, rgba(var(--tint, 255, 255, 255), 0.2), rgba(255, 255, 255, 0.03) 48%, rgba(var(--tint, 255, 255, 255), 0.13));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.4),
@@ -9665,11 +9762,61 @@
     background: rgba(255, 255, 255, 0.92);
     z-index: 2;
   }
+  /* ── THE EYES ARE ALIVE ───────────────────────────────────────────────
+     Sid: "Can you animate the eyes."
+
+     Two motions on different clocks, which is the whole trick. The BLINK is
+     a scaleY on the eye itself, held closed for a fraction of the cycle and
+     open for the rest -- 7.4s and 9.1s on the two objects, so the pair never
+     blinks together, which is what stops it reading as one animation applied
+     twice. The LOOK is a slow horizontal drift of both eyes as a pair, on a
+     much longer period, so the mark appears to glance around the page rather
+     than stare out of it.
+
+     `transform-origin: 50% 50%` matters: an eye that closes toward its top
+     edge reads as a shutter, one that closes about its middle reads as a
+     lid. */
   .idle-drift__p .eye {
     width: 6.2%;
     height: 22.9%;
     top: 30.5%;
     border-radius: 40% / 12%;
+    transform-origin: 50% 50%;
+    animation:
+      idle-blink 7.4s ease-in-out infinite,
+      idle-look 19s ease-in-out infinite;
+  }
+  /* The second face runs both cycles on different periods so the two objects
+     are never in step. */
+  .idle-drift__p.t-slate .eye {
+    animation-duration: 9.1s, 23s;
+  }
+  @keyframes idle-blink {
+    0%,
+    92%,
+    100% {
+      transform: scaleY(1);
+    }
+    95% {
+      transform: scaleY(0.08);
+    }
+  }
+  @keyframes idle-look {
+    0%,
+    100% {
+      margin-left: 0;
+    }
+    30% {
+      margin-left: 1.6%;
+    }
+    62% {
+      margin-left: -1.4%;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p .eye {
+      animation: none;
+    }
   }
   .idle-drift__p .eye:nth-of-type(1) {
     left: 30.1%;
@@ -13132,7 +13279,7 @@
         }
       }
     })();
-  </script> <script src="/assets/js/collect.js" defer></script> <script src="/assets/js/pixel-field.js" defer></script> <script>
+  </script> <script src="/assets/js/collect.js" defer></script> <script src="/assets/js/pixel-field.js" defer></script> <script src="/assets/js/magnetic.js" defer></script> <script>
     /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
      Sets `body.controls-near`, which site_footer's stylesheet has referenced
      since the sound toggle was first made to recede and which nothing has
@@ -13193,7 +13340,7 @@
         { passive: true }
       );
     })();
-  </script> <script src="/assets/js/mark-lens.js" defer></script> <script>
+  </script> <script src="/assets/js/mark-lens.js" defer></script> <script src="/assets/js/scroll-film.js" defer></script> <script>
       /* ══ THE HANDOVER ═══════════════════════════════════════════════════
          One number, read from the scroll position, written to the panel as a
          custom property. Everything visible -- the cover's opacity and scale,
@@ -19993,32 +20140,17 @@
     });
   })();
 
-  // ── MAGNETIC CTA ── elements with [data-magnetic] subtly pull toward the cursor on hover
-  (function () {
-    const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
-    if (isTouch) return;
-    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-    const STRENGTH = 0.28;
-    document.querySelectorAll("[data-magnetic]").forEach((el) => {
-      let raf = null;
-      el.addEventListener("mousemove", (e) => {
-        if (raf) return;
-        raf = requestAnimationFrame(() => {
-          const r = el.getBoundingClientRect();
-          const dx = (e.clientX - (r.left + r.width / 2)) * STRENGTH;
-          const dy = (e.clientY - (r.top + r.height / 2)) * STRENGTH;
-          el.style.transform = "translate(" + dx + "px, " + dy + "px)";
-          raf = null;
-        });
-      });
-      el.addEventListener("mouseleave", () => {
-        el.style.transform = "";
-        if (raf) cancelAnimationFrame(raf);
-        raf = null;
-      });
-    });
-  })();
+  /* ── MAGNETIC CONTROLS MOVED TO assets/js/magnetic.js ───────────────────
+     The version that lived here bound `mousemove` ON each element, so the
+     pull only started once the pointer was already inside the button -- and
+     the whole point of the effect is the moment BEFORE contact. It also wrote
+     the transform straight from the cursor with no easing and cleared it
+     outright on leave, so it snapped in and jumped back.
+
+     The replacement is proximity based, eased both ways, and applies to the
+     controls a visitor actually aims at rather than to the four elements that
+     happened to carry the attribute. See that file for why it caches rects
+     instead of measuring every frame. */
 
   // ── COPY-EMAIL ON CLICK ── intercept mailto clicks, copy address to clipboard + toast (still opens mail client)
   (function () {

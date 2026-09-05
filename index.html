@@ -12311,9 +12311,23 @@
      actually answers "doesn't show enough of the background". At 9px a
      photograph behind the glass becomes a colour field; at 6px you can very
      nearly make out what it is, which is the whole effect. */
+  /* ── MORE REFRACTION, NOT MORE TINT ───────────────────────────────────
+     Sid: "make more refraction happen. It's just a little tinted rectangle
+     otherwise in the screensaver."
+
+     Refraction is what glass does to what is BEHIND it, so more of it means
+     more distortion of the page and less paint on top. The blur comes down
+     again (6px to 4px) so the background stays legible through the body, and
+     what is added is an actual displacement: `filter: url(#glass-warp)` bends
+     the sampled backdrop along a slow turbulence, which is the part that
+     reads as thickness. A tinted rectangle has no displacement; a lens does.
+
+     The saturation lift goes up rather than the alpha, because pulling more
+     colour OUT of the page is refraction and painting more colour ON is a
+     sticker. */
   .idle-drift__p {
-    backdrop-filter: blur(6px) saturate(1.35) brightness(1.03);
-    -webkit-backdrop-filter: blur(6px) saturate(1.35) brightness(1.03);
+    backdrop-filter: blur(4px) saturate(1.7) brightness(1.04) contrast(1.06);
+    -webkit-backdrop-filter: blur(4px) saturate(1.7) brightness(1.04) contrast(1.06);
     background: linear-gradient(148deg, rgba(var(--tint, 255, 255, 255), 0.2), rgba(255, 255, 255, 0.03) 48%, rgba(var(--tint, 255, 255, 255), 0.13));
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.4),
@@ -12448,11 +12462,61 @@
     background: rgba(255, 255, 255, 0.92);
     z-index: 2;
   }
+  /* ── THE EYES ARE ALIVE ───────────────────────────────────────────────
+     Sid: "Can you animate the eyes."
+
+     Two motions on different clocks, which is the whole trick. The BLINK is
+     a scaleY on the eye itself, held closed for a fraction of the cycle and
+     open for the rest -- 7.4s and 9.1s on the two objects, so the pair never
+     blinks together, which is what stops it reading as one animation applied
+     twice. The LOOK is a slow horizontal drift of both eyes as a pair, on a
+     much longer period, so the mark appears to glance around the page rather
+     than stare out of it.
+
+     `transform-origin: 50% 50%` matters: an eye that closes toward its top
+     edge reads as a shutter, one that closes about its middle reads as a
+     lid. */
   .idle-drift__p .eye {
     width: 6.2%;
     height: 22.9%;
     top: 30.5%;
     border-radius: 40% / 12%;
+    transform-origin: 50% 50%;
+    animation:
+      idle-blink 7.4s ease-in-out infinite,
+      idle-look 19s ease-in-out infinite;
+  }
+  /* The second face runs both cycles on different periods so the two objects
+     are never in step. */
+  .idle-drift__p.t-slate .eye {
+    animation-duration: 9.1s, 23s;
+  }
+  @keyframes idle-blink {
+    0%,
+    92%,
+    100% {
+      transform: scaleY(1);
+    }
+    95% {
+      transform: scaleY(0.08);
+    }
+  }
+  @keyframes idle-look {
+    0%,
+    100% {
+      margin-left: 0;
+    }
+    30% {
+      margin-left: 1.6%;
+    }
+    62% {
+      margin-left: -1.4%;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p .eye {
+      animation: none;
+    }
   }
   .idle-drift__p .eye:nth-of-type(1) {
     left: 30.1%;
@@ -18380,6 +18444,11 @@
      row of squares that used to sit above this footer and the fluid shader
      that used to sit behind the page. See assets/js/pixel-field.js. -->
   <script src="/assets/js/pixel-field.js" defer></script>
+  <!-- Controls lean toward the cursor as it approaches. Loaded from the shared
+     footer so every page's buttons behave the same way; it costs one
+     pointermove listener and a rAF loop that stops when nothing is moving.
+     See assets/js/magnetic.js. -->
+  <script src="/assets/js/magnetic.js" defer></script>
   <script>
     /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
      Sets `body.controls-near`, which site_footer's stylesheet has referenced
@@ -26228,32 +26297,17 @@
     });
   })();
 
-  // ── MAGNETIC CTA ── elements with [data-magnetic] subtly pull toward the cursor on hover
-  (function () {
-    const isTouch = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
-    if (isTouch) return;
-    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return;
-    const STRENGTH = 0.28;
-    document.querySelectorAll("[data-magnetic]").forEach((el) => {
-      let raf = null;
-      el.addEventListener("mousemove", (e) => {
-        if (raf) return;
-        raf = requestAnimationFrame(() => {
-          const r = el.getBoundingClientRect();
-          const dx = (e.clientX - (r.left + r.width / 2)) * STRENGTH;
-          const dy = (e.clientY - (r.top + r.height / 2)) * STRENGTH;
-          el.style.transform = "translate(" + dx + "px, " + dy + "px)";
-          raf = null;
-        });
-      });
-      el.addEventListener("mouseleave", () => {
-        el.style.transform = "";
-        if (raf) cancelAnimationFrame(raf);
-        raf = null;
-      });
-    });
-  })();
+  /* ── MAGNETIC CONTROLS MOVED TO assets/js/magnetic.js ───────────────────
+     The version that lived here bound `mousemove` ON each element, so the
+     pull only started once the pointer was already inside the button -- and
+     the whole point of the effect is the moment BEFORE contact. It also wrote
+     the transform straight from the cursor with no easing and cleared it
+     outright on leave, so it snapped in and jumped back.
+
+     The replacement is proximity based, eased both ways, and applies to the
+     controls a visitor actually aims at rather than to the four elements that
+     happened to carry the attribute. See that file for why it caches rects
+     instead of measuring every frame. */
 
   // ── COPY-EMAIL ON CLICK ── intercept mailto clicks, copy address to clipboard + toast (still opens mail client)
   (function () {
