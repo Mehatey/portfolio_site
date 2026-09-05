@@ -115,6 +115,22 @@
     return pick(LINES[fam], seed);
   }
 
+  /* ── AND WHEN THE CUBE HAS SOMETHING BETTER TO SAY ────────────────────
+     Every work card carries `data-cube`: one line per project, written by
+     Sid in _data/works.yml, in the cube's own voice ("Most banks speak only
+     to those who already have"). Those used to print in the top bar, and Sid
+     has asked for the top left to be empty and for everything to come from
+     the cursor -- so they come here instead.
+
+     His writing beats a generated line about temperature every time, so it
+     wins when it exists. The colour aside is what the cube says about
+     everything else on the site, which is most of it. */
+  function lineFor(el, cols) {
+    var owner = el.closest && el.closest("[data-cube]");
+    var own = owner && (owner.getAttribute("data-cube") || "").trim();
+    return own || remark(cols, el);
+  }
+
   /* ── THE PANEL ────────────────────────────────────────────────────────── */
   var box = document.createElement("div");
   box.className = "curhue";
@@ -188,7 +204,7 @@
       sw.style.setProperty("--i", i);
       chipsEl.appendChild(sw);
     }
-    sayEl.textContent = remark(cols, el);
+    sayEl.textContent = lineFor(el, cols);
 
     /* Jumped to the pointer on the first frame it is shown, or the panel
        flies in from wherever it was last dismissed. */

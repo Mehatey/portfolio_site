@@ -311,8 +311,13 @@
          portrait just reintroduces the hole it was invented to fix. */
       .about-hero {
         display: grid;
-        grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
-        gap: clamp(40px, 6vw, 96px);
+        /* Sid: "make it a little bigger and see the proximity to text, if
+           the spacing is right." 420 to 500 on the picture, and the gap grows
+           with it so the two columns do not close up as the left one widens
+           -- the complaint about spacing is really about the ratio between
+           them, not either one alone. */
+        grid-template-columns: minmax(320px, 500px) minmax(0, 1fr);
+        gap: clamp(48px, 7vw, 116px);
         align-items: start;
         padding: 0 var(--gutter) 64px;
         max-width: 1320px;
@@ -2341,6 +2346,21 @@
           inset 0 -1px 0 rgba(28, 60, 96, 0.05),
           0 18px 46px rgba(19, 34, 52, 0.12);
       }
+
+      /* The cloth runs on the PHOTOGRAPHS, not on the card. The card carries
+         the blob mask, the tilt and the shadow; displacing all of that would
+         warp the silhouette and the seal along with the picture, and a stamp
+         that ripples is a bug. */
+      .about-photo {
+        filter: url(#about-cloth);
+      }
+      /* An SVG filter forces software rasterisation of whatever it touches,
+         so it comes off where it cannot be seen or cannot be afforded. */
+      @media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+        .about-photo {
+          filter: none;
+        }
+      }
     </style>
   </head>
   <body>
@@ -2358,10 +2378,17 @@
       <!-- HERO -->
       <section class="about-hero">
         <div class="hero-ident" style="--bloom-src: url({{ site.baseurl }}/assets/img/sid_about.jpg)">
-          <!-- The out-of-focus copy of the portrait that the masked top edge
-               dissolves into. Inert, decorative, and the same file the card
-               is already loading, so it costs a paint and not a request. -->
-          <span class="about-ident-bloom" aria-hidden="true"></span>
+          <!-- ── THE BLOOM IS GONE ────────────────────────────────────────
+               Sid: "what is that dark grey rectangle above my image? Remove
+               it, it's colliding with the nav and looking weird."
+
+               It was an out-of-focus copy of the portrait, meant to let the
+               masked top edge dissolve upward into the page. It had a
+               vertical mask and no horizontal one, so its left and right
+               edges stayed hard: a blurred, dimmed slab with two straight
+               sides sitting between the photograph and the navigation, which
+               is a rectangle however soft its top is. The card's own blob
+               mask already does the dissolving. -->
           <span class="about-ident-drag" aria-hidden="true"></span>
           <div
             class="about-profile-card"
@@ -2588,12 +2615,14 @@
           Brands Sid has worked with, directly and through agency work, include Deloitte, EyeJack, Philips, Marriott, M Health Fairview, Leaf Design
           Studio, Dabur, KFC, Google, Pizza Hut, Taco Bell, and Del Taco.
         </p>
+        {% comment %} No data-tip on these. Sid: "you don't need to mention the company names when I hover on company logos, the names are already
+        there." Every logo on this wall is a wordmark -- Deloitte, Philips, Marriott Bonvoy, M Health Fairview -- so the tip printed the word already
+        printed under the pointer. The tip system stays for controls, where the label is the only thing naming the button. {% endcomment %}
         <div class="marquee-mask">
           <div class="marquee-track" aria-hidden="true">
             {% for i in (1..2) %}{% for entry in collab_logos %}{% assign p = entry | strip | split: "|" %}<span
               class="m-logo{% if p[4] %} m-logo--hair{% endif %}"
               style="--h: {{ p[2] }}px; --ar: {{ p[3] }}{% if p[4] %}; --ink: {{ p[4] }}{% endif %}"
-              data-tip="{{ p[1] | replace: '~', ' ' }}"
               ><img
                 class="m-logo__mono"
                 src="{{ site.baseurl }}/assets/img/companies/mono/{{ p[0] }}.png"
@@ -3007,6 +3036,27 @@
     </script>
     <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true">
       <defs>
+        <!-- ══ THE PORTRAIT IS CLOTH ═══════════════════════════════════════
+             Sid: "make my image feel like a flag in the wind, hover
+             interactive, or cloth or something. Right now it's basically the
+             same rectangle as before with the bottom given a little blur."
+
+             Turbulence displacing the picture, which is the one thing in SVG
+             that genuinely deforms a photograph rather than transforming it.
+             Two octaves of fractal noise at a low base frequency gives long
+             slow folds rather than static; the frequency is deliberately
+             anisotropic -- much lower across than down -- because cloth on a
+             line hangs in vertical folds that travel sideways, and equal
+             frequencies give a boiling surface instead.
+
+             `scale` is animated by the script below rather than by SMIL: it
+             has to answer the pointer, and it has to fall back to a resting
+             ripple when the pointer leaves. The seed animates on its own so
+             the fabric is never still even at rest. -->
+        <filter id="about-cloth" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+          <feTurbulence id="about-cloth-noise" type="fractalNoise" baseFrequency="0.004 0.016" numOctaves="2" seed="4" result="wind" />
+          <feDisplacementMap id="about-cloth-disp" in="SourceGraphic" in2="wind" scale="8" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
         <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB">
           <feTurbulence type="fractalNoise" baseFrequency="0.007 0.048" numOctaves="1" seed="9" result="noise" />
           <feDisplacementMap in="SourceGraphic" in2="noise" scale="9" xChannelSelector="R" yChannelSelector="G" />
@@ -3118,6 +3168,88 @@
           },
           { passive: true }
         );
+      })();
+    </script>
+
+    <script>
+      /* ══ WIND ══════════════════════════════════════════════════════════
+         Drives the displacement filter above. Two numbers: how hard the wind
+         is blowing, and where the noise field has drifted to.
+
+         AT REST it is not zero. A picture that is only cloth while you touch
+         it is a hover effect; a flag on a still day still moves. The resting
+         amplitude is small enough that you notice it on the second look.
+
+         POINTER raises it, and the rise is on a spring rather than a
+         transition so a fast pass over the card gusts rather than steps. The
+         further across the card the pointer is, the harder it pushes -- one
+         edge is the lee side.
+
+         WHY THE SEED AND NOT A TRANSFORM. Animating `seed` regenerates the
+         noise field, which reads as the fabric moving through the wind.
+         Animating the displacement scale alone only makes the same folds
+         deeper, which reads as a lens. Both, together, is cloth. */
+      (function () {
+        var disp = document.getElementById("about-cloth-disp");
+        var noise = document.getElementById("about-cloth-noise");
+        var card = document.getElementById("about-profile-card");
+        if (!disp || !noise || !card) return;
+        if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (window.matchMedia && !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+        var REST = 5,
+          GUST = 26;
+        var want = REST,
+          have = REST,
+          seed = 4,
+          raf = 0,
+          onCard = false;
+
+        function frame() {
+          have += (want - have) * 0.08;
+          /* The field drifts continuously, faster while it is being pushed --
+             so the folds travel across the picture rather than pulsing in
+             place. Wrapped well short of the point where the float stops
+             being exact. */
+          seed += 0.05 + (have / GUST) * 0.22;
+          if (seed > 9000) seed = 4;
+          noise.setAttribute("seed", seed.toFixed(2));
+          disp.setAttribute("scale", have.toFixed(2));
+          if (onCard || Math.abs(want - have) > 0.05) raf = requestAnimationFrame(frame);
+          else raf = 0;
+        }
+        function wake() {
+          if (!raf) raf = requestAnimationFrame(frame);
+        }
+
+        card.addEventListener("pointerenter", function () {
+          onCard = true;
+          wake();
+        });
+        card.addEventListener("pointermove", function (e) {
+          var r = card.getBoundingClientRect();
+          /* Strongest at the trailing edge, which is what gives the gust a
+             direction instead of making the whole sheet swell. */
+          var t = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)));
+          want = REST + (GUST - REST) * (0.45 + t * 0.55);
+          wake();
+        });
+        card.addEventListener("pointerleave", function () {
+          onCard = false;
+          want = REST;
+          wake();
+        });
+        /* The resting ripple only runs while the card is on screen. An SVG
+           displacement filter repainting off-screen is pure cost. */
+        if (window.IntersectionObserver) {
+          new IntersectionObserver(function (es) {
+            if (es[0].isIntersecting) wake();
+            else if (raf) {
+              cancelAnimationFrame(raf);
+              raf = 0;
+            }
+          }).observe(card);
+        } else wake();
       })();
     </script>
   </body>

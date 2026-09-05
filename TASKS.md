@@ -6,14 +6,14 @@ the two big interactive pieces.
 
 ## 1 · Corrections and cleanup
 
-- [ ] Nav: drop the underline under the active label. The text is enough.
-- [ ] Kill the top-left caption beside the mark. The cursor panel and the bar
+- [x] Nav: drop the underline under the active label. The text is enough.
+- [x] Kill the top-left caption beside the mark. The cursor panel and the bar
       are both printing the same sentence. Everything moves to the cursor.
-- [ ] About: no company-name tooltip on the logo wall. The names are already
+- [x] About: no company-name tooltip on the logo wall. The names are already
       set in the logos.
-- [ ] About: remove the dark grey rectangle above the portrait; it collides
+- [x] About: remove the dark grey rectangle above the portrait; it collides
       with the nav.
-- [ ] Contact: remove "Sid Mehta", make the email smaller, add the phone
+- [x] Contact: remove "Sid Mehta", make the email smaller, add the phone
       number 646 287 7550.
 
 ## 2 · Footer rebuild
@@ -41,8 +41,8 @@ the two big interactive pieces.
 
 ## 4 · About portrait
 
-- [ ] Bigger, with a real shader, and check the spacing against the text.
-- [ ] It should behave like cloth or a flag in the wind, and answer the
+- [x] Bigger, with a real shader, and check the spacing against the text.
+- [x] It should behave like cloth or a flag in the wind, and answer the
       pointer. Right now it is a rectangle with a blurred bottom edge.
 
 ## 5 · Play page: the phone
