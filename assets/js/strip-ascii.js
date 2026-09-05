@@ -281,6 +281,17 @@
     var img = window.SidHue && window.SidHue.pictureIn(best);
     var cols = img && window.SidHue.palette(img, PAL_N);
     if (!cols || !cols.length) return;
+    /* ── SAY WHICH ONE IS BEING READ ──────────────────────────────────
+       Sid: "some nice side effect so it's more clear to the user which pic's
+       colours are being shown as pixels in the bg. Right now there are like
+       4 images with a lot of colour so I'm not able to tell."
+
+       The field takes its palette from exactly one tile and nothing said
+       which. The class goes on the tile the read came from, and the CSS
+       brings that one into focus while the rest go soft -- so the causal
+       chain is visible: this picture, that wall. */
+    if (focusEl) focusEl.classList.remove("is-source");
+    best.classList.add("is-source");
     focusEl = best;
     var br = best.getBoundingClientRect();
     focusX = Math.max(0, Math.min(1, (br.left + br.width / 2 - r.left) / r.width));
