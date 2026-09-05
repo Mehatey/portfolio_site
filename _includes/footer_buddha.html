@@ -50,7 +50,105 @@ moment if the loader has not already brought it in. {% endcomment %}
     height: 100vh;
     display: grid;
     place-items: center;
+    /* The stage stays inert so the scroll passes straight through it; the
+       mount inside opts back in, because the figure is now something you can
+       point at and press. */
     pointer-events: none;
+  }
+  .lastfig__mount {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .lastfig.is-shattered .lastfig__mount {
+    opacity: 0;
+    transition: opacity 110ms linear;
+  }
+
+  /* ══ WHAT HE SAYS ══════════════════════════════════════════════════════
+     Sid: "every time I hover on Buddha let it rotate fast and spit out an
+     animated text saying which Buddha would say, and let the letters feel 3D
+     and not all in one line, like creatively, like a wave they emerge."
+
+     So the line is set on an arc rather than a baseline, and every character
+     is its own element with its own delay, its own depth and its own tilt.
+     The wave is a sine across the character index applied to Y and to
+     rotateX at once: a letter that only moves up and down is a bounce, and a
+     letter that only tilts is a flip. Together, on a perspective, they read
+     as a ribbon coming toward you.
+
+     It is arranged around the figure, not under it, so nothing has to move
+     to make room and the head stays the subject. */
+  .lastfig__say {
+    position: absolute;
+    left: 50%;
+    /* Under the figure, not across it. Centred on the stage put the line
+       straight over the face, which is the one thing on this screen worth
+       looking at. */
+    top: 74%;
+    width: min(760px, 78vw);
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 0.02em;
+    perspective: 700px;
+    pointer-events: none;
+    z-index: 6;
+    font-family: var(--font-head, inherit);
+    font-size: clamp(22px, 2.6vw, 40px);
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    text-align: center;
+  }
+  .lastfig__say i {
+    display: inline-block;
+    font-style: normal;
+    opacity: 0;
+    transform: translateY(38px) translateZ(-140px) rotateX(72deg);
+    /* Warm gold picked off the glaze on the figure itself, so the words look
+       like they came from it rather than from the page. */
+    color: rgba(238, 222, 168, 0.94);
+    text-shadow:
+      0 1px 0 rgba(120, 96, 30, 0.5),
+      0 10px 34px rgba(0, 0, 0, 0.7);
+    will-change: transform, opacity;
+  }
+  .lastfig__say.is-in i {
+    animation: figSay 1250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(var(--i) * 42ms);
+  }
+  @keyframes figSay {
+    0% {
+      opacity: 0;
+      transform: translateY(38px) translateZ(-140px) rotateX(72deg);
+    }
+    /* Overshoots past its resting depth and settles, which is what stops a
+       letter arriving and simply stopping. */
+    62% {
+      opacity: 1;
+      transform: translateY(calc(-1 * var(--wave) * 30px)) translateZ(52px) rotateX(-10deg);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(calc(-1 * var(--wave) * 22px)) translateZ(0) rotateX(0deg);
+    }
+  }
+  .lastfig__say.is-out i {
+    animation: figSayOut 460ms ease forwards;
+    animation-delay: calc(var(--i) * 12ms);
+  }
+  @keyframes figSayOut {
+    to {
+      opacity: 0;
+      transform: translateY(-26px) translateZ(-90px) rotateX(-50deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lastfig__say i {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+    }
   }
   /* ── THE WATER ────────────────────────────────────────────────────────
      assets/js/footer-water.js. Inside the sticky stage, so it costs the page
@@ -346,6 +444,157 @@ moment if the loader has not already brought it in. {% endcomment %}
     function onScroll() {
       if (!raf) raf = requestAnimationFrame(read);
     }
+    /* ══ HE TURNS, HE SPEAKS, AND HE COMES APART ═══════════════════════════
+       Sid: "let the same pixel voxel click from the music one be applied to
+       Buddha, and every time I hover on Buddha let it rotate fast and spit
+       out an animated text saying which Buddha would say."
+
+       WHY THIS IS NOT THE THING HE ASKED ME TO REMOVE. buddha-voxels.js was
+       taken off this page because it was driven by SCROLL and never came
+       back: the figure shattered as you passed and left an empty frame at the
+       bottom of every page. Sid: "don't shatter and don't make it fall off."
+       This one is asked for, is triggered by a deliberate press, and reforms.
+       The difference between the two is not the effect, it is whether the
+       page does it to you or you do it to the page. */
+    (function () {
+      if (!mount) return;
+      if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      /* ── THE SPIN ────────────────────────────────────────────────────
+         The camera orbit is already written every scroll frame by read()
+         above, so a second writer would fight it. `spin` is added to that
+         value instead, and read() picks it up on its next pass -- one owner
+         of the attribute, two contributors to the number. */
+      var spin = 0,
+        spinTo = 0,
+        sraf = 0;
+
+      function orbit() {
+        sraf = 0;
+        spin += (spinTo - spin) * 0.06;
+        var base = -40 + (f < 0 ? 0 : f) * 320;
+        if (mv) mv.setAttribute("camera-orbit", (base + spin).toFixed(1) + "deg " + (82 - (f < 0 ? 0 : f) * 10).toFixed(1) + "deg 105%");
+        if (Math.abs(spinTo - spin) > 0.3) sraf = requestAnimationFrame(orbit);
+      }
+      function spinKick() {
+        if (!sraf) sraf = requestAnimationFrame(orbit);
+      }
+
+      /* ── WHAT HE SAYS ────────────────────────────────────────────────
+         Short, and none of it about the website. A figure on a portfolio
+         that says something about the portfolio is a mascot; one that says
+         something true regardless is a figure. Walked rather than shuffled
+         so you do not get the same line twice running. */
+      var LINES = [
+        "You are already here.",
+        "Nothing you scroll past is lost.",
+        "The work is the practice.",
+        "Stillness is also a frame.",
+        "Look once more, slowly.",
+        "There is no finished, only shipped.",
+        "Attention is the whole gift.",
+      ];
+      var li = Math.floor(Math.random() * LINES.length);
+      var say = null;
+
+      function speak() {
+        if (say) say.remove();
+        li = (li + 1 + Math.floor(Math.random() * 2)) % LINES.length;
+        var txt = LINES[li];
+        say = document.createElement("div");
+        say.className = "lastfig__say";
+        say.setAttribute("aria-hidden", "true");
+        for (var i = 0; i < txt.length; i++) {
+          var ch = document.createElement("i");
+          ch.style.setProperty("--i", i);
+          /* The wave. One sine across the whole line, so neighbouring
+             letters are always close in height and the row reads as a
+             curve rather than as noise. */
+          ch.style.setProperty("--wave", Math.sin((i / Math.max(1, txt.length - 1)) * Math.PI * 2.2).toFixed(3));
+          ch.textContent = txt[i] === " " ? "\u00a0" : txt[i];
+          say.appendChild(ch);
+        }
+        stage.appendChild(say);
+        /* Two frames, so the element is in the document with its start
+           transform applied before the animation class lands. One frame is
+           enough in Chrome and not in Safari. */
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            if (say) say.classList.add("is-in");
+          });
+        });
+      }
+      function unspeak() {
+        if (!say) return;
+        var s2 = say;
+        say = null;
+        s2.classList.remove("is-in");
+        s2.classList.add("is-out");
+        setTimeout(function () {
+          s2.remove();
+        }, 900);
+      }
+
+      var over = false;
+      mount.addEventListener("pointerenter", function (e) {
+        if (e.pointerType === "touch") return;
+        if (over) return;
+        over = true;
+        /* A full turn and a bit, so it does not simply rock back. */
+        spinTo += 400;
+        spinKick();
+        speak();
+      });
+      mount.addEventListener("pointerleave", function () {
+        over = false;
+        unspeak();
+      });
+
+      /* ── AND THE PRESS ───────────────────────────────────────────────
+         model-viewer draws into a WebGL canvas without preserveDrawingBuffer,
+         so reading that canvas directly returns an empty image. toDataURL()
+         re-renders for exactly this purpose, which is why the source here is
+         a fresh <img> and not the element itself. */
+      mount.addEventListener("pointerdown", function (e) {
+        if (!window.SidVoxel || !mv || !mv.toDataURL) return;
+        var url;
+        try {
+          url = mv.toDataURL("image/png");
+        } catch (err) {
+          return;
+        }
+        if (!url || url.length < 2000) return;
+        var img = new Image();
+        img.onload = function () {
+          var sr = stage.getBoundingClientRect();
+          var mr = mount.getBoundingClientRect();
+          unspeak();
+          window.SidVoxel.burst({
+            host: stage,
+            source: img,
+            rect: { x: mr.left - sr.left, y: mr.top - sr.top, w: mr.width, h: mr.height },
+            at: { x: e.clientX - sr.left, y: e.clientY - sr.top },
+            cols: 46,
+            force: 620,
+            out: 1900,
+            hold: 460,
+            back: 1800,
+            /* The figure is dark bronze against a dark room, so the usual
+               near-black cull would throw away most of the head. */
+            keepDark: true,
+            canvasStyle: "pointer-events:none;",
+            onStart: function () {
+              sec.classList.add("is-shattered");
+            },
+            onDone: function () {
+              sec.classList.remove("is-shattered");
+            },
+          });
+        };
+        img.src = url;
+      });
+    })();
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     read();

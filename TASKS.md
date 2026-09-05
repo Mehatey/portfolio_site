@@ -48,16 +48,16 @@ the two big interactive pieces.
 ## 5 · Play page: the phone
 
 - [ ] Pixel icons: more detail, more colour or shadow. They read flat.
-- [ ] A different piano note on every click.
-- [ ] Hovering the phone plays nature and music.
-- [ ] Clicking explodes it into voxels across the scene and reforms it. Real
+- [x] A different piano note on every click.
+- [x] Hovering the phone plays nature and music.
+- [x] Clicking explodes it into voxels across the scene and reforms it. Real
       easing and physics, smooth rather than abrupt, and the voxels carry the
       colours of the album covers on the phone's own screen.
 
 ## 6 · Play page: Buddha
 
-- [ ] The same voxel explosion on click.
-- [ ] Hover spins him fast and throws out something he would say, the letters
+- [x] The same voxel explosion on click.
+- [x] Hover spins him fast and throws out something he would say, the letters
       arriving as a wave rather than a single line, and reading as 3D.
 
 ## 7 · Collectible pixel icons
@@ -65,3 +65,10 @@ the two big interactive pieces.
 - [ ] Dropped in the same place they stack, like Candy Crush.
 - [ ] Real physics, colliding with images and headings on the page. Stretch
       goal and understood as such.
+
+## 8 · The play grid unfurls
+
+- [ ] On /play/, the top edge of the scrolling media should curl as it leaves,
+      as if the page were being rolled back onto a scroll: a cylindrical bend
+      toward the top with a slight drift to the right, so the scroll reads as
+      physical rather than as a list moving up.
