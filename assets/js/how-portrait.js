@@ -49,7 +49,7 @@
   if (!img) return;
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-  var MODES = ["DUST", "HALFTONE", "WEAVE", "TOPO", "SHARDS", "RAIN"];
+  var MODES = ["DUST", "HALFTONE", "WEAVE", "TOPO", "SHARDS", "RAIN", "PIXEL"];
   var GRID_W = 200; // columns sampled across the frame
   var GRID_H = 250; // rows — the source is 4:5, so this is square sampling
 
@@ -71,6 +71,10 @@
     "uniform float u_ptrOn;", // 0 when the pointer is away, 1 when it is on the plate
     "varying vec3 v_rgb;",
     "varying float v_fade;",
+    /* 1 for the one law that draws squares. Every other mode is made of
+       round dots and the fragment shader discards outside a circle; a mode
+       whose whole subject is the pixel cannot be built out of circles. */
+    "varying float v_sq;",
 
     "void main(){",
     "  vec2 uv = a_uv;",
@@ -83,6 +87,7 @@
     "  float s = 1.15;",
     "  vec3 col = a_rgb;",
     "  float extra = 1.0;",
+    "  float sq = 0.0;",
     /* On paper the ink is dark, on a screen the light is bright. The
        same tone therefore has to mean opposite things in the two
        themes, or the halftone comes out as a negative of itself. */
@@ -206,7 +211,7 @@
        down on its own delay, so the image builds top-edge first and the
        last points are still arriving when the first have landed —
        formation with a direction, which none of the others have. */
-    "  else {",
+    "  else if (m < 5.5) {",
     "    float delay = a_rnd.y * 0.55;",
     "    float t2 = clamp((rev - delay) / max(0.0001, 1.0 - delay), 0.0, 1.0);",
     "    float fall = 1.0 - t2 * t2;",
@@ -222,6 +227,62 @@
     "    float ripple = u_ptrOn * exp(-wr * 5.0) * sin(wr * 52.0 - u_time * 7.0);",
     "    pos += normalize(wd + 0.0001) * ripple * 0.026;",
     "    s *= 1.0 + abs(ripple) * 0.8;",
+    "  }",
+
+    /* --- PIXEL ---------------------------------------------------- */
+    /* Sid: "improve the particles, instead make it animated motion square
+       interesting detailed pixel art, really put in effort."
+
+       Every other law here is made of round points, which is the one thing
+       a pixel cannot be, so this mode carries `sq` through to the fragment
+       shader and is drawn as hard-edged squares with a hairline of ground
+       showing between them -- the gap is what makes a grid of squares read
+       as pixels rather than as a solid image.
+
+       THE RESOLUTION BREATHES. The block size steps between eight source
+       cells and three on a slow cycle, and because those are integers the
+       change POPS rather than dissolving: the portrait is redrawn at a new
+       resolution, the way a sprite is redrawn rather than scaled. A
+       continuous zoom would have been smoother and would have said nothing;
+       the snap is the whole idea.
+
+       THE COLOUR IS QUANTISED to a handful of levels per channel, and the
+       count follows the block size -- coarse blocks get few colours, fine
+       blocks get more, which is exactly the trade a pixel artist makes with
+       a palette. It also means the two states differ in more than scale.
+
+       AND IT SCANS. A diagonal wave crosses the plate and the blocks it
+       passes lift and brighten for a moment, so the image reads as being
+       drawn continuously rather than sitting still between resolutions. */
+    "  else {",
+    "    float w = 0.5 + 0.5 * sin(u_time * 0.24);",
+    "    float bl = floor(mix(8.0, 3.0, w) + 0.5);",
+    "    if (mod(ix, bl) > 0.5 || mod(iy, bl) > 0.5) drop = 1.0;",
+    "    vec2 cs = vec2(bl / 200.0, bl / 250.0);",
+    "    pos = (floor(uv / cs) + 0.5) * cs;",
+    "    float lv = mix(4.0, 9.0, w);",
+    "    col = floor(a_rgb * lv + 0.5) / lv;",
+    "    s = bl * 0.94;",
+    "    sq = 1.0;",
+    /* The blocks assemble from their own scatter one row of the diagonal at
+       a time, so forming has a direction here too -- but a raster's
+       direction, top-left to bottom-right, not gravity's. */
+    "    float diag = (uv.x + uv.y) * 0.5;",
+    "    float t3 = clamp((rev - diag * 0.45) / 0.55, 0.0, 1.0);",
+    "    s *= mix(0.15, 1.0, t3);",
+    "    extra = t3;",
+    /* THE SCAN. A narrow band travelling along the same diagonal. */
+    "    float scan = fract(u_time * 0.16 - diag);",
+    "    float hit = smoothstep(0.0, 0.04, scan) * (1.0 - smoothstep(0.04, 0.12, scan));",
+    "    s *= 1.0 + hit * 0.35;",
+    "    col += vec3(0.10, 0.14, 0.2) * hit;",
+    /* THE BLOCK UNDER THE CURSOR SPLITS. Its own cell only, so the response
+       has the geometry of the law: point at the picture and that one square
+       resolves into what it was hiding. */
+    "    vec2 hc2 = floor(u_ptr / cs);",
+    "    vec2 mc2 = floor(uv / cs);",
+    "    float near2 = step(abs(hc2.x - mc2.x) + abs(hc2.y - mc2.y), 1.5) * u_ptrOn;",
+    "    if (near2 > 0.5) { col = a_rgb; s *= 1.12; }",
     "  }",
 
     /* --- THE LENS -------------------------------------------------- */
@@ -293,6 +354,7 @@
 
     "  gl_Position = vec4(pos.x * 2.0 - 1.0, 1.0 - pos.y * 2.0, 0.0, 1.0);",
     "  gl_PointSize = max(0.0, s * u_px);",
+    "  v_sq = sq;",
 
     "  col *= mix(1.0, 0.78, u_light);",
     /* scattered points are colder and dimmer — the colour arrives with
@@ -308,8 +370,22 @@
     "precision mediump float;",
     "varying vec3 v_rgb;",
     "varying float v_fade;",
+    "varying float v_sq;",
     "void main(){",
     "  vec2 d = gl_PointCoord - vec2(0.5);",
+    /* Squares for PIXEL, dots for everything else. The square keeps a
+       hairline of ground on each side -- a grid of blocks that touch is a
+       photograph again, and the gap is the only thing that says "pixel". A
+       tiny smoothstep on the edge instead of a hard discard, or the blocks
+       alias into a shimmering mess as the resolution steps. */
+    "  if (v_sq > 0.5) {",
+    "    vec2 e = abs(d);",
+    "    float m2 = max(e.x, e.y);",
+    "    if (m2 > 0.44) discard;",
+    "    float a2 = 1.0 - smoothstep(0.40, 0.44, m2);",
+    "    gl_FragColor = vec4(v_rgb, a2 * v_fade);",
+    "    return;",
+    "  }",
     "  float r = dot(d, d);",
     "  if (r > 0.25) discard;",
     "  float a = smoothstep(0.25, 0.05, r);",
