@@ -13,8 +13,8 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPrefere
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
-// The authored cube uses unlit shaders, while the rebuilt city needs a real
-// light rig so its watercolor voxels keep depth instead of collapsing to black.
+// Soft environmental lighting supports the reflective cube without turning it
+// into a chrome product render.
 scene.add(new THREE.HemisphereLight(0xdff8ff, 0x16333a, 2.2));
 const cityKey = new THREE.DirectionalLight(0xf7fbff, 3.4);
 cityKey.position.set(-4, 7, 8);
@@ -57,14 +57,14 @@ const background = new THREE.ShaderMaterial({
     vec2 p=(uv-.5)*vec2(aspect,1.);vec2 q=p*1.7+vec2(time*.012,-time*.008);
     vec2 warp=vec2(fbm(q+3.),fbm(q-8.));float w=fbm(q+warp*2.4);float b=fbm(q*1.45-w+vec2(9.,time*.008));
     vec3 sky0=vec3(.018,.065,.16),sky1=vec3(.075,.25,.58),sky2=vec3(.22,.57,.56);
-    vec3 dusk0=vec3(.08,.055,.19),dusk1=vec3(.36,.20,.49),dusk2=vec3(.77,.45,.48);
+    vec3 mist0=vec3(.025,.085,.11),mist1=vec3(.16,.36,.39),mist2=vec3(.67,.73,.64);
     vec3 forest0=vec3(.018,.095,.075),forest1=vec3(.08,.31,.20),forest2=vec3(.49,.57,.35);
     vec3 a=mix(sky0,sky1,smoothstep(.20,.72,w));a=mix(a,sky2,smoothstep(.34,.72,b)*.72);
-    vec3 d=mix(dusk0,dusk1,smoothstep(.18,.70,w));d=mix(d,dusk2,smoothstep(.43,.78,b)*.45);
+    vec3 d=mix(mist0,mist1,smoothstep(.18,.70,w));d=mix(d,mist2,smoothstep(.43,.78,b)*.32);
     vec3 f=mix(forest0,forest1,smoothstep(.18,.69,w));f=mix(f,forest2,smoothstep(.48,.80,b)*.38);
     float dusk=smoothstep(.18,.43,phase)*(1.-smoothstep(.43,.68,phase));
     float woods=smoothstep(.55,.78,phase)*(1.-smoothstep(.84,1.,phase));
-    vec3 col=mix(a,d,dusk*.72);col=mix(col,f,woods*.78);
+    vec3 col=mix(a,d,dusk*.72);col=mix(col,f,woods*.72);
     col*=.94+.10*fbm(p*92.+warp*.15);return col;
   }
   void main(){vec2 p=(vUv-.5)*vec2(aspect,1.);
@@ -242,20 +242,23 @@ void main(){
     float mouth=(1.-smoothstep(.003,.007,abs(p.y-(.245-smile))))*(1.-smoothstep(.055,.068,abs(x)));
     col=mix(col,vec3(.018,.031,.040),max(eye,mouth)*.97*(1.-smoothstep(0.,.3,uBreak)));
   }
-  // Filled paper is peeled away cell-by-cell while its structural tiles remain.
-  // This makes the filled-to-hollow handoff legible and reversible on scroll.
-  if(uChip<.5 && hash(floor(gl_FragCoord.xy*.72))<uPanelFade)discard;
+  // A continuous paper edge travels across each face. No screen-door dots.
+  if(uChip<.5){
+    float peelEdge=p.x*.68+p.y*.32+.035*sin(p.y*12.+uFace*2.);
+    if(peelEdge<uPanelFade*1.12-.08)discard;
+  }
   // Screen-door dissolution avoids transparency sorting between thousands of chips.
   if(hash(floor(gl_FragCoord.xy))<vDissolve)discard;
   gl_FragColor=vec4(col,1.);
 }`;
 
-const bases = ["#f3ecdb", "#173d83", "#377b76", "#dce9ef", "#7696b5", "#cdcbbb"];
-const accents = ["#c2d2c8", "#4b79ae", "#79b2a5", "#abc6d7", "#355e8e", "#98a598"];
+const bases = ["#e5ddd0", "#172f66", "#263f65", "#d7d4cc", "#4c65a6", "#b8aa92"];
+const accents = ["#99a8a4", "#5c79ad", "#6580a0", "#8b9895", "#273f79", "#71817b"];
 const panels = [],
   chips = [],
   uniforms = [];
-const grid = innerWidth < 600 ? 22 : 30; // 5,400 thin fragments on desktop, six draw calls.
+const imageFaces = [];
+const grid = 8; // Legacy chip geometry remains dormant; the authored ending uses continuous lines.
 const panelGeometry = new THREE.BoxGeometry(2.5, 2.5, 0.036, 24, 24, 1);
 panelGeometry.setAttribute("aTile", new THREE.Float32BufferAttribute(new Float32Array(panelGeometry.attributes.position.count * 3), 3));
 for (let face = 0; face < 6; face++) {
@@ -314,17 +317,88 @@ for (let face = 0; face < 6; face++) {
   chips.push(cloud);
 }
 
+// Exact frames from the site's existing onboarding film. They stay documentary,
+// while the supporting cube surfaces remain authored watercolor materials.
+const textureLoader = new THREE.TextureLoader();
+const addImageFace = (face, path) => {
+  const texture = textureLoader.load(path);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, toneMapped: false, side: THREE.FrontSide });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material);
+  mesh.position.z = 0.021;
+  mesh.userData.face = face;
+  panels[face].add(mesh);
+  imageFaces.push({ face, mesh, material });
+};
+addImageFace(2, "./assets/sid-eye-face.jpg");
+addImageFace(3, "./assets/sid-brain-face.jpg");
+
+// Inside is a compact moving archive. Each clip is cropped to cover its wall,
+// muted, and only exposed from within the cube.
+const interiorFaces = [];
+const interiorVideos = [];
+const addInteriorVideo = (face, path, sourceAspect) => {
+  const video = document.createElement("video");
+  video.src = path;
+  video.muted = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.preload = "auto";
+  const texture = new THREE.VideoTexture(video);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+  if (sourceAspect > 1) {
+    texture.repeat.x = 1 / sourceAspect;
+    texture.offset.x = (1 - texture.repeat.x) * 0.5;
+  } else {
+    texture.repeat.y = sourceAspect;
+    texture.offset.y = (1 - texture.repeat.y) * 0.5;
+  }
+  const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide, transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material);
+  mesh.position.z = -0.022;
+  mesh.userData.face = face;
+  panels[face].add(mesh);
+  interiorFaces.push({ face, mesh, material });
+  interiorVideos.push(video);
+};
+addInteriorVideo(1, "./assets/interior-space.mp4", 16 / 9);
+addInteriorVideo(2, "./assets/interior-mesh.mp4", 3024 / 1526);
+addInteriorVideo(3, "./assets/interior-vp.mp4", 16 / 9);
+addInteriorVideo(4, "./assets/interior-sid.mp4", 16 / 9);
+addInteriorVideo(5, "./assets/interior-o2.mp4", 610 / 1078);
+
+// Continuous final identity mark. Its face is physical geometry, so the same
+// expression survives the change from filled cube to portfolio logo.
+const logoMark = new THREE.Group();
+const logoInk = new THREE.MeshBasicMaterial({ color: 0xe8f1e9, transparent: true, opacity: 0, toneMapped: false });
+const logoEdges = new THREE.LineSegments(
+  new THREE.EdgesGeometry(new THREE.BoxGeometry(2.5, 2.5, 2.5)),
+  new THREE.LineBasicMaterial({ color: 0xe8f1e9, transparent: true, opacity: 0, toneMapped: false })
+);
+logoMark.add(logoEdges);
+const eyeGeo = new THREE.BoxGeometry(0.105, 0.39, 0.055);
+const mouthGeo = new THREE.BoxGeometry(0.43, 0.065, 0.055);
+for (const x of [-0.34, 0.34]) {
+  const eye = new THREE.Mesh(eyeGeo, logoInk);
+  eye.position.set(x, 0.22, 1.278);
+  logoMark.add(eye);
+}
+const logoMouth = new THREE.Mesh(mouthGeo, logoInk);
+logoMouth.position.set(0, -0.54, 1.278);
+logoMark.add(logoMouth);
+root.add(logoMark);
+
 // Typography belongs to the geometry, so perspective and occlusion stay honest.
 const disciplineLabels = [];
-let identityLabel = null;
 new FontLoader().load(
   "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/fonts/optimer_regular.typeface.json",
   (font) => {
     const specs = [
-      { face: 2, lines: ["Product", "design"], color: 0xf4efdf },
-      { face: 3, lines: ["Branding"], color: 0xf4efdf },
-      { face: 4, lines: ["Agentic", "design"], color: 0x163d56 },
-      { face: 5, lines: ["UI / UX"], color: 0x163d56 },
+      { face: 4, lines: ["Product", "Design"], color: 0x163d56 },
+      { face: 5, lines: ["Brand", "Design"], color: 0x163d56 },
+      { face: 1, lines: ["Creative", "Technology"], color: 0xf4efdf },
     ];
     for (const spec of specs) {
       const label = new THREE.Group();
@@ -336,32 +410,17 @@ new FontLoader().load(
         geometry.computeBoundingBox();
         const width = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
         const mesh = new THREE.Mesh(geometry, [material, sideMaterial]);
-        mesh.position.set(-width / 2, y, 0.024);
+        mesh.position.set(-width / 2, y, 0.06);
         label.add(mesh);
       };
       spec.lines.forEach((line, i) => addLine(line, 0.3, (spec.lines.length - 1) * 0.2 - i * 0.4 - 0.1));
       panels[spec.face].add(label);
       disciplineLabels.push({ group: label, material, sideMaterial, face: spec.face, ink: material.color.clone() });
     }
-    const label = new THREE.Group();
-    const material = new THREE.MeshBasicMaterial({ color: 0x163d56, transparent: true, opacity: 0 });
-    const sideMaterial = new THREE.MeshBasicMaterial({ color: 0x0e2638, transparent: true, opacity: 0 });
-    const addIdentityLine = (text, size, y) => {
-      const geometry = new TextGeometry(text, { font, size, depth: 0.008, curveSegments: 8, bevelEnabled: false });
-      geometry.computeBoundingBox();
-      const width = geometry.boundingBox.max.x - geometry.boundingBox.min.x;
-      const mesh = new THREE.Mesh(geometry, [material, sideMaterial]);
-      mesh.position.set(-width / 2, y, 0.026);
-      label.add(mesh);
-    };
-    addIdentityLine("Hey, I'm", 0.18, 0.91);
-    addIdentityLine("Sid", 0.34, 0.55);
-    panels[0].add(label);
-    identityLabel = { group: label, material, sideMaterial };
   },
   undefined,
   () => {
-    document.querySelector("#instructions").textContent += " Disciplines: Branding, Agentic design, UI / UX.";
+    document.querySelector("#instructions").textContent += " Disciplines: Product Design, Brand Design, Creative Technology.";
   }
 );
 
@@ -397,82 +456,7 @@ const lookIndex = new Uint8Array(6);
 lookIndex.fill(1);
 const colorTargets = uniforms.map((u) => ({ base: u.uBase.value.clone(), accent: u.uAccent.value.clone(), sheen: 0, mode: 0 }));
 const portfolioIntro = document.querySelector(".portfolio-intro");
-
-// The same blue fragments rebuild into one unmistakable Empire State silhouette.
-const skylineData = [];
-const skylineGeometry = new THREE.BoxGeometry(0.1, 0.106, 0.1);
-const skylineMaterial = new THREE.MeshBasicMaterial({
-  color: 0x8fc9c1,
-  transparent: true,
-  opacity: 0,
-  vertexColors: false,
-  toneMapped: false,
-});
-const empireTiers = [
-  { start: 0, height: 14, width: 18, depth: 7 },
-  { start: 14, height: 10, width: 14, depth: 6 },
-  { start: 24, height: 9, width: 10, depth: 5 },
-  { start: 33, height: 7, width: 7, depth: 4 },
-  { start: 40, height: 7, width: 4, depth: 3 },
-  { start: 47, height: 7, width: 2, depth: 2 },
-  { start: 54, height: 13, width: 1, depth: 1 },
-];
-let skylineCount = 0;
-for (const tier of empireTiers) {
-  for (let y = 0; y < tier.height; y++) {
-    const level = tier.start + y;
-    for (let x = 0; x < tier.width; x++) {
-      for (let z = 0; z < tier.depth; z++) {
-        skylineData.push({
-          x: (x - (tier.width - 1) * 0.5) * 0.1,
-          y: -2.75 + level * 0.105,
-          z: -1.22 + (z - (tier.depth - 1) * 0.5) * 0.1,
-          delay: level / 67 * 0.5,
-          seed: ((x * 47 + level * 83 + z * 19) % 101) / 101,
-        });
-        skylineCount++;
-      }
-    }
-  }
-}
-const skyline = new THREE.InstancedMesh(skylineGeometry, skylineMaterial, skylineCount);
-skyline.frustumCulled = false;
-skyline.visible = false;
-const skylineMatrix = new THREE.Matrix4();
-for (let i = 0; i < skylineCount; i++) {
-  const d = skylineData[i];
-  skylineMatrix.makeTranslation(d.x, d.y, d.z);
-  skyline.setMatrixAt(i, skylineMatrix);
-}
-scene.add(skyline);
-skyline.position.x = 2.35;
-skyline.position.y = -0.12;
-skyline.scale.setScalar(0.82);
-
-function updateSkyline(amount) {
-  skyline.visible = amount > 0.001;
-  skylineMaterial.opacity = ease(0.02, 0.32, amount) * 0.94;
-  const land = ease(0.0, 0.42, amount);
-  for (let i = 0; i < skylineCount; i++) {
-    const d = skylineData[i];
-    const riseStart = 0.33 + d.delay * 0.42;
-    const rise = ease(riseStart, Math.min(1, riseStart + 0.28), amount);
-    const scatterX = d.x + Math.sin(d.seed * 77) * 3.8;
-    const scatterY = 0.8 + Math.abs(Math.sin(d.seed * 41)) * 4.2;
-    const scatterZ = d.z + Math.cos(d.seed * 53) * 2.5;
-    const sx = mix(scatterX, d.x, land);
-    const sy = mix(scatterY, -2.75, land) + (d.y + 2.75) * rise;
-    const sz = mix(scatterZ, d.z, land);
-    const chaos = 1 - Math.max(land, rise);
-    skylineMatrix.compose(
-      new THREE.Vector3(sx, sy, sz),
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(chaos * d.seed * 4, chaos * d.seed * 6, chaos * d.seed * 3)),
-      new THREE.Vector3(0.38 + Math.max(land, rise) * 0.62, 0.38 + Math.max(land, rise) * 0.62, 0.38 + Math.max(land, rise) * 0.62)
-    );
-    skyline.setMatrixAt(i, skylineMatrix);
-  }
-  skyline.instanceMatrix.needsUpdate = true;
-}
+const squareCaption = document.querySelector(".square-caption");
 
 // Empty clicks disturb the pond, then launch one folded paper boat from behind the cube.
 const pondResponses = [];
@@ -481,7 +465,7 @@ const pondTarget = new THREE.Vector3();
 const pondOrigin = new THREE.Vector3();
 function makeBoat() {
   const group = new THREE.Group();
-  const paper = new THREE.MeshPhysicalMaterial({ color: 0xeee8d9, roughness: 0.3, clearcoat: 0.75, clearcoatRoughness: 0.18, side: THREE.DoubleSide });
+  const paper = new THREE.MeshBasicMaterial({ color: 0xf2ead9, side: THREE.DoubleSide, toneMapped: false });
   const hull = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.82, 3), paper);
   hull.rotation.z = Math.PI / 2;
   hull.scale.z = 0.32;
@@ -503,25 +487,23 @@ function spawnPondResponse() {
   if (!raycaster.ray.intersectPlane(pondPlane, pondTarget)) return;
   pondTarget.x = clamp(pondTarget.x, -4.8, 4.8);
   pondTarget.y = clamp(pondTarget.y, -2.7, 2.7);
+  pondTarget.z = 2.1;
   root.getWorldPosition(pondOrigin);
   const boat = makeBoat();
   boat.position.copy(pondOrigin).add(new THREE.Vector3(0, -0.3, -0.7));
   boat.scale.setScalar(0.01);
-  const rippleMaterial = new THREE.MeshBasicMaterial({ color: 0xb9e5dc, transparent: true, opacity: 0.45, side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false });
-  const ripple = new THREE.Mesh(new THREE.RingGeometry(0.24, 0.275, 64), rippleMaterial);
-  ripple.position.copy(pondTarget);
-  ripple.position.z = -0.04;
+  waterTrail[trailIndex].set(pointerTarget.x * 0.5 + 0.5, pointerTarget.y * 0.5 + 0.5, clock.elapsedTime, 1.8);
+  trailIndex = (trailIndex + 1) % waterTrail.length;
   boat.userData = {
     age: 0,
     start: boat.position.clone(),
     end: pondTarget.clone(),
-    ripple,
   };
-  scene.add(boat, ripple);
+  scene.add(boat);
   pondResponses.push(boat);
   while (pondResponses.length > 3) {
     const old = pondResponses.shift();
-    scene.remove(old, old.userData.ripple);
+    scene.remove(old);
   }
 }
 function changeSurface(i) {
@@ -551,8 +533,9 @@ function activate() {
   active = true;
   document.body.classList.add("awakened");
   document.querySelector("#instructions").textContent =
-    "Scroll from Hey, I'm Sid into Product design, Branding, Agentic design and UI / UX. The six sides fold into a cube, open from within, then become New York. Click a face to change its material. Drag the cube to alter perspective. Click the pond to launch a paper boat.";
-  canvas.setAttribute("aria-label", "Watercolor identity square. Scroll to reveal disciplines, form a cube, and build a New York skyline.");
+    "Scroll from Sid's face into his eye, brain scan, Product Design, Brand Design and Creative Technology. Enter the cube and look across five moving chapters of work, then pull back as the shell becomes the portfolio logo.";
+  canvas.setAttribute("aria-label", "Interactive identity square. Scroll to unfold Sid's visual story, enter a moving archive inside the cube, and transform it into the portfolio logo.");
+  for (const video of interiorVideos) video.play().catch(() => {});
   pulses[0] = 1;
   ScrollTrigger.refresh();
 }
@@ -567,7 +550,7 @@ function locate(event) {
   }
 }
 function pickFace() {
-  if (progress > 0.78) {
+  if (progress > 0.5) {
     hover = -1;
     return;
   }
@@ -616,7 +599,6 @@ canvas.addEventListener("pointerup", (e) => {
   if (!dragging && travel < 6) {
     if (hover === 0 && !active) {
       activate();
-      changeSurface(0);
     } else if (active && hover >= 0) {
       changeSurface(hover);
     } else if (active) {
@@ -644,17 +626,17 @@ canvas.addEventListener("keydown", (e) => {
   if (e.key === "Enter" || e.key === " ") {
     e.preventDefault();
     activate();
-    changeSurface(hover >= 0 ? hover : 0);
+    if (active && hover > 0) changeSurface(hover);
   }
 });
 
 // The cube net has real hinges. Back face is hinged to the right face's outer edge.
 function pose(p) {
-  // One authored progression. Timing intentionally includes readable holds.
-  const growth = [1, ease(0.235, 0.325, p), ease(0.055, 0.115, p), ease(0.09, 0.15, p), ease(0.125, 0.185, p), ease(0.16, 0.22, p)];
-  const fold = ease(0.315, 0.47, p),
+  // Biography arrives one side at a time: face, eye, brain, then three practices.
+  const growth = [1, ease(0.235, 0.30, p), ease(0.04, 0.095, p), ease(0.085, 0.145, p), ease(0.135, 0.195, p), ease(0.185, 0.245, p)];
+  const fold = ease(0.285, 0.43, p),
     theta = (fold * Math.PI) / 2,
-    phi = (ease(0.35, 0.47, p) * Math.PI) / 2;
+    phi = (ease(0.345, 0.43, p) * Math.PI) / 2;
   const frontZ = 1.25 * fold,
     L = 2.5,
     h = 1.25,
@@ -682,55 +664,84 @@ function pose(p) {
   panels[1].position.set(h + L * c + h * Math.cos(theta + phi) * growth[1], 0, frontZ - L * s - h * Math.sin(theta + phi));
   panels[1].rotation.y = theta + phi;
   panels[1].scale.x = Math.max(growth[1], 0.001);
-  const cubeHold = ease(0.455, 0.54, p) * (1 - ease(0.675, 0.76, p));
-  const insideIn = ease(0.57, 0.67, p);
-  const insideOut = ease(0.73, 0.83, p);
-  const inside = insideIn * (1 - insideOut);
-  const hollowTurn = ease(0.59, 0.8, p);
-  const breakup = ease(0.755, 0.93, p);
-  const skylineBuild = ease(0.84, 1, p);
-  const scale = mix(1.03, 0.73, ease(0.02, 0.2, p)) * (1 + fold * 0.55) * (1 + cubeHold * 0.24) * (1 - breakup * 0.08);
-  const responsiveScale = scale * Math.min(1, camera.aspect / 0.98);
-  root.scale.setScalar(responsiveScale);
-  root.position.x = -1.25 * growth[1] * (1 - fold) * responsiveScale;
-  root.position.y = (reduced ? 0 : Math.sin(clock.elapsedTime * 0.7) * 0.025) * (1 - fold * 0.6);
-  root.rotation.set(
-    fold * 0.12 + hollowTurn * 0.34 + pointer.y * 0.018 * cubeHold + dragPitch * fold * (1 - breakup),
-    -0.025 + fold * 0.24 + cubeHold * 0.78 + hollowTurn * 1.02 + pointer.x * 0.024 * cubeHold + dragYaw * fold * (1 - breakup),
-    Math.sin(ease(0.31, 0.76, p) * Math.PI) * 0.032
-  );
-  camera.position.z = mix(mix(9.6, 0.78, insideIn), 12.4, insideOut);
-  camera.position.x = inside * 0.22;
-  camera.position.y = inside * -0.12;
-  camera.fov = mix(35, 64, inside);
+  const cubeHold = ease(0.42, 0.47, p) * (1 - ease(0.49, 0.54, p));
+  const showcase = ease(0.42, 0.50, p);
+  const enter = ease(0.495, 0.585, p);
+  const exit = ease(0.82, 0.90, p);
+  const inside = enter * (1 - exit);
+  const interiorVisible = ease(0.545, 0.59, p) * (1 - ease(0.81, 0.88, p));
+  const shellOpen = ease(0.735, 0.86, p);
+  const door = ease(0.48, 0.555, p) * (1 - ease(0.84, 0.90, p));
+  const dock = ease(0.885, 0.985, p);
+  const netScale = mix(1.03, 0.58, ease(0.02, 0.22, p));
+  const baseScale = mix(netScale, 1.08, fold) * (1 + cubeHold * 0.12);
+  const responsive = Math.min(1, camera.aspect / 0.98);
+  const logoScale = (innerWidth < 700 ? 0.23 : 0.19) * responsive;
+  const outsideScale = baseScale * responsive;
+  const finalScale = mix(mix(outsideScale, 1, inside), logoScale, dock);
+  root.scale.setScalar(finalScale);
+  const viewH = 2 * 10.4 * Math.tan(THREE.MathUtils.degToRad(35 * 0.5));
+  const viewW = viewH * camera.aspect;
+  const dockX = -viewW * 0.5 + (innerWidth < 700 ? 0.62 : 0.72);
+  const dockY = viewH * 0.5 - (innerWidth < 700 ? 0.62 : 0.72);
+  const outsideX = -1.25 * growth[1] * (1 - fold) * baseScale;
+  const outsideY = (reduced ? 0 : Math.sin(clock.elapsedTime * 0.7) * 0.025) * (1 - fold * 0.6);
+  root.position.x = mix(mix(outsideX, 0, inside), dockX, dock);
+  root.position.y = mix(mix(outsideY, 0, inside), dockY, dock);
+  const outsideRX = fold * 0.12 + pointer.y * 0.018 * cubeHold + dragPitch * fold * (1 - inside);
+  const outsideRY = -0.025 + fold * 0.24 + showcase * 0.45 + pointer.x * 0.024 * cubeHold + dragYaw * fold * (1 - inside);
+  root.rotation.set(mix(outsideRX * (1 - inside), -0.16, dock), mix(outsideRY * (1 - inside), 0.34, dock), mix(Math.sin(ease(0.28, 0.50, p) * Math.PI) * 0.032 * (1 - inside), 0, dock));
+
+  // The face slides aside as a door. Later the whole shell breathes outward,
+  // allowing the viewer to watch the surfaces leave from inside.
+  panels[0].position.x += door * 2.85;
+  for (let i = 0; i < 6; i++) panels[i].position.multiplyScalar(1 + shellOpen * 0.48);
+
+  // Scroll-authored camera choreography: forward wall, left, right, ceiling,
+  // floor, center. Movement overlaps and eases so direction never snaps.
+  const yaw = 0.72 * ease(0.59, 0.64, p) - 1.44 * ease(0.64, 0.69, p) + 0.72 * ease(0.69, 0.73, p);
+  const pitch = -0.58 * ease(0.69, 0.735, p) + 1.16 * ease(0.735, 0.78, p) - 0.58 * ease(0.78, 0.82, p);
+  camera.position.set(pointer.x * 0.025 * interiorVisible, pointer.y * 0.018 * interiorVisible, mix(mix(10.4, 0, enter), 10.4, exit));
+  camera.rotation.order = "YXZ";
+  camera.rotation.set(pitch * interiorVisible, yaw * interiorVisible, 0);
+  camera.fov = mix(mix(35, 76, enter), 35, exit);
   camera.updateProjectionMatrix();
-  skyline.position.x = w < 700 ? 0.82 : 2.35;
-  skyline.scale.setScalar(w < 700 ? 0.62 : 0.82);
-  const sheetHeight = 2 * (camera.position.z + 2) * Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5)) * 1.12;
-  const cols = Math.round(Math.sqrt(grid * grid * 6 * camera.aspect));
+  const peelDelay = [0.016, 0.0, 0.012, 0.028, 0.04, 0.022];
   for (let i = 0; i < 6; i++) {
-    uniforms[i].uBreak.value = breakup;
-    uniforms[i].uOutline.value = ease(0.57, 0.8, p);
-    uniforms[i].uPanelFade.value = ease(0.62, 0.81, p);
-    uniforms[i].uSettle.value = ease(0.91, 0.995, p);
-    uniforms[i].uSheet.value.set(sheetHeight * camera.aspect, sheetHeight, cols);
-    panels[i].children[0].visible = p < 0.81;
-    chips[i].visible = p >= 0.55 && p < 0.995;
+    const facePeel = ease(0.74 + peelDelay[i], 0.855 + peelDelay[i], p);
+    uniforms[i].uBreak.value = 0;
+    uniforms[i].uOutline.value = 0;
+    uniforms[i].uPanelFade.value = facePeel;
+    uniforms[i].uSettle.value = 0;
+    panels[i].children[0].visible = p < 0.91;
+    chips[i].visible = false;
   }
-  if (identityLabel) {
-    const alpha = 1 - ease(0.055, 0.105, p);
-    identityLabel.group.visible = alpha > 0.001;
-    identityLabel.material.opacity = alpha;
-    identityLabel.sideMaterial.opacity = alpha;
-  }
+  const captionAlpha = 1 - ease(0.035, 0.09, p);
+  squareCaption.style.opacity = captionAlpha;
+  squareCaption.style.transform = `translate(-50%, ${(1 - captionAlpha) * 10}px)`;
   for (const label of disciplineLabels) {
-    const alpha = ease(0.065, 0.11, p) * (1 - ease(0.285, 0.37, p));
+    const alpha = growth[label.face] * (1 - ease(0.47, 0.55, p));
     label.group.visible = alpha > 0.001;
     label.material.opacity = alpha;
     label.sideMaterial.opacity = alpha;
   }
-  updateSkyline(skylineBuild);
-  const intro = ease(0.965, 1, p);
+  for (const image of imageFaces) {
+    const facePeel = ease(0.74 + peelDelay[image.face], 0.855 + peelDelay[image.face], p);
+    const alpha = growth[image.face] * (1 - ease(0.48, 0.56, p)) * (1 - facePeel);
+    image.mesh.visible = alpha > 0.001;
+    image.material.opacity = alpha;
+  }
+  for (const interior of interiorFaces) {
+    const facePeel = ease(0.74 + peelDelay[interior.face], 0.855 + peelDelay[interior.face], p);
+    const alpha = interiorVisible * (1 - facePeel);
+    interior.mesh.visible = alpha > 0.001;
+    interior.material.opacity = alpha;
+  }
+  const logoAlpha = ease(0.84, 0.925, p);
+  logoMark.visible = logoAlpha > 0.001;
+  logoEdges.material.opacity = logoAlpha;
+  logoInk.opacity = logoAlpha;
+  const intro = ease(0.95, 1, p);
   portfolioIntro.style.opacity = intro;
   portfolioIntro.style.transform = `translateY(${(1 - intro) * 22}px)`;
   portfolioIntro.setAttribute("aria-hidden", intro < 0.8 ? "true" : "false");
@@ -799,19 +810,14 @@ function animate() {
     const boat = pondResponses[i];
     boat.userData.age += dt;
     const age = boat.userData.age;
-    const travelT = ease(0, 2.9, age);
+    const travelT = ease(0, 2.1, age);
     boat.position.lerpVectors(boat.userData.start, boat.userData.end, travelT);
     boat.position.y += Math.sin(travelT * Math.PI) * 0.34 + Math.sin(age * 2.1) * 0.025;
     boat.rotation.z = Math.atan2(boat.userData.end.y - boat.userData.start.y, boat.userData.end.x - boat.userData.start.x) * 0.14;
     boat.rotation.y = Math.sin(age * 0.72) * 0.1;
-    boat.scale.setScalar(mix(0.01, 0.62, ease(0, 0.65, age)) * (1 - ease(4.1, 5.2, age)));
-    const ripple = boat.userData.ripple;
-    ripple.scale.setScalar(1 + age * 2.8);
-    ripple.material.opacity = 0.42 * (1 - ease(0.7, 2.8, age));
+    boat.scale.setScalar(mix(0.01, 1.12, ease(0, 0.65, age)) * (1 - ease(4.1, 5.2, age)));
     if (age > 5.2) {
-      scene.remove(boat, ripple);
-      ripple.geometry.dispose();
-      ripple.material.dispose();
+      scene.remove(boat);
       boat.traverse((child) => {
         if (child.geometry) child.geometry.dispose();
         if (child.material) child.material.dispose();
