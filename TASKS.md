@@ -68,7 +68,7 @@ the two big interactive pieces.
 
 ## 8 · The play grid unfurls
 
-- [ ] On /play/, the top edge of the scrolling media should curl as it leaves,
+- [x] On /play/, the top edge of the scrolling media should curl as it leaves,
       as if the page were being rolled back onto a scroll: a cylindrical bend
       toward the top with a slight drift to the right, so the scroll reads as
       physical rather than as a list moving up.
