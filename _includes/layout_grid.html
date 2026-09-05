@@ -890,6 +890,101 @@ listener of its own -- so throwing the page separates the frame from the content
     mix-blend-mode: multiply;
     opacity: 0.3;
   }
+
+  /* ══ RAIN, CLOUDS AND THE HOLE ═════════════════════════════════════════
+     See assets/js/idle-drift.js for what drives these. */
+  .idle-rain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 4;
+    opacity: 0.9;
+  }
+  html[data-theme="light"] .idle-rain {
+    opacity: 0.42;
+    mix-blend-mode: multiply;
+  }
+
+  /* ── LIQUID GLASS CLOUD ─────────────────────────────────────────────
+     Sid: "some liquid glass clouds which do a lot of refraction."
+
+     Built the way the cubes are -- a real backdrop-filter, so the page
+     genuinely bends through it -- but masked into a cloud silhouette by four
+     overlapping radial gradients rather than being a rounded rectangle. The
+     refraction is pushed much harder than on the cubes because a cloud is
+     thick: blur 16 against their 6, and a saturate that pulls colour out of
+     whatever is behind it. */
+  .idle-drift__p.is-cloud {
+    border-radius: 50%;
+    backdrop-filter: blur(16px) saturate(2) brightness(1.06) contrast(1.08);
+    -webkit-backdrop-filter: blur(16px) saturate(2) brightness(1.06) contrast(1.08);
+    background: linear-gradient(180deg, rgba(var(--tint, 200, 226, 246), 0.16), rgba(255, 255, 255, 0.04) 56%, rgba(var(--tint, 200, 226, 246), 0.1));
+    box-shadow: none;
+    -webkit-mask-image:
+      radial-gradient(46% 60% at 30% 62%, #000 58%, transparent 72%), radial-gradient(40% 78% at 52% 46%, #000 58%, transparent 74%),
+      radial-gradient(34% 54% at 72% 60%, #000 58%, transparent 74%), radial-gradient(30% 40% at 88% 70%, #000 56%, transparent 76%);
+    mask-image:
+      radial-gradient(46% 60% at 30% 62%, #000 58%, transparent 72%), radial-gradient(40% 78% at 52% 46%, #000 58%, transparent 74%),
+      radial-gradient(34% 54% at 72% 60%, #000 58%, transparent 74%), radial-gradient(30% 40% at 88% 70%, #000 56%, transparent 76%);
+  }
+  .idle-drift__p.is-cloud::before {
+    /* A single soft highlight along the top, which is where a cloud catches
+       whatever light there is. */
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 42%);
+    opacity: 0.7;
+    animation: none;
+  }
+  .idle-drift__p.is-cloud::after,
+  .idle-drift__p.is-cloud > .flare {
+    display: none;
+  }
+
+  /* ── THE SINGULARITY ────────────────────────────────────────────────
+     The dark well itself. The warp around it is an SVG displacement on the
+     page; this is the object at its centre, and the two are sized off the
+     same number so they read as one thing.
+
+     A hard black disc with a bright rim: the rim is the only part of a black
+     hole anybody has ever actually seen, and without it a dark circle on a
+     dark page is a hole in the render rather than an object. */
+  .idle-hole {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: calc(80px + var(--hole, 0) * 300px);
+    height: calc(80px + var(--hole, 0) * 300px);
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 5;
+    opacity: calc(var(--hole, 0) * 0.96);
+    background: radial-gradient(circle, #000 38%, rgba(0, 0, 0, 0.86) 52%, rgba(10, 18, 34, 0.36) 68%, transparent 78%);
+    box-shadow:
+      0 0 40px 6px rgba(120, 178, 255, 0.16),
+      inset 0 0 26px 2px rgba(150, 200, 255, 0.22);
+  }
+  .idle-hole::after {
+    /* The accretion rim, turning. */
+    content: "";
+    position: absolute;
+    inset: 26%;
+    border-radius: 50%;
+    border: 1.5px solid rgba(186, 224, 255, 0.5);
+    box-shadow: 0 0 22px 2px rgba(140, 196, 255, 0.34);
+    animation: holeSpin 9s linear infinite;
+  }
+  @keyframes holeSpin {
+    to {
+      transform: rotate(360deg) scale(1.04);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-hole::after {
+      animation: none;
+    }
+  }
 </style>
 
 <script src="{{ site.baseurl }}/assets/js/idle-drift.js" defer></script>

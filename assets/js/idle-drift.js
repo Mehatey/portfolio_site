@@ -157,11 +157,28 @@
 
      The mark and its glass still cross in front. What changed is that they
      now cross something instead of crossing nothing. */
+  /* ── THE SCENE ────────────────────────────────────────────────────────
+     Sid: "on screensaver mode can we not have any random squares behind a
+     face square, and I want some rain and some liquid glass clouds which do a
+     lot of refraction, and in the centre interacting with all the other
+     content on my screen should be a nice black hole effect, turbulent
+     displace, warping liquifying the content around it slowly increasing in
+     size."
+
+     The plain squares are gone. Every glass object in here now carries the
+     face, because a featureless rounded rectangle drifting behind a face is
+     the "random square" -- it reads as a stray div rather than as part of the
+     scene. Three objects instead of five, all of them the mark.
+
+     Added: two liquid-glass clouds at heavy refraction, a rain layer, and the
+     hole at the centre. */
   var SCENE = [
     { kind: "grass", at: 0.4, y: 0.82, w: 1.4, h: 0.2, dur: 200, phase: 0, tint: "moss" },
     { kind: "river", at: 1.2, y: 0.66, w: 1.5, h: 0.15, dur: 150, phase: 0, tint: "ice" },
+    { kind: "cloud", at: 2, y: 0.1, w: 0.44, h: 0.3, dur: 190, phase: 0.1, tint: "ice" },
+    { kind: "cloud", at: 22, y: 0.32, w: 0.6, h: 0.34, dur: 240, phase: 0.62, tint: "aqua" },
     { kind: "cube", at: 3, y: 0.2, w: 0.2, h: 0.34, dur: 128, phase: 0.05, tint: "aqua", face: true, spin: 0.6 },
-    { kind: "cube", at: 14, y: 0.42, w: 0.13, h: 0.22, dur: 152, phase: 0.68, tint: "sun", spin: -0.8 },
+    { kind: "cube", at: 14, y: 0.44, w: 0.15, h: 0.25, dur: 152, phase: 0.68, tint: "sun", face: true, spin: -0.8 },
     { kind: "cube", at: 30, y: 0.1, w: 0.26, h: 0.44, dur: 112, phase: 0.4, tint: "rose", face: true, spin: 0.4 },
   ];
 
@@ -206,6 +223,94 @@
       at: d.at || 0,
     });
   }
+  /* ══ THE RAIN ══════════════════════════════════════════════════════════
+     One canvas, a few hundred streaks falling on their own clocks. Canvas
+     rather than elements because rain is the one thing in this scene where
+     the count IS the effect: two hundred divs is two hundred layers, and two
+     hundred lines on a canvas is one paint.
+
+     The streaks are drawn along their own velocity vector rather than
+     straight down, so when the wind term pushes them they lean, which is what
+     stops it reading as a screensaver from 1996. */
+  var rainCv = document.createElement("canvas");
+  rainCv.className = "idle-rain";
+  rainCv.setAttribute("aria-hidden", "true");
+  layer.appendChild(rainCv);
+  var rctx = rainCv.getContext("2d");
+  var drops = [];
+  var RW = 0,
+    RH = 0;
+  function sizeRain() {
+    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    RW = innerWidth;
+    RH = innerHeight;
+    rainCv.width = Math.round(RW * dpr);
+    rainCv.height = Math.round(RH * dpr);
+    if (rctx) rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    if (!drops.length) {
+      for (var d = 0; d < 210; d++) {
+        drops.push({
+          x: Math.random() * RW,
+          y: Math.random() * RH,
+          /* A spread of speeds is the depth cue: the fast ones read as near,
+             the slow ones as far, and that is the whole illusion. */
+          v: 260 + Math.random() * 620,
+          len: 8 + Math.random() * 26,
+          a: 0.06 + Math.random() * 0.22,
+        });
+      }
+    }
+  }
+  sizeRain();
+  addEventListener("resize", sizeRain, { passive: true });
+
+  /* ══ THE HOLE ══════════════════════════════════════════════════════════
+     Sid: "in the centre, interacting with all the other content on my screen,
+     should be a nice black hole effect, turbulent displace, warping
+     liquifying the content around it, slowly increasing in size."
+
+     An SVG turbulence displacement applied to the PAGE, not to the overlay --
+     which is the only way it can warp "all the other content". It is the same
+     technique as the mark's lens and the desk's melt, so the site has one
+     idea about how it distorts things.
+
+     It grows the longer nobody touches anything: the scale ramps over about
+     ninety seconds, so arriving at the screensaver is calm and staying in it
+     is not. */
+  var holeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  holeSvg.setAttribute("aria-hidden", "true");
+  holeSvg.style.cssText = "position:fixed;width:0;height:0;overflow:hidden;pointer-events:none";
+  holeSvg.innerHTML =
+    "<defs>" +
+    '<filter id="idle-hole" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">' +
+    '<feTurbulence id="idle-hole-noise" type="fractalNoise" baseFrequency="0.0016 0.0042" numOctaves="2" seed="11" result="w"/>' +
+    '<feDisplacementMap id="idle-hole-disp" in="SourceGraphic" in2="w" scale="0" xChannelSelector="R" yChannelSelector="G"/>' +
+    "</filter></defs>";
+  document.body.appendChild(holeSvg);
+  var holeDisp = holeSvg.querySelector("#idle-hole-disp");
+  var holeNoise = holeSvg.querySelector("#idle-hole-noise");
+
+  /* The visible singularity: a dark well with a lensed rim, sitting over the
+     warp so the two read as one object. */
+  var hole = document.createElement("div");
+  hole.className = "idle-hole";
+  hole.setAttribute("aria-hidden", "true");
+  layer.appendChild(hole);
+
+  /* What the warp is applied to. Not <body>, which would take the overlay and
+     the cursor with it. */
+  function warpTargets() {
+    var out = [];
+    ["main", "footer", "#smoke-bg", ".site-footer"].forEach(function (sel) {
+      var el = document.querySelector(sel);
+      if (el && out.indexOf(el) === -1) out.push(el);
+    });
+    return out;
+  }
+  var warped = [];
+  var holeAmt = 0,
+    holeWant = 0;
+
   document.body.appendChild(layer);
 
   for (var k = 0; k < pieces.length; k++) {
@@ -229,6 +334,19 @@
       on = false;
       offAt = performance.now();
       layer.classList.remove("is-on");
+      /* ── IT LETS GO, IT DOES NOT SWITCH OFF ─────────────────────────
+         Sid: "when someone presses a key or scrolls again let it have some
+         soft animation where all the stuff returns to normal rather than
+         just stopping suddenly, cause most people will scroll."
+
+         The warp is the part that mattered: the page was liquified by up to
+         forty pixels and then snapped flat on the first wheel event, which
+         is a jolt on exactly the gesture everybody makes. Setting the target
+         to zero lets the same spring that grew it unwind it, over about a
+         second, while the objects fade. The filter is only detached once the
+         displacement is actually back to nothing. */
+      holeWant = 0;
+      if (!raf) raf = requestAnimationFrame(frame);
     }
     clearTimeout(timer);
     timer = setTimeout(sleep, IDLE_MS);
@@ -236,12 +354,19 @@
   function sleep() {
     if (document.hidden) return;
     on = true;
+    holeAt = performance.now();
     layer.classList.add("is-on");
+    warped = warpTargets();
+    warped.forEach(function (el) {
+      el.style.filter = "url(#idle-hole)";
+      el.style.willChange = "filter";
+    });
     if (!raf) {
       t0 = 0;
       raf = requestAnimationFrame(frame);
     }
   }
+  var holeAt = 0;
 
   ["scroll", "pointerdown", "wheel", "keydown", "pointermove"].forEach(function (e) {
     addEventListener(e, wake, { passive: true });
@@ -268,6 +393,63 @@
     if (on) clock += dt;
 
     var W = innerWidth;
+
+    /* ── THE HOLE GROWS, THEN LETS GO ─────────────────────────────────── */
+    if (on) {
+      /* Ninety seconds to full. Arriving is calm; staying is not. */
+      var held = Math.min(1, (now - holeAt) / 90000);
+      holeWant = held * held * 46;
+    }
+    holeAmt += (holeWant - holeAmt) * (holeWant > holeAmt ? 0.02 : 0.045);
+    if (holeDisp) holeDisp.setAttribute("scale", holeAmt.toFixed(2));
+    if (holeNoise) {
+      /* The field itself turns, so the warp is turbulent rather than a fixed
+         lens the page happens to be behind. */
+      holeNoise.setAttribute("seed", (11 + clock * 0.35).toFixed(2));
+    }
+    hole.style.setProperty("--hole", (holeAmt / 46).toFixed(3));
+    if (!on && holeAmt < 0.25 && warped.length) {
+      warped.forEach(function (el) {
+        el.style.filter = "";
+        el.style.willChange = "";
+      });
+      warped = [];
+      holeAmt = 0;
+      if (holeDisp) holeDisp.setAttribute("scale", "0");
+    }
+
+    /* ── THE RAIN ─────────────────────────────────────────────────────── */
+    if (rctx) {
+      rctx.clearRect(0, 0, RW, RH);
+      if (on || now - offAt < 700) {
+        rctx.lineCap = "round";
+        var wind = Math.sin(clock * 0.09) * 90;
+        for (var r = 0; r < drops.length; r++) {
+          var dp = drops[r];
+          dp.y += dp.v * dt;
+          dp.x += wind * dt;
+          if (dp.y > RH + 40) {
+            dp.y = -40;
+            dp.x = Math.random() * RW;
+          }
+          if (dp.x > RW + 40) dp.x = -40;
+          else if (dp.x < -40) dp.x = RW + 40;
+          /* Drawn along the velocity vector, so a leaning drop is a leaning
+             streak. Straight-down streaks under a sideways wind is the tell
+             that rain is a sprite sheet. */
+          var vx = wind * 0.02,
+            vy = dp.v * 0.02;
+          var m = Math.hypot(vx, vy) || 1;
+          rctx.strokeStyle = "rgba(196, 226, 255," + dp.a.toFixed(3) + ")";
+          rctx.lineWidth = 1;
+          rctx.beginPath();
+          rctx.moveTo(dp.x, dp.y);
+          rctx.lineTo(dp.x - (vx / m) * dp.len, dp.y - (vy / m) * dp.len);
+          rctx.stroke();
+        }
+      }
+    }
+
     for (var i = 0; i < pieces.length; i++) {
       var p = pieces[i];
       var u = (((clock / p.dur + p.phase) % 1) + 1) % 1;
@@ -291,6 +473,17 @@
         var sway = Math.sin(clock * 0.11 + p.phase) * 1.1;
         p.el.style.setProperty("--breeze", (Math.sin(clock * 0.23) * 0.5 + 0.5).toFixed(3));
         p.el.style.transform = "rotate(" + sway.toFixed(2) + "deg)";
+        continue;
+      }
+
+      if (p.kind === "cloud") {
+        /* Clouds drift like the cubes but much slower and they BREATHE --
+           the mask scale is written per frame, so the silhouette is never the
+           same shape twice. A cloud that holds a fixed outline is a blob. */
+        var cu = -0.35 * W + u * (W * 1.7);
+        var puff = 1 + Math.sin(clock * 0.07 + p.phase * 6.28) * 0.09;
+        var lift = Math.sin(clock * 0.05 + p.phase * 3.1) * 14;
+        p.el.style.transform = "translate3d(" + cu.toFixed(1) + "px," + lift.toFixed(1) + "px,0) scale(" + puff.toFixed(3) + ")";
         continue;
       }
 
@@ -344,7 +537,9 @@
        left rather than as having been switched off. `clock` is frozen the
        moment `on` drops, so they do not actually travel; the sway and the
        spin are what you see finish. */
-    if (on || now - offAt < 700) raf = requestAnimationFrame(frame);
+    /* Also kept alive while the warp is unwinding, or the page would be
+       left liquified with nothing running to relax it. */
+    if (on || now - offAt < 700 || holeAmt > 0.25) raf = requestAnimationFrame(frame);
     else raf = 0;
   }
 })();
