@@ -418,6 +418,22 @@
         mask-image: linear-gradient(180deg, transparent 0%, #000 34%, #000 62%, transparent 100%);
         animation: about-bloom-drift 22s ease-in-out infinite alternate;
       }
+      /* ── AND THE BLOOM'S OWN BLEED HAD TO BE CORRECTED ────────────────
+         `left: -14%; right: -14%` is a deliberate bleed, and it was measured
+         against a narrower ancestor. Once `.hero-ident` became the containing
+         block the same percentages resolved against the full column, which on
+         a 390px screen put the bloom's right edge at 445 -- 55px of body
+         overflow, exactly what QA reported.
+
+         Zeroed below the breakpoint where the hero stops being two columns.
+         The bleed is a desktop nicety: at 390px there is no margin either
+         side for it to bleed INTO, so it was only ever making a scrollbar. */
+      @media (max-width: 900px) {
+        .about-ident-bloom {
+          left: 0;
+          right: 0;
+        }
+      }
       html[data-theme="light"] .about-ident-bloom {
         opacity: 0.34;
         filter: blur(34px) saturate(0.66) brightness(1.06);
@@ -480,6 +496,41 @@
         }
       }
 
+      /* ── THE PORTRAIT STAYS WHILE YOU READ ────────────────────────────
+         The two paragraphs now live in a 200vh sticky section inside the
+         right-hand column, so without this the portrait scrolls away at the
+         first nudge and the reader spends the whole passage looking at one
+         column of text against an empty half-screen. Measured at 1512: the
+         block sat at x=785 with nothing to its left.
+
+         Sticking the card to the same top edge keeps the composition -- face
+         on the left, sentences lighting on the right -- for the length of the
+         read, and is a better answer to "this rectangular image placement is
+         very basic" than any treatment applied to the frame itself. It stops
+         being a picture next to some text and becomes half of a spread. */
+      .hero-ident {
+        position: sticky;
+        top: clamp(80px, 12vh, 140px);
+        /* ── AND STICKY MADE IT A CONTAINING BLOCK ──────────────────────
+           `position: sticky` is not `static`, so this element became the
+           containing block for its absolutely positioned children -- and
+           `.about-ident-bloom`, the 500px out-of-focus copy of the portrait
+           that the masked top edge dissolves into, started resolving its
+           offsets against this box instead of the one it was authored
+           against. QA caught it immediately: 55px of body overflow on
+           /about/ at 390px, which is the bloom's right edge at 445.
+
+           Clipped on one axis only. The bloom's whole job is to bleed
+           UPWARD past the top of the card, so `overflow: clip` would remove
+           the effect; `overflow-x` alone keeps the vertical bleed and stops
+           the horizontal scrollbar. */
+        overflow-x: clip;
+      }
+      @media (max-width: 900px) {
+        .hero-ident {
+          position: static;
+        }
+      }
       .about-profile-card {
         position: relative;
         z-index: 1;
@@ -831,6 +882,71 @@
          Slightly larger than body copy and a touch looser in the leading,
          because a personal paragraph read at arm's length is not the same
          object as a caption. */
+      /* ══ THE READING SECTION ═══════════════════════════════════════════
+         200vh of runway with a sticky inner, so the two paragraphs hold the
+         screen while they are being read and release when they are done.
+         The height IS the reading time: shorter and the words all light
+         before the block has settled, much longer and it reads as the page
+         having stopped working. */
+      .about-read {
+        position: relative;
+        height: 200vh;
+      }
+      /* The block inherits the bio column's position, which put it hard
+         against the right of a screen it now has entirely to itself --
+         measured at 1512 it started at x=667 with nothing beside it. Centred
+         on its own measure instead, because once the portrait has scrolled
+         away this is a reading screen and a reading screen has one column. */
+      .about-read__pin {
+        position: sticky;
+        top: 0;
+        min-height: 100vh;
+        display: grid;
+        align-content: center;
+        justify-items: center;
+        /* box-sizing, because this pin sits inside a column that is already
+           the full width of its track: without it the horizontal padding is
+           added to 100% and the page gains a scrollbar. QA caught it as 55px
+           of body overflow on /about/ at 390px, which is exactly twice the
+           24px gutter plus the column's own inset. */
+        box-sizing: border-box;
+        width: 100%;
+        padding: 0 clamp(0px, 2vw, 24px);
+      }
+      .about-read__pin .about-say {
+        max-width: min(44ch, 100%);
+        width: 100%;
+      }
+      /* Each word is wrapped by the script and lit from a low-contrast rest
+         state as the scroll passes it. 0.16 is dark enough that an unlit
+         paragraph reads as texture rather than as text you have been given,
+         and light enough that the shape of the block is visible before you
+         start -- a completely invisible paragraph is the fault this page
+         already had once, when two paragraphs sat at opacity 0. */
+      .about-say .w {
+        color: var(--ink);
+        opacity: 0.16;
+        transition: opacity 260ms ease;
+      }
+      .about-say .w.on {
+        opacity: 1;
+      }
+      /* Reduced motion: the paragraphs are simply readable and the runway
+         collapses, so the page does not become 200vh of nothing. */
+      @media (prefers-reduced-motion: reduce) {
+        .about-read {
+          height: auto;
+        }
+        .about-read__pin {
+          position: static;
+          min-height: 0;
+        }
+        .about-say .w {
+          opacity: 1;
+          transition: none;
+        }
+      }
+
       .about-say {
         display: grid;
         gap: 20px;
@@ -2169,6 +2285,13 @@
                  and the ring names what it counts, which is what stops a big
                  numeral being an ornament.
 
+                 THE STRING IS HALF WHAT IT WAS. It ran the pair twice so the
+                 ring stayed full at any radius, which was right at 112px and
+                 wrong the moment the seal grew to 168: the doubled text
+                 overran its own circumference and the tail printed back over
+                 the head, so the ring opened with "YEYEARS DESIGNING". One
+                 pass fills the larger circle exactly.
+
                  A real <circle> path for the textPath rather than an arc,
                  because a circle element has no start point for type to run
                  from. Drawn clockwise from the left so the words read left to
@@ -2180,7 +2303,7 @@
                   <path id="seal-ring" fill="none" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0" />
                 </defs>
                 <text>
-                  <textPath href="#seal-ring" startOffset="0">years designing · years building · years designing · years building ·</textPath>
+                  <textPath href="#seal-ring" startOffset="0">years designing · years building ·</textPath>
                 </text>
               </svg>
               <b>06</b>
@@ -2244,62 +2367,33 @@
                claim that then drift apart. The element carries the same class
                and the same data attributes, so it looks and behaves exactly as
                it did; .about-claim resets the heading defaults. -->
-          <h1
-            class="about-claim"
-            data-livetype
-            data-livetype-zone=".about-intro, section, main"
-            data-livetype-base="400"
-            data-livetype-peak="780"
-            data-livetype-radius="140"
-          >
-            Most spatial and AI work demos beautifully and falls apart the moment a real person uses it in a real room.
-          </h1>
-          <!-- Two paragraphs, one type size, no bold lead-ins. The lead-ins
-               were doing wayfinding for a block short enough not to need any,
-               and they were a third weight on a page that should have one.
-               The numbers stay because they are the checkable part. -->
-          <div class="about-say">
-            <p style="--i: 0">
-              I design it and I build it. Research through to shipped code, which is why the demos hold up in a room with real light and a moving
-              crowd in it.
-            </p>
-            <p style="--i: 1">
-              ENCODED at the Metropolitan Museum: 25 artworks opened through AR, two 2026 Webby Awards. Before that, enterprise UX at Deloitte Digital
-              across 9,000+ Marriott properties. The way I work is unglamorous, and it is the same every time: build the smallest thing that could be
-              wrong, put it in front of someone, watch where their hand goes.
-            </p>
-            <!-- ── THREE MORE, BECAUSE TWO WAS NOT AN ANSWER ────────────────
-                 Sid: "about is so less text."
-
-                 The first fault was that two paragraphs were invisible. The
-                 second is that two paragraphs were all there were, and they
-                 were both credentials. A stranger reading this page could
-                 tell you where he has worked and nothing at all about how he
-                 works or what he is like to sit next to, which is the only
-                 question an About page exists to answer.
-
-                 So: how the work actually gets made, what he does when
-                 nobody is commissioning anything, and what he is looking
-                 for. Every checkable claim in here is stated elsewhere on
-                 this site -- the prototypes are on /ai-prototypes/, the
-                 archive is /play/, the thesis is /bloom/ -- and the
-                 uncheckable parts are opinions, clearly held as opinions. -->
-            <!-- ── TWO, AND BOTH LOAD-BEARING ────────────────────────────────
-                 Sid: "thats way too much text in about just 2 paras to the
-                 point."
-
-                 Right, and this is the third time this block has been
-                 resized. Two paragraphs had been sitting at opacity 0, so
-                 fixing that doubled what a reader sees; then I added three
-                 more and took it to five; then cut to three. It is two.
-
-                 What survived: the position, and the proof. The
-                 how-I-work sentence was its own paragraph and is now the
-                 tail of the second, because it is a claim about method that
-                 only means anything attached to the work it produced. The
-                 prototypes paragraph was /ai-prototypes/ restated. The
-                 looking-for-a-role paragraph is already on the portrait
-                 card, the hero stamp and the whole of /contact/. -->
+          {% comment %} ── ONE VOICE, TWO PARAGRAPHS, AND THE READER SETS THE PACE ────────── Sid: "Don't focus on most spatial and AI work. Redo this
+          thing. I'm mainly going for product design, visual design, and a little sprinkle of AI ... I want that styling, and I want you to activate
+          it in terms of low contrast such that when I scroll, it fills in and locks onto the page until I'm done scrolling across the two paragraphs.
+          We'll finally just have two paragraphs in the font size of the bottom two paragraphs." WHAT WENT. The display headline, which read "Most
+          spatial and AI work demos beautifully and falls apart the moment a real person uses it in a real room." It is a good sentence and it was the
+          wrong first thing: it opens by positioning him inside spatial and AI, which is not the job he is applying for. He is a product designer who
+          also does visual work and reaches for AI when it earns its place, and the page has to say that in the first line or a recruiter has already
+          filed him somewhere else. Two paragraphs now, both at the size the body copy already used, no headline above them. Every checkable fact in
+          here is published elsewhere on this site: Mool's downloads, ENCODED's 25 works and two Webbys, the Marriott figure. Nothing new is claimed.
+          AND THE READER SETS THE PACE. The block sits in a 200vh section with a sticky inner, and scroll position lights the words one at a time from
+          a low-contrast resting state. So the page holds while the paragraphs are being read and releases when they are finished, which is the "locks
+          onto the page until I'm done scrolling" he asked for -- and it is reversible, because it is a position rather than a trigger. {% endcomment
+          %}
+          <div class="about-read" id="about-read">
+            <div class="about-read__pin">
+              <div class="about-say" id="about-say">
+                <p>
+                  I am a product designer, six years in. I do the research, the interface, the visual system and the code that ships it, which is why
+                  the work holds up when somebody picks it up in a real room rather than only in a demo.
+                </p>
+                <p>
+                  Mool put a neo-banking product in front of 100,000 people. ENCODED opened 25 works at the Metropolitan Museum through AR and took
+                  two Webby Awards. At Deloitte Digital I built enterprise UX across 9,000+ Marriott properties. I use AI where it earns its place, as
+                  a material rather than as the subject.
+                </p>
+              </div>
+            </div>
           </div>
 
           <!-- ── THE LOOP DIAGRAM CAME OUT, AND SO DID ITS CAPTION ────────
@@ -2822,5 +2916,73 @@
       </defs>
     </svg>
     {% include motion_stack.html %}
+    <script>
+      /* ══ THE PARAGRAPHS LIGHT AS YOU READ THEM ═════════════════════════
+         Sid: "activate it in terms of low contrast such that when I scroll,
+         it fills in and locks onto the page until I'm done scrolling across
+         the two paragraphs."
+
+         One number, read from the scroll position: how far through the 200vh
+         runway the reader has travelled. That number says how many words are
+         lit, and everything else follows from it.
+
+         WHY WORDS AND NOT LINES OR CHARACTERS. A line is a layout accident --
+         it changes with the window, so the same scroll would light different
+         amounts of text at different widths. A character is too fine to read
+         as anything but a typing effect. A word is the unit the eye actually
+         moves in, so lighting them one at a time reads as reading.
+
+         It is a POSITION, not a trigger: scroll back and the words go out
+         again, which is what makes the block feel held rather than played. */
+      (function () {
+        var sec = document.getElementById("about-read");
+        var box = document.getElementById("about-say");
+        if (!sec || !box) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        var words = [];
+        [].forEach.call(box.querySelectorAll("p"), function (para) {
+          var parts = (para.textContent || "").trim().split(/\s+/);
+          para.textContent = "";
+          parts.forEach(function (t, k) {
+            var sp = document.createElement("span");
+            sp.className = "w";
+            sp.textContent = t;
+            para.appendChild(sp);
+            if (k < parts.length - 1) para.appendChild(document.createTextNode(" "));
+            words.push(sp);
+          });
+        });
+        if (!words.length) return;
+
+        var lit = -1;
+        var raf = 0;
+
+        function read() {
+          raf = 0;
+          var r = sec.getBoundingClientRect();
+          var travel = r.height - window.innerHeight;
+          if (travel <= 0) return;
+          var p = Math.max(0, Math.min(1, -r.top / travel));
+          /* Lit slightly ahead of the scroll so the word under the reader's
+             eye is already on rather than arriving as they reach it. */
+          var n = Math.round(Math.min(1, p * 1.15) * words.length);
+          if (n === lit) return;
+          if (n > lit) {
+            for (var i = Math.max(0, lit); i < n; i++) words[i].classList.add("on");
+          } else {
+            for (var j = lit - 1; j >= n; j--) if (words[j]) words[j].classList.remove("on");
+          }
+          lit = n;
+        }
+
+        function onScroll() {
+          if (!raf) raf = requestAnimationFrame(read);
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll, { passive: true });
+        read();
+      })();
+    </script>
   </body>
 </html>
