@@ -2052,7 +2052,11 @@
            window frame computed against that, coming out at its 18px floor
            on an 11,572px page. An indicator whose size is always the floor
            is not indicating anything. */
-        height: 62vh;
+        /* Sid: "the thumbnail image on the right? It's way too long. We can
+           make it a little bit shorter. It just needs to be a simple
+           preview." 62vh of thumbnails down the edge of a case study is a
+           second column of content; 34vh is a preview. */
+        height: 34vh;
         display: flex;
         flex-direction: column;
         gap: 3px;
@@ -2125,6 +2129,16 @@
          and it is why turning back costs nothing. Shorter than about 2x and
          the gesture is over before it registers as a choice; much longer and
          it reads as the page being broken. */
+      /* ══ THE HANDOVER ══════════════════════════════════════════════════
+         220vh with a sticky viewport-tall panel. The height IS the
+         interaction: it is the distance over which the reader decides, and it
+         is why turning back costs nothing.
+
+         Sid, on the first version: "I wasn't expecting this page. Come on."
+         It stacked a display-size name, a category line, a tagline, a meter
+         and a "keep scrolling to open" instruction in one column over a
+         darkened photograph -- five pieces of chrome to say two things. It
+         says two things now. */
       .nextscroll {
         position: relative;
         height: 220vh;
@@ -2136,110 +2150,109 @@
         top: 0;
         height: 100vh;
         display: grid;
-        align-content: center;
-        gap: clamp(14px, 2vh, 26px);
-        padding: 0 var(--gutter, clamp(20px, 4vw, 64px));
+        grid-template-rows: 1fr auto;
+        align-items: end;
+        gap: clamp(20px, 3vh, 34px);
+        padding: clamp(64px, 9vh, 110px) var(--grid-left, 5vw) clamp(48px, 7vh, 84px);
+        box-sizing: border-box;
         overflow: hidden;
         text-decoration: none;
         color: inherit;
         isolation: isolate;
       }
-      /* The cover sits behind everything and arrives with the scroll. Both
-         custom properties are written by the script; the defaults are what a
-         reader sees with no JS, which is a legible card rather than a blank
-         screen. */
+
+      /* ── THE PICTURE IS THE PROGRESS ───────────────────────────────────
+         Two copies of the cover. The base is dim and desaturated; the fill is
+         full strength and clipped from the right by --ns-p, so scrolling
+         paints the image in from the left edge. At 0 you are looking at a
+         ghost of the next project; at 1 it is fully there and the page turns.
+         Nothing else needs to announce the progress. */
       .nextscroll__visual {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
+        position: relative;
+        grid-row: 1;
+        align-self: stretch;
+        border-radius: 4px;
         overflow: hidden;
-        border-radius: 0;
       }
       .nextscroll__cover {
+        position: absolute;
+        inset: 0;
         width: 100%;
         height: 100%;
         object-fit: cover;
         display: block;
-        opacity: var(--ns-cover-o, 0.34);
-        transform: scale(var(--ns-cover-s, 1.06));
-        transition: none;
       }
-      /* Without this the title sits on whatever the photograph happens to be
-         doing behind it, which on a bright cover is unreadable. */
-      .nextscroll__visual::after {
-        content: "";
+      .nextscroll__cover--base {
+        opacity: 0.22;
+        filter: grayscale(1) brightness(0.7);
+      }
+      .nextscroll__cover--fill {
+        opacity: 1;
+        clip-path: inset(0 calc((1 - var(--ns-p, 0)) * 100%) 0 0);
+      }
+      /* The wet edge. A single bright hairline riding the boundary between
+         the filled and unfilled halves, which is what makes it read as
+         something being painted rather than a box being resized. */
+      .nextscroll__edge {
         position: absolute;
-        inset: 0;
-        background: linear-gradient(180deg, rgba(4, 6, 10, 0.62) 0%, rgba(4, 6, 10, 0.42) 45%, rgba(4, 6, 10, 0.82) 100%);
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        left: calc(var(--ns-p, 0) * 100%);
+        margin-left: -1px;
+        background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.85), transparent);
+        opacity: calc(var(--ns-p, 0) * (1 - var(--ns-p, 0)) * 4);
+        pointer-events: none;
       }
-      .nextscroll__copy {
-        position: relative;
-        z-index: 1;
+
+      /* ── TWO THINGS, ONE ROW ───────────────────────────────────────────
+         Name bottom left, tagline to its right. The name is
+         --type-title rather than a display size: at 104px "Marriott Bonvoy
+         SPOG" ran three lines and became the loudest thing on a page whose
+         subject is the picture above it. */
+      .nextscroll__row {
+        grid-row: 2;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: clamp(24px, 5vw, 80px);
+        flex-wrap: wrap;
+      }
+      .nextscroll__lead {
         display: grid;
-        gap: clamp(8px, 1.2vh, 16px);
-        max-width: 46ch;
-        transform: translateY(var(--ns-copy-y, 0px));
+        gap: 8px;
+        min-width: 0;
       }
       .nextscroll__label {
         font: var(--type-micro);
         letter-spacing: var(--track-micro);
         text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.62);
+        color: rgba(255, 255, 255, 0.5);
       }
       .nextscroll__title {
-        font-family: var(--font-title, var(--font-head));
-        font-size: clamp(40px, 7vw, 104px);
-        line-height: 0.98;
+        font: var(--type-title);
         letter-spacing: -0.02em;
         color: #fff;
-      }
-      .nextscroll__tags {
-        display: flex;
-        gap: 14px;
-        font: var(--type-micro);
-        letter-spacing: var(--track-micro);
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.56);
+        text-wrap: balance;
       }
       .nextscroll__desc {
         font: var(--type-meta);
-        color: rgba(255, 255, 255, 0.78);
-        max-width: 44ch;
+        color: rgba(255, 255, 255, 0.62);
+        max-width: 34ch;
+        text-align: right;
       }
-      .nextscroll__foot {
-        position: relative;
-        z-index: 1;
-        display: grid;
-        gap: 10px;
-        max-width: 420px;
+      @media (max-width: 860px) {
+        .nextscroll__row {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .nextscroll__desc {
+          text-align: left;
+        }
       }
-      /* The loader. It is a readout of the gesture, not a timer -- it only
-         ever moves because the reader moved, which is what makes arriving at
-         the end of it feel like a decision. */
-      .nextscroll__meter {
-        display: block;
-        height: 2px;
-        background: rgba(255, 255, 255, 0.16);
-        overflow: hidden;
-      }
-      .nextscroll__fill {
-        display: block;
-        height: 100%;
-        width: calc(var(--ns-p, 0) * 100%);
-        background: #fff;
-      }
-      .nextscroll__hint {
-        font: var(--type-micro);
-        letter-spacing: var(--track-micro);
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.5);
-      }
-      .nextscroll.is-ready .nextscroll__hint {
-        color: #fff;
-      }
-      /* No JS and no motion: collapse the runway so the panel is one screen
-         you read and click, with nothing to scroll through and no meter
-         pretending to fill. */
+      /* No JS and no motion: one screen with the cover fully painted, read
+         and clicked, with no runway to scroll through. */
       @media (prefers-reduced-motion: reduce) {
         .nextscroll {
           height: auto;
@@ -2247,18 +2260,13 @@
         .nextscroll__pin {
           position: static;
           height: auto;
-          padding-block: clamp(60px, 12vh, 140px);
+          min-height: 70vh;
         }
-        .nextscroll__meter {
+        .nextscroll__cover--fill {
+          clip-path: none;
+        }
+        .nextscroll__edge {
           display: none;
-        }
-      }
-      @media (max-width: 760px) {
-        .nextscroll {
-          height: 200vh;
-        }
-        .nextscroll__title {
-          font-size: clamp(34px, 12vw, 62px);
         }
       }
 
@@ -5224,24 +5232,41 @@
         aria-label="Next project: {{ page.next_project.title | default: npPage.project_title }}"
       >
         <a class="nextscroll__pin" href="{{ site.baseurl }}{{ page.next_project.url }}">
+          {% comment %} The cover is drawn twice. The lower copy is dim and desaturated; the upper one is full strength and clipped from the right by
+          the scroll progress, so continuing to scroll fills the picture in from the left the way a loading block fills. Sid: "I wanted a loader bar
+          on the image itself ... you know how you have those loader screens where it kind of fills in color or fills in that rectangular block, and
+          then you keep scrolling and it gets to 100%." A bar under a picture is a widget; the picture arriving IS the progress. {% endcomment %}
           <span class="nextscroll__visual" style="background: {{ page.next_project.bg | default: '#060608' }};">
             {% if npPage.hero_image %}
-            <img class="nextscroll__cover" src="{{ site.baseurl }}/{{ npPage.hero_image }}" alt="" loading="lazy" decoding="async" />
+            <img
+              class="nextscroll__cover nextscroll__cover--base"
+              src="{{ site.baseurl }}/{{ npPage.hero_image }}"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
+            <img
+              class="nextscroll__cover nextscroll__cover--fill"
+              src="{{ site.baseurl }}/{{ npPage.hero_image }}"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
             {% endif %}
+            <span class="nextscroll__edge" aria-hidden="true"></span>
           </span>
-          <span class="nextscroll__copy">
-            <span class="nextscroll__label">Next project</span>
-            <span class="nextscroll__title">{{ page.next_project.title | default: npPage.project_title }}</span>
-            {% if npPage.category or npPage.year %}
-            <span class="nextscroll__tags">
-              {% if npPage.category %}<span>{{ npPage.category }}</span>{% endif %} {% if npPage.year %}<span>{{ npPage.year }}</span>{% endif %}
+
+          {% comment %} Two things, on one line, at the foot. Sid: "We just need Next Project and the name of the project in simple typography, and it
+          can be on the bottom left. We don't need Enterprise UX. We don't need 'Keep scrolling to open.' We can just have 'The world's largest hotel
+          network' on the right side of it. Marriott Bonvoy SPOG doesn't need to be so big." So the category and year line is gone, the hint is gone,
+          the name comes down from a display size to something a person reads rather than is shouted at by, and the tagline moves to the right of the
+          row where it balances the name instead of stacking under it. {% endcomment %}
+          <span class="nextscroll__row">
+            <span class="nextscroll__lead">
+              <span class="nextscroll__label">Next project</span>
+              <span class="nextscroll__title">{{ page.next_project.title | default: npPage.project_title }}</span>
             </span>
-            {% endif %}
-            <span class="nextscroll__desc">{{ page.next_project.desc | default: npPage.tagline | strip_html | truncate: 170 }}</span>
-          </span>
-          <span class="nextscroll__foot">
-            <span class="nextscroll__meter" aria-hidden="true"><span class="nextscroll__fill"></span></span>
-            <span class="nextscroll__hint">Keep scrolling to open</span>
+            <span class="nextscroll__desc">{{ page.next_project.desc | default: npPage.tagline | strip_html | truncate: 90 }}</span>
           </span>
         </a>
       </section>
@@ -5328,7 +5353,6 @@
         /* Not on load: a restored scroll position at the foot of the page
            would navigate before the reader has done anything. The first
            genuine scroll event starts it. */
-        if (fill) fill.style.width = "0%";
       })();
     </script>
 
