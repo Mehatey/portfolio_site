@@ -60,13 +60,46 @@
        picture in it is skipped rather than drawn as an empty box. */
     var media = b.querySelector("img, video");
     if (!media) return;
-    var src = media.getAttribute("poster") || media.currentSrc || media.getAttribute("src");
-    if (!src) return;
+    /* ── FINDING THE PICTURE IS THE WHOLE PROBLEM ──────────────────────
+       First pass read `poster || currentSrc || src` and silently produced no
+       rail at all on /encoded/ and /bloom/, which both have eleven and ten
+       media blocks. Their videos carry no `src` attribute -- the file is on a
+       child <source>, which is the correct way to offer more than one format
+       and the way half this site is authored. `currentSrc` is empty too until
+       the video has actually selected a source, and these are `preload=none`.
+
+       So the lookup walks the same ladder a browser does, and falls back to
+       any <img> anywhere in the block, which covers the case where the first
+       media element is a video that has not resolved yet. */
+    var src = media.getAttribute("poster") || media.currentSrc || media.getAttribute("src") || media.getAttribute("data-src") || "";
+    if (!src) {
+      /* Any real image in the block, which covers a video that has not
+         resolved a source yet. */
+      var anyImg = b.querySelector("img");
+      if (anyImg) src = anyImg.currentSrc || anyImg.getAttribute("src") || "";
+    }
+    /* A source's own file, last. On this site videos are lazy and the path
+       sits on `data-src` of the <source>, not on the <video> -- which is why
+       the first version of this produced no rail at all on /encoded/ and
+       /bloom/: eleven and ten media blocks, one resolvable image between
+       them, and a `shots.length < 4` bail that looked like the feature simply
+       not existing. */
+    if (!src) {
+      var srcEl = b.querySelector("source");
+      if (srcEl) src = srcEl.getAttribute("src") || srcEl.getAttribute("data-src") || "";
+    }
+    /* A video file is not a picture. Rather than set an .mp4 as a background
+       and get an empty box, the cell is drawn as a blank frame -- it still
+       marks a stop in the strip and still says how long the page is, which is
+       most of the job. A filmstrip with a few unexposed frames is better than
+       no filmstrip on the two most video-heavy case studies. */
+    var isVideoFile = /\.(mp4|webm|mov)(\?|$)/i.test(src);
+    if (isVideoFile) src = "";
 
     var cell = document.createElement("button");
     cell.type = "button";
-    cell.className = "sfilm__cell";
-    cell.style.backgroundImage = "url(" + src + ")";
+    cell.className = "sfilm__cell" + (src ? "" : " is-blank");
+    if (src) cell.style.backgroundImage = "url(" + src + ")";
     cell.setAttribute("aria-label", "Go to visual " + (i + 1) + " of " + blocks.length);
     cell.addEventListener("click", function () {
       b.scrollIntoView({ behavior: "smooth", block: "center" });

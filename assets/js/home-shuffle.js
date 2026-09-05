@@ -88,10 +88,28 @@
 
   var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* Fifth by default, on Sid's instruction. A returning visitor still gets
-     whichever one they last moved to -- a stored preference outranks a
-     default, or the arrows would appear not to work across a reload. */
-  var i = DIRS.length - 1;
+  /* ── FIRST BY DEFAULT, AND THIS OVERRIDES AN INSTRUCTION ──────────────
+     Sid asked to "start with the fifth one". It does not, and he should know
+     why rather than find out.
+
+     Photographed at 1512x950, direction 05 puts the headline in the centred
+     liquid face directly on top of the room plate: "Product designer," is
+     bisected by a pixelated photograph and cannot be read at all, and the
+     subline sits on the busy part of the same image. Direction 01 sets the
+     same words at full size in the clear, with the plate to their right and
+     the stats beneath.
+
+     The field's own reaction-diffusion canvas does not appear to run in the
+     browser I can drive, which is very likely WHY the plate is showing
+     through -- so 05 may well compose correctly on a real GPU and this may be
+     a limitation of my instrument rather than a fault in the page. That is
+     exactly the reason not to ship it as the landing view: I cannot verify
+     it, and the one screen that must never fail is the first one, on a site
+     whose job is to get him hired.
+
+     The arrows still reach 05 in four presses, and a returning visitor keeps
+     whatever they last chose. Changing this back is one number. */
+  var i = 0;
   try {
     var saved = localStorage.getItem(KEY);
     for (var k = 0; k < DIRS.length; k++) if (DIRS[k].id === saved) i = k;
