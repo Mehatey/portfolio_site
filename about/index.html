@@ -929,8 +929,13 @@
          portrait just reintroduces the hole it was invented to fix. */
       .about-hero {
         display: grid;
-        grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
-        gap: clamp(40px, 6vw, 96px);
+        /* Sid: "make it a little bigger and see the proximity to text, if
+           the spacing is right." 420 to 500 on the picture, and the gap grows
+           with it so the two columns do not close up as the left one widens
+           -- the complaint about spacing is really about the ratio between
+           them, not either one alone. */
+        grid-template-columns: minmax(320px, 500px) minmax(0, 1fr);
+        gap: clamp(48px, 7vw, 116px);
         align-items: start;
         padding: 0 var(--gutter) 64px;
         max-width: 1320px;
@@ -2959,6 +2964,21 @@
           inset 0 -1px 0 rgba(28, 60, 96, 0.05),
           0 18px 46px rgba(19, 34, 52, 0.12);
       }
+
+      /* The cloth runs on the PHOTOGRAPHS, not on the card. The card carries
+         the blob mask, the tilt and the shadow; displacing all of that would
+         warp the silhouette and the seal along with the picture, and a stamp
+         that ripples is a bug. */
+      .about-photo {
+        filter: url(#about-cloth);
+      }
+      /* An SVG filter forces software rasterisation of whatever it touches,
+         so it comes off where it cannot be seen or cannot be afforded. */
+      @media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+        .about-photo {
+          filter: none;
+        }
+      }
     </style> </head> <body> <div id="site-field" aria-hidden="true"></div> <style>
     /* ── OFF. IT WAS THE CIRCULAR ORB ──────────────────────────────────
      Sid: "i don't want the shader in center the circular orb looking thing."
@@ -3907,18 +3927,16 @@
     opacity: 0.45;
   }
 
+  /* ── NO RULE UNDER THE LABEL ──────────────────────────────────────────
+     Sid: "we don't need the line under the nav label, the text is enough."
+
+     He is right, and the reason is that the label already changes colour to
+     its own icon's colour on hover and on the active route. The underline was
+     a second signal saying the same thing, drawn in the same colour, two
+     pixels under the first. The ::after is kept as a positioned box because
+     the rules below still address it; it simply draws nothing. */
   .studio-link::after {
-    content: "";
-    position: absolute;
-    left: 35px;
-    right: 0;
-    bottom: 3px;
-    height: 2px;
-    border-radius: 2px;
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: right;
-    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+    content: none;
   }
 
   .studio-link:hover,
@@ -5677,6 +5695,29 @@
       display: none;
     }
   }
+
+  /* ══ NO TEXT IN THE TOP LEFT ═══════════════════════════════════════════
+     Sid: "it is showing the same cursor smart caption and also showing it on
+     the top left next to the logo mark. I don't want any text on the top
+     left, let it all be from the cursor."
+
+     He is describing one sentence rendered twice, which is exactly the fault
+     that also retired cube-cursor.js. The remark now belongs to the cursor
+     panel, where it has a shape and a speaker.
+
+     What stays here is the COLOUR, which he asked for in this exact place
+     and asked to have more of: ten chips beside the mark, no words. So the
+     component keeps its position, its reveal and its chip strip, and the
+     text node inside it simply never draws. */
+  .cube-says__text {
+    display: none !important;
+  }
+  #cube-says {
+    /* Without the sentence there is nothing to hold a width open, and the
+       chips are the whole content now. */
+    max-width: none;
+    padding-left: 0;
+  }
 </style> <script>
   (function () {
     var el = document.getElementById("cube-says");
@@ -5831,168 +5872,29 @@
     }
 
     /* ── SAMPLING THE COVER ───────────────────────────────────────────────
-       One 28x28 canvas reused for every card. Downsampling to 784 pixels is
-       the quantisation: the browser's own image scaler averages each region
-       for us, so what comes back is already the picture's broad colours
-       rather than its noise, and the whole read is under a millisecond.
-
-       Near-black and near-white are dropped before counting. Almost every
-       cover on this site is a UI screenshot on a dark page, so without that
-       filter all sixteen projects return the same four greys and the strip
-       says nothing. What is wanted is what makes this cover different from
-       the next one, which is its chroma, not its ground. */
+       Moved out to assets/js/hue.js. It was written here first, and the
+       moment the cursor panel and the photo-strip field wanted the same
+       read, the choice was to copy forty lines of colour science twice or to
+       move them once. Three copies drift, and then two parts of one page
+       disagree about what colour a photograph is. The note at the top of
+       that file explains why the score is chroma rather than population. */
     var hueEl = el.querySelector(".cube-says__hues");
-    var swatchCache = Object.create(null);
-    var sampler = null;
 
-    function paletteOf(img) {
-      var key = img.currentSrc || img.src;
-      if (!key) return null;
-      if (swatchCache[key]) return swatchCache[key];
-      if (!img.complete || !img.naturalWidth) return null;
-      if (!sampler) {
-        sampler = document.createElement("canvas");
-        sampler.width = sampler.height = 40;
-      }
-      var c = sampler.getContext("2d", { willReadFrequently: true });
-      if (!c) return null;
-      var data;
-      try {
-        c.clearRect(0, 0, 40, 40);
-        c.drawImage(img, 0, 0, 40, 40);
-        data = c.getImageData(0, 0, 40, 40).data;
-      } catch (err) {
-        /* A cross-origin cover taints the canvas. Nothing to show, and the
-           null is cached so it is not attempted again on every hover. */
-        swatchCache[key] = null;
-        return null;
-      }
+    /* ── HOW MANY ──────────────────────────────────────────────────────
+       Sid: "I want more colours, maybe all colours to be shown there."
 
-      /* ── FREQUENCY IS THE WRONG SCORE ──────────────────────────────────
-         First pass took the four commonest bins and returned, for Mool, a
-         dark navy and two browns: the covers are photographs, so the most
-         common colour in one is almost always its shadow. What the strip is
-         for is the difference between one project and the next, and that
-         lives in the chroma, not the mass.
-
-         So a bin's score is its count weighted by saturation and by how far
-         its lightness sits from either end. A large dull region and a small
-         vivid one now compete on even terms, which is the judgement a person
-         makes when they say what colour something is. */
-      var bins = Object.create(null);
-      for (var i = 0; i < data.length; i += 4) {
-        if (data[i + 3] < 200) continue;
-        var r = data[i],
-          g = data[i + 1],
-          b = data[i + 2];
-        var mx = Math.max(r, g, b),
-          mn = Math.min(r, g, b);
-        if (mx < 52 || mn > 236) continue;
-        if (mx - mn < 16) continue;
-        var k = ((r >> 5) << 6) | ((g >> 5) << 3) | (b >> 5);
-        var bin = bins[k] || (bins[k] = { n: 0, r: 0, g: 0, b: 0 });
-        bin.n++;
-        bin.r += r;
-        bin.g += g;
-        bin.b += b;
-      }
-
-      var list = [];
-      for (var key2 in bins) {
-        var q = bins[key2];
-        if (q.n < 3) continue;
-        q.r = Math.round(q.r / q.n);
-        q.g = Math.round(q.g / q.n);
-        q.b = Math.round(q.b / q.n);
-        var qmx = Math.max(q.r, q.g, q.b),
-          qmn = Math.min(q.r, q.g, q.b);
-        var sat = qmx ? (qmx - qmn) / qmx : 0;
-        var lum = (qmx + qmn) / 510;
-        /* Peaks at mid lightness, falls off toward black and toward white. */
-        var lit = 1 - Math.abs(lum - 0.56) * 1.7;
-        q.score = q.n * (0.25 + sat * 1.9) * Math.max(0.15, lit);
-        list.push(q);
-      }
-      list.sort(function (a, z) {
-        return z.score - a.score;
-      });
-
-      var out = [];
-      for (var j = 0; j < list.length && out.length < 4; j++) {
-        var c2 = list[j];
-        /* Four squares that are four shades of the same blue is a gradient,
-           not a palette. A candidate within 70 of one already chosen is the
-           same colour as far as the eye at the top of the window is
-           concerned, so it is skipped for the next distinct one. */
-        var near = false;
-        for (var m = 0; m < out.length; m++) {
-          var o = out[m];
-          if (Math.abs(o[0] - c2.r) + Math.abs(o[1] - c2.g) + Math.abs(o[2] - c2.b) < 70) {
-            near = true;
-            break;
-          }
-        }
-        if (near) continue;
-        out.push([c2.r, c2.g, c2.b]);
-      }
-      /* ── AND IF THE COVER IS SIMPLY DARK ───────────────────────────────
-         Marriott's cover is a dashboard on near-black and it returned one
-         chip. Rather than show a lonely square, the shortfall is filled from
-         the same bins with the chroma test dropped: a neutral strip is the
-         honest answer for a neutral picture, and it still differs from the
-         next project's. */
-      if (out.length < 3) {
-        var all = [];
-        for (var k2 in bins) all.push(bins[k2]);
-        all.sort(function (a, z) {
-          return z.n - a.n;
-        });
-        for (var n2 = 0; n2 < all.length && out.length < 4; n2++) {
-          var c3 = all[n2];
-          var far = true;
-          for (var m2 = 0; m2 < out.length; m2++) {
-            if (Math.abs(out[m2][0] - c3.r) + Math.abs(out[m2][1] - c3.g) + Math.abs(out[m2][2] - c3.b) < 70) far = false;
-          }
-          if (far) out.push([c3.r, c3.g, c3.b]);
-        }
-      }
-
-      /* ── THE CHIPS ARE A READING, NOT AN AVERAGE ───────────────────────
-         A mean over a bin of photograph pixels always drifts toward mud, and
-         four mud squares at the top of the window say nothing at all. Each
-         chip keeps the HUE it was sampled at and is brought up to a floor of
-         saturation and into a usable band of lightness -- which is exactly
-         what a person does when they pull a palette off an image by eye. A
-         genuinely neutral sample stays neutral, because a hueless colour has
-         no hue to bring up. */
-      out = out.map(function (o) {
-        var r = o[0] / 255,
-          g = o[1] / 255,
-          b = o[2] / 255;
-        var mx = Math.max(r, g, b),
-          mn = Math.min(r, g, b);
-        var l = (mx + mn) / 2,
-          d = mx - mn,
-          h = 0,
-          sat = 0;
-        if (d) {
-          sat = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
-          if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-          else if (mx === g) h = ((b - r) / d + 2) / 6;
-          else h = ((r - g) / d + 4) / 6;
-        }
-        if (sat > 0.08) sat = Math.min(0.82, Math.max(0.42, sat * 1.35));
-        l = Math.min(0.72, Math.max(0.44, l * 1.25));
-        return "hsl(" + (h * 360).toFixed(0) + " " + (sat * 100).toFixed(0) + "% " + (l * 100).toFixed(0) + "%)";
-      });
-      swatchCache[key] = out.length ? out : null;
-      return swatchCache[key];
-    }
+       Ten, not four, and not all of them -- "all" is a few thousand and the
+       honest version of it is a gradient, which says nothing. Ten is the
+       most the strip can hold before it stops being a palette you can read
+       at a glance and starts being a bar. hue.js relaxes its own
+       distinctness threshold as the count goes up, so the tenth chip is a
+       real near-miss rather than a duplicate of the second. */
+    var HUE_N = 10;
 
     function showHues(card) {
       if (!hueEl) return;
-      var img = card.querySelector("img");
-      var cols = img ? paletteOf(img) : null;
+      var img = window.SidHue && window.SidHue.pictureIn(card);
+      var cols = img ? window.SidHue.palette(img, HUE_N) : null;
       hueEl.textContent = "";
       if (!cols) return;
       for (var i = 0; i < cols.length; i++) {
@@ -6041,7 +5943,7 @@
       { passive: true }
     );
   })();
-</script> <main class="about-page" id="main"> <h1 class="sr-only">About Sid Mehta, product designer</h1> <section class="about-hero"> <div class="hero-ident" style="--bloom-src: url(/assets/img/sid_about.jpg)"> <span class="about-ident-bloom" aria-hidden="true"></span> <span class="about-ident-drag" aria-hidden="true"></span> <div class="about-profile-card" id="about-profile-card" tabindex="0" role="button" aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."> <img class="about-photo active" src="/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta"> <img class="about-photo" src="/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta"> <div class="about-seal" aria-hidden="true"> <svg viewbox="0 0 120 120" focusable="false"> <defs> <path id="seal-ring" fill="none" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"></path> </defs> <text> <textpath href="#seal-ring" startoffset="0">years designing · years building ·</textpath> </text> </svg> <b>06</b> </div> </div> </div> <div class="hero-bio-col"> <div class="about-read" id="about-read"> <div class="about-read__pin"> <div class="about-say" id="about-say"> <p> I am a product designer, six years in. I do the research, the interface, the visual system and the code that ships it, which is why the work holds up when somebody picks it up in a real room rather than only in a demo. </p> <p> Mool put a neo-banking product in front of 100,000 people. ENCODED opened 25 works at the Metropolitan Museum through AR and took two Webby Awards. At Deloitte Digital I built enterprise UX across 9,000+ Marriott properties. I use AI where it earns its place, as a material rather than as the subject. </p> </div> </div> </div> </div> </section> <section class="marquee marquee--companies" aria-labelledby="collaborators-heading"> <h2 class="marquee-kicker" id="collaborators-heading">Brands I have worked with, directly and through agency work</h2> <p class="sr-only"> Brands Sid has worked with, directly and through agency work, include Deloitte, EyeJack, Philips, Marriott, M Health Fairview, Leaf Design Studio, Dabur, KFC, Google, Pizza Hut, Taco Bell, and Del Taco. </p> <div class="marquee-mask"> <div class="marquee-track" aria-hidden="true"> <span class="m-logo" style="--h: 28px; --ar: 450/84" data-tip="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94" data-tip="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200" data-tip="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136" data-tip="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200" data-tip="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195" data-tip="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42" data-tip="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200" data-tip="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148" data-tip="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200" data-tip="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200" data-tip="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200" data-tip="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 28px; --ar: 450/84" data-tip="Deloitte"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94" data-tip="EyeJack"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200" data-tip="Philips"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136" data-tip="Marriott"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200" data-tip="M Health Fairview"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195" data-tip="Leaf Design Studio"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42" data-tip="Dabur"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200" data-tip="KFC"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148" data-tip="Google"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200" data-tip="Pizza Hut"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200" data-tip="Taco Bell"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200" data-tip="Del Taco"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span> </div> </div> </section> <div class="about-grid" id="about-grid"> <div class="gcol" data-reveal> <h2 class="g-label">Experience</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Senior UX Designer</span> <span class="exp-co">Deloitte Digital</span> </div> <span class="exp-yr">2022-23</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Product Designer</span> <span class="exp-co">EyeJack</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Visual Designer</span> <span class="exp-co">Leaf Design Studio</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">UX Designer</span> <span class="exp-co">Philips</span> </div> <span class="exp-yr">2020</span> </li> </ul> <h2 class="g-label" style="margin-top: 36px">Education</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">MFA Design &amp; Technology</span> <span class="exp-co">Parsons · The New School</span> </div> <span class="exp-yr">2024-2026</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">BDes Communication Design</span> <span class="exp-co">Indian School of Design and Innovation, Mumbai</span> </div> <span class="exp-yr">2019</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Recognition</h2> <ul class="recog-list"> <li class="recog-item"> <span class="recog-name">Webby Award · Best Use of AR, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Webby Award · Best Community Engagement, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">MIT Reality Hack</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Kyoorius Design Award, Mool</span> <span class="recog-yr">2021</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Capabilities</h2> <div class="cap-tags"> <span class="cap-tag" data-reveal>Product Design</span> <span class="cap-tag" data-reveal>UX Research</span> <span class="cap-tag" data-reveal>AR / XR</span> <span class="cap-tag" data-reveal>Unity</span> <span class="cap-tag" data-reveal>Figma</span> <span class="cap-tag" data-reveal>TouchDesigner</span> <span class="cap-tag" data-reveal>Unreal Engine</span> <span class="cap-tag" data-reveal>JavaScript</span> <span class="cap-tag" data-reveal>Python</span> <span class="cap-tag" data-reveal>Branding</span> <span class="cap-tag" data-reveal>Arduino</span> <span class="cap-tag" data-reveal>Premiere Pro</span> </div> <h2 class="g-label">Currently</h2> <dl class="now-list"> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 1.6c-2.4 0-4.3 1.9-4.3 4.3 0 3.2 4.3 8.5 4.3 8.5s4.3-5.3 4.3-8.5c0-2.4-1.9-4.3-4.3-4.3z"></path> <circle class="now-dot" cx="8" cy="5.9" r="1.6"></circle> </svg> <span class="sr-only">Based in</span> </dt> <dd>Brooklyn, New York</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <circle cx="8" cy="8" r="6.1"></circle> <path class="now-hand" d="M8 4.4V8l2.6 1.6"></path> </svg> <span class="sr-only">Local time</span> </dt> <dd><span id="now-clock">Eastern Time</span></dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M2 5.4h12v8H2z"></path> <path class="now-hand" d="M6 5.4V3.4h4v2"></path> </svg> <span class="sr-only">Availability</span> </dt> <dd>Open to remote, hybrid, or relocating</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 2.4 14.4 5.8 8 9.2 1.6 5.8z"></path> <path class="now-hand" d="M4.4 7.4v3.2c0 1 1.6 1.9 3.6 1.9s3.6-.9 3.6-1.9V7.4"></path> </svg> <span class="sr-only">Studying</span> </dt> <dd>MFA Design &amp; Technology, Parsons</dd> </div> </dl> </div> </div> <div class="faq-section"> <h2 class="g-label">Working together</h2> <div class="faq-list"> <details class="faq-item" data-reveal> <summary>Which project taught you the most?</summary> <div class="faq-panel"> <div> <p> Mool. Designing a banking app for users new to digital meant unlearning every shortcut I'd taken in design. Every interaction had to earn its place. It rewired how I think about clarity. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What kind of team brings out your best work?</summary> <div class="faq-panel"> <div> <p> Small. Curious. People who can hold strong opinions loosely. I do my best work when there's room to prototype before there's a brief, and a team that treats design as part of the thinking, not the polish at the end. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What do you do when you're stuck?</summary> <div class="faq-panel"> <div> <p> I leave the screen. Most of my best ideas have come on a walk, in the shower, or while drawing in a sketchbook. The wall is usually a sign I haven't gone wide enough on the inputs yet. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What's the one thing you wish people asked more?</summary> <div class="faq-panel"> <div> <p> Why I make. Cube, mandalas, the AR work, the bank, the small daily illustrations. They all come from the same place: a curiosity about how design can shift the way people feel about themselves and the world. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Lead end-to-end or join mid-sprint?</summary> <div class="faq-panel"> <div> <p> Both. I've shipped solo projects from concept to install, and I've joined product teams to translate research into flows. Async-friendly, comfortable across timezones, fast at finding the shape of a problem. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Where are you based?</summary> <div class="faq-panel"> <div><p>Brooklyn, NYC. Eastern Time. Open to remote, hybrid, or relocating for the right team.</p></div> </div> </details> </div> </div> </main> <style>
+</script> <main class="about-page" id="main"> <h1 class="sr-only">About Sid Mehta, product designer</h1> <section class="about-hero"> <div class="hero-ident" style="--bloom-src: url(/assets/img/sid_about.jpg)"> <span class="about-ident-drag" aria-hidden="true"></span> <div class="about-profile-card" id="about-profile-card" tabindex="0" role="button" aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."> <img class="about-photo active" src="/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta"> <img class="about-photo" src="/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta"> <div class="about-seal" aria-hidden="true"> <svg viewbox="0 0 120 120" focusable="false"> <defs> <path id="seal-ring" fill="none" d="M60,60 m-45,0 a45,45 0 1,1 90,0 a45,45 0 1,1 -90,0"></path> </defs> <text> <textpath href="#seal-ring" startoffset="0">years designing · years building ·</textpath> </text> </svg> <b>06</b> </div> </div> </div> <div class="hero-bio-col"> <div class="about-read" id="about-read"> <div class="about-read__pin"> <div class="about-say" id="about-say"> <p> I am a product designer, six years in. I do the research, the interface, the visual system and the code that ships it, which is why the work holds up when somebody picks it up in a real room rather than only in a demo. </p> <p> Mool put a neo-banking product in front of 100,000 people. ENCODED opened 25 works at the Metropolitan Museum through AR and took two Webby Awards. At Deloitte Digital I built enterprise UX across 9,000+ Marriott properties. I use AI where it earns its place, as a material rather than as the subject. </p> </div> </div> </div> </div> </section> <section class="marquee marquee--companies" aria-labelledby="collaborators-heading"> <h2 class="marquee-kicker" id="collaborators-heading">Brands I have worked with, directly and through agency work</h2> <p class="sr-only"> Brands Sid has worked with, directly and through agency work, include Deloitte, EyeJack, Philips, Marriott, M Health Fairview, Leaf Design Studio, Dabur, KFC, Google, Pizza Hut, Taco Bell, and Del Taco. </p> <div class="marquee-mask"> <div class="marquee-track" aria-hidden="true"> <span class="m-logo" style="--h: 28px; --ar: 450/84"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 28px; --ar: 450/84"><img class="m-logo__mono" src="/assets/img/companies/mono/deloitte.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/deloitte.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 29px; --ar: 450/94"><img class="m-logo__mono" src="/assets/img/companies/mono/eyejack.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/eyejack.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 54px; --ar: 160/200"><img class="m-logo__mono" src="/assets/img/companies/mono/philips.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/philips.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 33px; --ar: 450/136"><img class="m-logo__mono" src="/assets/img/companies/mono/marriott.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/marriott.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 45px; --ar: 263/200"><img class="m-logo__mono" src="/assets/img/companies/mono/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/m-health-fairview.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 37px; --ar: 450/195"><img class="m-logo__mono" src="/assets/img/companies/mono/leaf.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/leaf.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo m-logo--hair" style="--h: 48px; --ar: 224/200; --ink: 1.42"><img class="m-logo__mono" src="/assets/img/companies/mono/dabur.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/dabur.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 50px; --ar: 200/200"><img class="m-logo__mono" src="/assets/img/companies/mono/kfc.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/kfc.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 34px; --ar: 450/148"><img class="m-logo__mono" src="/assets/img/companies/mono/google.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/google.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 46px; --ar: 251/200"><img class="m-logo__mono" src="/assets/img/companies/mono/pizza-hut.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/pizza-hut.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 57px; --ar: 138/200"><img class="m-logo__mono" src="/assets/img/companies/mono/taco-bell.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/taco-bell.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span><span class="m-logo" style="--h: 40px; --ar: 375/200"><img class="m-logo__mono" src="/assets/img/companies/mono/del-taco.png" alt="" decoding="async" fetchpriority="low"><img class="m-logo__color" src="/assets/img/companies/color/del-taco.png" alt="" decoding="async" fetchpriority="low"></span><span class="m-sep">◇</span> </div> </div> </section> <div class="about-grid" id="about-grid"> <div class="gcol" data-reveal> <h2 class="g-label">Experience</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Senior UX Designer</span> <span class="exp-co">Deloitte Digital</span> </div> <span class="exp-yr">2022-23</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Product Designer</span> <span class="exp-co">EyeJack</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">Visual Designer</span> <span class="exp-co">Leaf Design Studio</span> </div> <span class="exp-yr">2021</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">UX Designer</span> <span class="exp-co">Philips</span> </div> <span class="exp-yr">2020</span> </li> </ul> <h2 class="g-label" style="margin-top: 36px">Education</h2> <ul class="exp-list"> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">MFA Design &amp; Technology</span> <span class="exp-co">Parsons · The New School</span> </div> <span class="exp-yr">2024-2026</span> </li> <li class="exp-item"> <div class="exp-left"> <span class="exp-role">BDes Communication Design</span> <span class="exp-co">Indian School of Design and Innovation, Mumbai</span> </div> <span class="exp-yr">2019</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Recognition</h2> <ul class="recog-list"> <li class="recog-item"> <span class="recog-name">Webby Award · Best Use of AR, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Webby Award · Best Community Engagement, Encoded</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">MIT Reality Hack</span> <span class="recog-yr">2026</span> </li> <li class="recog-item"> <span class="recog-name">Kyoorius Design Award, Mool</span> <span class="recog-yr">2021</span> </li> </ul> </div> <div class="gcol" data-reveal> <h2 class="g-label">Capabilities</h2> <div class="cap-tags"> <span class="cap-tag" data-reveal>Product Design</span> <span class="cap-tag" data-reveal>UX Research</span> <span class="cap-tag" data-reveal>AR / XR</span> <span class="cap-tag" data-reveal>Unity</span> <span class="cap-tag" data-reveal>Figma</span> <span class="cap-tag" data-reveal>TouchDesigner</span> <span class="cap-tag" data-reveal>Unreal Engine</span> <span class="cap-tag" data-reveal>JavaScript</span> <span class="cap-tag" data-reveal>Python</span> <span class="cap-tag" data-reveal>Branding</span> <span class="cap-tag" data-reveal>Arduino</span> <span class="cap-tag" data-reveal>Premiere Pro</span> </div> <h2 class="g-label">Currently</h2> <dl class="now-list"> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 1.6c-2.4 0-4.3 1.9-4.3 4.3 0 3.2 4.3 8.5 4.3 8.5s4.3-5.3 4.3-8.5c0-2.4-1.9-4.3-4.3-4.3z"></path> <circle class="now-dot" cx="8" cy="5.9" r="1.6"></circle> </svg> <span class="sr-only">Based in</span> </dt> <dd>Brooklyn, New York</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <circle cx="8" cy="8" r="6.1"></circle> <path class="now-hand" d="M8 4.4V8l2.6 1.6"></path> </svg> <span class="sr-only">Local time</span> </dt> <dd><span id="now-clock">Eastern Time</span></dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M2 5.4h12v8H2z"></path> <path class="now-hand" d="M6 5.4V3.4h4v2"></path> </svg> <span class="sr-only">Availability</span> </dt> <dd>Open to remote, hybrid, or relocating</dd> </div> <div class="now-row" data-reveal> <dt> <svg viewbox="0 0 16 16" aria-hidden="true" focusable="false"> <path d="M8 2.4 14.4 5.8 8 9.2 1.6 5.8z"></path> <path class="now-hand" d="M4.4 7.4v3.2c0 1 1.6 1.9 3.6 1.9s3.6-.9 3.6-1.9V7.4"></path> </svg> <span class="sr-only">Studying</span> </dt> <dd>MFA Design &amp; Technology, Parsons</dd> </div> </dl> </div> </div> <div class="faq-section"> <h2 class="g-label">Working together</h2> <div class="faq-list"> <details class="faq-item" data-reveal> <summary>Which project taught you the most?</summary> <div class="faq-panel"> <div> <p> Mool. Designing a banking app for users new to digital meant unlearning every shortcut I'd taken in design. Every interaction had to earn its place. It rewired how I think about clarity. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What kind of team brings out your best work?</summary> <div class="faq-panel"> <div> <p> Small. Curious. People who can hold strong opinions loosely. I do my best work when there's room to prototype before there's a brief, and a team that treats design as part of the thinking, not the polish at the end. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What do you do when you're stuck?</summary> <div class="faq-panel"> <div> <p> I leave the screen. Most of my best ideas have come on a walk, in the shower, or while drawing in a sketchbook. The wall is usually a sign I haven't gone wide enough on the inputs yet. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>What's the one thing you wish people asked more?</summary> <div class="faq-panel"> <div> <p> Why I make. Cube, mandalas, the AR work, the bank, the small daily illustrations. They all come from the same place: a curiosity about how design can shift the way people feel about themselves and the world. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Lead end-to-end or join mid-sprint?</summary> <div class="faq-panel"> <div> <p> Both. I've shipped solo projects from concept to install, and I've joined product teams to translate research into flows. Async-friendly, comfortable across timezones, fast at finding the shape of a problem. </p> </div> </div> </details> <details class="faq-item" data-reveal> <summary>Where are you based?</summary> <div class="faq-panel"> <div><p>Brooklyn, NYC. Eastern Time. Open to remote, hybrid, or relocating for the right team.</p></div> </div> </details> </div> </div> </main> <style>
   /* Inline-block so each character can carry its own weight. No transition:
      the per-frame values come from script and the easing already lives in the
      loop, so a CSS transition on top would fight it. `will-change` is
@@ -9504,17 +9406,7 @@
     opacity: 1;
     pointer-events: auto;
   }
-  /* On, the bars hold a low steady line and only travel while something is
-     sounding. */
-  .sound-toggle.is-on .sound-wave i {
-    animation: none;
-    height: 5px;
-    transition: height 200ms ease;
-  }
-  .sound-toggle.is-on.is-playing .sound-wave i {
-    animation: soundWave 1.1s ease-in-out infinite;
-    animation-delay: calc(var(--i) * 0.09s);
-  }
+  /* The five bars are gone from the markup, not just from the paint. */
   /* ── ONE LINE, NOT A MONOGRAM ──────────────────────────────────────────
      Sid: "the icons for the audio: can you just make it a simple line? It
      doesn't need to be this massive audio monogram with five lines. Just a
@@ -9532,142 +9424,68 @@
   .sound-wave {
     position: relative;
     display: block;
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 14px;
   }
-  /* OFF: one horizontal rule through the middle. */
-  .sound-wave::before {
-    content: "";
-    position: absolute;
-    left: 1px;
-    right: 1px;
-    top: 50%;
-    height: 1.5px;
-    margin-top: -0.75px;
-    border-radius: 1px;
-    background: currentColor;
-    transition:
-      opacity 0.26s ease,
-      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  .sound-wave svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
   }
-  /* ON: the rule gives way to two arcs opening rightward. */
-  .sound-toggle.is-on .sound-wave::before {
+  /* ── OFF IS A FLAT LINE, ON IS A WAVE ───────────────────────────────
+     Two paths crossfading, not one path being squashed. A transform on an
+     SVG path scales the geometry and the stroke goes with it, so a scaleY
+     small enough to look flat leaves nothing visible at all. */
+  .sound-wave__flat,
+  .sound-wave__line {
+    transition: opacity 300ms ease;
+  }
+  .sound-wave__line {
     opacity: 0;
-    transform: scaleX(0.3);
   }
-  .sound-wave::after {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: 50%;
-    width: 7px;
-    height: 7px;
-    margin-top: -3.5px;
-    border: 1.5px solid currentColor;
-    border-left-color: transparent;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
-    border-radius: 50%;
+  .sound-toggle.is-on .sound-wave__flat {
     opacity: 0;
-    transform: scale(0.6);
-    transition:
-      opacity 0.26s ease 0.06s,
-      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1) 0.06s;
   }
-  .sound-toggle.is-on .sound-wave::after {
+  /* ── ON, IT TRAVELS ─────────────────────────────────────────────────
+     The path is drawn from x -10 so there is a full wavelength of slack on
+     the left; translating by exactly one wavelength (10 units, two half
+     periods of 5) puts the shape back where it started, so the loop has no
+     seam and needs no fade. `overflow: visible` on the svg is deliberate:
+     the button's own border-radius does the clipping.
+
+     Four seconds. Slower than a level meter on purpose -- this is a state
+     that is true, not a signal that is measuring something. */
+  .sound-toggle.is-on .sound-wave__line {
     opacity: 1;
-    transform: scale(1);
+    animation: soundTravel 4s linear infinite;
   }
-  /* The second, larger arc. Drawn on the button rather than the wave because
-     both pseudo-elements of .sound-wave are already spent. */
-  .sound-toggle::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: 13px;
-    height: 13px;
-    margin: -6.5px 0 0 -6px;
-    border: 1.5px solid currentColor;
-    border-left-color: transparent;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
-    border-radius: 50%;
-    opacity: 0;
-    transform: scale(0.6);
-    transition:
-      opacity 0.26s ease 0.12s,
-      transform 0.34s cubic-bezier(0.16, 1, 0.3, 1) 0.12s;
-    pointer-events: none;
-  }
-  .sound-toggle.is-on::after {
-    opacity: 0.75;
-    transform: scale(1);
-  }
-  /* While something is actually sounding the outer arc breathes. This is the
-     one piece of motion kept from the old level-meter idea, and it is honest
-     now: it only runs when audio is playing. */
-  .sound-toggle.is-on.is-playing::after {
-    animation: soundArc 1.5s ease-in-out infinite;
-  }
-  @keyframes soundArc {
-    0%,
-    100% {
-      opacity: 0.4;
-      transform: scale(0.92);
+  @keyframes soundTravel {
+    from {
+      transform: translateX(0);
     }
-    50% {
-      opacity: 0.85;
-      transform: scale(1.08);
+    to {
+      transform: translateX(10px);
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .sound-toggle.is-on.is-playing::after {
+    .sound-toggle.is-on .sound-wave__line {
       animation: none;
     }
   }
-  /* The five bars stay in the DOM and stop being drawn. */
-  .sound-wave i {
-    display: none !important;
+  /* Both arcs are gone. See the note in assets/js/sound.js: a partial circle
+     border at this size is a crescent, and the theme toggle immediately below
+     is a moon, so the corner had two crescents in a column. */
+  .sound-toggle::after {
+    content: none;
   }
-  .sound-wave i {
-    display: block;
-    width: 2px;
-    height: 2px;
-    border-radius: 1px;
-    background: currentColor;
-    /* Off is the resting state and it is a straight line: every bar at the
-       minimum, no animation running at all. */
-    transition: height 260ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  /* On, each bar runs the same slow cycle with a stagger off its index, so the
-     movement travels across the icon rather than pulsing as a block. 1.6s is
-     deliberately slower than a level meter -- this is a state, not a signal. */
-  .sound-toggle.is-on .sound-wave i {
-    animation: soundWave 1.6s ease-in-out infinite;
-    animation-delay: calc(var(--i) * 0.13s);
-  }
-  @keyframes soundWave {
-    0%,
-    100% {
-      height: 3px;
-    }
-    50% {
-      height: 15px;
-    }
-  }
+
   html[data-theme="light"] .sound-toggle {
     background:
       radial-gradient(38px 24px at 30% 8%, rgba(255, 255, 255, 0.9), transparent 70%),
       linear-gradient(168deg, rgba(255, 255, 255, 0.86), rgba(206, 222, 238, 0.66));
     border-color: rgba(24, 48, 78, 0.16);
     color: rgba(12, 16, 24, 0.9);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .sound-toggle.is-on .sound-wave i {
-      animation: none;
-      height: 9px;
-    }
   }
   @media (max-width: 700px) {
     .sound-toggle {
@@ -9777,6 +9595,126 @@
       animation: none;
       transform: none;
     }
+  }
+
+  /* ══ THE CURSOR'S OWN PANEL ════════════════════════════════════════════
+     Sid: "not button-like pill but a creative voice box with personality."
+
+     So: no pill, no plate, no border box. What holds it together is an
+     asymmetric blob -- four different corner radii, which is the cheapest
+     way to make a shape read as drawn rather than as a component -- over a
+     backdrop blur at low alpha, with a hairline that catches light on one
+     edge only. It has a tail, because a voice needs a speaker, and the tail
+     points back at the pointer that summoned it.
+
+     Positioned by transform from the top left, so the script can spring it
+     without fighting the layout. */
+  .curhue {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9500;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    padding: 9px 15px 9px 12px;
+    max-width: 340px;
+    pointer-events: none;
+    /* Uneven on purpose. Equal radii make a pill; this makes a shape. */
+    border-radius: 16px 16px 16px 5px;
+    background: linear-gradient(150deg, rgba(126, 165, 208, 0.16), rgba(8, 12, 20, 0.62) 62%, rgba(88, 132, 180, 0.12));
+    -webkit-backdrop-filter: blur(22px) saturate(1.7) brightness(0.92);
+    backdrop-filter: blur(22px) saturate(1.7) brightness(0.92);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.24),
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 20px 46px -22px rgba(0, 0, 0, 0.7);
+    opacity: 0;
+    transform-origin: 0 100%;
+    scale: 0.86;
+    transition:
+      opacity 260ms cubic-bezier(0.16, 1, 0.3, 1),
+      scale 380ms cubic-bezier(0.22, 1.2, 0.36, 1);
+    will-change: transform;
+  }
+  .curhue.is-in {
+    opacity: 1;
+    scale: 1;
+  }
+  /* The tail. A rotated square tucked under the lower-left corner, which is
+     the corner the radius already flattens for it. */
+  .curhue::after {
+    content: "";
+    position: absolute;
+    left: 7px;
+    bottom: -4px;
+    width: 11px;
+    height: 11px;
+    border-radius: 2px 0 3px 0;
+    background: rgba(10, 15, 24, 0.72);
+    box-shadow: 1px 1px 0 rgba(255, 255, 255, 0.08);
+    transform: rotate(45deg) skew(6deg, 6deg);
+  }
+  .curhue__chips {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 0 0 auto;
+  }
+  .curhue__chips i {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    background: var(--c);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 2px 7px -3px var(--c);
+    animation: curhue-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 46ms);
+  }
+  @keyframes curhue-pop {
+    from {
+      opacity: 0;
+      transform: translateY(4px) scale(0.4);
+      border-radius: 50%;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      border-radius: 4px;
+    }
+  }
+  .curhue__say {
+    font-family: var(--font-sans, inherit);
+    font-style: italic;
+    font-size: 12.5px;
+    line-height: 1.3;
+    letter-spacing: 0.005em;
+    color: rgba(236, 241, 247, 0.82);
+    /* Wraps. The generated colour asides are all short, but the written
+       [data-cube] lines are up to a dozen words and they now arrive here
+       rather than in the top bar; nowrap pushed the panel off the screen. */
+    max-width: 26ch;
+  }
+  .curhue__say:empty {
+    display: none;
+  }
+  html[data-theme="light"] .curhue {
+    background: linear-gradient(150deg, rgba(255, 255, 255, 0.88), rgba(226, 236, 246, 0.72));
+    -webkit-backdrop-filter: blur(22px) saturate(1.4);
+    backdrop-filter: blur(22px) saturate(1.4);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 0 0 1px rgba(24, 48, 78, 0.12),
+      0 18px 40px -22px rgba(24, 48, 78, 0.4);
+  }
+  html[data-theme="light"] .curhue::after {
+    background: rgba(240, 246, 252, 0.92);
+    box-shadow: 1px 1px 0 rgba(24, 48, 78, 0.08);
+  }
+  html[data-theme="light"] .curhue__say {
+    color: rgba(20, 28, 40, 0.8);
   }
 </style> <footer class="site-footer" aria-label="Site footer" data-biome="canopy"> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile sid-tile--clip" style="--s: 1.06; --ar: 0.56; --src: url(/assets/img/sid-strip/street-brooklyn-poster.webp)"> <video src="/assets/video/sid-strip/street-brooklyn.mp4" poster="/assets/img/sid-strip/street-brooklyn-poster.webp" muted loop playsinline preload="none" aria-label="A street in summer, walking in a patterned shirt"></video> <figcaption><em>Off the clock</em><b>A street, a good shirt</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.95; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="Requiem for a Dream, a film he keeps going back to" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.97; --ar: 1.77; --src: url(/assets/img/sid-strip/face-scans-poster.webp)"> <video src="/assets/video/sid-strip/face-scans.mp4" poster="/assets/img/sid-strip/face-scans-poster.webp" muted loop playsinline preload="none" aria-label="Wireframe head scans turning against a room"></video> <figcaption><em>Rabbit hole</em><b>Faces, meshed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.05; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="Two cats under a duvet, refusing to move" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/assets/img/sid-strip/kids-drawings.webp)"> <img src="/assets/img/sid-strip/kids-drawings.webp" alt="A room of children holding up drawings they have made" loading="lazy" decoding="async"> <figcaption><em>Best crit</em><b>Everyone shows their work</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.05; --ar: 0.56; --src: url(/assets/img/sid-strip/gold-room-poster.webp)"> <video src="/assets/video/sid-strip/gold-room.mp4" poster="/assets/img/sid-strip/gold-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a gold room in a saffron kurta"></video> <figcaption><em>Dressed up</em><b>A room made of gold</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.03; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="A still from a favourite music video, arms out against the sky" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.00; --ar: 1.49; --src: url(/assets/img/sid-strip/football-field.webp)"> <img src="/assets/img/sid-strip/football-field.webp" alt="A kid mid-kick after a football in a field at low sun" loading="lazy" decoding="async"> <figcaption><em>Viewfinder</em><b>Last light, one more goal</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.02; --ar: 0.56; --src: url(/assets/img/sid-strip/cats-living-room-poster.webp)"> <video src="/assets/video/sid-strip/cats-living-room.mp4" poster="/assets/img/sid-strip/cats-living-room-poster.webp" muted loop playsinline preload="none" aria-label="Two cats moving around a living room"></video> <figcaption><em>Supervisors</em><b>Both of them, unimpressed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.06; --src: url(/assets/img/sid-strip/sound-desk.webp)"> <img src="/assets/img/sid-strip/sound-desk.webp" alt="At a live sound and lighting desk, a lit stage behind" loading="lazy" decoding="async"> <figcaption><em>Other console</em><b>A live show, from the back</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="Bone, issue one, by Jeff Smith" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 0.56; --src: url(/assets/img/sid-strip/projection-room-poster.webp)"> <video src="/assets/video/sid-strip/projection-room.mp4" poster="/assets/img/sid-strip/projection-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a dark room with projected light falling across"></video> <figcaption><em>Dark room</em><b>Wearing the projection</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.94; --ar: 1.45; --src: url(/assets/img/sid-strip/kids-crowd.webp)"> <img src="/assets/img/sid-strip/kids-crowd.webp" alt="A crowd of school children packed into frame, all grinning" loading="lazy" decoding="async"> <figcaption><em>Toughest audience</em><b>A classroom that mobbed the camera</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.9; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.06; --ar: 0.56; --src: url(/assets/img/sid-strip/street-brooklyn-poster.webp)"> <video src="/assets/video/sid-strip/street-brooklyn.mp4" poster="/assets/img/sid-strip/street-brooklyn-poster.webp" muted loop playsinline preload="none" aria-label="A street in summer, walking in a patterned shirt"></video> <figcaption><em>Off the clock</em><b>A street, a good shirt</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.95; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="Requiem for a Dream, a film he keeps going back to" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.97; --ar: 1.77; --src: url(/assets/img/sid-strip/face-scans-poster.webp)"> <video src="/assets/video/sid-strip/face-scans.mp4" poster="/assets/img/sid-strip/face-scans-poster.webp" muted loop playsinline preload="none" aria-label="Wireframe head scans turning against a room"></video> <figcaption><em>Rabbit hole</em><b>Faces, meshed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.05; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="Two cats under a duvet, refusing to move" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/assets/img/sid-strip/kids-drawings.webp)"> <img src="/assets/img/sid-strip/kids-drawings.webp" alt="A room of children holding up drawings they have made" loading="lazy" decoding="async"> <figcaption><em>Best crit</em><b>Everyone shows their work</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.05; --ar: 0.56; --src: url(/assets/img/sid-strip/gold-room-poster.webp)"> <video src="/assets/video/sid-strip/gold-room.mp4" poster="/assets/img/sid-strip/gold-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a gold room in a saffron kurta"></video> <figcaption><em>Dressed up</em><b>A room made of gold</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.03; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="A still from a favourite music video, arms out against the sky" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.00; --ar: 1.49; --src: url(/assets/img/sid-strip/football-field.webp)"> <img src="/assets/img/sid-strip/football-field.webp" alt="A kid mid-kick after a football in a field at low sun" loading="lazy" decoding="async"> <figcaption><em>Viewfinder</em><b>Last light, one more goal</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.02; --ar: 0.56; --src: url(/assets/img/sid-strip/cats-living-room-poster.webp)"> <video src="/assets/video/sid-strip/cats-living-room.mp4" poster="/assets/img/sid-strip/cats-living-room-poster.webp" muted loop playsinline preload="none" aria-label="Two cats moving around a living room"></video> <figcaption><em>Supervisors</em><b>Both of them, unimpressed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.06; --src: url(/assets/img/sid-strip/sound-desk.webp)"> <img src="/assets/img/sid-strip/sound-desk.webp" alt="At a live sound and lighting desk, a lit stage behind" loading="lazy" decoding="async"> <figcaption><em>Other console</em><b>A live show, from the back</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="Bone, issue one, by Jeff Smith" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 0.56; --src: url(/assets/img/sid-strip/projection-room-poster.webp)"> <video src="/assets/video/sid-strip/projection-room.mp4" poster="/assets/img/sid-strip/projection-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a dark room with projected light falling across"></video> <figcaption><em>Dark room</em><b>Wearing the projection</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.94; --ar: 1.45; --src: url(/assets/img/sid-strip/kids-crowd.webp)"> <img src="/assets/img/sid-strip/kids-crowd.webp" alt="A crowd of school children packed into frame, all grinning" loading="lazy" decoding="async"> <figcaption><em>Toughest audience</em><b>A classroom that mobbed the camera</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.9; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> </div> </div> </section> <script>
       (function () {
@@ -12825,7 +12763,7 @@
         }
       }
     })();
-  </script> <script src="/assets/js/collect.js" defer></script> <script src="/assets/js/wind.js" defer></script> <script src="/assets/js/magnetic.js" defer></script> <script>
+  </script> <script src="/assets/js/collect.js" defer></script> <script src="/assets/js/wind.js" defer></script> <script src="/assets/js/magnetic.js" defer></script> <script src="/assets/js/hue.js" defer></script> <script src="/assets/js/cursor-hue.js" defer></script> <script>
     /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
      Sets `body.controls-near`, which site_footer's stylesheet has referenced
      since the sound toggle was first made to recede and which nothing has
@@ -12943,7 +12881,23 @@
      `data-tip`, so the floating controls and the logo marquee stop falling
      back to browser chrome. Instant, themed, and gone on touch, where a
      hover tooltip is a tooltip nobody can dismiss. */
-  [data-tip] {
+  /* ── AND IT MUST NOT MOVE WHAT IT LABELS ──────────────────────────────
+     The tip is an absolutely positioned ::after, so its host needs to be a
+     containing block. `position: relative` is the obvious way to say that
+     and it is a trap: it is a single-class rule in a file that loads after
+     the component stylesheets, so opting an element in with `data-tip`
+     silently OVERWRITES whatever position that element already had. The
+     sound button is `position: fixed` in the corner cluster, and the moment
+     it grew a tip it dropped out of the cluster and landed nine thousand
+     pixels down the page in normal flow.
+
+     Only elements that are still `static` need promoting, and that is
+     exactly what `position: relative` on a `:not()` list cannot express in
+     CSS. So the rule is inverted: nothing is promoted by default, and the
+     one thing a tip actually needs -- a containing block -- is taken from
+     the element's own positioning, which every control here already has. A
+     genuinely static host opts in with `data-tip-anchor`. */
+  [data-tip][data-tip-anchor] {
     position: relative;
   }
   /* ── THE PLATE CAME OFF, AND THE LABEL MOVED TO THE LEFT ───────────────
@@ -18202,7 +18156,7 @@
       el.classList.add("motion-press");
     });
   })();
-</script> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" data-tip="Ask the cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect class="fab-face" x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close">✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
+</script> <button type="button" id="cube-chat-fab" aria-label="Chat with Sid's cube" data-tip="Ask the cube"> <span class="fab-pulse" aria-hidden="true"></span> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect class="fab-face" x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close" data-tip-anchor>✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
   // ── CUBE CHAT ── canned conversational agent (Sid's cube as host)
   (function () {
     var fab = document.getElementById("cube-chat-fab");
@@ -20071,7 +20025,7 @@
     opacity: 0;
     transition: none;
   }
-</style> <script src="/assets/js/cube-cursor.js" defer></script> <style>
+</style> <style>
   /* The pointer while the cube is speaking. See assets/js/cube-cursor.js for
      why a discrete, event-driven shape change is not the velocity-stretch
      this file already rejected. */
@@ -20333,7 +20287,7 @@
           });
         });
       })();
-    </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> <style>
+    </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="about-cloth" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB"> <feturbulence id="about-cloth-noise" type="fractalNoise" basefrequency="0.004 0.016" numoctaves="2" seed="4" result="wind"></feturbulence> <fedisplacementmap id="about-cloth-disp" in="SourceGraphic" in2="wind" scale="8" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> <style>
   /* Lenis needs the page to stop doing its own smoothing, or the two fight and
      the result is a scroll that overshoots and settles twice. The site set
      scroll-behavior: smooth globally in design_tokens.html; this turns it off
@@ -20486,5 +20440,85 @@
           },
           { passive: true }
         );
+      })();
+    </script> <script>
+      /* ══ WIND ══════════════════════════════════════════════════════════
+         Drives the displacement filter above. Two numbers: how hard the wind
+         is blowing, and where the noise field has drifted to.
+
+         AT REST it is not zero. A picture that is only cloth while you touch
+         it is a hover effect; a flag on a still day still moves. The resting
+         amplitude is small enough that you notice it on the second look.
+
+         POINTER raises it, and the rise is on a spring rather than a
+         transition so a fast pass over the card gusts rather than steps. The
+         further across the card the pointer is, the harder it pushes -- one
+         edge is the lee side.
+
+         WHY THE SEED AND NOT A TRANSFORM. Animating `seed` regenerates the
+         noise field, which reads as the fabric moving through the wind.
+         Animating the displacement scale alone only makes the same folds
+         deeper, which reads as a lens. Both, together, is cloth. */
+      (function () {
+        var disp = document.getElementById("about-cloth-disp");
+        var noise = document.getElementById("about-cloth-noise");
+        var card = document.getElementById("about-profile-card");
+        if (!disp || !noise || !card) return;
+        if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (window.matchMedia && !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+        var REST = 5,
+          GUST = 26;
+        var want = REST,
+          have = REST,
+          seed = 4,
+          raf = 0,
+          onCard = false;
+
+        function frame() {
+          have += (want - have) * 0.08;
+          /* The field drifts continuously, faster while it is being pushed --
+             so the folds travel across the picture rather than pulsing in
+             place. Wrapped well short of the point where the float stops
+             being exact. */
+          seed += 0.05 + (have / GUST) * 0.22;
+          if (seed > 9000) seed = 4;
+          noise.setAttribute("seed", seed.toFixed(2));
+          disp.setAttribute("scale", have.toFixed(2));
+          if (onCard || Math.abs(want - have) > 0.05) raf = requestAnimationFrame(frame);
+          else raf = 0;
+        }
+        function wake() {
+          if (!raf) raf = requestAnimationFrame(frame);
+        }
+
+        card.addEventListener("pointerenter", function () {
+          onCard = true;
+          wake();
+        });
+        card.addEventListener("pointermove", function (e) {
+          var r = card.getBoundingClientRect();
+          /* Strongest at the trailing edge, which is what gives the gust a
+             direction instead of making the whole sheet swell. */
+          var t = Math.max(0, Math.min(1, (e.clientX - r.left) / Math.max(1, r.width)));
+          want = REST + (GUST - REST) * (0.45 + t * 0.55);
+          wake();
+        });
+        card.addEventListener("pointerleave", function () {
+          onCard = false;
+          want = REST;
+          wake();
+        });
+        /* The resting ripple only runs while the card is on screen. An SVG
+           displacement filter repainting off-screen is pure cost. */
+        if (window.IntersectionObserver) {
+          new IntersectionObserver(function (es) {
+            if (es[0].isIntersecting) wake();
+            else if (raf) {
+              cancelAnimationFrame(raf);
+              raf = 0;
+            }
+          }).observe(card);
+        } else wake();
       })();
     </script> </html>
