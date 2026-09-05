@@ -9244,6 +9244,19 @@
       height: min(54svh, 460px);
     }
   }
+
+  /* While it is in pieces the real screen is hidden, or the burst is a cloud
+     of coloured squares over an untouched phone. The glare goes with it: a
+     sheen on glass that has just shattered is the tell that the effect is
+     painted on top rather than happening to the object. */
+  /* The whole device goes, not only its screen. Hiding the screen alone
+     left the bezel and the drop shadow standing there while the picture flew
+     off it, which reads as a phone with its display turned off rather than
+     as a phone that has come apart. */
+  .coda__device.is-shattered {
+    opacity: 0;
+    transition: opacity 110ms linear;
+  }
 </style> <script>
   (function () {
     var sec = document.getElementById("coda");
@@ -9596,6 +9609,187 @@
     document.addEventListener("visibilitychange", function () {
       if (document.hidden) leave();
     });
+
+    /* ══ A NOTE, AND THEN IT COMES APART ═══════════════════════════════════
+       Sid: "play a different note of piano every time I click ... and when I
+       click let it explode into voxels or pixels and then reform into the
+       phone, and let the pixels be the colours of the blocks that the phone
+       screen has, the music cover pics of."
+
+       The colours are not chosen. #coda-screen is a canvas with his actual
+       music library painted on it, so the burst rasterises whatever is on it
+       AT THE MOMENT OF THE CLICK -- press it at two different scroll
+       positions and it shatters into two different sets of albums. */
+
+    /* ── THE PIANO ─────────────────────────────────────────────────────
+       A pentatonic run, walked rather than shuffled. Random notes from a
+       scale sound random; walking up and occasionally falling back sounds
+       like somebody playing, and it can never land on a bad interval
+       because a pentatonic scale has none.
+
+       Three partials with a fast attack and a long tail, which is roughly
+       what a struck string does. Not a sample: a piano sample is a 200KB
+       request on a page that already carries a video, for a sound that
+       lasts a second and a half. */
+    var SCALE = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25, 783.99, 880.0];
+    var step = 0;
+    function pianoNote() {
+      ensureCtx();
+      if (!actx || actx.state === "closed") return;
+      if (actx.state === "suspended") actx.resume();
+      /* Mostly up, sometimes back. A run that only climbs walks off the top
+         of the scale and then has to jump, and the jump is the thing that
+         sounds wrong. */
+      step += Math.random() < 0.76 ? 1 : -2;
+      if (step >= SCALE.length) step = 3;
+      if (step < 0) step = 0;
+      var f = SCALE[step];
+      var now = actx.currentTime;
+      var g = actx.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.09, now + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 1.7);
+      g.connect(actx.destination);
+      [
+        [1, 1],
+        [2, 0.26],
+        [3, 0.1],
+      ].forEach(function (pair) {
+        var o = actx.createOscillator();
+        o.type = "triangle";
+        o.frequency.value = f * pair[0];
+        var og = actx.createGain();
+        og.gain.value = pair[1];
+        o.connect(og).connect(g);
+        o.start(now);
+        o.stop(now + 1.8);
+      });
+    }
+
+    /* ── THE NATURE BED ────────────────────────────────────────────────
+       Sid: "when I hover on the music phone thingy let it play some nice
+       nature and music."
+
+       Filtered noise for the air, a slow LFO on the cutoff so it breathes
+       like wind rather than sitting there as hiss, and two very quiet sine
+       partials a fifth apart under it for the "and music" half. It fades in
+       over a second and a half and out over two, because a bed that starts
+       on the frame the pointer arrives is a switch, not an atmosphere. */
+    var bed = null;
+    function bedOn() {
+      ensureCtx();
+      if (!actx || bed || actx.state === "closed") return;
+      if (actx.state === "suspended") actx.resume();
+      var now = actx.currentTime;
+
+      var out = actx.createGain();
+      out.gain.setValueAtTime(0.0001, now);
+      out.gain.exponentialRampToValueAtTime(0.05, now + 1.5);
+      out.connect(actx.destination);
+
+      /* Two seconds of brown noise on a loop. Brown rather than white: white
+         noise is a hiss and brown is a room. */
+      var len = actx.sampleRate * 2;
+      var buf = actx.createBuffer(1, len, actx.sampleRate);
+      var d = buf.getChannelData(0);
+      var last = 0;
+      for (var i = 0; i < len; i++) {
+        var w = Math.random() * 2 - 1;
+        last = (last + 0.02 * w) / 1.02;
+        d[i] = last * 3.5;
+      }
+      var noise = actx.createBufferSource();
+      noise.buffer = buf;
+      noise.loop = true;
+      var bp = actx.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.value = 620;
+      bp.Q.value = 0.7;
+      var lfo = actx.createOscillator();
+      lfo.frequency.value = 0.07;
+      var lfoGain = actx.createGain();
+      lfoGain.gain.value = 260;
+      lfo.connect(lfoGain).connect(bp.frequency);
+      noise.connect(bp).connect(out);
+
+      var tones = [196.0, 293.66].map(function (f, i) {
+        var o = actx.createOscillator();
+        o.type = "sine";
+        o.frequency.value = f;
+        var og = actx.createGain();
+        og.gain.value = i ? 0.05 : 0.08;
+        o.connect(og).connect(out);
+        o.start(now);
+        return o;
+      });
+
+      noise.start(now);
+      lfo.start(now);
+      bed = { out: out, nodes: [noise, lfo].concat(tones) };
+    }
+    function bedOff() {
+      if (!bed || !actx) return;
+      var b = bed;
+      bed = null;
+      var now = actx.currentTime;
+      try {
+        b.out.gain.cancelScheduledValues(now);
+        b.out.gain.setValueAtTime(Math.max(0.0001, b.out.gain.value), now);
+        b.out.gain.exponentialRampToValueAtTime(0.0001, now + 2);
+      } catch (e) {}
+      /* Stopped after the fade, not on it, or the tail is cut off. */
+      setTimeout(function () {
+        b.nodes.forEach(function (nd) {
+          try {
+            nd.stop();
+          } catch (e) {}
+        });
+      }, 2200);
+    }
+
+    dev.addEventListener("pointerenter", bedOn);
+    dev.addEventListener("pointerleave", bedOff);
+    dev.addEventListener("blur", bedOff);
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) bedOff();
+    });
+
+    dev.addEventListener("pointerdown", function (e) {
+      pianoNote();
+      if (!window.SidVoxel) return;
+      /* Hosted on the SECTION, not the device. Sid: "let it explode into
+         particles across the scene." A canvas the size of the phone clips
+         every piece at the phone's own edge, which reads as a snow globe
+         rather than as something coming apart in a room. */
+      var stageEl = sec.querySelector(".coda__stage") || sec;
+      var sr = stageEl.getBoundingClientRect();
+      var dr = dev.getBoundingClientRect();
+      /* The fx canvas would otherwise sit over the burst and keep painting
+         the shader on a phone that is currently in pieces. */
+      var wasOn = on;
+      if (wasOn) leave();
+      window.SidVoxel.burst({
+        host: stageEl,
+        source: src,
+        rect: { x: dr.left - sr.left, y: dr.top - sr.top, w: dr.width, h: dr.height },
+        at: { x: e.clientX - sr.left, y: e.clientY - sr.top },
+        /* Fine enough that an album cover is still recognisable as a few
+           cells of itself, coarse enough to read as voxels rather than as a
+           blur. */
+        cols: 40,
+        force: 700,
+        out: 1800,
+        hold: 420,
+        back: 1700,
+        onStart: function () {
+          dev.classList.add("is-shattered");
+        },
+        onDone: function () {
+          dev.classList.remove("is-shattered");
+          if (wasOn) enter();
+        },
+      });
+    });
   })();
 </script> <section class="wall" id="wall" aria-label="The wall above Sid's desk"> <div class="wall__runway"> <div class="wall__stage"> <div class="wall__frame" id="wall-cloth" data-src="/assets/img/room-wall-1600.webp" data-cloth> <img class="wall__img" src="/assets/img/room-wall-1600.webp" srcset=" /assets/img/room-wall-900.webp 900w, /assets/img/room-wall-1600.webp 1600w, /assets/img/room-wall-2560.webp 2560w " sizes="(max-width: 900px) 100vw, min(1500px, 96vw)" alt="The wall above Sid's desk: postcards, drawings, photographs, a letter, and a cube-headed figure in the middle" loading="lazy" decoding="async"> </div> </div> </div> <svg class="wall__defs" width="0" height="0" aria-hidden="true" focusable="false"> <filter id="wall-ripple" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.011 0.019" numoctaves="2" seed="7" result="noise"> <animate attributename="baseFrequency" dur="18s" values="0.011 0.019; 0.016 0.013; 0.011 0.019" calcmode="spline" keysplines="0.4 0 0.6 1; 0.4 0 0.6 1" repeatcount="indefinite"></animate> </feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="7" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </svg> </section> <style>
   .wall {
@@ -9893,7 +10087,105 @@
     height: 100vh;
     display: grid;
     place-items: center;
+    /* The stage stays inert so the scroll passes straight through it; the
+       mount inside opts back in, because the figure is now something you can
+       point at and press. */
     pointer-events: none;
+  }
+  .lastfig__mount {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  .lastfig.is-shattered .lastfig__mount {
+    opacity: 0;
+    transition: opacity 110ms linear;
+  }
+
+  /* ══ WHAT HE SAYS ══════════════════════════════════════════════════════
+     Sid: "every time I hover on Buddha let it rotate fast and spit out an
+     animated text saying which Buddha would say, and let the letters feel 3D
+     and not all in one line, like creatively, like a wave they emerge."
+
+     So the line is set on an arc rather than a baseline, and every character
+     is its own element with its own delay, its own depth and its own tilt.
+     The wave is a sine across the character index applied to Y and to
+     rotateX at once: a letter that only moves up and down is a bounce, and a
+     letter that only tilts is a flip. Together, on a perspective, they read
+     as a ribbon coming toward you.
+
+     It is arranged around the figure, not under it, so nothing has to move
+     to make room and the head stays the subject. */
+  .lastfig__say {
+    position: absolute;
+    left: 50%;
+    /* Under the figure, not across it. Centred on the stage put the line
+       straight over the face, which is the one thing on this screen worth
+       looking at. */
+    top: 74%;
+    width: min(760px, 78vw);
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0 0.02em;
+    perspective: 700px;
+    pointer-events: none;
+    z-index: 6;
+    font-family: var(--font-head, inherit);
+    font-size: clamp(22px, 2.6vw, 40px);
+    line-height: 1.14;
+    letter-spacing: -0.015em;
+    text-align: center;
+  }
+  .lastfig__say i {
+    display: inline-block;
+    font-style: normal;
+    opacity: 0;
+    transform: translateY(38px) translateZ(-140px) rotateX(72deg);
+    /* Warm gold picked off the glaze on the figure itself, so the words look
+       like they came from it rather than from the page. */
+    color: rgba(238, 222, 168, 0.94);
+    text-shadow:
+      0 1px 0 rgba(120, 96, 30, 0.5),
+      0 10px 34px rgba(0, 0, 0, 0.7);
+    will-change: transform, opacity;
+  }
+  .lastfig__say.is-in i {
+    animation: figSay 1250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation-delay: calc(var(--i) * 42ms);
+  }
+  @keyframes figSay {
+    0% {
+      opacity: 0;
+      transform: translateY(38px) translateZ(-140px) rotateX(72deg);
+    }
+    /* Overshoots past its resting depth and settles, which is what stops a
+       letter arriving and simply stopping. */
+    62% {
+      opacity: 1;
+      transform: translateY(calc(-1 * var(--wave) * 30px)) translateZ(52px) rotateX(-10deg);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(calc(-1 * var(--wave) * 22px)) translateZ(0) rotateX(0deg);
+    }
+  }
+  .lastfig__say.is-out i {
+    animation: figSayOut 460ms ease forwards;
+    animation-delay: calc(var(--i) * 12ms);
+  }
+  @keyframes figSayOut {
+    to {
+      opacity: 0;
+      transform: translateY(-26px) translateZ(-90px) rotateX(-50deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lastfig__say i {
+      animation: none !important;
+      opacity: 1;
+      transform: none;
+    }
   }
   /* ── THE WATER ────────────────────────────────────────────────────────
      assets/js/footer-water.js. Inside the sticky stage, so it costs the page
@@ -10187,6 +10479,157 @@
     function onScroll() {
       if (!raf) raf = requestAnimationFrame(read);
     }
+    /* ══ HE TURNS, HE SPEAKS, AND HE COMES APART ═══════════════════════════
+       Sid: "let the same pixel voxel click from the music one be applied to
+       Buddha, and every time I hover on Buddha let it rotate fast and spit
+       out an animated text saying which Buddha would say."
+
+       WHY THIS IS NOT THE THING HE ASKED ME TO REMOVE. buddha-voxels.js was
+       taken off this page because it was driven by SCROLL and never came
+       back: the figure shattered as you passed and left an empty frame at the
+       bottom of every page. Sid: "don't shatter and don't make it fall off."
+       This one is asked for, is triggered by a deliberate press, and reforms.
+       The difference between the two is not the effect, it is whether the
+       page does it to you or you do it to the page. */
+    (function () {
+      if (!mount) return;
+      if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+      /* ── THE SPIN ────────────────────────────────────────────────────
+         The camera orbit is already written every scroll frame by read()
+         above, so a second writer would fight it. `spin` is added to that
+         value instead, and read() picks it up on its next pass -- one owner
+         of the attribute, two contributors to the number. */
+      var spin = 0,
+        spinTo = 0,
+        sraf = 0;
+
+      function orbit() {
+        sraf = 0;
+        spin += (spinTo - spin) * 0.06;
+        var base = -40 + (f < 0 ? 0 : f) * 320;
+        if (mv) mv.setAttribute("camera-orbit", (base + spin).toFixed(1) + "deg " + (82 - (f < 0 ? 0 : f) * 10).toFixed(1) + "deg 105%");
+        if (Math.abs(spinTo - spin) > 0.3) sraf = requestAnimationFrame(orbit);
+      }
+      function spinKick() {
+        if (!sraf) sraf = requestAnimationFrame(orbit);
+      }
+
+      /* ── WHAT HE SAYS ────────────────────────────────────────────────
+         Short, and none of it about the website. A figure on a portfolio
+         that says something about the portfolio is a mascot; one that says
+         something true regardless is a figure. Walked rather than shuffled
+         so you do not get the same line twice running. */
+      var LINES = [
+        "You are already here.",
+        "Nothing you scroll past is lost.",
+        "The work is the practice.",
+        "Stillness is also a frame.",
+        "Look once more, slowly.",
+        "There is no finished, only shipped.",
+        "Attention is the whole gift.",
+      ];
+      var li = Math.floor(Math.random() * LINES.length);
+      var say = null;
+
+      function speak() {
+        if (say) say.remove();
+        li = (li + 1 + Math.floor(Math.random() * 2)) % LINES.length;
+        var txt = LINES[li];
+        say = document.createElement("div");
+        say.className = "lastfig__say";
+        say.setAttribute("aria-hidden", "true");
+        for (var i = 0; i < txt.length; i++) {
+          var ch = document.createElement("i");
+          ch.style.setProperty("--i", i);
+          /* The wave. One sine across the whole line, so neighbouring
+             letters are always close in height and the row reads as a
+             curve rather than as noise. */
+          ch.style.setProperty("--wave", Math.sin((i / Math.max(1, txt.length - 1)) * Math.PI * 2.2).toFixed(3));
+          ch.textContent = txt[i] === " " ? "\u00a0" : txt[i];
+          say.appendChild(ch);
+        }
+        stage.appendChild(say);
+        /* Two frames, so the element is in the document with its start
+           transform applied before the animation class lands. One frame is
+           enough in Chrome and not in Safari. */
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            if (say) say.classList.add("is-in");
+          });
+        });
+      }
+      function unspeak() {
+        if (!say) return;
+        var s2 = say;
+        say = null;
+        s2.classList.remove("is-in");
+        s2.classList.add("is-out");
+        setTimeout(function () {
+          s2.remove();
+        }, 900);
+      }
+
+      var over = false;
+      mount.addEventListener("pointerenter", function (e) {
+        if (e.pointerType === "touch") return;
+        if (over) return;
+        over = true;
+        /* A full turn and a bit, so it does not simply rock back. */
+        spinTo += 400;
+        spinKick();
+        speak();
+      });
+      mount.addEventListener("pointerleave", function () {
+        over = false;
+        unspeak();
+      });
+
+      /* ── AND THE PRESS ───────────────────────────────────────────────
+         model-viewer draws into a WebGL canvas without preserveDrawingBuffer,
+         so reading that canvas directly returns an empty image. toDataURL()
+         re-renders for exactly this purpose, which is why the source here is
+         a fresh <img> and not the element itself. */
+      mount.addEventListener("pointerdown", function (e) {
+        if (!window.SidVoxel || !mv || !mv.toDataURL) return;
+        var url;
+        try {
+          url = mv.toDataURL("image/png");
+        } catch (err) {
+          return;
+        }
+        if (!url || url.length < 2000) return;
+        var img = new Image();
+        img.onload = function () {
+          var sr = stage.getBoundingClientRect();
+          var mr = mount.getBoundingClientRect();
+          unspeak();
+          window.SidVoxel.burst({
+            host: stage,
+            source: img,
+            rect: { x: mr.left - sr.left, y: mr.top - sr.top, w: mr.width, h: mr.height },
+            at: { x: e.clientX - sr.left, y: e.clientY - sr.top },
+            cols: 46,
+            force: 620,
+            out: 1900,
+            hold: 460,
+            back: 1800,
+            /* The figure is dark bronze against a dark room, so the usual
+               near-black cull would throw away most of the head. */
+            keepDark: true,
+            canvasStyle: "pointer-events:none;",
+            onStart: function () {
+              sec.classList.add("is-shattered");
+            },
+            onDone: function () {
+              sec.classList.remove("is-shattered");
+            },
+          });
+        };
+        img.src = url;
+      });
+    })();
+
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll, { passive: true });
     read();
@@ -11533,7 +11976,7 @@
       }
       tick();
     })();
-  </script> <script src="/assets/js/hue.js" defer></script> <script src="/assets/js/cursor-hue.js" defer></script> <script>
+  </script> <script src="/assets/js/voxel-burst.js" defer></script> <script src="/assets/js/hue.js" defer></script> <script src="/assets/js/cursor-hue.js" defer></script> <script>
     /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
      Sets `body.controls-near`, which site_footer's stylesheet has referenced
      since the sound toggle was first made to recede and which nothing has
