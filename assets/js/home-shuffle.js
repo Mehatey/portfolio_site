@@ -109,7 +109,14 @@
 
      The arrows still reach 05 in four presses, and a returning visitor keeps
      whatever they last chose. Changing this back is one number. */
-  var i = 0;
+  /* ── IT OPENS ON THE FIFTH ────────────────────────────────────────────
+     Sid, twice: "start with the fifth one", and again after I had overridden
+     him. I had set this to 0 on the reasoning that layout 05's headline was
+     hard to read, and left a note saying so. That was the wrong call to make
+     on his behalf: it is his portfolio, he has now asked for the fifth
+     opening twice, and the legibility problem is a thing to fix in layout 05
+     rather than a reason to never show it. */
+  var i = 4;
   try {
     var saved = localStorage.getItem(KEY);
     for (var k = 0; k < DIRS.length; k++) if (DIRS[k].id === saved) i = k;

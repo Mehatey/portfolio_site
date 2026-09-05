@@ -4697,13 +4697,27 @@
 
              Prefix is fixed so only the tail rewrites itself: a whole sentence
              retyping every few seconds reads as a broken page, a tail that
-             swaps reads as someone still deciding. -->
+             swaps reads as someone still deciding.
+
+             ── AND THE TAIL SAYS WHAT HE BUILT ─────────────────────────────
+             Sid: "the building text which keeps changing doesn't give me any
+             real useful info on what products I build ... this is so generic.
+             You can flex Mool downloads, Encoded, you can show what I built
+             for what industry."
+
+             It read "quiet tools for messy human problems", "emotional
+             software out of cold tech" -- five lines that could sit under any
+             designer's name in the world, which is the definition of a line
+             not worth reading. Each one is now a real project with the number
+             or the client attached, so the sentence is a claim somebody could
+             check rather than a mood. The figures come off the stat row that
+             used to sit below this, which is why that row could go. -->
           <div class="hero__foot-row">
             <p class="hero__base" aria-hidden="true">
               <span class="hero__rot-fix">Building</span>
               <span
                 class="hero__rot-val accent"
-                data-rot="quiet tools for messy human problems|emotional software out of cold tech|experiments that grow into products|interfaces for hardware not built yet|money software people actually trust"
+                data-rot="Mool, a neobank now past 100,000 downloads|Encoded, 25 works at The Met in AR, two Webbys|enterprise UX across 9,000 Marriott properties|care scheduling for M Health Fairview, $13.6M booked|eleven AI experiments that run in the browser"
               ></span>
             </p>
 
@@ -4720,12 +4734,14 @@
                Sid also asked for a reach figure in the hundreds of millions. That number is NOT here. Marriott Bonvoy's membership is public and
                large, but "9,000+ properties" is what his work actually shipped across and is what the case study says; putting a membership total on
                a portfolio as if it were his reach is the one kind of claim that ends an interview badly. The honest number is the stronger one. -->
-            <ul class="hero__stats" aria-label="Selected numbers">
-              <li><b>100k+</b><span>downloads, Mool</span></li>
-              <li><b>9,000+</b><span>Marriott properties</span></li>
-              <li><b>25</b><span>artworks at The Met</span></li>
-              <li><b>11</b><span>in-browser AI experiments</span></li>
-            </ul>
+            <!-- The four-figure stat row is gone. Sid: "remove the entire 100k
+                 downloads Mool row."
+
+                 The numbers are not lost: they are what the rotating line
+                 below now carries, one at a time, attached to the project
+                 that earned them. A row of four figures read as a dashboard
+                 sitting under a headline; the same facts inside a sentence
+                 read as somebody telling you what they did. -->
 
             <!-- ── TWO ARROWS, NO LABEL ─────────────────────────────────────
                Sid: "Have arrows on the left and the right, very subtle on the bottom, and start with the fifth one ... Don't mention icons, and you
@@ -5626,22 +5642,50 @@
           return chars;
         }
 
+        /* ── ONE CHAIN, NOT THREE ─────────────────────────────────────────
+           Sid: "the switch between lines happens way too fast, there's some
+           glitch where two show up very quick and one is slow."
+
+           cycle() scheduled its own next call with a bare setTimeout, and it
+           was called from three places: the opening timer, the
+           visibilitychange handler, and the IntersectionObserver. Each call
+           started an INDEPENDENT chain, and the chains never knew about each
+           other -- so returning to the tab, or the line scrolling back into
+           view, left two or three of them running at once. What you see then
+           is exactly what he describes: two lines flicking past almost
+           together, then one sitting for a normal beat, because two chains
+           are interleaving and a third is halfway through its hold.
+
+           One handle, cleared before anything is scheduled, so there is only
+           ever one chain no matter how many things ask for it. */
+        var timer = 0;
+        function later(fn, ms) {
+          clearTimeout(timer);
+          timer = setTimeout(fn, ms);
+        }
+
+        /* 3.2s to 5s. The lines are real sentences with numbers in them now,
+           not three-word moods, and the old hold was tuned for the moods. */
+        var HOLD = 5000;
+
         function cycle() {
+          clearTimeout(timer);
           if (!live || !inView) return;
           show(list[i]);
-          setTimeout(function () {
+          later(function () {
             if (!live || !inView) return;
             el.classList.add("is-out");
-            setTimeout(function () {
+            later(function () {
               i = (i + 1) % list.length;
               cycle();
             }, 620);
-          }, 3200);
+          }, HOLD);
         }
 
         document.addEventListener("visibilitychange", function () {
           live = !document.hidden;
           if (live) cycle();
+          else clearTimeout(timer);
         });
         if ("IntersectionObserver" in window) {
           var host = document.querySelector(".hero__base");
@@ -5650,10 +5694,11 @@
               var was = inView;
               inView = es[0].isIntersecting;
               if (inView && !was) cycle();
+              else if (!inView) clearTimeout(timer);
             }).observe(host);
         }
 
-        setTimeout(cycle, 1500);
+        later(cycle, 1200);
       })();
 
       /* The reel's script is gone with it. Nothing replaced it: a list of

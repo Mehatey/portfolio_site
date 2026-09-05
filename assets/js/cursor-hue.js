@@ -135,8 +135,15 @@
   var box = document.createElement("div");
   box.className = "curhue";
   box.setAttribute("aria-hidden", "true");
-  box.innerHTML = '<span class="curhue__chips"></span><span class="curhue__say"></span>';
-  var chipsEl = box.querySelector(".curhue__chips");
+  /* ── THE BUBBLE IS ONLY THE VOICE NOW ─────────────────────────────────
+     Sid: "I like the chat cursor bubble but I don't want the colours there
+     too, I want them just next to the logo."
+
+     He is right that it was saying the same thing twice: the chips beside the
+     mark and the chips in the bubble were the same read of the same picture,
+     eighteen inches apart. The mark keeps the colour, the cursor keeps the
+     voice, and each does one job. */
+  box.innerHTML = '<span class="curhue__say"></span>';
   var sayEl = box.querySelector(".curhue__say");
   var mounted = false;
 
@@ -197,13 +204,6 @@
       mounted = true;
     }
 
-    chipsEl.textContent = "";
-    for (var i = 0; i < cols.length; i++) {
-      var sw = document.createElement("i");
-      sw.style.setProperty("--c", cols[i]);
-      sw.style.setProperty("--i", i);
-      chipsEl.appendChild(sw);
-    }
     sayEl.textContent = lineFor(el, cols);
 
     /* Jumped to the pointer on the first frame it is shown, or the panel

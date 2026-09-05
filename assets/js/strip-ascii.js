@@ -241,7 +241,16 @@
      of photographs is the subject; a legible field of saturated colour
      behind it is a competing image, which is the same reason the character
      version was kept faint. */
-  var CELL = 26; // square pitch, including its gap
+  /* ── SMALLER, AND MANY MORE OF THEM ────────────────────────────────
+     Sid: "can we have more pixel squares, these ones are too big and I don't
+     like so big, I want more number of squares."
+
+     26px to 14px, which is not a small change: the count goes up by a factor
+     of three and a half, because it is an area. At 26 the field read as a
+     grid of tiles you could count; at 14 it reads as a resolution -- close
+     enough to a pixel that the wall looks like a low-res image of a colour
+     rather than a pattern made of squares. */
+  var CELL = 14; // square pitch, including its gap
   var PAL_N = 8;
   var palA = null, // what the field is showing
     palB = null, // what it is moving to
@@ -355,8 +364,8 @@
         /* Two pixels of gap, and a radius that grows with the flare, so a
            cell the front is passing through swells into a rounder, brighter
            dot and settles back to a square. */
-        var sz = CELL - 4 + flare * 3;
-        var rad = 2 + flare * 4;
+        var sz = CELL - 3 + flare * 2;
+        var rad = 1 + flare * 2;
         bgx.beginPath();
         if (bgx.roundRect) bgx.roundRect(x + 2, y + 2, sz, sz, rad);
         else bgx.rect(x + 2, y + 2, sz, sz);

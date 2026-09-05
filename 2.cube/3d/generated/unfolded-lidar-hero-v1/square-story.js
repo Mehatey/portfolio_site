@@ -355,6 +355,9 @@ const addInteriorVideo = (face, path, sourceAspect) => {
     texture.repeat.y = sourceAspect;
     texture.offset.y = (1 - texture.repeat.y) * 0.5;
   }
+  // Back-facing planes invert screen direction; reverse U so work remains legible.
+  texture.repeat.x *= -1;
+  texture.offset.x = 1 - texture.offset.x;
   const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide, transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material);
   mesh.position.z = -0.022;
@@ -396,7 +399,7 @@ new FontLoader().load(
   "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/fonts/optimer_regular.typeface.json",
   (font) => {
     const specs = [
-      { face: 4, lines: ["Product", "Design"], color: 0x163d56 },
+      { face: 4, lines: ["Product", "Design"], color: 0xf4efdf },
       { face: 5, lines: ["Brand", "Design"], color: 0x163d56 },
       { face: 1, lines: ["Creative", "Technology"], color: 0xf4efdf },
     ];
@@ -699,8 +702,8 @@ function pose(p) {
 
   // Scroll-authored camera choreography: forward wall, left, right, ceiling,
   // floor, center. Movement overlaps and eases so direction never snaps.
-  const yaw = 0.72 * ease(0.59, 0.64, p) - 1.44 * ease(0.64, 0.69, p) + 0.72 * ease(0.69, 0.73, p);
-  const pitch = -0.58 * ease(0.69, 0.735, p) + 1.16 * ease(0.735, 0.78, p) - 0.58 * ease(0.78, 0.82, p);
+  const yaw = 1.08 * ease(0.59, 0.64, p) - 2.16 * ease(0.64, 0.69, p) + 1.08 * ease(0.69, 0.73, p);
+  const pitch = 1.02 * ease(0.69, 0.735, p) - 2.04 * ease(0.735, 0.78, p) + 1.02 * ease(0.78, 0.82, p);
   camera.position.set(pointer.x * 0.025 * interiorVisible, pointer.y * 0.018 * interiorVisible, mix(mix(10.4, 0, enter), 10.4, exit));
   camera.rotation.order = "YXZ";
   camera.rotation.set(pitch * interiorVisible, yaw * interiorVisible, 0);
