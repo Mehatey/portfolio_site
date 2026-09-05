@@ -31,28 +31,29 @@
    never distorts underneath you — a button that warps while you are pressing
    it is a broken button.
 
-   ── FIVE, IN THIS ORDER ─────────────────────────────────────────────────
-     1  PIXELATE   the one he asked for by name, and the site's own language.
-     2  SPECTRUM   a duotone gradient map through the accent family.
-     3  SKETCH     the page redrawn by hand, the only one that moves geometry.
-     4  CONTOUR    posterised light: the page reduced to four tones of ink.
-     5  DRIFT      chromatic separation that breathes — closest to "alive".
+   ── ONE, NOT FIVE ───────────────────────────────────────────────────────
+   Sid: "the kaleidoscope, the gradient map, the pixelation, the sudden
+   earthquake strobe all look like defects. It needs to CHANGE THE MEDIA when
+   you hover, not feel like a glitch. You can just keep one effect."
 
-   Two of these were renamed and one rebuilt after looking at them, which is
-   the only way this kind of thing can be judged. 3 was called KALEIDO and is
-   not a kaleidoscope: a turbulence displacement does not mirror, it wobbles,
-   and what it actually produces is the whole page redrawn with a shaky pen —
-   better than the thing it was aiming at, so it kept the effect and lost the
-   name. 4 claimed to be a drawing and was posterising each colour channel
-   SEPARATELY, so a photograph's channels stepped at different points and the
-   result was red and cyan speckle on the images while the type did not move
-   at all. Stepping LUMINANCE and re-tinting after is what actually reduces a
-   page to ink.
+   He is describing the difference between a lens and a fault. Four of the
+   five read as damage because that is literally what they were: a resolution
+   limit, a posterise, a channel separation and a displacement are all things
+   that happen to a picture when something has gone WRONG with it. However
+   carefully they were tuned, the vocabulary was broken-screen.
 
-   The order is deliberate: the first is legible immediately, the strangest
-   sits in the middle, and the last is the quietest so the sequence does not
-   end on a shout. It advances on every hover and remembers across pages, so a
-   visitor discovers them over a session rather than all at once.
+   What survives is the one that reads as a material rather than a failure: a
+   slow liquid wave. Water over the page is a thing being seen THROUGH
+   something, which is what the mark casting its own way of seeing was always
+   supposed to mean, and it is the only one of the five that never resolves
+   into an artefact you could mistake for a rendering bug.
+
+   It is also slower and shallower than the version it replaces. The old
+   displacement ran at scale 26 with an eleven second frequency sweep, which
+   at any given instant looks like a shaky hand; at 14, on a long swell with
+   two waves crossing at different rates, it looks like depth. The cycling is
+   gone with the rest -- an effect that is different every time you hover is
+   a slot machine, and this one is now a property of the mark.
    ═══════════════════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
@@ -66,19 +67,14 @@
   var mark = document.querySelector(".studio-mark");
   if (!mark) return;
 
-  var KEY = "sid_marklens";
-  var MODES = ["pixelate", "spectrum", "sketch", "contour", "drift"];
-  var at = 0;
-  try {
-    at = parseInt(window.sessionStorage.getItem(KEY) || "0", 10) % MODES.length;
-  } catch (e) {}
+  /* One filter, always the same one, so there is nothing to remember
+     between hovers and the sessionStorage cursor is gone with the cycle. */
+  var MODE = "wave";
 
   /* ── THE FILTERS ────────────────────────────────────────────────────────
-     One inert SVG holding all five. feImage/feTile is the classic pixelate:
-     shrink the source to a tiny scale with a non-smooth interpolation, then
-     blow it back up. feComponentTransfer with discrete tables is what makes
-     the contour posterise, and feColorMatrix on the alpha channel is what
-     lets the spectrum map luminance onto two colours. */
+     One inert SVG holding the one filter. It lives in the document rather
+     than in a stylesheet because a CSS `filter: url(#id)` can only reference
+     a filter that exists in the DOM. */
   var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("aria-hidden", "true");
   svg.setAttribute("width", "0");
@@ -86,74 +82,37 @@
   svg.style.cssText = "position:fixed;width:0;height:0;overflow:hidden;pointer-events:none";
   svg.innerHTML = [
     "<defs>",
-    /* 1. PIXELATE — feFlood/feComposite/feTile, then feMorphology.
-          The first attempt used feFlood + feComposite alone and produced no
-          visible change at all: without feTile there is one flooded cell
-          rather than a grid of them, so `in` clips the source to a single
-          square and the dilate has nothing to spread. The canonical chain is
-          flood one dot, composite it into a cell, TILE the cell across the
-          filter region, clip the page to that grid of dots, then dilate each
-          surviving dot back out to fill its cell. The dilate radius is what
-          breathes, which is the "breathe slowly" ask, and it is the right
-          parameter for it -- the grid stays put while the blocks swell. */
-    '<filter id="ml-pixelate" x="0" y="0" width="100%" height="100%">',
-    '  <feFlood x="2" y="2" width="1" height="1"/>',
-    '  <feComposite width="7" height="7"/>',
-    '  <feTile result="grid"/>',
-    '  <feComposite in="SourceGraphic" in2="grid" operator="in"/>',
-    '  <feMorphology operator="dilate" radius="3.5">',
-    '    <animate attributeName="radius" values="3.5;5.5;3.5" dur="6s" repeatCount="indefinite"/>',
-    "  </feMorphology>",
-    "</filter>",
-    /* 2. SPECTRUM — luminance to a two-point ramp in the accent family. */
-    '<filter id="ml-spectrum" x="0" y="0" width="100%" height="100%">',
-    '  <feColorMatrix type="saturate" values="0" result="g"/>',
-    '  <feComponentTransfer in="g">',
-    '    <feFuncR type="table" tableValues="0.05 0.15 0.55 0.98"/>',
-    '    <feFuncG type="table" tableValues="0.06 0.55 0.86 0.99"/>',
-    '    <feFuncB type="table" tableValues="0.14 0.72 0.86 1"/>',
-    "  </feComponentTransfer>",
-    "</filter>",
-    /* 3. SKETCH — turbulence-driven displacement. Every edge on the page,
-          type included, acquires the waver of a line drawn by a hand that is
-          not quite steady, and the baseFrequency animation keeps that hand
-          moving. The scale is the whole judgement here: at 26 the type was
-          still legible and the images still read, which is the line between
-          "redrawn" and "damaged". */
-    '<filter id="ml-sketch" x="-8%" y="-8%" width="116%" height="116%">',
-    '  <feTurbulence type="fractalNoise" baseFrequency="0.006 0.012" numOctaves="3" seed="9" result="n">',
-    '    <animate attributeName="baseFrequency" values="0.006 0.012;0.014 0.006;0.006 0.012" dur="11s" repeatCount="indefinite"/>',
+    /* ── THE WAVE ──────────────────────────────────────────────────────────
+       Two turbulence fields displacing the page, not one.
+
+       A single fractalNoise field animated on its baseFrequency is what the
+       old SKETCH filter was, and it wobbles: every part of the image moves on
+       the same clock, so the whole page shivers together and reads as a hand
+       that cannot hold still. Two fields at different scales, summed, give
+       long swells with small ripples riding on them -- and because the two
+       animations have coprime durations (13s and 19s) the sum never repeats
+       inside any hover anybody will hold.
+
+       The frequency is deliberately anisotropic, much lower across than down,
+       so the distortion runs in horizontal bands. That is what water does,
+       and it is also the direction that damages type least: a letter stretched
+       sideways is still that letter, a letter stretched vertically is not.
+
+       scale 14, down from 26. At 26 the page is being pulled about; at 14 the
+       type stays entirely readable and the photographs move like something
+       seen through a few inches of moving water, which is the whole point. */
+    '<filter id="ml-wave" x="-6%" y="-6%" width="112%" height="112%" color-interpolation-filters="sRGB">',
+    '  <feTurbulence type="fractalNoise" baseFrequency="0.003 0.011" numOctaves="2" seed="4" result="swell">',
+    '    <animate attributeName="baseFrequency" values="0.003 0.011;0.006 0.008;0.003 0.011" dur="13s" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" repeatCount="indefinite"/>',
     "  </feTurbulence>",
-    '  <feDisplacementMap in="SourceGraphic" in2="n" scale="26" xChannelSelector="R" yChannelSelector="G"/>',
-    "</filter>",
-    /* 4. CONTOUR — the page reduced to four tones of ink.
-          Luminance FIRST, so all three channels step at the same threshold
-          and a photograph breaks into flat bands instead of into colour
-          noise. The tint goes on AFTERWARDS: the bands are chosen in grey,
-          then the whole thing is carried into the site's blue-ink family, so
-          the posterisation decides the shapes and the colour only decides the
-          temperature. Four steps is the count that leaves a face readable. */
-    '<filter id="ml-contour" x="0" y="0" width="100%" height="100%">',
-    '  <feColorMatrix type="saturate" values="0" result="l"/>',
-    '  <feComponentTransfer in="l" result="posterised">',
-    '    <feFuncR type="discrete" tableValues="0.06 0.34 0.66 0.96"/>',
-    '    <feFuncG type="discrete" tableValues="0.06 0.34 0.66 0.96"/>',
-    '    <feFuncB type="discrete" tableValues="0.06 0.34 0.66 0.96"/>',
-    "  </feComponentTransfer>",
-    '  <feColorMatrix in="posterised" type="matrix" values="0.82 0 0 0 0.01  0 0.9 0 0 0.03  0 0 1 0 0.07  0 0 0 1 0"/>',
-    "</filter>",
-    /* 5. DRIFT — the channels separate and rejoin. Quietest of the five. */
-    '<filter id="ml-drift" x="-4%" y="-4%" width="108%" height="108%">',
-    '  <feOffset in="SourceGraphic" dx="-3" dy="0" result="r">',
-    '    <animate attributeName="dx" values="-3;-7;-3" dur="7s" repeatCount="indefinite"/>',
-    "  </feOffset>",
-    '  <feColorMatrix in="r" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="rc"/>',
-    '  <feOffset in="SourceGraphic" dx="3" dy="0" result="b">',
-    '    <animate attributeName="dx" values="3;7;3" dur="7s" repeatCount="indefinite"/>',
-    "  </feOffset>",
-    '  <feColorMatrix in="b" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="bc"/>',
-    '  <feBlend in="rc" in2="bc" mode="screen" result="rb"/>',
-    '  <feBlend in="SourceGraphic" in2="rb" mode="screen"/>',
+    '  <feTurbulence type="fractalNoise" baseFrequency="0.011 0.024" numOctaves="1" seed="17" result="ripple">',
+    '    <animate attributeName="baseFrequency" values="0.011 0.024;0.017 0.019;0.011 0.024" dur="19s" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" repeatCount="indefinite"/>',
+    "  </feTurbulence>",
+    /* The ripple is composited into the swell rather than applied as a second
+       displacement pass: two chained feDisplacementMaps displace the ALREADY
+       displaced image, which compounds the error at the edges and tears. */
+    '  <feBlend in="swell" in2="ripple" mode="multiply" result="water"/>',
+    '  <feDisplacementMap in="SourceGraphic" in2="water" scale="14" xChannelSelector="R" yChannelSelector="G"/>',
     "</filter>",
     "</defs>",
   ].join("");
@@ -217,19 +176,10 @@
 
   mark.addEventListener("pointerenter", function () {
     if (raf) cancelAnimationFrame(raf);
-    var mode = MODES[at];
-    apply(mode);
+    apply(MODE);
   });
 
-  mark.addEventListener("pointerleave", function () {
-    release();
-    /* Advance AFTER the hover ends, so the effect does not change while it is
-       being looked at, and the next hover is a different one. */
-    at = (at + 1) % MODES.length;
-    try {
-      window.sessionStorage.setItem(KEY, String(at));
-    } catch (e) {}
-  });
+  mark.addEventListener("pointerleave", release);
 
   /* A click on the mark navigates home, and leaving a full-page filter applied
      across a navigation would carry it into the next page's first paint. */
