@@ -119,15 +119,27 @@
      grows out of the top-left corner where the mark sits and travels across
      the composition. It is the only piece that does not drift past -- it
      extends, which is what a river does. */
+  /* ── THE LENSES CAME OUT AND THE CUBES GOT BIGGER ────────────────────
+     Sid: "i just saw the sort of clouds and the cube thing moving around it
+     doesn't look good at all. Can you animate the eyes, make it bigger, also
+     remove these weird ellipses and bigger and make more refraction happen.
+     It's just a little tinted rectangle otherwise in the screensaver."
+
+     The ellipses are gone. They were argued for as "directional" -- an
+     upright ellipse has an axis, so a group of them points somewhere -- and
+     that argument was about the SHAPE rather than about what the shape is.
+     Next to a cube carrying the site's own face, a plain ellipse is a
+     primitive again, which is the exact fault the clouds and the tree had.
+
+     What is left is the mark, at roughly half again the previous size, and
+     the river. Four objects, not seven: fewer and larger is what makes each
+     one read as a sheet of glass you look THROUGH rather than a tinted card
+     you look at, which is the "just a little tinted rectangle" complaint. */
   var SCENE = [
-    /* Out of the mark, first, before anything else. */
     { kind: "river", at: 0.6, y: 0.22, w: 1.5, h: 0.22, dur: 150, phase: 0, tint: "ice" },
-    { kind: "cube", at: 3, y: 0.3, w: 0.15, h: 0.26, dur: 118, phase: 0.05, tint: "aqua", face: true, spin: 0.7 },
-    { kind: "lens", at: 8, y: 0.14, w: 0.055, h: 0.2, dur: 164, phase: 0.42, tint: "blue", spin: -0.4 },
-    { kind: "cube", at: 15, y: 0.56, w: 0.1, h: 0.17, dur: 136, phase: 0.71, tint: "moss", spin: -0.9 },
-    { kind: "lens", at: 24, y: 0.44, w: 0.042, h: 0.15, dur: 186, phase: 0.18, tint: "dusk", spin: 0.6 },
-    { kind: "cube", at: 34, y: 0.16, w: 0.185, h: 0.32, dur: 104, phase: 0.6, tint: "slate", face: true, spin: 0.45 },
-    { kind: "lens", at: 46, y: 0.66, w: 0.05, h: 0.18, dur: 172, phase: 0.88, tint: "aqua", spin: -0.7 },
+    { kind: "cube", at: 2.5, y: 0.24, w: 0.22, h: 0.38, dur: 128, phase: 0.05, tint: "aqua", face: true, spin: 0.6 },
+    { kind: "cube", at: 12, y: 0.52, w: 0.15, h: 0.26, dur: 152, phase: 0.68, tint: "moss", spin: -0.8 },
+    { kind: "cube", at: 26, y: 0.14, w: 0.27, h: 0.46, dur: 112, phase: 0.4, tint: "slate", face: true, spin: 0.4 },
   ];
 
   var layer = document.createElement("div");
@@ -143,6 +155,9 @@
        looking at you; on two it is the mark turning up in the weather. */
     if (d.face) {
       el.classList.add("has-face");
+      /* The eyes are their own elements so they can be scaled independently
+         of the cube's drift -- a blink is a scaleY on the eye, and doing it
+         on the cube would squash the whole object. */
       el.innerHTML = '<b class="eye"></b><b class="eye"></b><b class="mouth"></b>';
     }
     layer.appendChild(el);
