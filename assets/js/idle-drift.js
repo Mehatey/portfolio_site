@@ -135,11 +135,34 @@
      the river. Four objects, not seven: fewer and larger is what makes each
      one read as a sheet of glass you look THROUGH rather than a tinted card
      you look at, which is the "just a little tinted rectangle" complaint. */
+  /* ── SOMETHING HAS TO HAPPEN ACROSS THE WHOLE SCREEN ─────────────────
+     Sid: "In the screensaver, let there be some sort of motion, like let
+     something happen which takes over most of the entire screen. Let there be
+     some grass, let there be some water, something more than just simple
+     translets and squares moving around slowly. It looks fucking terrible."
+
+     Fair. Four objects drifting across a black page is a screensaver from
+     1996 however good the glass on them is -- there was no SCENE, only props.
+     Two full-width layers go underneath them:
+
+       WATER   a band across the lower third whose surface is two very slow
+               skewed highlights travelling at different speeds. The parallax
+               between them is the whole illusion; it is the same trick the
+               earlier river used and it was the one part of that scene worth
+               keeping.
+
+       GRASS   a horizon of blades along the bottom, each leaning on its own
+               phase of a shared breeze. Drawn as one repeating conic mask
+               rather than as elements, so a hundred blades cost one paint.
+
+     The mark and its glass still cross in front. What changed is that they
+     now cross something instead of crossing nothing. */
   var SCENE = [
-    { kind: "river", at: 0.6, y: 0.22, w: 1.5, h: 0.22, dur: 150, phase: 0, tint: "ice" },
-    { kind: "cube", at: 2.5, y: 0.24, w: 0.22, h: 0.38, dur: 128, phase: 0.05, tint: "aqua", face: true, spin: 0.6 },
-    { kind: "cube", at: 12, y: 0.52, w: 0.15, h: 0.26, dur: 152, phase: 0.68, tint: "moss", spin: -0.8 },
-    { kind: "cube", at: 26, y: 0.14, w: 0.27, h: 0.46, dur: 112, phase: 0.4, tint: "slate", face: true, spin: 0.4 },
+    { kind: "grass", at: 0.4, y: 0.82, w: 1.4, h: 0.2, dur: 200, phase: 0, tint: "moss" },
+    { kind: "river", at: 1.2, y: 0.66, w: 1.5, h: 0.15, dur: 150, phase: 0, tint: "ice" },
+    { kind: "cube", at: 3, y: 0.2, w: 0.2, h: 0.34, dur: 128, phase: 0.05, tint: "aqua", face: true, spin: 0.6 },
+    { kind: "cube", at: 14, y: 0.42, w: 0.13, h: 0.22, dur: 152, phase: 0.68, tint: "sun", spin: -0.8 },
+    { kind: "cube", at: 30, y: 0.1, w: 0.26, h: 0.44, dur: 112, phase: 0.4, tint: "rose", face: true, spin: 0.4 },
   ];
 
   var layer = document.createElement("div");
@@ -153,12 +176,21 @@
     el.className = "idle-drift__p is-" + d.kind + " t-" + d.tint;
     /* Two of the seven, not all of them. A face on every object is a crowd
        looking at you; on two it is the mark turning up in the weather. */
+    /* The bloom the glass throws past its own edge. Its own element rather
+       than a third pseudo-element, because it has to sit BEHIND the glass
+       (z-index -1) and a ::before/::after on a backdrop-filtered box cannot
+       get behind its own host. */
+    if (d.kind === "cube") el.insertAdjacentHTML("beforeend", '<i class="flare" aria-hidden="true"></i>');
+
     if (d.face) {
       el.classList.add("has-face");
       /* The eyes are their own elements so they can be scaled independently
          of the cube's drift -- a blink is a scaleY on the eye, and doing it
          on the cube would squash the whole object. */
-      el.innerHTML = '<b class="eye"></b><b class="eye"></b><b class="mouth"></b>';
+      /* Appended, not assigned. `innerHTML =` here would delete the flare
+         element inserted just above, which is the sort of thing that shows up
+         as "the halo works on two of the three cubes". */
+      el.insertAdjacentHTML("beforeend", '<b class="eye"></b><b class="eye"></b><b class="mouth"></b>');
     }
     layer.appendChild(el);
     pieces.push({
@@ -185,6 +217,7 @@
        the brief is that it comes out of the logo. 24px is where the mark's
        own left edge sits once it is centred in the margin. */
     if (q.kind === "river") q.el.style.left = "24px";
+    if (q.kind === "grass") q.el.style.left = "-20vw";
   }
 
   /* ── idle ─────────────────────────────────────────────────────────────── */
@@ -251,6 +284,16 @@
       }
       p.el.style.opacity = Math.min(1, age / 4).toFixed(3);
 
+      if (p.kind === "grass") {
+        /* Rooted. The blades lean on a shared breeze and the whole horizon
+           sways a degree or so about its BASE -- about the centre it would
+           hover, and a hovering lawn is a rug in a draught. */
+        var sway = Math.sin(clock * 0.11 + p.phase) * 1.1;
+        p.el.style.setProperty("--breeze", (Math.sin(clock * 0.23) * 0.5 + 0.5).toFixed(3));
+        p.el.style.transform = "rotate(" + sway.toFixed(2) + "deg)";
+        continue;
+      }
+
       if (p.kind === "river") {
         /* It does not cross, it EXTENDS. Anchored at the mark's corner and
            growing along its own axis, so what you see is a band reaching out
@@ -265,6 +308,13 @@
         var grow = Math.min(1, age / 150);
         var ease = 1 - Math.pow(1 - grow, 3);
         var sag = Math.sin(clock * 0.05) * 10;
+        /* The two surface highlights, on periods that do not divide into one
+           another (23s and 31s). The parallax between them is what reads as a
+           current; in step they would read as one reflection sliding across
+           glass. Without these the band was a blurred stripe: photographed at
+           thirty seconds it was invisible over a dark page. */
+        p.el.style.setProperty("--a", ((clock / 23) % 1).toFixed(4));
+        p.el.style.setProperty("--b", ((clock / 31 + 0.4) % 1).toFixed(4));
         p.el.style.transform = "translate3d(0," + sag.toFixed(1) + "px,0) rotate(-9deg) scaleX(" + (0.04 + ease * 0.96).toFixed(4) + ")";
         continue;
       }

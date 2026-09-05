@@ -269,8 +269,13 @@ listener of its own -- so throwing the page separates the frame from the content
   .idle-drift__p.t-blue {
     --tint: 96, 190, 240;
   }
-  .idle-drift__p.t-dusk {
-    --tint: 148, 156, 202;
+  /* Sid: "don't do purples. I don't like purples. Do blues, little light
+     crimsons, and yellows." Dusk was the purple; rose and sun replace it. */
+  .idle-drift__p.t-rose {
+    --tint: 236, 138, 152;
+  }
+  .idle-drift__p.t-sun {
+    --tint: 240, 206, 130;
   }
   .idle-drift__p.t-moss {
     --tint: 138, 176, 150;
@@ -332,6 +337,49 @@ listener of its own -- so throwing the page separates the frame from the content
       0 24px 60px -24px rgba(0, 0, 0, 0.5);
   }
 
+  /* ══ THE GRASS ═════════════════════════════════════════════════════════
+     A horizon of blades along the foot of the window. Drawn as a repeating
+     conic-gradient mask on one element rather than as a hundred children:
+     each repeat is a tapered wedge, so the mask itself is the blades and the
+     whole horizon costs one paint.
+
+     --breeze is written per frame by the script and skews the layer, so the
+     blades lean together and recover rather than each animating on its own
+     clock -- wind moves a field, not individual leaves. */
+  .idle-drift__p.is-grass {
+    border-radius: 0;
+    transform-origin: 50% 100%;
+    backdrop-filter: blur(3px) saturate(1.4) brightness(1.02);
+    -webkit-backdrop-filter: blur(3px) saturate(1.4) brightness(1.02);
+    background: linear-gradient(180deg, rgba(var(--tint, 138, 176, 150), 0.16), rgba(var(--tint, 138, 176, 150), 0.62));
+    box-shadow: none;
+    /* ── BLADES ARE STRIPES, NOT WEDGES ──────────────────────────────
+       First pass drew them with a repeating-conic-gradient from 50% 100%,
+       reasoning that a wedge is a tapered blade. On a 60px swatch that is
+       true. On the real element -- two thousand pixels wide -- every wedge
+       radiates from one point, so the horizon photographed as a giant fan
+       across the bottom of the window. A conic gradient's period is angular
+       and the blades needed a period in PIXELS.
+
+       So: one repeating linear gradient at a 7px pitch, intersected with a
+       vertical fade that tapers the blades toward their tips. A second
+       gradient at a different pitch was tried first to break up the comb, but
+       INTERSECTING two stripe patterns leaves only their overlap -- slivers a
+       fraction of a pixel wide -- and the horizon photographed as nothing at
+       all. Variation comes from the sway instead, which is where it belongs:
+       a lawn is uniform, the wind through it is not. */
+    --blade: repeating-linear-gradient(90deg, transparent 0 1px, #000 1px 3px, transparent 3px 7px);
+    -webkit-mask-image: var(--blade), linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55) 40%, #000 82%);
+    mask-image: var(--blade), linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55) 40%, #000 82%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    skew: calc((var(--breeze, 0.5) - 0.5) * 5deg) 0deg;
+  }
+  .idle-drift__p.is-grass::before,
+  .idle-drift__p.is-grass::after {
+    content: none;
+  }
+
   /* ── THE RIVER ────────────────────────────────────────────────────────
      Sid: "From my cube logo, in the screensaver position, a river of
      refraction and blending mode sort of slowly emerges and animates across
@@ -364,28 +412,63 @@ listener of its own -- so throwing the page separates the frame from the content
        river running through the navigation is a rendering fault rather than
        weather. It still begins at the mark's own x, so it reads as coming out
        of the logo and passing under it. */
-    mix-blend-mode: soft-light;
-    backdrop-filter: blur(11px) saturate(1.5) brightness(1.05);
-    -webkit-backdrop-filter: blur(11px) saturate(1.5) brightness(1.05);
+    /* `soft-light` was chosen to stop the band amplifying colour over the
+       covers, and it did -- over the DARK page it also composited to nothing,
+       so on the works route the water was simply absent. A blend mode on the
+       element also competes with its own backdrop-filter. Both are gone: the
+       band is now plain compositing over a real blur, which is what a sheet
+       of water over a photograph is anyway, held quiet by low alpha instead
+       of by a blend mode. */
+    /* And then it was too much the other way. Photographed at full extent,
+       a 1500px band at blur(13) laid a smeared diagonal across all three
+       covers and the page read as broken glass rather than as weather. Seven
+       pixels is enough to say "there is water in front of this" while the
+       work behind it stays legible, which is the only test that matters:
+       the screensaver sits ON a portfolio. */
+    backdrop-filter: blur(7px) saturate(1.35) brightness(1.03);
+    -webkit-backdrop-filter: blur(7px) saturate(1.35) brightness(1.03);
     background: linear-gradient(
       180deg,
-      rgba(var(--tint, 200, 226, 246), 0.16),
+      rgba(var(--tint, 200, 226, 246), 0.14),
       rgba(255, 255, 255, 0.05) 48%,
-      rgba(var(--tint, 200, 226, 246), 0.12)
+      rgba(var(--tint, 200, 226, 246), 0.11)
     );
     box-shadow: none;
     -webkit-mask-image:
       linear-gradient(90deg, transparent, #000 8%, #000 88%, transparent), linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
     mask-image:
-      linear-gradient(90deg, transparent, #000 8%, #000 88%, transparent), linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+      linear-gradient(90deg, transparent, #000 12%, #000 82%, transparent),
+      linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85) 38%, rgba(0, 0, 0, 0.85) 62%, transparent);
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
   }
   /* The seam and the dispersion belong to a solid object with a rim. On a
      feathered band they redraw the edges the mask just removed. */
+  /* ── AND THE WATER HAS A SURFACE ───────────────────────────────────
+     Two skewed highlights travelling at different speeds across the band.
+     The parallax between them is what reads as a current; a single moving
+     highlight reads as a reflection sliding on glass. They ride --a and --b,
+     written by the script. */
   .idle-drift__p.is-river::before,
   .idle-drift__p.is-river::after {
-    content: none;
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 38%;
+    transform: skewX(-22deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+  .idle-drift__p.is-river::before {
+    left: calc(var(--a, 0) * 150% - 40%);
+    opacity: 0.75;
+  }
+  .idle-drift__p.is-river::after {
+    left: calc(var(--b, 0) * 160% - 45%);
+    width: 20%;
+    opacity: 0.4;
   }
 
   /* ── CUBE ─────────────────────────────────────────────────────────────
@@ -400,11 +483,113 @@ listener of its own -- so throwing the page separates the frame from the content
   .idle-drift__p.is-cube {
     border-radius: 24%;
   }
+  /* ══ THE LIGHT ACTUALLY TRAVELS ════════════════════════════════════════
+     Sid: "The light streak, the lens flare, and the amount of refraction
+     that happens when the screensaver cubes come is not enough and doesn't
+     look good."
+
+     He is right, and the reason is that all three were STATIC. A caustic
+     painted at a fixed angle on a slowly drifting box is a decal: the object
+     moves and its highlight moves with it, which is exactly what a highlight
+     on real glass does not do. Light comes from somewhere in the room, so
+     the streak has to sweep across the face independently of the object
+     carrying it.
+
+     So the streak is now three times the width of the box and its position
+     is animated, and the gradient behind it is tighter -- a narrow hot core
+     with a wide falloff, which is what a specular actually looks like. */
   .idle-drift__p.is-cube::before {
     background:
-      linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.5) 46%, transparent 58%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 34%);
-    opacity: 0.55;
+      linear-gradient(
+        108deg,
+        transparent 34%,
+        rgba(255, 255, 255, 0.14) 42%,
+        rgba(255, 255, 255, 0.92) 49%,
+        rgba(255, 255, 255, 0.14) 56%,
+        transparent 64%
+      ),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 30%);
+    background-size:
+      300% 100%,
+      100% 100%;
+    background-position:
+      120% 0,
+      0 0;
+    opacity: 0.72;
+    animation: idle-sweep 17s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  }
+  .idle-drift__p.t-sun.is-cube::before {
+    animation-duration: 23s;
+    animation-delay: -6s;
+  }
+  .idle-drift__p.t-rose.is-cube::before {
+    animation-duration: 29s;
+    animation-delay: -14s;
+  }
+  @keyframes idle-sweep {
+    0%,
+    62%,
+    100% {
+      background-position:
+        135% 0,
+        0 0;
+    }
+    /* Fast across, then a long wait. A sweep on a linear loop is a scanner;
+       a sweep that happens and then does not happen again for a quarter of a
+       minute is a reflection catching as the thing turns. */
+    30% {
+      background-position:
+        -35% 0,
+        0 0;
+    }
+  }
+
+  /* ── THE FLARE ────────────────────────────────────────────────────────
+     A cube of glass with a light on it throws a bloom past its own edge.
+     This is drawn OUTSIDE the box (inset -40%) and behind the glass, in the
+     object's own tint, so each piece carries a halo the colour of itself.
+     Blues, light crimson and yellow only, per the palette rule. */
+  .idle-drift__p.is-cube {
+    backdrop-filter: blur(6px) saturate(1.9) brightness(1.07) contrast(1.12);
+    -webkit-backdrop-filter: blur(6px) saturate(1.9) brightness(1.07) contrast(1.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(var(--tint, 255, 255, 255), 0.22),
+      /* the chromatic rim: two offset hairlines in complementary directions,
+         which is what an edge doing dispersion looks like from a distance */
+      0 0 0 1px rgba(var(--tint, 255, 255, 255), 0.28),
+      1px 0 0 1px rgba(176, 226, 255, 0.14),
+      -1px 0 0 1px rgba(240, 152, 164, 0.12),
+      0 0 60px -12px rgba(var(--tint, 255, 255, 255), 0.4),
+      0 24px 60px -24px rgba(0, 0, 0, 0.5);
+  }
+  .idle-drift__p.is-cube > .flare {
+    position: absolute;
+    inset: -45%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(var(--tint, 255, 255, 255), 0.3), rgba(var(--tint, 255, 255, 255), 0.08) 46%, transparent 72%);
+    filter: blur(18px);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: -1;
+    animation: idle-flare 11s ease-in-out infinite;
+  }
+  @keyframes idle-flare {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(0.92);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p.is-cube::before,
+    .idle-drift__p.is-cube > .flare {
+      animation: none;
+    }
   }
 
   /* ── LENS ─────────────────────────────────────────────────────────────
@@ -452,11 +637,49 @@ listener of its own -- so throwing the page separates the frame from the content
      smile -- exactly the thing Sid means by "no-emotion". A line is what
      makes the logo a device that happens to have a face rather than a
      character, and the same is true out here. */
+  /* ── THE FACE CATCHES COLOUR ──────────────────────────────────────────
+     Sid: "There were supposed to be some subtle color changes. Make those
+     color changes in the eyes and the face also, and don't do purples. I
+     don't like purples. Do blues, little light crimsons, and yellows."
+
+     The eyes and mouth were flat white. They now run a slow cycle through
+     ice blue, a light crimson and a warm yellow -- 31 seconds, coprime with
+     the 7.4s and 9.1s blinks, so the colour never lands on the same beat as
+     a blink twice. No violet anywhere in the ramp: blue interpolates to
+     crimson through magenta if you let it, so the yellow sits between them
+     and carries the transition warm. */
   .idle-drift__p .eye,
   .idle-drift__p .mouth {
     position: absolute;
-    background: rgba(255, 255, 255, 0.92);
+    background: currentColor;
+    color: rgba(255, 255, 255, 0.92);
     z-index: 2;
+    animation: idle-face-tint 31s ease-in-out infinite;
+  }
+  .idle-drift__p.t-rose .eye,
+  .idle-drift__p.t-rose .mouth {
+    animation-duration: 37s;
+  }
+  @keyframes idle-face-tint {
+    0%,
+    100% {
+      color: rgba(255, 255, 255, 0.92);
+    }
+    22% {
+      color: rgba(176, 226, 255, 0.96);
+    }
+    48% {
+      color: rgba(244, 214, 140, 0.96);
+    }
+    72% {
+      color: rgba(240, 152, 164, 0.94);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p .eye,
+    .idle-drift__p .mouth {
+      animation: none;
+    }
   }
   /* ── THE EYES ARE ALIVE ───────────────────────────────────────────────
      Sid: "Can you animate the eyes."
@@ -472,20 +695,31 @@ listener of its own -- so throwing the page separates the frame from the content
      `transform-origin: 50% 50%` matters: an eye that closes toward its top
      edge reads as a shutter, one that closes about its middle reads as a
      lid. */
+  /* The mark's own ratios put a 20x77px white bar on a 320px cube, which
+     photographed as two blank slabs rather than as eyes. Scaled back and
+     given a real radius: at this size the face has to be drawn for the size
+     it is actually rendered at, not scaled up from the favicon. */
   .idle-drift__p .eye {
-    width: 6.2%;
-    height: 22.9%;
-    top: 30.5%;
+    width: 4.4%;
+    height: 15%;
+    top: 34%;
+    opacity: 0.82;
     border-radius: 40% / 12%;
     transform-origin: 50% 50%;
+    /* Three cycles on one shorthand. Declared together because a later
+       `animation` shorthand replaces an earlier one outright -- the tint was
+       written above as its own rule and this line silently dropped it, which
+       is the same precedence trap the logo hover hit. */
     animation:
       idle-blink 7.4s ease-in-out infinite,
-      idle-look 19s ease-in-out infinite;
+      idle-look 19s ease-in-out infinite,
+      idle-face-tint 31s ease-in-out infinite;
   }
   /* The second face runs both cycles on different periods so the two objects
      are never in step. */
-  .idle-drift__p.t-slate .eye {
-    animation-duration: 9.1s, 23s;
+  .idle-drift__p.t-slate .eye,
+  .idle-drift__p.t-rose .eye {
+    animation-duration: 9.1s, 23s, 37s;
   }
   @keyframes idle-blink {
     0%,
