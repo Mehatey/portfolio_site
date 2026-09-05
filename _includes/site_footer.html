@@ -2153,6 +2153,63 @@ include film_grade.html %}
       animation: none;
     }
   }
+
+  /* ══ THE LAST LINE MOVES ═══════════════════════════════════════════════
+     Sid: "animate the footer text and the clicked items."
+
+     Letter by letter, not word by word. The row is four destinations and a
+     city, all short -- an animation on the whole word is a button press, and
+     these are not buttons. A stagger across the characters reads as the word
+     being noticed, which is the right weight for the last line on the page.
+
+     Split by the script below, so the markup stays plain text and anything
+     that does not run JS gets exactly the line that is written there. */
+  .ftr__nav--out a .ch,
+  .ftr__where .ch {
+    display: inline-block;
+    will-change: transform;
+    transition:
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      color 420ms ease;
+    transition-delay: calc(var(--i) * 16ms);
+  }
+  .ftr__nav--out a:hover .ch,
+  .ftr__nav--out a:focus-visible .ch {
+    transform: translateY(-3px);
+  }
+  /* The city is not a link, so it gets the motion without the colour: it
+     answers the pointer, it just does not pretend to go anywhere. */
+  .ftr__where:hover .ch {
+    transform: translateY(-2px);
+  }
+  /* ── AND THE CLICKED ONE ANSWERS ────────────────────────────────────
+     Three of these four open a new tab, so the page you are looking at does
+     not change and nothing confirms the click landed. The letters drop and
+     spring back once, which is the smallest possible receipt. */
+  .ftr__nav--out a.is-hit .ch {
+    animation: ftr-hit 560ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+    animation-delay: calc(var(--i) * 26ms);
+  }
+  @keyframes ftr-hit {
+    0% {
+      transform: translateY(-3px);
+    }
+    36% {
+      transform: translateY(4px) scale(0.94);
+    }
+    100% {
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__nav--out a .ch,
+    .ftr__where .ch,
+    .ftr__nav--out a.is-hit .ch {
+      transition: none;
+      animation: none;
+      transform: none;
+    }
+  }
 </style>
 
 <!-- No record contains a space: multi-word facts are written with `~` and put
@@ -4486,3 +4543,47 @@ wall and the Buddha all sit inside the one `
      See assets/js/mark-lens.js. -->
   <script src="{{ site.baseurl }}/assets/js/mark-lens.js" defer></script>
 </footer>
+
+<script>
+  /* Splits the last line into characters so it can be animated one at a
+     time, and gives a clicked destination a spring. Runs after paint and
+     leaves the DOM text identical, so the line reads the same to a screen
+     reader and to a browser with this file blocked. */
+  (function () {
+    var row = document.querySelector(".ftr__nav--out");
+    if (!row) return;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var bits = row.querySelectorAll("a, .ftr__where");
+    for (var i = 0; i < bits.length; i++) {
+      var el = bits[i];
+      var txt = el.textContent;
+      if (!txt || el.querySelector(".ch")) continue;
+      var frag = document.createDocumentFragment();
+      for (var j = 0; j < txt.length; j++) {
+        var sp = document.createElement("span");
+        sp.className = "ch";
+        sp.style.setProperty("--i", j);
+        /* A real space would collapse inside an inline-block, so it is kept
+           as a non-breaking one and the character count stays honest. */
+        sp.textContent = txt[j] === " " ? "\u00a0" : txt[j];
+        frag.appendChild(sp);
+      }
+      el.textContent = "";
+      el.appendChild(frag);
+    }
+
+    row.addEventListener("pointerdown", function (e) {
+      var a = e.target.closest && e.target.closest("a");
+      if (!a) return;
+      a.classList.remove("is-hit");
+      /* Reflow, or removing and re-adding the class in one frame is a no-op
+         and the second click on the same link does nothing. */
+      void a.offsetWidth;
+      a.classList.add("is-hit");
+      setTimeout(function () {
+        a.classList.remove("is-hit");
+      }, 900);
+    });
+  })();
+</script>
