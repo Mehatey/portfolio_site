@@ -259,6 +259,67 @@
         padding-top: clamp(28px, 4vh, 48px);
         border-top: 1px solid var(--wk-hair);
       }
+      /* ══ THE FILTER PILLS ══════════════════════════════════════════════
+         Set in the same mono the lane labels use, because they name the same
+         three things -- a filter row in a different face would read as a
+         second, unrelated system. The count is the reason to look at them, so
+         it is the part that keeps full ink while the label sits a step down.
+
+         Quiet at rest and quieter still when another pill is active: the
+         selected state is the only one that should read from across the page,
+         and four equally lit pills is a toolbar. */
+      .wk-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 0 0 clamp(28px, 4vh, 52px);
+      }
+      .wk-pill {
+        appearance: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 32px;
+        padding: 0 14px;
+        border: 1px solid var(--wk-hair);
+        border-radius: 999px;
+        background: transparent;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--wk-faint);
+        transition:
+          color 0.2s ease,
+          border-color 0.2s ease,
+          background 0.2s ease;
+      }
+      .wk-pill span {
+        color: var(--wk-ink);
+        font-variant-numeric: tabular-nums;
+        opacity: 0.7;
+      }
+      .wk-pill:hover,
+      .wk-pill:focus-visible {
+        color: var(--wk-ink);
+        border-color: color-mix(in srgb, var(--wk-ink) 40%, transparent);
+      }
+      .wk-pill.is-on {
+        color: var(--wk-ink);
+        border-color: color-mix(in srgb, var(--wk-ink) 62%, transparent);
+        background: color-mix(in srgb, var(--wk-ink) 7%, transparent);
+      }
+      .wk-pill.is-on span {
+        opacity: 1;
+      }
+      /* Filtering hides whole lanes rather than individual cards, so the
+         section headings and their notes go with them and the page never
+         shows a lane label above nothing. */
+      .wk-lane[hidden] {
+        display: none;
+      }
+
       .wk-lane-head {
         display: flex;
         align-items: baseline;
@@ -883,6 +944,23 @@
           <p>{{ site.data.works | size }} projects</p>
         </div>
 
+        {% comment %} ── FILTER PILLS, AND WHY THEY DO NOT START AT "ALL AND EMPTY" ────────── Sid: "can we also have like some filter pill or
+        something?" The note below this argues against filter chips, and the argument is still right about the thing it was arguing against: a filter
+        that starts every visitor at an unfiltered grid and hides two thirds of the work behind a control a stranger has to notice is the state that
+        was already failing. What is wrong is treating that as an argument against the control existing. So the lanes stay exactly as they are and the
+        pills sit on top of them. Nothing is hidden by default -- "All" is the resting state and it is the same page as before -- and a hiring manager
+        who came for one kind of proof can take the other two out of the way in one click. The count on each pill is the useful part: it says how much
+        there is before you commit to looking. No JavaScript is required to see the work; the pills are progressive. Without the script they render as
+        three anchors that jump to their lane, which is a worse version of the same intent rather than a broken one. {% endcomment %}
+        <nav class="wk-filters" aria-label="Filter work by kind">
+          <button type="button" class="wk-pill is-on" data-filter="all">All<span>{{ site.data.works | size }}</span></button>
+          {% assign fl = "product,ai,culture" | split: "," %}{% for f in fl %}{% case f %}{% when "product" %}{% assign fn = "Product design" %}{%
+          when "ai" %}{% assign fn = "AI and creative tech" %}{% when "culture" %}{% assign fn = "Culture, brand and image" %}{% endcase %}{% assign
+          fc = site.data.works | where: "lane", f | size %}
+          <button type="button" class="wk-pill" data-filter="{{ f }}">{{ fn }}<span>{{ fc }}</span></button>
+          {% endfor %}
+        </nav>
+
         <!-- ── WHY THIS PAGE IS IN THREE PARTS NOW ────────────────────────
              Seventeen projects competed equally in one grid, which asked a
              single grid to do three different jobs: convince a product-design
@@ -912,7 +990,7 @@
         in-browser AI, spatial computing, live systems." %} {% when "culture" %} {% assign lane_name = "Culture, brand and image" %} {% assign
         lane_note = "Identity systems, exhibitions, and the drawing practice underneath the rest of it." %} {% endcase %} {% assign lane_works =
         site.data.works | where: "lane", lane %}
-        <section class="wk-lane" aria-labelledby="lane-{{ lane }}">
+        <section class="wk-lane" data-lane="{{ lane }}" aria-labelledby="lane-{{ lane }}">
           <div class="wk-lane-head">
             <h3 id="lane-{{ lane }}">{{ lane_name }}</h3>
             <!-- The count. Four, six and seven is a deliberate split, and
@@ -1019,6 +1097,40 @@
                is a portfolio that does not trust its own navigation. -->
         </p>
       </div>
+
+      <script>
+        /* ── THE FILTER ────────────────────────────────────────────────────
+           Whole lanes in and out, not individual cards: hiding cards would
+           leave a lane heading standing over nothing, and the headings are
+           half of what makes this page readable.
+
+           `hidden` rather than a class, so the hidden lanes are out of the
+           accessibility tree as well as off the screen -- a filter that only
+           changes what is painted still reads the whole page to a screen
+           reader, which is the version of this control that is actually
+           broken. */
+        (function () {
+          var pills = [].slice.call(document.querySelectorAll(".wk-pill"));
+          var lanes = [].slice.call(document.querySelectorAll(".wk-lane"));
+          if (!pills.length || !lanes.length) return;
+          pills.forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              var want = btn.getAttribute("data-filter");
+              pills.forEach(function (b) {
+                b.classList.toggle("is-on", b === btn);
+                b.setAttribute("aria-pressed", b === btn ? "true" : "false");
+              });
+              lanes.forEach(function (sec) {
+                var lane = sec.getAttribute("data-lane");
+                /* A lane with no data-lane is the unfiled section, which only
+                   ever shows under "All" -- it is the catch-all and belongs to
+                   no filter. */
+                sec.hidden = want !== "all" && lane !== want;
+              });
+            });
+          });
+        })();
+      </script>
 
       <script>
         /* The only script on the page.
