@@ -519,7 +519,12 @@
   wave.innerHTML =
     '<svg viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">' +
     '<path class="sound-wave__flat" d="M2 7 H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />' +
-    '<path class="sound-wave__line" d="M-10 7 q2.5 -4.2 5 0 t5 0 t5 0 t5 0 t5 0 t5 0 t5 0 t5 0" ' +
+    /* One crest and one trough across the icon, not six. Sid: "we don't need
+       so many curves, just 2 curves, one crest one trough is enough." At a
+       10-unit period the shape is legible as a wave at 18px; at the old 5 it
+       was a row of ripples that read as texture. Drawn from -20 so there is a
+       full period of slack to travel into. */
+    '<path class="sound-wave__line" d="M-20 7 q5 -5 10 0 t10 0 t10 0 t10 0 t10 0" ' +
     'stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />' +
     "</svg>";
   btn.appendChild(wave);
