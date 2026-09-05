@@ -5343,7 +5343,7 @@
       })(marks[i]);
     }
   })();
-</script> <script src="/assets/js/nav-glass.js" defer></script> <div id="cube-says" data-line="He wrote this page himself. I would have led with the Webbys." hidden> <p class="cube-says__text" role="status" aria-live="polite"></p> </div> <style>
+</script> <script src="/assets/js/nav-glass.js" defer></script> <div id="cube-says" data-line="He wrote this page himself. I would have led with the Webbys." hidden> <span class="cube-says__hues" aria-hidden="true"></span> <p class="cube-says__text" role="status" aria-live="polite"></p> </div> <style>
   /* ── IT IS A THOUGHT, NOT A TOOLTIP ─────────────────────────────────────
      Sid: "I don't like the way you style the cube comment. It feels like some
      tooltip and not like a living being ... it shouldn't feel like a tooltip
@@ -5611,6 +5611,72 @@
       display: none;
     }
   }
+
+  /* ══ THE COLOUR ECHO ═══════════════════════════════════════════════════
+     Sid: "the caption should be a chat bubble from the cursor, or show the
+     hovered image's colours as animated rounded squares next to the logo."
+
+     The second one, and alongside the line rather than instead of it -- the
+     lines in _data/works.yml are his own writing and they are the one piece
+     of text on the works page that is not repeated anywhere else.
+
+     What this adds is the thing text cannot do: point at a case study and
+     the mark beside it fills with that project's actual palette, sampled
+     from its own cover. Four squares, in the order the image is made of
+     them. Sweeping the grid becomes a run of colour across the top of the
+     window, and the difference between Mool and Marriott is legible before
+     either name is read.
+
+     Sampled, not authored. A hand-written palette per project is sixteen
+     more things to keep true; reading the pixels is correct by construction
+     and stays correct when a cover is replaced. */
+  .cube-says__hues {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-right: 12px;
+    flex: 0 0 auto;
+  }
+  .cube-says__hues:empty {
+    display: none;
+  }
+  .cube-says__hues i {
+    display: block;
+    width: 13px;
+    height: 13px;
+    border-radius: 4.5px;
+    background: var(--c);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.16),
+      0 2px 8px -3px var(--c);
+    /* Each square arrives a beat after the one before it, so the strip reads
+       left to right like the image being taken apart rather than four chips
+       appearing at once. */
+    animation: hue-pop 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i) * 62ms);
+  }
+  @keyframes hue-pop {
+    from {
+      opacity: 0;
+      transform: translateY(5px) scale(0.5);
+      border-radius: 50%;
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      border-radius: 4.5px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cube-says__hues i {
+      animation: none;
+    }
+  }
+  @media (max-width: 900px) {
+    .cube-says__hues {
+      display: none;
+    }
+  }
 </style> <script>
   (function () {
     var el = document.getElementById("cube-says");
@@ -5764,6 +5830,179 @@
       });
     }
 
+    /* ── SAMPLING THE COVER ───────────────────────────────────────────────
+       One 28x28 canvas reused for every card. Downsampling to 784 pixels is
+       the quantisation: the browser's own image scaler averages each region
+       for us, so what comes back is already the picture's broad colours
+       rather than its noise, and the whole read is under a millisecond.
+
+       Near-black and near-white are dropped before counting. Almost every
+       cover on this site is a UI screenshot on a dark page, so without that
+       filter all sixteen projects return the same four greys and the strip
+       says nothing. What is wanted is what makes this cover different from
+       the next one, which is its chroma, not its ground. */
+    var hueEl = el.querySelector(".cube-says__hues");
+    var swatchCache = Object.create(null);
+    var sampler = null;
+
+    function paletteOf(img) {
+      var key = img.currentSrc || img.src;
+      if (!key) return null;
+      if (swatchCache[key]) return swatchCache[key];
+      if (!img.complete || !img.naturalWidth) return null;
+      if (!sampler) {
+        sampler = document.createElement("canvas");
+        sampler.width = sampler.height = 40;
+      }
+      var c = sampler.getContext("2d", { willReadFrequently: true });
+      if (!c) return null;
+      var data;
+      try {
+        c.clearRect(0, 0, 40, 40);
+        c.drawImage(img, 0, 0, 40, 40);
+        data = c.getImageData(0, 0, 40, 40).data;
+      } catch (err) {
+        /* A cross-origin cover taints the canvas. Nothing to show, and the
+           null is cached so it is not attempted again on every hover. */
+        swatchCache[key] = null;
+        return null;
+      }
+
+      /* ── FREQUENCY IS THE WRONG SCORE ──────────────────────────────────
+         First pass took the four commonest bins and returned, for Mool, a
+         dark navy and two browns: the covers are photographs, so the most
+         common colour in one is almost always its shadow. What the strip is
+         for is the difference between one project and the next, and that
+         lives in the chroma, not the mass.
+
+         So a bin's score is its count weighted by saturation and by how far
+         its lightness sits from either end. A large dull region and a small
+         vivid one now compete on even terms, which is the judgement a person
+         makes when they say what colour something is. */
+      var bins = Object.create(null);
+      for (var i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 200) continue;
+        var r = data[i],
+          g = data[i + 1],
+          b = data[i + 2];
+        var mx = Math.max(r, g, b),
+          mn = Math.min(r, g, b);
+        if (mx < 52 || mn > 236) continue;
+        if (mx - mn < 16) continue;
+        var k = ((r >> 5) << 6) | ((g >> 5) << 3) | (b >> 5);
+        var bin = bins[k] || (bins[k] = { n: 0, r: 0, g: 0, b: 0 });
+        bin.n++;
+        bin.r += r;
+        bin.g += g;
+        bin.b += b;
+      }
+
+      var list = [];
+      for (var key2 in bins) {
+        var q = bins[key2];
+        if (q.n < 3) continue;
+        q.r = Math.round(q.r / q.n);
+        q.g = Math.round(q.g / q.n);
+        q.b = Math.round(q.b / q.n);
+        var qmx = Math.max(q.r, q.g, q.b),
+          qmn = Math.min(q.r, q.g, q.b);
+        var sat = qmx ? (qmx - qmn) / qmx : 0;
+        var lum = (qmx + qmn) / 510;
+        /* Peaks at mid lightness, falls off toward black and toward white. */
+        var lit = 1 - Math.abs(lum - 0.56) * 1.7;
+        q.score = q.n * (0.25 + sat * 1.9) * Math.max(0.15, lit);
+        list.push(q);
+      }
+      list.sort(function (a, z) {
+        return z.score - a.score;
+      });
+
+      var out = [];
+      for (var j = 0; j < list.length && out.length < 4; j++) {
+        var c2 = list[j];
+        /* Four squares that are four shades of the same blue is a gradient,
+           not a palette. A candidate within 70 of one already chosen is the
+           same colour as far as the eye at the top of the window is
+           concerned, so it is skipped for the next distinct one. */
+        var near = false;
+        for (var m = 0; m < out.length; m++) {
+          var o = out[m];
+          if (Math.abs(o[0] - c2.r) + Math.abs(o[1] - c2.g) + Math.abs(o[2] - c2.b) < 70) {
+            near = true;
+            break;
+          }
+        }
+        if (near) continue;
+        out.push([c2.r, c2.g, c2.b]);
+      }
+      /* ── AND IF THE COVER IS SIMPLY DARK ───────────────────────────────
+         Marriott's cover is a dashboard on near-black and it returned one
+         chip. Rather than show a lonely square, the shortfall is filled from
+         the same bins with the chroma test dropped: a neutral strip is the
+         honest answer for a neutral picture, and it still differs from the
+         next project's. */
+      if (out.length < 3) {
+        var all = [];
+        for (var k2 in bins) all.push(bins[k2]);
+        all.sort(function (a, z) {
+          return z.n - a.n;
+        });
+        for (var n2 = 0; n2 < all.length && out.length < 4; n2++) {
+          var c3 = all[n2];
+          var far = true;
+          for (var m2 = 0; m2 < out.length; m2++) {
+            if (Math.abs(out[m2][0] - c3.r) + Math.abs(out[m2][1] - c3.g) + Math.abs(out[m2][2] - c3.b) < 70) far = false;
+          }
+          if (far) out.push([c3.r, c3.g, c3.b]);
+        }
+      }
+
+      /* ── THE CHIPS ARE A READING, NOT AN AVERAGE ───────────────────────
+         A mean over a bin of photograph pixels always drifts toward mud, and
+         four mud squares at the top of the window say nothing at all. Each
+         chip keeps the HUE it was sampled at and is brought up to a floor of
+         saturation and into a usable band of lightness -- which is exactly
+         what a person does when they pull a palette off an image by eye. A
+         genuinely neutral sample stays neutral, because a hueless colour has
+         no hue to bring up. */
+      out = out.map(function (o) {
+        var r = o[0] / 255,
+          g = o[1] / 255,
+          b = o[2] / 255;
+        var mx = Math.max(r, g, b),
+          mn = Math.min(r, g, b);
+        var l = (mx + mn) / 2,
+          d = mx - mn,
+          h = 0,
+          sat = 0;
+        if (d) {
+          sat = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+          if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+          else if (mx === g) h = ((b - r) / d + 2) / 6;
+          else h = ((r - g) / d + 4) / 6;
+        }
+        if (sat > 0.08) sat = Math.min(0.82, Math.max(0.42, sat * 1.35));
+        l = Math.min(0.72, Math.max(0.44, l * 1.25));
+        return "hsl(" + (h * 360).toFixed(0) + " " + (sat * 100).toFixed(0) + "% " + (l * 100).toFixed(0) + "%)";
+      });
+      swatchCache[key] = out.length ? out : null;
+      return swatchCache[key];
+    }
+
+    function showHues(card) {
+      if (!hueEl) return;
+      var img = card.querySelector("img");
+      var cols = img ? paletteOf(img) : null;
+      hueEl.textContent = "";
+      if (!cols) return;
+      for (var i = 0; i < cols.length; i++) {
+        var sw = document.createElement("i");
+        sw.style.setProperty("--c", cols[i]);
+        sw.style.setProperty("--i", i);
+        hueEl.appendChild(sw);
+      }
+    }
+
     document.addEventListener(
       "pointerover",
       function (e) {
@@ -5776,7 +6015,9 @@
         /* A short hold, so sweeping the pointer across a grid on the way
            somewhere else does not fire seventeen lines in a row. */
         hoverTimer = setTimeout(function () {
-          if (hovering) speak(t);
+          if (!hovering) return;
+          showHues(card);
+          speak(t);
         }, 130);
       },
       { passive: true }
@@ -5791,7 +6032,10 @@
         hovering = false;
         clearTimeout(hoverTimer);
         hoverTimer = setTimeout(function () {
-          if (!hovering && !el.hidden) hide();
+          if (!hovering && !el.hidden) {
+            if (hueEl) hueEl.textContent = "";
+            hide();
+          }
         }, 220);
       },
       { passive: true }
@@ -6608,8 +6852,13 @@
   .idle-drift__p.t-blue {
     --tint: 96, 190, 240;
   }
-  .idle-drift__p.t-dusk {
-    --tint: 148, 156, 202;
+  /* Sid: "don't do purples. I don't like purples. Do blues, little light
+     crimsons, and yellows." Dusk was the purple; rose and sun replace it. */
+  .idle-drift__p.t-rose {
+    --tint: 236, 138, 152;
+  }
+  .idle-drift__p.t-sun {
+    --tint: 240, 206, 130;
   }
   .idle-drift__p.t-moss {
     --tint: 138, 176, 150;
@@ -6671,6 +6920,49 @@
       0 24px 60px -24px rgba(0, 0, 0, 0.5);
   }
 
+  /* ══ THE GRASS ═════════════════════════════════════════════════════════
+     A horizon of blades along the foot of the window. Drawn as a repeating
+     conic-gradient mask on one element rather than as a hundred children:
+     each repeat is a tapered wedge, so the mask itself is the blades and the
+     whole horizon costs one paint.
+
+     --breeze is written per frame by the script and skews the layer, so the
+     blades lean together and recover rather than each animating on its own
+     clock -- wind moves a field, not individual leaves. */
+  .idle-drift__p.is-grass {
+    border-radius: 0;
+    transform-origin: 50% 100%;
+    backdrop-filter: blur(3px) saturate(1.4) brightness(1.02);
+    -webkit-backdrop-filter: blur(3px) saturate(1.4) brightness(1.02);
+    background: linear-gradient(180deg, rgba(var(--tint, 138, 176, 150), 0.16), rgba(var(--tint, 138, 176, 150), 0.62));
+    box-shadow: none;
+    /* ── BLADES ARE STRIPES, NOT WEDGES ──────────────────────────────
+       First pass drew them with a repeating-conic-gradient from 50% 100%,
+       reasoning that a wedge is a tapered blade. On a 60px swatch that is
+       true. On the real element -- two thousand pixels wide -- every wedge
+       radiates from one point, so the horizon photographed as a giant fan
+       across the bottom of the window. A conic gradient's period is angular
+       and the blades needed a period in PIXELS.
+
+       So: one repeating linear gradient at a 7px pitch, intersected with a
+       vertical fade that tapers the blades toward their tips. A second
+       gradient at a different pitch was tried first to break up the comb, but
+       INTERSECTING two stripe patterns leaves only their overlap -- slivers a
+       fraction of a pixel wide -- and the horizon photographed as nothing at
+       all. Variation comes from the sway instead, which is where it belongs:
+       a lawn is uniform, the wind through it is not. */
+    --blade: repeating-linear-gradient(90deg, transparent 0 1px, #000 1px 3px, transparent 3px 7px);
+    -webkit-mask-image: var(--blade), linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55) 40%, #000 82%);
+    mask-image: var(--blade), linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55) 40%, #000 82%);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+    skew: calc((var(--breeze, 0.5) - 0.5) * 5deg) 0deg;
+  }
+  .idle-drift__p.is-grass::before,
+  .idle-drift__p.is-grass::after {
+    content: none;
+  }
+
   /* ── THE RIVER ────────────────────────────────────────────────────────
      Sid: "From my cube logo, in the screensaver position, a river of
      refraction and blending mode sort of slowly emerges and animates across
@@ -6703,28 +6995,63 @@
        river running through the navigation is a rendering fault rather than
        weather. It still begins at the mark's own x, so it reads as coming out
        of the logo and passing under it. */
-    mix-blend-mode: soft-light;
-    backdrop-filter: blur(11px) saturate(1.5) brightness(1.05);
-    -webkit-backdrop-filter: blur(11px) saturate(1.5) brightness(1.05);
+    /* `soft-light` was chosen to stop the band amplifying colour over the
+       covers, and it did -- over the DARK page it also composited to nothing,
+       so on the works route the water was simply absent. A blend mode on the
+       element also competes with its own backdrop-filter. Both are gone: the
+       band is now plain compositing over a real blur, which is what a sheet
+       of water over a photograph is anyway, held quiet by low alpha instead
+       of by a blend mode. */
+    /* And then it was too much the other way. Photographed at full extent,
+       a 1500px band at blur(13) laid a smeared diagonal across all three
+       covers and the page read as broken glass rather than as weather. Seven
+       pixels is enough to say "there is water in front of this" while the
+       work behind it stays legible, which is the only test that matters:
+       the screensaver sits ON a portfolio. */
+    backdrop-filter: blur(7px) saturate(1.35) brightness(1.03);
+    -webkit-backdrop-filter: blur(7px) saturate(1.35) brightness(1.03);
     background: linear-gradient(
       180deg,
-      rgba(var(--tint, 200, 226, 246), 0.16),
+      rgba(var(--tint, 200, 226, 246), 0.14),
       rgba(255, 255, 255, 0.05) 48%,
-      rgba(var(--tint, 200, 226, 246), 0.12)
+      rgba(var(--tint, 200, 226, 246), 0.11)
     );
     box-shadow: none;
     -webkit-mask-image:
       linear-gradient(90deg, transparent, #000 8%, #000 88%, transparent), linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
     mask-image:
-      linear-gradient(90deg, transparent, #000 8%, #000 88%, transparent), linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+      linear-gradient(90deg, transparent, #000 12%, #000 82%, transparent),
+      linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.85) 38%, rgba(0, 0, 0, 0.85) 62%, transparent);
     -webkit-mask-composite: source-in;
     mask-composite: intersect;
   }
   /* The seam and the dispersion belong to a solid object with a rim. On a
      feathered band they redraw the edges the mask just removed. */
+  /* ── AND THE WATER HAS A SURFACE ───────────────────────────────────
+     Two skewed highlights travelling at different speeds across the band.
+     The parallax between them is what reads as a current; a single moving
+     highlight reads as a reflection sliding on glass. They ride --a and --b,
+     written by the script. */
   .idle-drift__p.is-river::before,
   .idle-drift__p.is-river::after {
-    content: none;
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 38%;
+    transform: skewX(-22deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+  .idle-drift__p.is-river::before {
+    left: calc(var(--a, 0) * 150% - 40%);
+    opacity: 0.75;
+  }
+  .idle-drift__p.is-river::after {
+    left: calc(var(--b, 0) * 160% - 45%);
+    width: 20%;
+    opacity: 0.4;
   }
 
   /* ── CUBE ─────────────────────────────────────────────────────────────
@@ -6739,11 +7066,113 @@
   .idle-drift__p.is-cube {
     border-radius: 24%;
   }
+  /* ══ THE LIGHT ACTUALLY TRAVELS ════════════════════════════════════════
+     Sid: "The light streak, the lens flare, and the amount of refraction
+     that happens when the screensaver cubes come is not enough and doesn't
+     look good."
+
+     He is right, and the reason is that all three were STATIC. A caustic
+     painted at a fixed angle on a slowly drifting box is a decal: the object
+     moves and its highlight moves with it, which is exactly what a highlight
+     on real glass does not do. Light comes from somewhere in the room, so
+     the streak has to sweep across the face independently of the object
+     carrying it.
+
+     So the streak is now three times the width of the box and its position
+     is animated, and the gradient behind it is tighter -- a narrow hot core
+     with a wide falloff, which is what a specular actually looks like. */
   .idle-drift__p.is-cube::before {
     background:
-      linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.5) 46%, transparent 58%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.16), transparent 34%);
-    opacity: 0.55;
+      linear-gradient(
+        108deg,
+        transparent 34%,
+        rgba(255, 255, 255, 0.14) 42%,
+        rgba(255, 255, 255, 0.92) 49%,
+        rgba(255, 255, 255, 0.14) 56%,
+        transparent 64%
+      ),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent 30%);
+    background-size:
+      300% 100%,
+      100% 100%;
+    background-position:
+      120% 0,
+      0 0;
+    opacity: 0.72;
+    animation: idle-sweep 17s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  }
+  .idle-drift__p.t-sun.is-cube::before {
+    animation-duration: 23s;
+    animation-delay: -6s;
+  }
+  .idle-drift__p.t-rose.is-cube::before {
+    animation-duration: 29s;
+    animation-delay: -14s;
+  }
+  @keyframes idle-sweep {
+    0%,
+    62%,
+    100% {
+      background-position:
+        135% 0,
+        0 0;
+    }
+    /* Fast across, then a long wait. A sweep on a linear loop is a scanner;
+       a sweep that happens and then does not happen again for a quarter of a
+       minute is a reflection catching as the thing turns. */
+    30% {
+      background-position:
+        -35% 0,
+        0 0;
+    }
+  }
+
+  /* ── THE FLARE ────────────────────────────────────────────────────────
+     A cube of glass with a light on it throws a bloom past its own edge.
+     This is drawn OUTSIDE the box (inset -40%) and behind the glass, in the
+     object's own tint, so each piece carries a halo the colour of itself.
+     Blues, light crimson and yellow only, per the palette rule. */
+  .idle-drift__p.is-cube {
+    backdrop-filter: blur(6px) saturate(1.9) brightness(1.07) contrast(1.12);
+    -webkit-backdrop-filter: blur(6px) saturate(1.9) brightness(1.07) contrast(1.12);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(var(--tint, 255, 255, 255), 0.22),
+      /* the chromatic rim: two offset hairlines in complementary directions,
+         which is what an edge doing dispersion looks like from a distance */
+      0 0 0 1px rgba(var(--tint, 255, 255, 255), 0.28),
+      1px 0 0 1px rgba(176, 226, 255, 0.14),
+      -1px 0 0 1px rgba(240, 152, 164, 0.12),
+      0 0 60px -12px rgba(var(--tint, 255, 255, 255), 0.4),
+      0 24px 60px -24px rgba(0, 0, 0, 0.5);
+  }
+  .idle-drift__p.is-cube > .flare {
+    position: absolute;
+    inset: -45%;
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(var(--tint, 255, 255, 255), 0.3), rgba(var(--tint, 255, 255, 255), 0.08) 46%, transparent 72%);
+    filter: blur(18px);
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: -1;
+    animation: idle-flare 11s ease-in-out infinite;
+  }
+  @keyframes idle-flare {
+    0%,
+    100% {
+      opacity: 0.55;
+      transform: scale(0.92);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.08);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p.is-cube::before,
+    .idle-drift__p.is-cube > .flare {
+      animation: none;
+    }
   }
 
   /* ── LENS ─────────────────────────────────────────────────────────────
@@ -6791,11 +7220,49 @@
      smile -- exactly the thing Sid means by "no-emotion". A line is what
      makes the logo a device that happens to have a face rather than a
      character, and the same is true out here. */
+  /* ── THE FACE CATCHES COLOUR ──────────────────────────────────────────
+     Sid: "There were supposed to be some subtle color changes. Make those
+     color changes in the eyes and the face also, and don't do purples. I
+     don't like purples. Do blues, little light crimsons, and yellows."
+
+     The eyes and mouth were flat white. They now run a slow cycle through
+     ice blue, a light crimson and a warm yellow -- 31 seconds, coprime with
+     the 7.4s and 9.1s blinks, so the colour never lands on the same beat as
+     a blink twice. No violet anywhere in the ramp: blue interpolates to
+     crimson through magenta if you let it, so the yellow sits between them
+     and carries the transition warm. */
   .idle-drift__p .eye,
   .idle-drift__p .mouth {
     position: absolute;
-    background: rgba(255, 255, 255, 0.92);
+    background: currentColor;
+    color: rgba(255, 255, 255, 0.92);
     z-index: 2;
+    animation: idle-face-tint 31s ease-in-out infinite;
+  }
+  .idle-drift__p.t-rose .eye,
+  .idle-drift__p.t-rose .mouth {
+    animation-duration: 37s;
+  }
+  @keyframes idle-face-tint {
+    0%,
+    100% {
+      color: rgba(255, 255, 255, 0.92);
+    }
+    22% {
+      color: rgba(176, 226, 255, 0.96);
+    }
+    48% {
+      color: rgba(244, 214, 140, 0.96);
+    }
+    72% {
+      color: rgba(240, 152, 164, 0.94);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p .eye,
+    .idle-drift__p .mouth {
+      animation: none;
+    }
   }
   /* ── THE EYES ARE ALIVE ───────────────────────────────────────────────
      Sid: "Can you animate the eyes."
@@ -6811,20 +7278,31 @@
      `transform-origin: 50% 50%` matters: an eye that closes toward its top
      edge reads as a shutter, one that closes about its middle reads as a
      lid. */
+  /* The mark's own ratios put a 20x77px white bar on a 320px cube, which
+     photographed as two blank slabs rather than as eyes. Scaled back and
+     given a real radius: at this size the face has to be drawn for the size
+     it is actually rendered at, not scaled up from the favicon. */
   .idle-drift__p .eye {
-    width: 6.2%;
-    height: 22.9%;
-    top: 30.5%;
+    width: 4.4%;
+    height: 15%;
+    top: 34%;
+    opacity: 0.82;
     border-radius: 40% / 12%;
     transform-origin: 50% 50%;
+    /* Three cycles on one shorthand. Declared together because a later
+       `animation` shorthand replaces an earlier one outright -- the tint was
+       written above as its own rule and this line silently dropped it, which
+       is the same precedence trap the logo hover hit. */
     animation:
       idle-blink 7.4s ease-in-out infinite,
-      idle-look 19s ease-in-out infinite;
+      idle-look 19s ease-in-out infinite,
+      idle-face-tint 31s ease-in-out infinite;
   }
   /* The second face runs both cycles on different periods so the two objects
      are never in step. */
-  .idle-drift__p.t-slate .eye {
-    animation-duration: 9.1s, 23s;
+  .idle-drift__p.t-slate .eye,
+  .idle-drift__p.t-rose .eye {
+    animation-duration: 9.1s, 23s, 37s;
   }
   @keyframes idle-blink {
     0%,
@@ -9183,6 +9661,63 @@
   @media (prefers-reduced-motion: reduce) {
     .ftr__shelf-line {
       animation: none;
+    }
+  }
+
+  /* ══ THE LAST LINE MOVES ═══════════════════════════════════════════════
+     Sid: "animate the footer text and the clicked items."
+
+     Letter by letter, not word by word. The row is four destinations and a
+     city, all short -- an animation on the whole word is a button press, and
+     these are not buttons. A stagger across the characters reads as the word
+     being noticed, which is the right weight for the last line on the page.
+
+     Split by the script below, so the markup stays plain text and anything
+     that does not run JS gets exactly the line that is written there. */
+  .ftr__nav--out a .ch,
+  .ftr__where .ch {
+    display: inline-block;
+    will-change: transform;
+    transition:
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      color 420ms ease;
+    transition-delay: calc(var(--i) * 16ms);
+  }
+  .ftr__nav--out a:hover .ch,
+  .ftr__nav--out a:focus-visible .ch {
+    transform: translateY(-3px);
+  }
+  /* The city is not a link, so it gets the motion without the colour: it
+     answers the pointer, it just does not pretend to go anywhere. */
+  .ftr__where:hover .ch {
+    transform: translateY(-2px);
+  }
+  /* ── AND THE CLICKED ONE ANSWERS ────────────────────────────────────
+     Three of these four open a new tab, so the page you are looking at does
+     not change and nothing confirms the click landed. The letters drop and
+     spring back once, which is the smallest possible receipt. */
+  .ftr__nav--out a.is-hit .ch {
+    animation: ftr-hit 560ms cubic-bezier(0.22, 1.2, 0.36, 1) both;
+    animation-delay: calc(var(--i) * 26ms);
+  }
+  @keyframes ftr-hit {
+    0% {
+      transform: translateY(-3px);
+    }
+    36% {
+      transform: translateY(4px) scale(0.94);
+    }
+    100% {
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__nav--out a .ch,
+    .ftr__where .ch,
+    .ftr__nav--out a.is-hit .ch {
+      transition: none;
+      animation: none;
+      transform: none;
     }
   }
 </style> <footer class="site-footer" aria-label="Site footer" data-biome="canopy"> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile sid-tile--clip" style="--s: 1.06; --ar: 0.56; --src: url(/assets/img/sid-strip/street-brooklyn-poster.webp)"> <video src="/assets/video/sid-strip/street-brooklyn.mp4" poster="/assets/img/sid-strip/street-brooklyn-poster.webp" muted loop playsinline preload="none" aria-label="A street in summer, walking in a patterned shirt"></video> <figcaption><em>Off the clock</em><b>A street, a good shirt</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.95; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="Requiem for a Dream, a film he keeps going back to" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.97; --ar: 1.77; --src: url(/assets/img/sid-strip/face-scans-poster.webp)"> <video src="/assets/video/sid-strip/face-scans.mp4" poster="/assets/img/sid-strip/face-scans-poster.webp" muted loop playsinline preload="none" aria-label="Wireframe head scans turning against a room"></video> <figcaption><em>Rabbit hole</em><b>Faces, meshed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.05; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="Two cats under a duvet, refusing to move" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/assets/img/sid-strip/kids-drawings.webp)"> <img src="/assets/img/sid-strip/kids-drawings.webp" alt="A room of children holding up drawings they have made" loading="lazy" decoding="async"> <figcaption><em>Best crit</em><b>Everyone shows their work</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.05; --ar: 0.56; --src: url(/assets/img/sid-strip/gold-room-poster.webp)"> <video src="/assets/video/sid-strip/gold-room.mp4" poster="/assets/img/sid-strip/gold-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a gold room in a saffron kurta"></video> <figcaption><em>Dressed up</em><b>A room made of gold</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.03; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="A still from a favourite music video, arms out against the sky" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.00; --ar: 1.49; --src: url(/assets/img/sid-strip/football-field.webp)"> <img src="/assets/img/sid-strip/football-field.webp" alt="A kid mid-kick after a football in a field at low sun" loading="lazy" decoding="async"> <figcaption><em>Viewfinder</em><b>Last light, one more goal</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.02; --ar: 0.56; --src: url(/assets/img/sid-strip/cats-living-room-poster.webp)"> <video src="/assets/video/sid-strip/cats-living-room.mp4" poster="/assets/img/sid-strip/cats-living-room-poster.webp" muted loop playsinline preload="none" aria-label="Two cats moving around a living room"></video> <figcaption><em>Supervisors</em><b>Both of them, unimpressed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.06; --src: url(/assets/img/sid-strip/sound-desk.webp)"> <img src="/assets/img/sid-strip/sound-desk.webp" alt="At a live sound and lighting desk, a lit stage behind" loading="lazy" decoding="async"> <figcaption><em>Other console</em><b>A live show, from the back</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="Bone, issue one, by Jeff Smith" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 0.56; --src: url(/assets/img/sid-strip/projection-room-poster.webp)"> <video src="/assets/video/sid-strip/projection-room.mp4" poster="/assets/img/sid-strip/projection-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a dark room with projected light falling across"></video> <figcaption><em>Dark room</em><b>Wearing the projection</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.94; --ar: 1.45; --src: url(/assets/img/sid-strip/kids-crowd.webp)"> <img src="/assets/img/sid-strip/kids-crowd.webp" alt="A crowd of school children packed into frame, all grinning" loading="lazy" decoding="async"> <figcaption><em>Toughest audience</em><b>A classroom that mobbed the camera</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.9; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.06; --ar: 0.56; --src: url(/assets/img/sid-strip/street-brooklyn-poster.webp)"> <video src="/assets/video/sid-strip/street-brooklyn.mp4" poster="/assets/img/sid-strip/street-brooklyn-poster.webp" muted loop playsinline preload="none" aria-label="A street in summer, walking in a patterned shirt"></video> <figcaption><em>Off the clock</em><b>A street, a good shirt</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.95; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="Requiem for a Dream, a film he keeps going back to" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.97; --ar: 1.77; --src: url(/assets/img/sid-strip/face-scans-poster.webp)"> <video src="/assets/video/sid-strip/face-scans.mp4" poster="/assets/img/sid-strip/face-scans-poster.webp" muted loop playsinline preload="none" aria-label="Wireframe head scans turning against a room"></video> <figcaption><em>Rabbit hole</em><b>Faces, meshed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.05; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="Two cats under a duvet, refusing to move" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/assets/img/sid-strip/kids-drawings.webp)"> <img src="/assets/img/sid-strip/kids-drawings.webp" alt="A room of children holding up drawings they have made" loading="lazy" decoding="async"> <figcaption><em>Best crit</em><b>Everyone shows their work</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.05; --ar: 0.56; --src: url(/assets/img/sid-strip/gold-room-poster.webp)"> <video src="/assets/video/sid-strip/gold-room.mp4" poster="/assets/img/sid-strip/gold-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a gold room in a saffron kurta"></video> <figcaption><em>Dressed up</em><b>A room made of gold</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.03; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="A still from a favourite music video, arms out against the sky" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I · Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.00; --ar: 1.49; --src: url(/assets/img/sid-strip/football-field.webp)"> <img src="/assets/img/sid-strip/football-field.webp" alt="A kid mid-kick after a football in a field at low sun" loading="lazy" decoding="async"> <figcaption><em>Viewfinder</em><b>Last light, one more goal</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.02; --ar: 0.56; --src: url(/assets/img/sid-strip/cats-living-room-poster.webp)"> <video src="/assets/video/sid-strip/cats-living-room.mp4" poster="/assets/img/sid-strip/cats-living-room-poster.webp" muted loop playsinline preload="none" aria-label="Two cats moving around a living room"></video> <figcaption><em>Supervisors</em><b>Both of them, unimpressed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.06; --src: url(/assets/img/sid-strip/sound-desk.webp)"> <img src="/assets/img/sid-strip/sound-desk.webp" alt="At a live sound and lighting desk, a lit stage behind" loading="lazy" decoding="async"> <figcaption><em>Other console</em><b>A live show, from the back</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="Bone, issue one, by Jeff Smith" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE · Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 0.56; --src: url(/assets/img/sid-strip/projection-room-poster.webp)"> <video src="/assets/video/sid-strip/projection-room.mp4" poster="/assets/img/sid-strip/projection-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a dark room with projected light falling across"></video> <figcaption><em>Dark room</em><b>Wearing the projection</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.94; --ar: 1.45; --src: url(/assets/img/sid-strip/kids-crowd.webp)"> <img src="/assets/img/sid-strip/kids-crowd.webp" alt="A crowd of school children packed into frame, all grinning" loading="lazy" decoding="async"> <figcaption><em>Toughest audience</em><b>A classroom that mobbed the camera</b></figcaption> </figure> <figure class="sid-tile sid-tile--type" style="--s: 0.9; --ar: 1"> <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u> <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption> </figure> </div> </div> </section> <script>
@@ -12293,7 +12828,49 @@
         { passive: true }
       );
     })();
-  </script> <script src="/assets/js/mark-lens.js" defer></script> <style>
+  </script> <script src="/assets/js/mark-lens.js" defer></script> <script>
+  /* Splits the last line into characters so it can be animated one at a
+     time, and gives a clicked destination a spring. Runs after paint and
+     leaves the DOM text identical, so the line reads the same to a screen
+     reader and to a browser with this file blocked. */
+  (function () {
+    var row = document.querySelector(".ftr__nav--out");
+    if (!row) return;
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    var bits = row.querySelectorAll("a, .ftr__where");
+    for (var i = 0; i < bits.length; i++) {
+      var el = bits[i];
+      var txt = el.textContent;
+      if (!txt || el.querySelector(".ch")) continue;
+      var frag = document.createDocumentFragment();
+      for (var j = 0; j < txt.length; j++) {
+        var sp = document.createElement("span");
+        sp.className = "ch";
+        sp.style.setProperty("--i", j);
+        /* A real space would collapse inside an inline-block, so it is kept
+           as a non-breaking one and the character count stays honest. */
+        sp.textContent = txt[j] === " " ? "\u00a0" : txt[j];
+        frag.appendChild(sp);
+      }
+      el.textContent = "";
+      el.appendChild(frag);
+    }
+
+    row.addEventListener("pointerdown", function (e) {
+      var a = e.target.closest && e.target.closest("a");
+      if (!a) return;
+      a.classList.remove("is-hit");
+      /* Reflow, or removing and re-adding the class in one frame is a no-op
+         and the second click on the same link does nothing. */
+      void a.offsetWidth;
+      a.classList.add("is-hit");
+      setTimeout(function () {
+        a.classList.remove("is-hit");
+      }, 900);
+    });
+  })();
+</script> <style>
   /* ── TOOLTIPS ARE OURS, NOT THE OPERATING SYSTEM'S ─────────────────────
      Sid: "the tool tips on the desk look like shit."
 
