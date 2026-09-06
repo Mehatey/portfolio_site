@@ -27,6 +27,46 @@ const camera = new THREE.PerspectiveCamera(35, innerWidth / innerHeight, 0.01, 1
 camera.position.z = 11;
 const root = new THREE.Group();
 scene.add(root);
+
+// A single restrained rain chapter lives inside the cube. World-space streaks
+// preserve parallax as the viewer looks around instead of reading as a screen
+// overlay. One shared geometry keeps the effect inexpensive.
+const rainCount = reduced ? 0 : 150;
+const rainPositions = new Float32Array(rainCount * 6);
+const rainColors = new Float32Array(rainCount * 6);
+const rainBaseX = new Float32Array(rainCount);
+const rainSpeed = new Float32Array(rainCount);
+const rainPhase = new Float32Array(rainCount);
+for (let i = 0; i < rainCount; i++) {
+  const j = i * 6;
+  const x = THREE.MathUtils.randFloatSpread(2.45);
+  const y = THREE.MathUtils.randFloatSpread(2.65);
+  const z = THREE.MathUtils.randFloatSpread(2.35);
+  const length = THREE.MathUtils.randFloat(0.055, 0.16);
+  const brightness = THREE.MathUtils.randFloat(0.42, 0.92);
+  rainBaseX[i] = x;
+  rainSpeed[i] = THREE.MathUtils.randFloat(0.34, 0.76);
+  rainPhase[i] = Math.random() * Math.PI * 2;
+  rainPositions.set([x, y, z, x + length * 0.11, y - length, z + length * 0.035], j);
+  rainColors.set([brightness * 0.62, brightness * 0.82, brightness, brightness * 0.38, brightness * 0.62, brightness * 0.84], j);
+}
+const rainGeometry = new THREE.BufferGeometry();
+rainGeometry.setAttribute("position", new THREE.BufferAttribute(rainPositions, 3));
+rainGeometry.setAttribute("color", new THREE.BufferAttribute(rainColors, 3));
+const rainMaterial = new THREE.LineBasicMaterial({
+  vertexColors: true,
+  transparent: true,
+  opacity: 0,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  toneMapped: false,
+});
+const interiorRain = new THREE.LineSegments(rainGeometry, rainMaterial);
+interiorRain.frustumCulled = false;
+interiorRain.renderOrder = 5;
+interiorRain.visible = false;
+scene.add(interiorRain);
+let rainAmount = 0;
 const clamp = THREE.MathUtils.clamp;
 const mix = THREE.MathUtils.lerp;
 const ease = (a, b, p) => {
@@ -360,7 +400,7 @@ for (let face = 0; face < 6; face++) {
 // Exact frames from the site's existing onboarding film. They stay documentary,
 // while the supporting cube surfaces remain authored watercolor materials.
 const textureLoader = new THREE.TextureLoader();
-const addImageFace = (face, path) => {
+const addImageFace = (face, path, exposure = 1) => {
   const texture = textureLoader.load(path);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
@@ -376,16 +416,21 @@ const addImageFace = (face, path) => {
     polygonOffsetFactor: -2,
     polygonOffsetUnits: -2,
   });
+  // Neutral linear-light exposure only. RGB channels remain equal so source
+  // hue and saturation are untouched, and photos never inherit panel effects.
+  material.color.setRGB(exposure, exposure, exposure);
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material);
-  mesh.position.z = 0.018;
+  // Sit above the rounded panel's 0.0275 front surface. The old 0.018 depth
+  // buried photos inside the thicker geometry and made them appear dark/absent.
+  mesh.position.z = 0.038;
   mesh.renderOrder = 3;
   mesh.userData.face = face;
   panels[face].add(mesh);
   imageFaces.push({ face, mesh, material });
 };
-addImageFace(2, "./assets/sid-eye-natural.png?v=2");
+addImageFace(2, "./assets/sid-eye-natural.png?v=2", 1.34);
 // The scan is the final tile in the reading order, beyond the three practices.
-addImageFace(1, "./assets/sid-brain-clean.png?v=2");
+addImageFace(1, "./assets/sid-brain-clean.png?v=2", 1.24);
 
 // Inside is a compact moving archive. Each clip is cropped to cover its wall,
 // muted, and only exposed from within the cube.
@@ -819,6 +864,9 @@ function pose(p) {
   const exit = ease(0.705, 0.775, p);
   const inside = enter * (1 - exit);
   const interiorVisible = ease(0.515, 0.555, p) * (1 - ease(0.735, 0.79, p));
+  // One readable weather beat, centered on the middle interior wall. Soft
+  // overlap at both edges prevents rain from popping on scroll reversals.
+  rainAmount = ease(0.603, 0.618, p) * (1 - ease(0.666, 0.686, p)) * interiorVisible;
   const door = ease(0.475, 0.54, p) * (1 - ease(0.715, 0.78, p));
   const voxelize = ease(0.775, 0.825, p);
   const chaos = ease(0.81, 0.865, p) * (1 - ease(0.875, 0.92, p));
@@ -994,6 +1042,25 @@ function animate() {
   background.uniforms.intro.value = introProgress;
   background.uniforms.progress.value = progress;
   background.uniforms.mouse.value.copy(pointer);
+  if (rainCount > 0) {
+    interiorRain.visible = rainAmount > 0.002;
+    rainMaterial.opacity = rainAmount * 0.42;
+    if (interiorRain.visible) {
+      for (let i = 0; i < rainCount; i++) {
+        const j = i * 6;
+        let y = rainPositions[j + 1] - rainSpeed[i] * dt;
+        if (y < -1.34) y += 2.68;
+        const length = rainPositions[j + 1] - rainPositions[j + 4];
+        const wind = Math.sin(time * 0.42 + rainPhase[i]) * 0.025;
+        const x = rainBaseX[i] + wind;
+        rainPositions[j] = x;
+        rainPositions[j + 1] = y;
+        rainPositions[j + 3] = x + length * 0.11;
+        rainPositions[j + 4] = y - length;
+      }
+      rainGeometry.attributes.position.needsUpdate = true;
+    }
+  }
   scrollVelocity *= Math.exp(-5 * dt);
   finish.uniforms.time.value = reduced ? 0 : time;
   finish.uniforms.velocity.value = reduced ? 0 : scrollVelocity;
