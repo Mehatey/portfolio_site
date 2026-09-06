@@ -77,13 +77,21 @@ const background = new THREE.ShaderMaterial({
       ripple+=d/(r+.04)*sin(r*32.-age*3.)*wake*.004;
       leak+=exp(-dot(d,d)*22.)*alive*.014;
     }
-    vec2 liveUv=vUv+ripple;vec3 col=washAt(liveUv,progress);
+    vec2 liveUv=vUv+ripple;vec3 pigment=washAt(liveUv,progress);
     vec2 mouseUv=mouse*.5+.5;vec2 md=(vUv-mouseUv)*vec2(aspect,1.);
     float cursor=exp(-dot(md,md)*14.)*step(length(mouse),1.8);
-    float mr=length(md);vec2 refractUv=vUv+md/(mr+.08)*sin(mr*26.-time*1.4)*cursor*.007;
-    vec3 refracted=washAt(refractUv,progress);
-    col=mix(col,refracted,cursor*.48);
-    col+=vec3(.56,.82,.80)*(leak+cursor*.025);
+    float mr=length(md);
+    float build=smoothstep(.08,.78,intro);
+    float dustSeed=hash(floor(vUv*vec2(310.,180.))+floor(time*.42));
+    float dust=pow(dustSeed,34.)*(.035+.045*(1.-build));
+    vec3 blackField=vec3(.0025,.0045,.0075)+vec3(.50,.66,.70)*dust;
+    vec3 col=mix(blackField,pigment,build);
+    // Before the full watercolor world arrives, the pointer gently wakes a
+    // restrained patch of pigment. No lens warp, pixel blocks, or hard ring.
+    float wake=cursor*(.62-.36*build);
+    float wakeFlow=.5+.5*sin(mr*18.-time*.72+fbm(vUv*5.)*3.);
+    col=mix(col,pigment,wake*(.18+.18*wakeFlow));
+    col+=vec3(.22,.42,.45)*(leak+cursor*.012*(.3+.7*wakeFlow));
     float cloudChapter=smoothstep(.18,.27,progress)*(1.-smoothstep(.43,.52,progress));
     float cloud=smoothstep(.61,.82,fbm(vec2(vUv.x*2.1-time*.012,vUv.y*.9+6.)));
     col=mix(col,vec3(.74,.79,.79),cloud*cloudChapter*.10);
@@ -204,12 +212,13 @@ void main(){
   float deposit=smoothstep(.27,.76,wet);
   float pigmentFlow=touch*uHold*.025;
   vec3 col=mix(uBase,uAccent,clamp(deposit*.38+pigmentFlow,0.,.85));
-  // Hover reveals a controlled mosaic sampled from this face's own pigment.
-  float cells=42.;vec2 qp=(floor(p*cells)+.5)/cells;
-  float pixelPigment=fbm(qp*5.7+vec2(uTime*.012,-uTime*.009));
-  vec3 pixelCol=mix(uBase,uAccent,smoothstep(.25,.72,pixelPigment));
-  float pixelReveal=smoothstep(.02,.82,touch)*uHover*(1.-uFace);
-  col=mix(col,pixelCol,pixelReveal*.82);
+  // Hover behaves like wet pigment spreading through paper: a soft chromatic
+  // tide and a moving edge, without mosaics, white flashes, or graphic rings.
+  float hoverWash=exp(-dot(delta,delta)*8.5)*uHover*(1.-uFace);
+  float tide=.5+.5*sin(length(delta)*22.-uTime*.65+wet*4.);
+  vec3 hoverPigment=mix(uBase,uAccent,.40+.28*tide);
+  col=mix(col,hoverPigment,hoverWash*(.16+.12*tide));
+  col+=mix(uAccent,vec3(.32,.55,.55),.45)*hoverWash*.035;
   // A click changes the pigment family and sends that color through the face.
   // It is deliberately chromatic, never the old generic white flash.
   float clickWash=exp(-dot(p-uTouch,p-uTouch)*mix(16.,2.8,uPulse))*uPulse;
@@ -248,16 +257,27 @@ void main(){
   col+=vec3(.09,.13,.14)*exp(-border*340.)*(1.-settle);
   // Ink is composited last, on the actual moving face, never a floating overlay.
   if(uFace>.5 && vFront>.5){
-    vec2 gaze=uGaze*.014;
+    vec2 gaze=uGaze*.012+vec2(sin(uTime*.23),cos(uTime*.19))*.0014;
     float eyeH=mix(.092,.006,uBlink);
-    float eye=oval(p-vec2(.34,.58)-gaze,vec2(.013,eyeH));
-    eye=max(eye,oval(p-vec2(.66,.58)-gaze,vec2(.013,eyeH)));
+    vec2 eyeL=p-vec2(.34,.58)-gaze;
+    vec2 eyeR=p-vec2(.66,.58)-gaze;
+    // Slightly imperfect ink shapes feel drawn and alive, while retaining the
+    // original long, quiet slit-eye identity.
+    eyeL.x+=eyeL.y*.055;
+    eyeR.x-=eyeR.y*.038;
+    float leftEye=oval(eyeL,vec2(.0125,eyeH*.97));
+    float rightEye=oval(eyeR,vec2(.0132,eyeH*1.03));
+    float eye=max(leftEye,rightEye);
     float x=p.x-.5;
     float mood=sin(uTime*.46);
     float curve=(uHover*.007+uAwake*.008*mood)*(1.-pow(clamp(x/.066,-1.,1.),2.));
     float mouthLine=(1.-smoothstep(.0025,.006,abs(p.y-(.225-curve))))*(1.-smoothstep(.050,.062,abs(x)));
     float expression=max(eye,mouthLine)*uAwake;
     col=mix(col,vec3(.018,.031,.040),expression*.97*(1.-smoothstep(0.,.3,uBreak)));
+    float glintL=oval(eyeL-vec2(-.0025,.021),vec2(.0022,max(.004,eyeH*.075)));
+    float glintR=oval(eyeR-vec2(-.0020,.022),vec2(.0020,max(.004,eyeH*.072)));
+    float glint=max(glintL,glintR)*(1.-uBlink)*uAwake;
+    col=mix(col,vec3(.70,.88,.85),glint*.72*(1.-smoothstep(0.,.3,uBreak)));
   }
   // The continuous panel hands off cell-by-cell to its matching voxel shell.
   if(uChip<.5){
@@ -276,7 +296,7 @@ const panels = [],
   uniforms = [];
 const imageFaces = [];
 const grid = 18;
-const panelGeometry = new THREE.BoxGeometry(2.5, 2.5, 0.012, 24, 24, 1);
+const panelGeometry = new RoundedBoxGeometry(2.5, 2.5, 0.055, 7, 0.14);
 panelGeometry.setAttribute("aTile", new THREE.Float32BufferAttribute(new Float32Array(panelGeometry.attributes.position.count * 3), 3));
 for (let face = 0; face < 6; face++) {
   const u = {
@@ -560,6 +580,12 @@ const portfolioIntro = document.querySelector(".portfolio-intro");
 const squareCaption = document.querySelector(".square-caption");
 const squareCaptionText = document.querySelector(".square-caption__text");
 const squareCaptionCaret = document.querySelector(".square-caption__caret");
+const sceneCursor = document.querySelector(".scene-cursor");
+let captionScreenY = innerHeight * 0.52;
+let captionVelocity = 0;
+const captionCorner = new THREE.Vector3();
+const cursorScreen = new THREE.Vector2(-40, -40);
+const cursorScreenTarget = new THREE.Vector2(-40, -40);
 const interiorContext = document.querySelector(".interior-context");
 const interiorContextIndex = document.querySelector(".interior-context__index");
 const interiorContextTitle = document.querySelector(".interior-context__title");
@@ -609,17 +635,39 @@ function activate() {
 const helloCopy = "Hey, I'm Sid.";
 const promptCopy = "Click the square";
 const revealCopy = (copy, amount) => copy.slice(0, Math.floor(clamp(amount, 0, 1) * (copy.length + 1)));
-function updateIntroCopy(t, storyProgress) {
+function projectedIntroSquareBottom() {
+  let bottom = -Infinity;
+  for (const x of [-1.25, 1.25]) {
+    for (const y of [-1.25, 1.25]) {
+      captionCorner.set(x, y, 0).applyMatrix4(panels[0].matrixWorld).project(camera);
+      bottom = Math.max(bottom, (1 - captionCorner.y) * innerHeight * 0.5);
+    }
+  }
+  return bottom;
+}
+function updateIntroCopy(t, storyProgress, dt) {
   let copy = "";
   if (t < 0.38) copy = revealCopy(helloCopy, ease(0.05, 0.34, t));
   else if (t < 0.73) copy = helloCopy;
   else if (t < 0.84) copy = helloCopy.slice(0, Math.ceil(helloCopy.length * (1 - ease(0.73, 0.84, t))));
   else copy = revealCopy(promptCopy, ease(0.84, 0.98, t));
   squareCaptionText.textContent = copy;
-  const relocate = ease(0.39, 0.69, t);
-  const restingOffset = Math.min(innerWidth < 700 ? 220 : 300, innerHeight * (innerWidth < 700 ? 0.27 : 0.29));
-  const offset = mix(0, restingOffset, relocate);
-  squareCaption.style.top = `calc(50% + ${offset}px)`;
+  // Treat the caption as a physical body. It stays at its original baseline
+  // until the descending square's projected bottom edge reaches it. During
+  // contact, a hard non-overlap constraint lets the square push the type;
+  // when contact ends, a critically damped spring returns it without snapping.
+  const baseY = innerHeight * (innerWidth < 700 ? 0.54 : 0.52);
+  const halfCaption = Math.max(14, squareCaption.offsetHeight * 0.5);
+  const contactY = projectedIntroSquareBottom() + (innerWidth < 700 ? 20 : 26) + halfCaption;
+  const targetY = Math.max(baseY, contactY);
+  const acceleration = (targetY - captionScreenY) * 92 - captionVelocity * 18;
+  captionVelocity += acceleration * dt;
+  captionScreenY += captionVelocity * dt;
+  if (contactY > baseY && captionScreenY < contactY) {
+    captionScreenY = contactY;
+    captionVelocity = Math.max(0, captionVelocity);
+  }
+  squareCaption.style.top = `${captionScreenY}px`;
   squareCaption.style.opacity = active ? 1 - awake : t > 0.025 ? 1 : 0;
   squareCaption.style.transform = "translate(-50%, -50%)";
   squareCaption.style.visibility = t > 0.018 ? "visible" : "hidden";
@@ -662,6 +710,8 @@ function pickFace() {
   if (hover >= 0 && hits[0].uv) touches[hover].copy(hits[0].uv);
 }
 canvas.addEventListener("pointermove", (e) => {
+  document.body.classList.add("pointer-input", "cursor-visible");
+  cursorScreenTarget.set(e.clientX, e.clientY);
   locate(e);
   if (held) {
     travel = Math.hypot(e.clientX - downX, e.clientY - downY);
@@ -677,6 +727,7 @@ canvas.addEventListener("pointermove", (e) => {
 canvas.addEventListener("pointerdown", (e) => {
   if (e.button !== 0) return;
   document.body.classList.add("pointer-input");
+  document.body.classList.add("cursor-down");
   locate(e);
   pickFace();
   held = true;
@@ -701,16 +752,19 @@ canvas.addEventListener("pointerup", (e) => {
   }
   held = false;
   dragging = false;
+  document.body.classList.remove("cursor-down");
   if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId);
 });
 function cancel() {
   held = false;
   dragging = false;
+  document.body.classList.remove("cursor-down");
 }
 canvas.addEventListener("pointercancel", cancel);
 window.addEventListener("blur", cancel);
 canvas.addEventListener("pointerleave", () => {
   if (!held) pointerTarget.set(5, 5);
+  if (!held) document.body.classList.remove("cursor-visible");
 });
 window.addEventListener("keydown", (e) => {
   if (e.key === "Tab") document.body.classList.remove("pointer-input");
@@ -896,12 +950,15 @@ function animate() {
   dragYaw = damp(dragYaw, dragYawTarget, 7, dt);
   const onCanvas = pointerTarget.x < 2;
   pointer.lerp(onCanvas ? pointerTarget : centeredPointer, 1 - Math.exp(-5 * dt));
-  updateIntroCopy(introProgress, progress);
+  cursorScreen.lerp(cursorScreenTarget, 1 - Math.exp(-18 * dt));
+  sceneCursor.style.transform = `translate3d(${cursorScreen.x}px, ${cursorScreen.y}px, 0) translate(-50%, -50%)`;
   pose(progress);
   scene.updateMatrixWorld(true);
+  updateIntroCopy(introProgress, progress, dt);
   pickFace();
   document.body.classList.toggle("over-cube", hover >= 0);
   document.body.classList.toggle("dragging", dragging);
+  document.body.classList.toggle("cursor-down", held && !dragging);
   const cycle = time % 5.3;
   const blink = reduced ? 0 : ease(4.88, 4.94, cycle) * (1 - ease(4.97, 5.08, cycle));
   for (let i = 0; i < 6; i++) {

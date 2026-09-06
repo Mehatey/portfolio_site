@@ -157,6 +157,13 @@
 
   function frame(now) {
     raf = 0;
+    /* Decoration yields first. See assets/js/motion-budget.js: fourteen rAF
+       loops on the home page turn a mid-range laptop into 13fps, and wind is
+       atmosphere. Cleared rather than frozen, so it leaves nothing behind. */
+    if (window.SidPerf && !window.SidPerf.ok()) {
+      ctx.clearRect(0, 0, W, H);
+      return;
+    }
     t += 0.35;
 
     /* Global strength: full when the pointer has moved recently and the page

@@ -339,6 +339,14 @@
   var piled = [];
 
   function frame() {
+    /* Decoration yields first, but only for NEW work: anything already in
+       flight is allowed to land and age out, because sprites frozen in
+       mid-air is worse than sprites that never appeared. */
+    if (window.SidPerf && !window.SidPerf.ok() && !live.length && !piled.length) {
+      raf = 0;
+      teardown();
+      return;
+    }
     ctx.clearRect(0, 0, innerWidth, innerHeight);
     var vy = window.scrollY || window.pageYOffset || 0;
 

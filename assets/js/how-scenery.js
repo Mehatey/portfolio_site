@@ -230,6 +230,11 @@
   });
 
   function frame(now) {
+    /* Decoration yields first. See assets/js/motion-budget.js. */
+    if (window.SidPerf && !window.SidPerf.ok()) {
+      requestAnimationFrame(frame);
+      return;
+    }
     requestAnimationFrame(frame);
     if (!visible || !onScreen || COLS < 2) return;
 

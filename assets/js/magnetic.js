@@ -120,6 +120,19 @@
 
   function frame() {
     raf = 0;
+    /* Decoration yields first. See assets/js/motion-budget.js. Controls snap
+       back to their real positions rather than freezing part-pulled, or a
+       button is left sitting ten pixels off the thing it labels. */
+    if (window.SidPerf && !window.SidPerf.ok()) {
+      for (var z = 0; z < items.length; z++) {
+        if (items[z].on) {
+          items[z].el.style.transform = "";
+          items[z].on = false;
+          items[z].x = items[z].y = 0;
+        }
+      }
+      return;
+    }
     if (dirty) measure();
 
     var moving = false;

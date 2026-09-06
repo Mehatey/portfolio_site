@@ -248,6 +248,15 @@
     t0 = performance.now();
 
   function frame(now) {
+    /* Decoration yields first. See assets/js/motion-budget.js: fourteen rAF
+       loops and twenty two canvases put the home page at 13fps on a four
+       times throttled CPU, which is a mid-range laptop. The frame is skipped
+       rather than the loop torn down, so the layer resumes the moment the
+       machine can afford it again. */
+    if (window.SidPerf && !window.SidPerf.ok()) {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
     raf = 0;
     var nb = host.getBoundingClientRect();
     var dpr = Math.min(window.devicePixelRatio || 1, 1.6);

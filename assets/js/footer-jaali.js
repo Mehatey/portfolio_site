@@ -142,6 +142,10 @@
 
   function frame(now) {
     raf = 0;
+    /* Decoration yields first. See assets/js/motion-budget.js. The band is
+       left drawn at its resting state rather than cleared: an empty strip
+       where a pattern was is more noticeable than a still pattern. */
+    if (window.SidPerf && !window.SidPerf.ok()) return;
     ctx.clearRect(0, 0, W, H);
 
     /* Where the lamp is, in canvas space. */
