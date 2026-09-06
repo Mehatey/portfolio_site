@@ -67,6 +67,64 @@ interiorRain.renderOrder = 5;
 interiorRain.visible = false;
 scene.add(interiorRain);
 let rainAmount = 0;
+
+// Scroll-drawn lightning gives the final voxel break a visible cause. A bright
+// core and translucent sleeve share each segment so bloom stays controlled.
+const lightningGroup = new THREE.Group();
+const lightningCoreMaterial = new THREE.MeshBasicMaterial({ color: 0xf8fdff, transparent: true, opacity: 0, toneMapped: false });
+const lightningAuraMaterial = new THREE.MeshBasicMaterial({
+  color: 0x72cfff,
+  transparent: true,
+  opacity: 0,
+  depthWrite: false,
+  blending: THREE.AdditiveBlending,
+  toneMapped: false,
+});
+const lightningUnit = new THREE.CylinderGeometry(1, 1, 1, 5, 1, true);
+const lightningSegments = [];
+const lightningUp = new THREE.Vector3(0, 1, 0);
+const addLightningSegment = (from, to, order) => {
+  const direction = to.clone().sub(from);
+  const length = direction.length();
+  const midpoint = from.clone().add(to).multiplyScalar(0.5);
+  const quaternion = new THREE.Quaternion().setFromUnitVectors(lightningUp, direction.normalize());
+  const core = new THREE.Mesh(lightningUnit, lightningCoreMaterial);
+  const aura = new THREE.Mesh(lightningUnit, lightningAuraMaterial);
+  core.position.copy(midpoint);
+  aura.position.copy(midpoint);
+  core.quaternion.copy(quaternion);
+  aura.quaternion.copy(quaternion);
+  core.scale.set(0.011, length, 0.011);
+  aura.scale.set(0.038, length, 0.038);
+  core.renderOrder = aura.renderOrder = 8;
+  lightningGroup.add(aura, core);
+  lightningSegments.push({ core, aura, length, order });
+};
+const lightningPoints = [];
+for (let i = 0; i <= 18; i++) {
+  const t = i / 18;
+  const taper = Math.sin(t * Math.PI);
+  lightningPoints.push(
+    new THREE.Vector3(
+      (Math.sin(i * 2.37) * 0.12 + Math.sin(i * 5.11) * 0.045) * taper,
+      THREE.MathUtils.lerp(4.25, 1.28, t),
+      0.38 + Math.sin(i * 1.71) * 0.055 * taper
+    )
+  );
+}
+for (let i = 0; i < lightningPoints.length - 1; i++) addLightningSegment(lightningPoints[i], lightningPoints[i + 1], i);
+for (const index of [6, 10, 13]) {
+  const origin = lightningPoints[index];
+  const sign = index % 2 ? -1 : 1;
+  const branchA = origin.clone().add(new THREE.Vector3(sign * 0.20, -0.18, 0.02));
+  const branchB = branchA.clone().add(new THREE.Vector3(sign * 0.14, -0.22, -0.025));
+  addLightningSegment(origin, branchA, 18 + index * 0.12);
+  addLightningSegment(branchA, branchB, 19 + index * 0.12);
+}
+lightningGroup.visible = false;
+scene.add(lightningGroup);
+let lightningAmount = 0;
+let lightningDraw = 0;
 const clamp = THREE.MathUtils.clamp;
 const mix = THREE.MathUtils.lerp;
 const ease = (a, b, p) => {
@@ -128,10 +186,20 @@ const background = new THREE.ShaderMaterial({
     vec3 col=mix(blackField,pigment,build);
     // Before the full watercolor world arrives, the pointer gently wakes a
     // restrained patch of pigment. No lens warp, pixel blocks, or hard ring.
-    float wake=cursor*(.62-.36*build);
+    float wake=cursor*(.72-.30*build);
     float wakeFlow=.5+.5*sin(mr*18.-time*.72+fbm(vUv*5.)*3.);
-    col=mix(col,pigment,wake*(.18+.18*wakeFlow));
-    col+=vec3(.22,.42,.45)*(leak+cursor*.012*(.3+.7*wakeFlow));
+    // Hover behaves like light refracting through a shallow pond. Local color
+    // separation, fluid displacement, and broken caustics create depth without
+    // introducing a graphic ring or unrelated object.
+    vec2 refraction=md/(mr+.035)*sin(mr*48.-time*1.35+fbm(vUv*8.)*4.)*cursor*.008;
+    vec3 refracted=washAt(liveUv+refraction,progress);
+    float caustic=pow(.5+.5*sin(mr*72.-time*1.7+fbm(vUv*13.)*5.),9.)*cursor;
+    col=mix(col,refracted,wake*(.28+.23*wakeFlow));
+    col.r=mix(col.r,washAt(liveUv+refraction*1.8+vec2(.003,0.),progress).r,cursor*.13);
+    col.b=mix(col.b,washAt(liveUv-refraction*1.5-vec2(.003,0.),progress).b,cursor*.16);
+    col+=vec3(.24,.70,.78)*caustic*.19;
+    col-=vec3(.015,.035,.045)*cursor*(1.-wakeFlow)*.30;
+    col+=vec3(.22,.42,.45)*(leak+cursor*.018*(.3+.7*wakeFlow));
     float cloudChapter=smoothstep(.18,.27,progress)*(1.-smoothstep(.43,.52,progress));
     float cloud=smoothstep(.61,.82,fbm(vec2(vUv.x*2.1-time*.012,vUv.y*.9+6.)));
     col=mix(col,vec3(.74,.79,.79),cloud*cloudChapter*.10);
@@ -167,15 +235,19 @@ composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.28, 0.58, 0.74);
 composer.addPass(bloom);
 const finish = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, time: { value: 0 }, velocity: { value: 0 }, progress: { value: 0 }, resolution: { value: new THREE.Vector2() } },
+  uniforms: { tDiffuse: { value: null }, time: { value: 0 }, velocity: { value: 0 }, progress: { value: 0 }, lightning: { value: 0 }, resolution: { value: new THREE.Vector2() } },
   vertexShader: "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
-  fragmentShader: `varying vec2 vUv;uniform sampler2D tDiffuse;uniform float time,velocity,progress;uniform vec2 resolution;
+  fragmentShader: `varying vec2 vUv;uniform sampler2D tDiffuse;uniform float time,velocity,progress,lightning;uniform vec2 resolution;
   ${noise}
-  void main(){float effects=smoothstep(.48,.56,progress);float speed=clamp(abs(velocity),0.,1.)*effects;vec2 dir=vec2(sign(velocity),-.18)*speed/resolution*5.;
+  void main(){float effects=smoothstep(.48,.56,progress)*(1.-smoothstep(.88,.96,progress));float speed=clamp(abs(velocity),0.,1.)*effects;vec2 dir=vec2(sign(velocity),-.18)*speed/resolution*5.;
   vec3 c=texture2D(tDiffuse,vUv).rgb;c=mix(c,(texture2D(tDiffuse,vUv-dir).rgb+texture2D(tDiffuse,vUv+dir).rgb)*.5,speed*.18);
   float split=effects*(.25+speed*1.45)/max(resolution.x,1.);c.r=texture2D(tDiffuse,vUv+vec2(split,0.)).r;c.b=texture2D(tDiffuse,vUv-vec2(split,0.)).b;
   float grain=(hash(vUv*resolution+floor(time*18.))-.5)*.012;
-  c=mix(c,(c-.5)*1.055+.5,effects);c*=1.-effects*.19*dot(vUv-.5,vUv-.5);c+=grain;gl_FragColor=vec4(c,1.);}`,
+  c=mix(c,(c-.5)*1.055+.5,effects);c*=1.-effects*.19*dot(vUv-.5,vUv-.5);c+=grain;
+  vec2 flashDelta=(vUv-vec2(.5,.52))*vec2(resolution.x/max(resolution.y,1.),1.);
+  float impact=exp(-dot(flashDelta,flashDelta)*4.2);
+  c+=vec3(.52,.76,1.)*lightning*(.08+impact*.34);
+  c=mix(c,vec3(1.),lightning*lightning*.12);gl_FragColor=vec4(c,1.);}`,
 });
 composer.addPass(finish);
 
@@ -235,7 +307,7 @@ void main(){vec3 p=position;vec3 norm=normal;
   gl_Position=projectionMatrix*viewMatrix*world;
 }`;
 const fragmentShader = `${noise}
-uniform vec3 uBase,uAccent;uniform float uTime,uHover,uHold,uPulse,uFace,uBlink,uAwake,uBreak,uSettle,uSheen,uFocus,uChip,uPanelFade,uMode,uGrid,uIndex;
+uniform vec3 uBase,uAccent;uniform float uTime,uHover,uHold,uPulse,uFace,uBlink,uAwake,uBreak,uSettle,uSheen,uFocus,uChip,uPanelFade,uMode,uGrid,uIndex,uOutline;
 uniform vec2 uTouch,uGaze;varying vec2 vUv;varying vec3 vNormal,vWorld;varying float vFront,vDissolve;
 float oval(vec2 p,vec2 size){float d=length(p/size);return 1.-smoothstep(.92,1.08,d);}
 void main(){
@@ -264,6 +336,9 @@ void main(){
   float clickWash=exp(-dot(p-uTouch,p-uTouch)*mix(16.,2.8,uPulse))*uPulse;
   col=mix(col,uAccent,clickWash*.42);
   col*=.91+.12*gran;
+  // Voxel colors converge to neutral white as they organize into Sid's mark.
+  // This prevents the former green/cyan edge residue during the final morph.
+  col=mix(col,vec3(.96,.985,1.),smoothstep(.58,.98,uOutline)*.94);
   float fibers=noise2(p*530.);col+=vec3(fibers-.5)*.035;
   float stain=abs(wet-.51);col*=1.-.08*exp(-stain*110.);
   vec3 N=normalize(vNormal),V=normalize(cameraPosition-vWorld);
@@ -298,26 +373,36 @@ void main(){
   // Ink is composited last, on the actual moving face, never a floating overlay.
   if(uFace>.5 && vFront>.5){
     vec2 gaze=uGaze*.012+vec2(sin(uTime*.23),cos(uTime*.19))*.0014;
-    float eyeH=mix(.092,.006,uBlink);
+    float eyeOpen=.5+.5*sin(uTime*.42+sin(uTime*.13)*1.7);
+    float eyeH=mix(.088+.010*eyeOpen,.006,uBlink);
+    float eyeW=.0125+.0065*smoothstep(.63,.98,eyeOpen)*(1.-uBlink);
     vec2 eyeL=p-vec2(.34,.58)-gaze;
     vec2 eyeR=p-vec2(.66,.58)-gaze;
     // Slightly imperfect ink shapes feel drawn and alive, while retaining the
     // original long, quiet slit-eye identity.
     eyeL.x+=eyeL.y*.055;
     eyeR.x-=eyeR.y*.038;
-    float leftEye=oval(eyeL,vec2(.0125,eyeH*.97));
-    float rightEye=oval(eyeR,vec2(.0132,eyeH*1.03));
+    float leftEye=oval(eyeL,vec2(eyeW,eyeH*.97));
+    float rightEye=oval(eyeR,vec2(eyeW*1.055,eyeH*1.03));
     float eye=max(leftEye,rightEye);
+    float eyeAura=max(
+      oval(eyeL,vec2(eyeW*2.85,eyeH*1.22)),
+      oval(eyeR,vec2(eyeW*2.85,eyeH*1.22))
+    );
+    float eyeRing=max(eyeAura-eye,0.);
+    col*=1.-eyeRing*.075*uAwake;
+    col+=vec3(.20,.48,.55)*eyeRing*.065*uAwake*(.72+.28*eyeOpen);
     float x=p.x-.5;
     float mood=sin(uTime*.46);
-    float curve=(uHover*.007+uAwake*.008*mood)*(1.-pow(clamp(x/.066,-1.,1.),2.));
-    float mouthLine=(1.-smoothstep(.0025,.006,abs(p.y-(.225-curve))))*(1.-smoothstep(.050,.062,abs(x)));
+    float curve=(uHover*.006+uAwake*.007*mood)*(1.-pow(clamp(x/.055,-1.,1.),2.));
+    float mouthLine=(1.-smoothstep(.0025,.006,abs(p.y-(.225-curve))))*(1.-smoothstep(.041,.052,abs(x)));
     float expression=max(eye,mouthLine)*uAwake;
     col=mix(col,vec3(.018,.031,.040),expression*.97*(1.-smoothstep(0.,.3,uBreak)));
-    float glintL=oval(eyeL-vec2(-.0025,.021),vec2(.0022,max(.004,eyeH*.075)));
-    float glintR=oval(eyeR-vec2(-.0020,.022),vec2(.0020,max(.004,eyeH*.072)));
+    float glintL=oval(eyeL-vec2(-.0035,.019),vec2(.0044,max(.0075,eyeH*.115)));
+    float glintR=oval(eyeR-vec2(-.0030,.020),vec2(.0041,max(.0072,eyeH*.108)));
     float glint=max(glintL,glintR)*(1.-uBlink)*uAwake;
-    col=mix(col,vec3(.70,.88,.85),glint*.72*(1.-smoothstep(0.,.3,uBreak)));
+    float sparkle=.86+.14*sin(uTime*2.1);
+    col=mix(col,vec3(1.),glint*sparkle*(1.-smoothstep(0.,.3,uBreak)));
   }
   // The continuous panel hands off cell-by-cell to its matching voxel shell.
   if(uChip<.5){
@@ -475,7 +560,10 @@ const addInteriorVideo = (face, path, sourceAspect) => {
     toneMapped: false,
   });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material);
-  mesh.position.z = -0.022;
+  // The rounded panel has an inner surface at -0.0275. Keep the video just
+  // inside that surface so it remains visible from the cube interior.
+  mesh.position.z = -0.038;
+  mesh.renderOrder = 4;
   mesh.userData.face = face;
   panels[face].add(mesh);
   interiorFaces.push({ face, mesh, material, video });
@@ -499,22 +587,56 @@ addInteriorVideo(5, "./assets/interior-o2.mp4", 610 / 1078);
 // Continuous final identity mark. Its face is physical geometry, so the same
 // expression survives the change from filled cube to portfolio logo.
 const logoMark = new THREE.Group();
-const logoInk = new THREE.MeshBasicMaterial({ color: 0xe8f1e9, transparent: true, opacity: 0, toneMapped: false });
-const logoEdges = new THREE.LineSegments(
-  new THREE.EdgesGeometry(new RoundedBoxGeometry(2.5, 2.5, 2.5, 5, 0.14)),
-  new THREE.LineBasicMaterial({ color: 0xe8f1e9, transparent: true, opacity: 0, toneMapped: false })
+const logoInk = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, toneMapped: false });
+const roundedRectPath = (path, half, radius, clockwise) => {
+  if (clockwise) {
+    path.moveTo(-half, -half + radius);
+    path.lineTo(-half, half - radius);
+    path.quadraticCurveTo(-half, half, -half + radius, half);
+    path.lineTo(half - radius, half);
+    path.quadraticCurveTo(half, half, half, half - radius);
+    path.lineTo(half, -half + radius);
+    path.quadraticCurveTo(half, -half, half - radius, -half);
+    path.lineTo(-half + radius, -half);
+    path.quadraticCurveTo(-half, -half, -half, -half + radius);
+  } else {
+    path.moveTo(-half + radius, -half);
+    path.lineTo(half - radius, -half);
+    path.quadraticCurveTo(half, -half, half, -half + radius);
+    path.lineTo(half, half - radius);
+    path.quadraticCurveTo(half, half, half - radius, half);
+    path.lineTo(-half + radius, half);
+    path.quadraticCurveTo(-half, half, -half, half - radius);
+    path.lineTo(-half, -half + radius);
+    path.quadraticCurveTo(-half, -half, -half + radius, -half);
+  }
+};
+const logoShape = new THREE.Shape();
+roundedRectPath(logoShape, 1.25, 0.25, true);
+const logoHole = new THREE.Path();
+roundedRectPath(logoHole, 1.155, 0.17, false);
+logoShape.holes.push(logoHole);
+const logoEdges = new THREE.Mesh(
+  new THREE.ShapeGeometry(logoShape, 8),
+  new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, toneMapped: false, side: THREE.DoubleSide })
 );
+logoEdges.position.z = 1.286;
 logoMark.add(logoEdges);
-const eyeGeo = new THREE.BoxGeometry(0.105, 0.39, 0.055);
-const mouthGeo = new THREE.BoxGeometry(0.43, 0.065, 0.055);
-for (const x of [-0.34, 0.34]) {
+// Exact proportions from _includes/site_logo.html, scaled from its 21-unit
+// front face to this 2.5-unit mark.
+const eyeGeo = new RoundedBoxGeometry(0.155, 0.571, 0.045, 4, 0.055);
+for (const x of [-0.419, 0.420]) {
   const eye = new THREE.Mesh(eyeGeo, logoInk);
-  eye.position.set(x, 0.22, 1.278);
+  eye.position.set(x, 0.202, 1.29);
   logoMark.add(eye);
 }
-const logoMouth = new THREE.Mesh(mouthGeo, logoInk);
-logoMouth.position.set(0, -0.54, 1.278);
+const logoMouth = new THREE.Mesh(new RoundedBoxGeometry(0.512, 0.107, 0.045, 4, 0.045), logoInk);
+logoMouth.position.set(0, -0.518, 1.29);
 logoMark.add(logoMouth);
+const innerSignalMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, toneMapped: false });
+const innerSignal = new THREE.LineSegments(new THREE.EdgesGeometry(new RoundedBoxGeometry(1.34, 1.34, 1.34, 4, 0.12)), innerSignalMaterial);
+innerSignal.position.z = 0.08;
+logoMark.add(innerSignal);
 root.add(logoMark);
 
 // Typography belongs to the geometry, so perspective and occlusion stay honest.
@@ -533,9 +655,8 @@ new FontLoader().load(
     ];
     for (const spec of specs) {
       const label = new THREE.Group();
-      const material = new THREE.MeshBasicMaterial({ color: 0xf4efdf, transparent: true, opacity: 0, toneMapped: false });
+      const material = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, toneMapped: false });
       const sideMaterial = new THREE.MeshBasicMaterial({ color: 0xbab7ae, transparent: true, opacity: 0, toneMapped: false });
-      sideMaterial.color.multiplyScalar(0.65);
       const addText = (text, size, x, y) => {
         const geometry = new TextGeometry(text, { font, size, depth: 0.008, curveSegments: 6, bevelEnabled: false });
         const mesh = new THREE.Mesh(geometry, [material, sideMaterial]);
@@ -546,7 +667,7 @@ new FontLoader().load(
       addText(spec.symbol, 0.48, -1.06, 0.24);
       spec.lines.forEach((line, i) => addText(line, 0.16, -1.04, -0.58 - i * 0.23));
       panels[spec.face].add(label);
-      disciplineLabels.push({ group: label, material, sideMaterial, materials: [material, sideMaterial], face: spec.face, ink: material.color.clone() });
+      disciplineLabels.push({ group: label, material, sideMaterial, materials: [material, sideMaterial], face: spec.face });
     }
     const mriMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, toneMapped: false });
     const mriGeometry = new TextGeometry("SIDDHARTH MEHTA", { font, size: 0.105, depth: 0.006, curveSegments: 4, bevelEnabled: false });
@@ -868,12 +989,16 @@ function pose(p) {
   // overlap at both edges prevents rain from popping on scroll reversals.
   rainAmount = ease(0.603, 0.618, p) * (1 - ease(0.666, 0.686, p)) * interiorVisible;
   const door = ease(0.475, 0.54, p) * (1 - ease(0.715, 0.78, p));
-  const voxelize = ease(0.775, 0.825, p);
-  const chaos = ease(0.81, 0.865, p) * (1 - ease(0.875, 0.92, p));
-  const edgeOrder = ease(0.88, 0.945, p);
-  const settleVoxels = ease(0.935, 0.972, p);
-  const simplifyMark = ease(0.94, 0.982, p);
-  const dock = ease(0.955, 0.997, p);
+  lightningDraw = ease(0.748, 0.774, p);
+  const primaryFlash = ease(0.762, 0.769, p) * (1 - ease(0.776, 0.786, p));
+  const afterFlash = ease(0.780, 0.785, p) * (1 - ease(0.791, 0.800, p));
+  lightningAmount = Math.max(primaryFlash, afterFlash * 0.46);
+  const voxelize = ease(0.790, 0.842, p);
+  const chaos = ease(0.825, 0.88, p) * (1 - ease(0.89, 0.93, p));
+  const edgeOrder = ease(0.875, 0.94, p);
+  const settleVoxels = ease(0.92, 0.972, p);
+  const simplifyMark = ease(0.915, 0.985, p);
+  const dock = ease(0.925, 0.997, p);
   // Start intimate, then retain enough scale for the details to read once all
   // six sides are present. The former 0.58 endpoint felt like a thumbnail.
   const netScale = mix(1.11, 0.70, ease(0.02, 0.22, p));
@@ -894,7 +1019,7 @@ function pose(p) {
   root.position.y = mix(mix(outsideY, 0, inside), dockY, dock) + mix(5.4, 0, introSquare);
   const outsideRX = fold * 0.12 + pointer.y * 0.018 * cubeHold + dragPitch * fold * (1 - inside);
   const outsideRY = -0.025 + fold * 0.24 + showcase * 0.45 + pointer.x * 0.024 * cubeHold + dragYaw * fold * (1 - inside);
-  root.rotation.set(mix(outsideRX * (1 - inside), -0.16, dock), mix(outsideRY * (1 - inside), 0.34, dock), mix(Math.sin(ease(0.28, 0.50, p) * Math.PI) * 0.032 * (1 - inside), 0, dock));
+  root.rotation.set(mix(outsideRX * (1 - inside), 0, dock), mix(outsideRY * (1 - inside), 0, dock), mix(Math.sin(ease(0.28, 0.50, p) * Math.PI) * 0.032 * (1 - inside), 0, dock));
 
   // One face becomes a door, then closes before the object voxelizes.
   panels[0].position.x += door * 2.85;
@@ -912,7 +1037,7 @@ function pose(p) {
   camera.fov = mix(mix(35, 76, enter), 35, exit);
   camera.updateProjectionMatrix();
   for (let i = 0; i < 6; i++) {
-    const handoff = ease(0.775 + i * 0.002, 0.825 + i * 0.002, p);
+    const handoff = ease(0.790 + i * 0.002, 0.842 + i * 0.002, p);
     uniforms[i].uBreak.value = chaos * 0.92;
     uniforms[i].uOutline.value = edgeOrder * 1.12;
     uniforms[i].uPanelFade.value = handoff;
@@ -960,12 +1085,15 @@ function pose(p) {
   interiorContext.style.transform = `translateY(${(1 - interiorVisible) * 8}px)`;
   interiorContext.setAttribute("aria-hidden", interiorVisible < 0.2 ? "true" : "false");
 
-  const logoAlpha = ease(0.90, 0.95, p);
+  const logoAlpha = ease(0.885, 0.94, p);
+  const innerSignalAlpha = ease(0.89, 0.92, p) * (1 - ease(0.952, 0.982, p));
   logoMark.visible = logoAlpha > 0.001;
-  logoMark.scale.set(1, 1, mix(1, 0.12, simplifyMark));
+  logoMark.scale.set(1, 1, mix(1, 0.035, simplifyMark));
   logoEdges.material.opacity = logoAlpha;
   logoInk.opacity = logoAlpha;
-  const intro = ease(0.95, 1, p);
+  innerSignal.visible = innerSignalAlpha > 0.001;
+  innerSignalMaterial.opacity = innerSignalAlpha * 0.72;
+  const intro = ease(0.972, 1, p);
   portfolioIntro.style.opacity = intro;
   portfolioIntro.style.transform = `translateY(${(1 - intro) * 22}px)`;
   portfolioIntro.setAttribute("aria-hidden", intro < 0.8 ? "true" : "false");
@@ -1031,13 +1159,6 @@ function animate() {
     u.uBlink.value = blink;
     u.uAwake.value = awake;
   }
-  for (const label of disciplineLabels) {
-    const base = uniforms[label.face].uBase.value;
-    const luminance = base.r * 0.2126 + base.g * 0.7152 + base.b * 0.0722;
-    label.ink.set(luminance < 0.34 ? 0xf4efdf : 0x112d3c);
-    label.material.color.lerp(label.ink, 1 - Math.exp(-3 * dt));
-    label.sideMaterial.color.copy(label.material.color).multiplyScalar(0.65);
-  }
   background.uniforms.time.value = reduced ? 0 : time;
   background.uniforms.intro.value = introProgress;
   background.uniforms.progress.value = progress;
@@ -1061,10 +1182,23 @@ function animate() {
       rainGeometry.attributes.position.needsUpdate = true;
     }
   }
+  lightningGroup.visible = !reduced && lightningDraw > 0.002 && progress < 0.81;
+  lightningCoreMaterial.opacity = lightningAmount > 0.01 ? 0.98 : lightningDraw * (1 - ease(0.792, 0.81, progress)) * 0.72;
+  lightningAuraMaterial.opacity = lightningAmount * 0.28 + lightningCoreMaterial.opacity * 0.10;
+  if (lightningGroup.visible) {
+    const reveal = lightningDraw * lightningSegments.length;
+    for (const segment of lightningSegments) {
+      const segmentT = ease(segment.order, segment.order + 1, reveal);
+      segment.core.visible = segment.aura.visible = segmentT > 0.002;
+      segment.core.scale.y = segment.length * Math.max(0.001, segmentT);
+      segment.aura.scale.y = segment.length * Math.max(0.001, segmentT);
+    }
+  }
   scrollVelocity *= Math.exp(-5 * dt);
   finish.uniforms.time.value = reduced ? 0 : time;
   finish.uniforms.velocity.value = reduced ? 0 : scrollVelocity;
   finish.uniforms.progress.value = progress;
+  finish.uniforms.lightning.value = reduced ? 0 : lightningAmount;
   composer.render();
   requestAnimationFrame(animate);
 }
