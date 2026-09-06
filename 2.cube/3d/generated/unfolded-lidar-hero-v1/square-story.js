@@ -5,6 +5,7 @@ import { ShaderPass } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/
 import { UnrealBloomPass } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { FontLoader } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/FontLoader.js";
 import { TextGeometry } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/geometries/TextGeometry.js";
+import { RoundedBoxGeometry } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/geometries/RoundedBoxGeometry.js";
 
 // One object, one continuous timeline. Previous experiments remain in main.js.
 const canvas = document.querySelector("#scene");
@@ -13,9 +14,6 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPrefere
 renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 const scene = new THREE.Scene();
-// Documentary images render after the cinematic pass. This keeps their source
-// pixels clear of bloom, RGB splitting, motion blur, contrast, and vignette.
-const photoScene = new THREE.Scene();
 // Soft environmental lighting supports the reflective cube without turning it
 // into a chrome product render.
 scene.add(new THREE.HemisphereLight(0xdff8ff, 0x16333a, 2.2));
@@ -52,10 +50,10 @@ float fbm(vec2 p){float s=0.,a=.5;mat2 r=mat2(.8,-.6,.6,.8);for(int i=0;i<5;i++)
 const background = new THREE.ShaderMaterial({
   depthWrite: false,
   depthTest: false,
-  uniforms: { time: { value: 0 }, progress: { value: 0 }, aspect: { value: 1 }, mouse: { value: new THREE.Vector2() }, trail: { value: waterTrail } },
+  uniforms: { time: { value: 0 }, progress: { value: 0 }, intro: { value: 0 }, aspect: { value: 1 }, mouse: { value: new THREE.Vector2() }, trail: { value: waterTrail } },
   vertexShader: "varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,1.,1.);}",
   fragmentShader: `${noise}
-  varying vec2 vUv;uniform float time,progress,aspect;uniform vec2 mouse;uniform vec4 trail[12];
+  varying vec2 vUv;uniform float time,progress,intro,aspect;uniform vec2 mouse;uniform vec4 trail[12];
   vec3 washAt(vec2 uv,float phase){
     vec2 p=(uv-.5)*vec2(aspect,1.);vec2 q=p*1.7+vec2(time*.012,-time*.008);
     vec2 warp=vec2(fbm(q+3.),fbm(q-8.));float w=fbm(q+warp*2.4);float b=fbm(q*1.45-w+vec2(9.,time*.008));
@@ -81,21 +79,33 @@ const background = new THREE.ShaderMaterial({
     }
     vec2 liveUv=vUv+ripple;vec3 col=washAt(liveUv,progress);
     vec2 mouseUv=mouse*.5+.5;vec2 md=(vUv-mouseUv)*vec2(aspect,1.);
-    float cursor=exp(-dot(md,md)*18.)*step(length(mouse),1.8);
-    float cells=mix(72.,118.,.5+.5*sin(time*.17));vec2 cellUv=(floor(vUv*cells)+.5)/cells;
-    vec2 jitter=(vec2(hash(floor(vUv*cells)+floor(time*5.)),hash(floor(vUv*cells)+17.+floor(time*5.)))-.5)/cells*.42;
-    vec3 pixelWash=washAt(cellUv+jitter,progress);
-    float pixelMask=smoothstep(.08,.72,cursor)*(1.-smoothstep(.72,1.,cursor)*.22);
-    col=mix(col,pixelWash,pixelMask*.92);
-    col+=vec3(.65,.86,.79)*leak;
+    float cursor=exp(-dot(md,md)*14.)*step(length(mouse),1.8);
+    float mr=length(md);vec2 refractUv=vUv+md/(mr+.08)*sin(mr*26.-time*1.4)*cursor*.007;
+    vec3 refracted=washAt(refractUv,progress);
+    col=mix(col,refracted,cursor*.48);
+    col+=vec3(.56,.82,.80)*(leak+cursor*.025);
     float cloudChapter=smoothstep(.18,.27,progress)*(1.-smoothstep(.43,.52,progress));
     float cloud=smoothstep(.61,.82,fbm(vec2(vUv.x*2.1-time*.012,vUv.y*.9+6.)));
     col=mix(col,vec3(.74,.79,.79),cloud*cloudChapter*.10);
+    // Continuous water detail only. No decorative fish, flowers, or pixel props.
+    float pondLife=smoothstep(.45,.74,intro)*(1.-smoothstep(.50,.60,progress));
+    vec2 windUv=vUv+vec2(sin(vUv.y*8.+time*.16),cos(vUv.x*7.-time*.12))*.004;
+    float causticA=pow(max(0.,sin((windUv.x+fbm(windUv*3.))*31.+time*.34)*sin(windUv.y*27.-time*.22)),4.);
+    float causticB=pow(max(0.,sin((windUv.x-windUv.y)*43.-time*.19+fbm(windUv*5.)*3.)),6.);
+    col+=vec3(.26,.50,.51)*(causticA*.052+causticB*.026)*pondLife;
     // Give the unfolding identity a calm pocket without adding a card, glow,
     // or artificial spotlight. The watercolor remains visible at the edges.
     vec2 stage=(vUv-.5)*vec2(aspect,1.);float quiet=exp(-dot(stage,stage)*1.75);
     float netChapter=smoothstep(.018,.07,progress)*(1.-smoothstep(.33,.44,progress));
     col=mix(col,vec3(.075,.20,.245),quiet*netChapter*.16);
+    float eyeChapter=smoothstep(.12,.18,progress)*(1.-smoothstep(.31,.40,progress));
+    float eyeWarmth=exp(-dot(stage-vec2(.42,0.),stage-vec2(.42,0.))*2.4);
+    col=mix(col,col+vec3(.095,.040,.012),eyeWarmth*eyeChapter*.46);
+    // Watercolor is the opening world. The voxel/logo ending moves onto a
+    // quieter ink field so the identity transformation stays visually coherent.
+    float endField=smoothstep(.79,.88,progress);
+    vec3 inkField=mix(vec3(.012,.026,.041),vec3(.025,.072,.083),fbm(vUv*2.1+4.)*.34);
+    col=mix(col,inkField,endField);
     gl_FragColor=vec4(col,1.);
   }`,
 });
@@ -109,14 +119,15 @@ composer.addPass(new RenderPass(scene, camera));
 const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.28, 0.58, 0.74);
 composer.addPass(bloom);
 const finish = new ShaderPass({
-  uniforms: { tDiffuse: { value: null }, time: { value: 0 }, velocity: { value: 0 }, resolution: { value: new THREE.Vector2() } },
+  uniforms: { tDiffuse: { value: null }, time: { value: 0 }, velocity: { value: 0 }, progress: { value: 0 }, resolution: { value: new THREE.Vector2() } },
   vertexShader: "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
-  fragmentShader: `varying vec2 vUv;uniform sampler2D tDiffuse;uniform float time,velocity;uniform vec2 resolution;
+  fragmentShader: `varying vec2 vUv;uniform sampler2D tDiffuse;uniform float time,velocity,progress;uniform vec2 resolution;
   ${noise}
-  void main(){float speed=clamp(abs(velocity),0.,1.);vec2 dir=vec2(sign(velocity),-.18)*speed/resolution*5.;
+  void main(){float effects=smoothstep(.48,.56,progress);float speed=clamp(abs(velocity),0.,1.)*effects;vec2 dir=vec2(sign(velocity),-.18)*speed/resolution*5.;
   vec3 c=texture2D(tDiffuse,vUv).rgb;c=mix(c,(texture2D(tDiffuse,vUv-dir).rgb+texture2D(tDiffuse,vUv+dir).rgb)*.5,speed*.18);
-  float split=(.35+speed*1.8)/max(resolution.x,1.);c.r=texture2D(tDiffuse,vUv+vec2(split,0.)).r;c.b=texture2D(tDiffuse,vUv-vec2(split,0.)).b;
-  c=(c-.5)*1.075+.5;c*=1.-.25*dot(vUv-.5,vUv-.5);gl_FragColor=vec4(c,1.);}`,
+  float split=effects*(.25+speed*1.45)/max(resolution.x,1.);c.r=texture2D(tDiffuse,vUv+vec2(split,0.)).r;c.b=texture2D(tDiffuse,vUv-vec2(split,0.)).b;
+  float grain=(hash(vUv*resolution+floor(time*18.))-.5)*.012;
+  c=mix(c,(c-.5)*1.055+.5,effects);c*=1.-effects*.19*dot(vUv-.5,vUv-.5);c+=grain;gl_FragColor=vec4(c,1.);}`,
 });
 composer.addPass(finish);
 
@@ -160,10 +171,14 @@ void main(){vec3 p=position;vec3 norm=normal;
     vDissolve=settle;
     world=modelMatrix*vec4(origin+piece,1.);
     worldNormal=normalize(mat3(modelMatrix)*norm);
-    // Reversible gravity: fragments peel outward, fall, then yield to the skyline.
+    // Reversible burst: enough disorder to feel physical, then the same pieces
+    // return and organize into the cube perimeter.
     float a=seed*6.28318+uIndex*.7;
-    vec3 velocity=vec3(cos(a)*(1.8+seed*3.2),1.1+seed*2.6,sin(seed*31.)*1.7);
-    world.xyz+=velocity*t+vec3(sin(a*1.7)*sin(t*3.)*.45,-7.8*t*t,cos(a)*sin(t*2.)*.42);
+    vec3 radial=normalize(vec3(cos(a),sin(a*.73)*.78,sin(seed*31.)*.72));
+    vec3 velocity=radial*(2.1+seed*3.2)+vec3(0.,.35+seed*.65,0.);
+    float coast=t*(1.15+.16*sin(uTime*.34+seed*21.));
+    vec3 turbulence=vec3(sin(uTime*.47+seed*37.),cos(uTime*.39+seed*19.),sin(uTime*.43+seed*53.))*.18*t;
+    world.xyz+=velocity*coast+turbulence+vec3(0.,-1.28*t*t,0.);
   }else{
     world=modelMatrix*vec4(p,1.);
     worldNormal=normalize(mat3(modelMatrix)*norm);
@@ -172,7 +187,7 @@ void main(){vec3 p=position;vec3 norm=normal;
   gl_Position=projectionMatrix*viewMatrix*world;
 }`;
 const fragmentShader = `${noise}
-uniform vec3 uBase,uAccent;uniform float uTime,uHover,uHold,uPulse,uFace,uBlink,uAwake,uBreak,uSettle,uSheen,uFocus,uChip,uPanelFade,uMode;
+uniform vec3 uBase,uAccent;uniform float uTime,uHover,uHold,uPulse,uFace,uBlink,uAwake,uBreak,uSettle,uSheen,uFocus,uChip,uPanelFade,uMode,uGrid,uIndex;
 uniform vec2 uTouch,uGaze;varying vec2 vUv;varying vec3 vNormal,vWorld;varying float vFront,vDissolve;
 float oval(vec2 p,vec2 size){float d=length(p/size);return 1.-smoothstep(.92,1.08,d);}
 void main(){
@@ -181,7 +196,7 @@ void main(){
   vec2 delta=p-uTouch;float angle=touch*uHold*.16*sin(uTime*.25);
   mat2 curl=mat2(cos(angle),-sin(angle),sin(angle),cos(angle));
   vec2 painted=uTouch+curl*delta;
-  float wetLight=exp(-dot(delta,delta)*7.)*uHover;
+  float wetLight=exp(-dot(delta,delta)*7.)*uHover*(1.-uFace);
   painted+=delta*sin(length(delta)*19.-uTime*.8)*wetLight*.006;
   vec2 flow=vec2(fbm(painted*4.+drift),fbm(painted*4.-drift+13.));
   float wet=fbm(painted*5.4+flow*1.65);
@@ -193,7 +208,7 @@ void main(){
   float cells=42.;vec2 qp=(floor(p*cells)+.5)/cells;
   float pixelPigment=fbm(qp*5.7+vec2(uTime*.012,-uTime*.009));
   vec3 pixelCol=mix(uBase,uAccent,smoothstep(.25,.72,pixelPigment));
-  float pixelReveal=smoothstep(.02,.82,touch)*uHover;
+  float pixelReveal=smoothstep(.02,.82,touch)*uHover*(1.-uFace);
   col=mix(col,pixelCol,pixelReveal*.82);
   // A click changes the pigment family and sends that color through the face.
   // It is deliberately chromatic, never the old generic white flash.
@@ -237,14 +252,17 @@ void main(){
     float eyeH=mix(.092,.006,uBlink);
     float eye=oval(p-vec2(.34,.58)-gaze,vec2(.013,eyeH));
     eye=max(eye,oval(p-vec2(.66,.58)-gaze,vec2(.013,eyeH)));
-    float x=p.x-.5;float smile=(uHover*.016+uAwake*.006)*(1.-pow(clamp(x/.066,-1.,1.),2.));
-    float mouth=(1.-smoothstep(.003,.007,abs(p.y-(.245-smile))))*(1.-smoothstep(.055,.068,abs(x)));
-    col=mix(col,vec3(.018,.031,.040),max(eye,mouth)*.97*(1.-smoothstep(0.,.3,uBreak)));
+    float x=p.x-.5;
+    float mood=sin(uTime*.46);
+    float curve=(uHover*.007+uAwake*.008*mood)*(1.-pow(clamp(x/.066,-1.,1.),2.));
+    float mouthLine=(1.-smoothstep(.0025,.006,abs(p.y-(.225-curve))))*(1.-smoothstep(.050,.062,abs(x)));
+    float expression=max(eye,mouthLine)*uAwake;
+    col=mix(col,vec3(.018,.031,.040),expression*.97*(1.-smoothstep(0.,.3,uBreak)));
   }
-  // A continuous paper edge travels across each face. No screen-door dots.
+  // The continuous panel hands off cell-by-cell to its matching voxel shell.
   if(uChip<.5){
-    float peelEdge=p.x*.68+p.y*.32+.035*sin(p.y*12.+uFace*2.);
-    if(peelEdge<uPanelFade*1.12-.08)discard;
+    float cell=hash(floor(p*uGrid)+vec2(uIndex*19.3,7.1));
+    if(cell<uPanelFade)discard;
   }
   // Screen-door dissolution avoids transparency sorting between thousands of chips.
   if(hash(floor(gl_FragCoord.xy))<vDissolve)discard;
@@ -257,7 +275,7 @@ const panels = [],
   chips = [],
   uniforms = [];
 const imageFaces = [];
-const grid = 8; // Legacy chip geometry remains dormant; the authored ending uses continuous lines.
+const grid = 18;
 const panelGeometry = new THREE.BoxGeometry(2.5, 2.5, 0.012, 24, 24, 1);
 panelGeometry.setAttribute("aTile", new THREE.Float32BufferAttribute(new Float32Array(panelGeometry.attributes.position.count * 3), 3));
 for (let face = 0; face < 6; face++) {
@@ -294,7 +312,10 @@ for (let face = 0; face < 6; face++) {
   root.add(group);
   panels.push(group);
   uniforms.push(u);
-  const geo = new THREE.BoxGeometry(2.5 / grid, 2.5 / grid, 0.012, 1, 1, 1);
+  // Give every sampled panel cell real depth. These are pieces of the cube,
+  // not cards: the breakup should read as a voxel volume from oblique angles.
+  const voxelSize = 2.5 / grid;
+  const geo = new THREE.BoxGeometry(voxelSize * 0.88, voxelSize * 0.88, voxelSize * 0.72, 1, 1, 1);
   const tile = new Float32Array(grid * grid * 3);
   for (let y = 0; y < grid; y++)
     for (let x = 0; x < grid; x++) {
@@ -323,51 +344,86 @@ const addImageFace = (face, path) => {
   const texture = textureLoader.load(path);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
-  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, depthWrite: true, toneMapped: false, side: THREE.FrontSide });
-  const anchor = new THREE.Object3D();
-  anchor.position.z = 0.045;
-  panels[face].add(anchor);
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.62, 2.62), material);
-  mesh.matrixAutoUpdate = false;
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    transparent: true,
+    opacity: 0,
+    depthWrite: true,
+    depthTest: true,
+    toneMapped: false,
+    side: THREE.FrontSide,
+    polygonOffset: true,
+    polygonOffsetFactor: -2,
+    polygonOffsetUnits: -2,
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material);
+  mesh.position.z = 0.018;
+  mesh.renderOrder = 3;
   mesh.userData.face = face;
-  photoScene.add(mesh);
-  imageFaces.push({ face, anchor, mesh, material });
+  panels[face].add(mesh);
+  imageFaces.push({ face, mesh, material });
 };
 addImageFace(2, "./assets/sid-eye-natural.png?v=2");
 // The scan is the final tile in the reading order, beyond the three practices.
-addImageFace(1, "./assets/sid-brain-face.jpg");
+addImageFace(1, "./assets/sid-brain-clean.png?v=2");
 
 // Inside is a compact moving archive. Each clip is cropped to cover its wall,
 // muted, and only exposed from within the cube.
 const interiorFaces = [];
 const interiorVideos = [];
+const fitVideoTexture = (texture, aspect) => {
+  texture.repeat.set(1, 1);
+  texture.offset.set(0, 0);
+  if (aspect > 1) {
+    texture.repeat.x = 1 / aspect;
+    texture.offset.x = (1 - texture.repeat.x) * 0.5;
+  } else {
+    texture.repeat.y = aspect;
+    texture.offset.y = (1 - texture.repeat.y) * 0.5;
+  }
+};
 const addInteriorVideo = (face, path, sourceAspect) => {
   const video = document.createElement("video");
   video.src = path;
   video.muted = true;
+  video.defaultMuted = true;
+  video.autoplay = true;
   video.loop = true;
   video.playsInline = true;
   video.preload = "auto";
+  video.setAttribute("muted", "");
+  video.setAttribute("playsinline", "");
+  video.disablePictureInPicture = true;
   const texture = new THREE.VideoTexture(video);
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.minFilter = THREE.LinearFilter;
+  texture.magFilter = THREE.LinearFilter;
   texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
-  if (sourceAspect > 1) {
-    texture.repeat.x = 1 / sourceAspect;
-    texture.offset.x = (1 - texture.repeat.x) * 0.5;
-  } else {
-    texture.repeat.y = sourceAspect;
-    texture.offset.y = (1 - texture.repeat.y) * 0.5;
-  }
-  // Back-facing planes invert screen direction; reverse U so work remains legible.
-  texture.repeat.x *= -1;
-  texture.offset.x = 1 - texture.offset.x;
-  const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.BackSide, transparent: true, opacity: 0, depthWrite: false, toneMapped: false });
+  fitVideoTexture(texture, sourceAspect);
+  const material = new THREE.ShaderMaterial({
+    uniforms: { map: { value: texture }, opacity: { value: 0 } },
+    vertexShader: "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+    fragmentShader: "varying vec2 vUv;uniform sampler2D map;uniform float opacity;void main(){gl_FragColor=vec4(texture2D(map,vUv).rgb,opacity);}",
+    side: THREE.BackSide,
+    transparent: true,
+    depthWrite: false,
+    toneMapped: false,
+  });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), material);
   mesh.position.z = -0.022;
   mesh.userData.face = face;
   panels[face].add(mesh);
-  interiorFaces.push({ face, mesh, material });
+  interiorFaces.push({ face, mesh, material, video });
   interiorVideos.push(video);
+  video.addEventListener("canplay", () => {
+    if (active) video.play().catch(() => {});
+  });
+  video.addEventListener("loadedmetadata", () => {
+    fitVideoTexture(texture, video.videoWidth / Math.max(video.videoHeight, 1));
+    video.currentTime = Math.min(0.08, video.duration || 0.08);
+    if (active) video.play().catch(() => {});
+  });
+  video.load();
 };
 addInteriorVideo(1, "./assets/interior-space.mp4", 16 / 9);
 addInteriorVideo(2, "./assets/interior-mesh.mp4", 3024 / 1526);
@@ -380,7 +436,7 @@ addInteriorVideo(5, "./assets/interior-o2.mp4", 610 / 1078);
 const logoMark = new THREE.Group();
 const logoInk = new THREE.MeshBasicMaterial({ color: 0xe8f1e9, transparent: true, opacity: 0, toneMapped: false });
 const logoEdges = new THREE.LineSegments(
-  new THREE.EdgesGeometry(new THREE.BoxGeometry(2.5, 2.5, 2.5)),
+  new THREE.EdgesGeometry(new RoundedBoxGeometry(2.5, 2.5, 2.5, 5, 0.14)),
   new THREE.LineBasicMaterial({ color: 0xe8f1e9, transparent: true, opacity: 0, toneMapped: false })
 );
 logoMark.add(logoEdges);
@@ -400,6 +456,8 @@ root.add(logoMark);
 // Each practice behaves like a quiet periodic-table specimen: index, symbol,
 // and discipline only. Restraint keeps the three tiles readable in motion.
 const disciplineLabels = [];
+const mriLabels = [];
+const interiorWallLabels = [];
 new FontLoader().load(
   "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/fonts/helvetiker_regular.typeface.json",
   (font) => {
@@ -425,6 +483,39 @@ new FontLoader().load(
       panels[spec.face].add(label);
       disciplineLabels.push({ group: label, material, sideMaterial, materials: [material, sideMaterial], face: spec.face, ink: material.color.clone() });
     }
+    const mriMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, toneMapped: false });
+    const mriGeometry = new TextGeometry("SIDDHARTH MEHTA", { font, size: 0.105, depth: 0.006, curveSegments: 4, bevelEnabled: false });
+    const mriName = new THREE.Mesh(mriGeometry, mriMaterial);
+    mriName.position.set(-1.08, 0.96, 0.065);
+    mriName.renderOrder = 4;
+    panels[1].add(mriName);
+    mriLabels.push({ mesh: mriName, material: mriMaterial });
+
+    const wallSpecs = [
+      [1, "01  CREATIVE TECHNOLOGY"],
+      [2, "02  SPATIAL COMPUTING"],
+      [3, "03  PRODUCT DESIGN"],
+      [4, "04  BRAND DESIGN"],
+      [5, "05  MOTION SYSTEMS"],
+    ];
+    for (const [face, title] of wallSpecs) {
+      const material = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, toneMapped: false, depthTest: false });
+      const eyebrowGeometry = new TextGeometry("WHY HIRE SID", { font, size: 0.026, depth: 0.004, curveSegments: 3, bevelEnabled: false });
+      const titleGeometry = new TextGeometry(title, { font, size: 0.043, depth: 0.004, curveSegments: 3, bevelEnabled: false });
+      const label = new THREE.Group();
+      const eyebrow = new THREE.Mesh(eyebrowGeometry, material);
+      const titleMesh = new THREE.Mesh(titleGeometry, material);
+      eyebrow.position.set(-1.08, -0.98, 0);
+      titleMesh.position.set(-1.08, -1.09, 0);
+      eyebrow.renderOrder = 6;
+      titleMesh.renderOrder = 6;
+      label.add(eyebrow, titleMesh);
+      label.position.z = -0.07;
+      label.rotation.y = Math.PI;
+      label.renderOrder = 6;
+      panels[face].add(label);
+      interiorWallLabels.push({ group: label, material });
+    }
   },
   undefined,
   () => {
@@ -437,6 +528,8 @@ const pointer = new THREE.Vector2(),
   raycaster = new THREE.Raycaster();
 let active = false,
   awake = 0,
+  introProgress = 0,
+  introTarget = 0,
   progress = 0,
   targetProgress = 0,
   hover = -1,
@@ -465,55 +558,19 @@ lookIndex.fill(1);
 const colorTargets = uniforms.map((u) => ({ base: u.uBase.value.clone(), accent: u.uAccent.value.clone(), sheen: 0, mode: 0 }));
 const portfolioIntro = document.querySelector(".portfolio-intro");
 const squareCaption = document.querySelector(".square-caption");
-
-// Empty clicks disturb the pond, then launch one folded paper boat from behind the cube.
-const pondResponses = [];
-const pondPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-const pondTarget = new THREE.Vector3();
-const pondOrigin = new THREE.Vector3();
-function makeBoat() {
-  const group = new THREE.Group();
-  const paper = new THREE.MeshBasicMaterial({ color: 0xf2ead9, side: THREE.DoubleSide, toneMapped: false });
-  const hull = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.82, 3), paper);
-  hull.rotation.z = Math.PI / 2;
-  hull.scale.z = 0.32;
-  group.add(hull);
-  const sailShape = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(-0.06, 0.03, 0),
-    new THREE.Vector3(-0.06, 0.62, 0),
-    new THREE.Vector3(0.43, 0.03, 0),
-  ]);
-  sailShape.setIndex([0, 1, 2]);
-  sailShape.computeVertexNormals();
-  const sail = new THREE.Mesh(sailShape, paper.clone());
-  sail.position.z = 0.02;
-  group.add(sail);
-  return group;
-}
-function spawnPondResponse() {
-  raycaster.setFromCamera(pointerTarget, camera);
-  if (!raycaster.ray.intersectPlane(pondPlane, pondTarget)) return;
-  pondTarget.x = clamp(pondTarget.x, -4.8, 4.8);
-  pondTarget.y = clamp(pondTarget.y, -2.7, 2.7);
-  pondTarget.z = 2.1;
-  root.getWorldPosition(pondOrigin);
-  const boat = makeBoat();
-  boat.position.copy(pondOrigin).add(new THREE.Vector3(0, -0.3, -0.7));
-  boat.scale.setScalar(0.01);
-  waterTrail[trailIndex].set(pointerTarget.x * 0.5 + 0.5, pointerTarget.y * 0.5 + 0.5, clock.elapsedTime, 1.8);
-  trailIndex = (trailIndex + 1) % waterTrail.length;
-  boat.userData = {
-    age: 0,
-    start: boat.position.clone(),
-    end: pondTarget.clone(),
-  };
-  scene.add(boat);
-  pondResponses.push(boat);
-  while (pondResponses.length > 3) {
-    const old = pondResponses.shift();
-    scene.remove(old);
-  }
-}
+const squareCaptionText = document.querySelector(".square-caption__text");
+const squareCaptionCaret = document.querySelector(".square-caption__caret");
+const interiorContext = document.querySelector(".interior-context");
+const interiorContextIndex = document.querySelector(".interior-context__index");
+const interiorContextTitle = document.querySelector(".interior-context__title");
+const interiorContextDetail = document.querySelector(".interior-context__detail");
+const interiorChapters = [
+  ["01 / 05", "Creative Technology", "Ideas become responsive systems, prototypes, and working code."],
+  ["02 / 05", "Spatial Computing", "I design interactions that move beyond the rectangle and into space."],
+  ["03 / 05", "Product Design", "Research, systems thinking, and careful execution turn ambiguity into useful products."],
+  ["04 / 05", "Brand Design", "Identity gives complex products a clear voice, rhythm, and point of view."],
+  ["05 / 05", "Experiments in Motion", "Motion helps people understand change, causality, and what to do next."],
+];
 function changeSurface(i) {
   const look = surfaceLooks[lookIndex[i]++ % surfaceLooks.length];
   colorTargets[i].base.set(look.base);
@@ -530,13 +587,16 @@ const timeline = ScrollTrigger.create({
   start: "top top",
   end: "bottom bottom",
   onUpdate: (self) => {
-    targetProgress = active ? self.progress : 0;
+    const introShare = 7 / 55;
+    introTarget = active ? 1 : self.progress;
+    targetProgress = active ? clamp((self.progress - introShare) / (1 - introShare), 0, 1) : 0;
     scrollVelocity = active ? clamp(self.getVelocity() / 2200, -1, 1) : 0;
   },
 });
 function activate() {
-  if (active) return;
+  if (active || introProgress < 0.9) return;
   active = true;
+  introTarget = 1;
   document.body.classList.add("awakened");
   document.querySelector("#instructions").textContent =
     "Scroll from Sid's face into his eye, Creative Technology, Product Design, Brand Design, and brain scan. Enter the cube and look across five moving chapters of work, then pull back as the shell becomes the portfolio logo.";
@@ -545,6 +605,32 @@ function activate() {
   pulses[0] = 1;
   ScrollTrigger.refresh();
 }
+
+const helloCopy = "Hey, I'm Sid.";
+const promptCopy = "Click the square";
+const revealCopy = (copy, amount) => copy.slice(0, Math.floor(clamp(amount, 0, 1) * (copy.length + 1)));
+function updateIntroCopy(t, storyProgress) {
+  let copy = "";
+  if (t < 0.38) copy = revealCopy(helloCopy, ease(0.05, 0.34, t));
+  else if (t < 0.73) copy = helloCopy;
+  else if (t < 0.84) copy = helloCopy.slice(0, Math.ceil(helloCopy.length * (1 - ease(0.73, 0.84, t))));
+  else copy = revealCopy(promptCopy, ease(0.84, 0.98, t));
+  squareCaptionText.textContent = copy;
+  const relocate = ease(0.39, 0.69, t);
+  const restingOffset = Math.min(innerWidth < 700 ? 220 : 300, innerHeight * (innerWidth < 700 ? 0.27 : 0.29));
+  const offset = mix(0, restingOffset, relocate);
+  squareCaption.style.top = `calc(50% + ${offset}px)`;
+  squareCaption.style.opacity = active ? 1 - awake : t > 0.025 ? 1 : 0;
+  squareCaption.style.transform = "translate(-50%, -50%)";
+  squareCaption.style.visibility = t > 0.018 ? "visible" : "hidden";
+  squareCaptionCaret.style.visibility = t > 0.018 && t < 0.34 ? "visible" : "hidden";
+  squareCaption.setAttribute("aria-label", copy);
+}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden && active) {
+    for (const video of interiorVideos) video.play().catch(() => {});
+  }
+});
 function locate(event) {
   const b = canvas.getBoundingClientRect();
   pointerTarget.set(((event.clientX - b.left) / b.width) * 2 - 1, 1 - ((event.clientY - b.top) / b.height) * 2);
@@ -581,8 +667,8 @@ canvas.addEventListener("pointermove", (e) => {
     travel = Math.hypot(e.clientX - downX, e.clientY - downY);
     if (travel > 6 && active && progress < 0.85) dragging = true;
     if (dragging) {
-      dragYawTarget += (e.clientX - lastX) * 0.0042;
-      dragPitchTarget = clamp(dragPitchTarget + (e.clientY - lastY) * 0.0032, -0.42, 0.42);
+      dragYawTarget = clamp(dragYawTarget + (e.clientX - lastX) * 0.0042, -1.25, 1.25);
+      dragPitchTarget = clamp(dragPitchTarget + (e.clientY - lastY) * 0.0032, -0.72, 0.72);
     }
     lastX = e.clientX;
     lastY = e.clientY;
@@ -599,6 +685,7 @@ canvas.addEventListener("pointerdown", (e) => {
   downX = lastX = e.clientX;
   downY = lastY = e.clientY;
   canvas.setPointerCapture(e.pointerId);
+  for (const video of interiorVideos) if (video.paused) video.play().catch(() => {});
 });
 canvas.addEventListener("pointerup", (e) => {
   if (!held) return;
@@ -608,7 +695,8 @@ canvas.addEventListener("pointerup", (e) => {
     } else if (active && hover >= 0) {
       changeSurface(hover);
     } else if (active) {
-      spawnPondResponse();
+      waterTrail[trailIndex].set(pointerTarget.x * 0.5 + 0.5, pointerTarget.y * 0.5 + 0.5, clock.elapsedTime, 2.2);
+      trailIndex = (trailIndex + 1) % waterTrail.length;
     }
   }
   held = false;
@@ -638,8 +726,9 @@ canvas.addEventListener("keydown", (e) => {
 
 // The cube net has real hinges. Back face is hinged to the right face's outer edge.
 function pose(p) {
+  const introSquare = ease(0.39, 0.69, introProgress);
   // Biography arrives one side at a time: face, eye, three practices, then mind.
-  const growth = [1, ease(0.235, 0.30, p), ease(0.04, 0.095, p), ease(0.085, 0.145, p), ease(0.135, 0.195, p), ease(0.185, 0.245, p)];
+  const growth = [1, ease(0.26, 0.315, p), ease(0.20, 0.255, p), ease(0.14, 0.195, p), ease(0.04, 0.095, p), ease(0.09, 0.145, p)];
   const fold = ease(0.285, 0.43, p),
     theta = (fold * Math.PI) / 2,
     phi = (ease(0.345, 0.43, p) * Math.PI) / 2;
@@ -672,22 +761,27 @@ function pose(p) {
   panels[1].scale.x = Math.max(growth[1], 0.001);
   const cubeHold = ease(0.42, 0.47, p) * (1 - ease(0.49, 0.54, p));
   const showcase = ease(0.42, 0.50, p);
-  const enter = ease(0.495, 0.585, p);
-  const exit = ease(0.82, 0.90, p);
+  const enter = ease(0.485, 0.545, p);
+  const exit = ease(0.705, 0.775, p);
   const inside = enter * (1 - exit);
-  const interiorVisible = ease(0.545, 0.59, p) * (1 - ease(0.81, 0.88, p));
-  const shellOpen = ease(0.735, 0.86, p);
-  const door = ease(0.48, 0.555, p) * (1 - ease(0.84, 0.90, p));
-  const dock = ease(0.885, 0.985, p);
+  const interiorVisible = ease(0.515, 0.555, p) * (1 - ease(0.735, 0.79, p));
+  const door = ease(0.475, 0.54, p) * (1 - ease(0.715, 0.78, p));
+  const voxelize = ease(0.775, 0.825, p);
+  const chaos = ease(0.81, 0.865, p) * (1 - ease(0.875, 0.92, p));
+  const edgeOrder = ease(0.88, 0.945, p);
+  const settleVoxels = ease(0.935, 0.972, p);
+  const simplifyMark = ease(0.94, 0.982, p);
+  const dock = ease(0.955, 0.997, p);
   // Start intimate, then retain enough scale for the details to read once all
   // six sides are present. The former 0.58 endpoint felt like a thumbnail.
   const netScale = mix(1.11, 0.70, ease(0.02, 0.22, p));
   const baseScale = mix(netScale, 1.08, fold) * (1 + cubeHold * 0.12);
   const responsive = Math.min(1, camera.aspect / 0.98);
-  const logoScale = (innerWidth < 700 ? 0.23 : 0.19) * responsive;
+  const logoScale = (innerWidth < 700 ? 0.18 : 0.135) * responsive;
   const outsideScale = baseScale * responsive;
   const finalScale = mix(mix(outsideScale, 1, inside), logoScale, dock);
-  root.scale.setScalar(finalScale);
+  root.visible = introSquare > 0.001;
+  root.scale.setScalar(finalScale * mix(0.82, 1, introSquare));
   const viewH = 2 * 10.4 * Math.tan(THREE.MathUtils.degToRad(35 * 0.5));
   const viewW = viewH * camera.aspect;
   const dockX = -viewW * 0.5 + (innerWidth < 700 ? 0.62 : 0.72);
@@ -695,60 +789,78 @@ function pose(p) {
   const outsideX = -1.25 * growth[1] * (1 - fold) * baseScale;
   const outsideY = (reduced ? 0 : Math.sin(clock.elapsedTime * 0.7) * 0.025) * (1 - fold * 0.6);
   root.position.x = mix(mix(outsideX, 0, inside), dockX, dock);
-  root.position.y = mix(mix(outsideY, 0, inside), dockY, dock);
+  root.position.y = mix(mix(outsideY, 0, inside), dockY, dock) + mix(5.4, 0, introSquare);
   const outsideRX = fold * 0.12 + pointer.y * 0.018 * cubeHold + dragPitch * fold * (1 - inside);
   const outsideRY = -0.025 + fold * 0.24 + showcase * 0.45 + pointer.x * 0.024 * cubeHold + dragYaw * fold * (1 - inside);
   root.rotation.set(mix(outsideRX * (1 - inside), -0.16, dock), mix(outsideRY * (1 - inside), 0.34, dock), mix(Math.sin(ease(0.28, 0.50, p) * Math.PI) * 0.032 * (1 - inside), 0, dock));
 
-  // The face slides aside as a door. Later the whole shell breathes outward,
-  // allowing the viewer to watch the surfaces leave from inside.
+  // One face becomes a door, then closes before the object voxelizes.
   panels[0].position.x += door * 2.85;
-  for (let i = 0; i < 6; i++) panels[i].position.multiplyScalar(1 + shellOpen * 0.48);
 
-  // Scroll-authored camera choreography: forward wall, left, right, ceiling,
-  // floor, center. Movement overlaps and eases so direction never snaps.
-  const yaw = 1.08 * ease(0.59, 0.64, p) - 2.16 * ease(0.64, 0.69, p) + 1.08 * ease(0.69, 0.73, p);
-  const pitch = 1.02 * ease(0.69, 0.735, p) - 2.04 * ease(0.735, 0.78, p) + 1.02 * ease(0.78, 0.82, p);
+  // Scroll-authored camera choreography with long readable holds on each wall.
+  const yaw = 1.06 * ease(0.555, 0.59, p) - 2.12 * ease(0.60, 0.645, p) + 1.06 * ease(0.655, 0.69, p);
+  const pitch = 0.96 * ease(0.655, 0.68, p) - 1.92 * ease(0.685, 0.71, p) + 0.96 * ease(0.71, 0.735, p);
   camera.position.set(pointer.x * 0.025 * interiorVisible, pointer.y * 0.018 * interiorVisible, mix(mix(10.4, 0, enter), 10.4, exit));
   camera.rotation.order = "YXZ";
-  camera.rotation.set(pitch * interiorVisible, yaw * interiorVisible, 0);
+  camera.rotation.set(
+    (pitch + dragPitch * 1.25 + pointer.y * 0.10) * interiorVisible,
+    (yaw + dragYaw * 1.25 + pointer.x * 0.12) * interiorVisible,
+    0
+  );
   camera.fov = mix(mix(35, 76, enter), 35, exit);
   camera.updateProjectionMatrix();
-  const peelDelay = [0.016, 0.0, 0.012, 0.028, 0.04, 0.022];
   for (let i = 0; i < 6; i++) {
-    const facePeel = ease(0.74 + peelDelay[i], 0.855 + peelDelay[i], p);
-    uniforms[i].uBreak.value = 0;
-    uniforms[i].uOutline.value = 0;
-    uniforms[i].uPanelFade.value = facePeel;
-    uniforms[i].uSettle.value = 0;
-    panels[i].children[0].visible = p < 0.91;
-    chips[i].visible = false;
+    const handoff = ease(0.775 + i * 0.002, 0.825 + i * 0.002, p);
+    uniforms[i].uBreak.value = chaos * 0.92;
+    uniforms[i].uOutline.value = edgeOrder * 1.12;
+    uniforms[i].uPanelFade.value = handoff;
+    uniforms[i].uSettle.value = settleVoxels;
+    panels[i].children[0].visible = handoff < 0.999;
+    chips[i].visible = voxelize > 0.001 && settleVoxels < 0.999;
   }
-  const captionAlpha = 1 - ease(0.035, 0.09, p);
-  squareCaption.style.opacity = captionAlpha;
-  squareCaption.style.transform = `translate(-50%, ${(1 - captionAlpha) * 10}px)`;
   for (const label of disciplineLabels) {
-    const alpha = growth[label.face] * (1 - ease(0.47, 0.55, p));
+    const alpha = growth[label.face] * (1 - ease(0.73, 0.79, p));
     label.group.visible = alpha > 0.001;
     for (const material of label.materials) material.opacity = alpha;
   }
   for (const image of imageFaces) {
-    const facePeel = ease(0.74 + peelDelay[image.face], 0.855 + peelDelay[image.face], p);
     // Eye remains source-opaque. MRI fades in only after its hinged panel has
     // meaningful width, preventing its black field from reading as an eye border.
     const sourceAlpha = image.face === 1 ? ease(0.68, 0.96, growth[image.face]) : growth[image.face] > 0.001 ? 1 : 0;
-    const alpha = sourceAlpha * (1 - ease(0.48, 0.56, p)) * (1 - facePeel);
+    const alpha = sourceAlpha * (1 - ease(0.48, 0.56, p));
     image.mesh.visible = alpha > 0.001;
     image.material.opacity = alpha;
   }
-  for (const interior of interiorFaces) {
-    const facePeel = ease(0.74 + peelDelay[interior.face], 0.855 + peelDelay[interior.face], p);
-    const alpha = interiorVisible * (1 - facePeel);
-    interior.mesh.visible = alpha > 0.001;
-    interior.material.opacity = alpha;
+  for (const label of mriLabels) {
+    const alpha = growth[1] * (1 - ease(0.48, 0.56, p));
+    label.mesh.visible = alpha > 0.001;
+    label.material.opacity = alpha;
   }
-  const logoAlpha = ease(0.84, 0.925, p);
+  for (const interior of interiorFaces) {
+    const alpha = interiorVisible;
+    interior.mesh.visible = alpha > 0.001;
+    interior.material.uniforms.opacity.value = alpha;
+    if (alpha > 0.08 && interior.video.paused && interior.video.readyState >= 2) interior.video.play().catch(() => {});
+  }
+  for (const label of interiorWallLabels) {
+    label.group.visible = interiorVisible > 0.001;
+    label.material.opacity = interiorVisible * 0.92;
+  }
+  const contextT = clamp((p - 0.535) / 0.205, 0, 0.999);
+  const chapterIndex = Math.min(4, Math.floor(contextT * 5));
+  if (interiorContext.dataset.chapter !== String(chapterIndex)) {
+    interiorContext.dataset.chapter = String(chapterIndex);
+    interiorContextIndex.textContent = interiorChapters[chapterIndex][0];
+    interiorContextTitle.textContent = interiorChapters[chapterIndex][1];
+    interiorContextDetail.textContent = interiorChapters[chapterIndex][2];
+  }
+  interiorContext.style.opacity = interiorVisible;
+  interiorContext.style.transform = `translateY(${(1 - interiorVisible) * 8}px)`;
+  interiorContext.setAttribute("aria-hidden", interiorVisible < 0.2 ? "true" : "false");
+
+  const logoAlpha = ease(0.90, 0.95, p);
   logoMark.visible = logoAlpha > 0.001;
+  logoMark.scale.set(1, 1, mix(1, 0.12, simplifyMark));
   logoEdges.material.opacity = logoAlpha;
   logoInk.opacity = logoAlpha;
   const intro = ease(0.95, 1, p);
@@ -778,14 +890,15 @@ function animate() {
   const dt = Math.min(clock.getDelta(), 0.05),
     time = clock.elapsedTime;
   progress = damp(progress, targetProgress, 5.5, dt);
+  introProgress = damp(introProgress, introTarget, 5.2, dt);
   awake = damp(awake, active ? 1 : 0, 4, dt);
   dragPitch = damp(dragPitch, dragPitchTarget, 7, dt);
   dragYaw = damp(dragYaw, dragYawTarget, 7, dt);
   const onCanvas = pointerTarget.x < 2;
   pointer.lerp(onCanvas ? pointerTarget : centeredPointer, 1 - Math.exp(-5 * dt));
+  updateIntroCopy(introProgress, progress);
   pose(progress);
   scene.updateMatrixWorld(true);
-  for (const image of imageFaces) image.mesh.matrix.copy(image.anchor.matrixWorld);
   pickFace();
   document.body.classList.toggle("over-cube", hover >= 0);
   document.body.classList.toggle("dragging", dragging);
@@ -820,36 +933,15 @@ function animate() {
     label.material.color.lerp(label.ink, 1 - Math.exp(-3 * dt));
     label.sideMaterial.color.copy(label.material.color).multiplyScalar(0.65);
   }
-  for (let i = pondResponses.length - 1; i >= 0; i--) {
-    const boat = pondResponses[i];
-    boat.userData.age += dt;
-    const age = boat.userData.age;
-    const travelT = ease(0, 2.1, age);
-    boat.position.lerpVectors(boat.userData.start, boat.userData.end, travelT);
-    boat.position.y += Math.sin(travelT * Math.PI) * 0.34 + Math.sin(age * 2.1) * 0.025;
-    boat.rotation.z = Math.atan2(boat.userData.end.y - boat.userData.start.y, boat.userData.end.x - boat.userData.start.x) * 0.14;
-    boat.rotation.y = Math.sin(age * 0.72) * 0.1;
-    boat.scale.setScalar(mix(0.01, 1.12, ease(0, 0.65, age)) * (1 - ease(4.1, 5.2, age)));
-    if (age > 5.2) {
-      scene.remove(boat);
-      boat.traverse((child) => {
-        if (child.geometry) child.geometry.dispose();
-        if (child.material) child.material.dispose();
-      });
-      pondResponses.splice(i, 1);
-    }
-  }
   background.uniforms.time.value = reduced ? 0 : time;
+  background.uniforms.intro.value = introProgress;
   background.uniforms.progress.value = progress;
   background.uniforms.mouse.value.copy(pointer);
   scrollVelocity *= Math.exp(-5 * dt);
   finish.uniforms.time.value = reduced ? 0 : time;
   finish.uniforms.velocity.value = reduced ? 0 : scrollVelocity;
+  finish.uniforms.progress.value = progress;
   composer.render();
-  renderer.autoClear = false;
-  renderer.clearDepth();
-  renderer.render(photoScene, camera);
-  renderer.autoClear = true;
   requestAnimationFrame(animate);
 }
 animate();
