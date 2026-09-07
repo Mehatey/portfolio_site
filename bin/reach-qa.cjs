@@ -21,7 +21,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const ROUTES = ["/", "/works/", "/about/", "/contact/", "/play/", "/mool/", "/encoded/", "/ai-prototypes/", "/404.html"];
 
 (async () => {
-  const b = await chromium.launch(sys ? { executablePath: sys } : {});
+  /* Falls back to the Chrome that is actually installed rather than to
+     Playwright's bundled shell. The bundle is a separate download that a
+     `npm install` can quietly invalidate, and a harness that dies on a
+     missing browser is a harness nobody runs. */
+  const b = await chromium.launch(sys ? { executablePath: sys } : { channel: "chrome" });
   let bad = 0,
     checked = 0;
   for (const theme of ["dark", "light"]) {

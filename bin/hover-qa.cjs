@@ -25,7 +25,11 @@ const sys = process.env.PORTFOLIO_CHROME;
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
-  const b = await chromium.launch(sys ? { executablePath: sys } : {});
+  /* Falls back to the Chrome that is actually installed rather than to
+     Playwright's bundled shell. The bundle is a separate download that a
+     `npm install` can quietly invalidate, and a harness that dies on a
+     missing browser is a harness nobody runs. */
+  const b = await chromium.launch(sys ? { executablePath: sys } : { channel: "chrome" });
   const c = await b.newContext({ viewport: { width: 1512, height: 950 } });
   const p = await c.newPage();
   const cdp = await c.newCDPSession(p);
