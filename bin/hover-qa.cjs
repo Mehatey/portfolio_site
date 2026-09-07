@@ -89,13 +89,25 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await glide(...(await centre(".studio-links .studio-link:nth-child(3)")));
   const after = await p.evaluate(() => [...document.querySelectorAll(".studio-link")].map((a) => Math.round(a.getBoundingClientRect().x)));
   R.push(["nav icons hold still on hover", JSON.stringify(before) === JSON.stringify(after)]);
+  /* The pair lives inside the pill now, ahead of the first icon, so the test
+     is containment and order rather than a gap between two boxes. */
   R.push([
-    "outbound pair sits by the pill",
+    "outbound pair leads the pill",
     await p.evaluate(() => {
       const o = document.querySelector(".studio-out"),
         l = document.querySelector(".studio-links");
-      const g = l.getBoundingClientRect().left - o.getBoundingClientRect().right;
-      return g >= 0 && g < 40;
+      const first = l.querySelector(".studio-link");
+      return !!o && !!first && l.contains(o) && o.getBoundingClientRect().right <= first.getBoundingClientRect().left + 1;
+    }),
+  ]);
+  /* Guards the nth-of-type mapping: inserting a non-anchor into the bar once
+     shifted every per-icon colour along by one and put the active Work label
+     in Play's pink. */
+  R.push([
+    "active label keeps its own colour",
+    await p.evaluate(() => {
+      const a = document.querySelector(".studio-link.is-active b");
+      return !!a && getComputedStyle(a).color === "rgb(111, 183, 255)";
     }),
   ]);
 

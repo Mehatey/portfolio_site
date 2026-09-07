@@ -512,54 +512,6 @@
      4px, on the same ease-out the rest of the chrome uses. A pill that simply
      switches on at full size reads as a browser tooltip, which is the one thing
      a hand-built cursor must not look like. */
-  #cur-label {
-    position: fixed;
-    top: 0;
-    left: 0;
-    transform: translate(-50%, -50%) translateY(4px) scale(0.86);
-    transform-origin: 50% 0;
-    pointer-events: none;
-    z-index: 99998;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgba(8, 8, 12, 0.92);
-    background: rgba(248, 251, 255, 0.88);
-    -webkit-backdrop-filter: blur(10px) saturate(1.5);
-    backdrop-filter: blur(10px) saturate(1.5);
-    border-radius: 999px;
-    padding: 5px 11px;
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.75),
-      0 1px 0 rgba(8, 12, 20, 0.16),
-      0 7px 20px rgba(0, 0, 0, 0.34);
-    white-space: nowrap;
-    opacity: 0;
-    will-change: left, top, transform, opacity;
-    transition:
-      opacity 0.18s ease,
-      transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  #cur-label.is-visible {
-    opacity: 1;
-    transform: translate(-50%, -50%) translateY(0) scale(1);
-  }
-  html[data-theme="light"] #cur-label {
-    color: rgba(255, 255, 255, 0.95);
-    background: rgba(7, 9, 15, 0.86);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.16),
-      0 1px 0 rgba(255, 255, 255, 0.5),
-      0 7px 20px rgba(18, 32, 52, 0.26);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    #cur-label,
-    #cur-label.is-visible {
-      transform: translate(-50%, -50%);
-      transition: opacity 0.18s ease;
-    }
-  }
   /* Global click feedback — interactive elements briefly scale-down on press */
   a:active,
   button:active,
@@ -5098,7 +5050,17 @@
 </svg>
 <div id="cur-dot"></div>
 <div id="cur-ping" aria-hidden="true"></div>
-<div id="cur-label" aria-hidden="true"></div>
+<!-- ── THE CURSOR LABEL IS GONE ────────────────────────────────────────
+     A chip that showed [data-cursor-text] beside the pointer. Audited on 6
+     Sep: that attribute appears nowhere on this site except in this file's
+     own selector, so it had nothing to attach to and had never rendered a
+     single word.
+
+     Not resurrected, because the job is taken. assets/js/cursor-hue.js
+     already carries what the cursor says -- the cube's written remark on a
+     work card, a colour reading anywhere else -- in a shape with a voice.
+     Two text systems beside one pointer is the duplication Sid has asked to
+     cut every time it has appeared. -->
 
 <!-- ── THE LINE TRAIL, BACK ───────────────────────────────────────────────────
      Sid: "i like my old cursor where we had that physics line type movement",
@@ -6003,7 +5965,6 @@
       core.setAttribute("aria-hidden", "true");
       document.body.appendChild(core);
     }
-    const label = document.getElementById("cur-label");
 
     let mx = -100,
       my = -100,
@@ -6146,11 +6107,6 @@
         core.style.top = my + "px";
       }
 
-      if (label) {
-        label.style.left = rx + "px";
-        label.style.top = ry + 28 + "px";
-      }
-
       if (spotlight) {
         spotlight.style.left = mx + "px";
         spotlight.style.top = my + "px";
@@ -6166,7 +6122,6 @@
     if (!isTouchDevice) {
       const HOVER_SELECTOR =
         'a, button, [role="button"], .work-card, .nav-icon, .card, video, .filter-btn, .footer-cta, .site-footer-cta, .about-resume-link, .desk-play-reel, .meta-item';
-      const LABEL_SELECTOR = "[data-cursor-text]";
       document.addEventListener(
         "mouseover",
         (e) => {
@@ -6174,13 +6129,6 @@
           if (e.target.closest && e.target.closest(".studio-mark")) {
             dot.classList.add("is-mark");
             document.documentElement.classList.add("cur-on-mark");
-          }
-          if (label) {
-            const labeled = e.target.closest && e.target.closest(LABEL_SELECTOR);
-            if (labeled) {
-              label.textContent = labeled.getAttribute("data-cursor-text");
-              label.classList.add("is-visible");
-            }
           }
         },
         { passive: true }
@@ -6198,13 +6146,6 @@
             if (!away || !(away.closest && away.closest(".studio-mark"))) {
               dot.classList.remove("is-mark");
               document.documentElement.classList.remove("cur-on-mark");
-            }
-          }
-          if (label) {
-            const leaving = e.target.closest && e.target.closest(LABEL_SELECTOR);
-            if (leaving) {
-              const to = e.relatedTarget;
-              if (!to || !(to.closest && to.closest(LABEL_SELECTOR))) label.classList.remove("is-visible");
             }
           }
         },
