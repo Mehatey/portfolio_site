@@ -283,19 +283,24 @@
   holeSvg.innerHTML =
     "<defs>" +
     '<filter id="idle-hole" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">' +
-    '<feTurbulence id="idle-hole-noise" type="fractalNoise" baseFrequency="0.0016 0.0042" numOctaves="2" seed="11" result="w"/>' +
+    '<feTurbulence id="idle-hole-noise" type="fractalNoise" baseFrequency="0.0052 0.0094" numOctaves="2" seed="11" result="w"/>' +
     '<feDisplacementMap id="idle-hole-disp" in="SourceGraphic" in2="w" scale="0" xChannelSelector="R" yChannelSelector="G"/>' +
     "</filter></defs>";
   document.body.appendChild(holeSvg);
   var holeDisp = holeSvg.querySelector("#idle-hole-disp");
   var holeNoise = holeSvg.querySelector("#idle-hole-noise");
 
-  /* The visible singularity: a dark well with a lensed rim, sitting over the
-     warp so the two read as one object. */
-  var hole = document.createElement("div");
-  hole.className = "idle-hole";
-  hole.setAttribute("aria-hidden", "true");
-  layer.appendChild(hole);
+  /* ── THERE IS NO VISIBLE SINGULARITY ──────────────────────────────────
+     Sid: "ditch the black hole and just have the warping and displacement,
+     the black circle with the blur outline looks very bad, i want it to be
+     subtle not a flat shitty thing."
+
+     It was a radial-gradient disc with a spinning rim drawn ON TOP of the
+     warp, which is the problem: the warp is a real optical effect on real
+     page content, and painting a flat black circle over it replaces the
+     thing that was working with a sticker. Everything that made it read as
+     a well -- the pull, the bend, the growth over time -- is in the
+     displacement, and that stays. Nothing is drawn. */
 
   /* What the warp is applied to. Not <body>, which would take the overlay and
      the cursor with it. */
@@ -398,7 +403,19 @@
     if (on) {
       /* Ninety seconds to full. Arriving is calm; staying is not. */
       var held = Math.min(1, (now - holeAt) / 90000);
-      holeWant = held * held * 46;
+      /* ── 46 WAS A SMEAR, NOT A WARP ─────────────────────────────────
+         Sid: "sometimes the squares get warped and stretched badly, make
+         sure that doesn't happen", and "i want it to be subtle".
+
+         Both are this number against the noise frequency below. 46px of
+         displacement driven by a field that only completes a cycle every few
+         hundred pixels does not ripple content, it drags whole regions of it
+         sideways -- and because the glass pieces sample the page through
+         backdrop-filter, a dragged page is exactly what they show, which is
+         the stretched square. Halved to 22, which still visibly bends the
+         page over ninety seconds without any part of it travelling far
+         enough to tear. */
+      holeWant = held * held * 22;
     }
     holeAmt += (holeWant - holeAmt) * (holeWant > holeAmt ? 0.02 : 0.045);
     if (holeDisp) holeDisp.setAttribute("scale", holeAmt.toFixed(2));
@@ -407,7 +424,7 @@
          lens the page happens to be behind. */
       holeNoise.setAttribute("seed", (11 + clock * 0.35).toFixed(2));
     }
-    hole.style.setProperty("--hole", (holeAmt / 46).toFixed(3));
+
     if (!on && holeAmt < 0.25 && warped.length) {
       warped.forEach(function (el) {
         el.style.filter = "";
