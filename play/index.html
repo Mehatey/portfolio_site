@@ -3334,22 +3334,62 @@
      that nothing here moves when the pointer arrives, because the previous
      version animated the pill's width and walked the icons out from under
      the cursor. */
+  /* ══ THEY OPEN WHEN THE BAR IS ENTERED ═════════════════════════════════
+     Sid: "I want the resume and the LinkedIn linkout to appear when I hover
+     on the nav bar, anywhere on the nav bar my cursor enters, then only to
+     appear. Otherwise having it there all the time uses real estate and
+     visual distraction from the project."
+
+     This is the same reveal that was removed for shoving the icons sideways,
+     and it is safe now for one reason: the pair sits at the LEFT end of a
+     pill whose right edge is pinned 60px from the window. Widening from zero
+     therefore grows the pill leftward into empty space, and every icon --
+     which lives at the right end -- stays exactly where it was. The earlier
+     version failed because each icon's own label expanded inline between the
+     icons, which is a different thing in the same bar.
+
+     Keyed to the pill rather than to each item, so crossing anywhere on it
+     opens both at once and nothing flickers as the pointer moves between
+     icons. Measured after: the four icons hold their x to the pixel. */
   .studio-out {
     display: flex;
     align-items: center;
     gap: 13px;
-    /* Sits against the pill's own left padding and is separated from the
-       icons by a hairline rather than by empty space, so the bar reads as one
-       object with two halves. */
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 0;
+    opacity: 0;
+    padding-right: 0;
+    margin-right: 0;
+    border-right: 1px solid transparent;
+    pointer-events: none;
+    transition:
+      max-width 460ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 260ms ease,
+      padding-right 460ms cubic-bezier(0.16, 1, 0.3, 1),
+      margin-right 460ms cubic-bezier(0.16, 1, 0.3, 1),
+      border-right-color 300ms ease;
+  }
+  .studio-links:hover .studio-out,
+  .studio-links:focus-within .studio-out {
+    max-width: 15rem;
+    opacity: 1;
     padding-right: 13px;
     margin-right: 3px;
-    border-right: 1px solid currentColor;
+    border-right-color: rgba(255, 255, 255, 0.14);
     pointer-events: auto;
   }
-  .studio-out {
-    border-right-color: rgba(255, 255, 255, 0.14);
+  /* A keyboard user never triggers :hover, and focus-within cannot fire while
+     the links are zero width and unreachable. The focused one opens itself. */
+  .studio-out:focus-within {
+    max-width: 15rem;
+    opacity: 1;
+    padding-right: 13px;
+    margin-right: 3px;
+    pointer-events: auto;
   }
-  html[data-theme="light"] .studio-out {
+  html[data-theme="light"] .studio-links:hover .studio-out,
+  html[data-theme="light"] .studio-links:focus-within .studio-out {
     border-right-color: rgba(16, 22, 30, 0.16);
   }
   .studio-out a {
