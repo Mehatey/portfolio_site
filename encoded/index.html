@@ -19123,12 +19123,41 @@
      Identical texture, 64% less colour distortion. Soft-light is the whole
      fix; the opacity did not need to move, and dropping it would have cost
      the grain for no gain. */
+  /* ── AND IT SITS IN FRONT OF THE WORK, SO IT HAD TO COME DOWN ──────────
+     Sid: "my friend said we have some noise on the bg which is distracting
+     from the work, can you check what it is and whether it is in front of the
+     media."
+
+     It is in front. Measured on a frozen page -- animations off, video
+     paused, canvases hidden, because the first attempt at this measurement
+     compared two screenshots of a page full of live canvases and reported the
+     page animating as though it were the grain:
+
+         z-index  9 (in front)   over a work image 0.649   bare page 0.195
+         z-index -1 (behind)     over a work image 0       bare page 0.026
+
+     Moving it behind removes it from the media completely and also erases it
+     from the page, because the fixed background canvases sit above it -- so
+     that is not the fix, it is deletion with extra steps.
+
+     Reducing it is. At 0.032 the effect on a photograph halves while the page
+     keeps its texture:
+
+         0.05    image 0.649    0.04   image 0.502
+         0.032   image 0.324    0.025  image 0.141
+
+     Peak change is one to two levels out of 255 at every one of those, so
+     this was always subtle in absolute terms. High-frequency noise reads far
+     stronger than a mean suggests over the smooth areas of a photograph,
+     which is exactly where his friend noticed it and why the honest response
+     is to trust the eye and halve it rather than to quote the statistic
+     back. */
   #global-grain {
     position: fixed;
     inset: 0;
     z-index: 9;
     pointer-events: none;
-    opacity: 0.05;
+    opacity: 0.032;
     mix-blend-mode: soft-light;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 220px 220px;
