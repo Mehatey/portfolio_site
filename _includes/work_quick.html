@@ -1,0 +1,547 @@
+{%- comment -%} ── THE QUICK VIEW ──────────────────────────────────────────────────────── Sid: "if the recruiter clicks on one of them, they have to
+go all the way to the bottom of the scroll, and they won't be able to see as many projects. The goal is for them to be able to quickly view different
+projects and see what else Siddharth is capable of." Measured, that instinct is right. Opening a case study costs a reader this much scrolling before
+they can judge anything: cube-guy 36 screens, mandalas 36, illustrations 31, alpha-stockathon and b-plus-b and aananda about 24 each. The shortest
+page on the site is marriott at 12. Nobody looking at eight portfolios in an afternoon pays that twice, so the first click is a commitment, and the
+cost of the commitment is that they see one project instead of eight. ── WHY NOT THE WHOLE PAGE IN A MODAL ─────────────────────────────────── The
+other idea on the table was opening the real case study inside a blurred sheet that grows. It was rejected for three reasons and they are all still
+true: 36 screens inside a modal is still 36 screens, so it does not solve the thing it was invented for; nested scrolling brings scroll chaining,
+trackpad momentum escaping the panel and mobile body-lock, which is a bug farm that behaves differently on the reader's machine than on ours; and
+/works/ is already 11.9MB, so holding a second heavy document open on top of it is the wrong trade on the page that has to feel fastest. What survives
+from that idea is the FEELING of the panel becoming the page, and that is what the expand control does -- a view transition into the real case study,
+with a real URL and a working Back button. Same language as hero_morph and case_lightbox, which already use startViewTransition. ── IT NEVER TRAPS
+ANYONE ─────────────────────────────────────────────── The cards stay ordinary links. Only an unmodified left click is intercepted, so cmd-click,
+middle click, right click and no-JS all still open the case study the normal way. That matters: a recruiter who opens six tabs is doing the exact
+thing this feature is for. The four images per project are curated in _data/works.yml under `quick`, not taken from the top of each page, because the
+top of a case study is intro and process. See the commit for how they were chosen. {%- endcomment -%}
+
+<div class="wq" id="wq" role="dialog" aria-modal="true" aria-labelledby="wq-title" hidden>
+  <div class="wq__scrim" data-wq-close></div>
+  <div class="wq__panel" role="document">
+    <button class="wq__x" type="button" data-wq-close aria-label="Close quick view">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+    </button>
+
+    <div class="wq__media" id="wq-media"></div>
+
+    <div class="wq__side">
+      <p class="wq__eyebrow"><span id="wq-year"></span><span id="wq-proof"></span></p>
+      <h2 class="wq__title" id="wq-title"></h2>
+      <p class="wq__desc" id="wq-desc"></p>
+      <p class="wq__tags" id="wq-tags"></p>
+      <a class="wq__open" id="wq-open" href="#">
+        Read the full story
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+    </div>
+
+    <button class="wq__nav wq__nav--prev" type="button" data-wq-step="-1" aria-label="Previous project">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+    </button>
+    <button class="wq__nav wq__nav--next" type="button" data-wq-step="1" aria-label="Next project">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+    </button>
+    <p class="wq__count" id="wq-count" aria-live="polite"></p>
+  </div>
+</div>
+
+<script id="wq-data" type="application/json">
+  [
+    {%- assign first = true -%}
+    {%- for w in site.data.works -%}
+      {%- if w.quick -%}
+        {%- unless first %},{% endunless -%}{%- assign first = false -%}
+        {
+          "t": {{ w.title | jsonify }},
+          "d": {{ w.desc | jsonify }},
+          "y": {{ w.year | jsonify }},
+          "p": {{ w.proof | jsonify }},
+          "u": {{ w.url | prepend: site.baseurl | jsonify }},
+          "g": {{ w.tags | jsonify }},
+          "q": [{%- for s in w.quick -%}{%- unless forloop.first %},{% endunless -%}{{ s | prepend: site.baseurl | jsonify }}{%- endfor -%}]
+        }
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+</script>
+
+<style>
+  .wq[hidden] {
+    display: none !important;
+  }
+  .wq {
+    position: fixed;
+    inset: 0;
+    z-index: 9600;
+    display: grid;
+    place-items: center;
+    padding: clamp(16px, 4vh, 48px) clamp(16px, 4vw, 56px);
+  }
+  .wq__scrim {
+    position: absolute;
+    inset: 0;
+    background: rgba(6, 10, 18, 0.72);
+    -webkit-backdrop-filter: blur(22px) saturate(1.1);
+    backdrop-filter: blur(22px) saturate(1.1);
+    opacity: 0;
+    transition: opacity 0.34s ease;
+  }
+  .wq.is-open .wq__scrim {
+    opacity: 1;
+  }
+  html[data-theme="light"] .wq__scrim {
+    background: rgba(240, 238, 232, 0.7);
+  }
+
+  .wq__panel {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.32fr) minmax(268px, 0.68fr);
+    gap: clamp(18px, 2.4vw, 34px);
+    width: min(1120px, 100%);
+    max-height: min(86vh, 760px);
+    padding: clamp(18px, 2.2vw, 28px);
+    border-radius: 20px;
+    background: rgba(16, 21, 31, 0.86);
+    border: 1px solid rgba(150, 190, 240, 0.16);
+    box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.8);
+    /* Rises rather than zooms: a panel that scales up from nothing reads as a
+       popup, one that lifts reads as a card being picked up. */
+    transform: translateY(14px);
+    opacity: 0;
+    transition:
+      transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.3s ease;
+  }
+  .wq.is-open .wq__panel {
+    transform: none;
+    opacity: 1;
+  }
+  html[data-theme="light"] .wq__panel {
+    background: rgba(255, 253, 248, 0.94);
+    border-color: rgba(40, 70, 120, 0.16);
+  }
+
+  /* ── FOUR AT ONCE, AND NO SCROLLING ────────────────────────────────────
+     A 2x2 grid rather than a stack, because the whole point is that the
+     reader takes the project in at a glance. Anything that needs scrolling
+     inside here reintroduces exactly the problem the panel exists to solve. */
+  .wq__media {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-auto-rows: 1fr;
+    gap: 10px;
+    min-height: 0;
+  }
+  .wq__media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 11px;
+    background: rgba(255, 255, 255, 0.04);
+    display: block;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .wq__media img.is-in {
+    opacity: 1;
+  }
+  /* One image fills the frame; three put the first across the top. */
+  .wq__media[data-n="1"] {
+    grid-template-columns: 1fr;
+  }
+  .wq__media[data-n="3"] img:first-child,
+  .wq__media[data-n="1"] img:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .wq__side {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    padding-right: 4px;
+  }
+  .wq__eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 0 0 10px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(190, 214, 240, 0.62);
+  }
+  html[data-theme="light"] .wq__eyebrow {
+    color: rgba(40, 62, 100, 0.66);
+  }
+  .wq__title {
+    margin: 0 0 10px;
+    font-size: clamp(23px, 2.3vw, 31px);
+    font-weight: 300;
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    color: rgba(240, 247, 255, 0.97);
+  }
+  html[data-theme="light"] .wq__title {
+    color: rgba(18, 28, 48, 0.95);
+  }
+  .wq__desc {
+    margin: 0 0 14px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: rgba(206, 222, 240, 0.8);
+  }
+  html[data-theme="light"] .wq__desc {
+    color: rgba(32, 48, 76, 0.82);
+  }
+  .wq__tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 auto;
+  }
+  .wq__tags span {
+    padding: 4px 9px;
+    border-radius: 999px;
+    border: 1px solid rgba(150, 190, 240, 0.22);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+    color: rgba(196, 218, 244, 0.8);
+  }
+  html[data-theme="light"] .wq__tags span {
+    border-color: rgba(40, 70, 120, 0.24);
+    color: rgba(34, 54, 88, 0.8);
+  }
+
+  .wq__open {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    align-self: flex-start;
+    margin-top: 18px;
+    padding: 11px 17px;
+    border-radius: 999px;
+    background: rgba(150, 200, 255, 0.14);
+    border: 1px solid rgba(160, 205, 255, 0.34);
+    font-size: 13px;
+    letter-spacing: 0.01em;
+    color: rgba(226, 240, 255, 0.96);
+    text-decoration: none;
+    transition:
+      background 0.24s ease,
+      border-color 0.24s ease,
+      transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .wq__open:hover {
+    background: rgba(150, 200, 255, 0.24);
+    border-color: rgba(170, 214, 255, 0.55);
+    transform: translateX(3px);
+  }
+  .wq__open svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  html[data-theme="light"] .wq__open {
+    background: rgba(36, 84, 150, 0.1);
+    border-color: rgba(36, 84, 150, 0.3);
+    color: rgba(20, 44, 80, 0.95);
+  }
+
+  .wq__x,
+  .wq__nav {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1px solid rgba(160, 200, 245, 0.22);
+    background: rgba(14, 20, 30, 0.72);
+    color: rgba(226, 240, 255, 0.9);
+    cursor: pointer;
+    transition:
+      background 0.2s ease,
+      border-color 0.2s ease,
+      opacity 0.2s ease;
+  }
+  .wq__x svg,
+  .wq__nav svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+  }
+  .wq__x:hover,
+  .wq__nav:hover {
+    background: rgba(30, 44, 66, 0.92);
+    border-color: rgba(180, 215, 255, 0.5);
+  }
+  .wq__x {
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+  }
+  .wq__nav--prev {
+    left: -19px;
+    top: 50%;
+    margin-top: -19px;
+  }
+  .wq__nav--next {
+    right: -19px;
+    top: 50%;
+    margin-top: -19px;
+  }
+  .wq__nav[disabled] {
+    opacity: 0.28;
+    cursor: default;
+  }
+  html[data-theme="light"] .wq__x,
+  html[data-theme="light"] .wq__nav {
+    background: rgba(255, 253, 248, 0.9);
+    border-color: rgba(40, 70, 120, 0.24);
+    color: rgba(20, 40, 72, 0.9);
+  }
+  .wq__count {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -26px;
+    margin: 0;
+    text-align: center;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: rgba(190, 214, 240, 0.5);
+  }
+
+  /* The chevrons sit outside the panel on a wide screen and would fall off a
+     narrow one, and two columns cannot hold at phone width. */
+  @media (max-width: 900px) {
+    .wq__panel {
+      grid-template-columns: 1fr;
+      grid-template-rows: minmax(0, 1fr) auto;
+      max-height: 90vh;
+    }
+    .wq__nav--prev {
+      left: 10px;
+    }
+    .wq__nav--next {
+      right: 10px;
+    }
+    .wq__nav {
+      top: auto;
+      bottom: 12px;
+      margin-top: 0;
+    }
+    .wq__media {
+      max-height: 42vh;
+    }
+    .wq__title {
+      font-size: 21px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wq__scrim,
+    .wq__panel,
+    .wq__media img {
+      transition: none;
+    }
+  }
+  /* The page behind must not scroll under an open panel. */
+  html.wq-locked,
+  html.wq-locked body {
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  (function () {
+    "use strict";
+    var root = document.getElementById("wq");
+    var dataEl = document.getElementById("wq-data");
+    if (!root || !dataEl) return;
+
+    var DATA;
+    try {
+      DATA = JSON.parse(dataEl.textContent);
+    } catch (e) {
+      return; /* No data, no panel. The cards keep working as links. */
+    }
+    if (!DATA.length) return;
+
+    var byUrl = {};
+    DATA.forEach(function (d, i) {
+      byUrl[d.u.replace(/\/$/, "")] = i;
+    });
+
+    var media = document.getElementById("wq-media"),
+      elTitle = document.getElementById("wq-title"),
+      elDesc = document.getElementById("wq-desc"),
+      elYear = document.getElementById("wq-year"),
+      elProof = document.getElementById("wq-proof"),
+      elTags = document.getElementById("wq-tags"),
+      elOpen = document.getElementById("wq-open"),
+      elCount = document.getElementById("wq-count"),
+      prevBtn = root.querySelector('[data-wq-step="-1"]'),
+      nextBtn = root.querySelector('[data-wq-step="1"]');
+
+    var idx = -1,
+      lastFocus = null,
+      open = false;
+
+    function render(i) {
+      var d = DATA[i];
+      if (!d) return;
+      idx = i;
+
+      media.innerHTML = "";
+      media.setAttribute("data-n", String(d.q.length));
+      d.q.forEach(function (src, n) {
+        var im = new Image();
+        im.alt = "";
+        im.decoding = "async";
+        /* Only the first is eager. The other three are one row down inside a
+           panel the reader may close immediately. */
+        im.loading = n === 0 ? "eager" : "lazy";
+        im.addEventListener("load", function () {
+          im.classList.add("is-in");
+        });
+        im.src = src;
+        if (im.complete) im.classList.add("is-in");
+        media.appendChild(im);
+      });
+
+      elTitle.textContent = d.t;
+      elDesc.textContent = d.d;
+      elYear.textContent = d.y || "";
+      elProof.textContent = d.p || "";
+      elTags.innerHTML = "";
+      (d.g || []).forEach(function (t) {
+        var s = document.createElement("span");
+        s.textContent = t;
+        elTags.appendChild(s);
+      });
+      elOpen.setAttribute("href", d.u);
+      elCount.textContent = i + 1 + " / " + DATA.length;
+      prevBtn.disabled = i === 0;
+      nextBtn.disabled = i === DATA.length - 1;
+    }
+
+    function show(i) {
+      if (open) {
+        render(i);
+        return;
+      }
+      lastFocus = document.activeElement;
+      render(i);
+      root.hidden = false;
+      document.documentElement.classList.add("wq-locked");
+      /* One frame, so the opening transition has a state to move from. */
+      requestAnimationFrame(function () {
+        root.classList.add("is-open");
+      });
+      open = true;
+      /* Focus lands on the close button rather than the panel, so the first
+         thing a keyboard reader hears is the way out. */
+      root.querySelector(".wq__x").focus();
+    }
+
+    function hide() {
+      if (!open) return;
+      open = false;
+      root.classList.remove("is-open");
+      document.documentElement.classList.remove("wq-locked");
+      var done = function () {
+        if (!open) root.hidden = true;
+      };
+      setTimeout(done, 340);
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+
+    function step(by) {
+      var n = idx + by;
+      if (n < 0 || n >= DATA.length) return;
+      render(n);
+    }
+
+    /* ── THE CARDS STAY LINKS ──────────────────────────────────────────
+       Only a plain left click opens the panel. Anything a person does to
+       open a thing in a new tab -- cmd, ctrl, shift, middle click -- must
+       still do that, and with JS off the anchor is untouched. */
+    document.addEventListener(
+      "click",
+      function (e) {
+        if (e.defaultPrevented || e.button !== 0) return;
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+        var a = e.target.closest && e.target.closest("a.wk-card");
+        if (!a) return;
+        var href = (a.getAttribute("href") || "").replace(/\/$/, "");
+        var i = byUrl[href];
+        if (i === undefined) return; /* Not a project we have a quick view for. */
+        e.preventDefault();
+        show(i);
+      },
+      false
+    );
+
+    root.addEventListener("click", function (e) {
+      if (e.target.closest("[data-wq-close]")) {
+        hide();
+        return;
+      }
+      var s = e.target.closest("[data-wq-step]");
+      if (s) step(+s.getAttribute("data-wq-step"));
+    });
+
+    /* ── EXPANDING IS A NAVIGATION, NOT A NESTED PAGE ──────────────────
+       The panel morphs into the real case study: real URL, working Back
+       button, no second document held open on top of an 11.9MB page. Same
+       startViewTransition the hero morph and the lightbox already use. */
+    elOpen.addEventListener("click", function (e) {
+      var href = elOpen.getAttribute("href");
+      if (!href) return;
+      var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (!document.startViewTransition || reduce) return; /* Plain navigation. */
+      e.preventDefault();
+      document.startViewTransition(function () {
+        location.href = href;
+      });
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (!open) return;
+      if (e.key === "Escape") {
+        e.preventDefault();
+        hide();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        step(1);
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        step(-1);
+      } else if (e.key === "Tab") {
+        /* A modal that lets focus wander behind it is a modal only for people
+           using a mouse. */
+        var f = root.querySelectorAll('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])');
+        if (!f.length) return;
+        var first = f[0],
+          last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    });
+  })();
+</script>
