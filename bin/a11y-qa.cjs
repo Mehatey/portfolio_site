@@ -26,7 +26,11 @@ const R = ["/", "/works/", "/about/", "/contact/", "/play/", "/mool/", "/encoded
     await p.goto(B + r, { waitUntil: "load" });
     await sleep(1600);
     try {
-      await p.click("#loader-skip", { timeout: 2000 });
+      /* Escape, not a click on #loader-skip: that button was removed from the
+         site, so the click was timing out for two seconds a page and then
+         auditing whatever the loader still had on screen. Escape is the
+         skip gesture the site kept. */
+      await p.keyboard.press("Escape");
       await sleep(2200);
     } catch (e) {}
     const o = await p.evaluate(() => {

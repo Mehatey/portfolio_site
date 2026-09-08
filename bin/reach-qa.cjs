@@ -36,7 +36,11 @@ const ROUTES = ["/", "/works/", "/about/", "/contact/", "/play/", "/mool/", "/en
       await p.goto(B + r, { waitUntil: "load" });
       await sleep(1600);
       try {
-        await p.click("#loader-skip", { timeout: 2000 });
+        /* Escape, not a click on #loader-skip: that button was removed from the
+         site, so the click was timing out for two seconds a page and then
+         auditing whatever the loader still had on screen. Escape is the
+         skip gesture the site kept. */
+        await p.keyboard.press("Escape");
         await sleep(2400);
       } catch (e) {}
       await p.evaluate((t) => document.documentElement.setAttribute("data-theme", t), theme);
