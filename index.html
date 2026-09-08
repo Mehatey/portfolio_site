@@ -5126,73 +5126,6 @@
   }
   /* The intro remains part of the experience, but never traps a visitor who
      already knows where they want to go. */
-  #loader-skip {
-    position: absolute;
-    top: max(24px, 4vh);
-    right: max(24px, 4vw);
-    z-index: 20;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 9px 12px;
-    /* ── IT WAS THERE AND NOBODY COULD FIND IT ──────────────────────────
-       Measured on the live site: from Enter, the button is actionable at
-       0.5s and taking it puts a visitor on the revealed page at 4.3s
-       instead of 19s. The escape hatch works. It was simply 113x32px of
-       9px mono at 0.68 alpha, in the top-right corner of a sixteen-second
-       film that is moving in the middle of the screen — so the visitor who
-       needs it most is the one who never sees it.
-
-       This is not a licence to shout. The intro is the door and it stays.
-       10.5px, a stronger hairline and a readable alpha is the difference
-       between a control a stranger can find and one only its author knows
-       about, and it is still the quietest thing on the screen.
-
-       ── WHY THERE IS NO html[data-theme="light"] RULE FOR THIS ──────────
-       Because the premise for one is false, and it took sampling the real
-       pixels to find that out. #enter-backdrop IS cream in light theme, so
-       a computed read says this pill sits on rgb(245,243,238) and needs
-       inverting. It does not: the button only exists while `.is-running`,
-       and for the whole of that window the cube video and #loader-collage
-       paint over the backdrop, so the ground behind it is the dark film in
-       both themes. A theme branch here would have solved a problem that is
-       not on screen and made the control louder in light than in dark for
-       no reason.
-
-       The pill is 0.72 rather than 0.42 so it does not depend on that being
-       true. Over the dark film it is still a dark pill; over bare cream —
-       the narrow case where the video never arrives and the 25s failsafe is
-       what ends the sequence — it composites to about rgb(74,78,85) and
-       holds the pale text at roughly 6.4:1 instead of 2.4:1. One value,
-       correct on either ground. */
-    border: 1px solid rgba(170, 215, 250, 0.34);
-    border-radius: 999px;
-    background: rgba(8, 14, 26, 0.72);
-    color: rgba(226, 241, 252, 0.86);
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
-    opacity: 0;
-    pointer-events: none;
-    text-transform: uppercase;
-    transition:
-      opacity 0.35s ease,
-      color 0.2s ease,
-      border-color 0.2s ease,
-      background 0.2s ease;
-  }
-  #site-loader.is-running #loader-skip {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  #loader-skip:hover,
-  #loader-skip:focus-visible {
-    border-color: rgba(180, 225, 255, 0.56);
-    background: rgba(100, 155, 215, 0.14);
-    color: rgba(245, 251, 255, 0.96);
-    outline: none;
-  }
 
   /* (The #loader-stream terminal typewriter's styles lived here. The markup was
      removed as visually noisy on the loader scene; the styles went with it.) */
@@ -5255,11 +5188,6 @@
      with the nav map it drew. Roughly 170 lines of CSS for two things that
      are not on the screen. */
   @media (max-width: 700px) {
-    #loader-skip {
-      top: max(16px, env(safe-area-inset-top));
-      right: 16px;
-      font-size: 8.5px;
-    }
   }
 </style>
 
@@ -5814,9 +5742,6 @@
   html[data-theme="light"] #enter-label:focus-visible {
     outline-color: rgba(7, 9, 15, 0.55);
   }
-  /* #loader-skip deliberately has NO light-theme rule. See its own note in
-     the block above for why, and for the measurement that nearly put a
-     wrong one here. */
   html[data-theme="light"] .enter-quick-links a {
     color: rgba(7, 9, 15, 0.72);
     border-bottom-color: rgba(7, 9, 15, 0.28);
@@ -6190,7 +6115,6 @@
 
 <div id="site-loader" style="display: none">
   <canvas id="loader-dust"></canvas>
-  <button id="loader-skip" type="button">Skip intro<span class="xarrow xarrow--right" aria-hidden="true"></span></button>
 
   <!-- (Top-left const() terminal stream removed per design call — was visually noisy on the loader scene.) -->
 
@@ -6824,8 +6748,11 @@
          second line simply now happens while there is still a page for it to
          happen on. */
       var lines = [
-        { text: "Hey, I'm Sid. Welcome to my portfolio.", startAt: 700 },
-        { text: "I hope you feel the love I put into it.", startAt: 3600 },
+        /* `at` is a position in the film, in seconds. The film runs 5.07s and
+           the loader holds briefly past its end, so 2.5 puts the second line
+           at the midpoint with the whole back half to be read in. */
+        { text: "Hey, I'm Sid. Welcome to my portfolio.", at: 0.15 },
+        { text: "I hope you feel the love I put into it.", at: 2.5 },
       ];
 
       // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
@@ -6870,42 +6797,119 @@
         requestAnimationFrame(frame);
       }
 
-      lines.forEach(function (line, idx) {
-        setTimeout(function () {
-          // Fade out previous (opacity 0 + heavy blur).
-          hello.style.transition = "opacity 0.35s ease, filter 0.35s ease";
+      /* ── HOW A LINE ARRIVES AND HOW IT LEAVES ──────────────────────────
+         Sid: "make smooth text entry and exit animations please."
+
+         Three things were making it read as a swap rather than as a
+         transition.
+
+         The scramble phase SNAPPED. It set `transition: none` and jumped
+         straight to 0.32 opacity, so between the outgoing line clearing and
+         the incoming one forming there was a hard cut, and no amount of
+         easing on either side could cover it.
+
+         Nothing moved. Opacity and blur alone read as a dissolve; a few
+         pixels of travel is what makes text feel like it arrives from
+         somewhere and leaves in a direction. The outgoing line now lifts
+         away and the incoming one rises into place, which also gives the two
+         lines a relationship -- one makes room for the other.
+
+         And it was 900ms of scramble, not the 620 I claimed when I retimed
+         these: the duration is passed explicitly at this call site, so
+         changing the default in scrambleTo did nothing at all. It is 620
+         here now, where it actually takes effect. A scramble is unreadable
+         while it runs, so its length comes straight out of the line's
+         reading time. */
+      var LEAVE = 420;
+
+      /* ── SCHEDULED AGAINST THE FILM, NOT THE WALL CLOCK ────────────────
+         These were setTimeouts from page load, which assumes the film starts
+         when the page does. It does not: on a cold cache it starts late, on a
+         warm one it starts immediately, and the loader clears when the FILM
+         ends either way. Measured, that swing is over a second -- the same
+         build gave line two 1.8s of reading on a cold load and 0.55s on a
+         warm one, because the wall clock had drifted away from the thing that
+         actually decides when the opening is over.
+
+         Keyed to currentTime instead, both lines sit at a fixed point in the
+         film and get the same share of it no matter how the video loaded. It
+         also means a visitor who scrubs the film forward gets the lines at
+         the pace they are pulling it, rather than watching a stale timeout
+         fire over a picture that has moved on. */
+      var cued = 0;
+      function cueLines() {
+        if (loadingEnded) return;
+        var t = loadingVideo.currentTime || 0;
+        for (var i = cued; i < lines.length; i++) {
+          if (t >= lines[i].at) {
+            cued = i + 1;
+            playLine(lines[i]);
+          }
+        }
+        if (cued < lines.length) requestAnimationFrame(cueLines);
+      }
+
+      function playLine(line) {
+        (function () {
+          /* Out: lift and blur away. */
+          hello.style.transition =
+            "opacity " + LEAVE + "ms ease, filter " + LEAVE + "ms ease, transform " + LEAVE + "ms cubic-bezier(0.4, 0, 0.2, 1)";
           hello.style.opacity = "0";
           hello.style.filter = "blur(8px)";
+          hello.style.transform = "translate(-50%, -14px)";
           setTimeout(function () {
-            // SCRAMBLE PHASE: low opacity + light blur so the cycling random characters are visible
-            // but quiet — they don't steal attention while the text is still forming.
+            /* Placed below, still invisible, with no transition -- this is
+               the only instant step and nothing is on screen for it. */
             hello.style.transition = "none";
-            hello.style.opacity = "0.32";
-            hello.style.filter = "blur(3px)";
-            scrambleTo(hello, line.text, {
-              duration: 900,
-              done: function () {
-                // RESOLVE PHASE: text has fully formed. Smoothly ramp opacity → 1 and unblur.
-                hello.style.transition = "opacity 0.7s var(--ease-out), filter 0.7s ease";
-                hello.style.opacity = "1";
-                hello.style.filter = "blur(0)";
-              },
+            hello.style.opacity = "0";
+            hello.style.filter = "blur(5px)";
+            hello.style.transform = "translate(-50%, 14px)";
+            /* One frame, so the browser has a state to move FROM. Without it
+               the next assignment coalesces with the one above and the whole
+               entry is skipped. */
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () {
+                hello.style.transition = "opacity 420ms ease, filter 420ms ease, transform 620ms cubic-bezier(0.16, 1, 0.3, 1)";
+                hello.style.opacity = "0.34";
+                hello.style.filter = "blur(3px)";
+                hello.style.transform = "translate(-50%, 0)";
+                scrambleTo(hello, line.text, {
+                  duration: 620,
+                  done: function () {
+                    /* Settled: full strength, sharp, at rest. */
+                    hello.style.transition = "opacity 620ms var(--ease-out), filter 620ms ease, transform 620ms cubic-bezier(0.16, 1, 0.3, 1)";
+                    hello.style.opacity = "1";
+                    hello.style.filter = "blur(0)";
+                    hello.style.transform = "translate(-50%, 0)";
+                  },
+                });
+              });
             });
-          }, 350);
-        }, line.startAt);
-      });
+          }, LEAVE);
+        })();
+      }
+      requestAnimationFrame(cueLines);
 
       // When the cube video ends, fade the Hello text out so it doesn't linger past the cube exit
       var fadeHelloOnVideoEnd = function () {
-        hello.style.transition = "opacity 0.5s ease, filter 0.5s ease";
+        /* The last line leaves the same way every other one did, rather than
+           dissolving in place -- otherwise the one exit a visitor is
+           guaranteed to see is the only one that does not move. */
+        hello.style.transition = "opacity 520ms ease, filter 520ms ease, transform 520ms cubic-bezier(0.4, 0, 0.2, 1)";
         hello.style.opacity = "0";
         hello.style.filter = "blur(6px)";
+        hello.style.transform = "translate(-50%, -14px)";
       };
 
       // The scrub reaches its end → dissolve.
       var loadingEnded = false;
 
-      function onLoadingEnd() {
+      /* `quick` is for somebody who ASKED to leave. The hold and the long
+         dissolve below exist so the final line lands for a visitor who let
+         the film play; for a visitor pressing Escape that line is exactly
+         what they are declining, so making them watch it fade for two full
+         seconds answers a request to hurry with a delay. */
+      function onLoadingEnd(quick) {
         if (loadingEnded) return;
         loadingEnded = true;
         loader.classList.remove("is-running");
@@ -6914,24 +6918,35 @@
            page arriving used to be the same moment, which is the other half
            of "disappearing a bit fast": whatever was on screen when the
            footage ran out was cut off mid sentence. */
+        var hold = quick ? 0 : 620;
+        var fade = quick ? 260 : 800;
         setTimeout(function () {
-          loader.style.transition = "opacity 0.8s ease";
+          loader.style.transition = "opacity " + fade + "ms ease";
           loader.style.opacity = "0";
 
           setTimeout(function () {
             if (loader.parentNode) loader.remove();
             window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: false } }));
-          }, 800);
-          /* 200 -> 620. Two hundred milliseconds is not a hold, it is a
-             frame: the fade began before the eye had finished the sentence.
-             620 plus the 800ms dissolve means the final line is legible for
-             well over a second after the film stops, and the opening is
-             still under seven seconds end to end. */
-        }, 620);
+          }, fade);
+          /* 200 -> 620 for the unhurried path. Two hundred milliseconds is
+             not a hold, it is a frame: the fade began before the eye had
+             finished the sentence. 620 plus the 800ms dissolve means the
+             final line is legible for well over a second after the film
+             stops, and the opening is still under seven seconds end to end. */
+        }, hold);
       }
 
-      var skipButton = document.getElementById("loader-skip");
-      if (skipButton) skipButton.addEventListener("click", onLoadingEnd, { once: true });
+      /* ── THE SKIP BUTTON IS GONE ───────────────────────────────────────
+         Sid: "remove skip intro."
+
+         The ways out that remain are better than the button was. Escape ends
+         it, which is what a person who wants out of something already reaches
+         for. And scrolling does not skip the film, it RUNS it: the scrub
+         takes the playback rate up to eight times, so a single flick is
+         through the whole opening in about a second and the visitor has still
+         seen it. That is a better answer than a button, because the gesture
+         somebody makes when they are impatient is exactly the gesture that
+         speeds it up. */
 
       /* Escape ends the intro too. The button is a 113px target in one
          corner of a moving screen; Escape is what a person who wants out of
@@ -6945,7 +6960,7 @@
       function skipKeyHandler(e) {
         if (e.key === "Escape" || e.key === "Esc") {
           window.removeEventListener("keydown", skipKeyHandler);
-          onLoadingEnd();
+          onLoadingEnd(true);
         }
       }
       window.addEventListener("keydown", skipKeyHandler);
