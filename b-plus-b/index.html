@@ -3216,7 +3216,10 @@
         color: var(--ink-4);
         padding: 8px var(--gutter) 0;
         margin: 40px 0 0;
-        line-height: 1.5;
+        /* "a bit too tight": 1.5 on a 13px mono caption that regularly runs
+           to two lines closes the second line up under the first. 1.62 is
+           the same figure the body copy uses. */
+        line-height: 1.62;
       }
       .cube-cap em { font-style: italic; }
 
@@ -3259,8 +3262,26 @@
          every case study is .case-story. Longhand under an important
          shorthand loses silently -- the number rendered, the hang did not,
          and the caption's second line ran back under the ordinal. */
+      /* ── THE HANG WAS 128px, NOT 40 ──────────────────────────────────
+         Sid: "the numbered captions are indenting out and not aligned and
+         feels a bit too tight."
+
+         Both halves of that are this rule. It was written as
+         `var(--sp-10, 40px)` on the assumption that --sp-10 is 40px. It is
+         not: design_tokens.html defines it as 128px, so the fallback never
+         applied and the whole caption was pushed a third of the content
+         width to the right of the picture it describes. Measured on
+         /m-health-fairview/: the media column starts at 58, the ordinal
+         rendered at 146 and the caption text at 186.
+
+         The hang has to equal the ordinal's own width or the number and the
+         text cannot both be right, so all three numbers are now the same
+         literal 40 rather than one token and two constants that have to be
+         kept in step by hand. The ordinal sits on the column edge, in line
+         with the left edge of every image on the page, and the text hangs
+         40px in from it. */
       .case-story .proj-body .cube-cap--above {
-        padding-left: var(--sp-10, 40px) !important;
+        padding-left: 40px !important;
         text-indent: -40px;
       }
       .cube-cap--above::before {
@@ -3286,7 +3307,7 @@
       .cube-cap--above + .cs-grid,
       .cube-cap--above + .cs-grid-3,
       .cube-cap--above + .cs-bleed,
-      .cube-cap--above + .cs-bleed-full { margin-top: 12px; }
+      .cube-cap--above + .cs-bleed-full { margin-top: 14px; }
       .cube-cap + .cs-bleed,
       .cube-cap + .cs-grid,
       .cube-cap + .cs-grid-3 { margin-top: 8px; }
@@ -8352,24 +8373,72 @@
      picture rather than like chips appearing. Same stagger, entirely
      different register: mechanical instead of playful, which is what a
      measurement should look like. */
+  /* ── EACH CHIP IS A BEAD, NOT A BLOCK ──────────────────────────────────
+     Sid: "the color squares which come when you hover on a pic, can we have
+     them be a gradient of the square and in the center it can be a gradient
+     of the background so it feels nicer than just a flat square color block.
+     Do you think its better to show the individual squares or one long
+     rectangle gradient?"
+
+     Squares, and it is not a close call. Ten separate chips are a PALETTE:
+     the eye counts them, compares them, and reads them as a set of decisions
+     taken from the picture. Melt them into one bar and the boundaries go,
+     which is the only thing that made them countable -- it stops being a
+     reading of the image and becomes decoration along the bottom of the mark.
+     The squares also match the pixel-art language the nav icons already
+     speak, and a gradient bar would be the one soft edge in a corner built
+     entirely from hard ones.
+
+     What was wrong is that each was a flat fill, which is a paint chip. Three
+     layers fix it without touching the colour the reader is being shown:
+
+       · a specular at the upper left, from the same light as every other
+         glass object on this site;
+       · the page's own ground pooling through the centre, which is what Sid
+         asked for -- the chip reads as a bead of coloured glass laid on the
+         page rather than as a sticker printed on it;
+       · the flat colour underneath, still the honest sample from the picture.
+
+     The centre uses the real theme ground rather than black, so on cream it
+     pools warm and on the dark page it pools dark. Black in both would have
+     been a hole in light mode. */
   .cube-says__hues i {
     display: block;
     width: 12px;
     height: 12px;
-    border-radius: 0;
-    background: var(--c);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
-    transform-origin: 50% 100%;
-    animation: hue-wipe 0.44s cubic-bezier(0.22, 1, 0.36, 1) both;
+    border-radius: 1.5px;
+    --hue-ground: 8, 12, 20;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 44%),
+      radial-gradient(circle at 52% 56%, rgba(var(--hue-ground), 0.52), rgba(var(--hue-ground), 0) 68%), var(--c);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+      0 1px 3px -1px rgba(0, 0, 0, 0.5);
+    transform-origin: 50% 68%;
+    animation: hue-wipe 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
     animation-delay: calc(var(--i) * 38ms);
   }
+  html[data-theme="light"] .cube-says__hues i {
+    --hue-ground: 250, 246, 238;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.5),
+      0 1px 3px -1px rgba(30, 50, 80, 0.28);
+  }
+  /* It used to grow straight up from nothing on a pure scaleY, which squashes
+     the bead flat and shows the gradient stretched before it settles. Coming
+     up AND out from 82% keeps the chip's proportions honest the whole way, so
+     what arrives is a small object landing rather than a bar being drawn. */
   @keyframes hue-wipe {
     from {
-      transform: scaleY(0);
-      opacity: 0.4;
+      transform: scale(0.82) translateY(3px);
+      opacity: 0;
+    }
+    60% {
+      transform: scale(1.06) translateY(0);
+      opacity: 1;
     }
     to {
-      transform: scaleY(1);
+      transform: scale(1) translateY(0);
       opacity: 1;
     }
   }
