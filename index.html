@@ -6798,9 +6798,34 @@
       });
       if (!sraf) sraf = requestAnimationFrame(tick);
 
+      /* ── THE SECOND LINE WAS NEVER READ BY ANYBODY ─────────────────────
+         A reader, unprompted: "the intro texts are disappearing a bit fast."
+
+         Measured, it is worse than fast. The film runs 5.07s and the loader
+         is gone at about 6.6s. The second line was scheduled at 5200ms and
+         takes 900ms to resolve out of its scramble, so it finished at 6100ms
+         and had roughly half a second on screen -- and for most of its life
+         it was a burst of random glyphs. Traced on a cold load:
+
+             1744ms  "Hey, I'm SD14 6S\@CA6 2\ 0Y P@T3RHYU#7"
+             2553ms  "Hey, I'm Sid. Welcome to my portfolio."
+             5785ms  "K PNF8 <AC <W!U MOA W7#> 1 *VA **K2 I\U"
+             6187ms  "I hope you SF@H !NV TXGM O 9ZP 9@BX 7AC"
+             6594ms  loader gone
+
+         The sentence he wrote about the love he put into this has never been
+         read by a single visitor.
+
+         3600ms instead, which lands it inside the film rather than at its
+         edge. Measured on a cold load afterwards, both lines get a fair share
+         of the same seven seconds: the first is legible from 1.3s until the
+         second begins, the second from 4.2s until the loader clears at 6.9s.
+         Nothing was slowed down -- the opening is the same length -- the
+         second line simply now happens while there is still a page for it to
+         happen on. */
       var lines = [
-        { text: "Hey, I'm Sid. Welcome to my portfolio.", startAt: 800 },
-        { text: "I hope you feel the love I put into it.", startAt: 5200 },
+        { text: "Hey, I'm Sid. Welcome to my portfolio.", startAt: 700 },
+        { text: "I hope you feel the love I put into it.", startAt: 3600 },
       ];
 
       // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
@@ -6808,7 +6833,11 @@
       var SCRAMBLE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?#@*<>/\\";
       function scrambleTo(el, target, opts) {
         opts = opts || {};
-        var duration = opts.duration || 900;
+        /* 620, not 900. A scramble is unreadable while it runs, so its
+           duration is time subtracted from the line's reading time. Long
+           enough to read as a reveal, short enough that most of the line's
+           life is spent being legible. */
+        var duration = opts.duration || 620;
         var fps = 30;
         var totalFrames = Math.round((duration / 1000) * fps);
         var startTime = performance.now();
@@ -6881,7 +6910,10 @@
         loadingEnded = true;
         loader.classList.remove("is-running");
         loadingVideo.pause();
-        // Brief hold, then dissolve
+        /* The hold is what lets the last line land. The film ending and the
+           page arriving used to be the same moment, which is the other half
+           of "disappearing a bit fast": whatever was on screen when the
+           footage ran out was cut off mid sentence. */
         setTimeout(function () {
           loader.style.transition = "opacity 0.8s ease";
           loader.style.opacity = "0";
@@ -6890,7 +6922,12 @@
             if (loader.parentNode) loader.remove();
             window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: false } }));
           }, 800);
-        }, 200);
+          /* 200 -> 620. Two hundred milliseconds is not a hold, it is a
+             frame: the fade began before the eye had finished the sentence.
+             620 plus the 800ms dissolve means the final line is legible for
+             well over a second after the film stops, and the opening is
+             still under seven seconds end to end. */
+        }, 620);
       }
 
       var skipButton = document.getElementById("loader-skip");

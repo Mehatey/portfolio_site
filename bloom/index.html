@@ -2822,6 +2822,34 @@
         border-radius: 4px;
         overflow: hidden;
       }
+      .nextscroll__meter {
+        position: relative;
+        display: block;
+        height: 1px;
+        margin: 0 0 14px;
+        background: rgba(190, 214, 240, 0.16);
+        overflow: hidden;
+      }
+      .nextscroll__fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        display: block;
+        /* Driven by the same --ns-p everything else here reads, so the meter
+           cannot disagree with the picture. */
+        width: calc(var(--ns-p, 0) * 100%);
+        background: linear-gradient(90deg, rgba(150, 200, 255, 0.5), rgba(196, 226, 255, 0.95));
+      }
+      .nextscroll.is-ready .nextscroll__fill {
+        background: rgba(226, 244, 255, 1);
+      }
+      html[data-theme="light"] .nextscroll__meter {
+        background: rgba(30, 50, 90, 0.16);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .nextscroll__meter {
+          display: none;
+        }
+      }
       .nextscroll__cover {
         position: absolute;
         inset: 0;
@@ -8948,7 +8976,7 @@
             v.load();
             v.play().catch(() => {});
           })();
-        </script> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>Building for Vision Pro meant learning a new spatial design language from scratch. There are no flat screens to fall back on. Every UI decision is a room decision. Where the tree sits, how large it reads at arm’s length, whether the voice feels near or distant. All of it had to be felt in space, not sketched on a canvas.</p> <p>What surprised me was how much the voice carried the experience. The visuals set the stage, but the moment the tree spoke, everything changed. The right pacing made it feel alive. The wrong pacing made it feel like a demo. That line was narrower than I expected, and finding it took more iteration than any technical problem.</p> </blockquote> </div> </section> <section class="nextscroll" id="project-next-step" data-next-url="/mandalas/" aria-label="Next project: Bloom; who are you"> <a class="nextscroll__pin" href="/mandalas/"> <span class="nextscroll__visual" style="background: #060608;"> <img class="nextscroll__cover nextscroll__cover--base" src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <img class="nextscroll__cover nextscroll__cover--fill" src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <span class="nextscroll__edge" aria-hidden="true"></span> </span> <span class="nextscroll__row"> <span class="nextscroll__lead"> <span class="nextscroll__label">Next project</span> <span class="nextscroll__title">Bloom; who are you</span> </span> <span class="nextscroll__desc">The installation the thesis grew from.</span> </span> </a> </section> </main> <style>
+        </script> <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas> <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas> <div class="refl-inner"> <blockquote class="refl-quote"> <p>Building for Vision Pro meant learning a new spatial design language from scratch. There are no flat screens to fall back on. Every UI decision is a room decision. Where the tree sits, how large it reads at arm’s length, whether the voice feels near or distant. All of it had to be felt in space, not sketched on a canvas.</p> <p>What surprised me was how much the voice carried the experience. The visuals set the stage, but the moment the tree spoke, everything changed. The right pacing made it feel alive. The wrong pacing made it feel like a demo. That line was narrower than I expected, and finding it took more iteration than any technical problem.</p> </blockquote> </div> </section> <section class="nextscroll" id="project-next-step" data-next-url="/mandalas/" aria-label="Next project: Bloom; who are you"> <a class="nextscroll__pin" href="/mandalas/"> <span class="nextscroll__visual" style="background: #060608;"> <img class="nextscroll__cover nextscroll__cover--base" src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <img class="nextscroll__cover nextscroll__cover--fill" src="/4.mandala/cover.jpg" alt="" loading="lazy" decoding="async"> <span class="nextscroll__edge" aria-hidden="true"></span> </span> <span class="nextscroll__meter" aria-hidden="true"><i class="nextscroll__fill"></i></span> <span class="nextscroll__row"> <span class="nextscroll__lead"> <span class="nextscroll__label">Next project</span> <span class="nextscroll__title">Bloom; who are you</span> </span> <span class="nextscroll__desc">The installation the thesis grew from.</span> </span> </a> </section> </main> <style>
   /* Inline-block so each character can carry its own weight. No transition:
      the per-frame values come from script and the easing already lives in the
      loop, so a CSS transition on top would fight it. `will-change` is
@@ -15523,14 +15551,32 @@
           /* 0 when the panel first pins, 1 when the runway is spent. */
           var p = Math.max(0, Math.min(1, -r.top / travel));
 
-          /* Eased for the paint, linear for the decision. A smoothstep makes
-             the cover begin to fill slowly, run through the middle of the
-             runway, and settle rather than slam -- which is the half of
-             "too sudden" that is about how it looks. The other half is how
-             fast it commits, and that is the dwell below. */
-          var pe = p * p * (3 - 2 * p);
+          /* ── THE FEEDBACK HAD TO COME FORWARD ──────────────────────────
+             A reader, unprompted: "when I scrolled to the next case study
+             from the previous one, I didn't realise I was doing that."
+
+             That is this curve. A smoothstep is flat at both ends, so a third
+             of the way down a 2700px runway the progress was 0.08 and the
+             cover was still sitting at its base opacity -- the reader had
+             travelled a long way and NOTHING had visibly answered them. By
+             the time the panel started moving they were nearly committed,
+             which is why the arrival felt like something that happened TO
+             them rather than something they were doing.
+
+             So the response is front-loaded: pow(p, 0.62) moves immediately
+             and visibly on the first scroll, then eases as it completes. The
+             first flick now says "you are opening something", which is the
+             entire job of this panel and the one thing it was not doing. The
+             ease-out at the top is kept, because the half of "too sudden"
+             that is about how it LOOKS was always correct. */
+          var pe = Math.pow(p, 0.62);
           section.style.setProperty("--ns-p", pe.toFixed(4));
-          section.style.setProperty("--ns-cover-o", (0.34 + 0.56 * pe).toFixed(3));
+          /* From 0.34 to 0.5 at rest. At 0.34 the next project's cover is
+             near-black against a dark page, so what the reader sees when the
+             panel first pins is an empty rectangle rather than a photograph
+             of somewhere they could go. Half-lit, it is legibly a picture
+             from the first frame and still clearly not yet arrived. */
+          section.style.setProperty("--ns-cover-o", (0.5 + 0.44 * pe).toFixed(3));
           section.style.setProperty("--ns-cover-s", (1.06 - 0.06 * pe).toFixed(4));
           section.style.setProperty("--ns-copy-y", (18 - 18 * pe).toFixed(1) + "px");
 
