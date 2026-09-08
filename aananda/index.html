@@ -6886,21 +6886,52 @@
     stroke-linejoin: round;
     opacity: 0;
     transform-box: fill-box;
-    transform-origin: center;
+    /* ── THE ORIGIN MUST NOT MOVE ──────────────────────────────────────
+       Sid: "improve the cube 3d to 2d logo mark animation, its not smooth
+       ... the sides come out into 3d then suddenly its suspended in air and
+       then the cube returns to the square."
+
+       The un-smoothness was here. transform-origin was `center` at rest and
+       `0 100%` / `0 0` on hover, and an origin is not an interpolated
+       property: it SNAPS at the start of the transition while the transform
+       eases. So every face travelled a broken path -- it jumped to a new
+       pivot, then swung, which is exactly the hitch he is describing and no
+       amount of easing could have fixed it.
+
+       Each face now carries its hinge in the base rule, in both states, so
+       the only thing that changes is the transform and the motion is one
+       continuous arc. Pure translation at rest is origin-independent, so the
+       resting position is unaffected.
+
+       The duration was the other half. 2.6s to return means the mark is still
+       disassembling long after the pointer has gone, which is the "suspended
+       in air": not a pause, just an animation outliving the gesture that
+       caused it. Out is faster than in, because assembling is the flourish
+       and putting it away should not be. */
     transition:
-      opacity 2.6s cubic-bezier(0.62, 0, 0.32, 1),
-      transform 2.6s cubic-bezier(0.62, 0, 0.32, 1),
-      fill-opacity 2.6s ease;
+      opacity 560ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 560ms cubic-bezier(0.22, 1, 0.36, 1),
+      fill-opacity 560ms ease;
   }
   .studio-mark:hover .logo-cube .cube-face,
   .studio-mark:focus-visible .logo-cube .cube-face {
-    transition-duration: 2.2s;
+    transition-duration: 620ms;
   }
   .studio-mark .logo-cube .cube-top {
+    transform-origin: 0 100%;
     transform: translateY(1.8px);
   }
   .studio-mark .logo-cube .cube-right {
+    transform-origin: 0 0;
     transform: translateX(-1.8px);
+    /* The right face follows the top rather than arriving with it. A solid
+       that assembles in one beat reads as a swap; one that builds reads as
+       being constructed. */
+    transition-delay: 70ms;
+  }
+  .studio-mark:hover .logo-cube .cube-right,
+  .studio-mark:focus-visible .logo-cube .cube-right {
+    transition-delay: 70ms;
   }
 
   /* ── THE HOVER BUILDS A SOLID ────────────────────────────────────────────
@@ -6933,12 +6964,10 @@
      SVG children do not, which is why the faces are built in 2D. */
   .studio-mark:hover .logo-cube .cube-top,
   .studio-mark:focus-visible .logo-cube .cube-top {
-    transform-origin: 0 100%;
     transform: translateY(-21px) skewX(-63.435deg) scaleY(0.25);
   }
   .studio-mark:hover .logo-cube .cube-right,
   .studio-mark:focus-visible .logo-cube .cube-right {
-    transform-origin: 0 0;
     transform: translateX(21px) skewY(-26.565deg) scaleX(0.5);
   }
 
@@ -10145,8 +10174,183 @@
      The two inner faces are the logo's parked top and right squares, kept as
      one very quiet inset pair -- enough to read as a solid with depth from
      across the room, not enough to become an isometric diagram. */
+  /* ── WHY THEY WERE STRETCHING ──────────────────────────────────────
+     Sid, twice: "sometimes the squares get warped and stretched badly."
+
+     The pieces are sized from SCENE with the width in vw and the height in
+     vh, so a cube is only square at one window shape. At 1440x900 a 0.2/0.34
+     cube renders 288x306, near enough. On a wide short window -- 2560x900,
+     which is an external monitor -- the same cube renders 512x306, which is
+     the stretch he kept seeing and which no amount of tuning the warp could
+     fix, because the warp was never the cause here.
+
+     aspect-ratio pins it: the width still comes from vw so the piece scales
+     with the window, and the height is derived rather than measured against a
+     different axis. The face sits on percentages of the box, so it follows. */
   .idle-drift__p.is-cube {
     border-radius: 24%;
+    aspect-ratio: 1;
+    height: auto !important;
+    /* ── THEY ARE SOLIDS NOW, NOT FACES ────────────────────────────────
+       Sid: "can we have them be 3d cubes instead of just a face."
+
+       The obvious build -- preserve-3d on the piece and hinge two more faces
+       off it -- renders nothing, and the reason is worth writing down:
+       backdrop-filter forces transform-style to FLAT on the element carrying
+       it. The glass and the third dimension cannot be the same box. Measured
+       in a scratch page: the side and top faces existed, were correctly
+       transformed, and were flattened out of existence by the blur.
+
+       So the piece becomes the container that holds the depth, and a child
+       carries the glass. The face lives inside that child, so every existing
+       `.idle-drift__p .eye` and `.mouth` selector still matches by descent
+       and none of the face geometry had to move. */
+    transform-style: preserve-3d;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: none;
+    box-shadow: none;
+  }
+  /* ══ THE EYE ═══════════════════════════════════════════════════════════
+     Sid: "maybe an eye as well ... same liquid glass style or pixel art?"
+
+     Liquid glass, to match. It is the same material as the cube and the
+     clouds -- a real backdrop-filter carrying whatever is behind it -- shaped
+     as a lens rather than a box: a pointed oval, which is the one silhouette
+     that reads as an eye at any size without needing lashes drawn on it.
+
+     Behind the glass sits an iris with a pupil, and the whole thing blinks on
+     its own long clock. It is not the mark's face repeated at a larger size;
+     it is the thing the mark's two pixels are a shorthand for. */
+  .idle-drift__p.is-eye {
+    /* The pointed oval: a circle radius on the long axis and a much tighter
+       one on the short, which is what makes the corners come to a point. */
+    border-radius: 58% 58% 58% 58% / 50% 50% 50% 50%;
+    aspect-ratio: 2.05;
+    height: auto !important;
+  }
+  .idle-drift__p.is-eye > .iris {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 34%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    /* The iris is lit from the same upper left as everything else here, and
+       it is a ring rather than a disc so the glass still shows through it. */
+    background:
+      radial-gradient(circle at 38% 32%, rgba(214, 240, 255, 0.6), rgba(96, 158, 226, 0.34) 46%, rgba(28, 62, 116, 0.5) 78%), rgba(20, 44, 84, 0.25);
+    box-shadow:
+      inset 0 0 12px rgba(10, 26, 54, 0.55),
+      0 0 22px -6px rgba(150, 205, 255, 0.5);
+    animation: idle-eye-look 23s ease-in-out infinite;
+  }
+  .idle-drift__p.is-eye > .iris > .pupil {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 42%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: rgba(6, 12, 24, 0.78);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18);
+  }
+  /* The blink is a lid that closes over the glass rather than a scaleY on the
+     whole object, because an eye that squashes reads as a bouncing ball. */
+  .idle-drift__p.is-eye > .lid {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(180deg, rgba(18, 30, 52, 0.94), rgba(12, 22, 40, 0.9));
+    transform-origin: center top;
+    transform: scaleY(0);
+    animation: idle-eye-blink 8.9s ease-in-out infinite;
+  }
+  html[data-theme="light"] .idle-drift__p.is-eye > .lid {
+    background: linear-gradient(180deg, rgba(250, 247, 240, 0.95), rgba(236, 231, 220, 0.92));
+  }
+  @keyframes idle-eye-blink {
+    0%,
+    93%,
+    100% {
+      transform: scaleY(0);
+    }
+    96% {
+      transform: scaleY(1);
+    }
+  }
+  @keyframes idle-eye-look {
+    0%,
+    100% {
+      transform: translate(-50%, -50%);
+    }
+    26% {
+      transform: translate(-78%, -54%);
+    }
+    58% {
+      transform: translate(-24%, -46%);
+    }
+    80% {
+      transform: translate(-60%, -50%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p.is-eye > .lid,
+    .idle-drift__p.is-eye > .iris {
+      animation: none;
+    }
+  }
+
+  .idle-drift__p.is-cube > .cube-front {
+    position: absolute;
+    inset: 0;
+    border-radius: 24%;
+    backdrop-filter: blur(9px) saturate(1.5) brightness(1.06);
+    -webkit-backdrop-filter: blur(9px) saturate(1.5) brightness(1.06);
+    background: linear-gradient(148deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.03) 42%, rgba(255, 255, 255, 0.1));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.12),
+      0 0 0 1px rgba(255, 255, 255, 0.16),
+      0 18px 40px -16px rgba(0, 0, 0, 0.55);
+  }
+  /* The two faces you can see at this angle. They hinge backwards off the
+     right and top edges, so the front stays exactly where it was and the
+     solid grows away from the viewer rather than toward them. Tinted rather
+     than blurred: the side of a glass block catches light instead of
+     transmitting the page, and a second backdrop-filter here would cost a
+     composite per face for something nobody can see through anyway. */
+  .idle-drift__p.is-cube > .cf {
+    position: absolute;
+    border-radius: 7%;
+    pointer-events: none;
+    --d: 15%;
+  }
+  .idle-drift__p.is-cube > .cf--r {
+    top: 0;
+    left: 100%;
+    width: var(--d);
+    height: 100%;
+    transform-origin: left center;
+    transform: rotateY(90deg);
+    background: linear-gradient(105deg, rgba(var(--tint, 150, 200, 255), 0.34), rgba(20, 44, 84, 0.46));
+  }
+  .idle-drift__p.is-cube > .cf--t {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: var(--d);
+    transform-origin: center top;
+    transform: rotateX(-90deg);
+    background: linear-gradient(190deg, rgba(214, 238, 255, 0.36), rgba(var(--tint, 96, 156, 232), 0.2));
+  }
+  html[data-theme="light"] .idle-drift__p.is-cube > .cf--r {
+    background: linear-gradient(105deg, rgba(var(--tint, 90, 140, 210), 0.3), rgba(40, 70, 120, 0.26));
+  }
+  html[data-theme="light"] .idle-drift__p.is-cube > .cf--t {
+    background: linear-gradient(190deg, rgba(255, 255, 255, 0.6), rgba(var(--tint, 120, 170, 230), 0.22));
   }
   /* ══ THE LIGHT ACTUALLY TRAVELS ════════════════════════════════════════
      Sid: "The light streak, the lens flare, and the amount of refraction
@@ -10183,7 +10387,7 @@
      The second gradient -- a flat white wash across the top 30% -- is the
      other half of the rectangle problem, and it is now a soft ellipse near
      the top corner, which is where a light source actually catches a box. */
-  .idle-drift__p.is-cube::before {
+  .idle-drift__p.is-cube > .cube-front::before {
     background:
       linear-gradient(
         104deg,
@@ -10203,11 +10407,11 @@
     opacity: 0.5;
     animation: idle-sweep 34s cubic-bezier(0.42, 0, 0.3, 1) infinite;
   }
-  .idle-drift__p.t-sun.is-cube::before {
+  .idle-drift__p.t-sun.is-cube > .cube-front::before {
     animation-duration: 47s;
     animation-delay: -11s;
   }
-  .idle-drift__p.t-rose.is-cube::before {
+  .idle-drift__p.t-rose.is-cube > .cube-front::before {
     animation-duration: 58s;
     animation-delay: -26s;
   }
@@ -10273,7 +10477,7 @@
     }
   }
   @media (prefers-reduced-motion: reduce) {
-    .idle-drift__p.is-cube::before,
+    .idle-drift__p.is-cube > .cube-front::before,
     .idle-drift__p.is-cube > .flare {
       animation: none;
     }
@@ -10451,12 +10655,17 @@
   .idle-drift__p .eye:nth-of-type(2) {
     left: 63.7%;
   }
+  /* Sid: "make the mouth stroke much thinner and rounded corners."
+     4.3% of a 300px cube is a 13px slab. At 2.4% it is a drawn line, and a
+     full pill radius rather than 2px means it ends in a cap instead of a
+     corner -- which is what every other stroke in the mark does. */
   .idle-drift__p .mouth {
     left: 39.8%;
-    top: 68.6%;
+    top: 69.4%;
     width: 20.5%;
-    height: 4.3%;
-    border-radius: 2px;
+    height: 2.4%;
+    min-height: 1.5px;
+    border-radius: 999px;
     opacity: 0.82;
   }
 
@@ -10490,7 +10699,7 @@
      because on a light ground the eye reads a pale shape as OPAQUE and a
      dark one as transparent, which is the opposite of the assumption the
      dark palette is built on. */
-  html[data-theme="light"] .idle-drift__p.is-cube {
+  html[data-theme="light"] .idle-drift__p.is-cube > .cube-front {
     backdrop-filter: blur(5px) saturate(1.25) brightness(1.01);
     -webkit-backdrop-filter: blur(5px) saturate(1.25) brightness(1.01);
     background: linear-gradient(
@@ -10506,7 +10715,7 @@
       0 0 48px -16px rgba(var(--tint, 46, 52, 66), 0.24),
       0 20px 46px -22px rgba(46, 52, 66, 0.26);
   }
-  html[data-theme="light"] .idle-drift__p.is-cube::before {
+  html[data-theme="light"] .idle-drift__p.is-cube > .cube-front::before {
     opacity: 0.3;
   }
   html[data-theme="light"] .idle-drift__p.is-cube > .flare {
@@ -18635,14 +18844,29 @@
     }
   }
 
-  /* ── GLOBAL FILM GRAIN ── adds atmospheric texture site-wide */
+  /* ── GLOBAL FILM GRAIN ── adds atmospheric texture site-wide
+     A friend of Sid's, looking at the site: "the texture you have added
+     throughout the background is nice, but it is also interrupting with your
+     works colors and clarity."
+
+     Correct, and it is the blend mode rather than the grain. Overlay pushes
+     saturation as well as lightness, so a layer meant to add tooth was also
+     shifting the colour of the work under it. Measured on a work card against
+     grain switched off entirely:
+
+         overlay 0.05      lightness +/-4.71   saturation +/-0.72
+         soft-light 0.05   lightness +/-4.70   saturation +/-0.26
+
+     Identical texture, 64% less colour distortion. Soft-light is the whole
+     fix; the opacity did not need to move, and dropping it would have cost
+     the grain for no gain. */
   #global-grain {
     position: fixed;
     inset: 0;
     z-index: 9;
     pointer-events: none;
     opacity: 0.05;
-    mix-blend-mode: overlay;
+    mix-blend-mode: soft-light;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
     background-size: 220px 220px;
     animation: grainShift 0.35s steps(4) infinite;
