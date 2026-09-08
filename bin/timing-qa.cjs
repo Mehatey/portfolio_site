@@ -120,8 +120,17 @@ const isNoise = (t) => /[@#*<>\\\\/]{2,}|[A-Z0-9!?@#*<>\\\\/]{6,}/.test(t);
       .catch(() => []);
     const up = new Set(stillUp);
 
+    /* A typewriter reveal emits every prefix of its sentence as a separate
+       string -- "Research", "Research to", "Research to shipped" -- and each
+       one is legitimately on screen for a few frames. Those are not passages
+       anybody is expected to read, they are one passage being drawn, so a
+       string that is a prefix of another seen on the same page is dropped.
+       Without this the report is nine lines of noise around one real finding,
+       which is how a harness gets ignored. */
+    const texts = rows.map((r) => r.text);
     rows.forEach((r) => {
       if (up.has(r.key)) return;
+      if (texts.some((t) => t !== r.text && t.startsWith(r.text))) return;
       if (r.ms >= MIN_READ) return;
       if (isNoise(r.text)) return;
       findings.push({ route, ms: r.ms, text: r.text, key: r.key.split("|")[0].slice(0, 24) });
