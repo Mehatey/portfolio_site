@@ -1358,21 +1358,52 @@
     stroke-linejoin: round;
     opacity: 0;
     transform-box: fill-box;
-    transform-origin: center;
+    /* ── THE ORIGIN MUST NOT MOVE ──────────────────────────────────────
+       Sid: "improve the cube 3d to 2d logo mark animation, its not smooth
+       ... the sides come out into 3d then suddenly its suspended in air and
+       then the cube returns to the square."
+
+       The un-smoothness was here. transform-origin was `center` at rest and
+       `0 100%` / `0 0` on hover, and an origin is not an interpolated
+       property: it SNAPS at the start of the transition while the transform
+       eases. So every face travelled a broken path -- it jumped to a new
+       pivot, then swung, which is exactly the hitch he is describing and no
+       amount of easing could have fixed it.
+
+       Each face now carries its hinge in the base rule, in both states, so
+       the only thing that changes is the transform and the motion is one
+       continuous arc. Pure translation at rest is origin-independent, so the
+       resting position is unaffected.
+
+       The duration was the other half. 2.6s to return means the mark is still
+       disassembling long after the pointer has gone, which is the "suspended
+       in air": not a pause, just an animation outliving the gesture that
+       caused it. Out is faster than in, because assembling is the flourish
+       and putting it away should not be. */
     transition:
-      opacity 2.6s cubic-bezier(0.62, 0, 0.32, 1),
-      transform 2.6s cubic-bezier(0.62, 0, 0.32, 1),
-      fill-opacity 2.6s ease;
+      opacity 560ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 560ms cubic-bezier(0.22, 1, 0.36, 1),
+      fill-opacity 560ms ease;
   }
   .studio-mark:hover .logo-cube .cube-face,
   .studio-mark:focus-visible .logo-cube .cube-face {
-    transition-duration: 2.2s;
+    transition-duration: 620ms;
   }
   .studio-mark .logo-cube .cube-top {
+    transform-origin: 0 100%;
     transform: translateY(1.8px);
   }
   .studio-mark .logo-cube .cube-right {
+    transform-origin: 0 0;
     transform: translateX(-1.8px);
+    /* The right face follows the top rather than arriving with it. A solid
+       that assembles in one beat reads as a swap; one that builds reads as
+       being constructed. */
+    transition-delay: 70ms;
+  }
+  .studio-mark:hover .logo-cube .cube-right,
+  .studio-mark:focus-visible .logo-cube .cube-right {
+    transition-delay: 70ms;
   }
 
   /* ── THE HOVER BUILDS A SOLID ────────────────────────────────────────────
@@ -1405,12 +1436,10 @@
      SVG children do not, which is why the faces are built in 2D. */
   .studio-mark:hover .logo-cube .cube-top,
   .studio-mark:focus-visible .logo-cube .cube-top {
-    transform-origin: 0 100%;
     transform: translateY(-21px) skewX(-63.435deg) scaleY(0.25);
   }
   .studio-mark:hover .logo-cube .cube-right,
   .studio-mark:focus-visible .logo-cube .cube-right {
-    transform-origin: 0 0;
     transform: translateX(21px) skewY(-26.565deg) scaleX(0.5);
   }
 

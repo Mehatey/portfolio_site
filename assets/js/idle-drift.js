@@ -51,7 +51,9 @@
      cost for something nobody will be sitting still long enough to see. */
   if (matchMedia("(hover: none)").matches) return;
 
-  var IDLE_MS = 15000;
+  /* Sid: "also let it show maybe after 20 sec." Fifteen caught people who
+     were still reading. */
+  var IDLE_MS = 20000;
 
   /* ── AND NOW IT IS GLASS AGAIN, WITH THE MARK IN IT ──────────────────
      Sid: "those clouds ... look so bad. They look so kiddish, and the trees
@@ -177,9 +179,23 @@
     { kind: "river", at: 1.2, y: 0.66, w: 1.5, h: 0.15, dur: 150, phase: 0, tint: "ice" },
     { kind: "cloud", at: 2, y: 0.1, w: 0.44, h: 0.3, dur: 190, phase: 0.1, tint: "ice" },
     { kind: "cloud", at: 22, y: 0.32, w: 0.6, h: 0.34, dur: 240, phase: 0.62, tint: "aqua" },
-    { kind: "cube", at: 3, y: 0.2, w: 0.2, h: 0.34, dur: 128, phase: 0.05, tint: "aqua", face: true, spin: 0.6 },
-    { kind: "cube", at: 14, y: 0.44, w: 0.15, h: 0.25, dur: 152, phase: 0.68, tint: "sun", face: true, spin: -0.8 },
-    { kind: "cube", at: 30, y: 0.1, w: 0.26, h: 0.44, dur: 112, phase: 0.4, tint: "rose", face: true, spin: 0.4 },
+    /* ── ONE CUBE ─────────────────────────────────────────────────────
+       Sid: "in the screensaver let there be just one cube not multiple
+       squares, instead you can also add some stars and a comet maybe and a
+       spiral maybe ... maybe an eye as well."
+
+       Three cubes drifting past each other read as a set of objects, and the
+       mark is not a set: it is one character. Alone it is the thing that
+       lives here, and everything else in the scene is weather around it.
+
+       The eye is the second character and it is deliberately not another
+       cube. Same glass, different creature: a lens with an iris behind it,
+       which is what the mark's own eyes are a pixel-art shorthand for. The
+       sun, stars, spiral, comet and birds are drawn on the rain canvas rather
+       than added as objects here, because a sky made of DOM boxes is a sky
+       that costs a composited layer per star. */
+    { kind: "cube", at: 3, y: 0.24, w: 0.19, h: 0.32, dur: 138, phase: 0.05, tint: "aqua", face: true, spin: 0.55 },
+    { kind: "eye", at: 17, y: 0.46, w: 0.15, h: 0.1, dur: 176, phase: 0.55, tint: "ice", spin: -0.4 },
   ];
 
   var layer = document.createElement("div");
@@ -197,7 +213,9 @@
        than a third pseudo-element, because it has to sit BEHIND the glass
        (z-index -1) and a ::before/::after on a backdrop-filtered box cannot
        get behind its own host. */
-    if (d.kind === "cube") el.insertAdjacentHTML("beforeend", '<i class="flare" aria-hidden="true"></i>');
+    if (d.kind === "cube" || d.kind === "eye") el.insertAdjacentHTML("beforeend", '<i class="flare" aria-hidden="true"></i>');
+    if (d.kind === "eye")
+      el.insertAdjacentHTML("beforeend", '<i class="iris" aria-hidden="true"><i class="pupil"></i></i><i class="lid" aria-hidden="true"></i>');
 
     if (d.face) {
       el.classList.add("has-face");
@@ -207,7 +225,15 @@
       /* Appended, not assigned. `innerHTML =` here would delete the flare
          element inserted just above, which is the sort of thing that shows up
          as "the halo works on two of the three cubes". */
-      el.insertAdjacentHTML("beforeend", '<b class="eye"></b><b class="eye"></b><b class="mouth"></b>');
+      /* The face goes INSIDE the glass front rather than on the piece,
+         because the piece is now the 3D container and anything parented to it
+         directly would float in space beside the cube rather than sit on it.
+         Every `.idle-drift__p .eye` selector still matches by descent. */
+      el.insertAdjacentHTML(
+        "beforeend",
+        '<i class="cf cf--t" aria-hidden="true"></i><i class="cf cf--r" aria-hidden="true"></i>' +
+          '<span class="cube-front"><b class="eye"></b><b class="eye"></b><b class="mouth"></b></span>'
+      );
     }
     layer.appendChild(el);
     pieces.push({
@@ -238,6 +264,65 @@
   layer.appendChild(rainCv);
   var rctx = rainCv.getContext("2d");
   var drops = [];
+
+  /* ══ THE SKY ═══════════════════════════════════════════════════════════
+     Sid: "make sure the cube eyes are never red and also the grass should
+     sway around and there is a nice sun too and some birds and some animated
+     abstract star, comet, spiral milky way."
+
+     All of it goes on the rain canvas rather than into new layers or new
+     elements. That is the same argument the rain itself was built on: two
+     hundred divs is two hundred composited layers and two hundred shapes on a
+     canvas is one paint. Everything here draws BEFORE the rain in the same
+     frame, so the weather falls in front of the sky, which is the right
+     order and free.
+
+     Each piece is on its own slow clock, because a sky where several things
+     move on the same period reads as one animation rather than as weather. */
+  var stars = [];
+  for (var st = 0; st < 90; st++) {
+    stars.push({
+      x: Math.random(),
+      y: Math.random() * 0.72,
+      r: 0.35 + Math.random() * 1.15,
+      a: 0.16 + Math.random() * 0.5,
+      /* Twinkle is a slow sine per star with its own phase and rate. A shared
+         rate makes the whole field pulse together, which no sky does. */
+      tw: 0.25 + Math.random() * 0.9,
+      ph: Math.random() * 6.28,
+    });
+  }
+  /* The spiral is drawn from a formula rather than stored as points: two arms,
+     logarithmic, with the particle density falling off toward the rim the way
+     it does in a real one. It turns about once every eight minutes. */
+  var SPIRAL = [];
+  for (var sp = 0; sp < 260; sp++) {
+    var arm = sp % 2;
+    var t = 0.12 + (sp / 260) * 2.5;
+    SPIRAL.push({
+      t: t,
+      arm: arm,
+      jitter: (Math.random() - 0.5) * 0.16,
+      a: (0.5 - (sp / 260) * 0.36) * (0.5 + Math.random() * 0.5),
+      r: 0.3 + Math.random() * 0.9,
+    });
+  }
+  /* Birds cross rarely, in a loose skein, and flap on their own clocks. */
+  var birds = [];
+  for (var bd = 0; bd < 7; bd++) {
+    birds.push({
+      x: -0.2 - Math.random() * 1.4,
+      y: 0.12 + Math.random() * 0.3,
+      v: 0.012 + Math.random() * 0.016,
+      s: 5 + Math.random() * 5,
+      flap: 1.6 + Math.random() * 1.5,
+      ph: Math.random() * 6.28,
+    });
+  }
+  /* One comet at a time, and mostly there is not one. It is an event, not a
+     feature: a comet on a loop is a screensaver from 1996. */
+  var comet = null,
+    nextComet = 7 + Math.random() * 15;
   var RW = 0,
     RH = 0;
   function sizeRain() {
@@ -439,6 +524,114 @@
     if (rctx) {
       rctx.clearRect(0, 0, RW, RH);
       if (on || now - offAt < 700) {
+        /* ── SKY FIRST, WEATHER OVER IT ────────────────────────────── */
+        var fade = on ? 1 : Math.max(0, 1 - (now - offAt) / 700);
+
+        /* THE SUN. Low and warm, and never a disc with an edge: a sun in a
+           scene like this is a place the light comes from, so it is drawn as
+           three nested glows with no hard boundary, breathing slowly. */
+        var sx = RW * 0.84,
+          sy = RH * 0.66;
+        var breathe = 1 + Math.sin(clock * 0.07) * 0.06;
+        var sunG = rctx.createRadialGradient(sx, sy, 0, sx, sy, RH * 0.42 * breathe);
+        sunG.addColorStop(0, "rgba(255, 238, 196," + (0.52 * fade).toFixed(3) + ")");
+        sunG.addColorStop(0.1, "rgba(255, 220, 158," + (0.26 * fade).toFixed(3) + ")");
+        sunG.addColorStop(0.4, "rgba(244, 192, 140," + (0.09 * fade).toFixed(3) + ")");
+        sunG.addColorStop(1, "rgba(255, 200, 150, 0)");
+        rctx.fillStyle = sunG;
+        rctx.fillRect(0, 0, RW, RH);
+
+        /* THE STARS. */
+        for (var si = 0; si < stars.length; si++) {
+          var s2 = stars[si];
+          var tw = 0.62 + 0.38 * Math.sin(clock * s2.tw + s2.ph);
+          rctx.fillStyle = "rgba(230, 243, 255," + (s2.a * tw * 2.1 * fade).toFixed(3) + ")";
+          rctx.beginPath();
+          rctx.arc(s2.x * RW, s2.y * RH, s2.r, 0, 6.2832);
+          rctx.fill();
+        }
+
+        /* THE SPIRAL. Placed off to one side rather than centred, because a
+           galaxy in the middle of the screen is a target. */
+        var gx = RW * 0.15,
+          gy = RH * 0.17,
+          gr = Math.min(RW, RH) * 0.26;
+        var spin = clock * 0.013;
+        for (var gi = 0; gi < SPIRAL.length; gi++) {
+          var q = SPIRAL[gi];
+          var ang = q.t * 2.1 + q.arm * Math.PI + spin + q.jitter;
+          var rad = Math.pow(q.t, 0.86) * gr;
+          var px2 = gx + Math.cos(ang) * rad * 1.35;
+          var py2 = gy + Math.sin(ang) * rad * 0.52;
+          rctx.fillStyle = "rgba(202, 220, 255," + (q.a * 1.15 * fade).toFixed(3) + ")";
+          rctx.beginPath();
+          rctx.arc(px2, py2, q.r, 0, 6.2832);
+          rctx.fill();
+        }
+        /* Its core, which is the only part with any real brightness. */
+        var coreG = rctx.createRadialGradient(gx, gy, 0, gx, gy, gr * 0.42);
+        coreG.addColorStop(0, "rgba(228, 236, 255," + (0.3 * fade).toFixed(3) + ")");
+        coreG.addColorStop(1, "rgba(200, 220, 255, 0)");
+        rctx.fillStyle = coreG;
+        rctx.beginPath();
+        rctx.ellipse(gx, gy, gr * 0.5, gr * 0.24, 0, 0, 6.2832);
+        rctx.fill();
+
+        /* THE COMET. Rare, and it has a real tail: a line of decreasing
+           alpha behind the head, drawn along its own velocity. */
+        nextComet -= dt;
+        if (!comet && nextComet <= 0) {
+          comet = { x: -0.08, y: 0.05 + Math.random() * 0.25, vx: 0.19 + Math.random() * 0.13, vy: 0.055 + Math.random() * 0.05, life: 0 };
+        }
+        if (comet) {
+          comet.life += dt;
+          comet.x += comet.vx * dt;
+          comet.y += comet.vy * dt;
+          var cxp = comet.x * RW,
+            cyp = comet.y * RH;
+          var ca = Math.min(1, comet.life * 1.6) * Math.max(0, 1 - comet.life / 5.5) * fade;
+          var tailLen = 190;
+          var tg = rctx.createLinearGradient(cxp, cyp, cxp - comet.vx * tailLen, cyp - comet.vy * tailLen);
+          tg.addColorStop(0, "rgba(232, 244, 255," + (0.72 * ca).toFixed(3) + ")");
+          tg.addColorStop(1, "rgba(180, 214, 255, 0)");
+          rctx.strokeStyle = tg;
+          rctx.lineWidth = 1.9;
+          rctx.beginPath();
+          rctx.moveTo(cxp, cyp);
+          rctx.lineTo(cxp - comet.vx * tailLen, cyp - comet.vy * tailLen);
+          rctx.stroke();
+          rctx.fillStyle = "rgba(245, 250, 255," + (0.9 * ca).toFixed(3) + ")";
+          rctx.beginPath();
+          rctx.arc(cxp, cyp, 1.8, 0, 6.2832);
+          rctx.fill();
+          if (comet.life > 5.5 || comet.x > 1.25) {
+            comet = null;
+            nextComet = 9 + Math.random() * 18;
+          }
+        }
+
+        /* THE BIRDS. Two strokes each, and the flap is the ANGLE between
+           them rather than a change of size, which is what stops them
+           reading as blinking chevrons. */
+        rctx.strokeStyle = "rgba(220, 234, 250," + (0.6 * fade).toFixed(3) + ")";
+        rctx.lineWidth = 1.4;
+        for (var bi = 0; bi < birds.length; bi++) {
+          var bp = birds[bi];
+          bp.x += bp.v * dt;
+          if (bp.x > 1.25) {
+            bp.x = -0.25 - Math.random() * 0.5;
+            bp.y = 0.1 + Math.random() * 0.32;
+          }
+          var bxp = bp.x * RW,
+            byp = bp.y * RH + Math.sin(clock * 0.5 + bp.ph) * 7;
+          var f = Math.sin(clock * bp.flap + bp.ph);
+          var lift = bp.s * 0.55 * f;
+          rctx.beginPath();
+          rctx.moveTo(bxp - bp.s, byp - lift);
+          rctx.quadraticCurveTo(bxp, byp + bp.s * 0.18, bxp + bp.s, byp - lift);
+          rctx.stroke();
+        }
+
         rctx.lineCap = "round";
         var wind = Math.sin(clock * 0.09) * 90;
         for (var r = 0; r < drops.length; r++) {
@@ -545,7 +738,42 @@
       var cx = -0.3 * W + u * (W * 1.6);
       var bob = Math.sin(clock * 0.13 + p.phase * 6.28) * (p.kind === "lens" ? 9 : 6);
       var turn = Math.sin(clock * 0.055 + p.phase * 6.28) * (p.spin * 7);
-      p.el.style.transform = "translate3d(" + cx.toFixed(1) + "px," + bob.toFixed(1) + "px,0) rotate(" + turn.toFixed(2) + "deg)";
+      if (p.kind === "cube") {
+        /* ── A CUBE HAS TO BE SEEN FROM SOMEWHERE ────────────────────
+           Straight on, a cube is a square: the two extra faces are exactly
+           edge-on and paint nothing. These are small, slow angles -- the
+           object is drifting past, not tumbling -- and they are enough to
+           open the side and the top. The perspective is per-object and scales
+           with its size, so a small cube does not get a wide-angle lens.
+
+           The Z rotation stays as well, so it still turns in the plane the
+           way the flat ones did. */
+        var yaw = -13 + Math.sin(clock * 0.041 + p.phase * 6.28) * 9;
+        var pitch = 7 + Math.cos(clock * 0.033 + p.phase * 4.1) * 5;
+        /* perspective() inside the transform rather than the perspective
+           PROPERTY: the property sets up the 3D space a child is rendered in,
+           and what has to be foreshortened here is this element's own
+           rotation. Scaled to the object so a small cube does not get a
+           wide-angle lens. */
+        var per = Math.round((p.el.offsetWidth || 260) * 3.1);
+        p.el.style.transform =
+          "translate3d(" +
+          cx.toFixed(1) +
+          "px," +
+          bob.toFixed(1) +
+          "px,0) rotate(" +
+          turn.toFixed(2) +
+          "deg) " +
+          "perspective(" +
+          per +
+          "px) rotateY(" +
+          yaw.toFixed(2) +
+          "deg) rotateX(" +
+          pitch.toFixed(2) +
+          "deg)";
+      } else {
+        p.el.style.transform = "translate3d(" + cx.toFixed(1) + "px," + bob.toFixed(1) + "px,0) rotate(" + turn.toFixed(2) + "deg)";
+      }
     }
 
     /* Keeps running for a beat after it is dismissed, so the fade-out is
