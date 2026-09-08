@@ -72,6 +72,23 @@
     raf = 0,
     on = false,
     loading = false;
+  var coach = null,
+    coachDone = null,
+    coachHideAt = 0;
+
+  /* A step is marked done the first time the visitor actually does it, and
+     the panel retires once all three are. Sixteen seconds is the backstop for
+     somebody who gets it immediately and does not need the list sitting
+     there. */
+  function step(name) {
+    if (!coach || !coachDone || coachDone[name]) return;
+    coachDone[name] = true;
+    var el = coach.querySelector('[data-step="' + name + '"]');
+    if (el) el.classList.add("is-done");
+    if (coachDone.see && coachDone.point && coachDone.pinch) {
+      coachHideAt = performance.now() + 1400;
+    }
+  }
 
   /* ── THE FILTER ────────────────────────────────────────────────────────
      One euro. `a` is recomputed every frame from how fast the point is
@@ -109,17 +126,43 @@
   var PINCH_ON = 0.055,
     PINCH_OFF = 0.085;
   var pinched = false;
+  var lastX = 0,
+    lastY = 0;
 
   function ui() {
     if (wrap) return;
     wrap = document.createElement("div");
     wrap.className = "hand-hud";
     wrap.setAttribute("aria-hidden", "true");
+    /* ── IT HAS TO SAY WHAT THE GESTURES ARE ──────────────────────────
+       A friend of Sid's, trying it cold: "crazy feature, the hand steering,
+       but as a first time user i am unaware what gestures will work, maybe
+       having a small snackbar showing in the bottom how to steer or a quick
+       tutorial would be nice."
+
+       He is right, and it is the sharpest kind of feedback: the feature works
+       and is unusable, because the two things you have to know -- point to
+       move, pinch to click -- exist only in the source. Nothing on screen ever
+       said them.
+
+       So the coaching is part of the HUD rather than a separate tutorial: it
+       is present while you are learning and it gets out of the way once you
+       have. The steps light up as you actually perform them, which teaches
+       faster than a list because you find out that the thing you just did was
+       the thing it wanted. */
     wrap.innerHTML =
-      '<canvas class="hand-hud__cv" width="160" height="120"></canvas><span class="hand-hud__tag">camera on · nothing leaves this device</span>';
+      '<canvas class="hand-hud__cv" width="160" height="120"></canvas>' +
+      '<div class="hand-coach" id="hand-coach">' +
+      '<span class="hand-coach__step" data-step="see"><b></b>show your hand to the camera</span>' +
+      '<span class="hand-coach__step" data-step="point"><b></b>point with one finger to move</span>' +
+      '<span class="hand-coach__step" data-step="pinch"><b></b>pinch to click</span>' +
+      "</div>" +
+      '<span class="hand-hud__tag">camera on · nothing leaves this device</span>';
     document.body.appendChild(wrap);
     preview = wrap.querySelector("canvas");
     pctx = preview.getContext("2d");
+    coach = wrap.querySelector("#hand-coach");
+    coachDone = { see: false, point: false, pinch: false };
   }
 
   /* The site is driven entirely by pointer events, so the cleanest way in is
@@ -180,6 +223,11 @@
       return;
     }
     wrap.classList.add("is-tracking");
+    step("see");
+    if (coachHideAt && now > coachHideAt && coach) {
+      coach.classList.add("is-gone");
+      coachHideAt = 0;
+    }
     var lm = hands[0];
     var tip = lm[8]; // index fingertip
     var thumb = lm[4];
@@ -201,11 +249,16 @@
     }
 
     emit("pointermove", x, y, { buttons: pinched ? 1 : 0 });
+    /* Moved far enough to be a deliberate gesture rather than jitter. */
+    if (Math.abs(x - lastX) + Math.abs(y - lastY) > 120) step("point");
+    lastX = x;
+    lastY = y;
 
     var d = Math.hypot(tip.x - thumb.x, tip.y - thumb.y);
     if (!pinched && d < PINCH_ON) {
       pinched = true;
       wrap.classList.add("is-pinch");
+      step("pinch");
       var el = emit("pointerdown", x, y, { buttons: 1 });
       emit("pointerup", x, y);
       /* A pinch is a click, so it has to actually activate what it is over.
@@ -282,6 +335,9 @@
       wrap = null;
       preview = null;
       pctx = null;
+      coach = null;
+      coachDone = null;
+      coachHideAt = 0;
     }
     document.documentElement.removeAttribute("data-hand");
     btn.classList.remove("is-on");
