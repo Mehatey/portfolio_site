@@ -253,7 +253,12 @@ window.__mercury = (function () {
        full size within a few frames, which is when the liquid behaviour is
        the point. The sentence is legible for the reader who is reading it
        and molten for the reader who is playing with it. */
-    "    float sd = length(p - b.xyz) - b.w * (1.0 - 0.66 * u_calm);",
+    /* Light mode needs more of the same medicine. On cream the metal renders
+       DARK, so every droplet is a hard dark speck sitting on a letter rather
+       than a highlight beside one, and the same radius that reads as calm on
+       black still breaks the words apart on paper. 0.84 at rest in light
+       against 0.66 in dark. */
+    "    float sd = length(p - b.xyz) - b.w * (1.0 - (0.66 + 0.18 * u_light) * u_calm);",
     /* ── THE BLEND RADIUS WAS EATING THE LETTERS ──────────────────────
        0.085 + w*0.5 is a wide neck: a droplet started bridging to a letter
        well before it touched one, so at rest the sentence was a field of
