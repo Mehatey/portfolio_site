@@ -7805,6 +7805,7 @@
       opacity 300ms ease;
   }
   body.controls-near .sound-toggle,
+  body.controls-peek .sound-toggle,
   .sound-toggle.is-on,
   .sound-toggle:focus-visible {
     opacity: 1;
@@ -8339,6 +8340,7 @@
       border-color 240ms ease;
   }
   body.controls-near .hand-toggle,
+  body.controls-peek .hand-toggle,
   .hand-toggle.is-on,
   .hand-toggle:focus-visible {
     opacity: 1;
@@ -8354,31 +8356,19 @@
   }
   /* A hand, drawn rather than an emoji: four fingers and a thumb as rules,
      which is the same pixel vocabulary as the sound wave next to it. */
+  /* The two pseudo-elements that used to live here drew an arch on a rounded
+     box: a padlock. See the note in assets/js/hand.js. The mark is a real
+     hand now, so the icon is just a box for it. */
   .hand-toggle__ico {
     position: relative;
-    width: 16px;
-    height: 16px;
+    display: block;
+    width: 19px;
+    height: 19px;
   }
-  .hand-toggle__ico::before {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: 0;
-    width: 9px;
-    height: 10px;
-    border: 1.5px solid currentColor;
-    border-bottom: 0;
-    border-radius: 4px 4px 0 0;
-  }
-  .hand-toggle__ico::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    bottom: 1px;
-    width: 14px;
-    height: 7px;
-    border: 1.5px solid currentColor;
-    border-radius: 3px;
+  .hand-toggle__ico svg {
+    width: 100%;
+    height: 100%;
+    display: block;
   }
   .hand-toggle.is-on {
     border-color: rgba(150, 210, 255, 0.7);
@@ -12108,6 +12098,53 @@
         raf = 0,
         mx = -1,
         my = -1;
+
+      /* ── THE FIRST VISIT GETS ONE LOOK AT THEM ─────────────────────────
+         A friend of Sid's: "you should maybe highlight this more in your
+         portfolio to showcase your interaction skills with different
+         mediums." He had already found the hand steering; most people will
+         not, and this is why. The whole cluster -- hand steering, sound,
+         theme, the cube -- is invisible until a pointer happens to arrive in
+         the bottom right corner, which is a corner nobody has a reason to
+         visit. The most interesting control on the site is behind a gesture
+         that has to be discovered by accident.
+
+         So the first time somebody ever loads this site the controls come up
+         on their own, sit there for five seconds, and then behave normally
+         forever after. That is enough to answer "is there anything down
+         there", which is the only question they need answered, and it costs
+         a returning visitor nothing.
+
+         Not a tooltip, not a coach mark, not a dialog: the controls simply
+         being visible IS the message. Anything with words in it would be a
+         narrator explaining the page to the person looking at it.
+
+         localStorage can throw in a private window or with site data blocked,
+         and a visitor whose browser refuses to remember gets the reveal every
+         time -- which is a far better failure than never showing it. */
+      var FIRSTKEY = "sid.controls.seen";
+      var seen = false;
+      try {
+        seen = localStorage.getItem(FIRSTKEY) === "1";
+      } catch (e) {}
+      if (!seen) {
+        setTimeout(function () {
+          if (near) return; /* They already found it on their own. */
+          /* Only `controls-peek`. Adding `controls-near` too meant the
+             proximity check owned the reveal and could clear it the moment
+             the pointer crossed a boundary -- measured cancelling it after
+             about a second, which is not long enough to notice. The two
+             classes are independent now: proximity drives one, the first
+             visit drives the other, and the stylesheet honours either. */
+          body.classList.add("controls-peek");
+          setTimeout(function () {
+            body.classList.remove("controls-peek");
+          }, 5000);
+        }, 1800);
+        try {
+          localStorage.setItem(FIRSTKEY, "1");
+        } catch (e) {}
+      }
       function check() {
         raf = 0;
         var dx = window.innerWidth - mx;
@@ -14833,7 +14870,9 @@
     pointer-events: none;
   }
   body.controls-near #theme-toggle,
+  body.controls-peek #theme-toggle,
   body.controls-near .sound-toggle,
+  body.controls-peek .sound-toggle,
   #cube-chat-fab:hover ~ #theme-toggle,
   #theme-toggle:focus-visible,
   .sound-toggle:focus-visible,
@@ -14842,10 +14881,12 @@
     opacity: 1;
     pointer-events: auto;
   }
-  body.controls-near #theme-toggle {
+  body.controls-near #theme-toggle,
+  body.controls-peek #theme-toggle {
     transition-delay: 40ms;
   }
-  body.controls-near .sound-toggle {
+  body.controls-near .sound-toggle,
+  body.controls-peek .sound-toggle {
     transition-delay: 80ms;
   }
   /* Keyboard users never get a `controls-near`, so focus has to open the
