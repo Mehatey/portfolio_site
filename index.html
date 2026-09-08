@@ -124,7 +124,7 @@
     <meta property="og:description" content="Product design, local AI prototypes, and spatial experiences for Deloitte Digital, The Met, EyeJack, and Philips.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://siddharthmehta.design/">
-    <meta property="og:image" content="https://siddharthmehta.design/assets/img/og-card.jpg">
+    <meta property="og:image" content="https://siddharthmehta.design/assets/img/og-card-v2.jpg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
@@ -6752,7 +6752,7 @@
            the loader holds briefly past its end, so 2.5 puts the second line
            at the midpoint with the whole back half to be read in. */
         { text: "Hey, I'm Sid. Welcome to my portfolio.", at: 0.15 },
-        { text: "I hope you feel the love I put into it.", at: 2.5 },
+        { text: "I hope you feel the love I put into it.", at: 2.85 },
       ];
 
       // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
@@ -6820,7 +6820,8 @@
          here now, where it actually takes effect. A scramble is unreadable
          while it runs, so its length comes straight out of the line's
          reading time. */
-      var LEAVE = 420;
+      /* 420 -> 300: the exit is a departure, not an event. */
+      var LEAVE = 300;
 
       /* ── SCHEDULED AGAINST THE FILM, NOT THE WALL CLOCK ────────────────
          These were setTimeouts from page load, which assumes the film starts
@@ -6877,7 +6878,19 @@
                   duration: 620,
                   done: function () {
                     /* Settled: full strength, sharp, at rest. */
-                    hello.style.transition = "opacity 620ms var(--ease-out), filter 620ms ease, transform 620ms cubic-bezier(0.16, 1, 0.3, 1)";
+                    /* ── 620 -> 240 ────────────────────────────────────
+                       bin/timing-qa.cjs measures how long a sentence is
+                       legible AT FULL STRENGTH, and by that measure these
+                       lines were getting 1143ms and 574ms. The cause is
+                       arithmetic: 420ms of the old line leaving, 620ms of
+                       scramble, then a 620ms ramp up to full opacity is
+                       1.66 seconds before the line is properly readable, out
+                       of an opening that lasts 5.7. The reveal was eating
+                       most of the time the reveal existed to give.
+
+                       240ms still reads as arriving rather than snapping,
+                       and hands the difference straight back to reading. */
+                    hello.style.transition = "opacity 240ms var(--ease-out), filter 240ms ease, transform 420ms cubic-bezier(0.16, 1, 0.3, 1)";
                     hello.style.opacity = "1";
                     hello.style.filter = "blur(0)";
                     hello.style.transform = "translate(-50%, 0)";
@@ -6918,9 +6931,17 @@
            page arriving used to be the same moment, which is the other half
            of "disappearing a bit fast": whatever was on screen when the
            footage ran out was cut off mid sentence. */
-        var hold = quick ? 0 : 620;
+        /* 620 -> 900. With the stale fade timer gone the last line finally
+           survives to the end of the film, and this hold is now the only
+           thing deciding how long it is readable: measured 1029ms at 620,
+           which is still under the 1200ms floor bin/timing-qa.cjs enforces.
+           900 buys the difference for 280ms of extra opening. */
+        var hold = quick ? 0 : 900;
         var fade = quick ? 260 : 800;
         setTimeout(function () {
+          /* The line leaves on its own, a beat ahead of the panel, so it
+             departs rather than being switched off with everything else. */
+          fadeHelloOnVideoEnd();
           loader.style.transition = "opacity " + fade + "ms ease";
           loader.style.opacity = "0";
 
@@ -6968,14 +6989,22 @@
         window.removeEventListener("keydown", skipKeyHandler);
       });
 
-      /* onVideoEnd and the eleven second timer went with the cube phase.
-         There is one film now and the scrub above owns both its start and its
-         end -- it calls onLoadingEnd itself the moment the progress passes
-         98%, so nothing here has to guess how long anything takes.
+      /* ── THE STALE 4200ms TIMER IS GONE ────────────────────────────────
+         This was the actual reason the second line could never be read, and
+         it survived three separate attempts to fix the intro because every
+         one of them was looking at when lines STARTED.
 
-         The Hello still fades on the same beat it always did; it is driven by
-         its own line timings below rather than by the video that is gone. */
-      setTimeout(fadeHelloOnVideoEnd, 4200);
+         It is a wall-clock timeout left over from the removed cube phase: it
+         faded the Hello at 4.2 seconds regardless of what the text was doing
+         or how far through the film anybody was. Traced, the line resolved at
+         4.18s, was still climbing toward full opacity at 4.59s, and was at
+         zero by 5.02s -- faded out while it was still arriving, and before
+         the film it belongs to had ended at 5.07s.
+
+         Nothing about the opening should be on a wall clock. The film owns
+         the timing: the scrub calls onLoadingEnd when the footage is spent,
+         and the text now leaves as part of that, after the hold that exists
+         precisely so the last line can be read. */
     } // end startLoader
   })();
 </script>
@@ -11002,7 +11031,7 @@
           <div class="hero__plate" data-story="plate" aria-hidden="true">
             <button type="button" id="hero-reel" class="hero__disc" aria-haspopup="dialog" aria-controls="reel-modal" aria-label="Watch the showreel">
               <!-- ── THE POSTER WAS THE SHARE CARD ───────────────────────
-                   The video below used to poster with og-card.jpg, which is
+                   The video below used to poster with og-card-v2.jpg, which is
                    the 1200x630 Open Graph image and has the headline set into
                    it. This disc is a CIRCLE, so cropping a wide text layout to
                    it landed mid-word: the badge read "signer, six years. / o
