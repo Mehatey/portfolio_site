@@ -64,7 +64,10 @@ window.__mercury = (function () {
     live = false;
   var ptr = { x: 0, y: 0 },
     cur = { x: 0, y: 0 },
-    hit = 0;
+    hit = 0,
+    calm = 1,
+    calmT = 1,
+    lastPtr = 0;
   /* Droplet state lives on the CPU: fourteen bodies is nothing to integrate
      and it keeps the impulse logic readable. */
   var bx = new Float32Array(BLOBS * 3),
@@ -182,7 +185,7 @@ window.__mercury = (function () {
     "in vec2 v_uv;",
     "uniform sampler2D u_sdf;",
     "uniform vec4 u_blob[" + BLOBS + "];",
-    "uniform float u_time, u_aspect, u_light, u_melt, u_hit;",
+    "uniform float u_time, u_aspect, u_light, u_melt, u_hit, u_calm;",
     "uniform vec2 u_ptr;",
     "out vec4 o;",
 
@@ -236,8 +239,34 @@ window.__mercury = (function () {
        longer distance -- which is what surface tension actually does. */
     "  for (int i = 0; i < " + BLOBS + "; i++) {",
     "    vec4 b = u_blob[i];",
-    "    float sd = length(p - b.xyz) - b.w;",
-    "    d = smin(d, sd, 0.085 + b.w * 0.5);",
+    /* ── CALM SHRINKS THE DROPLETS, IT DOES NOT DELETE THEM ────────────
+       Walked through as a recruiter, the headline never became readable:
+       fourteen droplets orbit THROUGH the sentence, and at full radius they
+       merge with whatever glyph they are passing, so "Product designer, six
+       years." was a field of bronze lumps at nine seconds and at ninety.
+       Tightening the neck alone was not enough, because the problem is not
+       how they join, it is that they are sitting on the words.
+
+       So the body is calm until somebody touches it. At rest the droplets
+       drop to a third of their radius: still visibly in orbit, no longer
+       able to swallow a letter. Hover, click or scroll and they come back to
+       full size within a few frames, which is when the liquid behaviour is
+       the point. The sentence is legible for the reader who is reading it
+       and molten for the reader who is playing with it. */
+    "    float sd = length(p - b.xyz) - b.w * (1.0 - 0.66 * u_calm);",
+    /* ── THE BLEND RADIUS WAS EATING THE LETTERS ──────────────────────
+       0.085 + w*0.5 is a wide neck: a droplet started bridging to a letter
+       well before it touched one, so at rest the sentence was a field of
+       bronze lumps rather than words. Walked through the homepage as a
+       recruiter would see it, "Product designer, six years." -- the one line
+       that says what he does -- was not readable at nine seconds, and it
+       never resolved, because melt is already 0 at the top of the page and
+       this was the thing deforming it.
+
+       0.038 + w*0.22 keeps the metaball behaviour that makes it read as
+       liquid -- droplets still neck and merge when they actually arrive --
+       and stops them dissolving glyphs they are merely near. */
+    "    d = smin(d, sd, (0.038 + b.w * 0.22) * (1.0 - 0.5 * u_calm));",
     "  }",
     /* A swell under the cursor. The body reacts where the attention is, and
        it is a real displacement of the field rather than a highlight painted
@@ -369,7 +398,7 @@ window.__mercury = (function () {
       return false;
     }
     prog.u = {};
-    ["u_sdf", "u_time", "u_aspect", "u_light", "u_ptr", "u_melt", "u_hit", "u_blob"].forEach(function (n) {
+    ["u_sdf", "u_time", "u_aspect", "u_light", "u_ptr", "u_melt", "u_hit", "u_calm", "u_blob"].forEach(function (n) {
       prog.u[n] = gl.getUniformLocation(prog, n);
     });
 
@@ -416,6 +445,7 @@ window.__mercury = (function () {
   function onMove(e) {
     var r = host.getBoundingClientRect();
     if (!r.width) return;
+    lastPtr = performance.now();
     ptr.x = ((e.clientX - r.left) / r.width - 0.5) * 2 * (r.width / r.height) * 0.46 * 2.35;
     ptr.y = -((e.clientY - r.top) / r.height - 0.5) * 2 * 0.46 * 2.35;
   }
@@ -470,6 +500,15 @@ window.__mercury = (function () {
       bx[i3 + 2] += bv[i3 + 2] * h;
     }
     if (hit > 0) hit = Math.max(0, hit - h * 1.6);
+
+    /* Anything the visitor does wakes it: a pointer over the hero in the last
+       second and a half, a click still ringing, or any scroll. Otherwise it
+       settles back. The ease is asymmetric on purpose -- waking is almost
+       immediate because it has to answer the gesture, and settling is slow
+       enough that it reads as the metal calming rather than as a switch. */
+    var awake = hit > 0.02 || melt > 0.02 || performance.now() - lastPtr < 1500;
+    calmT = awake ? 0 : 1;
+    calm += (calmT - calm) * (1 - Math.exp(-h * (awake ? 9 : 2.2)));
   }
 
   function frame(now) {
@@ -527,6 +566,7 @@ window.__mercury = (function () {
     gl.uniform1f(prog.u.u_light, document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0);
     gl.uniform1f(prog.u.u_melt, melt);
     gl.uniform1f(prog.u.u_hit, hit);
+    gl.uniform1f(prog.u.u_calm, calm);
     gl.uniform2f(prog.u.u_ptr, cur.x, cur.y);
     gl.uniform4fv(prog.u.u_blob, uni);
     gl.bindVertexArray(vao);
