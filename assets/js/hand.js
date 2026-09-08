@@ -60,7 +60,25 @@
   btn.className = "hand-toggle";
   btn.setAttribute("data-tip", "Steer with your hand");
   btn.setAttribute("aria-label", "Steer with your hand. Uses your camera, on this device only.");
-  btn.innerHTML = '<span class="hand-toggle__ico" aria-hidden="true"></span>';
+  /* ── IT WAS A PADLOCK ──────────────────────────────────────────────────
+     Sid: "check if the icons are right for the hand steering, there was a
+     weird lock shape."
+
+     It was, literally: the old mark was a rounded arch with its bottom border
+     removed sitting on a rounded rectangle, which is the shackle and body of
+     a padlock and nothing else. On a control that turns on a camera, an icon
+     that reads as a lock is not merely wrong, it is a claim about the feature
+     that the feature does not make.
+
+     A hand with one finger raised, which is also the gesture the coaching
+     asks for first. Drawn at the same weight as the nav icons beside it. */
+  btn.innerHTML =
+    '<span class="hand-toggle__ico" aria-hidden="true">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M10.4 11.2V5.4a1.45 1.45 0 0 1 2.9 0v5.2"/>' +
+    '<path d="M13.3 10.6V8.9a1.45 1.45 0 0 1 2.9 0v2.3"/>' +
+    '<path d="M16.2 11.2v-1a1.45 1.45 0 0 1 2.9 0v4.6a6 6 0 0 1-6 6h-1.2a5.4 5.4 0 0 1-4.6-2.6l-2.5-4.2a1.5 1.5 0 0 1 2.5-1.6l1.6 2"/>' +
+    "</svg></span>";
   document.body.appendChild(btn);
 
   var wrap = null,
