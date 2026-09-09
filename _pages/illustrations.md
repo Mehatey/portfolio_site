@@ -79,34 +79,31 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>30 songs illustrated.</em></p>
 
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="metadata">
-    <source src="{{ site.baseurl }}/11.illu/2.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/3.webp" alt="An essay about hearing the same song differently every time, set on a pink field" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
-  <video width="1280" height="720" autoplay muted loop playsinline preload="metadata">
-    <source src="{{ site.baseurl }}/11.illu/4.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.1.webp" alt="The 11.2 km/s mark tattooed on a forearm" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/5.2.webp" alt="The 11.2 km/s cube, drawn in white line on a field of coloured strokes" loading="lazy" decoding="async" /></div>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/6.webp" alt="Sixteen line drawings, each paired with a handwritten line" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.1.webp" alt="Affection: an entwined figure drawn in one continuous line" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/7.2.webp" alt="Into the sun: a knot of scribbled line" loading="lazy" decoding="async" /></div>
+<div class="cs-rail cs-rail--art" tabindex="0" role="group" aria-label="Music illustrations, scroll sideways">
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/2.mp4" type="video/mp4" /> </video>
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/3.webp" alt="An essay about hearing the same song differently every time, set on a pink field" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1280" height="720" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/4.mp4" type="video/mp4" /> </video>
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/5.1.webp" alt="The 11.2 km/s mark tattooed on a forearm" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/5.2.webp" alt="The 11.2 km/s cube, drawn in white line on a field of coloured strokes" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/6.webp" alt="Sixteen line drawings, each paired with a handwritten line" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/7.1.webp" alt="Affection: an entwined figure drawn in one continuous line" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/7.2.webp" alt="Into the sun: a knot of scribbled line" loading="lazy" decoding="async" />
+  </figure>
 </div>
 
 <!-- SECTION: THERE WILL COME SOFT RAINS -->
@@ -149,33 +146,25 @@ next_project:
   <h2 class="cs-section-label">Avatar Vishnu Illustrations</h2>
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/14.png" alt="Dashavatara, the title" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/15.webp" alt="A single flame in a cloud of ash" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/16.webp" alt="The Dashavatara explained as the ten incarnations of Vishnu, and as the evolution of consciousness" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video width="1040" height="936" autoplay muted loop playsinline preload="metadata">
-      <source src="{{ site.baseurl }}/11.illu/17.1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video width="1200" height="686" autoplay muted loop playsinline preload="metadata">
-      <source src="{{ site.baseurl }}/11.illu/17.2.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/18.webp" alt="The ten avatars, each drawn as a gold medallion" loading="lazy" decoding="async" />
+<div class="cs-rail cs-rail--art" tabindex="0" role="group" aria-label="Avatar Vishnu illustrations, scroll sideways">
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/14.png" alt="Dashavatara, the title" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/15.webp" alt="A single flame in a cloud of ash" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/16.webp" alt="The Dashavatara explained as the ten incarnations of Vishnu, and as the evolution of consciousness" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1040" height="936" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/17.1.mp4" type="video/mp4" /> </video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1200" height="686" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/17.2.mp4" type="video/mp4" /> </video>
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/18.webp" alt="The ten avatars, each drawn as a gold medallion" loading="lazy" decoding="async" />
+  </figure>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Mock-up of cards.</em></p>
@@ -210,32 +199,31 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Font designed by me.</em></p>
 
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.1.webp" alt="Cut paper letterforms laid out on the studio floor" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b21.2.webp" alt="The brief: use time, space and motion to create a font. Music for time, dreams for motion, thought for motion" loading="lazy" decoding="async" /></div>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/21.1.webp" alt="Laying out the specimen sheets on the floor" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="metadata">
-    <source src="{{ site.baseurl }}/11.illu/21.2.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.1.png" alt="Reminiscence: the logic of the letterform, five bars of music and a circle for continuity" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/22.2.webp" alt="Three letters from the typeface, set in white on black" loading="lazy" decoding="async" /></div>
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/23.1.webp" alt="The full character set" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/11.illu/23.2.webp" alt="Bye bye, hello: the typeface animating between words" loading="lazy" decoding="async" />
+<div class="cs-rail cs-rail--art" tabindex="0" role="group" aria-label="Reminiscence typeface, scroll sideways">
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/b21.1.webp" alt="Cut paper letterforms laid out on the studio floor" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/b21.2.webp" alt="The brief: use time, space and motion to create a font. Music for time, dreams for motion, thought for motion" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/21.1.webp" alt="Laying out the specimen sheets on the floor" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/21.2.mp4" type="video/mp4" /> </video>
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/22.1.png" alt="Reminiscence: the logic of the letterform, five bars of music and a circle for continuity" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/22.2.webp" alt="Three letters from the typeface, set in white on black" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/23.1.webp" alt="The full character set" loading="lazy" decoding="async" />
+  </figure>
+  <figure class="cs-rail-item">
+    <img src="{{ site.baseurl }}/11.illu/23.2.webp" alt="Bye bye, hello: the typeface animating between words" loading="lazy" decoding="async" />
+  </figure>
 </div>
 
 <!-- SECTION: ILLUSTRATIVE IDENTITY -->
