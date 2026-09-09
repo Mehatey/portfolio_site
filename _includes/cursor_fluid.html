@@ -227,8 +227,13 @@
     opacity: 0;
     transition: opacity 0.2s;
   }
+  /* Down from 0.7. With a 38px lens around it, a hard bright dot at seven
+     tenths is a second object sitting inside the first -- which is precisely
+     the "dot in the dot" Sid has objected to twice. At 0.42 it still marks
+     the exact point you are aiming with and stops competing with the glass
+     for attention. */
   html.has-custom-cursor #cur-core {
-    opacity: 0.7;
+    opacity: 0.42;
   }
   html[data-theme="light"] #cur-core {
     background: rgba(16, 24, 40, 0.82);
@@ -305,8 +310,22 @@
        is why two rounds of assertion-based checks missed it: the features
        were all present, none of them could be reached. */
     pointer-events: none;
-    width: 26px;
-    height: 26px;
+    /* ── BIGGER, BECAUSE REFRACTION NEEDS ROOM ────────────────────────
+       Sid: "the refraction area or cursor circle size is too less."
+
+       26px was chosen when the disc was mostly an edge with a wash inside
+       it. It is the wrong size for a lens: a warp needs a few cycles across
+       its width before it reads as bending rather than sliding, and at 26px
+       there was barely room for two. 38px gives the displacement somewhere
+       to happen, and it is still under half the diameter of the mark, so it
+       never becomes the loudest object on screen.
+
+       The turbulence frequency moves with it -- see the filter at the foot
+       of this file. Growing the disc without retuning the noise would have
+       stretched the same two cycles wider and made the refraction weaker,
+       which is the opposite of what he asked for. */
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     /* Barely there. The body only has to catch the light at the top and pool
        very slightly at the bottom; anything more and it stops being see
@@ -380,7 +399,7 @@
       0 2px 12px rgba(24, 48, 92, 0.2);
   }
   html[data-theme="light"] #cur-dot::before {
-    background: rgba(255, 255, 255, 0.95);
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.34) 46%, rgba(255, 255, 255, 0) 72%);
   }
 
   /* ── THE SPECULAR ────────────────────────────────────────────────────
@@ -395,11 +414,22 @@
        a faint circle, which is the "dot in the dot" exactly. A specular is a
        reflection of a light source, not a bead: smaller, softer, and dimmer
        reads as a highlight ON the glass instead of an object behind it. */
-    width: 19%;
-    height: 19%;
+    /* ── SOFTER AGAIN ON THE BIGGER LENS ──────────────────────────────
+       19% of 26px was 5px; the same percentage on the 38px disc is 7px, and
+       at 0.62 alpha with a 1.1px blur that came back as a hard white pea --
+       the same "dot in the dot" this comment was already written about, just
+       rediscovered at the new size. A percentage that was tuned for one
+       diameter is not automatically right at another.
+
+       It is a gradient now rather than a filled circle with a blur on it, so
+       it falls off from the centre instead of having an edge that has been
+       softened. That is what a reflection on curved glass actually looks
+       like, and it is one less filter in the compositing path. */
+    width: 30%;
+    height: 30%;
     border-radius: 50%;
-    background: rgba(240, 250, 255, 0.62);
-    filter: blur(1.1px);
+    background: radial-gradient(circle at 50% 50%, rgba(244, 252, 255, 0.5), rgba(244, 252, 255, 0.16) 46%, rgba(244, 252, 255, 0) 72%);
+    filter: none;
     pointer-events: none;
   }
   /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons.
@@ -5128,14 +5158,24 @@
            At 0.09 there are between two and three cycles across the orb, so
            the disc bends the page rather than sliding it, and the scale comes
            down to 12 because a tighter warp needs less throw to read. -->
-      <feTurbulence type="fractalNoise" baseFrequency="0.09 0.13" numOctaves="2" seed="7" result="n">
-        <animate attributeName="baseFrequency" values="0.09 0.13;0.13 0.085;0.09 0.13" dur="9s" repeatCount="indefinite" />
+      <!-- ── RETUNED FOR THE 38px LENS ────────────────────────────────────
+           The reasoning above is unchanged and it is why these numbers moved:
+           what matters is CYCLES ACROSS THE DISC, not the frequency itself.
+           0.09 gave two to three cycles at 26px; at 38px the same value would
+           give four, which stops reading as one lens bending the page and
+           starts reading as texture. Scaled by 26/38 to hold the same cycle
+           count across the wider glass. -->
+      <feTurbulence type="fractalNoise" baseFrequency="0.062 0.089" numOctaves="2" seed="7" result="n">
+        <animate attributeName="baseFrequency" values="0.062 0.089;0.089 0.058;0.062 0.089" dur="9s" repeatCount="indefinite" />
       </feTurbulence>
       <!-- 8 to 16. At 8 the warp was there and you had to look for it, which is
            the "it doesn't do much" complaint. At 16 the page visibly moves
            through the glass and is still readable, which is the ceiling: past
            about 20 the thing you are pointing at stops being legible. -->
-      <feDisplacementMap in="SourceGraphic" in2="n" scale="12" xChannelSelector="R" yChannelSelector="G" />
+      <!-- 12 to 16: displacement is in pixels, so the same scale across a disc
+           half again as wide is proportionally a gentler bend. This keeps the
+           warp at the strength it had, on more of it. -->
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="16" xChannelSelector="R" yChannelSelector="G" />
     </filter>
   </defs>
 </svg>
@@ -5317,7 +5357,16 @@
        is set by the chase rate below rather than by the node count, so a
        longer chain pays out more line at the same speed without taking any
        longer to come to rest. */
-    var N = 44,
+    /* ── SHORTER AGAIN, AND THIS TIME IT STAYS ────────────────────────
+       Sid: "the trail and the dot looks weird ... more organic and nicer."
+
+       44 nodes on a slack chase pays out a streak most of a screen long on a
+       fast sweep, and a line that long stops reading as a wake and starts
+       reading as a drawn stroke that happens to be following you. That is the
+       "weird": it is the length, not the colour. 26 keeps the overshoot and
+       the taper -- the parts that carry weight -- and lets the tail catch up
+       within a beat of the pointer stopping. */
+    var N = 26,
       pts = [],
       i;
     for (i = 0; i < N; i++) pts.push({ x: -200, y: -200, vx: 0, vy: 0 });
