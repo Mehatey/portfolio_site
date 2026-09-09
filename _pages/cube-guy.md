@@ -122,76 +122,58 @@ next_project:
 
 <!-- Ideating sketches label + 6.1 + 6.2 -->
 <p class="cube-cap cube-cap--above"><em>Ideating sketches</em></p>
-<div class="cs-grid">
-  <div class="cs-grid-item">
+<!-- Fourteen conception pieces, sideways. They are peers with no reading
+     order: sketchbook spreads, colour studies, notebook pages, watercolours.
+     Nothing is lost by stopping halfway, which is the test in the .cs-rail
+     note in _layouts/project.html. The film sequence below stays vertical
+     because it is a story and its beats do have an order.
+     --art keeps each piece at its own proportions rather than cropping
+     drawings to 16:9. -->
+<div class="cs-rail cs-rail--art" tabindex="0" role="group" aria-label="Conception sketches, scroll sideways">
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/6.1.webp" alt="A sketchbook spread, drawn edge to edge" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/6.2.webp" alt="A crowd of cube-headed figures in colour study" loading="lazy" decoding="async" />
-  </div>
-</div>
-
-<!-- 7.1 + 7.2 + 7.3 -->
-<div class="cs-grid-3">
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/7.1.webp" alt="A painted page of cube-headed figures" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/7.2.webp" alt="A notebook page working out who the character is: truth, thought, energy" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/7.3.jpg" alt="A watercolour of the cube opening between two mountains" loading="lazy" decoding="async" />
-  </div>
-</div>
-
-<!-- 7.4 + 7.5 -->
-<div class="cs-grid">
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/7.4.webp" alt="Be true: the figure drawn against a Mondrian grid" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/7.5.webp" alt="Why do I play this game: hands holding an open cube" loading="lazy" decoding="async" />
-  </div>
-</div>
-
-<!-- 8.1 + 8.2 + 8.3 -->
-<div class="cs-grid-3">
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/8.2.webp" alt="A pencil crowd scene from the sketchbook" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="object-fit: cover; object-position: top center;">
-      <source data-src="{{ site.baseurl }}/2.cube/conception/8.1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="object-fit: cover; object-position: top center;"> <source data-src="{{ site.baseurl }}/2.cube/conception/8.1.mp4" type="video/mp4" /> </video>
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/8.3.webp" alt="The cube guy taking off, painted in red and blue" loading="lazy" decoding="async" />
-  </div>
-</div>
-
-<!-- 9 -->
-<div class="cs-bleed">
-  <video width="1440" height="1018" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source data-src="{{ site.baseurl }}/2.cube/conception/9.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<!-- 10.1 + 10.2 + 10.3 -->
-<div class="cs-grid-3">
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="1018" autoplay muted loop playsinline preload="none" style="width:100%;display:block;"> <source data-src="{{ site.baseurl }}/2.cube/conception/9.mp4" type="video/mp4" /> </video>
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/10.1.webp" alt="A screen of the character system: thought, conversation mirroring, and the pattern set" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
+  </figure>
+  <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/2.cube/conception/10.2.webp" alt="A paper-cut city in magenta light" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
-    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/2.cube/conception/10.3.mp4" type="video/mp4" />
-    </video>
-  </div>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none"> <source data-src="{{ site.baseurl }}/2.cube/conception/10.3.mp4" type="video/mp4" /> </video>
+  </figure>
 </div>
 
-<!-- SECTION: FILM -->
 <div class="cs-section">
   <h2 class="cs-section-label">Film</h2>
 </div>
