@@ -90,7 +90,6 @@ next_project:
   .cs-grid, .cs-grid-3 { margin-top: 40px !important; }
   .cs-grid + .cs-bleed, .cs-bleed + .cs-grid { margin-top: 40px !important; }
   .cs-grid + .cs-grid, .cs-grid-3 + .cs-grid, .cs-grid + .cs-grid-3, .cs-grid-3 + .cs-grid-3 { margin-top: 16px !important; }
-  .cs-grid.ma-grid + .cs-grid.ma-grid { margin-top: 16px !important; }
 
   /* Grid sizing: fixed height like cube-guy */
   .cs-grid, .cs-grid-3 {
@@ -122,8 +121,6 @@ next_project:
   /* ma-cover: explicit cover override on a specific element */
   .ma-cover { object-fit: cover !important; }
 
-  /* ma-grid: denser grid for style-explorations section */
-  .cs-grid.ma-grid { height: clamp(220px, 32vh, 380px); }
 
   /* f-vid-wrap: natural-ratio video, no cropping */
   .f-vid-wrap {
@@ -566,67 +563,64 @@ next_project:
   <h2 class="cs-section-label">Mandalas style explorations</h2>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>The goal was for people to not use the cursor. The coin is a distraction.</em></p>
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/ma1.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<p class="cube-cap cube-cap--above"><em>When you shake your hand, the mandala ripples.</em></p>
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/ripple-web.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/ma2.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma3.mp4" type="video/mp4" /></video>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma11.mp4" type="video/mp4" /></video>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma14.mp4" type="video/mp4" /></video>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/4.mandala/ma15.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma17.mp4" type="video/mp4" /></video>
+<!-- Eight explorations of one idea, side by side rather than stacked. See the
+     .cs-rail note in _layouts/project.html for why this set qualifies where a
+     story beat would not, and for how it cuts this page's video load. -->
+<div class="cs-rail" tabindex="0" role="group" aria-label="Mandala style explorations, scroll sideways">
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma1.mp4" type="video/mp4" /></video>
+    <figcaption>The goal was for people to not use the cursor. The coin is a distraction.</figcaption>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ripple-web.mp4" type="video/mp4" /></video>
+    <figcaption>When you shake your hand, the mandala ripples.</figcaption>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma2.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma3.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma11.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma14.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma15.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma17.mp4" type="video/mp4" /></video>
+  </figure>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Going beyond mandalas and playing with different eye tracking forms.</em></p>
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma21.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma23.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma30.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma31.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma33.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma34.mp4" type="video/mp4" /></video></div>
-</div>
-
-<div class="cs-grid ma-grid">
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma36.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/blobs.mp4" type="video/mp4" /></video></div>
+<div class="cs-rail" tabindex="0" role="group" aria-label="Eye tracking forms, scroll sideways">
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma21.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma23.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma30.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma31.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma33.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma34.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/ma36.mp4" type="video/mp4" /></video>
+  </figure>
+  <figure class="cs-rail-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/4.mandala/blobs.mp4" type="video/mp4" /></video>
+  </figure>
 </div>
 
 <div class="m-watch-link">
