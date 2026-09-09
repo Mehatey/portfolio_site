@@ -325,6 +325,13 @@
         position: absolute; inset: 0; z-index: 0;
         width: 100%; height: 100%;
         object-fit: cover;
+        /* Covers are cropped to the hero's shape, and `cover` crops from the
+           centre by default. That is right for a photograph and wrong for a
+           cover carrying an award badge in a corner, which is the first thing
+           it is supposed to say and the first thing a centre crop removes.
+           `hero_pos` in the page's frontmatter moves the crop; it defaults to
+           centre, so every existing hero is untouched. */
+        object-position: var(--hero-pos, 50% 50%);
         opacity: 0.92;
         transition: opacity 1.2s ease;
         view-transition-name: project-hero;
@@ -5250,7 +5257,14 @@
 
       <header class="proj-hero{% if page.hero_mode == 'artifact' %} proj-hero--artifact{% endif %}">
         {% if page.hero_image %}
-        <img class="hero-video" src="{{ site.baseurl }}/{{ page.hero_image }}" alt="{{ page.project_title }}" loading="eager" fetchpriority="high" />
+        <img
+          class="hero-video"
+          src="{{ site.baseurl }}/{{ page.hero_image }}"
+          alt="{{ page.project_title }}{% if page.award_badge and page.award_image == nil %} cover, {{ page.award_badge }}{% endif %}"
+          loading="eager"
+          fetchpriority="high"
+          style="--hero-pos: {{ page.hero_pos | default: '50% 50%' }};"
+        />
         {% elsif page.hero_video %}
         <video class="hero-video" autoplay muted loop playsinline preload="none" aria-hidden="true">
           <source src="{{ site.baseurl }}/{{ page.hero_video }}" type="video/mp4" />

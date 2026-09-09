@@ -9,7 +9,8 @@ tagline: >
 category: AR · Exhibition
 year: 2025
 hero_bg: "radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
-hero_image: "1.met/0.jpg"
+hero_image: "1.met/cover-webby.jpg"
+hero_pos: "18% 50%"
 og_image: "assets/img/og/encoded.jpg"
 meta:
   - label: Year
@@ -33,7 +34,6 @@ highlights:
 quick_read: >
   Built the on-site capture and location-based AR pipeline that activated 25 American Wing artworks through contemporary Indigenous perspectives and reached more than 2,000 visitors.
 award_badge: "2x Webby Awards 2026"
-award_image: "assets/img/badge_webby.webp"
 refl_type: Testimonial
 reflection: >
   Siddharth took ownership of on-site 3D scanning and spatial deployment for Encoded at the Metropolitan Museum of Art. He handled the full pipeline from Polycam capture to Niantic Lightship integration, remaining persistent through unstable uploads and inconsistent scans. His ability to work discreetly within the museum, collaborate across LA and Melbourne, and contribute beyond his core scope made him a strong and dependable part of the team.
@@ -101,7 +101,67 @@ next_project:
      pinned to the top-right of the tile rather than trailing the label. The
      tile becomes the positioning context; the span stays a DIRECT child of the
      <a> so the `:hover > .xarrow` rule in design_tokens still reaches it. */
-  .enc-award-tile { position: relative; padding-right: 54px !important; }
+  /* ── A LITTLE METAL ON THE AWARD TILES ──────────────────────────────
+     Sid: "add a little metallic shine on the award buttons."
+
+     The restraint matters. These are two large dark boxes; filling them with
+     gold would turn the loudest fact on the page into a novelty, and the
+     Webby mark is already doing the shouting from the cover above. So the
+     metal is only at the EDGES and in the light that crosses them: a warm
+     hairline along the top where a bevel would catch a room light, a matching
+     inset so the box reads as raised rather than drawn, and a slow sheen that
+     sweeps across and is gone.
+
+     The idiom is borrowed rather than invented -- .wk-award on /works/ is
+     already a gold pill with a sheen on a long cycle that speeds up on hover.
+     Same behaviour here, at a fraction of the strength, so the two read as one
+     family rather than two ideas about awards.
+
+     ::before is the metal, ::after is the light. Splitting them means the
+     sheen can be clipped to the tile while the bevel sits above the
+     background, and neither has to know about the other. */
+  .enc-award-tile { position: relative; padding-right: 54px !important; overflow: hidden; }
+  .enc-award-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-top: 1px solid rgba(233, 208, 150, 0.42);
+    box-shadow: inset 0 1px 0 rgba(255, 244, 218, 0.1);
+  }
+  .enc-award-tile::after {
+    content: "";
+    position: absolute;
+    top: -60%;
+    bottom: -60%;
+    left: 0;
+    width: 55%;
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 34%, rgba(255, 243, 214, 0.15) 50%, transparent 66%);
+    transform: translateX(-180%);
+    animation: enc-award-sheen 7s ease-in-out infinite;
+  }
+  /* Hovering an award you are already interested in is what pulls the glint
+     forward, exactly as the works cards behave. */
+  .enc-award-tile:hover::after,
+  .enc-award-tile:focus-visible::after { animation-duration: 1.8s; }
+  @keyframes enc-award-sheen {
+    0%, 64% { transform: translateX(-180%); }
+    90%, 100% { transform: translateX(320%); }
+  }
+  /* On cream a white sheen is invisible and a warm one is enough. The bevel
+     darkens instead of lightening, because on a light ground the edge that
+     catches the light is the one facing away from you. */
+  html[data-theme="light"] .enc-award-tile::before {
+    border-top-color: rgba(150, 116, 48, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  }
+  html[data-theme="light"] .enc-award-tile::after {
+    background: linear-gradient(105deg, transparent 34%, rgba(190, 150, 70, 0.16) 50%, transparent 66%);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .enc-award-tile::after { animation: none; opacity: 0; }
+  }
   /* The unlinked tile: same box, but nothing that implies it can be clicked.
      Keeps the 54px right padding even though it has no corner arrow to clear.
      Dropping it to 24px looked like the tidier choice and measured wrong: these

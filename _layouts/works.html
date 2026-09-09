@@ -985,11 +985,16 @@
       <h1 class="sr-only">Selected work by Siddharth Mehta</h1>
 
       <div class="wk">
+        {% comment %} ── ONE VISIBLE SET, DERIVED ONCE, BEFORE ANYTHING COUNTS IT ── Everything on this page counts and renders from `visible` rather
+        than from site.data.works. Getting this wrong is quiet: a hidden entry left in a count gives a page that promises sixteen projects and a grid
+        that shows fourteen, and nothing errors. Assigned here rather than beside the filter pills because Liquid assigns run in document order, and
+        the two "N projects" lines sit above the pills. See the featured/hidden note at the top of _data/works.yml. {% endcomment %}{% assign visible
+        = site.data.works | where_exp: "w", "w.hidden != true" %}{% assign featured = visible | where: "featured", true %}
         <div class="wk-head">
           <h2 data-livetype data-livetype-zone=".wk-head" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="120">
             Selected work
           </h2>
-          <p>{{ site.data.works | size }} projects</p>
+          <p>{{ visible | size }} projects</p>
         </div>
 
         {% comment %} ── FILTER PILLS, AND WHY THEY DO NOT START AT "ALL AND EMPTY" ────────── Sid: "can we also have like some filter pill or
@@ -999,12 +1004,54 @@
         pills sit on top of them. Nothing is hidden by default -- "All" is the resting state and it is the same page as before -- and a hiring manager
         who came for one kind of proof can take the other two out of the way in one click. The count on each pill is the useful part: it says how much
         there is before you commit to looking. No JavaScript is required to see the work; the pills are progressive. Without the script they render as
-        three anchors that jump to their lane, which is a worse version of the same intent rather than a broken one. {% endcomment %}
+        three anchors that jump to their lane, which is a worse version of the same intent rather than a broken one. {% endcomment %} {% comment %} ──
+        THE TOP SHELF ──────────────────────────────────────────── Sid: "show these projects up front before the filtration so we can see." The filter
+        pills were the first thing on the page, which put a control ahead of the work: a visitor had to operate something before seeing anything worth
+        operating it for. This is the strongest three, above the control, needing no interaction at all. It reuses .wk-card wholesale -- same cover,
+        same hover, same award pill, same quick-view -- because a featured card that behaved differently from a lane card would be a second component
+        to keep true. {% endcomment %}{% if featured.size > 0 %}
+        <section class="wk-featured" aria-labelledby="wk-featured-h">
+          <div class="wk-lane-head">
+            <h3 id="wk-featured-h">Start here</h3>
+            <b class="wk-lane-n" aria-hidden="true">{{ featured | size }}</b>
+            <p>Award-winning and shipped. The rest is below.</p>
+          </div>
+          <ul class="wk-grid">
+            {% for w in featured %} {% assign img_base = w.img | remove: ".webp" | remove: ".jpg" | remove: ".jpeg" | remove: ".png" %}
+            <li>
+              <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}" {% if w.cube %} data-cube="{{ w.cube }}" {% endif %}>
+                <div class="wk-cover">
+                  <img
+                    src="{{ site.baseurl }}{{ img_base }}-900.webp"
+                    srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} {{ w.imgw }}w"
+                    sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)"
+                    alt="{{ w.title }}"
+                    loading="eager"
+                    decoding="async"
+                    width="1200"
+                    height="900"
+                  />
+                  {% comment %} No mark on the top shelf. The lanes number from 01 within themselves, so a second numbered sequence on the same page
+                  would read as a rank the page never explains, and Sid's standing note on this grid is no year dates. The award ribbon is the only
+                  mark these three need. {% endcomment %} {% if w.award %}<span class="wk-award">{{ w.award }}</span>{% endif %}
+                </div>
+                <div class="wk-body">
+                  <h3 class="wk-name">{{ w.title }}<i aria-hidden="true">&rarr;</i></h3>
+                  <p class="wk-tags">{% for t in w.tags %}<span>{{ t }}</span>{% endfor %}</p>
+                  <p class="wk-desc"><span>{{ w.proof | default: w.desc }}</span></p>
+                </div>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </section>
+        {% endif %}
+
         <nav class="wk-filters" aria-label="Filter work by kind">
-          <button type="button" class="wk-pill is-on" data-filter="all">All<span>{{ site.data.works | size }}</span></button>
+          <button type="button" class="wk-pill is-on" data-filter="all">All<span>{{ visible | size }}</span></button>
           {% assign fl = "product,ai,culture" | split: "," %}{% for f in fl %}{% case f %}{% when "product" %}{% assign fn = "Product design" %}{%
           when "ai" %}{% assign fn = "AI and creative tech" %}{% when "culture" %}{% assign fn = "Culture, brand and image" %}{% endcase %}{% assign
-          fc = site.data.works | where: "lane", f | size %}
+          fc = visible | where: "lane", f | size %}
           <button type="button" class="wk-pill" data-filter="{{ f }}">{{ fn }}<span>{{ fc }}</span></button>
           {% endfor %}
         </nav>
@@ -1035,8 +1082,8 @@
         {% assign lanes = "product,ai,culture" | split: "," %} {% for lane in lanes %} {% case lane %} {% when "product" %} {% assign lane_name =
         "Product design" %} {% assign lane_note = "Shipped products with numbers attached." %} {% when "ai" %} {% assign lane_name = "AI and creative
         technology" %} {% assign lane_note = "Where the model or the sensor is the material." %} {% when "culture" %} {% assign lane_name = "Culture,
-        brand and image" %} {% assign lane_note = "Identity, exhibitions, and the drawing underneath." %} {% endcase %} {% assign lane_works =
-        site.data.works | where: "lane", lane %}
+        brand and image" %} {% assign lane_note = "Identity, exhibitions, and the drawing underneath." %} {% endcase %} {% assign lane_works = visible
+        | where: "lane", lane %}
         <section class="wk-lane" data-lane="{{ lane }}" aria-labelledby="lane-{{ lane }}">
           <div class="wk-lane-head">
             <h3 id="lane-{{ lane }}">{{ lane_name }}</h3>
@@ -1112,8 +1159,8 @@
              one typo'd — would drop off this page completely and the only
              symptom would be a project nobody can find. This catches it and
              says so on the page rather than swallowing it. -->
-        {% assign laned = 0 %} {% for lane in lanes %} {% assign n = site.data.works | where: "lane", lane | size %} {% assign laned = laned | plus: n
-        %} {% endfor %} {% if laned < site.data.works.size %}
+        {% assign laned = 0 %} {% for lane in lanes %} {% assign n = visible | where: "lane", lane | size %} {% assign laned = laned | plus: n %} {%
+        endfor %} {% if laned < visible.size %}
         <section class="wk-lane" aria-labelledby="lane-unfiled">
           <div class="wk-lane-head">
             <h3 id="lane-unfiled">Unfiled</h3>
@@ -1123,7 +1170,7 @@
             </p>
           </div>
           <ul class="wk-grid">
-            {% for w in site.data.works %}{% unless w.lane == "product" or w.lane == "ai" or w.lane == "culture" %}
+            {% for w in visible %}{% unless w.lane == "product" or w.lane == "ai" or w.lane == "culture" %}
             <li>
               <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}">
                 <div class="wk-body">
@@ -1138,7 +1185,7 @@
         {% endif %}
 
         <p class="wk-end">
-          <span>{{ site.data.works | size }} projects · 2018-2026</span>
+          <span>{{ visible | size }} projects · 2018-2026</span>
           <!-- The second line pointed at Play. Removed: Play is in the nav on
                every screen, and a portfolio that tells you where to click next
                is a portfolio that does not trust its own navigation. -->

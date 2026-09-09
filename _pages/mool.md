@@ -9,10 +9,10 @@ tagline: >
 category: UI · Fintech
 year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
-hero_image: "5.mool/cover.jpg"
+hero_image: "5.mool/cover-award.jpg"
+hero_pos: "22% 42%"
 og_image: "assets/img/og/mool.jpg"
 award_badge: "Kyoorius Design Award 2021"
-award_image: "assets/img/badge_kyoorius.png"
 meta:
   - label: Role
     value: Visual Designer
