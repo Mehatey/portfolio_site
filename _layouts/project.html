@@ -562,6 +562,108 @@
       }
       .hero-brief-jump:hover { color: #fff; border-color: #fff; transform: translateX(3px); }
       .hero-brief-jump::after { content: " ↓"; }
+      /* ══ THE PROJECT MARKER ════════════════════════════════════════════
+         The title, continued. It arrives as the hero leaves and holds the
+         top-left corner while you read, so a thirty-six screen case study
+         always says which case study it is. Set in the same mono label voice
+         as the section headings rather than as a shrunken copy of the
+         display type -- a small version of the hero title would read as the
+         hero title having fallen over.
+
+         Left edge aligns with the content column, so it sits in the same
+         vertical as every caption ordinal below it.
+
+         --m is written per frame by the script at the foot of this file:
+         0 while the hero is on screen, 1 once it has gone, and back to 0 as
+         the handover comes up. Everything visible here is a function of that
+         one number, which is the same discipline the handover panel uses. */
+      .proj-marker {
+        position: fixed;
+        top: 92px;
+        /* Exactly the content column's left edge. Measured rather than
+           guessed: the first attempt assumed a 1280px column and landed at
+           138 where the captions start at 58, and at 293 against 84 on a
+           wider window. The column is 1560 centred, falling back to the
+           gutter once the window is narrower than that -- so the marker now
+           sits in the same vertical as every caption ordinal below it at
+           every width. */
+        left: max(var(--gutter), calc((100vw - 1560px) / 2));
+        z-index: 55;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 7px 13px 7px 11px;
+        border-radius: 999px;
+        text-decoration: none;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: rgba(232, 242, 253, 0.86);
+        background: rgba(12, 17, 26, 0.62);
+        border: 1px solid rgba(150, 190, 240, 0.16);
+        -webkit-backdrop-filter: blur(14px) saturate(1.2);
+        backdrop-filter: blur(14px) saturate(1.2);
+        /* Off the page entirely at rest: no hit target, nothing for a screen
+           reader, nothing painted. */
+        opacity: var(--m, 0);
+        transform: translateY(calc((1 - var(--m, 0)) * -10px));
+        pointer-events: none;
+        visibility: hidden;
+        transition:
+          background 240ms ease,
+          border-color 240ms ease,
+          color 240ms ease;
+      }
+      .proj-marker.is-live {
+        visibility: visible;
+        pointer-events: auto;
+      }
+      .proj-marker__arrow {
+        width: 13px;
+        height: 9px;
+        flex: 0 0 auto;
+        /* A left arrow drawn rather than typed, so it matches the stroke of
+           the nav icons instead of whatever the font ships. */
+        background: currentColor;
+        clip-path: polygon(0 50%, 5px 0, 5px 36%, 13px 36%, 13px 64%, 5px 64%, 5px 100%);
+        transition: transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .proj-marker:hover {
+        background: rgba(18, 26, 40, 0.86);
+        border-color: rgba(170, 210, 255, 0.4);
+        color: rgba(244, 250, 255, 0.98);
+      }
+      .proj-marker:hover .proj-marker__arrow {
+        transform: translateX(-3px);
+      }
+      .proj-marker:focus-visible {
+        outline: 2px solid rgba(160, 205, 255, 0.7);
+        outline-offset: 3px;
+      }
+      html[data-theme="light"] .proj-marker {
+        color: rgba(18, 30, 52, 0.88);
+        background: rgba(255, 253, 248, 0.78);
+        border-color: rgba(30, 56, 96, 0.18);
+      }
+      html[data-theme="light"] .proj-marker:hover {
+        background: rgba(255, 255, 252, 0.94);
+        border-color: rgba(30, 56, 96, 0.4);
+      }
+      @media (max-width: 900px) {
+        /* The nav is a different shape here and the corner is busier. */
+        .proj-marker {
+          top: 74px;
+          font-size: 10px;
+          padding: 6px 11px 6px 9px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .proj-marker {
+          transform: none;
+        }
+      }
+
       .proj-title {
         font-family: var(--font-title);
         font-size: clamp(48px, 6.5vw, 92px);
@@ -5043,6 +5145,20 @@
       <!-- HERO -->
       <!-- hero_mode: artifact -- for covers that are a screenshot of an
            interface rather than a photograph. See .proj-hero--artifact. -->
+      {% comment %} ── THE TITLE CARRIES ON DOWN THE PAGE ──────────────────────────────────────────────────────────────────────────────── Sid, from
+      ednaho.com/work/ambi: "I like how the title of the work scrolls down, and then when you have scrolled down enough the back button becomes
+      visible ... do you think we need a back or a cross button to show up?" Two questions, and they have one answer. A back button on its own would
+      be a second control doing a job the nav already does: measured on /marriott/ at 0%, 40% and 85% of the page, the nav stays pinned at top:14px
+      the whole way and its Work link already points at /works/. But ORIENTATION is genuinely missing -- these pages run to thirty-six screens, and
+      once the hero is gone there is nothing on screen saying which project you are inside. So the marker is both. It is the title, continuing past
+      its own hero, and it is the way back. One element, two jobs, no control added that duplicates another. It is a link rather than a button because
+      that is what it does. It stands down for the handover at the bottom: the next-project panel is already saying where you are going, and a label
+      saying where you have been would be arguing with it. {% endcomment %}
+      <a class="proj-marker" id="proj-marker" href="{{ site.baseurl }}/works/" aria-hidden="true" tabindex="-1">
+        <i class="proj-marker__arrow" aria-hidden="true"></i>
+        <span class="proj-marker__name">{{ page.project_title | default: page.title }}</span>
+      </a>
+
       <header class="proj-hero{% if page.hero_mode == 'artifact' %} proj-hero--artifact{% endif %}">
         {% if page.hero_image %}
         <img class="hero-video" src="{{ site.baseurl }}/{{ page.hero_image }}" alt="{{ page.project_title }}" loading="eager" fetchpriority="high" />
@@ -5411,6 +5527,69 @@
          The navigation fires once, at the bottom of a 220vh runway the reader
          has to actively travel. `armed` prevents it repeating if the browser
          restores scroll or a rubber-band overshoots the end. */
+      /* ══ THE MARKER'S ONE NUMBER ═══════════════════════════════════════
+         0 while the hero is on screen, 1 once it has gone, and back to 0 as
+         the handover arrives. Read from the scroll position, written as a
+         custom property, and every visible thing about the marker is derived
+         from it in CSS -- the same discipline the handover panel uses, so
+         there is only ever one value to be right about.
+
+         aria-hidden and tabindex are toggled with it rather than left set:
+         a link that is invisible but still in the tab order is a trap, and
+         one that is visible but hidden from assistive tech is worse. */
+      (function () {
+        var marker = document.getElementById("proj-marker");
+        var hero = document.querySelector(".proj-hero");
+        if (!marker || !hero) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          /* Still useful, just not animated in. */
+          marker.style.setProperty("--m", "1");
+          marker.classList.add("is-live");
+          marker.removeAttribute("aria-hidden");
+          marker.removeAttribute("tabindex");
+          return;
+        }
+
+        var next = document.querySelector(".nextscroll");
+        var raf = 0;
+        var live = false;
+
+        function read() {
+          raf = 0;
+          var h = hero.getBoundingClientRect();
+          /* Fades in across the last 140px of the hero leaving the top of the
+             window, so it arrives as the title goes rather than after it. */
+          var out = Math.min(1, Math.max(0, (72 - h.bottom) / 140));
+          /* And retires as the handover comes into view, because that panel is
+             already saying where you are going. */
+          if (next) {
+            var n = next.getBoundingClientRect();
+            var near = Math.min(1, Math.max(0, (window.innerHeight - n.top) / 260));
+            out = Math.min(out, 1 - near);
+          }
+          marker.style.setProperty("--m", out.toFixed(3));
+          var want = out > 0.02;
+          if (want !== live) {
+            live = want;
+            marker.classList.toggle("is-live", live);
+            if (live) {
+              marker.removeAttribute("aria-hidden");
+              marker.removeAttribute("tabindex");
+            } else {
+              marker.setAttribute("aria-hidden", "true");
+              marker.setAttribute("tabindex", "-1");
+            }
+          }
+        }
+
+        function onScroll() {
+          if (!raf) raf = requestAnimationFrame(read);
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+        window.addEventListener("resize", onScroll, { passive: true });
+        read();
+      })();
+
       (function () {
         var section = document.querySelector(".nextscroll");
         if (!section) return;
