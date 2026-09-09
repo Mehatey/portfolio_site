@@ -83,6 +83,10 @@ next_project:
   </div>
 </div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">The mark</h2>
+</div>
+
 <p class="cube-cap cube-cap--above"><em>Ideation.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.1.webp" alt="Handwritten research map connecting Ayurveda, the three doshas, diet and lifestyle" loading="lazy" decoding="async" /></div>
@@ -115,6 +119,10 @@ next_project:
   <video width="1440" height="252" autoplay muted loop playsinline preload="auto">
     <source src="{{ site.baseurl }}/7.naavo/11.mp4" type="video/mp4" />
   </video>
+</div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">The product</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Mobile app to purchase guided products.</em></p>
@@ -166,6 +174,10 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.webp" alt="Hydrating sea salt crystal rose body polisher" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.2.webp" alt="Morning dew face serum, photographed among ferns and moss" loading="lazy" decoding="async" /></div>
+</div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">Out in the world</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Branding collaterals.</em></p>

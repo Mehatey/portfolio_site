@@ -67,6 +67,10 @@ next_project:
 <p class="cube-cap cube-cap--above">An employee app for Marriott staff, across every Bonvoy property.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/marriott/01-what.webp" alt="What we did, Marriott Bonvoy employee app" loading="lazy" decoding="async" /></div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">The dashboard</h2>
+</div>
+
 <p class="cube-cap cube-cap--above">The dashboard. The whole shift on one pane.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/marriott/02-dashboard.gif" alt="SPOG dashboard overview in motion" loading="lazy" decoding="async" /></div>
 
@@ -79,6 +83,10 @@ next_project:
 <p class="cube-cap cube-cap--above">Reservation flow through the day, and cases at a glance.</p>
 <div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">Loyalty enrolment</h2>
+</div>
+
 <p class="cube-cap cube-cap--above">Loyalty enrolment, without leaving the desk.</p>
 <div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source src="{{ site.baseurl }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
 
@@ -87,6 +95,10 @@ next_project:
 
 <p class="cube-cap cube-cap--above">Enrol a new member, in a modal over the work already open.</p>
 <div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">Where it runs</h2>
+</div>
 
 <p class="cube-cap cube-cap--above">One system, on a tablet at the desk and a browser in the back office.</p>
 <div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/marriott/09-desktop.webp" alt="SPOG on desktop browser" loading="lazy" style="animation:mkBreathe 6s ease-in-out infinite;" decoding="async" /></div>

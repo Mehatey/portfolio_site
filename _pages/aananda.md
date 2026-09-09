@@ -81,6 +81,10 @@ next_project:
   <img src="{{ site.baseurl }}/9.aananda/2.webp" alt="Naming and wordmark exploration, with the Devanagari setting of आनंदा" loading="lazy" decoding="async" />
 </div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">Where it started</h2>
+</div>
+
 <p class="cube-cap cube-cap--above"><em>Learning Jainism from my father, who is pursuing a PhD in the subject.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/3.webp" alt="Early notebook pages working out the structure of the app" loading="lazy" decoding="async" />
@@ -93,6 +97,10 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Illustration style inspired by Jain temples.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/5.webp" alt="A Jain temple rendered inside the identity pattern" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">The app</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Mobile application for teachers and students.</em></p>
@@ -129,6 +137,10 @@ next_project:
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/13.webp" alt="The book, a look inside Jainism" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">In print</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Aananda, the book.</em></p>

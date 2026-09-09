@@ -138,6 +138,10 @@ next_project:
   </video>
 </div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">The piece</h2>
+</div>
+
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/6.mindu/3.webp" alt="The neural landscape, drawn from fMRI work on emotional fingerprints at Duke" loading="lazy" decoding="async" />
 </div>
@@ -158,6 +162,10 @@ next_project:
 
 <div class="cs-bleed">
   <video width="1280" height="720" src="{{ site.baseurl }}/6.mindu/kiosk3.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Mind Your Feelings kiosk in use"></video>
+</div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">In the library</h2>
 </div>
 
 <div class="cs-bleed">

@@ -99,6 +99,10 @@ next_project:
 
      Fourteen bleeds to eight bleeds and three grids. -->
 
+<div class="cs-section">
+  <h2 class="cs-section-label">The brief</h2>
+</div>
+
 <p class="cube-cap cube-cap--above">The requirement, broken down with Deloitte Digital.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/01-requirements.webp" alt="Client requirements and problems to solve" loading="lazy" decoding="async" /></div>
 
@@ -114,11 +118,19 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/05-research.webp" alt="Secondary research, ideation and initial concepts" loading="lazy" decoding="async" /></div>
 </div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">What changed</h2>
+</div>
+
 <p class="cube-cap cube-cap--above">Before and after. Every action in the first fold, sorted by urgency.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">$13.6M in scheduling revenue, and 32% more new patients booking themselves.</p>
 <div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/fairview/13-impact.webp" alt="Our impact, key metrics" loading="lazy" style="animation:fvBreathe 6s ease-in-out infinite;" decoding="async" /></div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">The system</h2>
+</div>
 
 <p class="cube-cap cube-cap--above">The new entry point. One clear place to start.</p>
 <div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>

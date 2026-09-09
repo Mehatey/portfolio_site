@@ -144,17 +144,27 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/0.webp" alt="Mool 100k+ downloads" loading="eager" decoding="async" />
 </div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">The brand</h2>
+</div>
+
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/1.jpg" alt="The Mool wordmark" loading="lazy" decoding="async" />
 </div>
 
+<p class="cube-cap cube-cap--above"><em>Mool is the Sanskrit and Hindi word for the point at which something begins. Four colours, each named for what it signals rather than what it is.</em></p>
 <div class="cs-grid">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.1.webp" alt="Mool takes its name from the Sanskrit and Hindi word for the point at which something begins" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="The four brand colours, each named for what it signals: Freedom Blue, Auspicious Red, Growth Green, Stability Blue" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.1.webp" alt="The Mool name set beside its meaning" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="The four brand colours: Freedom Blue, Auspicious Red, Growth Green, Stability Blue" loading="lazy" decoding="async" /></div>
 </div>
 
+<p class="cube-cap cube-cap--above"><em>Tone of voice: simple, direct, thoughtful, uplifting, human.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/3.webp" alt="Tone of voice: simple, direct, thoughtful, uplifting, human" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/3.webp" alt="The tone of voice page from the brand guidelines" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">The product</h2>
 </div>
 
 <div class="cs-bleed">
@@ -169,8 +179,9 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/6.webp" alt="Onboarding screens: bank where your roots are valued, prosper into the new world, finance a dream at your fingertips" loading="lazy" decoding="async" />
 </div>
 
+<p class="cube-cap cube-cap--above"><em>Goals are written as questions, in the words people already use for them. Can I send my kid to her dream school.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/7.webp" alt="A savings goal written as a question: can I send my kid to her dream school" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/7.webp" alt="A savings goal screen phrased as a question" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -185,6 +196,11 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/10.webp" alt="Payments and transfers, debit card controls, and the card itself" loading="lazy" decoding="async" />
 </div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">Out in the world</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Out of home, the brand argues for three words rather than a product: Empathy, Equality, Freedom.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Out-of-home posters at a bus shelter: Empathy, Equality, Freedom" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Out-of-home posters at a bus shelter" loading="lazy" decoding="async" />
 </div>
