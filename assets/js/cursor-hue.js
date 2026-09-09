@@ -21,12 +21,12 @@
    opinion. So the line in the bar stays exactly where it is on the work
    cards, and this is the other half — colour, and a voice with a shape.
 
-   ── WHY THE CHIPS AND THE VOICE ARE ONE OBJECT ──────────────────────────
-   Because they are one gesture. The squares are what the cube SEES and the
-   line is what it THINKS, and splitting them into two files would mean two
-   pointer listeners, two show-hide clocks and two chances for one to be up
-   while the other is down. They arrive together, from the same point, on the
-   same spring.
+   ── THE CHIPS LIVE BESIDE THE MARK, NOT HERE ────────────────────────────
+   They were in the bubble once. Sid: "I like the chat cursor bubble but I
+   don't want the colours there too, I want them just next to the logo." So
+   the squares are drawn by cube_says.html at the mark, and this file is the
+   voice alone -- which is also why it now says nothing at all unless a line
+   was written for the thing under the pointer.
 
    ── WHY IT DOES NOT FOLLOW THE POINTER EXACTLY ──────────────────────────
    A label welded to the cursor is a tooltip and reads as chrome. This lags
@@ -46,7 +46,6 @@
   if (window.innerWidth < 1100) return;
 
   var HOLD = 150; // pointer must rest this long before anything appears
-  var CHIPS = 6;
 
   /* What counts as a thing worth reading. Deliberately not every <img> on
      the page: the logo wall, the marquee monograms and the nav icons are
@@ -65,55 +64,26 @@
     return list[h % list.length];
   }
 
-  /* Warm, cold, pale, mixed. Four families, several lines each, chosen by
-     the picture rather than by the clock. */
-  var LINES = {
-    warm: ["All warm. I like this one.", "Somebody left a lamp on in here.", "This one runs hot.", "Warm the whole way through."],
-    cool: ["Cold light. Screens, mostly.", "Blue. He works late.", "This one is all glass and evening.", "Cool right through. No sun in it."],
-    pale: [
-      "Quiet. He was not showing off here.",
-      "Barely any colour. That is deliberate.",
-      "Restrained. Almost nothing in it.",
-      "Pale. It is the layout doing the work.",
-    ],
-    mixed: [
-      "Warm and cold in the same frame.",
-      "Two temperatures arguing.",
-      "Hot and cold at once. That is the trick of it.",
-      "It cannot decide, and it is better for it.",
-    ],
-  };
+  /* ── IT ONLY SPEAKS WHEN IT HAS SOMETHING TO SAY ─────────────────────
+     Sid: "i dont want the hover tooltip of the cursor to be on each and every
+     small thing it should only be for imp things half the times the tooltip
+     text doesnt make sense."
 
-  /* ── WHAT IT SAYS ─────────────────────────────────────────────────────
-     First person, present tense, and about the ACT of looking rather than
-     about the work. The cube is not a caption writer -- on a work card the
-     caption is already in the top bar and on the page below the pointer, and
-     repeating either is what made the old cursor text read as chrome. It is
-     a companion noticing something out loud, and what it notices is the one
-     thing it is actually equipped to notice: colour.
+     Both halves of that were the same defect. The cursor used to fall back to
+     a generated line about colour temperature whenever the thing under it had
+     no authored copy -- four families, warm/cool/pale/mixed, picked by
+     sampling the picture. It fired on every tile on the site, which is the
+     "each and every small thing", and it produced things like "Restrained.
+     Almost nothing in it." over a photograph of somebody jumping against a
+     blue sky, which is the half that does not make sense. A remark derived
+     from a histogram is not an observation; it only ever looked like one.
 
-     Keyed off the read, so the remark is true of the specific picture under
-     the pointer rather than drawn from a hat. */
-  function remark(cols, el) {
-    if (!cols || !cols.length) return "";
-    var warm = 0,
-      cool = 0,
-      pale = 0;
-    for (var i = 0; i < cols.length; i++) {
-      var m = /hsl\((\d+) (\d+)% (\d+)%\)/.exec(cols[i]);
-      if (!m) continue;
-      var h = +m[1],
-        sat = +m[2];
-      if (h < 60 || h > 320) warm++;
-      else if (h > 170 && h < 280) cool++;
-      if (sat < 45) pale++;
-    }
-    var n = cols.length;
-    var fam = pale >= n - 1 ? "pale" : warm >= n - 1 ? "warm" : cool >= n - 1 ? "cool" : warm && cool ? "mixed" : "pale";
-    var img = window.SidHue && window.SidHue.pictureIn(el);
-    var seed = (img && (img.currentSrc || img.src)) || fam;
-    return pick(LINES[fam], seed);
-  }
+     So the generator is gone, and the rule is now simply: the cube speaks
+     where Sid has written a line for it in _data/works.yml, and nowhere else.
+     That is the definition of "important things" the page can actually
+     enforce. The colour reading it used to narrate has not been lost -- it
+     still runs, as squares beside the mark, which is where he asked for the
+     colour to live and where it needs no words. */
 
   /* ── AND WHEN THE CUBE HAS SOMETHING BETTER TO SAY ────────────────────
      Every work card carries `data-cube`: one line per project, written by
@@ -125,10 +95,9 @@
      His writing beats a generated line about temperature every time, so it
      wins when it exists. The colour aside is what the cube says about
      everything else on the site, which is most of it. */
-  function lineFor(el, cols) {
+  function lineFor(el) {
     var owner = el.closest && el.closest("[data-cube]");
-    var own = owner && (owner.getAttribute("data-cube") || "").trim();
-    return own || remark(cols, el);
+    return (owner && (owner.getAttribute("data-cube") || "").trim()) || "";
   }
 
   /* ── THE PANEL ────────────────────────────────────────────────────────── */
@@ -183,6 +152,9 @@
 
   function show(el) {
     var img = window.SidHue && window.SidHue.pictureIn(el);
+    /* The decode wait below is kept even though the panel no longer samples
+       the picture: `show` is also what re-runs after a lazy image lands, and
+       the chips beside the mark are read on the same pointer event. */
     /* Lazy pictures and video posters are routinely not decoded on the frame
        the pointer arrives. Wait for the one we were handed and come back,
        rather than reading nothing and never asking again. */
@@ -196,15 +168,18 @@
       );
       return;
     }
-    var cols = img && window.SidHue.palette(img, CHIPS);
-    if (!cols) return;
+    /* Nothing written for this one, so nothing is said. Checked before the
+       panel is mounted rather than after, or an empty bubble flashes in and
+       out on every uncaptioned tile the pointer crosses. */
+    var line = lineFor(el);
+    if (!line) return;
 
     if (!mounted) {
       document.body.appendChild(box);
       mounted = true;
     }
 
-    sayEl.textContent = lineFor(el, cols);
+    sayEl.textContent = line;
 
     /* Jumped to the pointer on the first frame it is shown, or the panel
        flies in from wherever it was last dismissed. */

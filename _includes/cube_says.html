@@ -299,6 +299,24 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
   .cube-says__hues:empty {
     display: none;
   }
+  /* Colour without words. The bubble's ground, edge and padding all belong to
+     the sentence; with no sentence to hold they would draw an empty plate
+     around ten squares, which is the tooltip look this panel exists to avoid.
+     The swatch row keeps its own margin so it still clears the mark. */
+  #cube-says.is-hues {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  #cube-says.is-hues .cube-says__text {
+    display: none;
+  }
+  #cube-says.is-hues .cube-says__hues {
+    margin-right: 0;
+  }
   /* ── SQUARE, AND THEY ARRIVE LIKE A LEVEL METER ───────────────────────
      Sid: "don't give the squares curved edges", and "try animating the colour
      swatches differently, I don't like how they animate now."
@@ -568,7 +586,7 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
         if (i < ws.length - 1) textEl.appendChild(document.createTextNode(" "));
       }
       el.hidden = false;
-      el.classList.remove("is-out");
+      el.classList.remove("is-out", "is-hues");
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
           el.classList.add("is-in");
@@ -596,9 +614,33 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
        real near-miss rather than a duplicate of the second. */
     var HUE_N = 10;
 
+    /* Which element the squares are currently showing, so a retry that lands
+       after the pointer has moved on does not repaint the mark for a picture
+       nobody is looking at any more. */
+    var hueFor = null;
+
     function showHues(card) {
       if (!hueEl) return;
+      hueFor = card;
       var img = window.SidHue && window.SidHue.pictureIn(card);
+      /* ── WAIT FOR THE PICTURE, THEN ASK AGAIN ──────────────────────────
+         The other half of why the squares were missing. For a tile whose
+         media is a video, pictureIn hands back a freshly created <img> for
+         the poster URL, and it deliberately hands it back BEFORE it has
+         decoded so the caller can wait on it. This function did not wait: it
+         read an undecoded image, got nothing, and never asked a second time.
+         The cursor panel has always had this retry; the mark did not, which
+         is exactly why the colour appeared on some hovers and not others. */
+      if (img && (!img.complete || !img.naturalWidth)) {
+        img.addEventListener(
+          "load",
+          function () {
+            if (hueFor === card) showHues(card);
+          },
+          { once: true }
+        );
+        return;
+      }
       var cols = img ? window.SidHue.palette(img, HUE_N) : null;
       hueEl.textContent = "";
       if (!cols) return;
@@ -608,23 +650,66 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
         sw.style.setProperty("--i", i);
         hueEl.appendChild(sw);
       }
+      /* ── THE COLOUR CAN APPEAR WITHOUT THE VOICE ───────────────────────
+         The last reason the squares were invisible, and the one that would
+         have survived the other two fixes. The chip row lives inside
+         #cube-says, and #cube-says carries `hidden` until speak() clears it.
+         So even a perfect colour read painted ten swatches into an element
+         the browser was not drawing -- which is precisely the case now that
+         most pictures light the mark without the cube saying anything.
+
+         So the panel opens for colour alone. The text stays empty and the
+         stylesheet collapses it, leaving the swatch row beside the mark and
+         no bubble around it. */
+      el.classList.add("is-hues");
+      el.hidden = false;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          el.classList.add("is-in");
+        });
+      });
     }
+
+    /* ── THE COLOUR IS FOR EVERY PICTURE. THE WORDS ARE NOT. ─────────────
+       Sid: "i wanted the colors to show in squares for all images next to
+       logomark rem we had that check why that isnt showing."
+
+       It was not showing because both halves hung off one condition. The
+       listener matched `[data-cube]` and then bailed unless that attribute
+       held text -- so the squares, which need nothing but a picture, only
+       ever appeared on the handful of work cards Sid had written a line for.
+       Every other image on the site left the mark blank.
+
+       They are two different questions and they get two different tests now:
+
+         PICTURES  -- anything in PIC_SEL, the same curated list the cursor
+                      uses. Still not every <img>: nav icons, the logo wall
+                      and marquee monograms are furniture, and a mark that
+                      flickers at furniture reads as a fault.
+         WORDS     -- only `[data-cube]` with copy in it, unchanged.
+
+       So the mark now takes its colour from any picture worth reading, and
+       the cube still only speaks where there is something written to say. */
+    var PIC_SEL = ".wk-card, .sid-tile, .cs-grid-item, .cs-bleed, .cs-bleed-full, .gal-item, .proj-cover, figure.cs-fig, .kts__item, .proto__media";
+    var PIC_SKIP = ".m-logo, .studio-mark, .logo-cube, .sfilm, .idle-drift";
 
     document.addEventListener(
       "pointerover",
       function (e) {
-        var card = e.target.closest && e.target.closest("[data-cube]");
-        if (!card) return;
-        var t = (card.getAttribute("data-cube") || "").trim();
-        if (!t) return;
+        if (!e.target.closest) return;
+        if (e.target.closest(PIC_SKIP)) return;
+        var card = e.target.closest("[data-cube]");
+        var pic = e.target.closest(PIC_SEL);
+        if (!card && !pic) return;
+        var t = card ? (card.getAttribute("data-cube") || "").trim() : "";
         hovering = true;
         clearTimeout(hoverTimer);
         /* A short hold, so sweeping the pointer across a grid on the way
            somewhere else does not fire seventeen lines in a row. */
         hoverTimer = setTimeout(function () {
           if (!hovering) return;
-          showHues(card);
-          speak(t);
+          showHues(pic || card);
+          if (t) speak(t);
         }, 130);
       },
       { passive: true }
@@ -633,14 +718,17 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
     document.addEventListener(
       "pointerout",
       function (e) {
-        var card = e.target.closest && e.target.closest("[data-cube]");
+        if (!e.target.closest) return;
+        var card = e.target.closest("[data-cube]") || e.target.closest(PIC_SEL);
         if (!card) return;
         if (e.relatedTarget && card.contains(e.relatedTarget)) return;
         hovering = false;
         clearTimeout(hoverTimer);
         hoverTimer = setTimeout(function () {
           if (!hovering && !el.hidden) {
+            hueFor = null;
             if (hueEl) hueEl.textContent = "";
+            el.classList.remove("is-hues");
             hide();
           }
         }, 220);

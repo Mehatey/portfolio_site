@@ -556,16 +556,67 @@ listener of its own -- so throwing the page separates the frame from the content
       0 0 22px -6px rgba(150, 205, 255, 0.5);
     animation: idle-eye-look 23s ease-in-out infinite;
   }
+  /* ── THE PUPIL IS A CUBE ────────────────────────────────────────────
+     Sid: "can u make the inside of the eye not be a circle but a cube in the
+     screensaver."
+
+     Drawn isometrically rather than built out of six rotated faces, and that
+     is not a shortcut. The eye is a piece of glass -- it carries a
+     backdrop-filter -- and backdrop-filter forces transform-style: flat on
+     the element it sits on, so a real preserve-3d cube nested inside it gets
+     flattened into a stack of squares. This is the same trap that has caught
+     the mark before. A hexagon with three shaded faces is a cube at pupil
+     size, costs one gradient, and cannot be flattened because it was never
+     in 3D to begin with.
+
+     The hexagon is regular, so the three faces meet at exactly 120 degrees
+     and the conic gradient's thirds land on the seams: starting the gradient
+     at -60deg puts the first third across the top face, then the right, then
+     the left. Lit from upper left like everything else in this scene, so the
+     top is brightest and the right face is the one in shadow. */
   .idle-drift__p.is-eye > .iris > .pupil {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 42%;
-    aspect-ratio: 1;
+    width: 54%;
+    aspect-ratio: 0.866;
     transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: rgba(6, 12, 24, 0.78);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18);
+    clip-path: polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+    background: conic-gradient(
+      from -60deg at 50% 50%,
+      rgba(72, 112, 172, 0.95) 0 120deg,
+      rgba(7, 14, 30, 0.96) 120deg 240deg,
+      rgba(26, 48, 88, 0.95) 240deg 360deg
+    );
+    /* A pupil that holds still inside an iris that drifts reads as painted
+       on. One slow turn on the spot, far slower than the look-around, so the
+       two motions never beat against each other. */
+    animation: idle-pupil-turn 19s ease-in-out infinite;
+  }
+  html[data-theme="light"] .idle-drift__p.is-eye > .iris > .pupil {
+    background: conic-gradient(
+      from -60deg at 50% 50%,
+      rgba(96, 132, 186, 0.95) 0 120deg,
+      rgba(18, 30, 54, 0.94) 120deg 240deg,
+      rgba(44, 68, 112, 0.94) 240deg 360deg
+    );
+  }
+  /* Rotation, not spin: it rocks a few degrees either side of square so the
+     cube keeps its readable isometric attitude. A full turn would flatten it
+     through the diagonals and stop looking like a solid. */
+  @keyframes idle-pupil-turn {
+    0%,
+    100% {
+      transform: translate(-50%, -50%) rotate(-7deg);
+    }
+    50% {
+      transform: translate(-50%, -50%) rotate(7deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p.is-eye > .iris > .pupil {
+      animation: none;
+    }
   }
   /* The blink is a lid that closes over the glass rather than a scaleY on the
      whole object, because an eye that squashes reads as a bouncing ball. */
