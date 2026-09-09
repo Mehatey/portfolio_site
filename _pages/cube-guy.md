@@ -32,9 +32,13 @@ reflection: >
 
   The game was harder. Building interactivity from scratch meant learning by breaking things. I lost versions, rebuilt sections, and came out understanding the work in a way I could not have otherwise. What surprised me most was how little the idea needed to change through all of it. The medium kept shifting. The character did not.
 refl_bg: "2.cube/5.mp4"
+# Was Alpha Stockathon. That page now carries `hidden: true` in works.yml and
+# is off the grid, so ending a case study by handing the reader a full-screen
+# scroll into it would put the weakest work in the most committed moment on
+# the site. Rerouted to what Alpha pointed at, which keeps the cycle whole.
 next_project:
-  title: "Alpha Stockathon"
-  url: /alpha-stockathon/
+  title: "Illustrations"
+  url: /illustrations/
 ---
 
 <style>

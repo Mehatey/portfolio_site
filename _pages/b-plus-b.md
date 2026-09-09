@@ -35,9 +35,12 @@ reflection: >
 
   Running public research taught me that the artifact matters less than the opening you create. The prompt did most of the work.
 refl_bg: "5.bb/board2.2.mp4"
+# Was Shot on iPhone, now hidden from the grid. Rerouted to what that page
+# pointed at, so the handover chain stays a complete cycle over the thirteen
+# projects that are actually on /works/.
 next_project:
-  title: "Shot on iPhone"
-  url: /shot-on-iphone/
+  title: "Encoded"
+  url: /encoded/
 ---
 
 <style>
