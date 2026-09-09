@@ -5974,16 +5974,67 @@
       0 0 22px -6px rgba(150, 205, 255, 0.5);
     animation: idle-eye-look 23s ease-in-out infinite;
   }
+  /* ── THE PUPIL IS A CUBE ────────────────────────────────────────────
+     Sid: "can u make the inside of the eye not be a circle but a cube in the
+     screensaver."
+
+     Drawn isometrically rather than built out of six rotated faces, and that
+     is not a shortcut. The eye is a piece of glass -- it carries a
+     backdrop-filter -- and backdrop-filter forces transform-style: flat on
+     the element it sits on, so a real preserve-3d cube nested inside it gets
+     flattened into a stack of squares. This is the same trap that has caught
+     the mark before. A hexagon with three shaded faces is a cube at pupil
+     size, costs one gradient, and cannot be flattened because it was never
+     in 3D to begin with.
+
+     The hexagon is regular, so the three faces meet at exactly 120 degrees
+     and the conic gradient's thirds land on the seams: starting the gradient
+     at -60deg puts the first third across the top face, then the right, then
+     the left. Lit from upper left like everything else in this scene, so the
+     top is brightest and the right face is the one in shadow. */
   .idle-drift__p.is-eye > .iris > .pupil {
     position: absolute;
     left: 50%;
     top: 50%;
-    width: 42%;
-    aspect-ratio: 1;
+    width: 54%;
+    aspect-ratio: 0.866;
     transform: translate(-50%, -50%);
-    border-radius: 50%;
-    background: rgba(6, 12, 24, 0.78);
-    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.18);
+    clip-path: polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+    background: conic-gradient(
+      from -60deg at 50% 50%,
+      rgba(72, 112, 172, 0.95) 0 120deg,
+      rgba(7, 14, 30, 0.96) 120deg 240deg,
+      rgba(26, 48, 88, 0.95) 240deg 360deg
+    );
+    /* A pupil that holds still inside an iris that drifts reads as painted
+       on. One slow turn on the spot, far slower than the look-around, so the
+       two motions never beat against each other. */
+    animation: idle-pupil-turn 19s ease-in-out infinite;
+  }
+  html[data-theme="light"] .idle-drift__p.is-eye > .iris > .pupil {
+    background: conic-gradient(
+      from -60deg at 50% 50%,
+      rgba(96, 132, 186, 0.95) 0 120deg,
+      rgba(18, 30, 54, 0.94) 120deg 240deg,
+      rgba(44, 68, 112, 0.94) 240deg 360deg
+    );
+  }
+  /* Rotation, not spin: it rocks a few degrees either side of square so the
+     cube keeps its readable isometric attitude. A full turn would flatten it
+     through the diagonals and stop looking like a solid. */
+  @keyframes idle-pupil-turn {
+    0%,
+    100% {
+      transform: translate(-50%, -50%) rotate(-7deg);
+    }
+    50% {
+      transform: translate(-50%, -50%) rotate(7deg);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .idle-drift__p.is-eye > .iris > .pupil {
+      animation: none;
+    }
   }
   /* The blink is a lid that closes over the glass rather than a scaleY on the
      whole object, because an eye that squashes reads as a bouncing ball. */
@@ -7277,7 +7328,10 @@
        costume. */
     .sid-tile:not(.sid-tile--type) {
       box-sizing: border-box;
-      padding: 9px 9px 38px;
+      /* 44, not 38: two lines of caption plus the 7px it sits off the bottom
+         edge. Measured against the longest caption in the set rather than the
+         first one that happened to fit. */
+      padding: 9px 9px 40px;
       border-radius: 2px;
       background:
         linear-gradient(178deg, #fdfbf6 0%, #f7f3ea 62%, #f1ece0 100%),
@@ -7308,7 +7362,7 @@
     .sid-tile:not(.sid-tile--type)::before {
       content: "";
       position: absolute;
-      inset: 9px 9px 38px;
+      inset: 9px 9px 40px;
       z-index: 2;
       pointer-events: none;
       box-shadow:
@@ -7338,7 +7392,7 @@
       /* Inset to the emulsion. At inset 0 the blurred underlay painted over
          the paper border and the bottom band, which put a smear of the
          photograph across the white card. */
-      inset: 9px 9px 38px;
+      inset: 9px 9px 40px;
       pointer-events: none;
       background-image: var(--src);
       background-size: cover;
@@ -7402,21 +7456,64 @@
        hide -- so these sit in ink on the band and are simply always there.
        The photograph is no longer covered by its own label either, which is
        the second thing the move buys. */
+    /* ── THE BAND HOLDS ITS OWN TEXT ──────────────────────────────────
+       Sid: "the polaroid text on scale becomes invisible, can you correct
+       that and improve the scale and spacing so its legible."
+
+       A fixed 38px band was a guess, and measuring the tiles showed the
+       captions running from 35px to 64px depending on how the two lines fell
+       -- so the long ones spilled past the paper and got cut by the tile's
+       own edge. Nothing here should be a guess: the band is sized by its
+       content, both lines are held to one line each with an ellipsis so it
+       can never become three, and the tile reserves enough room for the worst
+       case rather than the average one.
+
+       The type also came up. 8.5px mono set in a white band, shrinking again
+       whenever the rail scaled a tile below 1.0, was under six effective
+       pixels on the smallest tiles. */
     .sid-tile:not(.sid-tile--type) figcaption {
       position: absolute;
       left: 9px;
       right: 9px;
-      bottom: 0;
-      height: 38px;
+      bottom: 7px;
+      height: auto;
       z-index: 3;
       display: grid;
-      align-content: center;
-      gap: 1px;
+      align-content: end;
+      gap: 2px;
       padding: 0 2px;
       background: none;
-      color: rgba(28, 32, 40, 0.9);
+      color: rgba(24, 28, 36, 0.92);
       opacity: 1;
       transform: none;
+    }
+    .sid-tile:not(.sid-tile--type) figcaption em,
+    .sid-tile:not(.sid-tile--type) figcaption b {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+      /* Explicit, because the base caption rules were adding padding these
+         inherited: an 11px label on a 16px line-height was rendering 41px
+         tall, which is what pushed the label up off the paper and onto the
+         photograph. Fixed metrics make the band's height predictable. */
+      margin: 0;
+      padding: 0;
+    }
+    .sid-tile:not(.sid-tile--type) figcaption em {
+      font-size: 8px;
+      line-height: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      font-style: normal;
+      opacity: 0.5;
+    }
+    .sid-tile:not(.sid-tile--type) figcaption b {
+      font-size: 12px;
+      line-height: 15px;
+      letter-spacing: -0.005em;
+      font-weight: 450;
     }
     .sid-tile:not(.sid-tile--type) figcaption em {
       color: rgba(96, 104, 120, 0.9);
@@ -13463,8 +13560,13 @@
     opacity: 0;
     transition: opacity 0.2s;
   }
+  /* Down from 0.7. With a 38px lens around it, a hard bright dot at seven
+     tenths is a second object sitting inside the first -- which is precisely
+     the "dot in the dot" Sid has objected to twice. At 0.42 it still marks
+     the exact point you are aiming with and stops competing with the glass
+     for attention. */
   html.has-custom-cursor #cur-core {
-    opacity: 0.7;
+    opacity: 0.42;
   }
   html[data-theme="light"] #cur-core {
     background: rgba(16, 24, 40, 0.82);
@@ -13541,8 +13643,22 @@
        is why two rounds of assertion-based checks missed it: the features
        were all present, none of them could be reached. */
     pointer-events: none;
-    width: 26px;
-    height: 26px;
+    /* ── BIGGER, BECAUSE REFRACTION NEEDS ROOM ────────────────────────
+       Sid: "the refraction area or cursor circle size is too less."
+
+       26px was chosen when the disc was mostly an edge with a wash inside
+       it. It is the wrong size for a lens: a warp needs a few cycles across
+       its width before it reads as bending rather than sliding, and at 26px
+       there was barely room for two. 38px gives the displacement somewhere
+       to happen, and it is still under half the diameter of the mark, so it
+       never becomes the loudest object on screen.
+
+       The turbulence frequency moves with it -- see the filter at the foot
+       of this file. Growing the disc without retuning the noise would have
+       stretched the same two cycles wider and made the refraction weaker,
+       which is the opposite of what he asked for. */
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     /* Barely there. The body only has to catch the light at the top and pool
        very slightly at the bottom; anything more and it stops being see
@@ -13616,7 +13732,7 @@
       0 2px 12px rgba(24, 48, 92, 0.2);
   }
   html[data-theme="light"] #cur-dot::before {
-    background: rgba(255, 255, 255, 0.95);
+    background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.34) 46%, rgba(255, 255, 255, 0) 72%);
   }
 
   /* ── THE SPECULAR ────────────────────────────────────────────────────
@@ -13631,11 +13747,22 @@
        a faint circle, which is the "dot in the dot" exactly. A specular is a
        reflection of a light source, not a bead: smaller, softer, and dimmer
        reads as a highlight ON the glass instead of an object behind it. */
-    width: 19%;
-    height: 19%;
+    /* ── SOFTER AGAIN ON THE BIGGER LENS ──────────────────────────────
+       19% of 26px was 5px; the same percentage on the 38px disc is 7px, and
+       at 0.62 alpha with a 1.1px blur that came back as a hard white pea --
+       the same "dot in the dot" this comment was already written about, just
+       rediscovered at the new size. A percentage that was tuned for one
+       diameter is not automatically right at another.
+
+       It is a gradient now rather than a filled circle with a blur on it, so
+       it falls off from the centre instead of having an edge that has been
+       softened. That is what a reflection on curved glass actually looks
+       like, and it is one less filter in the compositing path. */
+    width: 30%;
+    height: 30%;
     border-radius: 50%;
-    background: rgba(240, 250, 255, 0.62);
-    filter: blur(1.1px);
+    background: radial-gradient(circle at 50% 50%, rgba(244, 252, 255, 0.5), rgba(244, 252, 255, 0.16) 46%, rgba(244, 252, 255, 0) 72%);
+    filter: none;
     pointer-events: none;
   }
   /* Cursor grows + glows over interactive surfaces — toned down so it doesn't wash out small icons.
@@ -18328,7 +18455,7 @@
       rgba(4, 7, 13, 0) 78%
     );
   }
-</style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <svg id="cur-defs" aria-hidden="true" style="position: fixed; width: 0; height: 0; overflow: hidden; pointer-events: none"> <defs> <filter id="cur-lens" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.09 0.13" numoctaves="2" seed="7" result="n"> <animate attributename="baseFrequency" values="0.09 0.13;0.13 0.085;0.09 0.13" dur="9s" repeatcount="indefinite"></animate> </feturbulence> <fedisplacementmap in="SourceGraphic" in2="n" scale="12" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> <div id="cur-dot"></div> <div id="cur-ping" aria-hidden="true"></div> <style>
+</style> <div id="global-grain" aria-hidden="true"></div> <div id="global-vignette" aria-hidden="true"></div> <div id="cursor-spotlight" aria-hidden="true"></div> <svg id="cur-defs" aria-hidden="true" style="position: fixed; width: 0; height: 0; overflow: hidden; pointer-events: none"> <defs> <filter id="cur-lens" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.062 0.089" numoctaves="2" seed="7" result="n"> <animate attributename="baseFrequency" values="0.062 0.089;0.089 0.058;0.062 0.089" dur="9s" repeatcount="indefinite"></animate> </feturbulence> <fedisplacementmap in="SourceGraphic" in2="n" scale="16" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> <div id="cur-dot"></div> <div id="cur-ping" aria-hidden="true"></div> <style>
   #cur-trail {
     position: fixed;
     inset: 0;
@@ -18457,7 +18584,16 @@
        is set by the chase rate below rather than by the node count, so a
        longer chain pays out more line at the same speed without taking any
        longer to come to rest. */
-    var N = 44,
+    /* ── SHORTER AGAIN, AND THIS TIME IT STAYS ────────────────────────
+       Sid: "the trail and the dot looks weird ... more organic and nicer."
+
+       44 nodes on a slack chase pays out a streak most of a screen long on a
+       fast sweep, and a line that long stops reading as a wake and starts
+       reading as a drawn stroke that happens to be following you. That is the
+       "weird": it is the length, not the colour. 26 keeps the overshoot and
+       the taper -- the parts that carry weight -- and lets the tail catch up
+       within a beat of the pointer stopping. */
+    var N = 26,
       pts = [],
       i;
     for (i = 0; i < N; i++) pts.push({ x: -200, y: -200, vx: 0, vy: 0 });
@@ -20989,6 +21125,24 @@
   .cube-says__hues:empty {
     display: none;
   }
+  /* Colour without words. The bubble's ground, edge and padding all belong to
+     the sentence; with no sentence to hold they would draw an empty plate
+     around ten squares, which is the tooltip look this panel exists to avoid.
+     The swatch row keeps its own margin so it still clears the mark. */
+  #cube-says.is-hues {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  #cube-says.is-hues .cube-says__text {
+    display: none;
+  }
+  #cube-says.is-hues .cube-says__hues {
+    margin-right: 0;
+  }
   /* ── SQUARE, AND THEY ARRIVE LIKE A LEVEL METER ───────────────────────
      Sid: "don't give the squares curved edges", and "try animating the colour
      swatches differently, I don't like how they animate now."
@@ -21256,7 +21410,7 @@
         if (i < ws.length - 1) textEl.appendChild(document.createTextNode(" "));
       }
       el.hidden = false;
-      el.classList.remove("is-out");
+      el.classList.remove("is-out", "is-hues");
       requestAnimationFrame(function () {
         requestAnimationFrame(function () {
           el.classList.add("is-in");
@@ -21284,9 +21438,33 @@
        real near-miss rather than a duplicate of the second. */
     var HUE_N = 10;
 
+    /* Which element the squares are currently showing, so a retry that lands
+       after the pointer has moved on does not repaint the mark for a picture
+       nobody is looking at any more. */
+    var hueFor = null;
+
     function showHues(card) {
       if (!hueEl) return;
+      hueFor = card;
       var img = window.SidHue && window.SidHue.pictureIn(card);
+      /* ── WAIT FOR THE PICTURE, THEN ASK AGAIN ──────────────────────────
+         The other half of why the squares were missing. For a tile whose
+         media is a video, pictureIn hands back a freshly created <img> for
+         the poster URL, and it deliberately hands it back BEFORE it has
+         decoded so the caller can wait on it. This function did not wait: it
+         read an undecoded image, got nothing, and never asked a second time.
+         The cursor panel has always had this retry; the mark did not, which
+         is exactly why the colour appeared on some hovers and not others. */
+      if (img && (!img.complete || !img.naturalWidth)) {
+        img.addEventListener(
+          "load",
+          function () {
+            if (hueFor === card) showHues(card);
+          },
+          { once: true }
+        );
+        return;
+      }
       var cols = img ? window.SidHue.palette(img, HUE_N) : null;
       hueEl.textContent = "";
       if (!cols) return;
@@ -21296,23 +21474,66 @@
         sw.style.setProperty("--i", i);
         hueEl.appendChild(sw);
       }
+      /* ── THE COLOUR CAN APPEAR WITHOUT THE VOICE ───────────────────────
+         The last reason the squares were invisible, and the one that would
+         have survived the other two fixes. The chip row lives inside
+         #cube-says, and #cube-says carries `hidden` until speak() clears it.
+         So even a perfect colour read painted ten swatches into an element
+         the browser was not drawing -- which is precisely the case now that
+         most pictures light the mark without the cube saying anything.
+
+         So the panel opens for colour alone. The text stays empty and the
+         stylesheet collapses it, leaving the swatch row beside the mark and
+         no bubble around it. */
+      el.classList.add("is-hues");
+      el.hidden = false;
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          el.classList.add("is-in");
+        });
+      });
     }
+
+    /* ── THE COLOUR IS FOR EVERY PICTURE. THE WORDS ARE NOT. ─────────────
+       Sid: "i wanted the colors to show in squares for all images next to
+       logomark rem we had that check why that isnt showing."
+
+       It was not showing because both halves hung off one condition. The
+       listener matched `[data-cube]` and then bailed unless that attribute
+       held text -- so the squares, which need nothing but a picture, only
+       ever appeared on the handful of work cards Sid had written a line for.
+       Every other image on the site left the mark blank.
+
+       They are two different questions and they get two different tests now:
+
+         PICTURES  -- anything in PIC_SEL, the same curated list the cursor
+                      uses. Still not every <img>: nav icons, the logo wall
+                      and marquee monograms are furniture, and a mark that
+                      flickers at furniture reads as a fault.
+         WORDS     -- only `[data-cube]` with copy in it, unchanged.
+
+       So the mark now takes its colour from any picture worth reading, and
+       the cube still only speaks where there is something written to say. */
+    var PIC_SEL = ".wk-card, .sid-tile, .cs-grid-item, .cs-bleed, .cs-bleed-full, .gal-item, .proj-cover, figure.cs-fig, .kts__item, .proto__media";
+    var PIC_SKIP = ".m-logo, .studio-mark, .logo-cube, .sfilm, .idle-drift";
 
     document.addEventListener(
       "pointerover",
       function (e) {
-        var card = e.target.closest && e.target.closest("[data-cube]");
-        if (!card) return;
-        var t = (card.getAttribute("data-cube") || "").trim();
-        if (!t) return;
+        if (!e.target.closest) return;
+        if (e.target.closest(PIC_SKIP)) return;
+        var card = e.target.closest("[data-cube]");
+        var pic = e.target.closest(PIC_SEL);
+        if (!card && !pic) return;
+        var t = card ? (card.getAttribute("data-cube") || "").trim() : "";
         hovering = true;
         clearTimeout(hoverTimer);
         /* A short hold, so sweeping the pointer across a grid on the way
            somewhere else does not fire seventeen lines in a row. */
         hoverTimer = setTimeout(function () {
           if (!hovering) return;
-          showHues(card);
-          speak(t);
+          showHues(pic || card);
+          if (t) speak(t);
         }, 130);
       },
       { passive: true }
@@ -21321,14 +21542,17 @@
     document.addEventListener(
       "pointerout",
       function (e) {
-        var card = e.target.closest && e.target.closest("[data-cube]");
+        if (!e.target.closest) return;
+        var card = e.target.closest("[data-cube]") || e.target.closest(PIC_SEL);
         if (!card) return;
         if (e.relatedTarget && card.contains(e.relatedTarget)) return;
         hovering = false;
         clearTimeout(hoverTimer);
         hoverTimer = setTimeout(function () {
           if (!hovering && !el.hidden) {
+            hueFor = null;
             if (hueEl) hueEl.textContent = "";
+            el.classList.remove("is-hues");
             hide();
           }
         }, 220);
