@@ -254,6 +254,10 @@ next_project:
   <img src="{{ site.baseurl }}/1.met/1.webp" alt="Encoded" loading="lazy" decoding="async" />
 </div>
 
+<div class="cs-section">
+  <h2 class="cs-section-label">Making it</h2>
+</div>
+
 <p class="cube-cap cube-cap--above"><em>Scanning in the American Wing.</em></p>
 <div class="cs-bleed">
   <video width="1440" height="582" autoplay muted loop playsinline preload="none" style="width:100%">
@@ -278,6 +282,10 @@ next_project:
   <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%">
     <source data-src="{{ site.baseurl }}/1.met/5.mp4" type="video/mp4" />
   </video>
+</div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">In the museum</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>AR activation over physical artworks.</em></p>
