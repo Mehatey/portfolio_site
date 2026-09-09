@@ -250,8 +250,18 @@
      grid of tiles you could count; at 14 it reads as a resolution -- close
      enough to a pixel that the wall looks like a low-res image of a colour
      rather than a pattern made of squares. */
+  /* ── AND MORE COLOUR IN THEM ───────────────────────────────────────
+     Sid: "also include more color pixel sqaures in bg."
+
+     Two separate things were limiting it, and only one of them was density.
+     The palette was eight chips wide, so a picture with a rich spread got
+     flattened to eight before it ever reached the wall; at twelve the field
+     carries the picture's secondary colours too, which is where the variety
+     actually lives. Density then goes up alongside it -- see the fill test
+     below -- because more chips with the same number of squares just makes
+     each colour rarer. */
   var CELL = 14; // square pitch, including its gap
-  var PAL_N = 8;
+  var PAL_N = 12;
   var palA = null, // what the field is showing
     palB = null, // what it is moving to
     palT = 1, // 0..1 through the change
@@ -334,9 +344,11 @@
         var idx = (h * 1000) | 0;
 
         /* Not every cell is filled. A field at full density is a solid
-           rectangle; leaving two in five empty is what makes it read as
-           pixels scattered on a ground. */
-        if (h > 0.62) continue;
+           rectangle, so the gaps are what make it read as pixels scattered on
+           a ground rather than a painted wall. Two in five empty was too
+           sparse to carry twelve colours; one in four still leaves the ground
+           showing through everywhere, which is the property that matters. */
+        if (h > 0.75) continue;
 
         var dx = x - fx;
         var d = Math.abs(dx) + Math.abs(y - H / 2) * 0.35;
