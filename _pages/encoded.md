@@ -11,7 +11,7 @@ year: 2025
 hero_bg: "radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
 hero_image: "1.met/cover-webby.jpg"
 hero_pos: "18% 50%"
-og_image: "assets/img/og/encoded.jpg"
+og_image: "assets/img/og/encoded-webby.jpg"
 meta:
   - label: Year
     value: "2025"
