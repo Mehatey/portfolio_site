@@ -63,6 +63,7 @@
     bloom: 0.85,
     density: 1.65 /* how dark a given amount of pigment reads         */,
     pointer: true /* drag to push the water, click to drop pigment    */,
+    preserve: false /* let code outside this file read the canvas later */,
     iterations: 9 /* pressure solve. 5 is fine, 12 is smoother        */,
   };
 
@@ -170,12 +171,17 @@ void main(){ vec2 q=vU; vec3 d=texture(uPig,q).rgb;
   function Watercolour(canvas, opts) {
     const O = Object.assign({}, DEFAULTS, opts || {});
     const INKS = Array.isArray(O.palette) ? O.palette : PALETTES[O.palette] || PALETTES.indigo;
-    /* preserveDrawingBuffer is on in the site copy because hero-wash.js samples
-   this canvas from a LATER frame to find where pigment is drying. With it
-   off the buffer is undefined once the frame ends and drawImage returns
-   nothing, which is a silent failure: the code overlay simply never
-   appears and nothing errors. */
-    const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, preserveDrawingBuffer: true, powerPreference: "high-performance" });
+    const gl = canvas.getContext("webgl2", {
+      antialias: false,
+      alpha: false,
+      /* Off by default, as WebGL intends. Turn it on when something OUTSIDE
+         this file needs to read the canvas in a LATER frame, via drawImage
+         or getImageData from another rAF. With it off the drawing buffer is
+         undefined once the frame ends and that read silently returns
+         nothing: no error, just an effect that never appears. */
+      preserveDrawingBuffer: !!O.preserve,
+      powerPreference: "high-performance",
+    });
     if (!gl) return null;
     const HF = gl.getExtension("EXT_color_buffer_half_float");
     gl.getExtension("OES_texture_float_linear");

@@ -67,6 +67,9 @@
        from the hero instead makes the whole panel reactive and leaves the
        text selectable. */
     pointer: false,
+    /* the code overlay samples this canvas from a later frame, which the
+       drawing buffer does not survive by default */
+    preserve: true,
     iterations: 8,
   });
   if (!wc) {
