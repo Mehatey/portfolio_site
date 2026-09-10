@@ -28,7 +28,7 @@
   "use strict";
 
   var RESPECT_TOGGLE = true;
-  var CLIPS = ["name-1", "name-2", "name-3"]; /* the first three takes */
+  var CLIPS = ["name-1", "name-2", "name-3", "name-4"]; /* incl. the Mr Mehta take */
   var KEY = "sid_sound";
 
   /* A pointer that cannot hover has no hover to fire on, and a touch device
