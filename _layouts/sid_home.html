@@ -329,6 +329,87 @@
          The right padding clears the two floating controls — the theme toggle
          and the shortcut key — which are fixed at the viewport's own corner
          and are not part of this grid. */
+      /* ── the wash ─────────────────────────────────────────────────────
+         Behind every other hero layer, and inert to the pointer: hero-wash.js
+         listens on the hero itself so the whole panel is reactive and the
+         headline stays selectable. */
+      .hero-wash,
+      .hero-wash-code {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 1.1s ease;
+      }
+      .hero-wash {
+        z-index: 0;
+      }
+      .hero-wash-code {
+        z-index: 1;
+      }
+      /* Faded up only once the simulation is running, so a browser without
+         WebGL2 shows the hero it always had rather than a blank panel. */
+      .hero.has-wash .hero-wash {
+        opacity: 1;
+      }
+      .hero.has-wash .hero-wash-code {
+        opacity: 0.9;
+      }
+      /* ── THE HERO BECOMES PAPER ───────────────────────────────────────
+         The simulation is an absorption model: it renders paper * exp(-density),
+         so pigment can only ever make the sheet DARKER. That is what makes the
+         washes glaze instead of stacking to mud, and it also means the paper
+         has to be light. A dark sheet would swallow every ink in the palette.
+
+         So the hero inverts while the wash is running: cream ground, ink text.
+         The rest of the site stays dark, and the hero reads as a sheet of
+         paper laid on top of it. Without this the white headline sits on cream
+         and cannot be read at all, which is exactly what the first pass did. */
+      .hero.has-wash .hero__title,
+      .hero.has-wash .hero__base,
+      .hero.has-wash .hero__title .tw {
+        color: #14171d;
+      }
+      .hero.has-wash .hero__base {
+        color: rgba(20, 23, 29, 0.66);
+      }
+      .hero.has-wash .hero__base .accent {
+        color: #1d3f7a;
+      }
+      .hero.has-wash .hero__say-name {
+        color: rgba(12, 16, 24, 0.9);
+        border-bottom-color: rgba(12, 16, 24, 0.28);
+      }
+      .hero.has-wash .hero__say-hint,
+      .hero.has-wash .hero__prev {
+        color: rgba(24, 38, 60, 0.6);
+      }
+      .hero.has-wash .hero__prev b {
+        color: rgba(8, 12, 20, 0.88);
+      }
+      .hero.has-wash .hero__say-wave i {
+        background: #3d6fb5;
+      }
+      .hero.has-wash .scroll-cue .bar {
+        background: rgba(20, 23, 29, 0.4);
+      }
+      /* the spine rule between the two headline columns */
+      .hero.has-wash .hero__spine {
+        background: rgba(20, 23, 29, 0.18);
+      }
+
+      /* The wash is the ground now, so the layers that used to be the ground
+         step back. */
+      .hero.has-wash .hero-veil,
+      .hero.has-wash .hero-room,
+      .hero.has-wash .hero-scene {
+        opacity: 0;
+        pointer-events: none;
+      }
+
       /* ── hero byline ──────────────────────────────────────────────────
          Sits inside the foot row so it inherits the same story-3 reveal as
          the rest of it rather than arriving on its own clock. Quiet on
@@ -4530,6 +4611,13 @@
 
              Purely decorative and inert to the pointer, so nothing in the
              hero becomes unreachable while it plays. -->
+          <!-- ── THE WASH ────────────────────────────────────────────────
+             A real fluid simulation behind everything: hover pushes the
+             water, a click drops pigment. The second canvas is the code the
+             wash dries into, drawn only where pigment fell between two
+             samples. See assets/js/hero-wash.js. -->
+          <canvas class="hero-wash" id="hero-wash" aria-hidden="true"></canvas>
+          <canvas class="hero-wash-code" id="hero-wash-code" aria-hidden="true"></canvas>
           <span class="hero-veil" aria-hidden="true"></span>
           <!-- The film. The visible rooftop plate and its hidden depth pass stay
              frame-locked. WebGL uses the latter to move near and far planes
@@ -5039,11 +5127,6 @@
               </button>
               <span class="hero__prev">Previously <b>Deloitte Digital</b>, <b>Philips</b>, <b>EyeJack</b></span>
             </p>
-
-            <div class="hero__dirs">
-              <button type="button" class="hero__dir" id="hero-prev" aria-label="Previous homepage layout">&lsaquo;</button>
-              <button type="button" class="hero__dir" id="hero-next" aria-label="Next homepage layout">&rsaquo;</button>
-            </div>
           </div>
 
           <!-- The word "Scroll" came out. Sid: "on the homepage we have scroll
@@ -5629,7 +5712,8 @@
          SDF march with fourteen smooth minima in its inner loop. All three
          files stay in the repo.
          assets/js/home-gl-ink.js · home-gl-mercury.js · home-gl-solid.js -->
-    <script src="{{ site.baseurl }}/assets/js/home-shuffle.js" defer></script>
+    <script src="{{ site.baseurl }}/assets/js/watercolour.js" defer></script>
+    <script src="{{ site.baseurl }}/assets/js/hero-wash.js" defer></script>
     <!-- The scroll sequence. Reads the property its own section publishes;
          it never listens to scroll itself. -->
     <script src="{{ site.baseurl }}/assets/js/monolith.js" defer></script>
