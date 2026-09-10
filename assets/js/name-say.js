@@ -36,7 +36,6 @@
   if (!window.matchMedia || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
 
   var mark = document.querySelector(".studio-mark");
-  if (!mark) return;
 
   var audio = null,
     i = 0,
@@ -86,26 +85,68 @@
     { once: true }
   );
 
-  mark.addEventListener(
-    "pointerenter",
-    function () {
-      if (!soundOn() || document.hidden) return;
-      var now = Date.now();
-      /* One name per pass. Without this, sliding across the mark and back
+  if (mark)
+    mark.addEventListener(
+      "pointerenter",
+      function () {
+        if (!soundOn() || document.hidden) return;
+        var now = Date.now();
+        /* One name per pass. Without this, sliding across the mark and back
        retriggers on top of itself and the reverb tails pile up. */
-      if (now - lastAt < 900) return;
-      build();
-      var a = audio[i % audio.length];
-      i++;
-      lastAt = now;
-      try {
-        a.currentTime = 0;
-        var p = a.play();
-        /* Refused until the page has had a real gesture. Nothing to report:
+        if (now - lastAt < 900) return;
+        build();
+        var a = audio[i % audio.length];
+        i++;
+        lastAt = now;
+        try {
+          a.currentTime = 0;
+          var p = a.play();
+          /* Refused until the page has had a real gesture. Nothing to report:
          the visitor did not ask for a name, they moved a mouse. */
-        if (p && p.catch) p.catch(function () {});
-      } catch (e) {}
-    },
-    { passive: true }
-  );
+          if (p && p.catch) p.catch(function () {});
+        } catch (e) {}
+      },
+      { passive: true }
+    );
+
+  /* ── THE HOMEPAGE BUTTON ─────────────────────────────────────────────
+     One file, the three pronunciations mastered as a single take with a
+     breath between them, because pressing a button three times to find out
+     there are three ways is a worse answer than hearing all three.
+
+     No sound-toggle gate on this one, and that is the point of it being a
+     button. The hover on the mark is something that happens TO a visitor, so
+     it defers to the toggle. A press is something they asked for, and it is
+     also the user gesture browsers demand before allowing any audio at all,
+     which is why this always works where the hover sometimes will not. */
+  var btn = document.getElementById("hero-say");
+  if (!btn) return;
+  var say = null;
+
+  btn.addEventListener("click", function () {
+    if (!say) {
+      say = new Audio(BASE + "/assets/audio/name/say-my-name.m4a");
+      say.preload = "auto";
+      say.volume = 0.9;
+      say.addEventListener("ended", function () {
+        btn.classList.remove("is-saying");
+      });
+      say.addEventListener("pause", function () {
+        btn.classList.remove("is-saying");
+      });
+    }
+    /* A second press restarts rather than stacking. Pausing would leave the
+       control looking available while saying nothing. */
+    try {
+      say.currentTime = 0;
+      var p = say.play();
+      btn.classList.add("is-saying");
+      if (p && p.catch)
+        p.catch(function () {
+          btn.classList.remove("is-saying");
+        });
+    } catch (e) {
+      btn.classList.remove("is-saying");
+    }
+  });
 })();
