@@ -1,0 +1,1 @@
+export function intentIndexFromDelta(t,h){const n=Math.atan2(h,t)*(180/Math.PI);return n>=-135&&n<-45?0:n>=-45&&n<45?1:n>=45&&n<135?2:3}export function clampLens(t,h,n={width:390,height:245}){return{x:Math.min(h.width-n.width-14,Math.max(14,t.x+28)),y:Math.min(h.height-n.height-18,Math.max(74,t.y-50))}}

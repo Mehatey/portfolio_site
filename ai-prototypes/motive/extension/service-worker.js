@@ -1,0 +1,1 @@
+chrome.action.onClicked.addListener(async i=>{i.id&&(await chrome.scripting.insertCSS({target:{tabId:i.id},files:["cursor.css"]}),await chrome.scripting.executeScript({target:{tabId:i.id},files:["cursor.js"]}))});
