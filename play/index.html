@@ -196,6 +196,57 @@ title: Play · Sid Mehta
         column-gap: clamp(16px, 4vw, 64px);
         text-align: left;
       }
+      /* ── STILL OPEN: THE 112px TITLE ───────────────────────────────────
+         The halo below fixes the body copy and helps the title, but a thin
+         white letterform that large over a bright photograph is still a
+         lottery: the strokes are wide enough that a halo only protects their
+         edges, not their interiors.
+
+         The real answer is a ground, and two attempts at one failed for
+         reasons worth writing down so the next person does not repeat them.
+
+         1. .play-stage::before already exists for exactly this and is set to
+            display:none. Re-enabling it does nothing useful: it is positioned
+            in PERCENTAGES of .play-stage, and .play-stage is the whole gallery,
+            measured at 39,899px. "at 0% 16%" puts its centre 6,384px down the
+            page, and an ellipse 48% tall washes ~19,000px of field. That is
+            also the wash the retirement note above complains about.
+         2. A pseudo-element ground on .play-header itself paints, confirmed by
+            forcing it red, but not between the type and the photographs.
+            Measured on vs off within a single page load: 7.40:1 against
+            7.31:1 on the title and 2.93 against 2.88 on the intro, which is
+            no change. The header sits in its own stacking context and the
+            gallery is not behind it in the way the markup suggests.
+
+         So the fix needs the stage's stacking order untangled rather than
+         another gradient, and this is the highest risk file in the repo to
+         restructure unattended. Left for a session that can watch it. */
+      /* ── LEGIBILITY OVER A MOVING FIELD ────────────────────────────────
+         This block sits on a full bleed gallery, so whatever drifts through
+         the corner decides whether it can be read. Measured on a live frame:
+         the 112px title came back at 7.40:1, which passes, and the 16px intro
+         at 2.93:1, which does not. Body copy needs 4.5:1, and with 225 pieces
+         travelling past the number is a lottery rather than a value.
+
+         A shadow on the glyphs rather than a panel behind the block, and that
+         is not a style preference. A gradient ground was tried here first and
+         measured at no change at all, on vs off in the same page load: the
+         header sits in its own stacking context and a pseudo-element behind it
+         does not land between the type and the photographs. A shadow travels
+         with the glyph, so it cannot be stacked wrong. It also leaves the
+         gallery unframed, which is what retired the previous corner veil. */
+      .play-header h1,
+      .play-header p,
+      .play-header__count {
+        /* Three radii, not one. The tight pass gives the glyph an edge against
+           a busy texture, the mid pass carries it over a flat mid tone, and the
+           wide pass darkens enough of the surrounding field that the letterform
+           is still separable when a bright frame drifts under it. */
+        text-shadow:
+          0 1px 3px rgba(2, 4, 9, 0.92),
+          0 2px 14px rgba(2, 4, 9, 0.82),
+          0 0 44px rgba(2, 4, 9, 0.66);
+      }
       .play-header h1 {
         grid-column: 1;
         margin: 0;
@@ -218,7 +269,12 @@ title: Play · Sid Mehta
         max-width: 32ch;
         margin: clamp(10px, 1.4vh, 20px) 0 0;
         font: var(--type-body);
-        color: var(--ink-3);
+        /* Was --ink-3, which resolves to white at 0.64 and was set when this
+           block sat on a dark stage. The stage is photographs now, and at 16px
+           that measured 2.93:1 on a live frame where body copy needs 4.5. The
+           halo above does the real work; this simply stops handing it a
+           handicap as well. */
+        color: rgba(255, 255, 255, 0.9);
         text-wrap: pretty;
         animation: playHeadIn 900ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
       }
