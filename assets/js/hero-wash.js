@@ -46,11 +46,20 @@
     [0.32, 0.3, 0.86], // ochre
   ];
 
+  /* The engine's own notes give a phone profile and this was ignoring it,
+     running desktop settings on every device: scale 0.5, eight pressure
+     iterations, dpr up to 1.6. Cost is roughly (iterations + 6) full screen
+     passes at scale x canvas per frame, so that is a lot of fragment work for
+     a mid range handset to carry behind a page someone is trying to read.
+     Coarse pointer rather than width, because the question is what hardware is
+     drawing this, not how wide the window happens to be. */
+  var small = matchMedia("(pointer: coarse)").matches || innerWidth < 760;
+
   var wc = Watercolour(wash, {
     palette: INKS,
     paper: [0.968, 0.96, 0.945],
-    scale: 0.5,
-    dpr: 1.6,
+    scale: small ? 0.35 : 0.5,
+    dpr: small ? 1.25 : 1.6,
     ambient: reduce ? 0 : 0.42,
     drops: reduce ? 0 : 0.4,
     dry: 0.9948,
@@ -70,7 +79,7 @@
     /* the code overlay samples this canvas from a later frame, which the
        drawing buffer does not survive by default */
     preserve: true,
-    iterations: 8,
+    iterations: small ? 5 : 8,
   });
   if (!wc) {
     hero.classList.add("no-wash");
