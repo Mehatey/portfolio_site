@@ -201,6 +201,19 @@
     acc = 0,
     raf = 0,
     onScreen = true;
+  /* The nav scrim is a dark wash tuned for a dark site. Over the cream hero it
+     reads as a grey band across the top, so the page is told when the nav is
+     sitting on paper. Keyed to the hero still touching the top of the viewport
+     rather than to plain visibility: the moment it scrolls away the page is
+     dark again and the dark scrim is the correct one. */
+  function onPaper() {
+    var r = hero.getBoundingClientRect();
+    document.body.classList.toggle("on-paper", r.top <= 0 && r.bottom > 120);
+  }
+  onPaper();
+  addEventListener("scroll", onPaper, { passive: true });
+  addEventListener("resize", onPaper, { passive: true });
+
   new IntersectionObserver(
     function (es) {
       onScreen = es[0].isIntersecting;
