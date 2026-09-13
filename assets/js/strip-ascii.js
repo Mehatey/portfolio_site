@@ -207,7 +207,29 @@
     acc += dt;
     if (acc > 1 / 30) {
       acc = 0;
-      findFocus();
+      /* ── WHICH TILE IS IN FOCUS IS A SLOW QUESTION ─────────────────────
+         Sid: "can u improve the clothesline it feels janky and not smooth."
+
+         The jank was here, not in the rail. findFocus() measures the strip
+         and then every tile on it with getBoundingClientRect -- fourteen
+         geometry reads -- and it was running on this 30Hz gate, interleaved
+         with the rail's own loop writing a transform to each of those same
+         tiles every frame. Write, then read, then write: the read cannot be
+         answered from the last layout because the writes invalidated it, so
+         the engine lays the whole strip out again, synchronously, several
+         times a second. That is what a stutter on a smooth drift is made of.
+
+         Nothing about the answer needs that rate. The rail moves about a
+         pixel a frame, so the nearest tile to the centre changes every couple
+         of seconds at the most; asking six times a second is already far more
+         often than the answer can change. It stays on the same clock as the
+         rest of this loop so a drag still updates it promptly, just not
+         thirty times in the second it takes to notice. */
+      focusAcc += 1 / 30;
+      if (focusAcc >= 1 / 6) {
+        focusAcc = 0;
+        findFocus();
+      }
       drawGround(t);
     }
     /* drawAscii() is no longer called. Sid: "instead of the ASCII or pattern
@@ -266,6 +288,7 @@
     palB = null, // what it is moving to
     palT = 1, // 0..1 through the change
     focusX = 0.5, // where the change started, as a fraction of the width
+    focusAcc = 0, // seconds since the focus question was last asked
     focusEl = null;
 
   /* Which tile is nearest the middle. The rail drifts continuously and scales

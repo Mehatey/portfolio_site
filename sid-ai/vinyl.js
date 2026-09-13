@@ -40,8 +40,8 @@
       /* The one track that gets a mark of its own. Sid: "the first one to two
          minutes will give you goosebumps." */
       seated: true,
-      note: "Just Be · give the first minute a chance"
-    }
+      note: "Just Be · give the first minute a chance",
+    },
   ];
 
   var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -71,7 +71,7 @@
     '<span class="vinyl__seat" hidden aria-hidden="true">',
     '<svg viewBox="0 0 24 24"><path d="M12 3.4c1.5 1.6 2.2 3.2 2.2 4.8 0 1.6-.7 3.2-2.2 4.8-1.5-1.6-2.2-3.2-2.2-4.8 0-1.6.7-3.2 2.2-4.8zM5.2 8.1c2 .5 3.4 1.4 4.3 2.6.9 1.2 1.3 2.8 1.3 4.8-2-.5-3.4-1.4-4.3-2.6-.9-1.2-1.3-2.8-1.3-4.8zm13.6 0c0 2-.4 3.6-1.3 4.8-.9 1.2-2.3 2.1-4.3 2.6 0-2 .4-3.6 1.3-4.8.9-1.2 2.3-2.1 4.3-2.6zM3.6 17.2c1.9-.8 3.8-1.2 5.6-1.2 1.2 0 2.1.2 2.8.6.7-.4 1.6-.6 2.8-.6 1.8 0 3.7.4 5.6 1.2-1.9 2.2-4.6 3.3-8.4 3.3s-6.5-1.1-8.4-3.3z"/></svg>',
     "</span>",
-    '<p class="vinyl__note" aria-hidden="true"></p>'
+    '<p class="vinyl__note" aria-hidden="true"></p>',
   ].join("");
 
   var css = [
@@ -151,7 +151,7 @@
     ".vinyl.is-playing .vinyl__disc{animation:none}",
     ".vinyl.is-seated .vinyl__seat{animation:none}",
     ".vinyl__disc,.vinyl__step,.vinyl__ring-fill{transition:none}}",
-    "@media print{.vinyl{display:none}}"
+    "@media print{.vinyl{display:none}}",
   ].join("");
 
   var style = document.createElement("style");
@@ -239,6 +239,13 @@
   function paint(i) {
     var t = TRACKS[i];
     root.style.setProperty("--vin-h", String(t.hue));
+    /* Banked for the footer on the main site, where the phone full of records
+       glows in the colour of the last one actually put on. It is the only
+       thing about this player that is worth carrying across a navigation:
+       the audio cannot come with you, but the choice can. */
+    try {
+      localStorage.setItem("sid_vinyl_hue", String(t.hue));
+    } catch (_) {}
     for (var k = 0; k < tickEls.length; k++) tickEls[k].classList.toggle("is-on", k === i);
     root.classList.toggle("is-seated", !!t.seated);
     seat.hidden = !t.seated;
@@ -395,6 +402,6 @@
     },
     state: function () {
       return { playing: playing, track: TRACKS[idx].name, index: idx };
-    }
+    },
   };
 })();
