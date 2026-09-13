@@ -12028,6 +12028,25 @@
          picture hanging from a line and a picture spinning on its own middle.
          See the pendulum note in the rail's frame() below. */
       transform-origin: 50% -24%;
+      /* ── PROMOTED, SO THE SCALE IS NOT A RE-RASTER ─────────────────────
+         Sid: "can u improve the clothesline it feels janky and not smooth."
+
+         The frame rate was never the problem: measured with everything
+         running, the rail holds 58fps. What it was doing was rasterising
+         every tile afresh on every frame. The rail rewrites each tile's
+         scale continuously as it crosses the band, and an unpromoted element
+         under a changing scale is re-rendered at the new size each time --
+         so a photograph drifting past the centre is being resampled sixty
+         times a second, and the shimmer that produces is exactly what
+         "not smooth" describes. It is a texture problem, not a timing one,
+         which is why it survived every attempt to make the loop cheaper.
+
+         Promoted, the scale is the compositor moving a cached texture, and
+         the picture stops crawling. backface-visibility is the companion:
+         without it a rotated promoted layer can show a seam along its edge
+         in Chrome. */
+      will-change: transform;
+      backface-visibility: hidden;
       /* ── BIGGER, AND FEWER ────────────────────────────────────────────────
          Sid: "u can increase size of the get to know sid a little i mean the
          images and media not text so we can reduce the amount we are shwoing
