@@ -1,0 +1,1 @@
+Added a Chrome-style macOS tab strip and address bar, mapped with the original UI to the same four display corners. Original webpage pixels retain their original scale. Browser chrome reduces the visible page height, as in a real viewport. Address is the project domain, not a claim of current live page verification. Original versions preserved. Local preview only.

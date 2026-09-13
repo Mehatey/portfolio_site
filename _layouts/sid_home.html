@@ -6153,8 +6153,18 @@
         var modal = document.getElementById("reel-modal");
         var close = document.getElementById("reel-close");
         var vid = document.getElementById("reel-video");
-        if (!open || !modal) return;
-        var opener = open;
+        /* ── THE SEAL IS GONE, THE DISC IS NOT ─────────────────────────────
+           This used to read `if (!open || !modal) return;`. #reel-open was the
+           .reel-seal beside the object further down the page, and that element
+           has since been removed from the markup: only its CSS survives. So
+           `open` was null on every load, this function returned before it
+           reached the disc, and the showreel button in the hero did nothing at
+           all. No error, because returning early is not an error.
+
+           The modal is the only thing genuinely required now. Each opener is
+           wired if it happens to exist. */
+        if (!modal || !vid) return;
+        var opener = open || document.getElementById("hero-reel");
         var show = function () {
           if (!vid.src) vid.src = vid.getAttribute("data-src");
           modal.classList.add("is-open");
@@ -6163,7 +6173,7 @@
           try {
             vid.play();
           } catch (e) {}
-          close.focus();
+          if (close) close.focus();
         };
         var hide = function () {
           modal.classList.remove("is-open");
@@ -6172,10 +6182,10 @@
           try {
             vid.pause();
           } catch (e) {}
-          opener.focus();
+          if (opener) opener.focus();
         };
-        open.addEventListener("click", show);
-        close.addEventListener("click", hide);
+        if (open) open.addEventListener("click", show);
+        if (close) close.addEventListener("click", hide);
         /* ── THE HERO PLATE OPENS THE SAME REEL ───────────────────────────
            Two ways in, one showreel. The disc in the hero and the seal beside
            the object below are the same control; nothing about the modal is
@@ -6219,9 +6229,10 @@
           disc.addEventListener("click", function () {
             opener = disc;
           });
-          open.addEventListener("click", function () {
-            opener = open;
-          });
+          if (open)
+            open.addEventListener("click", function () {
+              opener = open;
+            });
         }
         modal.addEventListener("click", function (e) {
           if (e.target === modal) hide();

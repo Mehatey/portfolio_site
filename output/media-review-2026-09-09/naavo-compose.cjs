@@ -1,0 +1,5 @@
+const fs=require('fs'),{execFileSync:r}=require('child_process');process.chdir(__dirname);const m=(...a)=>r('magick',a);
+fs.copyFileSync('/Users/siddharthmehta/.codex/generated_images/01a07dc3-a1af-7d52-94bc-a1e16cbcb538/exec-63f76672-49f5-4de4-b3d5-b062b78ba6ac.png','naavo-scene.png');
+fs.writeFileSync('naavo-mask.svg','<svg xmlns="http://www.w3.org/2000/svg" width="1406" height="1418"><rect width="1406" height="1418" fill="black"/><path fill="white" d="M772 158L1000 170Q1025 172 1022 199L955 1223Q953 1250 928 1246L699 1231Q672 1229 674 1203L747 180Q749 155 772 158Z"/></svg>');
+m('../../7.naavo/17.1.webp','naavo-mask.svg','-alpha','off','-compose','CopyOpacity','-composite','-virtual-pixel','transparent','-define','distort:viewport=1536x1024+0+0','-distort','Perspective','750,156 918,82 1020,169 1139,109 954,1248 1036,947 674,1225 788,910','naavo-label.png');
+m('naavo-scene.png','naavo-label.png','-compose','Over','-composite','naavo-ritual.png');m('naavo-ritual.png','-quality','94','naavo-ritual.webp');m('naavo-ritual.png','-resize','390x','naavo-mobile.png');

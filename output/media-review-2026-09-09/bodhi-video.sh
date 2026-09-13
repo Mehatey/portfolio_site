@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+cd "$(dirname "$0")"
+ffmpeg -y -loglevel error -ss 1 -t 9 -i ../../15.bloom-vp/visitor-1.mp4 -ss 24 -t 9 -i ../../15.bloom-vp/tree.mp4 -filter_complex "[0:v]fps=30,scale=936:526,setsar=1[a];[1:v]fps=30,scale=936:526,setsar=1[b];[a][b]hstack=inputs=2,pad=1920:720:24:106:color=0x101916,drawtext=fontfile=/System/Library/Fonts/Supplemental/Arial.ttf:text='BODHI  /  Drawing in space':fontsize=28:fontcolor=0xe7ede4:x=24:y=28,drawtext=fontfile=/System/Library/Fonts/Supplemental/Arial.ttf:text='The visitor':fontsize=20:fontcolor=0xb8c8bd:x=24:y=72,drawtext=fontfile=/System/Library/Fonts/Supplemental/Arial.ttf:text='Inside the headset':fontsize=20:fontcolor=0xb8c8bd:x=960:y=72,drawtext=fontfile=/System/Library/Fonts/Supplemental/Arial.ttf:text='Original recordings, paired for comparison. Separate moments.':fontsize=20:fontcolor=0xb8c8bd:x=24:y=666[v]" -map '[v]' -an -c:v libx264 -crf 19 -preset fast -pix_fmt yuv420p -movflags +faststart bodhi-paired.mp4
+ffmpeg -y -loglevel error -ss 4 -i bodhi-paired.mp4 -frames:v 1 bodhi-paired.jpg

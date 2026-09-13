@@ -630,7 +630,17 @@
            laptop, so the room read as a strip rather than as a space you are
            standing in. */
         bottom: clamp(-54px, -3.2vh, -14px);
-        width: min(104vw, 1720px);
+        /* ── NEVER WIDER THAN THE PLATE ITSELF ─────────────────────────────
+           Sid: "desk can be a little smaller and check the quality too i feel
+           like its gotten worse quality."
+
+           Those are the same sentence. tnew2.png and table_new.png are both
+           1200x669, and this was asking the browser to draw them at up to
+           1720 -- a 43% upscale, on a photograph whose whole subject is fine
+           detail. Nothing had degraded; it was being enlarged. Capped at the
+           native width it is sharp again, and smaller, which is the other
+           half of what he asked for. */
+        width: min(86vw, 1200px);
         aspect-ratio: 1200 / 669;
         cursor: crosshair;
         outline: none;
@@ -773,43 +783,26 @@
          read as one body of water rather than two effects that happen to be
          blue. Fixed rather than absolute: the light should stay where it is
          while the page moves through it. */
-      .contact-desk::before {
-        content: "";
-        position: absolute;
-        z-index: -1;
-        right: 8%;
-        bottom: 2%;
-        width: 68%;
-        height: 20%;
-        border-radius: 50%;
-        background: rgba(82, 139, 196, 0.18);
-        filter: blur(44px);
-      }
+      /* ── NOTHING BEHIND IT ────────────────────────────────────────────
+         Sid: "remove any bg color or rectangle it shud feel like the desk is
+         placed here in 3d space."
 
+         Two layers were doing the opposite. ::before was a wide blue blur
+         pooled under the plate -- intended as a cast shadow, read as a colour
+         wash on the page -- and ::after was a tinted lamp that followed the
+         pointer across the artwork. Both are paint the desk sits ON, and a
+         thing that sits on paint is on a surface, not in a room. The PNG is
+         cut out already; it carries its own light. Left alone against the
+         page's dark it reads as an object standing in space, which is the
+         whole ask. ::after survives only as the container the melt reads its
+         pointer position from. */
       /* A soft light that rides the cursor across the desk. It sits above the
          plates in screen blend, so it lifts the surface it passes over instead
          of washing a flat white circle on top of everything. */
-      .contact-desk::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 3;
-        background: radial-gradient(circle 34% at var(--reveal-x) var(--reveal-y), rgba(150, 196, 245, 0.16), transparent 68%);
-        mix-blend-mode: screen;
-        opacity: 0;
-        transition: opacity 420ms ease;
-        pointer-events: none;
-      }
-
       /* Keyed to the shell, not to the desk. The copy now stands on top of the
          photograph, so a pointer crossing the words is still a pointer moving
          over the room — and a light that switched off whenever the cursor
          passed behind a headline would read as a bug rather than as a lamp. */
-      .contact-shell:hover .contact-desk::after,
-      .contact-desk:focus-visible::after {
-        opacity: 1;
-      }
-
       /* An empty span rather than a third pseudo-element, because the desk has
          already spent both of them: ::before is the cast shadow and ::after is
          the cursor lamp above. A light-mode-only rule on ::after would not have
@@ -1301,12 +1294,6 @@
       }
       /* Glow → shadow. Warm ink, offset down, because the key light is
          high and to the right. */
-      html[data-theme="light"] .contact-desk::before {
-        right: 6%;
-        bottom: 0%;
-        background: rgba(52, 44, 34, 0.28);
-        filter: blur(38px);
-      }
       /* The render was pushed down 12% to sit inside a black page. On
          cream it only needs to stop being murky. */
       /* The monitor and the wall behind it are clipped to pure 255 in the
@@ -2058,42 +2045,9 @@
       .contact-desk__real {
         transition: filter 1400ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .contact-desk[data-hour="1"] .contact-desk__pixel,
-      .contact-desk[data-hour="1"] .contact-desk__real {
-        filter: url(#desk-liquify) sepia(0.34) saturate(1.35) hue-rotate(-14deg) brightness(1.04);
-      }
-      .contact-desk[data-hour="2"] .contact-desk__pixel,
-      .contact-desk[data-hour="2"] .contact-desk__real {
-        filter: url(#desk-liquify) saturate(0.82) hue-rotate(14deg) brightness(1.1) contrast(0.96);
-      }
-      /* The cast itself, over the plates and under the fade, so it colours
-         the room rather than the page. */
-      .contact-desk::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: 2;
-        pointer-events: none;
-        opacity: 0;
-        mix-blend-mode: soft-light;
-        transition: opacity 1400ms cubic-bezier(0.16, 1, 0.3, 1);
-        background:
-          radial-gradient(90% 70% at 62% 42%, rgba(240, 152, 164, 0.5), transparent 70%),
-          linear-gradient(to top, rgba(244, 214, 140, 0.34), transparent 62%);
-      }
-      .contact-desk[data-hour="1"]::after {
-        opacity: 1;
-      }
-      .contact-desk[data-hour="2"]::after {
-        opacity: 1;
-        background:
-          radial-gradient(90% 70% at 38% 34%, rgba(176, 226, 255, 0.5), transparent 70%),
-          linear-gradient(to top, rgba(140, 196, 244, 0.3), transparent 62%);
-      }
       @media (prefers-reduced-motion: reduce) {
         .contact-desk__pixel,
-        .contact-desk__real,
-        .contact-desk::after {
+        .contact-desk__real {
           transition: none;
         }
       }
@@ -2542,6 +2496,17 @@
           kick();
         }
 
+        /* ── DWELL, NOT PRESS ───────────────────────────────────────────
+           Sid: "i wanted it to increasingly liquify and warp and the desk to
+           move smoothyl longer i hvoer on it."
+
+           It was bound to pointerdown, so the whole five-second ramp only
+           existed for someone who thought to press and hold an image -- which
+           nobody does, and which is why he had not seen it. On dwell it is
+           discoverable by doing nothing: rest the pointer on the desk and the
+           room starts to go soft under it. The ramp, the cubic curve and the
+           spring release are unchanged; only what starts them moved. */
+        desk.addEventListener("pointerenter", start);
         desk.addEventListener("pointerdown", start);
         /* Released anywhere, not only on the plate. A press that ends with
            the pointer off the edge would otherwise leave the desk melted. */
@@ -2658,21 +2623,15 @@
     </script>
     {% include motion_stack.html %}
     <script>
-      /* Clicking the desk moves the hour on. Three states, wrapping. The element
-     is already a role=button with a tabindex, so Enter and Space come for
-     free through the click event and no key handling is needed here. */
-      (function () {
-        var desk = document.getElementById("contact-desk");
-        if (!desk) return;
-        var hour = 0;
-        var HOURS = ["Night at the desk", "Late light", "First light"];
-        desk.addEventListener("click", function () {
-          hour = (hour + 1) % 3;
-          if (hour) desk.setAttribute("data-hour", String(hour));
-          else desk.removeAttribute("data-hour");
-          desk.setAttribute("aria-label", HOURS[hour] + ". Activate to change the light.");
-        });
-      })();
+      /* ── THE HOUR CLICK IS GONE ─────────────────────────────────────────
+         Sid: "i hate the color bg click effect u have give nthis."
+
+         Clicking the desk used to cycle three times of day, each one a pink
+         or blue cast laid over the whole plate in soft-light. It was the one
+         thing on this page that painted colour across the artwork, and a cut
+         out PNG that takes a coloured wash stops reading as an object in a
+         room and starts reading as a picture with a filter on it. The room
+         has one light now, the one that was photographed. */
     </script>
   </body>
 </html>

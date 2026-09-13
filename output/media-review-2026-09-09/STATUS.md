@@ -1,0 +1,1 @@
+Superseded by the user's explicit correction on September 9: supporting process media, not more final-product mockups. Do not resume photographic production from this folder. Current authorized work is output/process-review-2026-09-09/.

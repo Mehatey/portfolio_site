@@ -1019,3 +1019,7 @@ genuinely in view.
 
 Also worth keeping: `display: none` on a canvas stops compositing but **not its
 rAF loop**, so hiding one to test its cost measures nothing. Profile instead.
+
+## Portfolio imagery direction, September 8, 2026
+
+Before generating portfolio media, read [VISUAL_DIRECTION.md](VISUAL_DIRECTION.md). It records Siddharth's explicit selections and corrections, including human use in credible environments, natural blur and imperfect available light, exact artwork mapping, and the preferred Marriott hotel tablet direction.
