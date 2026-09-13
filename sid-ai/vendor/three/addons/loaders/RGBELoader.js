@@ -1,0 +1,1 @@
+import{HDRLoader}from"./HDRLoader.js";class RGBELoader extends HDRLoader{constructor(r){super(r)}}export{RGBELoader};

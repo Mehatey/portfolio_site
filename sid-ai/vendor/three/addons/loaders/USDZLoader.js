@@ -1,0 +1,1 @@
+import{USDLoader}from"./USDLoader.js";class USDZLoader extends USDLoader{constructor(r){super(r)}}export{USDZLoader};
