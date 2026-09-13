@@ -615,19 +615,19 @@ const captionPhrases=[{start:.04,end:2.06,words:[['This',.14,.22],['is',.22,.36]
 // next unasked thread. The answers are the ones Sid wrote; nothing here invents
 // biography it was not given.
 const cubeScript={
- who:{q:'Who’s Sid?',a:'Designer and technologist in New York. MFA from Parsons, with work spanning EyeJack, Deloitte, and Philips. The cube claims only partial credit.',next:['builds','best','why']},
- builds:{q:'What does he build?',a:'AR exhibitions, VR narratives, enterprise interfaces, spatial systems, and identities. Most alive where design meets emerging technology.',next:['best','tools','process']},
- best:{q:'Best work?',a:'ENCODED earned two Webbys at the Met. Mandala is a quiet AR and VR room for sitting with yourself. Cube of Creations is the seven-year character study that became a game.',next:['encoded','mandala','cubeof']},
- encoded:{q:'Tell me about ENCODED.',a:'An AR exhibition at the Met. Two Webbys. That is the short version the cube is cleared to give. Ask him for the long one.',next:['awards','mandala','reach']},
- mandala:{q:'What is Mandala?',a:'An AR and VR room you sit in rather than play. Quiet on purpose. People tend to stay longer than they planned.',next:['cubeof','process','builds']},
- cubeof:{q:'Cube of Creations?',a:'Seven years of drawing one character until it turned into a game. The cube you are talking to is a cousin.',next:['me','why','best']},
- tools:{q:'What does he use?',a:'Figma, Unity, TouchDesigner, Unreal, JavaScript, Python, Arduino, Premiere, and Three.js when the moment calls for it.',next:['process','builds','me']},
- process:{q:'How does he work?',a:'Prototype early, in whatever medium answers the question fastest. Paper, Unity, a browser tab. The considered version comes after the thing works.',next:['tools','builds','reach']},
- awards:{q:'Awards?',a:'Two Webbys for ENCODED, and a Kyoorius. Both are bolted to the front of this machine, so he cannot quietly forget them.',next:['best','available','reach']},
- why:{q:'Why a cube?',a:'A photograph would have been a claim. A cube is an invitation. It is also much easier to light.',next:['me','builds','cubeof']},
- me:{q:'What are you, exactly?',a:'A stand-in. Six recorded voices, a short list of answers, and no opinions of my own yet. The real conversation is one email away.',next:['reach','available','why']},
- available:{q:'Is he available?',a:'Open to full-time, freelance, and good collaborations from summer 2026.',next:['reach','builds','best']},
- reach:{q:'How do I reach him?',a:'Email is fastest: sidmehtadesign@gmail.com. LinkedIn, Instagram, and GitHub are close behind. Carrier pigeons are not recommended.',next:['available','best','me']}
+ who:{q:'Who’s Sid?',a:'Designer and technologist in New York. Parsons MFA, by way of EyeJack, Deloitte and Philips.',next:['builds','best','why']},
+ builds:{q:'What does he build?',a:'AR exhibitions, VR narratives, enterprise interfaces, spatial systems. Design where the technology is still wet.',next:['best','tools','process']},
+ best:{q:'Best work?',a:'ENCODED took two Webbys at the Met. Mandala is a room you sit in. Cube of Creations took seven years.',next:['encoded','mandala','cubeof']},
+ encoded:{q:'Tell me about ENCODED.',a:'An AR exhibition at the Met. Two Webbys. Ask him for the long version.',next:['awards','mandala','reach']},
+ mandala:{q:'What is Mandala?',a:'A room you sit in rather than play. Quiet on purpose. People stay longer than they planned.',next:['cubeof','process','builds']},
+ cubeof:{q:'Cube of Creations?',a:'Seven years drawing one character until it became a game. I am a cousin.',next:['me','why','best']},
+ tools:{q:'What does he use?',a:'Figma, Unity, TouchDesigner, Unreal, three.js, Python. Whatever answers the question fastest.',next:['process','builds','me']},
+ process:{q:'How does he work?',a:'Prototype first, in paper or Unity or a browser tab. The considered version comes after it works.',next:['tools','builds','reach']},
+ awards:{q:'Awards?',a:'Two Webbys and a Kyoorius, bolted to the front of this machine so he cannot forget them.',next:['best','available','reach']},
+ why:{q:'Why a cube?',a:'A photograph is a claim. A cube is an invitation. It is also easier to light.',next:['me','builds','cubeof']},
+ me:{q:'What are you, exactly?',a:'A stand-in. Six recorded voices, a short list of answers, no opinions yet.',next:['reach','available','why']},
+ available:{q:'Is he available?',a:'Open to full-time, freelance and good collaborations from summer 2026.',next:['reach','builds','best']},
+ reach:{q:'How do I reach him?',a:'sidmehtadesign@gmail.com is fastest. LinkedIn and Instagram are close behind.',next:['available','best','me']}
 };
 const chipLabels={who:'About Sid',builds:'What he builds',best:'Best work',encoded:'ENCODED',mandala:'Mandala',cubeof:'Cube of Creations',tools:'Tools',process:'How he works',awards:'Awards',why:'Why a cube',me:'What are you',available:'Available?',reach:'Reach him'};
 const scriptOrder=Object.keys(cubeScript);

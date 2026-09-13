@@ -147,6 +147,29 @@
     --nav-ground: rgba(3, 6, 11, 0.92);
     position: fixed;
     z-index: 9000;
+    /* ══ THE BAR GETS OUT OF THE WAY ══════════════════════════════════════
+       Sid: "check that our nav bar has a nice animation and is dynamic and
+       shows up when needed."
+
+       The rule is the one every reader already knows without being taught it,
+       because scroll direction is a statement of intent. Scrolling DOWN means
+       you are reading, and the chrome is in the way of what you came for, so
+       it leaves. Scrolling UP means you are looking for something -- the way
+       back, the next section, the menu -- and that is precisely the moment a
+       navigation should already be there rather than arriving after you have
+       gone hunting for it.
+
+       It retracts by its own height plus its scrim, not by fading. A nav that
+       fades is still occupying the space and still catching the pointer; one
+       that leaves the top of the screen has actually given the page back.
+
+       Four things override it, all of them for the same reason -- each is a
+       visitor asking for the nav in a way other than scrolling up: the top of
+       the page, the pointer entering the strip along the top edge, keyboard
+       focus landing inside it, and an open menu. */
+    transition:
+      transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.28s ease;
     /* ── SHORTER ──────────────────────────────────────────────────────
        Sid: "the top bar is a little too tall."
 
@@ -1022,7 +1045,9 @@
     animation-delay: -460ms;
   }
   @keyframes sid-ai-listen {
-    to { transform: scaleY(.48); }
+    to {
+      transform: scaleY(0.48);
+    }
   }
 
   /* Light theme has to be stated here too. `cursor_fluid.html` still carries the
@@ -1189,7 +1214,41 @@
   .studio-hire:focus-visible .studio-hire__label > b {
     transform: translateY(-100%);
   }
+  body.nav-away .studio-nav {
+    transform: translateY(calc(-100% - 46px));
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* An invisible strip along the very top. Pointing at where the nav was is
+     the other way people ask for it back, and on a trackpad it is often the
+     faster one. */
+  .nav-reveal-zone {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 14px;
+    z-index: 8999;
+    pointer-events: auto;
+  }
+  body:not(.nav-away) .nav-reveal-zone {
+    pointer-events: none;
+  }
+  @media (hover: none), (pointer: coarse) {
+    .nav-reveal-zone {
+      display: none;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
+    /* Reduced motion gets the behaviour without the travel: it still clears
+       out, it just stops sliding to do it. */
+    .studio-nav {
+      transition: opacity 0.2s ease;
+    }
+    body.nav-away .studio-nav {
+      transform: none;
+      opacity: 0;
+    }
     .studio-hire__dot {
       animation: none;
     }
@@ -2356,13 +2415,60 @@
     }
     var lifted = false;
     var ticking = false;
+    var away = false;
+    var lastY = window.scrollY || 0;
+    /* A floor on what counts as a direction change. Without it a trackpad's
+       one-pixel jitter at the end of a fling flickers the bar in and out,
+       which is worse than either state. */
+    var THRESH = 8;
+    var nav = document.querySelector(".studio-nav");
+    var zone = document.createElement("div");
+    zone.className = "nav-reveal-zone";
+    zone.setAttribute("aria-hidden", "true");
+    document.body.appendChild(zone);
+
+    function show() {
+      if (!away) return;
+      away = false;
+      document.body.classList.remove("nav-away");
+    }
     function read() {
       ticking = false;
-      var want = (window.scrollY || document.documentElement.scrollTop || 0) > 40;
-      if (want === lifted) return;
-      lifted = want;
-      document.body.classList.toggle("nav-lifted", want);
+      var y = window.scrollY || document.documentElement.scrollTop || 0;
+      var want = y > 40;
+      if (want !== lifted) {
+        lifted = want;
+        document.body.classList.toggle("nav-lifted", want);
+      }
+
+      var d = y - lastY;
+      if (Math.abs(d) > THRESH) {
+        /* Held open near the top, because there is nothing to get out of the
+           way of yet, and at the very bottom, where a reader who has run out
+           of page is looking for somewhere to go next. */
+        var atTop = y < 120;
+        var atEnd = y + window.innerHeight > document.documentElement.scrollHeight - 80;
+        var wantAway = d > 0 && !atTop && !atEnd;
+        /* Never retract out from under the keyboard. */
+        if (nav && nav.contains(document.activeElement)) wantAway = false;
+        if (document.body.classList.contains("nav-open")) wantAway = false;
+        if (wantAway !== away) {
+          away = wantAway;
+          document.body.classList.toggle("nav-away", wantAway);
+        }
+        lastY = y;
+      }
     }
+    zone.addEventListener("pointerenter", show);
+    if (nav) {
+      nav.addEventListener("pointerenter", show);
+      nav.addEventListener("focusin", show);
+    }
+    /* Any keyboard traversal brings it back: someone tabbing is navigating by
+       definition, and the first stop should not be hidden. */
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Tab" || e.key === "Escape") show();
+    });
     window.addEventListener(
       "scroll",
       function () {

@@ -133,9 +133,18 @@
     "color:rgba(238,246,247,.82);font-size:10px;font-weight:600;letter-spacing:.06em;line-height:1.4;text-align:right;",
     "text-shadow:0 1px 12px rgba(0,0,0,.85);opacity:0;transform:translateY(4px);transition:opacity .4s ease,transform .4s ease;pointer-events:none}",
     ".vinyl.is-seated .vinyl__note,.vinyl:hover .vinyl__note{opacity:1;transform:none}",
+    /* On a phone the conversation panel runs the full width of the bottom of
+       the screen, so the corner the disc lives in on a desktop is occupied.
+       It sits instead on the right edge just above the panel, which on this
+       page is open sky: the title owns the top of the screen and the panel
+       owns the bottom, and the gap between them is the only place a 54px disc
+       can stand without covering one of them. The skip controls stay out
+       rather than waiting on a hover a touch screen cannot give. */
     "@media(max-width:760px),(orientation:portrait) and (max-width:1024px){",
-    ".vinyl{right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px))}",
-    ".vinyl__deck{width:60px}.vinyl__step{width:34px;height:34px;opacity:1;transform:none}",
+    ".vinyl{right:14px;bottom:calc(196px + env(safe-area-inset-bottom,0px));top:auto;gap:2px}",
+    ".vinyl__deck{width:54px}.vinyl__step{width:32px;height:32px;opacity:1;transform:none}",
+    ".vinyl__step svg{width:10px;height:10px}",
+    ".vinyl__seat{bottom:calc(100% + 6px);top:auto}",
     ".vinyl__note{display:none}}",
     "@media(max-height:520px) and (orientation:landscape){.vinyl__note{display:none}}",
     "@media(prefers-reduced-motion:reduce){",
