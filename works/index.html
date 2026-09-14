@@ -9021,7 +9021,11 @@
   .ftr {
     position: relative;
     isolation: isolate;
-    padding: 0 0 clamp(40px, 6vh, 72px);
+    /* Sid: "get the footer a little bit lower." Room above it so the close
+       arrives after a beat rather than immediately after whatever came
+       before, and more under it so the last line is not sitting on the
+       window's edge. */
+    padding: clamp(48px, 8vh, 110px) 0 clamp(56px, 8vh, 96px);
   }
 
   /* ── THE PLATE ──────────────────────────────────────────────────────────
@@ -9049,7 +9053,21 @@
        on the floor had plain page under it. Taller, and the bottom fade below
        is pushed right down, so the footage is the ground the last line stands
        on rather than a picture the last line follows. */
-    height: clamp(440px, 74vh, 820px);
+    /* ── FULL BLEED ────────────────────────────────────────────────────
+       Sid: "we can make the footer video of me working bigger ... we can go
+       full bleed with the images for this. It should feel like a nice footer."
+
+       It was sitting inside the page's measure with a gutter down each side,
+       which is the right treatment for an image in an article and the wrong
+       one for the floor of a site: a footer that stops short of the window
+       reads as another block on the page rather than as the end of it. The
+       break-out is the standard one -- full viewport width, pulled back by
+       half the difference -- and it is on the film alone, so the type in
+       front of it stays on the measure and stays readable. */
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    height: clamp(520px, 82vh, 900px);
     overflow: hidden;
     cursor: crosshair;
     --lens-x: 50%;
@@ -9863,16 +9881,29 @@
      They are one block now: the status and the links sit close together
      because they are both "here is where he is and how to reach him", and the
      colophon is pushed down and dimmed because it is an aside. */
+  /* ── THE COLUMN NEEDED AIR ────────────────────────────────────────────
+     Sid: "I feel like the space between Available to Work and the other links
+     is too tight."
+
+     9px between an availability claim and a row of outbound links put them in
+     one block, so the claim read as a label on the links rather than as its
+     own statement -- and it is the most important line in the footer. Three
+     separate things now get three separate gaps, increasing down the column,
+     which is the ordinary way a stack says these are not the same kind of
+     thing. */
   .ftr__right {
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 9px;
+    gap: 0;
     text-align: right;
     flex: 0 1 auto;
   }
+  .ftr__right .ftr__nav--out {
+    margin-top: 22px;
+  }
   .ftr__right .ftr__made {
-    margin-top: 14px;
+    margin-top: 26px;
   }
 
   /* ── THE LINE, PLAIN ────────────────────────────────────────────────────
@@ -9907,6 +9938,47 @@
   .ftr__cta:hover .ftr__cta-line,
   .ftr__cta:focus-visible .ftr__cta-line {
     opacity: 0.72;
+  }
+  /* ══ IT FORMS RATHER THAN BEING THERE ══════════════════════════════════
+     Sid: "can you animate it such that, when you enter it, it kind of
+     typewrites itself or pixelates and forms?"
+
+     Pixelates and forms, not typewrites: a typewriter reveals left to right
+     at a constant rate, which is a cursor and belongs to a terminal. This is
+     the site's own language instead -- each letter arrives from a blurred,
+     slightly oversized block and resolves, on a stagger, the way the footer's
+     own film resolves from its pixel take into its real one directly above.
+     The two readings agree, which is the point.
+
+     The letters are wrapped by the script below and the whole line keeps its
+     text in the DOM, so a screen reader reads a sentence rather than
+     twenty-one letters. Reduced motion gets the sentence with no arrival. */
+  .ftr__cta-ch {
+    display: inline-block;
+    white-space: pre;
+    opacity: 0;
+    transform: translateY(0.14em) scale(1.35);
+    filter: blur(7px);
+  }
+  .ftr__cta.is-formed .ftr__cta-ch {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition:
+      opacity 420ms ease,
+      transform 640ms cubic-bezier(0.16, 1, 0.3, 1),
+      filter 520ms ease;
+    transition-delay: calc(var(--n, 0) * 34ms);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__cta-ch {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+    .ftr__cta.is-formed .ftr__cta-ch {
+      transition: none;
+    }
   }
 
   /* ── AVAILABLE, AND WHAT TIME IT IS WHERE HE IS ─────────────────────── */
@@ -12689,6 +12761,44 @@
      file ships on every route; a 3.2MB pair charged to the bottom of every
      page for an effect most visits never scroll to is not a trade worth
      making. */
+    /* The closing line assembles itself the first time the footer is reached.
+       Once, and then the observer lets go: a headline that re-forms every
+       time you scroll back past it is a tic, not an arrival. */
+    (function () {
+      var cta = document.getElementById("ftr-cta");
+      var line = cta && cta.querySelector(".ftr__cta-line");
+      if (!line) return;
+      var text = line.textContent;
+      /* aria-label on the anchor keeps the sentence intact for a screen
+         reader; the span is emptied of its own text and rebuilt as letters,
+         so the two cannot disagree. */
+      cta.setAttribute("aria-label", text.trim());
+      line.textContent = "";
+      for (var i = 0; i < text.length; i++) {
+        var ch = document.createElement("span");
+        ch.className = "ftr__cta-ch";
+        ch.style.setProperty("--n", String(i));
+        ch.textContent = text[i];
+        ch.setAttribute("aria-hidden", "true");
+        line.appendChild(ch);
+      }
+      if (!("IntersectionObserver" in window)) {
+        cta.classList.add("is-formed");
+        return;
+      }
+      var io = new IntersectionObserver(
+        function (es) {
+          es.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            cta.classList.add("is-formed");
+            io.disconnect();
+          });
+        },
+        { threshold: 0.4 }
+      );
+      io.observe(cta);
+    })();
+
     (function () {
       var film = document.getElementById("ftr-film");
       if (!film) return;
