@@ -123,7 +123,26 @@
   if (!btn) return;
   var say = null;
 
+  /* ── THE NUDGE ────────────────────────────────────────────────────────
+     Sid: "i didnt even know i could click on it."
+
+     The bars take three slow passes for anyone who has not played it before,
+     which is the smallest thing that will catch an eye moving down a page.
+     Once it has been used, the flag is stored and the nudge never runs again
+     on this browser: an affordance that keeps asking after it has been
+     answered stops being a hint and becomes a tic. */
+  var HEARD = "sid_name_heard";
+  var heard = false;
+  try {
+    heard = localStorage.getItem(HEARD) === "1";
+  } catch (_) {}
+  if (!heard) btn.classList.add("is-new");
+
   btn.addEventListener("click", function () {
+    btn.classList.remove("is-new");
+    try {
+      localStorage.setItem(HEARD, "1");
+    } catch (_) {}
     if (!say) {
       say = new Audio(BASE + "/assets/audio/name/say-my-name.m4a");
       say.preload = "auto";
