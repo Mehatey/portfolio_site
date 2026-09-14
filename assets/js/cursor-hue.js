@@ -51,7 +51,14 @@
      the page: the logo wall, the marquee monograms and the nav icons are
      furniture, and a cursor that reacts to furniture is noise rather than
      intelligence. */
-  var SEL = ".wk-card, .sid-tile, .cs-grid-item, .cs-bleed, .cs-bleed-full, .gal-item, .proj-cover, figure.cs-fig, .kts__item";
+  /* ── THIS LIST HAS TO MOVE WHEN THE PAGE DOES ─────────────────────────
+     `.gal-item` was the home page's row of four project cards, which is a
+     cube now with `.wcube__face` for its faces. This file drives the cursor's
+     spoken aside rather than the chips beside the mark -- those come from the
+     same-named list in _includes/cube_says.html -- but both had the stale
+     name and both are updated together, because a page that is worth
+     remarking on is worth reading the colour of. */
+  var SEL = ".wk-card, .sid-tile, .cs-grid-item, .cs-bleed, .cs-bleed-full, .gal-item, .wcube__face, .proj-cover, figure.cs-fig, .kts__item";
   var SKIP = ".m-logo, .studio-mark, .logo-cube, .sfilm, .idle-drift";
 
   /* Same picture, same opinion, every time. A character whose remark on a
