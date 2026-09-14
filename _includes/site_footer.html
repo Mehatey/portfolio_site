@@ -121,7 +121,23 @@ include film_grade.html %}
     .sid-strip {
       position: relative;
       padding: clamp(30px, 4vw, 52px) 0 clamp(26px, 3.5vw, 44px);
-      overflow: hidden;
+      /* ── CLIP SIDEWAYS, NOT UP AND DOWN ────────────────────────────────
+         `overflow: hidden` was here to stop the rail spilling into the page
+         horizontally, and it did -- but overflow has no way to say "one axis
+         only": setting it on one axis forces the other to clip too. So the
+         same rule that contained the rail sideways also sliced the top and
+         bottom off the tile at the centre, which is scaled up and lifted and
+         therefore taller than its own row. Giving the masked row its own
+         vertical bleed only moved that cut up one level, to here.
+
+         `overflow: clip` with a clip margin is the rule that CAN say it. The
+         rail is still contained, and the box it is contained in is allowed to
+         be 64px taller than its content on every side, which is more than the
+         tallest tile plus its full lift. The horizontal margin it also grants
+         is invisible: the row's own mask has already faded both sides to
+         nothing long before that. */
+      overflow: clip;
+      overflow-clip-margin: 64px;
       border-top: 1px solid color-mix(in srgb, currentColor 10%, transparent);
     }
 
@@ -364,6 +380,38 @@ include film_grade.html %}
        invisible. The ramp acts on the tile as an object. Together they read
        as depth of field. */
     .sid-strip__rows {
+      /* ── AND THE MASK NEEDS ROOM ABOVE AND BELOW ───────────────────────
+         Sid: "the images get cut when moving to the middle, like the
+         shrinking and enlarging makes it weird."
+
+         Not the scaling. The mask below fades the rail's left and right
+         edges, and a mask does not only fade -- it is a compositing boundary,
+         so everything outside this element's box is cut whatever `overflow`
+         says. The tile at the centre is scaled to about 1.07 and lifted, which
+         takes it to 293px inside a 275px box: it hangs 18px past the bottom
+         edge and a pixel past the top, and the mask guillotines exactly the
+         tile the enlargement exists to show off. Every tile therefore lost its
+         head and feet on the way through the middle and got them back on the
+         way out, which is the "weird".
+
+         The remedy is room, not a smaller scale. Padding on each side puts
+         the whole grown tile inside the masked box, and the equal negative
+         margin gives the space straight back to the layout so nothing below
+         moves. The gradient runs `to right`, so its stops are
+         percentages of the width and the extra height does not touch them.
+
+         The ASCII canvas already solved this for itself with a BLEED of 70 --
+         see strip-ascii.js, which says so in as many words. The row it draws
+         over never got the same treatment. */
+      /* 64, and it matches the clip margin on .sid-strip above deliberately:
+         the two boxes have to agree or the tighter one is the real edge. 44
+         cleared the grown tile but not the grown AND lifted one -- the rail
+         translates a centred tile up by as much as 24px, and a pendulum angle
+         on top of that reached past the top on about one frame in seventy. 64
+         clears the tallest measured tile plus its full lift with room over. */
+      padding: 64px 0;
+      margin: -64px 0;
+
       /* ── THE EDGES ARE A LONG DISSOLVE ─────────────────────────────────
          Sid: "when they leave from the sides and new ones come in I don't
          like the animation or the visual treatment for the images."
