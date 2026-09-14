@@ -7042,6 +7042,15 @@
   .studio-hire:focus-visible .studio-hire__label > b {
     transform: translateY(-100%);
   }
+  /* ── AND IT GOES AWAY ENTIRELY FOR THE SCREENSAVER ────────────────────
+     Sid: "when you're showing the screensaver, you can remove the nav bar."
+
+     The drift is the page at rest with nobody looking for anything, which is
+     the one state where a navigation is certainly not wanted. It leaves the
+     same way it leaves on a scroll, so waking the page brings it back with
+     the motion already written rather than a second one invented for this.
+     Driven by data-idle on the root; assets/js/idle-drift.js sets it. */
+  html[data-idle="on"] .studio-nav,
   body.nav-away .studio-nav {
     transform: translateY(calc(-100% - 46px));
     opacity: 0;
@@ -10827,11 +10836,17 @@
     border-radius: 50%;
     /* The iris is lit from the same upper left as everything else here, and
        it is a ring rather than a disc so the glass still shows through it. */
+    /* The iris loses most of its fill for the same reason the pupil did: it
+       was a saturated disc sitting in front of the glass rather than another
+       layer of it. A bright rim and a faint wash is enough to read as an
+       iris, and it lets the drift behind the eye stay visible through it. */
     background:
-      radial-gradient(circle at 38% 32%, rgba(214, 240, 255, 0.6), rgba(96, 158, 226, 0.34) 46%, rgba(28, 62, 116, 0.5) 78%), rgba(20, 44, 84, 0.25);
+      radial-gradient(circle at 38% 32%, rgba(226, 244, 255, 0.24), rgba(120, 175, 234, 0.1) 52%, rgba(28, 62, 116, 0.14) 82%),
+      rgba(120, 165, 220, 0.05);
     box-shadow:
-      inset 0 0 12px rgba(10, 26, 54, 0.55),
-      0 0 22px -6px rgba(150, 205, 255, 0.5);
+      inset 0 0 0 1px rgba(196, 230, 255, 0.4),
+      inset 0 0 14px rgba(10, 26, 54, 0.3),
+      0 0 24px -8px rgba(150, 205, 255, 0.45);
     animation: idle-eye-look 23s ease-in-out infinite;
   }
   /* ── THE PUPIL IS A CUBE ────────────────────────────────────────────
@@ -10860,12 +10875,31 @@
     aspect-ratio: 0.866;
     transform: translate(-50%, -50%);
     clip-path: polygon(50% 0%, 93.3% 25%, 93.3% 75%, 50% 100%, 6.7% 75%, 6.7% 25%);
+    /* ── GLASS, NOT A BLUE DIAGRAM ─────────────────────────────────
+       Sid: "you randomly added this blue isometric style, which doesn't
+       work ... can you make the cube and the eye translucent and liquid
+       glass too?"
+
+       He is right, and the fault was opacity rather than shape. Three
+       near-opaque saturated blues at 0.95 make the pupil a solid object
+       painted onto a piece of glass -- so the one thing at the centre of
+       the scene was the one thing light did not pass through, and an
+       isometric hexagon filled with flat colour reads as a diagram.
+
+       Same three faces, a fraction of the alpha, and the hue pulled most
+       of the way out: what is left is the shading that says "solid" and
+       the transparency that says "glass". The eye behind it and the page
+       behind that both show through. The ordering is unchanged, so it is
+       lit from the same upper left as everything else in the scene. */
     background: conic-gradient(
       from -60deg at 50% 50%,
-      rgba(72, 112, 172, 0.95) 0 120deg,
-      rgba(7, 14, 30, 0.96) 120deg 240deg,
-      rgba(26, 48, 88, 0.95) 240deg 360deg
+      rgba(226, 244, 255, 0.3) 0 120deg,
+      rgba(12, 22, 38, 0.32) 120deg 240deg,
+      rgba(150, 190, 232, 0.16) 240deg 360deg
     );
+    /* The edge is what makes a transparent solid readable. One hairline
+       following the clip, plus a bloom off it. */
+    filter: drop-shadow(0 0 0.5px rgba(214, 240, 255, 0.85)) drop-shadow(0 0 6px rgba(140, 200, 255, 0.35));
     /* A pupil that holds still inside an iris that drifts reads as painted
        on. One slow turn on the spot, far slower than the look-around, so the
        two motions never beat against each other. */
@@ -10874,9 +10908,9 @@
   html[data-theme="light"] .idle-drift__p.is-eye > .iris > .pupil {
     background: conic-gradient(
       from -60deg at 50% 50%,
-      rgba(96, 132, 186, 0.95) 0 120deg,
-      rgba(18, 30, 54, 0.94) 120deg 240deg,
-      rgba(44, 68, 112, 0.94) 240deg 360deg
+      rgba(255, 255, 255, 0.42) 0 120deg,
+      rgba(28, 44, 72, 0.3) 120deg 240deg,
+      rgba(96, 132, 186, 0.2) 240deg 360deg
     );
   }
   /* Rotation, not spin: it rocks a few degrees either side of square so the
@@ -12258,7 +12292,10 @@
       /* 44, not 38: two lines of caption plus the 7px it sits off the bottom
          edge. Measured against the longest caption in the set rather than the
          first one that happened to fit. */
-      padding: 9px 9px 40px;
+      /* 48, from 40. Two lines of title at 15px plus the kicker plus the 7px
+         the block sits off the bottom edge, measured against the longest
+         caption in the set rather than the first one that fits. */
+      padding: 9px 9px 48px;
       border-radius: 2px;
       background:
         linear-gradient(178deg, #fdfbf6 0%, #f7f3ea 62%, #f1ece0 100%),
@@ -12417,9 +12454,6 @@
     .sid-tile:not(.sid-tile--type) figcaption em,
     .sid-tile:not(.sid-tile--type) figcaption b {
       display: block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
       max-width: 100%;
       /* Explicit, because the base caption rules were adding padding these
          inherited: an 11px label on a 16px line-height was rendering 41px
@@ -12428,8 +12462,13 @@
       margin: 0;
       padding: 0;
     }
+    /* The kicker stays one line -- it is a category, and a category that
+       wraps reads as a sentence that has been cut off. */
     .sid-tile:not(.sid-tile--type) figcaption em {
-      font-size: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 8.5px;
       line-height: 11px;
       letter-spacing: 0.14em;
       text-transform: uppercase;
@@ -12445,12 +12484,20 @@
     .sid-tile:not(.sid-tile--type) figcaption em {
       color: rgba(96, 104, 120, 0.9);
     }
+    /* ── THE TITLE WRAPS RATHER THAN BEING CUT ────────────────────────
+       An ellipsis on a two-word caption is not a graceful degradation, it is
+       the caption failing: "Two cats, zero dead..." tells a reader less than
+       nothing. Two lines are allowed, clamped at two so a long one cannot
+       push the photograph up, and the frame has the room for them. */
     .sid-tile:not(.sid-tile--type) figcaption b {
       color: rgba(24, 28, 36, 0.92);
       font-weight: 500;
-      white-space: nowrap;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
       overflow: hidden;
-      text-overflow: ellipsis;
+      text-wrap: balance;
     }
     .sid-tile figcaption {
       position: absolute;
@@ -14450,22 +14497,45 @@
      Always visible while tracking, and it says in words that nothing is
      leaving the machine. A camera running behind a portfolio with no
      on-screen evidence is the thing that makes people close the tab. */
+  /* ── ONE PANEL, DOCKED TO THE STACK ───────────────────────────────────
+     Sid: "even after hand tracking is enabled, how my camera preview is kind
+     of just randomly floating there."
+
+     Three loose pieces with gaps between them, hanging in the middle of the
+     right edge, is not a component -- it is three things that happen to be
+     near each other, and the eye reads the gaps as a mistake. One card now,
+     with the preview as its head, the steps as its body and the privacy line
+     as its foot, sharing one edge and one shadow. It sits directly above the
+     control stack in the corner and on the same right margin, so it belongs
+     to the chrome rather than floating over the page. */
   .hand-hud {
     position: fixed;
     right: 24px;
-    bottom: 280px;
+    bottom: 212px;
     z-index: 200;
-    display: grid;
-    gap: 6px;
-    justify-items: end;
     pointer-events: none;
+  }
+  .hand-hud__panel {
+    width: 178px;
+    display: grid;
+    gap: 8px;
+    padding: 9px;
+    border-radius: 13px;
+    background: rgba(10, 16, 26, 0.76);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid rgba(150, 190, 240, 0.2);
+    box-shadow: 0 20px 44px -20px rgba(0, 0, 0, 0.82);
+  }
+  html[data-theme="light"] .hand-hud__panel {
+    background: rgba(255, 253, 248, 0.9);
+    border-color: rgba(40, 70, 120, 0.16);
   }
   .hand-hud__cv {
     width: 160px;
     height: 120px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
     opacity: 0.5;
     transition:
       opacity 260ms ease,
@@ -14500,22 +14570,13 @@
        else here, sized to the preview above it rather than to its longest
        line, which is what stopped it sprawling 246px wide across the
        content. */
+    /* No ground of its own any more: it is inside the panel, and a card
+       inside a card is the thing that made this read as clutter. */
     width: 160px;
     box-sizing: border-box;
-    padding: 8px 9px;
-    border-radius: 9px;
-    background: rgba(10, 16, 26, 0.72);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    backdrop-filter: blur(14px) saturate(1.2);
-    border: 1px solid rgba(150, 190, 240, 0.16);
-    box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.7);
     transition:
       opacity 600ms ease,
       transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  html[data-theme="light"] .hand-coach {
-    background: rgba(255, 253, 248, 0.86);
-    border-color: rgba(40, 70, 120, 0.16);
   }
   .hand-coach.is-gone {
     opacity: 0;
@@ -14571,15 +14632,13 @@
      it is the promise the feature is asking to be believed on -- and it was
      bare text running 246px across whatever the page happened to be showing.
      Same panel, same width as the preview, so the whole HUD is one column. */
+  /* The foot of the panel, divided by a rule rather than by being a third
+     card in a column of cards. */
   .hand-hud__tag {
     width: 160px;
     box-sizing: border-box;
-    padding: 6px 9px;
-    border-radius: 9px;
-    background: rgba(10, 16, 26, 0.66);
-    -webkit-backdrop-filter: blur(14px) saturate(1.2);
-    backdrop-filter: blur(14px) saturate(1.2);
-    border: 1px solid rgba(150, 190, 240, 0.12);
+    padding: 7px 0 0;
+    border-top: 1px solid rgba(150, 190, 240, 0.14);
     font-family: var(--font-mono, ui-monospace, monospace);
     font-size: 8.5px;
     line-height: 1.45;
@@ -14588,8 +14647,7 @@
     color: rgba(226, 240, 255, 0.6);
   }
   html[data-theme="light"] .hand-hud__tag {
-    background: rgba(255, 253, 248, 0.86);
-    border-color: rgba(40, 70, 120, 0.14);
+    border-top-color: rgba(40, 70, 120, 0.16);
     color: rgba(24, 48, 84, 0.66);
   }
   /* While the hand is driving, the real cursor is not. */
