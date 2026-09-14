@@ -71,13 +71,39 @@
      that the feature does not make.
 
      A hand with one finger raised, which is also the gesture the coaching
-     asks for first. Drawn at the same weight as the nav icons beside it. */
+     asks for first.
+
+     ── AND IT IS DRAWN IN CELLS ─────────────────────────────────────────
+     Sid: "the icons on the right are not looking too good ... is it possible
+     to make them pixel art style, like how we have in the navbar?"
+
+     It was a stroked path, which is a different drawing system from the nav
+     glyphs, the collectibles and the logo -- all of which are squares on a
+     grid. Two icon languages in one interface is the sort of thing nobody
+     names and everybody feels. Same 3px cell and same rounding as
+     nav_icon.html: a raised index finger, a folded fist under it, and the
+     thumb out to the side. */
   btn.innerHTML =
     '<span class="hand-toggle__ico" aria-hidden="true">' +
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
-    '<path d="M10.4 11.2V5.4a1.45 1.45 0 0 1 2.9 0v5.2"/>' +
-    '<path d="M13.3 10.6V8.9a1.45 1.45 0 0 1 2.9 0v2.3"/>' +
-    '<path d="M16.2 11.2v-1a1.45 1.45 0 0 1 2.9 0v4.6a6 6 0 0 1-6 6h-1.2a5.4 5.4 0 0 1-4.6-2.6l-2.5-4.2a1.5 1.5 0 0 1 2.5-1.6l1.6 2"/>' +
+    '<svg class="nav-pixel" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
+    /* the raised finger */
+    '<rect x="9" y="3" width="3" height="3" rx="1"/>' +
+    '<rect x="9" y="6" width="3" height="3" rx="1"/>' +
+    /* the knuckles */
+    '<rect x="6" y="9" width="3" height="3" rx="1"/>' +
+    '<rect x="9" y="9" width="3" height="3" rx="1"/>' +
+    '<rect x="12" y="9" width="3" height="3" rx="1"/>' +
+    '<rect x="15" y="9" width="3" height="3" rx="1"/>' +
+    /* the thumb */
+    '<rect x="3" y="12" width="3" height="3" rx="1"/>' +
+    /* the palm */
+    '<rect x="6" y="12" width="3" height="3" rx="1"/>' +
+    '<rect x="9" y="12" width="3" height="3" rx="1"/>' +
+    '<rect x="12" y="12" width="3" height="3" rx="1"/>' +
+    '<rect x="15" y="12" width="3" height="3" rx="1"/>' +
+    '<rect x="6" y="15" width="3" height="3" rx="1"/>' +
+    '<rect x="9" y="15" width="3" height="3" rx="1"/>' +
+    '<rect x="12" y="15" width="3" height="3" rx="1"/>' +
     "</svg></span>";
   document.body.appendChild(btn);
 

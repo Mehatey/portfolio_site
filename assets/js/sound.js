@@ -518,14 +518,23 @@
   wave.setAttribute("aria-hidden", "true");
   wave.innerHTML =
     '<svg viewBox="0 0 20 14" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-    '<path class="sound-wave__flat" d="M2 7 H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />' +
+    /* ── DRAWN IN CELLS, LIKE THE NAV ────────────────────────────────
+       Sid: "is it possible to make them pixel art style, like how we have in
+       the navbar?" Off is a flat run of cells; on is a staircase up and back
+       down, which is one crest and one trough stated in the only vocabulary
+       a pixel grid has. Same 2px cell as the rest of this icon's box. */
+    '<g class="sound-wave__flat" fill="currentColor">' +
+    '<rect x="2" y="6" width="2" height="2" rx="0.6"/><rect x="5" y="6" width="2" height="2" rx="0.6"/>' +
+    '<rect x="8" y="6" width="2" height="2" rx="0.6"/><rect x="11" y="6" width="2" height="2" rx="0.6"/>' +
+    '<rect x="14" y="6" width="2" height="2" rx="0.6"/></g>' +
     /* One crest and one trough across the icon, not six. Sid: "we don't need
        so many curves, just 2 curves, one crest one trough is enough." At a
        10-unit period the shape is legible as a wave at 18px; at the old 5 it
        was a row of ripples that read as texture. Drawn from -20 so there is a
        full period of slack to travel into. */
-    '<path class="sound-wave__line" d="M-20 7 q5 -5 10 0 t10 0 t10 0 t10 0 t10 0" ' +
-    'stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />' +
+    '<g class="sound-wave__line" fill="currentColor">' +
+    '<rect x="-40" y="8" width="2" height="2" rx="0.6"/><rect x="-37.5" y="6" width="2" height="2" rx="0.6"/><rect x="-35" y="4" width="2" height="2" rx="0.6"/><rect x="-32.5" y="6" width="2" height="2" rx="0.6"/><rect x="-30" y="8" width="2" height="2" rx="0.6"/><rect x="-27.5" y="10" width="2" height="2" rx="0.6"/><rect x="-25" y="12" width="2" height="2" rx="0.6"/><rect x="-22.5" y="10" width="2" height="2" rx="0.6"/><rect x="-20" y="8" width="2" height="2" rx="0.6"/><rect x="-17.5" y="6" width="2" height="2" rx="0.6"/><rect x="-15" y="4" width="2" height="2" rx="0.6"/><rect x="-12.5" y="6" width="2" height="2" rx="0.6"/><rect x="-10" y="8" width="2" height="2" rx="0.6"/><rect x="-7.5" y="10" width="2" height="2" rx="0.6"/><rect x="-5" y="12" width="2" height="2" rx="0.6"/><rect x="-2.5" y="10" width="2" height="2" rx="0.6"/><rect x="0" y="8" width="2" height="2" rx="0.6"/><rect x="2.5" y="6" width="2" height="2" rx="0.6"/><rect x="5" y="4" width="2" height="2" rx="0.6"/><rect x="7.5" y="6" width="2" height="2" rx="0.6"/><rect x="10" y="8" width="2" height="2" rx="0.6"/><rect x="12.5" y="10" width="2" height="2" rx="0.6"/><rect x="15" y="12" width="2" height="2" rx="0.6"/><rect x="17.5" y="10" width="2" height="2" rx="0.6"/><rect x="20" y="8" width="2" height="2" rx="0.6"/><rect x="22.5" y="6" width="2" height="2" rx="0.6"/><rect x="25" y="4" width="2" height="2" rx="0.6"/><rect x="27.5" y="6" width="2" height="2" rx="0.6"/><rect x="30" y="8" width="2" height="2" rx="0.6"/><rect x="32.5" y="10" width="2" height="2" rx="0.6"/><rect x="35" y="12" width="2" height="2" rx="0.6"/><rect x="37.5" y="10" width="2" height="2" rx="0.6"/><rect x="40" y="8" width="2" height="2" rx="0.6"/><rect x="42.5" y="6" width="2" height="2" rx="0.6"/><rect x="45" y="4" width="2" height="2" rx="0.6"/><rect x="47.5" y="6" width="2" height="2" rx="0.6"/><rect x="50" y="8" width="2" height="2" rx="0.6"/><rect x="52.5" y="10" width="2" height="2" rx="0.6"/><rect x="55" y="12" width="2" height="2" rx="0.6"/><rect x="57.5" y="10" width="2" height="2" rx="0.6"/>' +
+    "</g>" +
     "</svg>";
   btn.appendChild(wave);
 
