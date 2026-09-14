@@ -84,6 +84,9 @@
   var wrap = null,
     video = null,
     preview = null,
+    pinchX = 0,
+    pinchY = 0,
+    pinchTravel = 0,
     pctx = null;
   var landmarker = null,
     stream = null,
@@ -143,6 +146,10 @@
      accidental clicks at exactly the gap people naturally hold a pinch. */
   var PINCH_ON = 0.055,
     PINCH_OFF = 0.085;
+  /* 2.6 rather than 1. A hand has maybe 300px of comfortable vertical travel
+     in frame and a page has thousands, so one-to-one turns scrolling into an
+     arm exercise. Enough gain that a single pull covers most of a screen. */
+  var SCROLL_GAIN = 2.6;
   var pinched = false;
   var lastX = 0,
     lastY = 0;
@@ -168,19 +175,32 @@
        have. The steps light up as you actually perform them, which teaches
        faster than a list because you find out that the thing you just did was
        the thing it wanted. */
+    /* ── ONE PANEL ────────────────────────────────────────────────────
+       Sid: "even after hand tracking is enabled, how my camera preview is
+       kind of just randomly floating there."
+
+       It was three separate things stacked in a corner with a gap between
+       each -- a bare rounded video, a glass card of instructions, and a line
+       of text -- so nothing framed anything and the preview read as a window
+       someone had left open on top of the page. They are one panel now: the
+       preview is the head of the card, the steps are its body, and the
+       privacy line is its foot, all inside one edge. */
     wrap.innerHTML =
+      '<div class="hand-hud__panel">' +
       '<canvas class="hand-hud__cv" width="160" height="120"></canvas>' +
       '<div class="hand-coach" id="hand-coach">' +
-      '<span class="hand-coach__step" data-step="see"><b></b>show your hand to the camera</span>' +
-      '<span class="hand-coach__step" data-step="point"><b></b>point with one finger to move</span>' +
+      '<span class="hand-coach__step" data-step="see"><b></b>show your hand</span>' +
+      '<span class="hand-coach__step" data-step="point"><b></b>point to move</span>' +
       '<span class="hand-coach__step" data-step="pinch"><b></b>pinch to click</span>' +
+      '<span class="hand-coach__step" data-step="pull"><b></b>pinch and pull to scroll</span>' +
       "</div>" +
-      '<span class="hand-hud__tag">camera on · nothing leaves this device</span>';
+      '<span class="hand-hud__tag">camera on · nothing leaves this device</span>' +
+      "</div>";
     document.body.appendChild(wrap);
     preview = wrap.querySelector("canvas");
     pctx = preview.getContext("2d");
     coach = wrap.querySelector("#hand-coach");
-    coachDone = { see: false, point: false, pinch: false };
+    coachDone = { see: false, point: false, pinch: false, pull: false };
   }
 
   /* The site is driven entirely by pointer events, so the cleanest way in is
@@ -272,24 +292,59 @@
     lastX = x;
     lastY = y;
 
+    /* ── PINCH, AND PINCH AND PULL ────────────────────────────────────
+       Sid: "i am not able to scroll at all when i am in hand tracking mode."
+
+       He could not, because there was no way to: the gesture set was point
+       and click, and a page you can click but not move is a page you cannot
+       read. Pinching used to fire a click on the frame the fingers met,
+       which also meant there was no gesture left over to mean anything else.
+
+       So the pinch is now held rather than instantaneous. While it is held,
+       vertical travel scrolls the window -- inverted, because the hand is
+       holding the page rather than pushing a scrollbar, so pulling down
+       brings what is below into view the way dragging paper does. On release,
+       if the hand barely moved it was a click and the thing under it is
+       activated; if it travelled, it was a drag and nothing is clicked.
+
+       That last rule is the one that makes both gestures usable at once. A
+       click that fires at the start of a drag means every attempt to scroll
+       also navigates somewhere, which is worse than not being able to scroll
+       at all. */
     var d = Math.hypot(tip.x - thumb.x, tip.y - thumb.y);
     if (!pinched && d < PINCH_ON) {
       pinched = true;
       wrap.classList.add("is-pinch");
       step("pinch");
-      var el = emit("pointerdown", x, y, { buttons: 1 });
-      emit("pointerup", x, y);
-      /* A pinch is a click, so it has to actually activate what it is over.
-         Dispatching the pointer pair alone does not navigate. */
-      try {
-        if (el && el.closest) {
-          var act = el.closest("a[href],button,[role=button]");
-          if (act) act.click();
+      pinchX = x;
+      pinchY = y;
+      pinchTravel = 0;
+      emit("pointerdown", x, y, { buttons: 1 });
+    } else if (pinched) {
+      var dy = y - pinchY;
+      pinchTravel += Math.abs(x - pinchX) + Math.abs(dy);
+      if (Math.abs(dy) > 0.6) {
+        window.scrollBy(0, -dy * SCROLL_GAIN);
+        if (pinchTravel > 90) step("pull");
+      }
+      pinchX = x;
+      pinchY = y;
+      if (d > PINCH_OFF) {
+        pinched = false;
+        wrap.classList.remove("is-pinch");
+        var el = emit("pointerup", x, y);
+        /* A pinch that stayed put is a click, and it has to actually activate
+           what it is over: dispatching the pointer pair alone does not
+           navigate. One that travelled was a scroll and activates nothing. */
+        if (pinchTravel < 26) {
+          try {
+            if (el && el.closest) {
+              var act = el.closest("a[href],button,[role=button]");
+              if (act) act.click();
+            }
+          } catch (e) {}
         }
-      } catch (e) {}
-    } else if (pinched && d > PINCH_OFF) {
-      pinched = false;
-      wrap.classList.remove("is-pinch");
+      }
     }
   }
 

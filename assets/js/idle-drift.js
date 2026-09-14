@@ -424,6 +424,12 @@
       on = false;
       offAt = performance.now();
       layer.classList.remove("is-on");
+      /* ── AND THE CHROME COMES BACK ────────────────────────────────────
+         Sid: "when you're showing the screensaver, you can remove the nav
+         bar." Set on the root rather than on the layer so the navigation's
+         own stylesheet can answer it without either file importing the
+         other. */
+      document.documentElement.removeAttribute("data-idle");
       /* ── IT LETS GO, IT DOES NOT SWITCH OFF ─────────────────────────
          Sid: "when someone presses a key or scrolls again let it have some
          soft animation where all the stuff returns to normal rather than
@@ -446,6 +452,7 @@
     on = true;
     holeAt = performance.now();
     layer.classList.add("is-on");
+    document.documentElement.setAttribute("data-idle", "on");
     warped = warpTargets();
     warped.forEach(function (el) {
       el.style.filter = "url(#idle-hole)";
