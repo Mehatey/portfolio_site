@@ -104,7 +104,25 @@
   /* ── pointer, in strip-local coordinates ─────────────────────────────── */
   var px = -1e4,
     py = -1e4,
-    warm = 0; /* how lit the field is under the pointer */
+    warm = 0 /* how lit the field is under the pointer */,
+    /* ── A DIFFERENT PATTERN EVERY TIME YOU ARRIVE ────────────────────────
+       Sid: "let every hover be a different pattern, and let there be a click
+       on those square interactives as well."
+
+       The field had one arrangement -- three cells in four, scattered -- so
+       the wall looked the same on the tenth approach as on the first. It has
+       five now and it steps to the next one each time the pointer enters, so
+       the section quietly rewards being come back to without ever announcing
+       that it is doing so. The colours, the breath and the front are
+       untouched; only which cells are filled changes.
+
+       The step happens on ENTER rather than continuously, because a field
+       that rearranges under a moving pointer is not a pattern, it is noise. */
+    pat = 0,
+    /* Where and when the last click landed, for the ring below. */
+    tapX = -1e4,
+    tapY = -1e4,
+    tapAt = -1e4;
   strip.addEventListener(
     "pointermove",
     function (e) {
@@ -112,6 +130,26 @@
       px = e.clientX - r.left;
       py = e.clientY - r.top;
       warm = 1;
+    },
+    { passive: true }
+  );
+  strip.addEventListener(
+    "pointerenter",
+    function () {
+      pat = (pat + 1) % 5;
+    },
+    { passive: true }
+  );
+  /* A click sends a ring out through the cells from where it landed. It is
+     the smallest thing that answers a press without turning the wall into a
+     control: nothing changes state, the field just acknowledges the hand. */
+  strip.addEventListener(
+    "pointerdown",
+    function (e) {
+      var r = strip.getBoundingClientRect();
+      tapX = e.clientX - r.left;
+      tapY = e.clientY - r.top;
+      tapAt = performance.now();
     },
     { passive: true }
   );
@@ -345,6 +383,10 @@
   function drawGround(t) {
     bgx.clearRect(0, 0, W, H);
     if (reduce || !palB) return;
+    /* The click ring is measured against the wall clock rather than against
+       `t`, which is the field's own slow time base and runs on a different
+       scale. */
+    var nowMs = performance.now();
 
     var cols = Math.ceil(W / CELL) + 1,
       rowsN = Math.ceil(H / CELL) + 1;
@@ -371,7 +413,20 @@
            a ground rather than a painted wall. Two in five empty was too
            sparse to carry twelve colours; one in four still leaves the ground
            showing through everywhere, which is the property that matters. */
-        if (h > 0.75) continue;
+        /* Five arrangements, stepped on each pointer enter. Every one of them
+           still leaves the ground showing through -- a field at full density
+           is a painted rectangle, not pixels on a wall -- they differ in how
+           the gaps are organised: scattered, woven, ruled, banded, checked. */
+        var keep;
+        if (pat === 0) keep = h <= 0.75;
+        else if (pat === 1) keep = (i + j) % 3 !== 0 && h <= 0.88;
+        else if (pat === 2) keep = (i % 3 === 0 || j % 3 === 0) && h <= 0.92;
+        else if (pat === 3) keep = Math.round(Math.hypot(i - cols / 2, (j - rowsN / 2) * 1.7)) % 3 !== 0 && h <= 0.86;
+        else keep = (i + j) % 2 === 0 && h <= 0.9;
+        /* One cell in fifty is a star whatever the pattern says, so the sky
+           survives the arrangement changing under it. */
+        var isStar = h < 0.02;
+        if (!keep && !isStar) continue;
 
         var dx = x - fx;
         var d = Math.abs(dx) + Math.abs(y - H / 2) * 0.35;
@@ -404,6 +459,22 @@
             wy = (y - py) * 1.6;
           a += Math.exp(-(wx * wx + wy * wy) / 12000) * 0.34 * warm;
         }
+
+        /* The click's ring. A band of brightness whose radius grows and whose
+           strength falls away, so it reads as something travelling out rather
+           than as an area lighting up. Nine tenths of a second, then nothing
+           is computed at all. */
+        var age = (nowMs - tapAt) / 900;
+        if (age >= 0 && age < 1) {
+          var rr = Math.hypot(x - tapX, y - tapY);
+          var band = Math.abs(rr - age * 520);
+          a += Math.exp(-(band * band) / 2600) * 0.6 * (1 - age);
+        }
+
+        /* Stars twinkle on their own clock rather than the field's, which is
+           what stops them reading as part of the ambient breath. */
+        if (isStar) a = 0.26 + 0.34 * (0.5 + 0.5 * Math.sin(t * 1.7 + h * 90));
+
         if (a <= 0.012) continue;
 
         bgx.globalAlpha = Math.min(0.72, a);
@@ -413,7 +484,20 @@
         var sz = CELL - 3 + flare * 2;
         var rad = 1 + flare * 2;
         bgx.beginPath();
-        if (bgx.roundRect) bgx.roundRect(x + 2, y + 2, sz, sz, rad);
+        if (isStar) {
+          /* Sid: "can we have some animated pixel-star and sky-type icons?"
+             A four-armed cross of cells rather than a drawn star: this field
+             is a grid, and anything on it has to be made of the same squares
+             or it reads as a sticker. One centre cell and four half-size arms
+             is the smallest shape that says star at this pitch. */
+          var c = CELL * 0.34;
+          var arm = CELL * 0.17;
+          bgx.rect(x + CELL / 2 - c / 2, y + CELL / 2 - c / 2, c, c);
+          bgx.rect(x + CELL / 2 - arm / 2, y + CELL / 2 - c, arm, arm);
+          bgx.rect(x + CELL / 2 - arm / 2, y + CELL / 2 + c - arm, arm, arm);
+          bgx.rect(x + CELL / 2 - c, y + CELL / 2 - arm / 2, arm, arm);
+          bgx.rect(x + CELL / 2 + c - arm, y + CELL / 2 - arm / 2, arm, arm);
+        } else if (bgx.roundRect) bgx.roundRect(x + 2, y + 2, sz, sz, rad);
         else bgx.rect(x + 2, y + 2, sz, sz);
         bgx.fill();
       }
