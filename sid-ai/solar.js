@@ -50,10 +50,7 @@ const floor = new Reflector(new THREE.PlaneGeometry(16, 16), {
 floor.rotation.x = -Math.PI / 2;
 floor.position.y = -1.55;
 scene.add(floor);
-const horizon = new THREE.Mesh(
-  new THREE.PlaneGeometry(18, 9),
-  new THREE.MeshBasicMaterial({ color: 0x07090b }),
-);
+const horizon = new THREE.Mesh(new THREE.PlaneGeometry(18, 9), new THREE.MeshBasicMaterial({ color: 0x07090b }));
 horizon.position.set(0, 1, -3.25);
 scene.add(horizon);
 scene.add(new THREE.HemisphereLight(0x7e8ca6, 0x080809, 0.56));
@@ -68,10 +65,7 @@ scene.add(cool);
 
 const sun = new THREE.Group();
 sun.position.set(2.45, 1.88, -1.5);
-const sunCore = new THREE.Mesh(
-  new THREE.SphereGeometry(0.52, 64, 64),
-  new THREE.MeshBasicMaterial({ color: 0xffa62f }),
-);
+const sunCore = new THREE.Mesh(new THREE.SphereGeometry(0.52, 64, 64), new THREE.MeshBasicMaterial({ color: 0xffa62f }));
 sun.add(sunCore);
 const glowCanvas = document.createElement("canvas");
 glowCanvas.width = 256;
@@ -89,7 +83,7 @@ const glow = new THREE.Sprite(
     transparent: true,
     depthWrite: false,
     blending: THREE.AdditiveBlending,
-  }),
+  })
 );
 glow.scale.set(2.8, 2.8, 1);
 sun.add(glow);
@@ -179,16 +173,7 @@ function plant(x, flip = 1) {
     new THREE.Vector3(-0.05 * flip, 1.1, 0.02),
     new THREE.Vector3(0.14 * flip, 1.72, 0),
   ];
-  const stem = new THREE.Mesh(
-    new THREE.TubeGeometry(
-      new THREE.CatmullRomCurve3(points),
-      48,
-      0.045,
-      12,
-      false,
-    ),
-    darkChrome,
-  );
+  const stem = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 48, 0.045, 12, false), darkChrome);
   stem.castShadow = true;
   group.add(stem);
   const leafGeo = new THREE.SphereGeometry(1, 32, 20);
@@ -218,12 +203,7 @@ const world = new RAPIER.World({ x: 0, y: 0, z: 0 }),
   pickables = [];
 let playground = false;
 function boundary(x, y, z, hx, hy, hz) {
-  world.createCollider(
-    RAPIER.ColliderDesc.cuboid(hx, hy, hz)
-      .setTranslation(x, y, z)
-      .setRestitution(0.86)
-      .setFriction(0.05),
-  );
+  world.createCollider(RAPIER.ColliderDesc.cuboid(hx, hy, hz).setTranslation(x, y, z).setRestitution(0.86).setFriction(0.05));
 }
 boundary(-3.25, 0, 0, 0.08, 2.4, 2);
 boundary(3.25, 0, 0, 0.08, 2.4, 2);
@@ -232,16 +212,9 @@ boundary(0, 2.45, 0, 3.3, 0.08, 2);
 boundary(0, 0, -2.25, 3.3, 2.4, 0.08);
 boundary(0, 0, 1.35, 3.3, 2.4, 0.08);
 function physicsEntry(mesh, shape, pos, density = 1) {
-  const desc = RAPIER.RigidBodyDesc.dynamic()
-      .setTranslation(pos.x, pos.y, pos.z)
-      .setLinearDamping(0.72)
-      .setAngularDamping(0.58)
-      .setCanSleep(false),
+  const desc = RAPIER.RigidBodyDesc.dynamic().setTranslation(pos.x, pos.y, pos.z).setLinearDamping(0.72).setAngularDamping(0.58).setCanSleep(false),
     body = world.createRigidBody(desc);
-  const collider =
-    shape === "cube"
-      ? RAPIER.ColliderDesc.roundCuboid(0.53, 0.53, 0.53, 0.08)
-      : RAPIER.ColliderDesc.ball(shape);
+  const collider = shape === "cube" ? RAPIER.ColliderDesc.roundCuboid(0.53, 0.53, 0.53, 0.08) : RAPIER.ColliderDesc.ball(shape);
   collider.setDensity(density).setRestitution(0.88).setFriction(0.04);
   world.createCollider(collider, body);
   const entry = { mesh, body, home: pos.clone(), shape };
@@ -251,52 +224,23 @@ function physicsEntry(mesh, shape, pos, density = 1) {
   return entry;
 }
 const cubeGroup = new THREE.Group(),
-  cubeMesh = new THREE.Mesh(
-    new RoundedBoxGeometry(1.08, 1.08, 1.08, 7, 0.12),
-    darkChrome,
-  );
+  cubeMesh = new THREE.Mesh(new RoundedBoxGeometry(1.08, 1.08, 1.08, 7, 0.12), darkChrome);
 cubeMesh.castShadow = true;
 cubeMesh.receiveShadow = true;
 cubeGroup.add(cubeMesh);
 scene.add(cubeGroup);
-const cubeEntry = physicsEntry(
-  cubeMesh,
-  "cube",
-  new THREE.Vector3(0, 0.12, 0.15),
-  2.2,
-);
+const cubeEntry = physicsEntry(cubeMesh, "cube", new THREE.Vector3(0, 0.12, 0.15), 2.2);
 cubeEntry.mesh = cubeGroup;
 cubeMesh.userData.entry = cubeEntry;
 function cubeLabel(text, size, position, rotation) {
-  const m = textMesh(
-    text,
-    size,
-    0.018,
-    new THREE.MeshBasicMaterial({ color: 0xffb13b }),
-    0.78,
-  );
+  const m = textMesh(text, size, 0.018, new THREE.MeshBasicMaterial({ color: 0xffb13b }), 0.78);
   m.position.copy(position);
   m.rotation.set(rotation.x, rotation.y, rotation.z);
   cubeGroup.add(m);
 }
-cubeLabel(
-  "SID",
-  0.19,
-  new THREE.Vector3(0, 0, 0.555),
-  new THREE.Euler(0, 0, 0),
-);
-cubeLabel(
-  "M",
-  0.28,
-  new THREE.Vector3(0.555, 0, 0),
-  new THREE.Euler(0, Math.PI / 2, 0),
-);
-cubeLabel(
-  "DESIGN",
-  0.105,
-  new THREE.Vector3(0, 0.555, 0),
-  new THREE.Euler(-Math.PI / 2, 0, 0),
-);
+cubeLabel("SID", 0.19, new THREE.Vector3(0, 0, 0.555), new THREE.Euler(0, 0, 0));
+cubeLabel("M", 0.28, new THREE.Vector3(0.555, 0, 0), new THREE.Euler(0, Math.PI / 2, 0));
+cubeLabel("DESIGN", 0.105, new THREE.Vector3(0, 0.555, 0), new THREE.Euler(-Math.PI / 2, 0, 0));
 const seedGeo = new THREE.IcosahedronGeometry(0.13, 2);
 for (let i = 0; i < 8; i++) {
   const mesh = new THREE.Mesh(seedGeo, i % 3 === 0 ? acid : chrome);
@@ -304,16 +248,7 @@ for (let i = 0; i < 8; i++) {
   scene.add(mesh);
   const a = (i / 8) * Math.PI * 2,
     r = 1.25 + (i % 2) * 0.35;
-  physicsEntry(
-    mesh,
-    0.14,
-    new THREE.Vector3(
-      Math.cos(a) * r,
-      Math.sin(a) * 0.72,
-      Math.sin(a) * 0.28 + 0.08,
-    ),
-    0.65,
-  );
+  physicsEntry(mesh, 0.14, new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * 0.72, Math.sin(a) * 0.28 + 0.08), 0.65);
 }
 
 const ray = new THREE.Raycaster(),
@@ -340,11 +275,7 @@ renderer.domElement.addEventListener("pointermove", (e) => {
       const now = performance.now(),
         dt = Math.max(0.008, (now - lastDragTime) / 1000),
         next = dragPoint.clone().add(dragOffset);
-      dragVelocity
-        .copy(next)
-        .sub(lastDragPoint)
-        .divideScalar(dt)
-        .clampLength(0, 5);
+      dragVelocity.copy(next).sub(lastDragPoint).divideScalar(dt).clampLength(0, 5);
       dragged.body.setTranslation(next, true);
       dragged.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
       dragged.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
@@ -355,11 +286,9 @@ renderer.domElement.addEventListener("pointermove", (e) => {
   }
   const hit = ray.intersectObjects(pickables, false)[0]?.object || null;
   if (hit !== hovered) {
-    if (hovered === cubeMesh)
-      gsap.to(darkChrome, { roughness: 0.16, duration: 0.35 });
+    if (hovered === cubeMesh) gsap.to(darkChrome, { roughness: 0.16, duration: 0.35 });
     hovered = hit;
-    if (hovered === cubeMesh)
-      gsap.to(darkChrome, { roughness: 0.04, duration: 0.35 });
+    if (hovered === cubeMesh) gsap.to(darkChrome, { roughness: 0.04, duration: 0.35 });
   }
 });
 renderer.domElement.addEventListener("pointerdown", (e) => {
@@ -388,7 +317,7 @@ renderer.domElement.addEventListener("pointerup", (e) => {
         y: dragVelocity.y * 0.72,
         z: dragVelocity.z * 0.72,
       },
-      true,
+      true
     );
     dragged.body.setAngvel(
       {
@@ -396,7 +325,7 @@ renderer.domElement.addEventListener("pointerup", (e) => {
         y: -dragVelocity.x * 0.45,
         z: dragVelocity.x * 0.25,
       },
-      true,
+      true
     );
     dragged = null;
     return;
@@ -404,15 +333,8 @@ renderer.domElement.addEventListener("pointerup", (e) => {
   if (ray.intersectObject(sunCore, false).length) {
     for (const entry of entries) {
       const t = entry.body.translation(),
-        dir = new THREE.Vector3(
-          t.x - sun.position.x,
-          t.y - sun.position.y,
-          t.z - sun.position.z,
-        ).normalize();
-      entry.body.applyImpulse(
-        { x: dir.x * 0.65, y: dir.y * 0.65, z: dir.z * 0.65 },
-        true,
-      );
+        dir = new THREE.Vector3(t.x - sun.position.x, t.y - sun.position.y, t.z - sun.position.z).normalize();
+      entry.body.applyImpulse({ x: dir.x * 0.65, y: dir.y * 0.65, z: dir.z * 0.65 }, true);
     }
     gsap.fromTo(
       glow.scale,
@@ -424,7 +346,7 @@ renderer.domElement.addEventListener("pointerup", (e) => {
         yoyo: true,
         repeat: 1,
         ease: "power2.out",
-      },
+      }
     );
   }
 });
@@ -434,14 +356,8 @@ function releaseField() {
   playground = true;
   entries.forEach((entry, i) => {
     const a = (i / entries.length) * Math.PI * 2;
-    entry.body.setLinvel(
-      { x: Math.cos(a) * 0.22, y: Math.sin(a) * 0.18, z: ((i % 3) - 1) * 0.08 },
-      true,
-    );
-    entry.body.setAngvel(
-      { x: 0.14 + i * 0.025, y: 0.22 - i * 0.014, z: 0.12 },
-      true,
-    );
+    entry.body.setLinvel({ x: Math.cos(a) * 0.22, y: Math.sin(a) * 0.18, z: ((i % 3) - 1) * 0.08 }, true);
+    entry.body.setAngvel({ x: 0.14 + i * 0.025, y: 0.22 - i * 0.014, z: 0.12 }, true);
   });
   gsap.to(".play-card", { scale: 0.94, duration: 0.12, yoyo: true, repeat: 1 });
 }
@@ -474,18 +390,8 @@ const shot = {
 const intro = gsap.timeline({ defaults: { ease: "power4.out" } });
 intro
   .fromTo(shot, { camZ: 11 }, { camZ: 7.2, duration: 2.1 })
-  .fromTo(
-    sun.scale,
-    { x: 0, y: 0, z: 0 },
-    { x: 1, y: 1, z: 1, duration: 1.2 },
-    0.15,
-  )
-  .fromTo(
-    cubeGroup.scale,
-    { x: 0.001, y: 0.001, z: 0.001 },
-    { x: 1, y: 1, z: 1, duration: 1.25 },
-    0.55,
-  );
+  .fromTo(sun.scale, { x: 0, y: 0, z: 0 }, { x: 1, y: 1, z: 1, duration: 1.2 }, 0.15)
+  .fromTo(cubeGroup.scale, { x: 0.001, y: 0.001, z: 0.001 }, { x: 1, y: 1, z: 1, duration: 1.25 }, 0.55);
 if (reduced) intro.progress(1);
 
 if (!capture) {
@@ -502,11 +408,7 @@ if (!capture) {
     },
   });
   scrollTl
-    .to(
-      ".blueprint",
-      { opacity: 0, scale: 0.72, rotation: 8, duration: 0.8, ease: "none" },
-      0,
-    )
+    .to(".blueprint", { opacity: 0, scale: 0.72, rotation: 8, duration: 0.8, ease: "none" }, 0)
     .to(
       shot,
       {
@@ -518,24 +420,12 @@ if (!capture) {
         duration: 1,
         ease: "none",
       },
-      0,
+      0
     )
     .to(typeMaterial, { opacity: 0.94, duration: 0.65, ease: "none" }, 0.38)
-    .to(
-      nameGroup.scale,
-      { x: 1, y: 1, z: 1, duration: 0.65, ease: "none" },
-      0.38,
-    )
-    .to(
-      nameGroup.position,
-      { x: 0.65, y: -0.02, z: -1.72, duration: 1, ease: "none" },
-      0,
-    )
-    .to(
-      sun.position,
-      { x: 2.05, y: 1.18, z: -0.72, duration: 1, ease: "none" },
-      0,
-    )
+    .to(nameGroup.scale, { x: 1, y: 1, z: 1, duration: 0.65, ease: "none" }, 0.38)
+    .to(nameGroup.position, { x: 0.65, y: -0.02, z: -1.72, duration: 1, ease: "none" }, 0)
+    .to(sun.position, { x: 2.05, y: 1.18, z: -0.72, duration: 1, ease: "none" }, 0)
     .to(
       shot,
       {
@@ -547,19 +437,11 @@ if (!capture) {
         duration: 1,
         ease: "none",
       },
-      1,
+      1
     )
     .to(nameGroup.rotation, { y: -0.2, z: 0.025, duration: 1, ease: "none" }, 1)
-    .to(
-      plants[0].scale,
-      { x: 1, y: 1, z: 1, duration: 0.62, ease: "power2.out" },
-      1.22,
-    )
-    .to(
-      plants[1].scale,
-      { x: 1, y: 1, z: 1, duration: 0.62, ease: "power2.out" },
-      1.32,
-    )
+    .to(plants[0].scale, { x: 1, y: 1, z: 1, duration: 0.62, ease: "power2.out" }, 1.22)
+    .to(plants[1].scale, { x: 1, y: 1, z: 1, duration: 0.62, ease: "power2.out" }, 1.32)
     .to(plants[0].position, { x: -1.72, z: 0.2, duration: 1, ease: "none" }, 1)
     .to(plants[1].position, { x: 1.82, z: -0.05, duration: 1, ease: "none" }, 1)
     .to(
@@ -573,39 +455,29 @@ if (!capture) {
         duration: 1,
         ease: "none",
       },
-      2,
+      2
     )
-    .to(
-      nameGroup.position,
-      { x: 0, y: -0.3, z: -1.85, duration: 1, ease: "none" },
-      2,
-    )
+    .to(nameGroup.position, { x: 0, y: -0.3, z: -1.85, duration: 1, ease: "none" }, 2)
     .to(nameGroup.rotation, { y: 0, z: 0, duration: 1, ease: "none" }, 2)
-    .to(
-      sun.position,
-      { x: 2.35, y: 1.75, z: -1.3, duration: 1, ease: "none" },
-      2,
-    )
+    .to(sun.position, { x: 2.35, y: 1.75, z: -1.3, duration: 1, ease: "none" }, 2)
     .to(typeMaterial, { opacity: 0.26, duration: 0.55, ease: "none" }, 2.35);
-  gsap.utils
-    .toArray(".chapter-copy")
-    .forEach((copy) =>
-      gsap.fromTo(
-        copy,
-        { autoAlpha: 0.12, y: 70 },
-        {
-          autoAlpha: 1,
-          y: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: copy.parentElement,
-            start: "top 72%",
-            end: "center 55%",
-            scrub: 0.55,
-          },
+  gsap.utils.toArray(".chapter-copy").forEach((copy) =>
+    gsap.fromTo(
+      copy,
+      { autoAlpha: 0.12, y: 70 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: copy.parentElement,
+          start: "top 72%",
+          end: "center 55%",
+          scrub: 0.55,
         },
-      ),
-    );
+      }
+    )
+  );
 }
 
 let last = performance.now(),
@@ -618,8 +490,7 @@ function render(now) {
     const p = shot.progress;
     let cubeX;
     if (p < 0.33) cubeX = THREE.MathUtils.lerp(1.05, -1.12, p / 0.33);
-    else if (p < 0.66)
-      cubeX = THREE.MathUtils.lerp(-1.12, 1.02, (p - 0.33) / 0.33);
+    else if (p < 0.66) cubeX = THREE.MathUtils.lerp(-1.12, 1.02, (p - 0.33) / 0.33);
     else cubeX = THREE.MathUtils.lerp(1.02, -1.16, (p - 0.66) / 0.34);
     const cubePos = {
       x: cubeX,
@@ -627,9 +498,7 @@ function render(now) {
       z: 0.15 - p * 0.12,
     };
     cubeEntry.body.setTranslation(cubePos, true);
-    scriptedQuat.setFromEuler(
-      new THREE.Euler(-0.08 + p * 0.22, p * Math.PI * 0.72, 0.04 - p * 0.08),
-    );
+    scriptedQuat.setFromEuler(new THREE.Euler(-0.08 + p * 0.22, p * Math.PI * 0.72, 0.04 - p * 0.08));
     cubeEntry.body.setRotation(scriptedQuat, true);
     entries.slice(1).forEach((entry, i) => {
       const a = (i / 7) * Math.PI * 2 + p * 1.2,
@@ -641,7 +510,7 @@ function render(now) {
           y: Math.sin(a) * (0.48 + p * 0.22),
           z: 0.04 + Math.sin(a * 2) * 0.16,
         },
-        true,
+        true
       );
       entry.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
     });
@@ -659,26 +528,10 @@ function render(now) {
     entry.mesh.quaternion.set(q.x, q.y, q.z, q.w);
   }
   sun.rotation.y += (reduced ? 0 : 0.00035) * (dt * 60);
-  key.position.x = THREE.MathUtils.lerp(
-    key.position.x,
-    2.7 + (pointer.x - 0.5) * 2.3,
-    0.04,
-  );
-  key.position.y = THREE.MathUtils.lerp(
-    key.position.y,
-    3.2 + (pointer.y - 0.5) * 1.2,
-    0.04,
-  );
-  camera.position.x = THREE.MathUtils.lerp(
-    camera.position.x,
-    shot.camX + (pointer.x - 0.5) * 0.12,
-    0.06,
-  );
-  camera.position.y = THREE.MathUtils.lerp(
-    camera.position.y,
-    shot.camY + (pointer.y - 0.5) * 0.08,
-    0.06,
-  );
+  key.position.x = THREE.MathUtils.lerp(key.position.x, 2.7 + (pointer.x - 0.5) * 2.3, 0.04);
+  key.position.y = THREE.MathUtils.lerp(key.position.y, 3.2 + (pointer.y - 0.5) * 1.2, 0.04);
+  camera.position.x = THREE.MathUtils.lerp(camera.position.x, shot.camX + (pointer.x - 0.5) * 0.12, 0.06);
+  camera.position.y = THREE.MathUtils.lerp(camera.position.y, shot.camY + (pointer.y - 0.5) * 0.08, 0.06);
   camera.position.z = THREE.MathUtils.lerp(camera.position.z, shot.camZ, 0.06);
   camera.lookAt(shot.lookX, shot.lookY, shot.lookZ);
   renderer.render(scene, camera);

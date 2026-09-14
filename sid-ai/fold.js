@@ -39,21 +39,18 @@ scene.add(key);
 const blueLight = new THREE.PointLight(0x1647ff, 18, 9, 2);
 blueLight.position.set(2, -0.5, 2);
 scene.add(blueLight);
-const floor = new THREE.Mesh(
-  new THREE.PlaneGeometry(30, 30),
-  new THREE.ShadowMaterial({ color: 0x41434a, opacity: 0.12 }),
-);
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.ShadowMaterial({ color: 0x41434a, opacity: 0.12 }));
 floor.rotation.x = -Math.PI / 2;
 floor.position.y = -2.15;
 floor.receiveShadow = true;
 scene.add(floor);
 const paper = new THREE.MeshPhysicalMaterial({
-  color: 0xe9e5dc,
-  roughness: 0.72,
-  metalness: 0.02,
-  clearcoat: 0.12,
-  clearcoatRoughness: 0.75,
-  envMapIntensity: 0.45,
+    color: 0xe9e5dc,
+    roughness: 0.72,
+    metalness: 0.02,
+    clearcoat: 0.12,
+    clearcoatRoughness: 0.75,
+    envMapIntensity: 0.45,
   }),
   graphite = new THREE.MeshStandardMaterial({
     color: 0x151719,
@@ -75,10 +72,7 @@ const object = new THREE.Group();
 object.position.set(0.95, 0, 0);
 object.scale.z = 0.03;
 scene.add(object);
-const body = new THREE.Mesh(
-  new RoundedBoxGeometry(2.15, 2.15, 1.68, 7, 0.08),
-  bodyPaper,
-);
+const body = new THREE.Mesh(new RoundedBoxGeometry(2.15, 2.15, 1.68, 7, 0.08), bodyPaper);
 body.castShadow = true;
 body.receiveShadow = true;
 object.add(body);
@@ -88,7 +82,7 @@ const edges = new THREE.LineSegments(
     color: 0x111317,
     transparent: true,
     opacity: 0.58,
-  }),
+  })
 );
 body.add(edges);
 const face = new THREE.Group();
@@ -108,10 +102,7 @@ const eyeGeo = new THREE.SphereGeometry(0.18, 36, 22),
   face.add(pupil);
   eyes.push({ socket, pupil, base: x });
 });
-const mouth = new THREE.Mesh(
-  new THREE.CapsuleGeometry(0.035, 0.2, 8, 18),
-  graphite,
-);
+const mouth = new THREE.Mesh(new THREE.CapsuleGeometry(0.035, 0.2, 8, 18), graphite);
 mouth.rotation.z = Math.PI / 2;
 mouth.scale.y = 0.7;
 mouth.position.set(0, -0.43, 0.13);
@@ -176,10 +167,7 @@ const corners = [
   ],
   draw = { value: 0 };
 const pencil = new THREE.Group(),
-  shaft = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.045, 0.045, 0.78, 12),
-    cobalt,
-  ),
+  shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.78, 12), cobalt),
   tip = new THREE.Mesh(new THREE.ConeGeometry(0.075, 0.18, 12), graphite);
 shaft.rotation.z = -Math.PI / 4;
 tip.rotation.z = -Math.PI / 4;
@@ -222,18 +210,9 @@ for (let i = 0; i < 110; i++) {
 const state = { p: 0, hold: 0 },
   pointer = new THREE.Vector2(),
   targetPointer = new THREE.Vector2();
-addEventListener("pointermove", (e) =>
-  targetPointer.set(
-    (e.clientX / innerWidth) * 2 - 1,
-    -((e.clientY / innerHeight) * 2 - 1),
-  ),
-);
-addEventListener("pointerdown", () =>
-  gsap.to(state, { hold: 1, duration: 0.75, ease: "power3.out" }),
-);
-addEventListener("pointerup", () =>
-  gsap.to(state, { hold: 0, duration: 1.1, ease: "elastic.out(1,.45)" }),
-);
+addEventListener("pointermove", (e) => targetPointer.set((e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1)));
+addEventListener("pointerdown", () => gsap.to(state, { hold: 1, duration: 0.75, ease: "power3.out" }));
+addEventListener("pointerup", () => gsap.to(state, { hold: 0, duration: 1.1, ease: "elastic.out(1,.45)" }));
 gsap
   .timeline({ defaults: { ease: "power3.inOut" } })
   .to(draw, { value: 1, duration: 1.65, onUpdate: updateDrawing })
@@ -254,86 +233,56 @@ if (!capture) {
   tl.to(".sketch", { opacity: 0, scale: 0.82, duration: 0.55, ease: "none" }, 0)
     .to(object.scale, { z: 1, duration: 0.86, ease: "none" }, 0)
     .to(object.position, { x: -1.15, duration: 1, ease: "none" }, 0)
-    .to(
-      object.rotation,
-      { x: -0.12, y: 0.62, z: -0.04, duration: 1, ease: "none" },
-      0,
-    )
+    .to(object.rotation, { x: -0.12, y: 0.62, z: -0.04, duration: 1, ease: "none" }, 0)
     .to(face.scale, { y: 1, duration: 0.18, ease: "power3.out" }, 0.72)
     .to(object.position, { x: 1.08, y: 0.05, duration: 1, ease: "none" }, 1)
-    .to(
-      object.rotation,
-      { x: 0.08, y: -0.5, z: 0.03, duration: 1, ease: "none" },
-      1,
-    )
-    .to(
-      core.scale,
-      { x: 1, y: 1, z: 1, duration: 0.35, ease: "back.out(1.4)" },
-      1.68,
-    )
+    .to(object.rotation, { x: 0.08, y: -0.5, z: 0.03, duration: 1, ease: "none" }, 1)
+    .to(core.scale, { x: 1, y: 1, z: 1, duration: 0.35, ease: "back.out(1.4)" }, 1.68)
     .to(coreGlow, { intensity: 22, duration: 0.35 }, 1.68)
     .to(object.position, { x: -1.1, y: 0, duration: 1, ease: "none" }, 2)
     .to(object.rotation, { x: 0, y: 0.2, z: 0, duration: 1, ease: "none" }, 2);
-  gsap.utils
-    .toArray(".copy")
-    .forEach((c) =>
-      gsap.fromTo(
-        c,
-        { autoAlpha: 0.1, y: 50 },
-        {
-          autoAlpha: 1,
-          y: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: c.parentElement,
-            start: "top 75%",
-            end: "center 52%",
-            scrub: 0.5,
-          },
+  gsap.utils.toArray(".copy").forEach((c) =>
+    gsap.fromTo(
+      c,
+      { autoAlpha: 0.1, y: 50 },
+      {
+        autoAlpha: 1,
+        y: 0,
+        ease: "none",
+        scrollTrigger: {
+          trigger: c.parentElement,
+          start: "top 75%",
+          end: "center 52%",
+          scrub: 0.5,
         },
-      ),
-    );
+      }
+    )
+  );
 }
 function animate() {
   const dt = Math.min(0.033, clock.getDelta());
   pointer.lerp(targetPointer, 0.08);
   const p = state.p,
-    open =
-      THREE.MathUtils.smoothstep(p, 0.63, 0.86) * (0.72 + state.hold * 0.28);
+    open = THREE.MathUtils.smoothstep(p, 0.63, 0.86) * (0.72 + state.hold * 0.28);
   panels.forEach((pivot) => {
     pivot.children[0].visible = open > 0.01;
     pivot.rotation[pivot.userData.axis] = pivot.userData.sign * open * 1.24;
   });
   const solid = THREE.MathUtils.smoothstep(p, 0.04, 0.24);
-  drawLine.material.opacity =
-    0.86 * (1 - THREE.MathUtils.smoothstep(p, 0.12, 0.3));
+  drawLine.material.opacity = 0.86 * (1 - THREE.MathUtils.smoothstep(p, 0.12, 0.3));
   body.material.opacity = solid * (1 - open * 0.88);
   body.material.transparent = true;
   body.visible = open < 0.98;
   face.visible = open < 0.7;
   eyes.forEach(({ pupil, base }) => {
-    pupil.position.x = THREE.MathUtils.lerp(
-      pupil.position.x,
-      base + pointer.x * 0.055,
-      0.08,
-    );
-    pupil.position.y = THREE.MathUtils.lerp(
-      pupil.position.y,
-      pointer.y * 0.06,
-      0.08,
-    );
+    pupil.position.x = THREE.MathUtils.lerp(pupil.position.x, base + pointer.x * 0.055, 0.08);
+    pupil.position.y = THREE.MathUtils.lerp(pupil.position.y, pointer.y * 0.06, 0.08);
   });
   particles.forEach((m, i) => {
     m.scale.setScalar(THREE.MathUtils.smoothstep(p, 0.54, 0.75));
     const home = m.userData.home,
-      swirl = new THREE.Vector3(
-        -home.y,
-        home.x,
-        Math.sin(i + p * 8) * 0.12,
-      ).multiplyScalar(0.18 + state.hold * 0.75),
-      pointerForce = new THREE.Vector3(pointer.x * 1.6, pointer.y * 1.1, 0.4)
-        .sub(m.position)
-        .multiplyScalar(state.hold * 0.012);
+      swirl = new THREE.Vector3(-home.y, home.x, Math.sin(i + p * 8) * 0.12).multiplyScalar(0.18 + state.hold * 0.75),
+      pointerForce = new THREE.Vector3(pointer.x * 1.6, pointer.y * 1.1, 0.4).sub(m.position).multiplyScalar(state.hold * 0.012);
     m.userData.v
       .add(swirl.multiplyScalar(dt))
       .add(pointerForce)
@@ -341,20 +290,16 @@ function animate() {
         home
           .clone()
           .sub(m.position)
-          .multiplyScalar(dt * 0.7),
+          .multiplyScalar(dt * 0.7)
       )
       .multiplyScalar(0.965);
     m.position.addScaledVector(m.userData.v, dt * 4);
   });
   core.rotation.x += dt * 0.18;
   core.rotation.y += dt * 0.27;
-  const coreScale = Math.max(
-    0.001,
-    THREE.MathUtils.smoothstep(p, 0.52, 0.7) * (1 + state.hold * 0.16),
-  );
+  const coreScale = Math.max(0.001, THREE.MathUtils.smoothstep(p, 0.52, 0.7) * (1 + state.hold * 0.16));
   core.scale.setScalar(coreScale);
-  coreGlow.intensity =
-    22 * THREE.MathUtils.smoothstep(p, 0.52, 0.7) * (1 + state.hold * 0.9);
+  coreGlow.intensity = 22 * THREE.MathUtils.smoothstep(p, 0.52, 0.7) * (1 + state.hold * 0.9);
   key.position.x = -3 + pointer.x * 0.7;
   blueLight.position.x = 2 + pointer.x;
   camera.position.x = pointer.x * 0.08;

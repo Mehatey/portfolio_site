@@ -1,17 +1,11 @@
-import {
-	Group
-} from 'three';
+import { Group } from "three";
 
 class USDCParser {
+  parse(buffer) {
+    // TODO
 
-	parse( buffer ) {
-
-		// TODO
-
-		return new Group();
-
-	}
-
+    return new Group();
+  }
 }
 
 export { USDCParser };

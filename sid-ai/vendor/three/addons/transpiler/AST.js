@@ -1,631 +1,463 @@
-import { toFloatType } from './TranspilerUtils.js';
+import { toFloatType } from "./TranspilerUtils.js";
 
 export class ASTNode {
+  constructor() {
+    this.isASTNode = true;
 
-	constructor() {
+    this.linker = {
+      reference: null,
+      accesses: [],
+      assignments: [],
+    };
 
-		this.isASTNode = true;
+    this.parent = null;
+  }
 
-		this.linker = {
-			reference: null,
-			accesses: [],
-			assignments: []
-		};
+  get isNumericExpression() {
+    return false;
+  }
 
-		this.parent = null;
+  get hasAssignment() {
+    if (this.isAssignment === true) {
+      return true;
+    }
 
-	}
+    if (this.parent === null) {
+      return false;
+    }
 
-	get isNumericExpression() {
+    return this.parent.hasAssignment;
+  }
 
-		return false;
+  getType() {
+    return this.type || null;
+  }
 
-	}
+  getParent(parents = []) {
+    if (this.parent === null) {
+      return parents;
+    }
 
-	get hasAssignment() {
+    parents.push(this.parent);
 
-		if ( this.isAssignment === true ) {
+    return this.parent.getParent(parents);
+  }
 
-			return true;
+  initialize() {
+    for (const key in this) {
+      if (this[key] && this[key].isASTNode) {
+        this[key].parent = this;
+      } else if (Array.isArray(this[key])) {
+        const array = this[key];
 
-		}
-
-		if ( this.parent === null ) {
-
-			return false;
-
-		}
-
-		return this.parent.hasAssignment;
-
-	}
-
-	getType() {
-
-		return this.type || null;
-
-	}
-
-	getParent( parents = [] ) {
-
-		if ( this.parent === null ) {
-
-			return parents;
-
-		}
-
-		parents.push( this.parent );
-
-		return this.parent.getParent( parents );
-
-	}
-
-	initialize() {
-
-		for ( const key in this ) {
-
-			if ( this[ key ] && this[ key ].isASTNode ) {
-
-				this[ key ].parent = this;
-
-			} else if ( Array.isArray( this[ key ] ) ) {
-
-				const array = this[ key ];
-
-				for ( const item of array ) {
-
-					if ( item && item.isASTNode ) {
-
-						item.parent = this;
-
-					}
-
-				}
-
-			}
-
-		}
-
-	}
-
+        for (const item of array) {
+          if (item && item.isASTNode) {
+            item.parent = this;
+          }
+        }
+      }
+    }
+  }
 }
 
 export class Comment extends ASTNode {
+  constructor(comment) {
+    super();
 
-	constructor( comment ) {
+    this.comment = comment;
 
-		super();
+    this.isComment = true;
 
-		this.comment = comment;
-
-		this.isComment = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
-
 export class Program extends ASTNode {
+  constructor(body = []) {
+    super();
 
-	constructor( body = [] ) {
+    this.body = body;
 
-		super();
+    this.isProgram = true;
 
-		this.body = body;
-
-		this.isProgram = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class VariableDeclaration extends ASTNode {
+  constructor(type, name, value = null, next = null, immutable = false) {
+    super();
 
-	constructor( type, name, value = null, next = null, immutable = false ) {
+    this.type = type;
+    this.name = name;
+    this.value = value;
+    this.next = next;
 
-		super();
+    this.immutable = immutable;
 
-		this.type = type;
-		this.name = name;
-		this.value = value;
-		this.next = next;
+    this.isVariableDeclaration = true;
 
-		this.immutable = immutable;
+    this.initialize();
+  }
 
-		this.isVariableDeclaration = true;
-
-		this.initialize();
-
-	}
-
-	get isAssignment() {
-
-		return this.value !== null;
-
-	}
-
+  get isAssignment() {
+    return this.value !== null;
+  }
 }
 
 export class Uniform extends ASTNode {
+  constructor(type, name) {
+    super();
 
-	constructor( type, name ) {
+    this.type = type;
+    this.name = name;
 
-		super();
+    this.isUniform = true;
 
-		this.type = type;
-		this.name = name;
-
-		this.isUniform = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Varying extends ASTNode {
+  constructor(type, name) {
+    super();
 
-	constructor( type, name ) {
+    this.type = type;
+    this.name = name;
 
-		super();
+    this.isVarying = true;
 
-		this.type = type;
-		this.name = name;
-
-		this.isVarying = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class FunctionParameter extends ASTNode {
+  constructor(type, name, qualifier = null, immutable = true) {
+    super();
 
-	constructor( type, name, qualifier = null, immutable = true ) {
+    this.type = type;
+    this.name = name;
+    this.qualifier = qualifier;
+    this.immutable = immutable;
 
-		super();
+    this.isFunctionParameter = true;
 
-		this.type = type;
-		this.name = name;
-		this.qualifier = qualifier;
-		this.immutable = immutable;
-
-		this.isFunctionParameter = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class FunctionDeclaration extends ASTNode {
+  constructor(type, name, params = [], body = []) {
+    super();
 
-	constructor( type, name, params = [], body = [] ) {
+    this.type = type;
+    this.name = name;
+    this.params = params;
+    this.body = body;
 
-		super();
+    this.isFunctionDeclaration = true;
 
-		this.type = type;
-		this.name = name;
-		this.params = params;
-		this.body = body;
-
-		this.isFunctionDeclaration = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Expression extends ASTNode {
+  constructor(expression) {
+    super();
 
-	constructor( expression ) {
+    this.expression = expression;
 
-		super();
+    this.isExpression = true;
 
-		this.expression = expression;
-
-		this.isExpression = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Ternary extends ASTNode {
+  constructor(cond, left, right) {
+    super();
 
-	constructor( cond, left, right ) {
+    this.cond = cond;
+    this.left = left;
+    this.right = right;
 
-		super();
+    this.isTernary = true;
 
-		this.cond = cond;
-		this.left = left;
-		this.right = right;
-
-		this.isTernary = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Operator extends ASTNode {
+  constructor(type, left, right) {
+    super();
 
-	constructor( type, left, right ) {
+    this.type = type;
+    this.left = left;
+    this.right = right;
 
-		super();
+    this.isOperator = true;
 
-		this.type = type;
-		this.left = left;
-		this.right = right;
+    this.initialize();
+  }
 
-		this.isOperator = true;
+  get isAssignment() {
+    return /^(=|\+=|-=|\*=|\/=|%=|<<=|>>=|>>>=|&=|\^=|\|=)$/.test(this.type);
+  }
 
-		this.initialize();
+  get isNumericExpression() {
+    if (this.left.isNumericExpression && this.right.isNumericExpression) {
+      return true;
+    }
 
-	}
+    return false;
+  }
 
-	get isAssignment() {
+  getType() {
+    const leftType = this.left.getType();
+    const rightType = this.right.getType();
 
-		return /^(=|\+=|-=|\*=|\/=|%=|<<=|>>=|>>>=|&=|\^=|\|=)$/.test( this.type );
+    if (leftType === rightType) {
+      return leftType;
+    } else if (toFloatType(leftType) === toFloatType(rightType)) {
+      return toFloatType(leftType);
+    }
 
-	}
-
-	get isNumericExpression() {
-
-		if ( this.left.isNumericExpression && this.right.isNumericExpression ) {
-
-			return true;
-
-		}
-
-		return false;
-
-	}
-
-	getType() {
-
-		const leftType = this.left.getType();
-		const rightType = this.right.getType();
-
-		if ( leftType === rightType ) {
-
-			return leftType;
-
-		} else if ( toFloatType( leftType ) === toFloatType( rightType ) ) {
-
-			return toFloatType( leftType );
-
-		}
-
-		return null;
-
-	}
-
+    return null;
+  }
 }
 
-
 export class Unary extends ASTNode {
+  constructor(type, expression, after = false) {
+    super();
 
-	constructor( type, expression, after = false ) {
+    this.type = type;
+    this.expression = expression;
+    this.after = after;
 
-		super();
+    this.isUnary = true;
 
-		this.type = type;
-		this.expression = expression;
-		this.after = after;
+    this.initialize();
+  }
 
-		this.isUnary = true;
+  get isAssignment() {
+    return /^(\+\+|--)$/.test(this.type);
+  }
 
-		this.initialize();
+  get isNumericExpression() {
+    if (this.expression.isNumber) {
+      return true;
+    }
 
-	}
-
-	get isAssignment() {
-
-		return /^(\+\+|--)$/.test( this.type );
-
-	}
-
-	get isNumericExpression() {
-
-		if ( this.expression.isNumber ) {
-
-			return true;
-
-		}
-
-		return false;
-
-	}
-
+    return false;
+  }
 }
 
 export class Number extends ASTNode {
+  constructor(value, type = "float") {
+    super();
 
-	constructor( value, type = 'float' ) {
+    this.type = type;
+    this.value = value;
 
-		super();
+    this.isNumber = true;
 
-		this.type = type;
-		this.value = value;
+    this.initialize();
+  }
 
-		this.isNumber = true;
-
-		this.initialize();
-
-	}
-
-	get isNumericExpression() {
-
-		return true;
-
-	}
-
+  get isNumericExpression() {
+    return true;
+  }
 }
 
 export class String extends ASTNode {
+  constructor(value) {
+    super();
 
-	constructor( value ) {
+    this.value = value;
 
-		super();
+    this.isString = true;
 
-		this.value = value;
-
-		this.isString = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
-
 export class Conditional extends ASTNode {
+  constructor(cond = null, body = []) {
+    super();
 
-	constructor( cond = null, body = [] ) {
+    this.cond = cond;
+    this.body = body;
+    this.elseConditional = null;
 
-		super();
+    this.isConditional = true;
 
-		this.cond = cond;
-		this.body = body;
-		this.elseConditional = null;
-
-		this.isConditional = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class FunctionCall extends ASTNode {
+  constructor(name, params = []) {
+    super();
 
-	constructor( name, params = [] ) {
+    this.name = name;
+    this.params = params;
 
-		super();
+    this.isFunctionCall = true;
 
-		this.name = name;
-		this.params = params;
-
-		this.isFunctionCall = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Return extends ASTNode {
+  constructor(value) {
+    super();
 
-	constructor( value ) {
+    this.value = value;
 
-		super();
+    this.isReturn = true;
 
-		this.value = value;
-
-		this.isReturn = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Discard extends ASTNode {
+  constructor() {
+    super();
 
-	constructor() {
+    this.isDiscard = true;
 
-		super();
-
-		this.isDiscard = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Continue extends ASTNode {
+  constructor() {
+    super();
 
-	constructor() {
+    this.isContinue = true;
 
-		super();
-
-		this.isContinue = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Break extends ASTNode {
+  constructor() {
+    super();
 
-	constructor() {
+    this.isBreak = true;
 
-		super();
-
-		this.isBreak = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class Accessor extends ASTNode {
+  constructor(property) {
+    super();
 
-	constructor( property ) {
+    this.property = property;
 
-		super();
+    this.isAccessor = true;
 
-		this.property = property;
+    this.initialize();
+  }
 
-		this.isAccessor = true;
+  getType() {
+    if (this.linker.reference) {
+      return this.linker.reference.getType();
+    }
 
-		this.initialize();
-
-	}
-
-	getType() {
-
-		if ( this.linker.reference ) {
-
-			return this.linker.reference.getType();
-
-		}
-
-		return super.getType();
-
-	}
-
+    return super.getType();
+  }
 }
 
 export class StaticElement extends ASTNode {
+  constructor(value) {
+    super();
 
-	constructor( value ) {
+    this.value = value;
 
-		super();
+    this.isStaticElement = true;
 
-		this.value = value;
-
-		this.isStaticElement = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class DynamicElement extends ASTNode {
+  constructor(value) {
+    super();
 
-	constructor( value ) {
+    this.value = value;
 
-		super();
+    this.isDynamicElement = true;
 
-		this.value = value;
-
-		this.isDynamicElement = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class AccessorElements extends ASTNode {
+  constructor(object, elements = []) {
+    super();
 
-	constructor( object, elements = [] ) {
+    this.object = object;
+    this.elements = elements;
 
-		super();
+    this.isAccessorElements = true;
 
-		this.object = object;
-		this.elements = elements;
-
-		this.isAccessorElements = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class For extends ASTNode {
+  constructor(initialization, condition, afterthought, body = []) {
+    super();
 
-	constructor( initialization, condition, afterthought, body = [] ) {
+    this.initialization = initialization;
+    this.condition = condition;
+    this.afterthought = afterthought;
+    this.body = body;
 
-		super();
+    this.isFor = true;
 
-		this.initialization = initialization;
-		this.condition = condition;
-		this.afterthought = afterthought;
-		this.body = body;
-
-		this.isFor = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class While extends ASTNode {
+  constructor(condition, body = []) {
+    super();
 
-	constructor( condition, body = [] ) {
+    this.condition = condition;
+    this.body = body;
 
-		super();
+    this.isWhile = true;
 
-		this.condition = condition;
-		this.body = body;
-
-		this.isWhile = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
-
 export class Switch extends ASTNode {
+  constructor(discriminant, cases) {
+    super();
 
-	constructor( discriminant, cases ) {
+    this.discriminant = discriminant;
+    this.cases = cases;
 
-		super();
+    this.isSwitch = true;
 
-		this.discriminant = discriminant;
-		this.cases = cases;
-
-		this.isSwitch = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }
 
 export class SwitchCase extends ASTNode {
+  constructor(body, conditions = null) {
+    super();
 
-	constructor( body, conditions = null ) {
+    this.body = body;
+    this.conditions = conditions;
 
-		super();
+    this.isDefault = conditions === null ? true : false;
+    this.isSwitchCase = true;
 
-		this.body = body;
-		this.conditions = conditions;
-
-		this.isDefault = conditions === null ? true : false;
-		this.isSwitchCase = true;
-
-		this.initialize();
-
-	}
-
+    this.initialize();
+  }
 }

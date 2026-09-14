@@ -1023,3 +1023,71 @@ rAF loop**, so hiding one to test its cost measures nothing. Profile instead.
 ## Portfolio imagery direction, September 8, 2026
 
 Before generating portfolio media, read [VISUAL_DIRECTION.md](VISUAL_DIRECTION.md). It records Siddharth's explicit selections and corrections, including human use in credible environments, natural blur and imperfect available light, exact artwork mapping, and the preferred Marriott hotel tablet direction.
+
+# STATE AS OF 14 SEP 2026 — the batch Sid had been waiting on
+
+**§7 "Open items" above is superseded.** It still opens with "PUSH THE SEVENTEEN
+COMMITS", which was true in August. Read this section instead.
+
+This session worked through a long list Sid had given in one message and then
+had to ask about twice, because an earlier reply had said the list was clear
+when only two items on it were. Everything below is built, verified in a real
+browser, and pushed.
+
+## What changed
+
+**The disciplines and the pillars became one section.** `_includes/home_fold.html`
+replaces the particle monolith AND the three-pillar `.range` block, which were
+the same claim made twice on one page. A flat cube net folds into a cube as you
+scroll; every face is a real element with real type on it; the readout beside it
+carries the name and the work. Two traps in it are worth knowing before touching
+it: the faces must NOT use `inset: 0` (each hinge sets one offset, and an inset
+that has already pinned the opposite edge resolves to negative width), and two of
+the four hinge signs were backwards at first, which does not look like a wrong
+fold -- it looks like a box assembling around the wrong axis with one face's type
+mirrored, because you are reading its back.
+
+**The four project cards became a cube.** `_includes/home_work_cube.html`. Turns a
+quarter per screen, drag to spin, click a face that is not in front to turn to it.
+Every face is still a real anchor with the project's name in it.
+
+**The corner controls** are drawn in the site's own pixel language now, the emboss
+is off all four (it was restated in four places across two files, and the last
+declaration wins -- which is why it kept coming back), and they arc out of the
+cube on a reversed closing stagger.
+
+**Hand steering can scroll.** Pinch is held rather than instantaneous; vertical
+travel while held scrolls; a pinch that barely moved is still a click. The HUD is
+one panel docked above the hand toggle rather than three loose pieces.
+
+**The footer** is full bleed, lower, with the status line given room; the field
+behind the polaroids steps through five patterns on pointer enter, rings on click
+and carries pixel stars; and the closing line pixelates and forms on arrival.
+
+**The clothesline's tiles were being cut at the centre** by the row's own edge
+mask, and then by `.sid-strip`'s `overflow: hidden` once the row had bleed. The
+strip uses `overflow: clip` with a 64px clip margin now -- overflow cannot say
+"one axis only", and clip can.
+
+**Every page speaks.** The `cube` lines in `_data/works.yml` were only ever
+rendered on /works/; project pages carry theirs on `<main>` now, and the pages
+that are not projects have one line each.
+
+## Genuinely open
+
+1. **The resume PDF.** Sid says it reads "Kyoorius Creative Award"; the site is
+   right and says Design. The text could not be found in the PDF's text
+   operators, so it is likely a vector or image export -- it needs fixing in the
+   source document, not here.
+2. **`output/` is 4,510 files and 1.3GB, tracked in git.** It is already excluded
+   from the build (`_config.yml`), so nothing is published from it, but it is a
+   large share of the 15GB `.git`. Removing it from history is a rewrite and
+   needs Sid's explicit say-so; `git rm --cached` alone would not shrink history.
+3. **`/cv/` returns 404** and `_data/cv.yml` is stale. Nothing on the site links
+   to either, so this is dead weight rather than a broken link.
+4. **`/4.mandala/` still ships 176MB** after excluding 60MB of unreferenced cover
+   alternates. The page itself requests 27 files and 29.2MB; most of the rest is
+   a 30MB thesis PDF that IS linked, plus source-resolution stills. Cutting
+   further means re-encoding Sid's own artwork, which is his call.
+5. **The voiceover.** Thirteen scripts written, no audio recorded, no player
+   built.

@@ -1,4 +1,4 @@
-import Linker from './Linker.js';
+import Linker from "./Linker.js";
 
 /**
  * A class that transpiles shader code from one language into another.
@@ -10,58 +10,52 @@ import Linker from './Linker.js';
  * @three_import import Transpiler from 'three/addons/transpiler/Transpiler.js';
  */
 class Transpiler {
+  /**
+   * Constructs a new transpiler.
+   *
+   * @param {GLSLDecoder} decoder - The GLSL decoder.
+   * @param {TSLEncoder} encoder - The TSL encoder.
+   */
+  constructor(decoder, encoder) {
+    /**
+     * The GLSL decoder. This component parse GLSL and produces
+     * a language-independent AST for further processing.
+     *
+     * @type {GLSLDecoder}
+     */
+    this.decoder = decoder;
 
-	/**
-	 * Constructs a new transpiler.
-	 *
-	 * @param {GLSLDecoder} decoder - The GLSL decoder.
-	 * @param {TSLEncoder} encoder - The TSL encoder.
-	 */
-	constructor( decoder, encoder ) {
+    /**
+     * The TSL encoder. It takes the AST and emits TSL code.
+     *
+     * @type {TSLEncoder}
+     */
+    this.encoder = encoder;
 
-		/**
-		 * The GLSL decoder. This component parse GLSL and produces
-		 * a language-independent AST for further processing.
-		 *
-		 * @type {GLSLDecoder}
-		 */
-		this.decoder = decoder;
+    /**
+     * The linker. It processes the AST and resolves
+     * variable and function references, ensuring that all
+     * dependencies are properly linked.
+     *
+     * @type {Linker}
+     */
+    this.linker = new Linker();
+  }
 
-		/**
-		 * The TSL encoder. It takes the AST and emits TSL code.
-		 *
-		 * @type {TSLEncoder}
-		 */
-		this.encoder = encoder;
+  /**
+   * Parses the given GLSL source and returns TSL syntax.
+   *
+   * @param {string} source - The GLSL source.
+   * @return {string} The TSL code.
+   */
+  parse(source) {
+    const ast = this.decoder.parse(source);
 
-		/**
-		 * The linker. It processes the AST and resolves
-		 * variable and function references, ensuring that all
-		 * dependencies are properly linked.
-		 *
-		 * @type {Linker}
-		 */
-		this.linker = new Linker();
+    // Process the AST to resolve variable and function references and optimizations.
+    this.linker.process(ast);
 
-	}
-
-	/**
-	 * Parses the given GLSL source and returns TSL syntax.
-	 *
-	 * @param {string} source - The GLSL source.
-	 * @return {string} The TSL code.
-	 */
-	parse( source ) {
-
-		const ast = this.decoder.parse( source );
-
-		// Process the AST to resolve variable and function references and optimizations.
-		this.linker.process( ast );
-
-		return this.encoder.emit( ast );
-
-	}
-
+    return this.encoder.emit(ast);
+  }
 }
 
 export default Transpiler;

@@ -13,17 +13,14 @@
  * @type {ShaderMaterial~Shader}
  */
 const OutputShader = {
+  name: "OutputShader",
 
-	name: 'OutputShader',
+  uniforms: {
+    tDiffuse: { value: null },
+    toneMappingExposure: { value: 1 },
+  },
 
-	uniforms: {
-
-		'tDiffuse': { value: null },
-		'toneMappingExposure': { value: 1 }
-
-	},
-
-	vertexShader: /* glsl */`
+  vertexShader: /* glsl */ `
 		precision highp float;
 
 		uniform mat4 modelViewMatrix;
@@ -41,7 +38,7 @@ const OutputShader = {
 
 		}`,
 
-	fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */ `
 
 		precision highp float;
 
@@ -96,8 +93,7 @@ const OutputShader = {
 
 			#endif
 
-		}`
-
+		}`,
 };
 
 export { OutputShader };

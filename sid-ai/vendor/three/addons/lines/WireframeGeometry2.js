@@ -1,7 +1,5 @@
-import {
-	WireframeGeometry
-} from 'three';
-import { LineSegmentsGeometry } from './LineSegmentsGeometry.js';
+import { WireframeGeometry } from "three";
+import { LineSegmentsGeometry } from "./LineSegmentsGeometry.js";
 
 /**
  * A special type of line segments geometry intended for wireframe rendering.
@@ -17,33 +15,29 @@ import { LineSegmentsGeometry } from './LineSegmentsGeometry.js';
  * @three_import import { WireframeGeometry2 } from 'three/addons/lines/WireframeGeometry2.js';
  */
 class WireframeGeometry2 extends LineSegmentsGeometry {
+  /**
+   * Constructs a new wireframe geometry.
+   *
+   * @param {BufferGeometry} [geometry] - The geometry to render the wireframe for.
+   */
+  constructor(geometry) {
+    super();
 
-	/**
-	 * Constructs a new wireframe geometry.
-	 *
-	 * @param {BufferGeometry} [geometry] - The geometry to render the wireframe for.
-	 */
-	constructor( geometry ) {
+    /**
+     * This flag can be used for type testing.
+     *
+     * @type {boolean}
+     * @readonly
+     * @default true
+     */
+    this.isWireframeGeometry2 = true;
 
-		super();
+    this.type = "WireframeGeometry2";
 
-		/**
-		 * This flag can be used for type testing.
-		 *
-		 * @type {boolean}
-		 * @readonly
-		 * @default true
-		 */
-		this.isWireframeGeometry2 = true;
+    this.fromWireframeGeometry(new WireframeGeometry(geometry));
 
-		this.type = 'WireframeGeometry2';
-
-		this.fromWireframeGeometry( new WireframeGeometry( geometry ) );
-
-		// set colors, maybe
-
-	}
-
+    // set colors, maybe
+  }
 }
 
 export { WireframeGeometry2 };

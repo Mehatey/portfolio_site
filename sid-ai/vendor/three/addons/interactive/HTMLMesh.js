@@ -1,12 +1,4 @@
-import {
-	CanvasTexture,
-	LinearFilter,
-	Mesh,
-	MeshBasicMaterial,
-	PlaneGeometry,
-	SRGBColorSpace,
-	Color
-} from 'three';
+import { CanvasTexture, LinearFilter, Mesh, MeshBasicMaterial, PlaneGeometry, SRGBColorSpace, Color } from "three";
 
 /**
  * This class can be used to render a DOM element onto a canvas and use it as a texture
@@ -26,580 +18,490 @@ import {
  * @three_import import { HTMLMesh } from 'three/addons/interactive/HTMLMesh.js';
  */
 class HTMLMesh extends Mesh {
+  /**
+   * Constructs a new HTML mesh.
+   *
+   * @param {HTMLElement} dom - The DOM element to display as a plane mesh.
+   */
+  constructor(dom) {
+    const texture = new HTMLTexture(dom);
 
-	/**
-	 * Constructs a new HTML mesh.
-	 *
-	 * @param {HTMLElement} dom - The DOM element to display as a plane mesh.
-	 */
-	constructor( dom ) {
+    const geometry = new PlaneGeometry(texture.image.width * 0.001, texture.image.height * 0.001);
+    const material = new MeshBasicMaterial({ map: texture, toneMapped: false, transparent: true });
 
-		const texture = new HTMLTexture( dom );
+    super(geometry, material);
 
-		const geometry = new PlaneGeometry( texture.image.width * 0.001, texture.image.height * 0.001 );
-		const material = new MeshBasicMaterial( { map: texture, toneMapped: false, transparent: true } );
+    function onEvent(event) {
+      material.map.dispatchDOMEvent(event);
+    }
 
-		super( geometry, material );
+    this.addEventListener("mousedown", onEvent);
+    this.addEventListener("mousemove", onEvent);
+    this.addEventListener("mouseup", onEvent);
+    this.addEventListener("click", onEvent);
 
-		function onEvent( event ) {
+    /**
+     * Frees the GPU-related resources allocated by this instance and removes all event listeners.
+     * Call this method whenever this instance is no longer used in your app.
+     */
+    this.dispose = function () {
+      geometry.dispose();
+      material.dispose();
 
-			material.map.dispatchDOMEvent( event );
+      material.map.dispose();
 
-		}
+      canvases.delete(dom);
 
-		this.addEventListener( 'mousedown', onEvent );
-		this.addEventListener( 'mousemove', onEvent );
-		this.addEventListener( 'mouseup', onEvent );
-		this.addEventListener( 'click', onEvent );
-
-		/**
-		 * Frees the GPU-related resources allocated by this instance and removes all event listeners.
-		 * Call this method whenever this instance is no longer used in your app.
-		 */
-		this.dispose = function () {
-
-			geometry.dispose();
-			material.dispose();
-
-			material.map.dispose();
-
-			canvases.delete( dom );
-
-			this.removeEventListener( 'mousedown', onEvent );
-			this.removeEventListener( 'mousemove', onEvent );
-			this.removeEventListener( 'mouseup', onEvent );
-			this.removeEventListener( 'click', onEvent );
-
-		};
-
-	}
-
+      this.removeEventListener("mousedown", onEvent);
+      this.removeEventListener("mousemove", onEvent);
+      this.removeEventListener("mouseup", onEvent);
+      this.removeEventListener("click", onEvent);
+    };
+  }
 }
 
 class HTMLTexture extends CanvasTexture {
+  constructor(dom) {
+    super(html2canvas(dom));
 
-	constructor( dom ) {
+    this.dom = dom;
 
-		super( html2canvas( dom ) );
+    this.anisotropy = 16;
+    this.colorSpace = SRGBColorSpace;
+    this.minFilter = LinearFilter;
+    this.magFilter = LinearFilter;
+    this.generateMipmaps = false;
 
-		this.dom = dom;
+    // Create an observer on the DOM, and run html2canvas update in the next loop
+    const observer = new MutationObserver(() => {
+      if (!this.scheduleUpdate) {
+        // ideally should use xr.requestAnimationFrame, here setTimeout to avoid passing the renderer
+        this.scheduleUpdate = setTimeout(() => this.update(), 16);
+      }
+    });
 
-		this.anisotropy = 16;
-		this.colorSpace = SRGBColorSpace;
-		this.minFilter = LinearFilter;
-		this.magFilter = LinearFilter;
-		this.generateMipmaps = false;
+    const config = { attributes: true, childList: true, subtree: true, characterData: true };
+    observer.observe(dom, config);
 
-		// Create an observer on the DOM, and run html2canvas update in the next loop
-		const observer = new MutationObserver( () => {
+    this.observer = observer;
+  }
 
-			if ( ! this.scheduleUpdate ) {
+  dispatchDOMEvent(event) {
+    if (event.data) {
+      htmlevent(this.dom, event.type, event.data.x, event.data.y);
+    }
+  }
 
-				// ideally should use xr.requestAnimationFrame, here setTimeout to avoid passing the renderer
-				this.scheduleUpdate = setTimeout( () => this.update(), 16 );
+  update() {
+    this.image = html2canvas(this.dom);
+    this.needsUpdate = true;
 
-			}
+    this.scheduleUpdate = null;
+  }
 
-		} );
+  dispose() {
+    if (this.observer) {
+      this.observer.disconnect();
+    }
 
-		const config = { attributes: true, childList: true, subtree: true, characterData: true };
-		observer.observe( dom, config );
+    this.scheduleUpdate = clearTimeout(this.scheduleUpdate);
 
-		this.observer = observer;
-
-	}
-
-	dispatchDOMEvent( event ) {
-
-		if ( event.data ) {
-
-			htmlevent( this.dom, event.type, event.data.x, event.data.y );
-
-		}
-
-	}
-
-	update() {
-
-		this.image = html2canvas( this.dom );
-		this.needsUpdate = true;
-
-		this.scheduleUpdate = null;
-
-	}
-
-	dispose() {
-
-		if ( this.observer ) {
-
-			this.observer.disconnect();
-
-		}
-
-		this.scheduleUpdate = clearTimeout( this.scheduleUpdate );
-
-		super.dispose();
-
-	}
-
+    super.dispose();
+  }
 }
-
 
 //
 
 const canvases = new WeakMap();
 
-function html2canvas( element ) {
+function html2canvas(element) {
+  const range = document.createRange();
+  const color = new Color();
+
+  function Clipper(context) {
+    const clips = [];
+    let isClipping = false;
+
+    function doClip() {
+      if (isClipping) {
+        isClipping = false;
+        context.restore();
+      }
+
+      if (clips.length === 0) return;
+
+      let minX = -Infinity,
+        minY = -Infinity;
+      let maxX = Infinity,
+        maxY = Infinity;
+
+      for (let i = 0; i < clips.length; i++) {
+        const clip = clips[i];
+
+        minX = Math.max(minX, clip.x);
+        minY = Math.max(minY, clip.y);
+        maxX = Math.min(maxX, clip.x + clip.width);
+        maxY = Math.min(maxY, clip.y + clip.height);
+      }
+
+      context.save();
+      context.beginPath();
+      context.rect(minX, minY, maxX - minX, maxY - minY);
+      context.clip();
+
+      isClipping = true;
+    }
+
+    return {
+      add: function (clip) {
+        clips.push(clip);
+        doClip();
+      },
+
+      remove: function () {
+        clips.pop();
+        doClip();
+      },
+    };
+  }
+
+  function drawText(style, x, y, string) {
+    if (string !== "") {
+      if (style.textTransform === "uppercase") {
+        string = string.toUpperCase();
+      }
+
+      context.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
+      context.textBaseline = "top";
+      context.fillStyle = style.color;
+      context.fillText(string, x, y + parseFloat(style.fontSize) * 0.1);
+    }
+  }
+
+  function buildRectPath(x, y, w, h, r) {
+    if (w < 2 * r) r = w / 2;
+    if (h < 2 * r) r = h / 2;
+
+    context.beginPath();
+    context.moveTo(x + r, y);
+    context.arcTo(x + w, y, x + w, y + h, r);
+    context.arcTo(x + w, y + h, x, y + h, r);
+    context.arcTo(x, y + h, x, y, r);
+    context.arcTo(x, y, x + w, y, r);
+    context.closePath();
+  }
+
+  function drawBorder(style, which, x, y, width, height) {
+    const borderWidth = style[which + "Width"];
+    const borderStyle = style[which + "Style"];
+    const borderColor = style[which + "Color"];
+
+    if (borderWidth !== "0px" && borderStyle !== "none" && borderColor !== "transparent" && borderColor !== "rgba(0, 0, 0, 0)") {
+      context.strokeStyle = borderColor;
+      context.lineWidth = parseFloat(borderWidth);
+      context.beginPath();
+      context.moveTo(x, y);
+      context.lineTo(x + width, y + height);
+      context.stroke();
+    }
+  }
+
+  function drawElement(element, style) {
+    // Do not render invisible elements, comments and scripts.
+    if (element.nodeType === Node.COMMENT_NODE || element.nodeName === "SCRIPT" || (element.style && element.style.display === "none")) {
+      return;
+    }
+
+    let x = 0,
+      y = 0,
+      width = 0,
+      height = 0;
 
-	const range = document.createRange();
-	const color = new Color();
+    if (element.nodeType === Node.TEXT_NODE) {
+      // text
 
-	function Clipper( context ) {
+      range.selectNode(element);
 
-		const clips = [];
-		let isClipping = false;
+      const rect = range.getBoundingClientRect();
 
-		function doClip() {
+      x = rect.left - offset.left - 0.5;
+      y = rect.top - offset.top - 0.5;
+      width = rect.width;
+      height = rect.height;
 
-			if ( isClipping ) {
+      drawText(style, x, y, element.nodeValue.trim());
+    } else if (element instanceof HTMLCanvasElement) {
+      // Canvas element
 
-				isClipping = false;
-				context.restore();
+      const rect = element.getBoundingClientRect();
 
-			}
+      x = rect.left - offset.left - 0.5;
+      y = rect.top - offset.top - 0.5;
 
-			if ( clips.length === 0 ) return;
+      context.save();
+      const dpr = window.devicePixelRatio;
+      context.scale(1 / dpr, 1 / dpr);
+      context.drawImage(element, x, y);
+      context.restore();
+    } else if (element instanceof HTMLImageElement) {
+      const rect = element.getBoundingClientRect();
 
-			let minX = - Infinity, minY = - Infinity;
-			let maxX = Infinity, maxY = Infinity;
+      x = rect.left - offset.left - 0.5;
+      y = rect.top - offset.top - 0.5;
+      width = rect.width;
+      height = rect.height;
 
-			for ( let i = 0; i < clips.length; i ++ ) {
+      context.drawImage(element, x, y, width, height);
+    } else {
+      const rect = element.getBoundingClientRect();
 
-				const clip = clips[ i ];
+      x = rect.left - offset.left - 0.5;
+      y = rect.top - offset.top - 0.5;
+      width = rect.width;
+      height = rect.height;
 
-				minX = Math.max( minX, clip.x );
-				minY = Math.max( minY, clip.y );
-				maxX = Math.min( maxX, clip.x + clip.width );
-				maxY = Math.min( maxY, clip.y + clip.height );
+      style = window.getComputedStyle(element);
 
-			}
+      // Get the border of the element used for fill and border
 
-			context.save();
-			context.beginPath();
-			context.rect( minX, minY, maxX - minX, maxY - minY );
-			context.clip();
+      buildRectPath(x, y, width, height, parseFloat(style.borderRadius));
 
-			isClipping = true;
+      const backgroundColor = style.backgroundColor;
 
-		}
+      if (backgroundColor !== "transparent" && backgroundColor !== "rgba(0, 0, 0, 0)") {
+        context.fillStyle = backgroundColor;
+        context.fill();
+      }
 
-		return {
+      // If all the borders match then stroke the round rectangle
 
-			add: function ( clip ) {
+      const borders = ["borderTop", "borderLeft", "borderBottom", "borderRight"];
 
-				clips.push( clip );
-				doClip();
+      let match = true;
+      let prevBorder = null;
 
-			},
+      for (const border of borders) {
+        if (prevBorder !== null) {
+          match =
+            style[border + "Width"] === style[prevBorder + "Width"] &&
+            style[border + "Color"] === style[prevBorder + "Color"] &&
+            style[border + "Style"] === style[prevBorder + "Style"];
+        }
 
-			remove: function () {
+        if (match === false) break;
 
-				clips.pop();
-				doClip();
+        prevBorder = border;
+      }
 
-			}
+      if (match === true) {
+        // They all match so stroke the rectangle from before allows for border-radius
 
-		};
+        const width = parseFloat(style.borderTopWidth);
 
-	}
+        if (
+          style.borderTopWidth !== "0px" &&
+          style.borderTopStyle !== "none" &&
+          style.borderTopColor !== "transparent" &&
+          style.borderTopColor !== "rgba(0, 0, 0, 0)"
+        ) {
+          context.strokeStyle = style.borderTopColor;
+          context.lineWidth = width;
+          context.stroke();
+        }
+      } else {
+        // Otherwise draw individual borders
 
-	function drawText( style, x, y, string ) {
+        drawBorder(style, "borderTop", x, y, width, 0);
+        drawBorder(style, "borderLeft", x, y, 0, height);
+        drawBorder(style, "borderBottom", x, y + height, width, 0);
+        drawBorder(style, "borderRight", x + width, y, 0, height);
+      }
 
-		if ( string !== '' ) {
+      if (element instanceof HTMLInputElement) {
+        let accentColor = style.accentColor;
 
-			if ( style.textTransform === 'uppercase' ) {
+        if (accentColor === undefined || accentColor === "auto") accentColor = style.color;
 
-				string = string.toUpperCase();
+        color.set(accentColor);
 
-			}
+        const luminance = Math.sqrt(0.299 * color.r ** 2 + 0.587 * color.g ** 2 + 0.114 * color.b ** 2);
+        const accentTextColor = luminance < 0.5 ? "white" : "#111111";
 
-			context.font = style.fontWeight + ' ' + style.fontSize + ' ' + style.fontFamily;
-			context.textBaseline = 'top';
-			context.fillStyle = style.color;
-			context.fillText( string, x, y + parseFloat( style.fontSize ) * 0.1 );
+        if (element.type === "radio") {
+          buildRectPath(x, y, width, height, height);
 
-		}
+          context.fillStyle = "white";
+          context.strokeStyle = accentColor;
+          context.lineWidth = 1;
+          context.fill();
+          context.stroke();
 
-	}
+          if (element.checked) {
+            buildRectPath(x + 2, y + 2, width - 4, height - 4, height);
 
-	function buildRectPath( x, y, w, h, r ) {
+            context.fillStyle = accentColor;
+            context.strokeStyle = accentTextColor;
+            context.lineWidth = 2;
+            context.fill();
+            context.stroke();
+          }
+        }
 
-		if ( w < 2 * r ) r = w / 2;
-		if ( h < 2 * r ) r = h / 2;
+        if (element.type === "checkbox") {
+          buildRectPath(x, y, width, height, 2);
 
-		context.beginPath();
-		context.moveTo( x + r, y );
-		context.arcTo( x + w, y, x + w, y + h, r );
-		context.arcTo( x + w, y + h, x, y + h, r );
-		context.arcTo( x, y + h, x, y, r );
-		context.arcTo( x, y, x + w, y, r );
-		context.closePath();
+          context.fillStyle = element.checked ? accentColor : "white";
+          context.strokeStyle = element.checked ? accentTextColor : accentColor;
+          context.lineWidth = 1;
+          context.stroke();
+          context.fill();
 
-	}
+          if (element.checked) {
+            const currentTextAlign = context.textAlign;
 
-	function drawBorder( style, which, x, y, width, height ) {
+            context.textAlign = "center";
 
-		const borderWidth = style[ which + 'Width' ];
-		const borderStyle = style[ which + 'Style' ];
-		const borderColor = style[ which + 'Color' ];
+            const properties = {
+              color: accentTextColor,
+              fontFamily: style.fontFamily,
+              fontSize: height + "px",
+              fontWeight: "bold",
+            };
 
-		if ( borderWidth !== '0px' && borderStyle !== 'none' && borderColor !== 'transparent' && borderColor !== 'rgba(0, 0, 0, 0)' ) {
+            drawText(properties, x + width / 2, y, "✔");
 
-			context.strokeStyle = borderColor;
-			context.lineWidth = parseFloat( borderWidth );
-			context.beginPath();
-			context.moveTo( x, y );
-			context.lineTo( x + width, y + height );
-			context.stroke();
+            context.textAlign = currentTextAlign;
+          }
+        }
 
-		}
+        if (element.type === "range") {
+          const [min, max, value] = ["min", "max", "value"].map((property) => parseFloat(element[property]));
+          const position = ((value - min) / (max - min)) * (width - height);
 
-	}
+          buildRectPath(x, y + height / 4, width, height / 2, height / 4);
+          context.fillStyle = accentTextColor;
+          context.strokeStyle = accentColor;
+          context.lineWidth = 1;
+          context.fill();
+          context.stroke();
 
-	function drawElement( element, style ) {
+          buildRectPath(x, y + height / 4, position + height / 2, height / 2, height / 4);
+          context.fillStyle = accentColor;
+          context.fill();
 
-		// Do not render invisible elements, comments and scripts.
-		if ( element.nodeType === Node.COMMENT_NODE || element.nodeName === 'SCRIPT' || ( element.style && element.style.display === 'none' ) ) {
+          buildRectPath(x + position, y, height, height, height / 2);
+          context.fillStyle = accentColor;
+          context.fill();
+        }
 
-			return;
+        if (
+          element.type === "color" ||
+          element.type === "text" ||
+          element.type === "number" ||
+          element.type === "email" ||
+          element.type === "password"
+        ) {
+          clipper.add({ x: x, y: y, width: width, height: height });
 
-		}
+          const displayValue = element.type === "password" ? "*".repeat(element.value.length) : element.value;
 
-		let x = 0, y = 0, width = 0, height = 0;
+          drawText(style, x + parseInt(style.paddingLeft), y + parseInt(style.paddingTop), displayValue);
 
-		if ( element.nodeType === Node.TEXT_NODE ) {
+          clipper.remove();
+        }
+      }
+    }
 
-			// text
-
-			range.selectNode( element );
-
-			const rect = range.getBoundingClientRect();
-
-			x = rect.left - offset.left - 0.5;
-			y = rect.top - offset.top - 0.5;
-			width = rect.width;
-			height = rect.height;
-
-			drawText( style, x, y, element.nodeValue.trim() );
-
-		} else if ( element instanceof HTMLCanvasElement ) {
-
-			// Canvas element
-
-			const rect = element.getBoundingClientRect();
-
-			x = rect.left - offset.left - 0.5;
-			y = rect.top - offset.top - 0.5;
-
-		        context.save();
-			const dpr = window.devicePixelRatio;
-			context.scale( 1 / dpr, 1 / dpr );
-			context.drawImage( element, x, y );
-			context.restore();
-
-		} else if ( element instanceof HTMLImageElement ) {
-
-			const rect = element.getBoundingClientRect();
-
-			x = rect.left - offset.left - 0.5;
-			y = rect.top - offset.top - 0.5;
-			width = rect.width;
-			height = rect.height;
-
-			context.drawImage( element, x, y, width, height );
-
-		} else {
-
-			const rect = element.getBoundingClientRect();
-
-			x = rect.left - offset.left - 0.5;
-			y = rect.top - offset.top - 0.5;
-			width = rect.width;
-			height = rect.height;
-
-			style = window.getComputedStyle( element );
-
-			// Get the border of the element used for fill and border
-
-			buildRectPath( x, y, width, height, parseFloat( style.borderRadius ) );
-
-			const backgroundColor = style.backgroundColor;
-
-			if ( backgroundColor !== 'transparent' && backgroundColor !== 'rgba(0, 0, 0, 0)' ) {
-
-				context.fillStyle = backgroundColor;
-				context.fill();
-
-			}
-
-			// If all the borders match then stroke the round rectangle
-
-			const borders = [ 'borderTop', 'borderLeft', 'borderBottom', 'borderRight' ];
-
-			let match = true;
-			let prevBorder = null;
-
-			for ( const border of borders ) {
-
-				if ( prevBorder !== null ) {
-
-					match = ( style[ border + 'Width' ] === style[ prevBorder + 'Width' ] ) &&
-					( style[ border + 'Color' ] === style[ prevBorder + 'Color' ] ) &&
-					( style[ border + 'Style' ] === style[ prevBorder + 'Style' ] );
-
-				}
-
-				if ( match === false ) break;
-
-				prevBorder = border;
-
-			}
-
-			if ( match === true ) {
-
-				// They all match so stroke the rectangle from before allows for border-radius
-
-				const width = parseFloat( style.borderTopWidth );
-
-				if ( style.borderTopWidth !== '0px' && style.borderTopStyle !== 'none' && style.borderTopColor !== 'transparent' && style.borderTopColor !== 'rgba(0, 0, 0, 0)' ) {
-
-					context.strokeStyle = style.borderTopColor;
-					context.lineWidth = width;
-					context.stroke();
-
-				}
-
-			} else {
-
-				// Otherwise draw individual borders
-
-				drawBorder( style, 'borderTop', x, y, width, 0 );
-				drawBorder( style, 'borderLeft', x, y, 0, height );
-				drawBorder( style, 'borderBottom', x, y + height, width, 0 );
-				drawBorder( style, 'borderRight', x + width, y, 0, height );
-
-			}
-
-			if ( element instanceof HTMLInputElement ) {
-
-				let accentColor = style.accentColor;
-
-				if ( accentColor === undefined || accentColor === 'auto' ) accentColor = style.color;
-
-				color.set( accentColor );
-
-				const luminance = Math.sqrt( 0.299 * ( color.r ** 2 ) + 0.587 * ( color.g ** 2 ) + 0.114 * ( color.b ** 2 ) );
-				const accentTextColor = luminance < 0.5 ? 'white' : '#111111';
-
-				if ( element.type === 'radio' ) {
-
-					buildRectPath( x, y, width, height, height );
-
-					context.fillStyle = 'white';
-					context.strokeStyle = accentColor;
-					context.lineWidth = 1;
-					context.fill();
-					context.stroke();
-
-					if ( element.checked ) {
-
-						buildRectPath( x + 2, y + 2, width - 4, height - 4, height );
-
-						context.fillStyle = accentColor;
-						context.strokeStyle = accentTextColor;
-						context.lineWidth = 2;
-						context.fill();
-						context.stroke();
-
-					}
-
-				}
-
-				if ( element.type === 'checkbox' ) {
-
-					buildRectPath( x, y, width, height, 2 );
-
-					context.fillStyle = element.checked ? accentColor : 'white';
-					context.strokeStyle = element.checked ? accentTextColor : accentColor;
-					context.lineWidth = 1;
-					context.stroke();
-					context.fill();
-
-					if ( element.checked ) {
-
-						const currentTextAlign = context.textAlign;
-
-						context.textAlign = 'center';
-
-						const properties = {
-							color: accentTextColor,
-							fontFamily: style.fontFamily,
-							fontSize: height + 'px',
-							fontWeight: 'bold'
-						};
-
-						drawText( properties, x + ( width / 2 ), y, '✔' );
-
-						context.textAlign = currentTextAlign;
-
-					}
-
-				}
-
-				if ( element.type === 'range' ) {
-
-					const [ min, max, value ] = [ 'min', 'max', 'value' ].map( property => parseFloat( element[ property ] ) );
-					const position = ( ( value - min ) / ( max - min ) ) * ( width - height );
-
-					buildRectPath( x, y + ( height / 4 ), width, height / 2, height / 4 );
-					context.fillStyle = accentTextColor;
-					context.strokeStyle = accentColor;
-					context.lineWidth = 1;
-					context.fill();
-					context.stroke();
-
-					buildRectPath( x, y + ( height / 4 ), position + ( height / 2 ), height / 2, height / 4 );
-					context.fillStyle = accentColor;
-					context.fill();
-
-					buildRectPath( x + position, y, height, height, height / 2 );
-					context.fillStyle = accentColor;
-					context.fill();
-
-				}
-
-				if ( element.type === 'color' || element.type === 'text' || element.type === 'number' || element.type === 'email' || element.type === 'password' ) {
-
-					clipper.add( { x: x, y: y, width: width, height: height } );
-
-					const displayValue = element.type === 'password' ? '*'.repeat( element.value.length ) : element.value;
-
-					drawText( style, x + parseInt( style.paddingLeft ), y + parseInt( style.paddingTop ), displayValue );
-
-					clipper.remove();
-
-				}
-
-			}
-
-		}
-
-		/*
+    /*
 		// debug
 		context.strokeStyle = '#' + Math.random().toString( 16 ).slice( - 3 );
 		context.strokeRect( x - 0.5, y - 0.5, width + 1, height + 1 );
 		*/
 
-		const isClipping = style.overflow === 'auto' || style.overflow === 'hidden';
+    const isClipping = style.overflow === "auto" || style.overflow === "hidden";
 
-		if ( isClipping ) clipper.add( { x: x, y: y, width: width, height: height } );
+    if (isClipping) clipper.add({ x: x, y: y, width: width, height: height });
 
-		for ( let i = 0; i < element.childNodes.length; i ++ ) {
+    for (let i = 0; i < element.childNodes.length; i++) {
+      drawElement(element.childNodes[i], style);
+    }
 
-			drawElement( element.childNodes[ i ], style );
+    if (isClipping) clipper.remove();
+  }
 
-		}
+  const offset = element.getBoundingClientRect();
 
-		if ( isClipping ) clipper.remove();
+  let canvas = canvases.get(element);
 
-	}
+  if (canvas === undefined) {
+    canvas = document.createElement("canvas");
+    canvas.width = offset.width;
+    canvas.height = offset.height;
+    canvases.set(element, canvas);
+  }
 
-	const offset = element.getBoundingClientRect();
+  const context = canvas.getContext("2d" /*, { alpha: false }*/);
 
-	let canvas = canvases.get( element );
+  const clipper = new Clipper(context);
 
-	if ( canvas === undefined ) {
+  // console.time( 'drawElement' );
 
-		canvas = document.createElement( 'canvas' );
-		canvas.width = offset.width;
-		canvas.height = offset.height;
-		canvases.set( element, canvas );
+  context.clearRect(0, 0, canvas.width, canvas.height);
 
-	}
+  drawElement(element);
 
-	const context = canvas.getContext( '2d'/*, { alpha: false }*/ );
+  // console.timeEnd( 'drawElement' );
 
-	const clipper = new Clipper( context );
-
-	// console.time( 'drawElement' );
-
-	context.clearRect( 0, 0, canvas.width, canvas.height );
-
-	drawElement( element );
-
-	// console.timeEnd( 'drawElement' );
-
-	return canvas;
-
+  return canvas;
 }
 
-function htmlevent( element, event, x, y ) {
+function htmlevent(element, event, x, y) {
+  const mouseEventInit = {
+    clientX: x * element.offsetWidth + element.offsetLeft,
+    clientY: y * element.offsetHeight + element.offsetTop,
+    view: element.ownerDocument.defaultView,
+  };
 
-	const mouseEventInit = {
-		clientX: ( x * element.offsetWidth ) + element.offsetLeft,
-		clientY: ( y * element.offsetHeight ) + element.offsetTop,
-		view: element.ownerDocument.defaultView
-	};
+  window.dispatchEvent(new MouseEvent(event, mouseEventInit));
 
-	window.dispatchEvent( new MouseEvent( event, mouseEventInit ) );
+  const rect = element.getBoundingClientRect();
 
-	const rect = element.getBoundingClientRect();
+  x = x * rect.width + rect.left;
+  y = y * rect.height + rect.top;
 
-	x = x * rect.width + rect.left;
-	y = y * rect.height + rect.top;
+  function traverse(element) {
+    if (element.nodeType !== Node.TEXT_NODE && element.nodeType !== Node.COMMENT_NODE) {
+      const rect = element.getBoundingClientRect();
 
-	function traverse( element ) {
+      if (x > rect.left && x < rect.right && y > rect.top && y < rect.bottom) {
+        element.dispatchEvent(new MouseEvent(event, mouseEventInit));
 
-		if ( element.nodeType !== Node.TEXT_NODE && element.nodeType !== Node.COMMENT_NODE ) {
+        if (element instanceof HTMLInputElement && element.type === "range" && (event === "mousedown" || event === "click")) {
+          const [min, max] = ["min", "max"].map((property) => parseFloat(element[property]));
 
-			const rect = element.getBoundingClientRect();
+          const width = rect.width;
+          const offsetX = x - rect.x;
+          const proportion = offsetX / width;
+          element.value = min + (max - min) * proportion;
+          element.dispatchEvent(new InputEvent("input", { bubbles: true }));
+        }
 
-			if ( x > rect.left && x < rect.right && y > rect.top && y < rect.bottom ) {
+        if (
+          element instanceof HTMLInputElement &&
+          (element.type === "text" || element.type === "number" || element.type === "email" || element.type === "password") &&
+          (event === "mousedown" || event === "click")
+        ) {
+          element.focus();
+        }
+      }
 
-				element.dispatchEvent( new MouseEvent( event, mouseEventInit ) );
+      for (let i = 0; i < element.childNodes.length; i++) {
+        traverse(element.childNodes[i]);
+      }
+    }
+  }
 
-				if ( element instanceof HTMLInputElement && element.type === 'range' && ( event === 'mousedown' || event === 'click' ) ) {
-
-					const [ min, max ] = [ 'min', 'max' ].map( property => parseFloat( element[ property ] ) );
-
-					const width = rect.width;
-					const offsetX = x - rect.x;
-					const proportion = offsetX / width;
-					element.value = min + ( max - min ) * proportion;
-					element.dispatchEvent( new InputEvent( 'input', { bubbles: true } ) );
-
-				}
-
-				if ( element instanceof HTMLInputElement && ( element.type === 'text' || element.type === 'number' || element.type === 'email' || element.type === 'password' ) && ( event === 'mousedown' || event === 'click' ) ) {
-
-					element.focus();
-
-				}
-
-			}
-
-			for ( let i = 0; i < element.childNodes.length; i ++ ) {
-
-				traverse( element.childNodes[ i ] );
-
-			}
-
-		}
-
-	}
-
-	traverse( element );
-
+  traverse(element);
 }
 
 export { HTMLMesh };

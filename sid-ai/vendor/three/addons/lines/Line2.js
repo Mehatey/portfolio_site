@@ -1,6 +1,6 @@
-import { LineSegments2 } from './LineSegments2.js';
-import { LineGeometry } from './LineGeometry.js';
-import { LineMaterial } from './LineMaterial.js';
+import { LineSegments2 } from "./LineSegments2.js";
+import { LineGeometry } from "./LineGeometry.js";
+import { LineMaterial } from "./LineMaterial.js";
 
 /**
  * A polyline drawn between vertices.
@@ -27,30 +27,26 @@ import { LineMaterial } from './LineMaterial.js';
  * @three_import import { Line2 } from 'three/addons/lines/Line2.js';
  */
 class Line2 extends LineSegments2 {
+  /**
+   * Constructs a new wide line.
+   *
+   * @param {LineGeometry} [geometry] - The line geometry.
+   * @param {LineMaterial} [material] - The line material.
+   */
+  constructor(geometry = new LineGeometry(), material = new LineMaterial({ color: Math.random() * 0xffffff })) {
+    super(geometry, material);
 
-	/**
-	 * Constructs a new wide line.
-	 *
-	 * @param {LineGeometry} [geometry] - The line geometry.
-	 * @param {LineMaterial} [material] - The line material.
-	 */
-	constructor( geometry = new LineGeometry(), material = new LineMaterial( { color: Math.random() * 0xffffff } ) ) {
+    /**
+     * This flag can be used for type testing.
+     *
+     * @type {boolean}
+     * @readonly
+     * @default true
+     */
+    this.isLine2 = true;
 
-		super( geometry, material );
-
-		/**
-		 * This flag can be used for type testing.
-		 *
-		 * @type {boolean}
-		 * @readonly
-		 * @default true
-		 */
-		this.isLine2 = true;
-
-		this.type = 'Line2';
-
-	}
-
+    this.type = "Line2";
+  }
 }
 
 export { Line2 };

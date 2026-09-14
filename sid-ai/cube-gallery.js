@@ -1,15 +1,15 @@
-import * as THREE from 'three';
-import { RoundedBoxGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/environments/RoomEnvironment.js';
+import * as THREE from "three";
+import { RoundedBoxGeometry } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/environments/RoomEnvironment.js";
 
-const canvas = document.querySelector('#stage');
-const loader = document.querySelector('#loader');
-const cursor = document.querySelector('.cursor');
-const nameEl = document.querySelector('#name');
-const indexEl = document.querySelector('#index');
-const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const canvas = document.querySelector("#stage");
+const loader = document.querySelector("#loader");
+const cursor = document.querySelector(".cursor");
+const nameEl = document.querySelector("#name");
+const indexEl = document.querySelector("#index");
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance" });
 let dpr = Math.min(devicePixelRatio, 1.0);
 const maxDpr = Math.min(devicePixelRatio, 1.15);
 renderer.setPixelRatio(dpr);
@@ -120,45 +120,129 @@ void main(){
 
 function environmentMaterial(index, a, b) {
   return new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uHover: { value: 0 }, uMode: { value: index }, uA: { value: new THREE.Color(a) }, uB: { value: new THREE.Color(b) } },
+    uniforms: {
+      uTime: { value: 0 },
+      uHover: { value: 0 },
+      uMode: { value: index },
+      uA: { value: new THREE.Color(a) },
+      uB: { value: new THREE.Color(b) },
+    },
     vertexShader: envVertex,
     fragmentShader: envFragment,
     transparent: true,
     depthWrite: false,
-    blending: THREE.AdditiveBlending
+    blending: THREE.AdditiveBlending,
   });
 }
 
 function customMaterial(mode, a, b, transparent = false) {
   const material = new THREE.ShaderMaterial({
-    uniforms: { uTime: { value: 0 }, uHover: { value: 0 }, uPulse: { value: 0 }, uMode: { value: mode }, uA: { value: new THREE.Color(a) }, uB: { value: new THREE.Color(b) } },
+    uniforms: {
+      uTime: { value: 0 },
+      uHover: { value: 0 },
+      uPulse: { value: 0 },
+      uMode: { value: mode },
+      uA: { value: new THREE.Color(a) },
+      uB: { value: new THREE.Color(b) },
+    },
     vertexShader: customVertex,
     fragmentShader: customFragment,
     transparent,
     depthWrite: !transparent,
-    side: THREE.FrontSide
+    side: THREE.FrontSide,
   });
   material.userData.animated = true;
   return material;
 }
 
 const studies = [
-  { name: 'Liquid glass', env: [0x23d7d0, 0x8168ff], material: () => new THREE.MeshPhysicalMaterial({ color: 0xeaffff, roughness: .05, metalness: 0, transmission: .94, thickness: .52, ior: 1.38, dispersion: 0, attenuationColor: 0x68c8d4, attenuationDistance: 1.8, iridescence: .3, clearcoat: 1, clearcoatRoughness: .03 }) },
-  { name: 'Black chrome', env: [0x315dff, 0x06070a], material: () => new THREE.MeshPhysicalMaterial({ color: 0x11141b, roughness: .09, metalness: 1, clearcoat: 1, clearcoatRoughness: .04, envMapIntensity: 2.4 }) },
-  { name: 'Sun brushed alloy', env: [0xffa338, 0x6b371d], material: () => new THREE.MeshPhysicalMaterial({ color: 0xd39a4b, roughness: .26, metalness: 1, anisotropy: .8, anisotropyRotation: .7, clearcoat: .35, envMapIntensity: 1.9 }) },
-  { name: 'Spectral pearl', env: [0xff9cb6, 0x74b7ff], material: () => customMaterial(0, 0xf8dbdf, 0x7f88ff) },
-  { name: 'Volcanic memory', env: [0xff3b0d, 0x551114], material: () => customMaterial(1, 0xff3416, 0xffbd45) },
-  { name: 'Signal hologram', env: [0x00d8ff, 0xd400ff], material: () => customMaterial(2, 0x3be9ff, 0xc554ff, true) },
-  { name: 'Celadon glaze', env: [0x73d6ae, 0xe8b8ff], material: () => new THREE.MeshPhysicalMaterial({ color: 0x89bda8, roughness: .2, metalness: 0, clearcoat: 1, clearcoatRoughness: .06, sheen: .7, sheenColor: new THREE.Color(0xc8e9df), sheenRoughness: .45 }) },
-  { name: 'Obsidian bloom', env: [0x5630b8, 0xff3a58], material: () => new THREE.MeshPhysicalMaterial({ color: 0x120d1b, roughness: .16, metalness: .52, clearcoat: 1, clearcoatRoughness: .02, iridescence: .65, iridescenceIOR: 1.28, iridescenceThicknessRange: [120, 560] }) },
-  { name: 'Living mercury', env: [0xb6f8ff, 0x406b90], material: () => customMaterial(3, 0xbfd9e0, 0x506b82) },
-  { name: 'Astral mandala', env: [0xffa72d, 0x703cff], material: () => customMaterial(4, 0xffb331, 0x7c3cff) }
+  {
+    name: "Liquid glass",
+    env: [0x23d7d0, 0x8168ff],
+    material: () =>
+      new THREE.MeshPhysicalMaterial({
+        color: 0xeaffff,
+        roughness: 0.05,
+        metalness: 0,
+        transmission: 0.94,
+        thickness: 0.52,
+        ior: 1.38,
+        dispersion: 0,
+        attenuationColor: 0x68c8d4,
+        attenuationDistance: 1.8,
+        iridescence: 0.3,
+        clearcoat: 1,
+        clearcoatRoughness: 0.03,
+      }),
+  },
+  {
+    name: "Black chrome",
+    env: [0x315dff, 0x06070a],
+    material: () =>
+      new THREE.MeshPhysicalMaterial({
+        color: 0x11141b,
+        roughness: 0.09,
+        metalness: 1,
+        clearcoat: 1,
+        clearcoatRoughness: 0.04,
+        envMapIntensity: 2.4,
+      }),
+  },
+  {
+    name: "Sun brushed alloy",
+    env: [0xffa338, 0x6b371d],
+    material: () =>
+      new THREE.MeshPhysicalMaterial({
+        color: 0xd39a4b,
+        roughness: 0.26,
+        metalness: 1,
+        anisotropy: 0.8,
+        anisotropyRotation: 0.7,
+        clearcoat: 0.35,
+        envMapIntensity: 1.9,
+      }),
+  },
+  { name: "Spectral pearl", env: [0xff9cb6, 0x74b7ff], material: () => customMaterial(0, 0xf8dbdf, 0x7f88ff) },
+  { name: "Volcanic memory", env: [0xff3b0d, 0x551114], material: () => customMaterial(1, 0xff3416, 0xffbd45) },
+  { name: "Signal hologram", env: [0x00d8ff, 0xd400ff], material: () => customMaterial(2, 0x3be9ff, 0xc554ff, true) },
+  {
+    name: "Celadon glaze",
+    env: [0x73d6ae, 0xe8b8ff],
+    material: () =>
+      new THREE.MeshPhysicalMaterial({
+        color: 0x89bda8,
+        roughness: 0.2,
+        metalness: 0,
+        clearcoat: 1,
+        clearcoatRoughness: 0.06,
+        sheen: 0.7,
+        sheenColor: new THREE.Color(0xc8e9df),
+        sheenRoughness: 0.45,
+      }),
+  },
+  {
+    name: "Obsidian bloom",
+    env: [0x5630b8, 0xff3a58],
+    material: () =>
+      new THREE.MeshPhysicalMaterial({
+        color: 0x120d1b,
+        roughness: 0.16,
+        metalness: 0.52,
+        clearcoat: 1,
+        clearcoatRoughness: 0.02,
+        iridescence: 0.65,
+        iridescenceIOR: 1.28,
+        iridescenceThicknessRange: [120, 560],
+      }),
+  },
+  { name: "Living mercury", env: [0xb6f8ff, 0x406b90], material: () => customMaterial(3, 0xbfd9e0, 0x506b82) },
+  { name: "Astral mandala", env: [0xffa72d, 0x703cff], material: () => customMaterial(4, 0xffb331, 0x7c3cff) },
 ];
 
-const cubeGeometry = new RoundedBoxGeometry(1.34, 1.34, 1.34, 5, .18);
+const cubeGeometry = new RoundedBoxGeometry(1.34, 1.34, 1.34, 5, 0.18);
 const edgeGeometry = new THREE.EdgesGeometry(cubeGeometry, 26);
 const planeGeometry = new THREE.PlaneGeometry(2.05, 2.05);
-const shadowGeometry = new THREE.CircleGeometry(.62, 40);
+const shadowGeometry = new THREE.CircleGeometry(0.62, 40);
 const objects = [];
 const hitMeshes = [];
 
@@ -166,39 +250,68 @@ studies.forEach((spec, index) => {
   const group = new THREE.Group();
   const envMat = environmentMaterial(index, spec.env[0], spec.env[1]);
   const aura = new THREE.Mesh(planeGeometry, envMat);
-  aura.position.z = -.9;
+  aura.position.z = -0.9;
   aura.scale.setScalar(1.12);
   group.add(aura);
 
-  const shadow = new THREE.Mesh(shadowGeometry, new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: .28, depthWrite: false }));
+  const shadow = new THREE.Mesh(
+    shadowGeometry,
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false })
+  );
   shadow.rotation.x = -Math.PI / 2;
-  shadow.position.set(0, -.78, .02);
-  shadow.scale.y = .34;
+  shadow.position.set(0, -0.78, 0.02);
+  shadow.scale.y = 0.34;
   group.add(shadow);
 
   const material = spec.material();
   const cube = new THREE.Mesh(cubeGeometry, material);
-  cube.rotation.set(.28 + index * .035, -.46 + index * .06, index % 2 ? -.055 : .055);
+  cube.rotation.set(0.28 + index * 0.035, -0.46 + index * 0.06, index % 2 ? -0.055 : 0.055);
   cube.userData.index = index;
   group.add(cube);
   hitMeshes.push(cube);
 
-  const edge = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: .13, blending: THREE.AdditiveBlending, depthWrite: false }));
+  const edge = new THREE.LineSegments(
+    edgeGeometry,
+    new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.13, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
   edge.rotation.copy(cube.rotation);
   group.add(edge);
 
-  const echoA = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({ color: spec.env[0], transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
-  const echoB = new THREE.LineSegments(edgeGeometry, new THREE.LineBasicMaterial({ color: spec.env[1], transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
-  echoA.rotation.copy(cube.rotation);echoB.rotation.copy(cube.rotation);
+  const echoA = new THREE.LineSegments(
+    edgeGeometry,
+    new THREE.LineBasicMaterial({ color: spec.env[0], transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
+  const echoB = new THREE.LineSegments(
+    edgeGeometry,
+    new THREE.LineBasicMaterial({ color: spec.env[1], transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
+  echoA.rotation.copy(cube.rotation);
+  echoB.rotation.copy(cube.rotation);
   group.add(echoA, echoB);
 
   scene.add(group);
-  objects.push({ group, cube, edge, echoA, echoB, aura, shadow, material, envMat, index, name: spec.name, home: new THREE.Vector3(), hover: 0, pulse: 0, kick: 0 });
+  objects.push({
+    group,
+    cube,
+    edge,
+    echoA,
+    echoB,
+    aura,
+    shadow,
+    material,
+    envMat,
+    index,
+    name: spec.name,
+    home: new THREE.Vector3(),
+    hover: 0,
+    pulse: 0,
+    kick: 0,
+  });
 });
 
 function layout() {
   const aspect = innerWidth / innerHeight;
-  const portrait = aspect < .72;
+  const portrait = aspect < 0.72;
   const columns = portrait ? 2 : 5;
   const rows = portrait ? 5 : 2;
   const gapX = portrait ? 1.95 : 2.03;
@@ -215,7 +328,7 @@ function layout() {
   camera.fov = portrait ? 31 : 34;
   const fov = THREE.MathUtils.degToRad(camera.fov);
   camera.position.z = Math.max(height / (2 * Math.tan(fov / 2)), width / aspect / (2 * Math.tan(fov / 2))) * 1.12;
-  camera.position.y = portrait ? 0 : .02;
+  camera.position.y = portrait ? 0 : 0.02;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight, false);
 }
@@ -235,21 +348,21 @@ const frameInterval = 1000 / 60;
 const clock = new THREE.Clock();
 
 function setReadout(item) {
-  indexEl.textContent = item ? String(item.index + 1).padStart(2, '0') : '00';
-  nameEl.textContent = item ? item.name : 'Ten states of the same form';
-  cursor.classList.toggle('hot', Boolean(item));
+  indexEl.textContent = item ? String(item.index + 1).padStart(2, "0") : "00";
+  nameEl.textContent = item ? item.name : "Ten states of the same form";
+  cursor.classList.toggle("hot", Boolean(item));
 }
 
-addEventListener('pointermove', event => {
-  pointer.set(event.clientX / innerWidth * 2 - 1, -(event.clientY / innerHeight) * 2 + 1);
+addEventListener("pointermove", (event) => {
+  pointer.set((event.clientX / innerWidth) * 2 - 1, -(event.clientY / innerHeight) * 2 + 1);
   cursor.style.transform = `translate(${event.clientX}px,${event.clientY}px) translate(-50%,-50%)`;
 });
 
-addEventListener('pointerleave', () => pointer.set(2, 2));
-addEventListener('pointerdown', () => {
+addEventListener("pointerleave", () => pointer.set(2, 2));
+addEventListener("pointerdown", () => {
   if (!active) return;
   active.pulse = 1;
-  active.kick += .75;
+  active.kick += 0.75;
 });
 
 function resize() {
@@ -257,7 +370,7 @@ function resize() {
   layout();
 }
 
-addEventListener('resize', resize);
+addEventListener("resize", resize);
 
 function setRunning(next) {
   running = next;
@@ -266,73 +379,79 @@ function setRunning(next) {
   if (running) clock.getDelta();
 }
 
-document.addEventListener('visibilitychange', () => setRunning(!document.hidden));
-addEventListener('pagehide', () => setRunning(false));
-canvas.addEventListener('webglcontextlost', event => { event.preventDefault(); setRunning(false); });
-canvas.addEventListener('webglcontextrestored', () => location.reload());
+document.addEventListener("visibilitychange", () => setRunning(!document.hidden));
+addEventListener("pagehide", () => setRunning(false));
+canvas.addEventListener("webglcontextlost", (event) => {
+  event.preventDefault();
+  setRunning(false);
+});
+canvas.addEventListener("webglcontextrestored", () => location.reload());
 
 function animate(now) {
   if (!running) return;
   if (lastRenderTime) {
     const elapsed = now - lastRenderTime;
-    if (elapsed < frameInterval * .9) return;
+    if (elapsed < frameInterval * 0.9) return;
     lastRenderTime = now - (elapsed % frameInterval);
   } else lastRenderTime = now;
 
-  const dt = Math.min(clock.getDelta(), .04);
+  const dt = Math.min(clock.getDelta(), 0.04);
   const time = clock.elapsedTime;
   pointerSmooth.lerp(pointer, 1 - Math.exp(-dt * 9));
   raycaster.setFromCamera(pointerSmooth, camera);
   const hit = raycaster.intersectObjects(hitMeshes, false)[0];
   const nextActive = hit ? objects[hit.object.userData.index] : null;
-  if (nextActive !== active) { active = nextActive; setReadout(active); }
+  if (nextActive !== active) {
+    active = nextActive;
+    setReadout(active);
+  }
 
   cursorLight.position.set(pointerSmooth.x * 5, pointerSmooth.y * 4, 4.5);
   cursorLight.intensity = THREE.MathUtils.damp(cursorLight.intensity, active ? 7 : 0, 7, dt);
   if (active) cursorLight.color.setHex(studies[active.index].env[0]);
 
-  objects.forEach(item => {
+  objects.forEach((item) => {
     const targetHover = item === active ? 1 : 0;
     item.hover = THREE.MathUtils.damp(item.hover, targetHover, 8, dt);
     item.pulse = THREE.MathUtils.damp(item.pulse, 0, 3.2, dt);
     item.kick *= Math.exp(-dt * 2.4);
-    const phase = item.index * .67;
+    const phase = item.index * 0.67;
     const idle = reduceMotion ? 0 : 1;
     item.group.position.x = THREE.MathUtils.damp(item.group.position.x, item.home.x, 8, dt);
-    item.group.position.y = THREE.MathUtils.damp(item.group.position.y, item.home.y + Math.sin(time * .55 + phase) * .025 * idle, 8, dt);
-    item.group.position.z = THREE.MathUtils.damp(item.group.position.z, item.hover * .7 + item.pulse * .18, 7, dt);
-    const scale = 1 + item.hover * .14 + item.pulse * .1;
+    item.group.position.y = THREE.MathUtils.damp(item.group.position.y, item.home.y + Math.sin(time * 0.55 + phase) * 0.025 * idle, 8, dt);
+    item.group.position.z = THREE.MathUtils.damp(item.group.position.z, item.hover * 0.7 + item.pulse * 0.18, 7, dt);
+    const scale = 1 + item.hover * 0.14 + item.pulse * 0.1;
     item.group.scale.setScalar(THREE.MathUtils.damp(item.group.scale.x, scale, 8, dt));
 
-    item.cube.rotation.x += dt * (.08 + item.index * .003) * idle;
-    item.cube.rotation.y += dt * (.11 + item.index * .004 + item.kick) * idle;
-    item.cube.rotation.z += dt * item.kick * .42;
+    item.cube.rotation.x += dt * (0.08 + item.index * 0.003) * idle;
+    item.cube.rotation.y += dt * (0.11 + item.index * 0.004 + item.kick) * idle;
+    item.cube.rotation.z += dt * item.kick * 0.42;
     item.edge.rotation.copy(item.cube.rotation);
     item.echoA.rotation.copy(item.cube.rotation);
     item.echoB.rotation.copy(item.cube.rotation);
-    item.echoA.scale.setScalar(1 + item.pulse * .42);
-    item.echoB.scale.setScalar(1 + item.pulse * .7);
-    item.echoA.material.opacity = item.pulse * .42;
-    item.echoB.material.opacity = item.pulse * .25;
-    item.edge.material.opacity = .1 + item.hover * .32;
-    item.shadow.material.opacity = .22 + item.hover * .12;
-    item.shadow.scale.x = 1 + item.hover * .22;
-    item.shadow.scale.y = .34 + item.hover * .07;
+    item.echoA.scale.setScalar(1 + item.pulse * 0.42);
+    item.echoB.scale.setScalar(1 + item.pulse * 0.7);
+    item.echoA.material.opacity = item.pulse * 0.42;
+    item.echoB.material.opacity = item.pulse * 0.25;
+    item.edge.material.opacity = 0.1 + item.hover * 0.32;
+    item.shadow.material.opacity = 0.22 + item.hover * 0.12;
+    item.shadow.scale.x = 1 + item.hover * 0.22;
+    item.shadow.scale.y = 0.34 + item.hover * 0.07;
 
     item.envMat.uniforms.uTime.value = time + phase;
-    item.envMat.uniforms.uHover.value = item.hover + item.pulse * .55;
+    item.envMat.uniforms.uHover.value = item.hover + item.pulse * 0.55;
     if (item.material.userData.animated) {
       item.material.uniforms.uTime.value = time + phase;
       item.material.uniforms.uHover.value = item.hover;
       item.material.uniforms.uPulse.value = item.pulse;
     } else {
       item.material.envMapIntensity = 1.25 + item.hover * 1.3;
-      if ('clearcoat' in item.material) item.material.clearcoat = Math.min(1, (item.material.clearcoat || 0) + item.hover * .02);
+      if ("clearcoat" in item.material) item.material.clearcoat = Math.min(1, (item.material.clearcoat || 0) + item.hover * 0.02);
     }
   });
 
-  camera.position.x = THREE.MathUtils.damp(camera.position.x, pointerSmooth.x * .12, 5, dt);
-  camera.position.y = THREE.MathUtils.damp(camera.position.y, pointerSmooth.y * .08, 5, dt);
+  camera.position.x = THREE.MathUtils.damp(camera.position.x, pointerSmooth.x * 0.12, 5, dt);
+  camera.position.y = THREE.MathUtils.damp(camera.position.y, pointerSmooth.y * 0.08, 5, dt);
   camera.lookAt(0, 0, 0);
   renderer.render(scene, camera);
 
@@ -342,13 +461,17 @@ function animate(now) {
   if (frames >= 90) {
     const average = frameTime / frames;
     let nextDpr = dpr;
-    if (qualityTimer > 2 && average > .0205) nextDpr = Math.max(.75, dpr - .1);
-    else if (qualityTimer > 7 && average < .0145) nextDpr = Math.min(maxDpr, dpr + .05);
+    if (qualityTimer > 2 && average > 0.0205) nextDpr = Math.max(0.75, dpr - 0.1);
+    else if (qualityTimer > 7 && average < 0.0145) nextDpr = Math.min(maxDpr, dpr + 0.05);
     frames = 0;
     frameTime = 0;
-    if (Math.abs(nextDpr - dpr) > .001) { dpr = nextDpr; qualityTimer = 0; resize(); }
+    if (Math.abs(nextDpr - dpr) > 0.001) {
+      dpr = nextDpr;
+      qualityTimer = 0;
+      resize();
+    }
   }
 }
 
 renderer.setAnimationLoop(running ? animate : null);
-loader.classList.add('done');
+loader.classList.add("done");

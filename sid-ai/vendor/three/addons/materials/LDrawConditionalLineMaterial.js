@@ -1,9 +1,4 @@
-import {
-	Color,
-	ShaderMaterial,
-	UniformsLib,
-	UniformsUtils,
-} from 'three';
+import { Color, ShaderMaterial, UniformsLib, UniformsUtils } from "three";
 
 /**
  * A special line material for meshes loaded via {@link LDrawLoader}.
@@ -15,39 +10,34 @@ import {
  * @three_import import { LDrawConditionalLineMaterial } from 'three/addons/materials/LDrawConditionalLineMaterial.js';
  */
 class LDrawConditionalLineMaterial extends ShaderMaterial {
+  static get type() {
+    return "LDrawConditionalLineMaterial";
+  }
 
-	static get type() {
+  /**
+   * Constructs a new conditional line material.
+   *
+   * @param {Object} [parameters] - An object with one or more properties
+   * defining the material's appearance. Any property of the material
+   * (including any property from inherited materials) can be passed
+   * in here. Color values can be passed any type of value accepted
+   * by {@link Color#set}.
+   */
+  constructor(parameters) {
+    super({
+      uniforms: UniformsUtils.merge([
+        UniformsLib.fog,
+        {
+          diffuse: {
+            value: new Color(),
+          },
+          opacity: {
+            value: 1.0,
+          },
+        },
+      ]),
 
-		return 'LDrawConditionalLineMaterial';
-
-	}
-
-	/**
-	 * Constructs a new conditional line material.
-	 *
-	 * @param {Object} [parameters] - An object with one or more properties
-	 * defining the material's appearance. Any property of the material
-	 * (including any property from inherited materials) can be passed
-	 * in here. Color values can be passed any type of value accepted
-	 * by {@link Color#set}.
-	 */
-	constructor( parameters ) {
-
-		super( {
-
-			uniforms: UniformsUtils.merge( [
-				UniformsLib.fog,
-				{
-					diffuse: {
-						value: new Color()
-					},
-					opacity: {
-						value: 1.0
-					}
-				}
-			] ),
-
-			vertexShader: /* glsl */`
+      vertexShader: /* glsl */ `
 				attribute vec3 control0;
 				attribute vec3 control1;
 				attribute vec3 direction;
@@ -95,7 +85,7 @@ class LDrawConditionalLineMaterial extends ShaderMaterial {
 				}
 			`,
 
-			fragmentShader: /* glsl */`
+      fragmentShader: /* glsl */ `
 			uniform vec3 diffuse;
 			uniform float opacity;
 			varying float discardFlag;
@@ -122,62 +112,51 @@ class LDrawConditionalLineMaterial extends ShaderMaterial {
 				#include <premultiplied_alpha_fragment>
 			}
 			`,
+    });
 
-		} );
+    Object.defineProperties(this, {
+      /**
+       * The material's opacity.
+       *
+       * @name LDrawConditionalLineMaterial#opacity
+       * @type {number}
+       * @default 1
+       */
+      opacity: {
+        get: function () {
+          return this.uniforms.opacity.value;
+        },
 
-		Object.defineProperties( this, {
+        set: function (value) {
+          this.uniforms.opacity.value = value;
+        },
+      },
 
-			/**
-			 * The material's opacity.
-			 *
-			 * @name LDrawConditionalLineMaterial#opacity
-			 * @type {number}
-			 * @default 1
-			 */
-			opacity: {
-				get: function () {
+      /**
+       * The material's color.
+       *
+       * @name LDrawConditionalLineMaterial#color
+       * @type {Color}
+       * @default (1,1,1)
+       */
+      color: {
+        get: function () {
+          return this.uniforms.diffuse.value;
+        },
+      },
+    });
 
-					return this.uniforms.opacity.value;
+    this.setValues(parameters);
 
-				},
-
-				set: function ( value ) {
-
-					this.uniforms.opacity.value = value;
-
-				}
-			},
-
-			/**
-			 * The material's color.
-			 *
-			 * @name LDrawConditionalLineMaterial#color
-			 * @type {Color}
-			 * @default (1,1,1)
-			 */
-			color: {
-				get: function () {
-
-					return this.uniforms.diffuse.value;
-
-				}
-			}
-
-		} );
-
-		this.setValues( parameters );
-
-		/**
-		 * This flag can be used for type testing.
-		 *
-		 * @type {boolean}
-		 * @readonly
-		 * @default true
-		 */
-		this.isLDrawConditionalLineMaterial = true;
-
-	}
-
+    /**
+     * This flag can be used for type testing.
+     *
+     * @type {boolean}
+     * @readonly
+     * @default true
+     */
+    this.isLDrawConditionalLineMaterial = true;
+  }
 }
 
 export { LDrawConditionalLineMaterial };

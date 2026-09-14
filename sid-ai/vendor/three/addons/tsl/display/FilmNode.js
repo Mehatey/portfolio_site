@@ -1,5 +1,5 @@
-import { TempNode } from 'three/webgpu';
-import { rand, Fn, fract, time, uv, clamp, mix, vec4, nodeProxy } from 'three/tsl';
+import { TempNode } from "three/webgpu";
+import { rand, Fn, fract, time, uv, clamp, mix, vec4, nodeProxy } from "three/tsl";
 
 /**
  * Post processing node for creating a film grain effect.
@@ -8,82 +8,70 @@ import { rand, Fn, fract, time, uv, clamp, mix, vec4, nodeProxy } from 'three/ts
  * @three_import import { film } from 'three/addons/tsl/display/FilmNode.js';
  */
 class FilmNode extends TempNode {
+  static get type() {
+    return "FilmNode";
+  }
 
-	static get type() {
+  /**
+   * Constructs a new film node.
+   *
+   * @param {Node} inputNode - The node that represents the input of the effect.
+   * @param {?Node<float>} [intensityNode=null] - A node that represents the effect's intensity.
+   * @param {?Node<vec2>} [uvNode=null] - A node that allows to pass custom (e.g. animated) uv data.
+   */
+  constructor(inputNode, intensityNode = null, uvNode = null) {
+    super("vec4");
 
-		return 'FilmNode';
+    /**
+     * The node that represents the input of the effect.
+     *
+     * @type {Node}
+     */
+    this.inputNode = inputNode;
 
-	}
+    /**
+     * A node that represents the effect's intensity.
+     *
+     * @type {?Node<float>}
+     * @default null
+     */
+    this.intensityNode = intensityNode;
 
-	/**
-	 * Constructs a new film node.
-	 *
-	 * @param {Node} inputNode - The node that represents the input of the effect.
-	 * @param {?Node<float>} [intensityNode=null] - A node that represents the effect's intensity.
-	 * @param {?Node<vec2>} [uvNode=null] - A node that allows to pass custom (e.g. animated) uv data.
-	 */
-	constructor( inputNode, intensityNode = null, uvNode = null ) {
+    /**
+     * A node that allows to pass custom (e.g. animated) uv data.
+     *
+     * @type {?Node<vec2>}
+     * @default null
+     */
+    this.uvNode = uvNode;
+  }
 
-		super( 'vec4' );
+  /**
+   * This method is used to setup the effect's TSL code.
+   *
+   * @param {NodeBuilder} builder - The current node builder.
+   * @return {ShaderCallNodeInternal}
+   */
+  setup(/* builder */) {
+    const uvNode = this.uvNode || uv();
 
-		/**
-		 * The node that represents the input of the effect.
-		 *
-		 * @type {Node}
-		 */
-		this.inputNode = inputNode;
+    const film = Fn(() => {
+      const base = this.inputNode.rgb;
+      const noise = rand(fract(uvNode.add(time)));
 
-		/**
-		 * A node that represents the effect's intensity.
-		 *
-		 * @type {?Node<float>}
-		 * @default null
-		 */
-		this.intensityNode = intensityNode;
+      let color = base.add(base.mul(clamp(noise.add(0.1), 0, 1)));
 
-		/**
-		 * A node that allows to pass custom (e.g. animated) uv data.
-		 *
-		 * @type {?Node<vec2>}
-		 * @default null
-		 */
-		this.uvNode = uvNode;
+      if (this.intensityNode !== null) {
+        color = mix(base, color, this.intensityNode);
+      }
 
-	}
+      return vec4(color, this.inputNode.a);
+    });
 
-	/**
-	 * This method is used to setup the effect's TSL code.
-	 *
-	 * @param {NodeBuilder} builder - The current node builder.
-	 * @return {ShaderCallNodeInternal}
-	 */
-	setup( /* builder */ ) {
+    const outputNode = film();
 
-		const uvNode = this.uvNode || uv();
-
-		const film = Fn( () => {
-
-			const base = this.inputNode.rgb;
-			const noise = rand( fract( uvNode.add( time ) ) );
-
-			let color = base.add( base.mul( clamp( noise.add( 0.1 ), 0, 1 ) ) );
-
-			if ( this.intensityNode !== null ) {
-
-				color = mix( base, color, this.intensityNode );
-
-			}
-
-			return vec4( color, this.inputNode.a );
-
-		} );
-
-		const outputNode = film();
-
-		return outputNode;
-
-	}
-
+    return outputNode;
+  }
 }
 
 export default FilmNode;
@@ -98,4 +86,4 @@ export default FilmNode;
  * @param {?Node<vec2>} [uvNode=null] - A node that allows to pass custom (e.g. animated) uv data.
  * @returns {FilmNode}
  */
-export const film = /*@__PURE__*/ nodeProxy( FilmNode );
+export const film = /*@__PURE__*/ nodeProxy(FilmNode);

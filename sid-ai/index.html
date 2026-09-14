@@ -1,17 +1,210 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link rel="icon" href="data:,">
-  <title>Talk to Sid AI · Coming Soon</title>
-  <style>
-    :root{--ink:#f5f2ec;--muted:rgba(234,242,247,.68);--signal:#9ef2ea;--voice:#9ef2ea}
-    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#05070b;color:var(--ink);font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-    canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}#stage{z-index:0;background:transparent}#watercolour-bg{z-index:-1;opacity:0;pointer-events:none}.chrome{position:fixed;inset:0;z-index:2;pointer-events:none}.chrome:after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 140px rgba(0,0,0,.36);pointer-events:none}
-    .sid-ai{position:absolute;left:clamp(24px,4vw,64px);top:clamp(26px,6vh,68px);width:min(360px,44vw);text-align:left;transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .6s}.sid-ai__lockup{display:flex;align-items:center;gap:clamp(12px,1.25vw,18px)}.sid-ai__mark{position:relative;display:grid;place-items:center;pointer-events:auto;text-decoration:none;border-radius:8px;width:clamp(38px,4vw,52px);aspect-ratio:1;color:var(--voice);filter:drop-shadow(0 0 12px color-mix(in srgb,var(--voice),transparent 60%));transition:color .45s,filter .45s}.sid-ai__mark svg{width:66%;height:66%;overflow:visible}.sid-ai__mark:hover{color:#fff}.sid-ai__mark:focus-visible{outline:2px solid var(--voice);outline-offset:3px}.sid-ai__mark rect{fill:currentColor}.sid-ai__coming{position:relative;display:inline-flex;margin:0 0 6px;padding:3px 22px 3px 7px;overflow:hidden;border:1px solid color-mix(in srgb,var(--voice),transparent 55%);color:var(--voice);font-size:9px;font-weight:620;letter-spacing:.13em;line-height:1;text-transform:uppercase;transition:color .45s}.sid-ai__coming:after{content:"";position:absolute;inset:-5px -30px -5px auto;width:42px;background:repeating-linear-gradient(110deg,transparent 0 6px,color-mix(in srgb,var(--voice),transparent 38%) 6px 9px);animation:construction-strip 1.8s linear infinite}.sid-ai__title{font-size:clamp(28px,3.2vw,46px);font-weight:520;line-height:.92;letter-spacing:-.036em}.sid-ai__title span,.sid-ai__title strong{display:inline;font-weight:520;color:var(--ink)}.sid-ai__persona,.sid-ai__wave{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.sid-ai__meta{margin:clamp(14px,1.8vh,22px) 0 0;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:.14em;line-height:1.5;text-transform:uppercase;opacity:.52;text-shadow:0 1px 12px rgba(0,0,0,.8);transition:opacity .9s ease}body.ai-touched .sid-ai__meta{opacity:0}.cube-hover .sid-ai{transform:translateX(3px)}.cube-hover .sid-ai__mark{filter:drop-shadow(0 0 18px color-mix(in srgb,var(--voice),transparent 42%))}.is-speaking .sid-ai__mark svg rect:nth-child(odd){animation:pixel-speak .42s ease-in-out infinite alternate}.is-speaking .sid-ai__mark svg rect:nth-child(even){animation:pixel-speak .55s -.2s ease-in-out infinite alternate}
-    .captions{position:absolute;left:50%;bottom:clamp(30px,5.2vh,58px);width:min(680px,70vw);transform:translate(-50%,12px);text-align:center;font-size:clamp(17px,1.6vw,25px);font-weight:480;line-height:1.32;letter-spacing:-.02em;color:rgba(245,242,236,.72);text-shadow:0 2px 18px rgba(0,0,0,.72);opacity:0;transition:opacity .28s ease,transform .55s cubic-bezier(.16,1,.3,1);text-wrap:balance}.captions.is-visible{opacity:1;transform:translate(-50%,0)}.captions span{transition:color .12s,text-shadow .12s}.captions span.is-current{color:#fff;text-shadow:0 0 22px color-mix(in srgb,var(--voice),transparent 28%)}
-    /* ══ THE PANEL, QUIETER ══════════════════════════════════════════
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <link rel="icon" href="data:," />
+    <title>Talk to Sid AI · Coming Soon</title>
+    <style>
+      :root {
+        --ink: #f5f2ec;
+        --muted: rgba(234, 242, 247, 0.68);
+        --signal: #9ef2ea;
+        --voice: #9ef2ea;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #05070b;
+        color: var(--ink);
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        touch-action: none;
+      }
+      #stage {
+        z-index: 0;
+        background: transparent;
+      }
+      #watercolour-bg {
+        z-index: -1;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .chrome {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        pointer-events: none;
+      }
+      .chrome:after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.36);
+        pointer-events: none;
+      }
+      .sid-ai {
+        position: absolute;
+        left: clamp(24px, 4vw, 64px);
+        top: clamp(26px, 6vh, 68px);
+        width: min(360px, 44vw);
+        text-align: left;
+        transition:
+          transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 0.6s;
+      }
+      .sid-ai__lockup {
+        display: flex;
+        align-items: center;
+        gap: clamp(12px, 1.25vw, 18px);
+      }
+      .sid-ai__mark {
+        position: relative;
+        display: grid;
+        place-items: center;
+        pointer-events: auto;
+        text-decoration: none;
+        border-radius: 8px;
+        width: clamp(38px, 4vw, 52px);
+        aspect-ratio: 1;
+        color: var(--voice);
+        filter: drop-shadow(0 0 12px color-mix(in srgb, var(--voice), transparent 60%));
+        transition:
+          color 0.45s,
+          filter 0.45s;
+      }
+      .sid-ai__mark svg {
+        width: 66%;
+        height: 66%;
+        overflow: visible;
+      }
+      .sid-ai__mark:hover {
+        color: #fff;
+      }
+      .sid-ai__mark:focus-visible {
+        outline: 2px solid var(--voice);
+        outline-offset: 3px;
+      }
+      .sid-ai__mark rect {
+        fill: currentColor;
+      }
+      .sid-ai__coming {
+        position: relative;
+        display: inline-flex;
+        margin: 0 0 6px;
+        padding: 3px 22px 3px 7px;
+        overflow: hidden;
+        border: 1px solid color-mix(in srgb, var(--voice), transparent 55%);
+        color: var(--voice);
+        font-size: 9px;
+        font-weight: 620;
+        letter-spacing: 0.13em;
+        line-height: 1;
+        text-transform: uppercase;
+        transition: color 0.45s;
+      }
+      .sid-ai__coming:after {
+        content: "";
+        position: absolute;
+        inset: -5px -30px -5px auto;
+        width: 42px;
+        background: repeating-linear-gradient(110deg, transparent 0 6px, color-mix(in srgb, var(--voice), transparent 38%) 6px 9px);
+        animation: construction-strip 1.8s linear infinite;
+      }
+      .sid-ai__title {
+        font-size: clamp(28px, 3.2vw, 46px);
+        font-weight: 520;
+        line-height: 0.92;
+        letter-spacing: -0.036em;
+      }
+      .sid-ai__title span,
+      .sid-ai__title strong {
+        display: inline;
+        font-weight: 520;
+        color: var(--ink);
+      }
+      .sid-ai__persona,
+      .sid-ai__wave {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+      .sid-ai__meta {
+        margin: clamp(14px, 1.8vh, 22px) 0 0;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        line-height: 1.5;
+        text-transform: uppercase;
+        opacity: 0.52;
+        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
+        transition: opacity 0.9s ease;
+      }
+      body.ai-touched .sid-ai__meta {
+        opacity: 0;
+      }
+      .cube-hover .sid-ai {
+        transform: translateX(3px);
+      }
+      .cube-hover .sid-ai__mark {
+        filter: drop-shadow(0 0 18px color-mix(in srgb, var(--voice), transparent 42%));
+      }
+      .is-speaking .sid-ai__mark svg rect:nth-child(odd) {
+        animation: pixel-speak 0.42s ease-in-out infinite alternate;
+      }
+      .is-speaking .sid-ai__mark svg rect:nth-child(even) {
+        animation: pixel-speak 0.55s -0.2s ease-in-out infinite alternate;
+      }
+      .captions {
+        position: absolute;
+        left: 50%;
+        bottom: clamp(30px, 5.2vh, 58px);
+        width: min(680px, 70vw);
+        transform: translate(-50%, 12px);
+        text-align: center;
+        font-size: clamp(17px, 1.6vw, 25px);
+        font-weight: 480;
+        line-height: 1.32;
+        letter-spacing: -0.02em;
+        color: rgba(245, 242, 236, 0.72);
+        text-shadow: 0 2px 18px rgba(0, 0, 0, 0.72);
+        opacity: 0;
+        transition:
+          opacity 0.28s ease,
+          transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+        text-wrap: balance;
+      }
+      .captions.is-visible {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+      .captions span {
+        transition:
+          color 0.12s,
+          text-shadow 0.12s;
+      }
+      .captions span.is-current {
+        color: #fff;
+        text-shadow: 0 0 22px color-mix(in srgb, var(--voice), transparent 28%);
+      }
+      /* ══ THE PANEL, QUIETER ══════════════════════════════════════════
        Sid: "the questions and answers text on bottom left wasnt styled well
        and too much text."
 
@@ -22,49 +215,419 @@
        sat 7px off its question, the question 7px off a four-line paragraph,
        and the chips 13px under that, so nothing lined up with anything. One
        rhythm now, and the question is allowed to be the loudest thing in it. */
-    .cube-notes{position:absolute;left:clamp(24px,4vw,64px);bottom:clamp(24px,5vh,62px);width:min(330px,40vw);display:flex;flex-direction:column;align-items:flex-start;gap:9px;pointer-events:auto;color:var(--ink);opacity:.96}.cube-notes:before{content:"";position:absolute;inset:-38px -54px -44px -46px;z-index:-1;pointer-events:none;background:radial-gradient(128% 116% at 4% 86%,rgba(3,6,10,.88) 0%,rgba(3,6,10,.58) 44%,rgba(3,6,10,0) 78%)}.cube-notes__label{color:var(--voice);font-size:8.5px;font-weight:680;letter-spacing:.17em;text-transform:uppercase;opacity:.72}.cube-notes__question{margin:0;font-size:clamp(15px,1.4vw,20px);font-weight:560;line-height:1.14;letter-spacing:-.024em;text-wrap:balance;text-shadow:0 1px 14px rgba(0,0,0,.8)}.cube-notes__answer{margin:0;max-width:32ch;color:rgba(240,247,248,.76);font-size:12.5px;line-height:1.52;letter-spacing:-.002em;text-shadow:0 1px 12px rgba(0,0,0,.8)}.cube-notes__chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}.cube-note-chip{display:inline-flex;align-items:center;min-height:29px;border:1px solid color-mix(in srgb,var(--voice),transparent 74%);border-radius:99px;background:rgba(5,10,14,.3);padding:0 12px;color:rgba(240,248,248,.82);font:600 9.5px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,background .2s,color .2s}.cube-note-chip.is-asked{border-color:color-mix(in srgb,var(--voice),transparent 88%);color:rgba(240,248,248,.58)}.cube-note-chip:hover{border-color:var(--voice);background:color-mix(in srgb,var(--voice),transparent 86%);color:#fff}.cube-note-chip:focus-visible{border-color:var(--voice);background:color-mix(in srgb,var(--voice),transparent 86%);color:#fff;outline:2px solid var(--voice);outline-offset:2px}#stage:focus-visible{outline:2px solid var(--voice);outline-offset:-3px}
-    .loader{position:fixed;inset:0;z-index:5;background:#05070b;display:grid;place-items:center;transition:opacity .6s}.loader.done{opacity:0;pointer-events:none}.loader:after{content:"";width:28px;height:28px;border:1px solid rgba(180,225,247,.18);border-top-color:#8edcff;border-radius:50%;animation:spin .9s linear infinite}
-    @keyframes spin{to{transform:rotate(1turn)}}
-    @keyframes voice{0%,100%{transform:scaleY(.55)}50%{transform:scaleY(2.6)}}
-    @keyframes orbit{to{transform:rotate(1turn)}}
-    @keyframes pixel-speak{to{transform:scaleY(1.7);transform-origin:center}}
-    @keyframes title-breathe{0%,100%{transform:scaleX(1)}50%{transform:scaleX(1.025)}}
-    @keyframes construction-strip{to{transform:translateX(30px)}}
-    @media(max-width:760px),(orientation:portrait) and (max-width:1024px){.sid-ai{left:18px;top:20px;width:min(290px,calc(100vw - 36px))}.sid-ai__lockup{gap:13px}.sid-ai__mark{width:48px}.sid-ai__title{font-size:34px}.sid-ai__coming{margin-bottom:5px}.sid-ai__meta{margin-top:12px;font-size:9px;letter-spacing:.12em}.captions{bottom:auto;top:calc(100vh - 226px);width:calc(100vw - 36px);font-size:17px}.cube-notes{left:18px;bottom:20px;width:calc(100vw - 36px)}.cube-note-chip{min-height:38px;padding:0 14px}.cube-notes__chips{gap:8px}.cube-notes:before{inset:-26px -100vw -60px -100vw;background:linear-gradient(to top,rgba(3,6,10,.94) 0%,rgba(3,6,10,.86) 34%,rgba(3,6,10,.58) 68%,rgba(3,6,10,0) 100%)}.cube-notes__answer{font-size:11.5px;max-width:38ch}}@media(min-width:761px) and (orientation:portrait) and (max-width:1024px){.sid-ai{left:clamp(24px,4vw,64px);top:clamp(26px,6vh,68px);width:min(360px,60vw)}.sid-ai__title{font-size:42px}.sid-ai__meta{font-size:10px}.cube-notes{left:clamp(24px,4vw,64px);width:min(560px,calc(100vw - 48px))}.cube-notes__answer{font-size:12.5px;max-width:44ch}.captions{top:calc(100vh - 268px);font-size:19px}}@media(orientation:portrait) and (max-height:700px),(orientation:portrait) and (max-width:340px){.cube-notes__answer{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}.cube-note-chip{min-height:30px;padding:0 10px}.cube-notes__chips{gap:6px;margin-top:10px}.captions{top:calc(100vh - 206px);font-size:15px}}@media(max-height:520px) and (orientation:landscape){.sid-ai__meta{display:none}.cube-notes__answer{display:none}.captions{bottom:14px;font-size:15px}}
-    @media(prefers-reduced-motion:reduce){.loader:after,.sid-ai__wave i,.sid-ai__orbit,.sid-ai__mark svg rect,.sid-ai__title strong{animation:none!important}.sid-ai__coming:after{display:none}.sid-ai,.captions,.sid-ai__meta{transition:none}}@media print{*,*:before,*:after{transition:none!important;animation:none!important}html,body{overflow:visible;height:auto;background:#fff;color:#0a0d12}body{padding:28px 32px}canvas,.loader,.chrome:after,.sid-ai__coming:after{display:none!important}.chrome{position:static;inset:auto}.sid-ai,.cube-notes,.captions{position:static;width:auto;max-width:none;transform:none;opacity:1;color:#0a0d12;text-shadow:none}.cube-notes:before{display:none}.cube-notes__label,.sid-ai__mark{color:#0a0d12}.sid-ai__title,.sid-ai__title span,.sid-ai__title strong{color:#0a0d12}.sid-ai__coming{color:#0a0d12;border-color:#0a0d12;margin-bottom:8px}.sid-ai__lockup{gap:14px}.cube-notes{margin-top:22px}.cube-note-chip{background:none;min-height:0;padding:4px 10px}.cube-notes__answer,.sid-ai__meta{color:#2a3440;opacity:1}.cube-note-chip{color:#0a0d12;border-color:#0a0d12}}
-  </style>
-  <script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
-</head>
-<body>
-  <canvas id="watercolour-bg" aria-hidden="true"></canvas>
-  <canvas id="stage" tabindex="0" role="button" aria-describedby="cube-instructions" aria-label="Interactive translucent cube character. Click or press Enter to ask it a question and hear Sid."></canvas>
-  <main class="chrome">
-    <section class="sid-ai" aria-label="Talk to Sid AI, coming soon">
-      <div class="sid-ai__lockup">
-        <a class="sid-ai__mark" href="/" aria-label="Back to Sid Mehta’s site">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="4" height="4" rx="1"/><rect x="17" y="3" width="4" height="4" rx="1"/><rect x="3" y="17" width="4" height="4" rx="1"/><rect x="17" y="17" width="4" height="4" rx="1"/><rect x="8" y="9" width="2" height="6" rx="1"/><rect x="11" y="6" width="2" height="12" rx="1"/><rect x="14" y="8" width="2" height="8" rx="1"/></svg>
-        </a>
-        <div><div class="sid-ai__coming">Coming soon</div><div class="sid-ai__title"><span>Talk to </span><strong>Sid AI</strong></div></div>
-      </div>
-      <p class="sid-ai__meta" id="cube-instructions">Early build · the answers are scripted, the voice is his.<br>Click the cube, or ask it something.</p>
-      <div class="sid-ai__persona" id="voice-persona">Ready when you are</div>
-    </section>
-    <aside class="cube-notes" aria-live="polite" aria-atomic="true" aria-label="Conversation with the cube">
-      <span class="cube-notes__label" id="cube-note-label">The cube says</span>
-      <p class="cube-notes__question" id="cube-note-question">Who’s Sid?</p>
-      <p class="cube-notes__answer" id="cube-note-answer">Designer and technologist in New York. Parsons MFA, by way of EyeJack, Deloitte and Philips.</p>
-      <div class="cube-notes__chips" id="cube-note-chips" aria-label="Ask the cube">
-        <button class="cube-note-chip" type="button" data-cube-note="builds">What does he build</button>
-        <button class="cube-note-chip" type="button" data-cube-note="best">Best work</button>
-        <button class="cube-note-chip" type="button" data-cube-note="reach">How to reach him</button>
-      </div>
-    </aside>
-    <div class="captions" id="captions" role="status" aria-live="polite" aria-atomic="true"></div>
-  </main>
-  <div class="loader" id="loader" aria-label="Loading character"></div>
-<script src="./watercolour.js?v=7"></script>
-<script src="./watercolour-init.js?v=7"></script>
-<script type="module" src="./tv-head-viewer.js?v=112"></script>
-<script src="./vinyl.js?v=5" defer></script>
-</body>
+      .cube-notes {
+        position: absolute;
+        left: clamp(24px, 4vw, 64px);
+        bottom: clamp(24px, 5vh, 62px);
+        width: min(330px, 40vw);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 9px;
+        pointer-events: auto;
+        color: var(--ink);
+        opacity: 0.96;
+      }
+      .cube-notes:before {
+        content: "";
+        position: absolute;
+        inset: -38px -54px -44px -46px;
+        z-index: -1;
+        pointer-events: none;
+        background: radial-gradient(128% 116% at 4% 86%, rgba(3, 6, 10, 0.88) 0%, rgba(3, 6, 10, 0.58) 44%, rgba(3, 6, 10, 0) 78%);
+      }
+      .cube-notes__label {
+        color: var(--voice);
+        font-size: 8.5px;
+        font-weight: 680;
+        letter-spacing: 0.17em;
+        text-transform: uppercase;
+        opacity: 0.72;
+      }
+      .cube-notes__question {
+        margin: 0;
+        font-size: clamp(15px, 1.4vw, 20px);
+        font-weight: 560;
+        line-height: 1.14;
+        letter-spacing: -0.024em;
+        text-wrap: balance;
+        text-shadow: 0 1px 14px rgba(0, 0, 0, 0.8);
+      }
+      .cube-notes__answer {
+        margin: 0;
+        max-width: 32ch;
+        color: rgba(240, 247, 248, 0.76);
+        font-size: 12.5px;
+        line-height: 1.52;
+        letter-spacing: -0.002em;
+        text-shadow: 0 1px 12px rgba(0, 0, 0, 0.8);
+      }
+      .cube-notes__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+      .cube-note-chip {
+        display: inline-flex;
+        align-items: center;
+        min-height: 29px;
+        border: 1px solid color-mix(in srgb, var(--voice), transparent 74%);
+        border-radius: 99px;
+        background: rgba(5, 10, 14, 0.3);
+        padding: 0 12px;
+        color: rgba(240, 248, 248, 0.82);
+        font:
+          600 9.5px/1 "Helvetica Neue",
+          Helvetica,
+          Arial,
+          sans-serif;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          background 0.2s,
+          color 0.2s;
+      }
+      .cube-note-chip.is-asked {
+        border-color: color-mix(in srgb, var(--voice), transparent 88%);
+        color: rgba(240, 248, 248, 0.58);
+      }
+      .cube-note-chip:hover {
+        border-color: var(--voice);
+        background: color-mix(in srgb, var(--voice), transparent 86%);
+        color: #fff;
+      }
+      .cube-note-chip:focus-visible {
+        border-color: var(--voice);
+        background: color-mix(in srgb, var(--voice), transparent 86%);
+        color: #fff;
+        outline: 2px solid var(--voice);
+        outline-offset: 2px;
+      }
+      #stage:focus-visible {
+        outline: 2px solid var(--voice);
+        outline-offset: -3px;
+      }
+      .loader {
+        position: fixed;
+        inset: 0;
+        z-index: 5;
+        background: #05070b;
+        display: grid;
+        place-items: center;
+        transition: opacity 0.6s;
+      }
+      .loader.done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .loader:after {
+        content: "";
+        width: 28px;
+        height: 28px;
+        border: 1px solid rgba(180, 225, 247, 0.18);
+        border-top-color: #8edcff;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(1turn);
+        }
+      }
+      @keyframes voice {
+        0%,
+        100% {
+          transform: scaleY(0.55);
+        }
+        50% {
+          transform: scaleY(2.6);
+        }
+      }
+      @keyframes orbit {
+        to {
+          transform: rotate(1turn);
+        }
+      }
+      @keyframes pixel-speak {
+        to {
+          transform: scaleY(1.7);
+          transform-origin: center;
+        }
+      }
+      @keyframes title-breathe {
+        0%,
+        100% {
+          transform: scaleX(1);
+        }
+        50% {
+          transform: scaleX(1.025);
+        }
+      }
+      @keyframes construction-strip {
+        to {
+          transform: translateX(30px);
+        }
+      }
+      @media (max-width: 760px), (orientation: portrait) and (max-width: 1024px) {
+        .sid-ai {
+          left: 18px;
+          top: 20px;
+          width: min(290px, calc(100vw - 36px));
+        }
+        .sid-ai__lockup {
+          gap: 13px;
+        }
+        .sid-ai__mark {
+          width: 48px;
+        }
+        .sid-ai__title {
+          font-size: 34px;
+        }
+        .sid-ai__coming {
+          margin-bottom: 5px;
+        }
+        .sid-ai__meta {
+          margin-top: 12px;
+          font-size: 9px;
+          letter-spacing: 0.12em;
+        }
+        .captions {
+          bottom: auto;
+          top: calc(100vh - 226px);
+          width: calc(100vw - 36px);
+          font-size: 17px;
+        }
+        .cube-notes {
+          left: 18px;
+          bottom: 20px;
+          width: calc(100vw - 36px);
+        }
+        .cube-note-chip {
+          min-height: 38px;
+          padding: 0 14px;
+        }
+        .cube-notes__chips {
+          gap: 8px;
+        }
+        .cube-notes:before {
+          inset: -26px -100vw -60px -100vw;
+          background: linear-gradient(to top, rgba(3, 6, 10, 0.94) 0%, rgba(3, 6, 10, 0.86) 34%, rgba(3, 6, 10, 0.58) 68%, rgba(3, 6, 10, 0) 100%);
+        }
+        .cube-notes__answer {
+          font-size: 11.5px;
+          max-width: 38ch;
+        }
+      }
+      @media (min-width: 761px) and (orientation: portrait) and (max-width: 1024px) {
+        .sid-ai {
+          left: clamp(24px, 4vw, 64px);
+          top: clamp(26px, 6vh, 68px);
+          width: min(360px, 60vw);
+        }
+        .sid-ai__title {
+          font-size: 42px;
+        }
+        .sid-ai__meta {
+          font-size: 10px;
+        }
+        .cube-notes {
+          left: clamp(24px, 4vw, 64px);
+          width: min(560px, calc(100vw - 48px));
+        }
+        .cube-notes__answer {
+          font-size: 12.5px;
+          max-width: 44ch;
+        }
+        .captions {
+          top: calc(100vh - 268px);
+          font-size: 19px;
+        }
+      }
+      @media (orientation: portrait) and (max-height: 700px), (orientation: portrait) and (max-width: 340px) {
+        .cube-notes__answer {
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+          -webkit-line-clamp: 2;
+          line-clamp: 2;
+          overflow: hidden;
+        }
+        .cube-note-chip {
+          min-height: 30px;
+          padding: 0 10px;
+        }
+        .cube-notes__chips {
+          gap: 6px;
+          margin-top: 10px;
+        }
+        .captions {
+          top: calc(100vh - 206px);
+          font-size: 15px;
+        }
+      }
+      @media (max-height: 520px) and (orientation: landscape) {
+        .sid-ai__meta {
+          display: none;
+        }
+        .cube-notes__answer {
+          display: none;
+        }
+        .captions {
+          bottom: 14px;
+          font-size: 15px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loader:after,
+        .sid-ai__wave i,
+        .sid-ai__orbit,
+        .sid-ai__mark svg rect,
+        .sid-ai__title strong {
+          animation: none !important;
+        }
+        .sid-ai__coming:after {
+          display: none;
+        }
+        .sid-ai,
+        .captions,
+        .sid-ai__meta {
+          transition: none;
+        }
+      }
+      @media print {
+        *,
+        *:before,
+        *:after {
+          transition: none !important;
+          animation: none !important;
+        }
+        html,
+        body {
+          overflow: visible;
+          height: auto;
+          background: #fff;
+          color: #0a0d12;
+        }
+        body {
+          padding: 28px 32px;
+        }
+        canvas,
+        .loader,
+        .chrome:after,
+        .sid-ai__coming:after {
+          display: none !important;
+        }
+        .chrome {
+          position: static;
+          inset: auto;
+        }
+        .sid-ai,
+        .cube-notes,
+        .captions {
+          position: static;
+          width: auto;
+          max-width: none;
+          transform: none;
+          opacity: 1;
+          color: #0a0d12;
+          text-shadow: none;
+        }
+        .cube-notes:before {
+          display: none;
+        }
+        .cube-notes__label,
+        .sid-ai__mark {
+          color: #0a0d12;
+        }
+        .sid-ai__title,
+        .sid-ai__title span,
+        .sid-ai__title strong {
+          color: #0a0d12;
+        }
+        .sid-ai__coming {
+          color: #0a0d12;
+          border-color: #0a0d12;
+          margin-bottom: 8px;
+        }
+        .sid-ai__lockup {
+          gap: 14px;
+        }
+        .cube-notes {
+          margin-top: 22px;
+        }
+        .cube-note-chip {
+          background: none;
+          min-height: 0;
+          padding: 4px 10px;
+        }
+        .cube-notes__answer,
+        .sid-ai__meta {
+          color: #2a3440;
+          opacity: 1;
+        }
+        .cube-note-chip {
+          color: #0a0d12;
+          border-color: #0a0d12;
+        }
+      }
+    </style>
+    <script type="importmap">
+      { "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+    </script>
+  </head>
+  <body>
+    <canvas id="watercolour-bg" aria-hidden="true"></canvas>
+    <canvas
+      id="stage"
+      tabindex="0"
+      role="button"
+      aria-describedby="cube-instructions"
+      aria-label="Interactive translucent cube character. Click or press Enter to ask it a question and hear Sid."
+    ></canvas>
+    <main class="chrome">
+      <section class="sid-ai" aria-label="Talk to Sid AI, coming soon">
+        <div class="sid-ai__lockup">
+          <a class="sid-ai__mark" href="/" aria-label="Back to Sid Mehta’s site">
+            <svg viewBox="0 0 24 24">
+              <rect x="3" y="3" width="4" height="4" rx="1" />
+              <rect x="17" y="3" width="4" height="4" rx="1" />
+              <rect x="3" y="17" width="4" height="4" rx="1" />
+              <rect x="17" y="17" width="4" height="4" rx="1" />
+              <rect x="8" y="9" width="2" height="6" rx="1" />
+              <rect x="11" y="6" width="2" height="12" rx="1" />
+              <rect x="14" y="8" width="2" height="8" rx="1" />
+            </svg>
+          </a>
+          <div>
+            <div class="sid-ai__coming">Coming soon</div>
+            <div class="sid-ai__title"><span>Talk to </span><strong>Sid AI</strong></div>
+          </div>
+        </div>
+        <p class="sid-ai__meta" id="cube-instructions">
+          Early build · the answers are scripted, the voice is his.<br />Click the cube, or ask it something.
+        </p>
+        <div class="sid-ai__persona" id="voice-persona">Ready when you are</div>
+      </section>
+      <aside class="cube-notes" aria-live="polite" aria-atomic="true" aria-label="Conversation with the cube">
+        <span class="cube-notes__label" id="cube-note-label">The cube says</span>
+        <p class="cube-notes__question" id="cube-note-question">Who’s Sid?</p>
+        <p class="cube-notes__answer" id="cube-note-answer">
+          Designer and technologist in New York. Parsons MFA, by way of EyeJack, Deloitte and Philips.
+        </p>
+        <div class="cube-notes__chips" id="cube-note-chips" aria-label="Ask the cube">
+          <button class="cube-note-chip" type="button" data-cube-note="builds">What does he build</button>
+          <button class="cube-note-chip" type="button" data-cube-note="best">Best work</button>
+          <button class="cube-note-chip" type="button" data-cube-note="reach">How to reach him</button>
+        </div>
+      </aside>
+      <div class="captions" id="captions" role="status" aria-live="polite" aria-atomic="true"></div>
+    </main>
+    <div class="loader" id="loader" aria-label="Loading character"></div>
+    <script src="./watercolour.js?v=7"></script>
+    <script src="./watercolour-init.js?v=7"></script>
+    <script type="module" src="./tv-head-viewer.js?v=112"></script>
+    <script src="./vinyl.js?v=5" defer></script>
+  </body>
 </html>

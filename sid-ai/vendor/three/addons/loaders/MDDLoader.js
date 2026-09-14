@@ -1,10 +1,4 @@
-import {
-	AnimationClip,
-	BufferAttribute,
-	FileLoader,
-	Loader,
-	NumberKeyframeTrack
-} from 'three';
+import { AnimationClip, BufferAttribute, FileLoader, Loader, NumberKeyframeTrack } from "three";
 
 /**
  * A loader for the MDD format.
@@ -43,105 +37,98 @@ import {
  * @three_import import { MDDLoader } from 'three/addons/loaders/MDDLoader.js';
  */
 class MDDLoader extends Loader {
+  /**
+   * Constructs a new MDD loader.
+   *
+   * @param {LoadingManager} [manager] - The loading manager.
+   */
+  constructor(manager) {
+    super(manager);
+  }
 
-	/**
-	 * Constructs a new MDD loader.
-	 *
-	 * @param {LoadingManager} [manager] - The loading manager.
-	 */
-	constructor( manager ) {
+  /**
+   * Starts loading from the given URL and passes the loaded MDD asset
+   * to the `onLoad()` callback.
+   *
+   * @param {string} url - The path/URL of the file to be loaded. This can also be a data URI.
+   * @param {function({clip:AnimationClip, morphTargets:Array<BufferAttribute>})} onLoad - Executed when the loading process has been finished.
+   * @param {onProgressCallback} onProgress - Executed while the loading is in progress.
+   * @param {onErrorCallback} onError - Executed when errors occur.
+   */
+  load(url, onLoad, onProgress, onError) {
+    const scope = this;
 
-		super( manager );
+    const loader = new FileLoader(this.manager);
+    loader.setPath(this.path);
+    loader.setResponseType("arraybuffer");
+    loader.load(
+      url,
+      function (data) {
+        onLoad(scope.parse(data));
+      },
+      onProgress,
+      onError
+    );
+  }
 
-	}
+  /**
+   * Parses the given MDD data and returns an object holding the animation clip and the respective
+   * morph targets.
+   *
+   * @param {ArrayBuffer} data - The raw XYZ data as an array buffer.
+   * @return {{clip:AnimationClip, morphTargets:Array<BufferAttribute>}} The result object.
+   */
+  parse(data) {
+    const view = new DataView(data);
 
-	/**
-	 * Starts loading from the given URL and passes the loaded MDD asset
-	 * to the `onLoad()` callback.
-	 *
-	 * @param {string} url - The path/URL of the file to be loaded. This can also be a data URI.
-	 * @param {function({clip:AnimationClip, morphTargets:Array<BufferAttribute>})} onLoad - Executed when the loading process has been finished.
-	 * @param {onProgressCallback} onProgress - Executed while the loading is in progress.
-	 * @param {onErrorCallback} onError - Executed when errors occur.
-	 */
-	load( url, onLoad, onProgress, onError ) {
+    const totalFrames = view.getUint32(0);
+    const totalPoints = view.getUint32(4);
 
-		const scope = this;
+    let offset = 8;
 
-		const loader = new FileLoader( this.manager );
-		loader.setPath( this.path );
-		loader.setResponseType( 'arraybuffer' );
-		loader.load( url, function ( data ) {
+    // animation clip
 
-			onLoad( scope.parse( data ) );
+    const times = new Float32Array(totalFrames);
+    const values = new Float32Array(totalFrames * totalFrames).fill(0);
 
-		}, onProgress, onError );
+    for (let i = 0; i < totalFrames; i++) {
+      times[i] = view.getFloat32(offset);
+      offset += 4;
+      values[totalFrames * i + i] = 1;
+    }
 
-	}
+    const track = new NumberKeyframeTrack(".morphTargetInfluences", times, values);
+    const clip = new AnimationClip("default", times[times.length - 1], [track]);
 
-	/**
-	 * Parses the given MDD data and returns an object holding the animation clip and the respective
-	 * morph targets.
-	 *
-	 * @param {ArrayBuffer} data - The raw XYZ data as an array buffer.
-	 * @return {{clip:AnimationClip, morphTargets:Array<BufferAttribute>}} The result object.
-	 */
-	parse( data ) {
+    // morph targets
 
-		const view = new DataView( data );
+    const morphTargets = [];
 
-		const totalFrames = view.getUint32( 0 );
-		const totalPoints = view.getUint32( 4 );
+    for (let i = 0; i < totalFrames; i++) {
+      const morphTarget = new Float32Array(totalPoints * 3);
 
-		let offset = 8;
+      for (let j = 0; j < totalPoints; j++) {
+        const stride = j * 3;
 
-		// animation clip
+        morphTarget[stride + 0] = view.getFloat32(offset);
+        offset += 4; // x
+        morphTarget[stride + 1] = view.getFloat32(offset);
+        offset += 4; // y
+        morphTarget[stride + 2] = view.getFloat32(offset);
+        offset += 4; // z
+      }
 
-		const times = new Float32Array( totalFrames );
-		const values = new Float32Array( totalFrames * totalFrames ).fill( 0 );
+      const attribute = new BufferAttribute(morphTarget, 3);
+      attribute.name = "morph_" + i;
 
-		for ( let i = 0; i < totalFrames; i ++ ) {
+      morphTargets.push(attribute);
+    }
 
-			times[ i ] = view.getFloat32( offset ); offset += 4;
-			values[ ( totalFrames * i ) + i ] = 1;
-
-		}
-
-		const track = new NumberKeyframeTrack( '.morphTargetInfluences', times, values );
-		const clip = new AnimationClip( 'default', times[ times.length - 1 ], [ track ] );
-
-		// morph targets
-
-		const morphTargets = [];
-
-		for ( let i = 0; i < totalFrames; i ++ ) {
-
-			const morphTarget = new Float32Array( totalPoints * 3 );
-
-			for ( let j = 0; j < totalPoints; j ++ ) {
-
-				const stride = ( j * 3 );
-
-				morphTarget[ stride + 0 ] = view.getFloat32( offset ); offset += 4; // x
-				morphTarget[ stride + 1 ] = view.getFloat32( offset ); offset += 4; // y
-				morphTarget[ stride + 2 ] = view.getFloat32( offset ); offset += 4; // z
-
-			}
-
-			const attribute = new BufferAttribute( morphTarget, 3 );
-			attribute.name = 'morph_' + i;
-
-			morphTargets.push( attribute );
-
-		}
-
-		return {
-			morphTargets: morphTargets,
-			clip: clip
-		};
-
-	}
-
+    return {
+      morphTargets: morphTargets,
+      clip: clip,
+    };
+  }
 }
 
 export { MDDLoader };

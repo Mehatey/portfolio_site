@@ -1,7 +1,7 @@
-export const vertexShader=`varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position,1.0);}`;
+export const vertexShader = `varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position,1.0);}`;
 
 // Exact feedback pass from hand-mandala/src/render/LatentRenderer.ts.
-export const simulationShader=`
+export const simulationShader = `
 precision highp float;varying vec2 vUv;uniform sampler2D uPrevious;uniform vec2 uResolution,uHand,uSecondHand;uniform float uTime,uDelta,uPinch,uSecondPinch,uOpen,uVelocity,uPresence,uHands,uRotation,uAudio,uVariant;
 float hash21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 float noise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash21(i),hash21(i+vec2(1,0)),f.x),mix(hash21(i+vec2(0,1)),hash21(i+1.0),f.x),f.y);}
@@ -10,7 +10,7 @@ void main(){vec2 px=1.0/uResolution,aspect=vec2(uResolution.x/uResolution.y,1),t
 
 // Exact Latent Mirror raymarch plus the source tap, focus, negative-space,
 // takeover, tone-map and grain treatment. Added pearl/cyan edge current only.
-export const displayShader=`
+export const displayShader = `
 precision highp float;varying vec2 vUv;uniform sampler2D uField;uniform vec2 uResolution,uHand,uTapPosition;uniform float uTime,uPinch,uOpen,uVelocity,uPresence,uHandDistance,uRotation,uTransition,uArtifactFocus,uTap,uBackdropReveal,uBackdropStrength,uBackdropTakeover;
 mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}float hash21(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}float luma(vec3 c){return dot(c,vec3(.299,.587,.114));}
 float noise2(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);return mix(mix(hash21(i),hash21(i+vec2(1,0)),f.x),mix(hash21(i+vec2(0,1)),hash21(i+1.0),f.x),f.y);}float fbm2(vec2 p){float v=0.,a=.52;for(int i=0;i<5;i++){v+=noise2(p)*a;p=rot(.61)*p*2.03+7.13;a*=.48;}return v;}vec3 palette(float t){return .5+.5*cos(6.28318*(t+vec3(.02,.34,.69)));}float fbm(vec3 p){float f=0.,a=.52;for(int i=0;i<5;i++){f+=a*sin(p.x)*sin(p.y)*sin(p.z);p=p.yzx*1.83+vec3(1.7,2.8,1.2);a*=.52;}return f;}

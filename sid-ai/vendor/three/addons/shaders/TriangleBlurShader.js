@@ -1,6 +1,4 @@
-import {
-	Vector2
-} from 'three';
+import { Vector2 } from "three";
 
 /**
  * @module TriangleBlurShader
@@ -18,17 +16,14 @@ import {
  * @type {ShaderMaterial~Shader}
  */
 const TriangleBlurShader = {
+  name: "TriangleBlurShader",
 
-	name: 'TriangleBlurShader',
+  uniforms: {
+    texture: { value: null },
+    delta: { value: new Vector2(1, 1) },
+  },
 
-	uniforms: {
-
-		'texture': { value: null },
-		'delta': { value: new Vector2( 1, 1 ) }
-
-	},
-
-	vertexShader: /* glsl */`
+  vertexShader: /* glsl */ `
 
 		varying vec2 vUv;
 
@@ -39,7 +34,7 @@ const TriangleBlurShader = {
 
 		}`,
 
-	fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */ `
 
 		#include <common>
 
@@ -72,8 +67,7 @@ const TriangleBlurShader = {
 
 			gl_FragColor = color / total;
 
-		}`
-
+		}`,
 };
 
 export { TriangleBlurShader };

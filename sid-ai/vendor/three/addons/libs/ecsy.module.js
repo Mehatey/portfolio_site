@@ -33,16 +33,10 @@ function queryKey(Components) {
 const hasWindow = typeof window !== "undefined";
 
 // performance.now() "polyfill"
-const now =
-  hasWindow && typeof window.performance !== "undefined"
-    ? performance.now.bind(performance)
-    : Date.now.bind(Date);
+const now = hasWindow && typeof window.performance !== "undefined" ? performance.now.bind(performance) : Date.now.bind(Date);
 
 function componentRegistered(T) {
-  return (
-    (typeof T === "object" && T.Component._typeId !== undefined) ||
-    (T.isComponent && T._typeId !== undefined)
-  );
+  return (typeof T === "object" && T.Component._typeId !== undefined) || (T.isComponent && T._typeId !== undefined);
 }
 
 class SystemManager {
@@ -55,9 +49,7 @@ class SystemManager {
 
   registerSystem(SystemClass, attributes) {
     if (!SystemClass.isSystem) {
-      throw new Error(
-        `System '${SystemClass.name}' does not extend 'System' class`
-      );
+      throw new Error(`System '${SystemClass.name}' does not extend 'System' class`);
     }
 
     if (this.getSystem(SystemClass) !== undefined) {
@@ -79,9 +71,7 @@ class SystemManager {
   unregisterSystem(SystemClass) {
     let system = this.getSystem(SystemClass);
     if (system === undefined) {
-      console.warn(
-        `Can unregister system '${SystemClass.getName()}'. It doesn't exist.`
-      );
+      console.warn(`Can unregister system '${SystemClass.getName()}'. It doesn't exist.`);
       return this;
     }
 
@@ -133,10 +123,7 @@ class SystemManager {
   }
 
   execute(delta, time, forcePlay) {
-    this._executeSystems.forEach(
-      (system) =>
-        (forcePlay || system.enabled) && this.executeSystem(system, delta, time)
-    );
+    this._executeSystems.forEach((system) => (forcePlay || system.enabled) && this.executeSystem(system, delta, time));
   }
 
   stats() {
@@ -246,10 +233,7 @@ class EventDispatcher {
    * @param {Function} listener Callback for the specified event
    */
   hasEventListener(eventName, listener) {
-    return (
-      this._listeners[eventName] !== undefined &&
-      this._listeners[eventName].indexOf(listener) !== -1
-    );
+    return this._listeners[eventName] !== undefined && this._listeners[eventName].indexOf(listener) !== -1;
   }
 
   /**
@@ -357,18 +341,12 @@ class Query {
       index = entity.queries.indexOf(this);
       entity.queries.splice(index, 1);
 
-      this.eventDispatcher.dispatchEvent(
-        Query.prototype.ENTITY_REMOVED,
-        entity
-      );
+      this.eventDispatcher.dispatchEvent(Query.prototype.ENTITY_REMOVED, entity);
     }
   }
 
   match(entity) {
-    return (
-      entity.hasAllComponents(this.Components) &&
-      !entity.hasAnyComponents(this.NotComponents)
-    );
+    return entity.hasAllComponents(this.Components) && !entity.hasAnyComponents(this.NotComponents);
   }
 
   toJSON() {
@@ -431,10 +409,7 @@ class QueryManager {
     for (var queryName in this._queries) {
       var query = this._queries[queryName];
 
-      if (
-        !!~query.NotComponents.indexOf(Component) &&
-        ~query.entities.indexOf(entity)
-      ) {
+      if (!!~query.NotComponents.indexOf(Component) && ~query.entities.indexOf(entity)) {
         query.removeEntity(entity);
         continue;
       }
@@ -443,12 +418,7 @@ class QueryManager {
       // Component is in the query
       // and Entity has ALL the components of the query
       // and Entity is not already in the query
-      if (
-        !~query.Components.indexOf(Component) ||
-        !query.match(entity) ||
-        ~query.entities.indexOf(entity)
-      )
-        continue;
+      if (!~query.Components.indexOf(Component) || !query.match(entity) || ~query.entities.indexOf(entity)) continue;
 
       query.addEntity(entity);
     }
@@ -463,20 +433,12 @@ class QueryManager {
     for (var queryName in this._queries) {
       var query = this._queries[queryName];
 
-      if (
-        !!~query.NotComponents.indexOf(Component) &&
-        !~query.entities.indexOf(entity) &&
-        query.match(entity)
-      ) {
+      if (!!~query.NotComponents.indexOf(Component) && !~query.entities.indexOf(entity) && query.match(entity)) {
         query.addEntity(entity);
         continue;
       }
 
-      if (
-        !!~query.Components.indexOf(Component) &&
-        !!~query.entities.indexOf(entity) &&
-        !query.match(entity)
-      ) {
+      if (!!~query.Components.indexOf(Component) && !!~query.entities.indexOf(entity) && !query.match(entity)) {
         query.removeEntity(entity);
         continue;
       }
@@ -527,7 +489,7 @@ class Component {
         }
       }
 
-      if ( props !== undefined) {
+      if (props !== undefined) {
         this.checkUndefinedAttributes(props);
       }
     }
@@ -644,11 +606,7 @@ class EntityManager {
 
     this._queryManager = new QueryManager(this);
     this.eventDispatcher = new EventDispatcher();
-    this._entityPool = new EntityPool(
-      this,
-      this.world.options.entityClass,
-      this.world.options.entityPoolSize
-    );
+    this._entityPool = new EntityPool(this, this.world.options.entityClass, this.world.options.entityPoolSize);
 
     // Deferred deletion
     this.entitiesWithComponentsToRemove = [];
@@ -690,22 +648,13 @@ class EntityManager {
    */
   entityAddComponent(entity, Component, values) {
     // @todo Probably define Component._typeId with a default value and avoid using typeof
-    if (
-      typeof Component._typeId === "undefined" &&
-      !this.world.componentsManager._ComponentsMap[Component._typeId]
-    ) {
-      throw new Error(
-        `Attempted to add unregistered component "${Component.getName()}"`
-      );
+    if (typeof Component._typeId === "undefined" && !this.world.componentsManager._ComponentsMap[Component._typeId]) {
+      throw new Error(`Attempted to add unregistered component "${Component.getName()}"`);
     }
 
     if (~entity._ComponentTypes.indexOf(Component)) {
       {
-        console.warn(
-          "Component type already exists on entity.",
-          entity,
-          Component.getName()
-        );
+        console.warn("Component type already exists on entity.", entity, Component.getName());
       }
       return;
     }
@@ -716,13 +665,9 @@ class EntityManager {
       entity.numStateComponents++;
     }
 
-    var componentPool = this.world.componentsManager.getComponentsPool(
-      Component
-    );
+    var componentPool = this.world.componentsManager.getComponentsPool(Component);
 
-    var component = componentPool
-      ? componentPool.acquire()
-      : new Component(values);
+    var component = componentPool ? componentPool.acquire() : new Component(values);
 
     if (componentPool && values) {
       component.copy(values);
@@ -751,14 +696,12 @@ class EntityManager {
     if (immediately) {
       this._entityRemoveComponentSync(entity, Component, index);
     } else {
-      if (entity._ComponentTypesToRemove.length === 0)
-        this.entitiesWithComponentsToRemove.push(entity);
+      if (entity._ComponentTypesToRemove.length === 0) this.entitiesWithComponentsToRemove.push(entity);
 
       entity._ComponentTypes.splice(index, 1);
       entity._ComponentTypesToRemove.push(Component);
 
-      entity._componentsToRemove[Component._typeId] =
-        entity._components[Component._typeId];
+      entity._componentsToRemove[Component._typeId] = entity._components[Component._typeId];
       delete entity._components[Component._typeId];
     }
 
@@ -792,8 +735,7 @@ class EntityManager {
     let Components = entity._ComponentTypes;
 
     for (let j = Components.length - 1; j >= 0; j--) {
-      if (Components[j].__proto__ !== SystemStateComponent)
-        this.entityRemoveComponent(entity, Components[j], immediately);
+      if (Components[j].__proto__ !== SystemStateComponent) this.entityRemoveComponent(entity, Components[j], immediately);
     }
   }
 
@@ -894,8 +836,7 @@ class EntityManager {
       numEntities: this._entities.length,
       numQueries: Object.keys(this._queryManager._queries).length,
       queries: this._queryManager.stats(),
-      numComponentPool: Object.keys(this.componentsManager._componentPool)
-        .length,
+      numComponentPool: Object.keys(this.componentsManager._componentPool).length,
       componentPool: {},
       eventDispatcher: this.eventDispatcher.stats,
     };
@@ -933,27 +874,21 @@ class ComponentManager {
 
   registerComponent(Component, objectPool) {
     if (this.Components.indexOf(Component) !== -1) {
-      console.warn(
-        `Component type: '${Component.getName()}' already registered.`
-      );
+      console.warn(`Component type: '${Component.getName()}' already registered.`);
       return;
     }
 
     const schema = Component.schema;
 
     if (!schema) {
-      throw new Error(
-        `Component "${Component.getName()}" has no schema property.`
-      );
+      throw new Error(`Component "${Component.getName()}" has no schema property.`);
     }
 
     for (const propName in schema) {
       const prop = schema[propName];
 
       if (!prop.type) {
-        throw new Error(
-          `Invalid schema for component "${Component.getName()}". Missing type for "${propName}" property.`
-        );
+        throw new Error(`Invalid schema for component "${Component.getName()}". Missing type for "${propName}" property.`);
       }
     }
 
@@ -991,9 +926,7 @@ const proxyMap = new WeakMap();
 const proxyHandler = {
   set(target, prop) {
     throw new Error(
-      `Tried to write to "${target.constructor.getName()}#${String(
-        prop
-      )}" on immutable component. Use .getMutableComponent() to modify a component.`
+      `Tried to write to "${target.constructor.getName()}#${String(prop)}" on immutable component. Use .getMutableComponent() to modify a component.`
     );
   },
 };
@@ -1049,15 +982,13 @@ class Entity {
       component = this._componentsToRemove[Component._typeId];
     }
 
-    return  wrapImmutableComponent(Component, component)
-      ;
+    return wrapImmutableComponent(Component, component);
   }
 
   getRemovedComponent(Component) {
     const component = this._componentsToRemove[Component._typeId];
 
-    return  wrapImmutableComponent(Component, component)
-      ;
+    return wrapImmutableComponent(Component, component);
   }
 
   getComponents() {
@@ -1084,11 +1015,7 @@ class Entity {
       // @todo accelerate this check. Maybe having query._Components as an object
       // @todo add Not components
       if (query.reactive && query.Components.indexOf(Component) !== -1) {
-        query.eventDispatcher.dispatchEvent(
-          Query.prototype.COMPONENT_CHANGED,
-          this,
-          component
-        );
+        query.eventDispatcher.dispatchEvent(Query.prototype.COMPONENT_CHANGED, this, component);
       }
     }
     return component;
@@ -1105,10 +1032,7 @@ class Entity {
   }
 
   hasComponent(Component, includeRemoved) {
-    return (
-      !!~this._ComponentTypes.indexOf(Component) ||
-      (includeRemoved === true && this.hasRemovedComponent(Component))
-    );
+    return !!~this._ComponentTypes.indexOf(Component) || (includeRemoved === true && this.hasRemovedComponent(Component));
   }
 
   hasRemovedComponent(Component) {
@@ -1301,15 +1225,11 @@ class System {
         }
 
         // Detect if the components have already been registered
-        let unregisteredComponents = Components.filter(
-          (Component) => !componentRegistered(Component)
-        );
+        let unregisteredComponents = Components.filter((Component) => !componentRegistered(Component));
 
         if (unregisteredComponents.length > 0) {
           throw new Error(
-            `Tried to create a query '${
-              this.constructor.name
-            }.${queryName}' with unregistered components: [${unregisteredComponents
+            `Tried to create a query '${this.constructor.name}.${queryName}' with unregistered components: [${unregisteredComponents
               .map((c) => c.getName())
               .join(", ")}]`
           );
@@ -1353,41 +1273,28 @@ class System {
                 if (event === true) {
                   // Any change on the entity from the components in the query
                   let eventList = (this.queries[queryName][eventName] = []);
-                  query.eventDispatcher.addEventListener(
-                    Query.prototype.COMPONENT_CHANGED,
-                    (entity) => {
-                      // Avoid duplicates
-                      if (eventList.indexOf(entity) === -1) {
-                        eventList.push(entity);
-                      }
+                  query.eventDispatcher.addEventListener(Query.prototype.COMPONENT_CHANGED, (entity) => {
+                    // Avoid duplicates
+                    if (eventList.indexOf(entity) === -1) {
+                      eventList.push(entity);
                     }
-                  );
+                  });
                 } else if (Array.isArray(event)) {
                   let eventList = (this.queries[queryName][eventName] = []);
-                  query.eventDispatcher.addEventListener(
-                    Query.prototype.COMPONENT_CHANGED,
-                    (entity, changedComponent) => {
-                      // Avoid duplicates
-                      if (
-                        event.indexOf(changedComponent.constructor) !== -1 &&
-                        eventList.indexOf(entity) === -1
-                      ) {
-                        eventList.push(entity);
-                      }
+                  query.eventDispatcher.addEventListener(Query.prototype.COMPONENT_CHANGED, (entity, changedComponent) => {
+                    // Avoid duplicates
+                    if (event.indexOf(changedComponent.constructor) !== -1 && eventList.indexOf(entity) === -1) {
+                      eventList.push(entity);
                     }
-                  );
+                  });
                 }
               } else {
                 let eventList = (this.queries[queryName][eventName] = []);
 
-                query.eventDispatcher.addEventListener(
-                  eventMapping[eventName],
-                  (entity) => {
-                    // @fixme overhead?
-                    if (eventList.indexOf(entity) === -1)
-                      eventList.push(entity);
-                  }
-                );
+                query.eventDispatcher.addEventListener(eventMapping[eventName], (entity) => {
+                  // @fixme overhead?
+                  if (eventList.indexOf(entity) === -1) eventList.push(entity);
+                });
               }
             }
           });
@@ -1542,11 +1449,7 @@ function createType(typeDefinition) {
   });
 
   if (undefinedProperties.length > 0) {
-    throw new Error(
-      `createType expects a type definition with the following properties: ${undefinedProperties.join(
-        ", "
-      )}`
-    );
+    throw new Error(`createType expects a type definition with the following properties: ${undefinedProperties.join(", ")}`);
   }
 
   typeDefinition.isType = true;
@@ -1742,10 +1645,7 @@ function enableRemoteDevtools(remoteId) {
                 script.parentNode.removeChild(script);
 
                 // Once the script is injected we don't need to listen
-                window.removeEventListener(
-                  "ecsy-world-created",
-                  onWorldCreated
-                );
+                window.removeEventListener("ecsy-world-created", onWorldCreated);
                 worldsBeforeLoading.forEach((world) => {
                   var event = new CustomEvent("ecsy-world-created", {
                     detail: { world: world, version: Version },
@@ -1774,10 +1674,7 @@ function enableRemoteDevtools(remoteId) {
   };
 
   // Inject PeerJS script
-  injectScript(
-    "https://cdn.jsdelivr.net/npm/peerjs@0.3.20/dist/peer.min.js",
-    onLoaded
-  );
+  injectScript("https://cdn.jsdelivr.net/npm/peerjs@0.3.20/dist/peer.min.js", onLoaded);
 }
 
 if (hasWindow) {
@@ -1789,4 +1686,25 @@ if (hasWindow) {
   }
 }
 
-export { Component, Not, ObjectPool, System, SystemStateComponent, TagComponent, Types, Version, World, Entity as _Entity, cloneArray, cloneClonable, cloneJSON, cloneValue, copyArray, copyCopyable, copyJSON, copyValue, createType, enableRemoteDevtools };
+export {
+  Component,
+  Not,
+  ObjectPool,
+  System,
+  SystemStateComponent,
+  TagComponent,
+  Types,
+  Version,
+  World,
+  Entity as _Entity,
+  cloneArray,
+  cloneClonable,
+  cloneJSON,
+  cloneValue,
+  copyArray,
+  copyCopyable,
+  copyJSON,
+  copyValue,
+  createType,
+  enableRemoteDevtools,
+};

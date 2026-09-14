@@ -1,9 +1,6 @@
-import {
-	ShaderMaterial,
-	UniformsUtils
-} from 'three';
-import { Pass, FullScreenQuad } from './Pass.js';
-import { HalftoneShader } from '../shaders/HalftoneShader.js';
+import { ShaderMaterial, UniformsUtils } from "three";
+import { Pass, FullScreenQuad } from "./Pass.js";
+import { HalftoneShader } from "../shaders/HalftoneShader.js";
 
 /**
  * Pass for creating a RGB halftone effect.
@@ -29,106 +26,87 @@ import { HalftoneShader } from '../shaders/HalftoneShader.js';
  * @three_import import { HalftonePass } from 'three/addons/postprocessing/HalftonePass.js';
  */
 class HalftonePass extends Pass {
+  /**
+   * Constructs a new halftone pass.
+   *
+   * @param {Object} params - The halftone shader parameter.
+   */
+  constructor(params) {
+    super();
 
-	/**
-	 * Constructs a new halftone pass.
-	 *
-	 * @param {Object} params - The halftone shader parameter.
-	 */
-	constructor( params ) {
+    /**
+     * The pass uniforms.
+     *
+     * @type {Object}
+     */
+    this.uniforms = UniformsUtils.clone(HalftoneShader.uniforms);
 
-		super();
+    /**
+     * The pass material.
+     *
+     * @type {ShaderMaterial}
+     */
+    this.material = new ShaderMaterial({
+      uniforms: this.uniforms,
+      fragmentShader: HalftoneShader.fragmentShader,
+      vertexShader: HalftoneShader.vertexShader,
+    });
 
-		/**
-		 * The pass uniforms.
-		 *
-		 * @type {Object}
-		 */
-	 	this.uniforms = UniformsUtils.clone( HalftoneShader.uniforms );
+    for (const key in params) {
+      if (params.hasOwnProperty(key) && this.uniforms.hasOwnProperty(key)) {
+        this.uniforms[key].value = params[key];
+      }
+    }
 
-		/**
-		 * The pass material.
-		 *
-		 * @type {ShaderMaterial}
-		 */
-	 	this.material = new ShaderMaterial( {
-	 		uniforms: this.uniforms,
-	 		fragmentShader: HalftoneShader.fragmentShader,
-	 		vertexShader: HalftoneShader.vertexShader
-	 	} );
+    // internals
 
+    this._fsQuad = new FullScreenQuad(this.material);
+  }
 
-		for ( const key in params ) {
+  /**
+   * Performs the halftone pass.
+   *
+   * @param {WebGLRenderer} renderer - The renderer.
+   * @param {WebGLRenderTarget} writeBuffer - The write buffer. This buffer is intended as the rendering
+   * destination for the pass.
+   * @param {WebGLRenderTarget} readBuffer - The read buffer. The pass can access the result from the
+   * previous pass from this buffer.
+   * @param {number} deltaTime - The delta time in seconds.
+   * @param {boolean} maskActive - Whether masking is active or not.
+   */
+  render(renderer, writeBuffer, readBuffer /*, deltaTime, maskActive*/) {
+    this.material.uniforms["tDiffuse"].value = readBuffer.texture;
 
-			if ( params.hasOwnProperty( key ) && this.uniforms.hasOwnProperty( key ) ) {
+    if (this.renderToScreen) {
+      renderer.setRenderTarget(null);
+      this._fsQuad.render(renderer);
+    } else {
+      renderer.setRenderTarget(writeBuffer);
+      if (this.clear) renderer.clear();
+      this._fsQuad.render(renderer);
+    }
+  }
 
-				this.uniforms[ key ].value = params[ key ];
+  /**
+   * Sets the size of the pass.
+   *
+   * @param {number} width - The width to set.
+   * @param {number} height - The height to set.
+   */
+  setSize(width, height) {
+    this.uniforms.width.value = width;
+    this.uniforms.height.value = height;
+  }
 
-			}
+  /**
+   * Frees the GPU-related resources allocated by this instance. Call this
+   * method whenever the pass is no longer used in your app.
+   */
+  dispose() {
+    this.material.dispose();
 
-		}
-
-		// internals
-
-		this._fsQuad = new FullScreenQuad( this.material );
-
-	}
-
-	/**
-	 * Performs the halftone pass.
-	 *
-	 * @param {WebGLRenderer} renderer - The renderer.
-	 * @param {WebGLRenderTarget} writeBuffer - The write buffer. This buffer is intended as the rendering
-	 * destination for the pass.
-	 * @param {WebGLRenderTarget} readBuffer - The read buffer. The pass can access the result from the
-	 * previous pass from this buffer.
-	 * @param {number} deltaTime - The delta time in seconds.
-	 * @param {boolean} maskActive - Whether masking is active or not.
-	 */
-	render( renderer, writeBuffer, readBuffer/*, deltaTime, maskActive*/ ) {
-
- 		this.material.uniforms[ 'tDiffuse' ].value = readBuffer.texture;
-
- 		if ( this.renderToScreen ) {
-
- 			renderer.setRenderTarget( null );
- 			this._fsQuad.render( renderer );
-
-		} else {
-
- 			renderer.setRenderTarget( writeBuffer );
- 			if ( this.clear ) renderer.clear();
-			this._fsQuad.render( renderer );
-
-		}
-
- 	}
-
-	/**
-	 * Sets the size of the pass.
-	 *
-	 * @param {number} width - The width to set.
-	 * @param {number} height - The height to set.
-	 */
- 	setSize( width, height ) {
-
- 		this.uniforms.width.value = width;
- 		this.uniforms.height.value = height;
-
- 	}
-
-	/**
-	 * Frees the GPU-related resources allocated by this instance. Call this
-	 * method whenever the pass is no longer used in your app.
-	 */
-	dispose() {
-
-		this.material.dispose();
-
-		this._fsQuad.dispose();
-
-	}
-
+    this._fsQuad.dispose();
+  }
 }
 
 export { HalftonePass };

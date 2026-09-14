@@ -1,5 +1,5 @@
-import { UniformsLib } from 'three';
-import { RectAreaLightTexturesLib } from './RectAreaLightTexturesLib.js';
+import { UniformsLib } from "three";
+import { RectAreaLightTexturesLib } from "./RectAreaLightTexturesLib.js";
 
 /**
  * This class is only relevant when using {@link RectAreaLight} with {@link WebGLRenderer}.
@@ -15,26 +15,22 @@ import { RectAreaLightTexturesLib } from './RectAreaLightTexturesLib.js';
  * @three_import import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
  */
 class RectAreaLightUniformsLib {
+  /**
+   * Inits the uniform library required when using rect area lights.
+   */
+  static init() {
+    RectAreaLightTexturesLib.init();
 
-	/**
-	 * Inits the uniform library required when using rect area lights.
-	 */
-	static init() {
+    const { LTC_FLOAT_1, LTC_FLOAT_2, LTC_HALF_1, LTC_HALF_2 } = RectAreaLightTexturesLib;
 
-		RectAreaLightTexturesLib.init();
+    // data textures
 
-		const { LTC_FLOAT_1, LTC_FLOAT_2, LTC_HALF_1, LTC_HALF_2 } = RectAreaLightTexturesLib;
+    UniformsLib.LTC_FLOAT_1 = LTC_FLOAT_1;
+    UniformsLib.LTC_FLOAT_2 = LTC_FLOAT_2;
 
-		// data textures
-
-		UniformsLib.LTC_FLOAT_1 = LTC_FLOAT_1;
-		UniformsLib.LTC_FLOAT_2 = LTC_FLOAT_2;
-
-		UniformsLib.LTC_HALF_1 = LTC_HALF_1;
-		UniformsLib.LTC_HALF_2 = LTC_HALF_2;
-
-	}
-
+    UniformsLib.LTC_HALF_1 = LTC_HALF_1;
+    UniformsLib.LTC_HALF_2 = LTC_HALF_2;
+  }
 }
 
 export { RectAreaLightUniformsLib };

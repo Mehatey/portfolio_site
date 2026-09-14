@@ -10,17 +10,14 @@
  * @type {ShaderMaterial~Shader}
  */
 const UnpackDepthRGBAShader = {
+  name: "UnpackDepthRGBAShader",
 
-	name: 'UnpackDepthRGBAShader',
+  uniforms: {
+    tDiffuse: { value: null },
+    opacity: { value: 1.0 },
+  },
 
-	uniforms: {
-
-		'tDiffuse': { value: null },
-		'opacity': { value: 1.0 }
-
-	},
-
-	vertexShader: /* glsl */`
+  vertexShader: /* glsl */ `
 
 		varying vec2 vUv;
 
@@ -31,7 +28,7 @@ const UnpackDepthRGBAShader = {
 
 		}`,
 
-	fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */ `
 
 		uniform float opacity;
 
@@ -55,8 +52,7 @@ const UnpackDepthRGBAShader = {
 
 			#endif
 
-		}`
-
+		}`,
 };
 
 export { UnpackDepthRGBAShader };

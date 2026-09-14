@@ -1,6 +1,4 @@
-import {
-	ExtrudeGeometry
-} from 'three';
+import { ExtrudeGeometry } from "three";
 
 /**
  * A class for generating text as a single geometry. It is constructed by providing a string of text, and a set of
@@ -26,40 +24,32 @@ import {
  * @three_import import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
  */
 class TextGeometry extends ExtrudeGeometry {
+  /**
+   * Constructs a new text geometry.
+   *
+   * @param {string} text - The text that should be transformed into a geometry.
+   * @param {TextGeometry~Options} [parameters] - The text settings.
+   */
+  constructor(text, parameters = {}) {
+    const font = parameters.font;
 
-	/**
-	 * Constructs a new text geometry.
-	 *
-	 * @param {string} text - The text that should be transformed into a geometry.
-	 * @param {TextGeometry~Options} [parameters] - The text settings.
-	 */
-	constructor( text, parameters = {} ) {
+    if (font === undefined) {
+      super(); // generate default extrude geometry
+    } else {
+      const shapes = font.generateShapes(text, parameters.size);
 
-		const font = parameters.font;
+      // defaults
 
-		if ( font === undefined ) {
+      if (parameters.depth === undefined) parameters.depth = 50;
+      if (parameters.bevelThickness === undefined) parameters.bevelThickness = 10;
+      if (parameters.bevelSize === undefined) parameters.bevelSize = 8;
+      if (parameters.bevelEnabled === undefined) parameters.bevelEnabled = false;
 
-			super(); // generate default extrude geometry
+      super(shapes, parameters);
+    }
 
-		} else {
-
-			const shapes = font.generateShapes( text, parameters.size );
-
-			// defaults
-
-			if ( parameters.depth === undefined ) parameters.depth = 50;
-			if ( parameters.bevelThickness === undefined ) parameters.bevelThickness = 10;
-			if ( parameters.bevelSize === undefined ) parameters.bevelSize = 8;
-			if ( parameters.bevelEnabled === undefined ) parameters.bevelEnabled = false;
-
-			super( shapes, parameters );
-
-		}
-
-		this.type = 'TextGeometry';
-
-	}
-
+    this.type = "TextGeometry";
+  }
 }
 
 /**

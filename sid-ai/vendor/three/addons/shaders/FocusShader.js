@@ -10,20 +10,17 @@
  * @type {ShaderMaterial~Shader}
  */
 const FocusShader = {
+  name: "FocusShader",
 
-	name: 'FocusShader',
+  uniforms: {
+    tDiffuse: { value: null },
+    screenWidth: { value: 1024 },
+    screenHeight: { value: 1024 },
+    sampleDistance: { value: 0.94 },
+    waveFactor: { value: 0.00125 },
+  },
 
-	uniforms: {
-
-		'tDiffuse': { value: null },
-		'screenWidth': { value: 1024 },
-		'screenHeight': { value: 1024 },
-		'sampleDistance': { value: 0.94 },
-		'waveFactor': { value: 0.00125 }
-
-	},
-
-	vertexShader: /* glsl */`
+  vertexShader: /* glsl */ `
 
 		varying vec2 vUv;
 
@@ -34,7 +31,7 @@ const FocusShader = {
 
 		}`,
 
-	fragmentShader: /* glsl */`
+  fragmentShader: /* glsl */ `
 
 		uniform float screenWidth;
 		uniform float screenHeight;
@@ -87,8 +84,7 @@ const FocusShader = {
 
 			gl_FragColor = vec4( color.rgb * color.rgb * vec3( 0.95 ) + color.rgb, 1.0 );
 
-		}`
-
+		}`,
 };
 
 export { FocusShader };

@@ -1,13 +1,4 @@
-import {
-	Controls,
-	Matrix4,
-	Plane,
-	Raycaster,
-	Vector2,
-	Vector3,
-	MOUSE,
-	TOUCH
-} from 'three';
+import { Controls, Matrix4, Plane, Raycaster, Vector2, Vector3, MOUSE, TOUCH } from "three";
 
 const _plane = new Plane();
 
@@ -22,13 +13,14 @@ const _inverseMatrix = new Matrix4();
 const _up = new Vector3();
 const _right = new Vector3();
 
-let _selected = null, _hovered = null;
+let _selected = null,
+  _hovered = null;
 const _intersections = [];
 
 const STATE = {
-	NONE: - 1,
-	PAN: 0,
-	ROTATE: 1
+  NONE: -1,
+  PAN: 0,
+  ROTATE: 1,
 };
 
 /**
@@ -55,370 +47,293 @@ const STATE = {
  * @three_import import { DragControls } from 'three/addons/controls/DragControls.js';
  */
 class DragControls extends Controls {
+  /**
+   * Constructs a new controls instance.
+   *
+   * @param {Array<Object3D>} objects - An array of draggable 3D objects.
+   * @param {Camera} camera - The camera of the rendered scene.
+   * @param {?HTMLDOMElement} [domElement=null] - The HTML DOM element used for event listeners.
+   */
+  constructor(objects, camera, domElement = null) {
+    super(camera, domElement);
 
-	/**
-	 * Constructs a new controls instance.
-	 *
-	 * @param {Array<Object3D>} objects - An array of draggable 3D objects.
-	 * @param {Camera} camera - The camera of the rendered scene.
-	 * @param {?HTMLDOMElement} [domElement=null] - The HTML DOM element used for event listeners.
-	 */
-	constructor( objects, camera, domElement = null ) {
+    /**
+     * An array of draggable 3D objects.
+     *
+     * @type {Array<Object3D>}
+     */
+    this.objects = objects;
 
-		super( camera, domElement );
+    /**
+     * Whether children of draggable objects can be dragged independently from their parent.
+     *
+     * @type {boolean}
+     * @default true
+     */
+    this.recursive = true;
 
-		/**
-		 * An array of draggable 3D objects.
-		 *
-		 * @type {Array<Object3D>}
-		 */
-		this.objects = objects;
+    /**
+     * This option only works if the `objects` array contains a single draggable  group object.
+     * If set to `true`, the controls does not transform individual objects but the entire group.
+     *
+     * @type {boolean}
+     * @default false
+     */
+    this.transformGroup = false;
 
-		/**
-		 * Whether children of draggable objects can be dragged independently from their parent.
-		 *
-		 * @type {boolean}
-		 * @default true
-		 */
-		this.recursive = true;
+    /**
+     * The speed at which the object will rotate when dragged in `rotate` mode.
+     * The higher the number the faster the rotation.
+     *
+     * @type {number}
+     * @default 1
+     */
+    this.rotateSpeed = 1;
 
-		/**
-		 * This option only works if the `objects` array contains a single draggable  group object.
-		 * If set to `true`, the controls does not transform individual objects but the entire group.
-		 *
-		 * @type {boolean}
-		 * @default false
-		 */
-		this.transformGroup = false;
+    /**
+     * The raycaster used for detecting 3D objects.
+     *
+     * @type {Raycaster}
+     */
+    this.raycaster = new Raycaster();
 
-		/**
-		 * The speed at which the object will rotate when dragged in `rotate` mode.
-		 * The higher the number the faster the rotation.
-		 *
-		 * @type {number}
-		 * @default 1
-		 */
-		this.rotateSpeed = 1;
+    // interaction
 
-		/**
-		 * The raycaster used for detecting 3D objects.
-		 *
-		 * @type {Raycaster}
-		 */
-		this.raycaster = new Raycaster();
+    this.mouseButtons = { LEFT: MOUSE.PAN, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.ROTATE };
+    this.touches = { ONE: TOUCH.PAN };
 
-		// interaction
+    // event listeners
 
-		this.mouseButtons = { LEFT: MOUSE.PAN, MIDDLE: MOUSE.PAN, RIGHT: MOUSE.ROTATE };
-		this.touches = { ONE: TOUCH.PAN };
+    this._onPointerMove = onPointerMove.bind(this);
+    this._onPointerDown = onPointerDown.bind(this);
+    this._onPointerCancel = onPointerCancel.bind(this);
+    this._onContextMenu = onContextMenu.bind(this);
 
-		// event listeners
+    //
 
-		this._onPointerMove = onPointerMove.bind( this );
-		this._onPointerDown = onPointerDown.bind( this );
-		this._onPointerCancel = onPointerCancel.bind( this );
-		this._onContextMenu = onContextMenu.bind( this );
+    if (domElement !== null) {
+      this.connect(domElement);
+    }
+  }
 
-		//
+  connect(element) {
+    super.connect(element);
 
-		if ( domElement !== null ) {
+    this.domElement.addEventListener("pointermove", this._onPointerMove);
+    this.domElement.addEventListener("pointerdown", this._onPointerDown);
+    this.domElement.addEventListener("pointerup", this._onPointerCancel);
+    this.domElement.addEventListener("pointerleave", this._onPointerCancel);
+    this.domElement.addEventListener("contextmenu", this._onContextMenu);
 
-			this.connect( domElement );
+    this.domElement.style.touchAction = "none"; // disable touch scroll
+  }
 
-		}
+  disconnect() {
+    this.domElement.removeEventListener("pointermove", this._onPointerMove);
+    this.domElement.removeEventListener("pointerdown", this._onPointerDown);
+    this.domElement.removeEventListener("pointerup", this._onPointerCancel);
+    this.domElement.removeEventListener("pointerleave", this._onPointerCancel);
+    this.domElement.removeEventListener("contextmenu", this._onContextMenu);
 
-	}
+    this.domElement.style.touchAction = "auto";
+    this.domElement.style.cursor = "";
+  }
 
-	connect( element ) {
+  dispose() {
+    this.disconnect();
+  }
 
-		super.connect( element );
+  _updatePointer(event) {
+    const rect = this.domElement.getBoundingClientRect();
 
-		this.domElement.addEventListener( 'pointermove', this._onPointerMove );
-		this.domElement.addEventListener( 'pointerdown', this._onPointerDown );
-		this.domElement.addEventListener( 'pointerup', this._onPointerCancel );
-		this.domElement.addEventListener( 'pointerleave', this._onPointerCancel );
-		this.domElement.addEventListener( 'contextmenu', this._onContextMenu );
+    _pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    _pointer.y = (-(event.clientY - rect.top) / rect.height) * 2 + 1;
+  }
 
-		this.domElement.style.touchAction = 'none'; // disable touch scroll
+  _updateState(event) {
+    // determine action
 
-	}
+    let action;
 
-	disconnect() {
+    if (event.pointerType === "touch") {
+      action = this.touches.ONE;
+    } else {
+      switch (event.button) {
+        case 0:
+          action = this.mouseButtons.LEFT;
+          break;
 
-		this.domElement.removeEventListener( 'pointermove', this._onPointerMove );
-		this.domElement.removeEventListener( 'pointerdown', this._onPointerDown );
-		this.domElement.removeEventListener( 'pointerup', this._onPointerCancel );
-		this.domElement.removeEventListener( 'pointerleave', this._onPointerCancel );
-		this.domElement.removeEventListener( 'contextmenu', this._onContextMenu );
+        case 1:
+          action = this.mouseButtons.MIDDLE;
+          break;
 
-		this.domElement.style.touchAction = 'auto';
-		this.domElement.style.cursor = '';
+        case 2:
+          action = this.mouseButtons.RIGHT;
+          break;
 
-	}
+        default:
+          action = null;
+      }
+    }
 
-	dispose() {
+    // determine state
 
-		this.disconnect();
+    switch (action) {
+      case MOUSE.PAN:
+      case TOUCH.PAN:
+        this.state = STATE.PAN;
 
-	}
+        break;
 
-	_updatePointer( event ) {
+      case MOUSE.ROTATE:
+      case TOUCH.ROTATE:
+        this.state = STATE.ROTATE;
 
-		const rect = this.domElement.getBoundingClientRect();
+        break;
 
-		_pointer.x = ( event.clientX - rect.left ) / rect.width * 2 - 1;
-		_pointer.y = - ( event.clientY - rect.top ) / rect.height * 2 + 1;
-
-	}
-
-	_updateState( event ) {
-
-		// determine action
-
-		let action;
-
-		if ( event.pointerType === 'touch' ) {
-
-			action = this.touches.ONE;
-
-		} else {
-
-			switch ( event.button ) {
-
-				case 0:
-
-					action = this.mouseButtons.LEFT;
-					break;
-
-				case 1:
-
-					action = this.mouseButtons.MIDDLE;
-					break;
-
-				case 2:
-
-					action = this.mouseButtons.RIGHT;
-					break;
-
-				default:
-
-					action = null;
-
-			}
-
-		}
-
-		// determine state
-
-		switch ( action ) {
-
-			case MOUSE.PAN:
-			case TOUCH.PAN:
-
-				this.state = STATE.PAN;
-
-				break;
-
-			case MOUSE.ROTATE:
-			case TOUCH.ROTATE:
-
-				this.state = STATE.ROTATE;
-
-				break;
-
-			default:
-
-				this.state = STATE.NONE;
-
-		}
-
-	}
-
+      default:
+        this.state = STATE.NONE;
+    }
+  }
 }
 
-function onPointerMove( event ) {
+function onPointerMove(event) {
+  const camera = this.object;
+  const domElement = this.domElement;
+  const raycaster = this.raycaster;
 
-	const camera = this.object;
-	const domElement = this.domElement;
-	const raycaster = this.raycaster;
+  if (this.enabled === false) return;
 
-	if ( this.enabled === false ) return;
+  this._updatePointer(event);
 
-	this._updatePointer( event );
+  raycaster.setFromCamera(_pointer, camera);
 
-	raycaster.setFromCamera( _pointer, camera );
+  if (_selected) {
+    if (this.state === STATE.PAN) {
+      if (raycaster.ray.intersectPlane(_plane, _intersection)) {
+        _selected.position.copy(_intersection.sub(_offset).applyMatrix4(_inverseMatrix));
+        this.dispatchEvent({ type: "drag", object: _selected });
+      }
+    } else if (this.state === STATE.ROTATE) {
+      _diff.subVectors(_pointer, _previousPointer).multiplyScalar(this.rotateSpeed);
+      _selected.rotateOnWorldAxis(_up, _diff.x);
+      _selected.rotateOnWorldAxis(_right.normalize(), -_diff.y);
+      this.dispatchEvent({ type: "drag", object: _selected });
+    }
 
-	if ( _selected ) {
+    _previousPointer.copy(_pointer);
+  } else {
+    // hover support
 
-		if ( this.state === STATE.PAN ) {
+    if (event.pointerType === "mouse" || event.pointerType === "pen") {
+      _intersections.length = 0;
 
-			if ( raycaster.ray.intersectPlane( _plane, _intersection ) ) {
+      raycaster.setFromCamera(_pointer, camera);
+      raycaster.intersectObjects(this.objects, this.recursive, _intersections);
 
-				_selected.position.copy( _intersection.sub( _offset ).applyMatrix4( _inverseMatrix ) );
-				this.dispatchEvent( { type: 'drag', object: _selected } );
+      if (_intersections.length > 0) {
+        const object = _intersections[0].object;
 
-			}
+        _plane.setFromNormalAndCoplanarPoint(camera.getWorldDirection(_plane.normal), _worldPosition.setFromMatrixPosition(object.matrixWorld));
 
-		} else if ( this.state === STATE.ROTATE ) {
+        if (_hovered !== object && _hovered !== null) {
+          this.dispatchEvent({ type: "hoveroff", object: _hovered });
 
-			_diff.subVectors( _pointer, _previousPointer ).multiplyScalar( this.rotateSpeed );
-			_selected.rotateOnWorldAxis( _up, _diff.x );
-			_selected.rotateOnWorldAxis( _right.normalize(), - _diff.y );
-			this.dispatchEvent( { type: 'drag', object: _selected } );
+          domElement.style.cursor = "auto";
+          _hovered = null;
+        }
 
-		}
+        if (_hovered !== object) {
+          this.dispatchEvent({ type: "hoveron", object: object });
 
-		_previousPointer.copy( _pointer );
+          domElement.style.cursor = "pointer";
+          _hovered = object;
+        }
+      } else {
+        if (_hovered !== null) {
+          this.dispatchEvent({ type: "hoveroff", object: _hovered });
 
-	} else {
+          domElement.style.cursor = "auto";
+          _hovered = null;
+        }
+      }
+    }
+  }
 
-		// hover support
-
-		if ( event.pointerType === 'mouse' || event.pointerType === 'pen' ) {
-
-			_intersections.length = 0;
-
-			raycaster.setFromCamera( _pointer, camera );
-			raycaster.intersectObjects( this.objects, this.recursive, _intersections );
-
-			if ( _intersections.length > 0 ) {
-
-				const object = _intersections[ 0 ].object;
-
-				_plane.setFromNormalAndCoplanarPoint( camera.getWorldDirection( _plane.normal ), _worldPosition.setFromMatrixPosition( object.matrixWorld ) );
-
-				if ( _hovered !== object && _hovered !== null ) {
-
-					this.dispatchEvent( { type: 'hoveroff', object: _hovered } );
-
-					domElement.style.cursor = 'auto';
-					_hovered = null;
-
-				}
-
-				if ( _hovered !== object ) {
-
-					this.dispatchEvent( { type: 'hoveron', object: object } );
-
-					domElement.style.cursor = 'pointer';
-					_hovered = object;
-
-				}
-
-			} else {
-
-				if ( _hovered !== null ) {
-
-					this.dispatchEvent( { type: 'hoveroff', object: _hovered } );
-
-					domElement.style.cursor = 'auto';
-					_hovered = null;
-
-				}
-
-			}
-
-		}
-
-	}
-
-	_previousPointer.copy( _pointer );
-
+  _previousPointer.copy(_pointer);
 }
 
-function onPointerDown( event ) {
+function onPointerDown(event) {
+  const camera = this.object;
+  const domElement = this.domElement;
+  const raycaster = this.raycaster;
 
-	const camera = this.object;
-	const domElement = this.domElement;
-	const raycaster = this.raycaster;
+  if (this.enabled === false) return;
 
-	if ( this.enabled === false ) return;
+  this._updatePointer(event);
+  this._updateState(event);
 
-	this._updatePointer( event );
-	this._updateState( event );
+  _intersections.length = 0;
 
-	_intersections.length = 0;
+  raycaster.setFromCamera(_pointer, camera);
+  raycaster.intersectObjects(this.objects, this.recursive, _intersections);
 
-	raycaster.setFromCamera( _pointer, camera );
-	raycaster.intersectObjects( this.objects, this.recursive, _intersections );
+  if (_intersections.length > 0) {
+    if (this.transformGroup === true) {
+      // look for the outermost group in the object's upper hierarchy
 
-	if ( _intersections.length > 0 ) {
+      _selected = findGroup(_intersections[0].object);
+    } else {
+      _selected = _intersections[0].object;
+    }
 
-		if ( this.transformGroup === true ) {
+    _plane.setFromNormalAndCoplanarPoint(camera.getWorldDirection(_plane.normal), _worldPosition.setFromMatrixPosition(_selected.matrixWorld));
 
-			// look for the outermost group in the object's upper hierarchy
+    if (raycaster.ray.intersectPlane(_plane, _intersection)) {
+      if (this.state === STATE.PAN) {
+        _inverseMatrix.copy(_selected.parent.matrixWorld).invert();
+        _offset.copy(_intersection).sub(_worldPosition.setFromMatrixPosition(_selected.matrixWorld));
+        domElement.style.cursor = "move";
+        this.dispatchEvent({ type: "dragstart", object: _selected });
+      } else if (this.state === STATE.ROTATE) {
+        // the controls only support Y+ up
+        _up.set(0, 1, 0).applyQuaternion(camera.quaternion).normalize();
+        _right.set(1, 0, 0).applyQuaternion(camera.quaternion).normalize();
+        domElement.style.cursor = "move";
+        this.dispatchEvent({ type: "dragstart", object: _selected });
+      }
+    }
+  }
 
-			_selected = findGroup( _intersections[ 0 ].object );
-
-		} else {
-
-			_selected = _intersections[ 0 ].object;
-
-		}
-
-		_plane.setFromNormalAndCoplanarPoint( camera.getWorldDirection( _plane.normal ), _worldPosition.setFromMatrixPosition( _selected.matrixWorld ) );
-
-		if ( raycaster.ray.intersectPlane( _plane, _intersection ) ) {
-
-			if ( this.state === STATE.PAN ) {
-
-				_inverseMatrix.copy( _selected.parent.matrixWorld ).invert();
-				_offset.copy( _intersection ).sub( _worldPosition.setFromMatrixPosition( _selected.matrixWorld ) );
-				domElement.style.cursor = 'move';
-				this.dispatchEvent( { type: 'dragstart', object: _selected } );
-
-			} else if ( this.state === STATE.ROTATE ) {
-
-				// the controls only support Y+ up
-				_up.set( 0, 1, 0 ).applyQuaternion( camera.quaternion ).normalize();
-				_right.set( 1, 0, 0 ).applyQuaternion( camera.quaternion ).normalize();
-				domElement.style.cursor = 'move';
-				this.dispatchEvent( { type: 'dragstart', object: _selected } );
-
-			}
-
-		}
-
-	}
-
-	_previousPointer.copy( _pointer );
-
+  _previousPointer.copy(_pointer);
 }
 
 function onPointerCancel() {
+  if (this.enabled === false) return;
 
-	if ( this.enabled === false ) return;
+  if (_selected) {
+    this.dispatchEvent({ type: "dragend", object: _selected });
 
-	if ( _selected ) {
+    _selected = null;
+  }
 
-		this.dispatchEvent( { type: 'dragend', object: _selected } );
+  this.domElement.style.cursor = _hovered ? "pointer" : "auto";
 
-		_selected = null;
-
-	}
-
-	this.domElement.style.cursor = _hovered ? 'pointer' : 'auto';
-
-	this.state = STATE.NONE;
-
+  this.state = STATE.NONE;
 }
 
-function onContextMenu( event ) {
+function onContextMenu(event) {
+  if (this.enabled === false) return;
 
-	if ( this.enabled === false ) return;
-
-	event.preventDefault();
-
+  event.preventDefault();
 }
 
-function findGroup( obj, group = null ) {
+function findGroup(obj, group = null) {
+  if (obj.isGroup) group = obj;
 
-	if ( obj.isGroup ) group = obj;
+  if (obj.parent === null) return group;
 
-	if ( obj.parent === null ) return group;
-
-	return findGroup( obj.parent, group );
-
+  return findGroup(obj.parent, group);
 }
 
 /**
