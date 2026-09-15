@@ -3958,6 +3958,39 @@
      same way it leaves on a scroll, so waking the page brings it back with
      the motion already written rather than a second one invented for this.
      Driven by data-idle on the root; assets/js/idle-drift.js sets it. */
+  /* ══ THE OPENING TOUR ══════════════════════════════════════════════════
+     Sid: "after 3 to 5 sec i want all the icons one by one to slowly animate
+     with their text and some sound to just show to the user that these gray
+     icons arent disabled and [show] what all [they do], plus i think itll be
+     a nice fun thing at the start."
+
+     Both halves of that are right. A row of small grey glyphs with no labels
+     is indistinguishable from a row of disabled controls, and the labels only
+     exist on hover -- which you have to already suspect is worth trying. The
+     tour says what they are once, without being asked.
+
+     It borrows the hover state rather than inventing a second one, so the
+     thing a visitor is shown is exactly the thing they will see when they
+     reach for it. Nothing new to learn and nothing that can drift out of
+     sync. */
+  .studio-link.is-touring > span {
+    max-width: 9ch;
+    opacity: 1;
+    margin-left: 7px;
+  }
+  .studio-link.is-touring {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+  .studio-link.is-touring::after {
+    transform: scaleX(1);
+    transform-origin: left;
+    background: currentColor;
+  }
+  .studio-link.is-touring svg {
+    filter: drop-shadow(0 0 7px currentColor);
+  }
+
   html[data-idle="on"] .studio-nav,
   body.nav-away .studio-nav {
     transform: translateY(calc(-100% - 46px));
@@ -5421,7 +5454,106 @@
       })(marks[i]);
     }
   })();
-</script> <script src="/assets/js/nav-glass.js" defer></script> <script src="/assets/js/name-say.js" data-base="" defer></script> <main class="contact-shell" id="main"> <div class="c-corner c-corner--tl"> <p class="contact-status" aria-live="polite">Available to work</p> <h1 id="contact-title" class="contact-address"> <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a> </h1> <p class="contact-phone"><a href="tel:+16462877550">646 287 7550</a></p> <p class="contact-where">New York</p> </div> <div class="c-corner c-corner--tr"> <nav class="contact-links" aria-label="Elsewhere"> <a class="contact-links__lead" href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.behance.net/siddharthmehta" target="_blank" rel="noopener noreferrer">Behance<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> <div class="contact-desk" id="contact-desk" tabindex="0" role="button" data-cube="Everything on this table has been thrown away at least twice." aria-label="Reveal Sid’s desk"> <img class="contact-desk__pixel" src="/assets/img/tnew2.png" alt="Sid’s pixelated desk filled with sketches, devices, and experiments"> <img class="contact-desk__real" src="/assets/img/table_new.png" alt="" aria-hidden="true"> <span class="contact-desk__fade" aria-hidden="true"></span> </div> <svg class="contact-defs" width="0" height="0" aria-hidden="true" focusable="false"> <filter id="desk-liquify" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.008 0.014" numoctaves="2" seed="3" result="warp"> <animate attributename="baseFrequency" dur="14s" values="0.008 0.014; 0.013 0.009; 0.008 0.014" calcmode="spline" keysplines="0.4 0 0.6 1; 0.4 0 0.6 1" repeatcount="indefinite"></animate> </feturbulence> <fedisplacementmap id="desk-disp" in="SourceGraphic" in2="warp" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </svg> <div class="c-corner c-corner--bl"> </div> </main> <script>
+</script> <script src="/assets/js/nav-glass.js" defer></script> <script src="/assets/js/name-say.js" data-base="" defer></script> <script>
+  /* ── THE OPENING TOUR ───────────────────────────────────────────────────
+     Walks the nav once, a few seconds after the page has settled, lighting
+     each icon and sliding its label out.
+
+     THREE RULES, and each one is the difference between a flourish and a nag.
+
+     It runs ONCE per browser. A tour that replays on every visit is a thing
+     you learn to wait out.
+
+     It CANCELS the moment the visitor does anything -- a pointer move, a
+     scroll, a key. Someone who has already started reading is not waiting to
+     be shown the navigation, and continuing to animate at them while they
+     work is the definition of chrome that will not take a hint.
+
+     It starts after the page is open and settled rather than on load, because
+     the first seconds belong to the hero: two sequences competing for
+     attention is neither.
+
+     The sound is gated on the site's own sound preference, which is off by
+     default. Nothing here makes a noise at a stranger who has not asked. */
+  (function () {
+    var nav = document.querySelector(".studio-nav");
+    if (!nav) return;
+    if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var KEY = "sid_nav_toured";
+    try {
+      if (localStorage.getItem(KEY)) return;
+    } catch (_) {}
+
+    var links = [].slice.call(nav.querySelectorAll(".studio-link"));
+    if (!links.length) return;
+
+    var cancelled = false;
+    var timers = [];
+    function stop() {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      links.forEach(function (l) {
+        l.classList.remove("is-touring");
+      });
+      off();
+    }
+    function off() {
+      window.removeEventListener("pointermove", stop);
+      window.removeEventListener("wheel", stop);
+      window.removeEventListener("keydown", stop);
+      window.removeEventListener("pointerdown", stop);
+    }
+
+    function run() {
+      if (cancelled) return;
+      try {
+        localStorage.setItem(KEY, "1");
+      } catch (_) {}
+      window.addEventListener("pointermove", stop, { passive: true, once: true });
+      window.addEventListener("wheel", stop, { passive: true, once: true });
+      window.addEventListener("keydown", stop, { once: true });
+      window.addEventListener("pointerdown", stop, { once: true });
+
+      var STEP = 620; /* how long each icon holds its label */
+      var GAP = 190; /* dark between one and the next, so they read as a sequence */
+      links.forEach(function (link, i) {
+        timers.push(
+          setTimeout(
+            function () {
+              if (cancelled) return;
+              link.classList.add("is-touring");
+              /* Walks up a scale rather than repeating one note: a repeated
+                 note is an alert, a rising figure is a sequence. */
+              if (window.__sidNote) window.__sidNote(i * 2);
+              timers.push(
+                setTimeout(function () {
+                  link.classList.remove("is-touring");
+                }, STEP)
+              );
+            },
+            i * (STEP + GAP)
+          )
+        );
+      });
+      timers.push(
+        setTimeout(
+          function () {
+            off();
+          },
+          links.length * (STEP + GAP) + 400
+        )
+      );
+    }
+
+    /* After the door is open and the hero has had its own moment. */
+    function arm() {
+      timers.push(setTimeout(run, 3600));
+    }
+    if (window.__loaderInstantDone === true || !document.getElementById("site-loader")) arm();
+    else window.addEventListener("loaderDone", arm, { once: true });
+  })();
+</script> <main class="contact-shell" id="main"> <div class="c-corner c-corner--tl"> <p class="contact-status" aria-live="polite">Available to work</p> <h1 id="contact-title" class="contact-address"> <a href="mailto:sidmehtadesign@gmail.com">sidmehtadesign@gmail.com</a> </h1> <p class="contact-phone"><a href="tel:+16462877550">646 287 7550</a></p> <p class="contact-where">New York</p> </div> <div class="c-corner c-corner--tr"> <nav class="contact-links" aria-label="Elsewhere"> <a class="contact-links__lead" href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram<span class="xarrow" aria-hidden="true"></span></a> <a href="https://www.behance.net/siddharthmehta" target="_blank" rel="noopener noreferrer">Behance<span class="xarrow" aria-hidden="true"></span></a> </nav> </div> <div class="contact-desk" id="contact-desk" tabindex="0" role="button" data-cube="Everything on this table has been thrown away at least twice." aria-label="Reveal Sid’s desk"> <img class="contact-desk__pixel" src="/assets/img/tnew2.png" alt="Sid’s pixelated desk filled with sketches, devices, and experiments"> <img class="contact-desk__real" src="/assets/img/table_new.png" alt="" aria-hidden="true"> <span class="contact-desk__fade" aria-hidden="true"></span> </div> <svg class="contact-defs" width="0" height="0" aria-hidden="true" focusable="false"> <filter id="desk-liquify" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.008 0.014" numoctaves="2" seed="3" result="warp"> <animate attributename="baseFrequency" dur="14s" values="0.008 0.014; 0.013 0.009; 0.008 0.014" calcmode="spline" keysplines="0.4 0 0.6 1; 0.4 0 0.6 1" repeatcount="indefinite"></animate> </feturbulence> <fedisplacementmap id="desk-disp" in="SourceGraphic" in2="warp" scale="0" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </svg> <div class="c-corner c-corner--bl"> </div> </main> <script>
       (() => {
         const desk = document.getElementById("contact-desk");
 
