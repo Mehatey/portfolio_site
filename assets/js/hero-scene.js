@@ -1218,6 +1218,37 @@
   }
   raf = requestAnimationFrame(frame);
 
+  var __onScreen = true;
+
+  /* ── AND IT STOPS WHEN NOBODY CAN SEE IT ──────────────────────────────
+     Sid: "its a very heavy page and lags a great deal."
+
+     Instrumented, the home page schedules rAF callbacks from twelve
+     independent loops, and at the very bottom of the page -- fifteen screens
+     past this section -- every one of them was still running at full rate.
+     Each was cheap when it was written and measured alone; together they are
+     the lag.
+
+     `document.hidden` was already handled here, which covers a backgrounded
+     tab and nothing else. The far commoner case is the tab in front of you
+     with this section nowhere near the viewport. The rAF is cancelled rather
+     than early-returned, so the callback is not scheduled either. */
+  if ("IntersectionObserver" in window && host) {
+    new IntersectionObserver(
+      function (es) {
+        var vis = es[0].isIntersecting;
+        if (vis === __onScreen) return;
+        __onScreen = vis;
+        if (vis) {
+          if (!raf) raf = requestAnimationFrame(frame);
+        } else if (raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      },
+      { threshold: 0 }
+    ).observe(host);
+  }
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) {
       if (raf) cancelAnimationFrame(raf);

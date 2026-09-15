@@ -521,14 +521,36 @@
 
   var running = true;
   var prevT = 0;
-  document.addEventListener("visibilitychange", function () {
-    running = !document.hidden;
+  /* ── AND OFFSCREEN COUNTS TOO ─────────────────────────────────────────
+     Sid: "its a very heavy page and lags a great deal."
+
+     `running` was only ever turned off by a backgrounded tab. Measured at the
+     bottom of the home page -- with this field far out of view -- it was
+     still drawing at full rate, which is the commoner case by a long way and
+     the one that costs a reader frames while they are reading something
+     else. Same flag, driven by whether the canvas is anywhere near the
+     viewport as well as by whether the tab is. */
+  var onScreen = true;
+  function setRunning() {
+    var want = onScreen && !document.hidden;
+    if (want === running) return;
+    running = want;
     if (running) {
       lastScroll = window.scrollY;
       prevT = 0;
       requestAnimationFrame(frame);
     }
-  });
+  }
+  document.addEventListener("visibilitychange", setRunning);
+  if ("IntersectionObserver" in window && canvas) {
+    new IntersectionObserver(
+      function (es) {
+        onScreen = es[0].isIntersecting;
+        setRunning();
+      },
+      { threshold: 0 }
+    ).observe(canvas);
+  }
 
   function frame(now) {
     if (!running) return;

@@ -358,6 +358,55 @@ void main(){ vec2 q=vU; vec3 d=texture(uPig,q).rgb;
       T = 0,
       nextDrop = 0.6,
       raf = 0;
+    /* ── IT RAN WHETHER OR NOT ANYBODY COULD SEE IT ─────────────────────
+       Sid: "its a very heavy page and lags a great deal."
+
+       This loop had no visibility gate of any kind. A full viewport fluid
+       simulation -- advection, divergence, a Jacobi pressure solve and a
+       paint pass, every frame -- ran for the entire life of the page, on
+       every route that loads a hero, including while the reader was fifteen
+       screens further down looking at something else. The layer ON TOP of it
+       (the code glyphs in hero-wash.js) was correctly gated and returned
+       early when offscreen, which made the omission here hard to spot: the
+       expensive half kept going underneath the cheap half that had stopped.
+
+       Now it stops. Not an early return -- the rAF itself is cancelled, so
+       the callback is not scheduled either, and it restarts on the way back
+       up. document.hidden is included because a backgrounded tab throttles
+       rAF but does not stop it, and a simulation ticking at one frame a
+       second is still a simulation. */
+    let onScreen = true;
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(
+        (es) => {
+          const vis = es[0].isIntersecting;
+          if (vis === onScreen) return;
+          onScreen = vis;
+          if (vis && alive && !raf) {
+            t0 = performance.now();
+            raf = requestAnimationFrame(frame);
+          } else if (!vis && raf) {
+            cancelAnimationFrame(raf);
+            raf = 0;
+          }
+        },
+        { threshold: 0 }
+      ).observe(canvas);
+    }
+    document.addEventListener(
+      "visibilitychange",
+      () => {
+        if (document.hidden && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        } else if (!document.hidden && onScreen && alive && !raf) {
+          t0 = performance.now();
+          raf = requestAnimationFrame(frame);
+        }
+      },
+      { passive: true }
+    );
+
     function frame(now) {
       if (!alive) return;
       raf = requestAnimationFrame(frame);
