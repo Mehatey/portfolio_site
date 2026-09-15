@@ -1154,19 +1154,56 @@
          of the page. These are two classes deep so they beat the include's own
          rule on specificity rather than on load order, which for a style block
          that lives in the body would be fragile. */
+      /* ── AND THEN THE SCRIM ITSELF WAS THE PROBLEM ────────────────────
+         Sid: "in light mode, it's very gray ... the navbar gray colour
+         doesn't look good. Looks like a weird gray blur."
+
+         Right, and it is this rule. Replacing a dark wash with a pale one
+         still leaves a wash: a 72%-opaque band of off-white laid over paper
+         that is already off-white does not disappear, it reads as a strip of
+         slightly different paper across the top of the page, with a soft edge
+         where it fades out. A scrim is for separating type from a busy image.
+         The hero underneath is a light wash of ink on white, and the nav's own
+         type is now dark enough to stand on it unaided -- so the scrim is
+         solving a problem that was already solved and creating one that was
+         not there.
+
+         Gone entirely. What remains is a hairline at the foot of the bar,
+         which is what actually says "this is a bar" on a light ground. */
       body.on-paper .studio-nav::before {
-        background: linear-gradient(
-          180deg,
-          rgba(246, 244, 239, 0.72) 0%,
-          rgba(246, 244, 239, 0.56) 55%,
-          rgba(246, 244, 239, 0.24) 84%,
-          rgba(246, 244, 239, 0) 100%
-        );
-        box-shadow: inset 0 1px 0 rgba(20, 23, 29, 0.07);
+        background: none;
+        box-shadow: none;
+        /* ── THE BLUR WAS THE GREY ────────────────────────────────────────
+           Sid: "the navbar gray colour doesn't look good. Looks like a weird
+           gray blur."
+
+           Not a colour at all: the scrim carries no background now, and it
+           still painted a band, because it carries
+           `backdrop-filter: blur(30px) saturate(1.9) brightness(0.9)`.
+
+           On the dark site that is glass -- it blurs what passes behind the
+           bar and takes a tenth off its brightness so the type sits on
+           something. On the paper hero it does two things that both read as
+           damage: it blurs away the sheet's own grain, so a 72px strip of
+           the page loses the texture everything around it has, and it
+           darkens cream by ten per cent. A smooth, slightly darker band with
+           a soft lower edge is precisely "a weird gray blur", and it is why
+           the fault looked like it belonged to the navbar.
+
+           Paper wants the opposite of both: barely any blur, and a touch
+           BRIGHTER rather than darker, so the bar reads as a lighter pass
+           over the sheet rather than a smear on it. */
+        -webkit-backdrop-filter: blur(3px) saturate(1.02) brightness(1.035);
+        backdrop-filter: blur(3px) saturate(1.02) brightness(1.035);
+      }
+      body.on-paper.nav-lifted .studio-nav::before {
+        background: linear-gradient(180deg, rgba(246, 244, 239, 0.9), rgba(246, 244, 239, 0.66) 60%, rgba(246, 244, 239, 0) 100%);
       }
       body.on-paper .studio-mark-label,
       body.on-paper .studio-links a {
-        color: rgba(20, 23, 29, 0.82);
+        /* Up from 0.82. With the scrim gone the type stands directly on the
+           wash, and the wash is not a constant -- pigment drifts across it. */
+        color: rgba(14, 17, 22, 0.94);
       }
       /* The nav icons carry explicit per-part fills rather than currentColor,
          so setting `color` does nothing to them: on cream the brightest fill,
@@ -1176,8 +1213,47 @@
          were designed with, where overriding each fill would flatten them.
          0.7 puts that worst case at 4.71:1. */
       body.on-paper .nav-pixel {
-        color: rgba(20, 23, 29, 0.72);
-        filter: saturate(1.08) brightness(0.7);
+        /* Sid: "all those icons are also pretty messed up." On paper they were
+           being dimmed rather than darkened -- brightness(0.7) on a pale fill
+           is still a pale fill, so five faint grey glyphs sat in the corner
+           looking switched off. Darkened properly, they read as marks. */
+        color: rgba(14, 17, 22, 0.9);
+        filter: saturate(1.1) brightness(0.42) contrast(1.15);
+      }
+
+      /* ══ EVERYTHING ELSE THAT THINKS THE PAGE IS DARK ═════════════════
+         Sid: "mode has some weird heavy shadows ... and there's this weird
+         shadow when I hover on Sid AI, like the text which shows up on the
+         bottom."
+
+         One cause, several symptoms, and the same one as the vignette: this
+         hero is PAPER while the theme is still dark. Every piece of floating
+         chrome therefore paints its dark-page treatment over cream -- a black
+         drop shadow under each corner control, which on a light ground reads
+         as dirt rather than as lift, and a near-black radial pocket behind
+         the cursor's remark, which is the "weird shadow" behind the line that
+         appears at the foot of the screen.
+
+         Each of these already has a correct cream treatment written for the
+         light theme. The only thing missing was that `on-paper` is the other
+         way the ground becomes light, so they are pointed at it here. */
+      body.on-paper #cube-chat-fab,
+      body.on-paper #theme-toggle,
+      body.on-paper .sound-toggle,
+      body.on-paper .hand-toggle {
+        box-shadow: 0 8px 22px rgba(24, 34, 48, 0.14);
+        border-color: rgba(20, 24, 32, 0.14);
+        background: linear-gradient(168deg, rgba(255, 255, 255, 0.88), rgba(228, 232, 238, 0.7));
+        color: rgba(12, 16, 24, 0.92);
+      }
+      body.on-paper #cube-cursor {
+        color: #0a1727;
+      }
+      body.on-paper #cube-cursor::before {
+        background: radial-gradient(64% 64% at 26% 55%, rgba(246, 246, 242, 0.96), rgba(246, 246, 242, 0.62) 56%, transparent 80%);
+      }
+      body.on-paper .curhue {
+        color: #0a1727;
       }
 
       /* ── THE HERO BECOMES PAPER ───────────────────────────────────────
@@ -2816,7 +2892,26 @@
            a value picked once against the dark theme and never asked about
            again. */
         fill: currentColor;
-        opacity: 0.82;
+        /* ── AND IT HAS TO HOLD ON PAPER ────────────────────────────────
+           Sid: "the 6-year, 90-second reel is not visible properly, and the
+           text is not visible for that."
+
+           The ring takes currentColor from .hero__disc, which is near-white
+           on the dark theme and near-black on cream -- correct in both. What
+           was not correct is the alpha: 0.82 of near-black on a hero that is
+           PAPER, with a watercolour wash moving under it, lands somewhere
+           between 2:1 and 3:1 depending on where the wash happens to be. It
+           is opaque now and carries a faint halo of the page's own ground, so
+           the letters stay separated from whatever passes behind them. */
+        opacity: 1;
+        paint-order: stroke fill;
+        stroke: var(--home-bg, #05070b);
+        stroke-width: 1.6px;
+        stroke-linejoin: round;
+      }
+      html[data-theme="light"] .hero__disc-ring text,
+      body.on-paper .hero__disc-ring text {
+        stroke: rgba(244, 242, 236, 0.92);
       }
       .hero__disc {
         color: var(--home-ink, #fff);
@@ -5096,7 +5191,7 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 10px 26px;
+        gap: 12px 34px;
         font-family: var(--font-mono);
         font-size: 11.5px;
         letter-spacing: 0.08em;
@@ -5181,7 +5276,7 @@
       /* A hairline between the awards so they read as three facts rather than
          as one run-on sentence. */
       .proof-strip__award + .proof-strip__award {
-        padding-left: 26px;
+        padding-left: 34px;
         border-left: 1px solid rgba(160, 200, 245, 0.2);
       }
       .proof-strip__logos {
@@ -5192,8 +5287,22 @@
         flex-wrap: wrap;
         align-items: center;
         justify-content: center;
-        gap: 14px 34px;
+        gap: 20px 52px;
       }
+      /* ── AND THE ROW ANSWERS THE POINTER ──────────────────────────────
+         Sid: "the awards bar and the companies bar: can we make it better
+         spaced out, and then, when you hover, it can have some motion?"
+
+         Eight logos at a 34px gap is a run-on: the eye reads it as one grey
+         smear and stops before the end. Wider gaps give each mark its own
+         space, which is the whole reason a client row exists -- you are meant
+         to pick your employer out of it.
+
+         The motion is a lift and a focus. The one under the pointer rises,
+         comes to full colour and full opacity; the rest of the row steps
+         back a little while it does. That deference is what makes it read as
+         a response rather than as eight independent hover states: the row
+         acknowledges that you are looking at one of them. */
       .proof-strip__logos img {
         height: 26px;
         width: auto;
@@ -5202,12 +5311,22 @@
         opacity: 0.5;
         filter: grayscale(1);
         transition:
-          opacity 300ms ease,
-          filter 300ms ease;
+          opacity 320ms ease,
+          filter 320ms ease,
+          transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .proof-strip__logos:hover img {
+        opacity: 0.3;
       }
       .proof-strip__logos li:hover img {
-        opacity: 0.92;
-        filter: grayscale(0.35);
+        opacity: 1;
+        filter: grayscale(0);
+        transform: translateY(-4px);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .proof-strip__logos li:hover img {
+          transform: none;
+        }
       }
       html[data-theme="light"] .proof-strip__awards {
         color: rgba(22, 38, 64, 0.78);
@@ -12421,7 +12540,7 @@
 
   /* The drag affordance, stated once and only while it is true. */
   .fold__stage::after {
-    content: "Drag to turn";
+    content: "Click a face";
     position: absolute;
     left: 50%;
     bottom: clamp(18px, 4vh, 40px);
@@ -12437,9 +12556,6 @@
   }
   .fold.is-formed .fold__stage::after {
     opacity: 1;
-  }
-  .fold.is-held .fold__stage::after {
-    opacity: 0;
   }
 
   @media (max-width: 860px) {
@@ -12563,15 +12679,12 @@
       ry = 0,
       tgtRX = 0,
       tgtRY = 0,
-      held = false,
-      lastX = 0,
-      lastY = 0,
       f = 0,
       raf = 0;
 
     function frame() {
       raf = 0;
-      var k = held ? 1 : 0.11;
+      var k = 0.11;
       rx += (tgtRX - rx) * k;
       ry += (tgtRY - ry) * k;
       box.style.setProperty("--rx", rx.toFixed(2));
@@ -12606,7 +12719,7 @@
       }
       sec.classList.toggle("is-formed", p >= FOLD_END);
 
-      if (!held) {
+      {
         if (p < FOLD_END) {
           /* Flat on, while it is still a net: a net read at an angle is a
              heap of parallelograms with type on them. */
@@ -12632,58 +12745,14 @@
     );
     window.addEventListener("resize", read, { passive: true });
 
-    /* ── THE HAND ─────────────────────────────────────────────────────────
-       Drag anywhere on the stage once it is a cube. Vertical travel is damped
-       harder than horizontal and clamped, because a box you can roll all the
-       way over ends up upside down with its type mirrored. */
-    var space = sec.querySelector(".fold__space");
-    space.addEventListener("pointerdown", function (e) {
-      if (!sec.classList.contains("is-formed")) return;
-      held = true;
-      sec.classList.add("is-held");
-      lastX = e.clientX;
-      lastY = e.clientY;
-      space.setPointerCapture(e.pointerId);
-    });
-    space.addEventListener("pointermove", function (e) {
-      if (!held) return;
-      tgtRY += (e.clientX - lastX) * 0.42;
-      tgtRX = Math.max(-100, Math.min(100, tgtRX - (e.clientY - lastY) * 0.28));
-      lastX = e.clientX;
-      lastY = e.clientY;
-      rx = tgtRX;
-      ry = tgtRY;
-      kick();
-    });
-    function release() {
-      if (!held) return;
-      held = false;
-      sec.classList.remove("is-held");
-      /* Whichever face is nearest the front after a throw becomes the one the
-         readout is talking about, so the list never describes a face that is
-         pointing away. */
-      var best = 0,
-        bestD = Infinity;
-      for (var i = 0; i < AIM.length; i++) {
-        var dy = Math.abs(((((AIM[i].ry - ry) % 360) + 540) % 360) - 180);
-        var dx = Math.abs(AIM[i].rx - rx);
-        var d = (180 - dy) * 2 + dx;
-        if (d < bestD) {
-          bestD = d;
-          best = i;
-        }
-      }
-      cur = -1;
-      select(best, false);
-      tgtRX = AIM[best].rx;
-      /* Snap to the nearest equivalent angle rather than to the canonical
-         one, or a box dragged twice around unwinds all of it on release. */
-      tgtRY = AIM[best].ry + Math.round((ry - AIM[best].ry) / 360) * 360;
-      kick();
-    }
-    space.addEventListener("pointerup", release);
-    space.addEventListener("pointercancel", release);
+    /* ── NO DRAG ──────────────────────────────────────────────────────────
+       Sid: "we don't need drag-to-turn as such."
 
+       Out of both cubes. The scroll turns this one through the six faces and
+       a click brings any face forward, so a drag was a third route to a
+       destination two gestures already reached -- and a horizontal drag on a
+       large object, on a page whose primary gesture is scrolling, is mostly a
+       scroll that went sideways. */
     /* A click on a face brings it forward. Buttons, so this is keyboard
        reachable and announces itself without any extra wiring. */
     faces.forEach(function (el) {
@@ -12883,10 +12952,6 @@
     width: min(56vw, 480px);
     aspect-ratio: 1;
     transform: translateX(min(16vw, 170px));
-    cursor: grab;
-  }
-  .wcube__space:active {
-    cursor: grabbing;
   }
   .wcube__box {
     --s: min(26vw, 340px);
@@ -13125,15 +13190,11 @@
     var ry = 0,
       tgt = 0,
       rx = -8,
-      held = false,
-      lastX = 0,
-      lastY = 0,
-      moved = 0,
       raf = 0;
 
     function frame() {
       raf = 0;
-      ry += (tgt - ry) * (held ? 1 : 0.12);
+      ry += (tgt - ry) * 0.12;
       box.style.setProperty("--ry", ry.toFixed(2));
       box.style.setProperty("--rx", rx.toFixed(2));
       if (Math.abs(tgt - ry) > 0.05) kick();
@@ -13156,7 +13217,6 @@
       var r = runway.getBoundingClientRect();
       var travel = Math.max(1, runway.offsetHeight - (window.innerHeight || 1));
       var p = Math.max(0, Math.min(1, -r.top / travel));
-      if (held) return;
       /* A hold at each end so the cube is square-on as the section arrives and
          as it leaves: a face caught mid-turn on the way in reads as a glitch
          rather than as a carousel. */
@@ -13176,50 +13236,21 @@
     );
     window.addEventListener("resize", read, { passive: true });
 
-    /* ── THE HAND ─────────────────────────────────────────────────────────
-       Drag to spin, and let go to snap to the nearest face. The snap is to
-       the nearest EQUIVALENT angle rather than to the canonical one, or a
-       cube spun twice around unwinds all of it on release. */
-    var space = sec.querySelector(".wcube__space");
-    space.addEventListener("pointerdown", function (e) {
-      held = true;
-      moved = 0;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      space.setPointerCapture(e.pointerId);
-    });
-    space.addEventListener("pointermove", function (e) {
-      if (!held) return;
-      var dx = e.clientX - lastX;
-      moved += Math.abs(dx) + Math.abs(e.clientY - lastY);
-      tgt += dx * 0.45;
-      ry = tgt;
-      rx = Math.max(-26, Math.min(12, rx - (e.clientY - lastY) * 0.1));
-      lastX = e.clientX;
-      lastY = e.clientY;
-      kick();
-    });
-    function release() {
-      if (!held) return;
-      held = false;
-      tgt = Math.round(ry / 90) * 90;
-      select(facing(tgt));
-      kick();
-    }
-    space.addEventListener("pointerup", release);
-    space.addEventListener("pointercancel", release);
+    /* ── NO DRAG ──────────────────────────────────────────────────────────
+       Sid: "we don't need drag-to-turn as such."
 
+       It is out. The scroll already turns the cube and a click already brings
+       a face forward, so dragging was a third way to do a thing that two
+       things already did -- and on a page that scrolls, a horizontal drag on
+       a large object is the gesture most likely to be a scroll attempt that
+       went sideways. What is left is the two gestures that cannot be
+       confused with each other. */
     /* A click on a face that is not in front turns to it instead of following
        the link -- otherwise the only reachable project is whichever one the
        scroll happens to have left facing you, and the other three are links
        you can see but cannot use. A click that ends a drag follows nothing. */
     faces.forEach(function (f, i) {
       f.addEventListener("click", function (e) {
-        if (moved > 12) {
-          e.preventDefault();
-          moved = 0;
-          return;
-        }
         if (i !== cur) {
           e.preventDefault();
           tgt = -i * 90 + Math.round((ry + i * 90) / 360) * 360;
@@ -13257,642 +13288,7 @@
            is the evidence for it. The object is not part of that argument,
            so it is the thing that moves. It now reads as the reward after
            the work rather than a toll before it. -->
-      <div class="obj-hold">
-<!-- ============================================================
-     Homepage act 2 — "the object".
-     It sits directly after the hero film now: the first thing you
-     scroll into is a real thing in perspective that answers to the
-     wheel, which is the promise the rest of the page has to keep.
-     A real cube in perspective space:
-     six faces carrying six covers, spun by scroll position, and
-     grabbable — drag it and it keeps spinning with inertia.
-
-     Built with CSS 3D rather than WebGL on purpose. The faces stay
-     crisp at any DPR, each one is a real <a> so it is keyboard
-     reachable and crawlable, and there is no shader/context to lose
-     on a backgrounded tab. Perspective, z-depth and lighting are
-     genuine, not a sprite trick.
-     ============================================================ -->
-
-<style>
-  .hs-object {
-    position: relative;
-    z-index: 6;
-    background: var(--home-bg, #05070d);
-    padding: 22vh clamp(24px, 5vw, 90px) 24vh;
-    text-align: center;
-    overflow: hidden;
-  }
-  .hs-object::before {
-    /* Soft floor glow so the cube reads as sitting in a space. */
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 52%;
-    width: min(900px, 90vw);
-    height: min(900px, 90vw);
-    transform: translate(-50%, -50%);
-    /* The floor glow takes the same drifting colour the nav mark does, so
-       the two objects on this page that are literally the same cube are lit
-       by the same thing. currentColor plus color-mix, so the two stops stay
-       one decision: a bright core and a wide, nearly-gone halo. See
-       sid-nature-drift in cursor_fluid.html. */
-    color: var(--nature, rgb(138, 166, 130));
-    background: radial-gradient(
-      circle,
-      color-mix(in srgb, currentColor 16%, transparent),
-      color-mix(in srgb, currentColor 7%, transparent) 42%,
-      transparent 70%
-    );
-    pointer-events: none;
-  }
-
-  .obj-head {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    margin-bottom: clamp(28px, 6vh, 64px);
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 11px;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(230, 236, 244, 0.6);
-  }
-  .obj-head .cine-rule {
-    width: min(180px, 18vw);
-    height: 1px;
-    background: rgba(230, 236, 244, 0.24);
-  }
-  /* ── THE GROUND BEHIND THE CUBE ────────────────────────────────────────
-     Sid: "an interesting ascii or something nice on hover for the background."
-     Painted by assets/js/object-ascii.js into this stage. Behind the cube and
-     inert to the pointer, so dragging the cube still works exactly as before:
-     the field reads the pointer from the section, it never intercepts it. */
-  .obj-ascii {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    color: rgba(214, 232, 255, 0.9);
-    /* Screen keeps the characters as light ON the page rather than as a grey
-       plate over it, which is what a normal composite looks like at this
-       alpha over a near-black ground. */
-    mix-blend-mode: screen;
-  }
-  html[data-theme="light"] .obj-ascii {
-    color: rgba(24, 40, 64, 0.85);
-    mix-blend-mode: multiply;
-  }
-  /* The cube and its faces sit above the field. */
-  .obj-stage > .obj-cube {
-    position: relative;
-    z-index: 1;
-  }
-
-  .obj-stage {
-    position: relative;
-    height: clamp(400px, 62vh, 700px);
-    /* Shorter camera. 1200px against a 420px cube is nearly orthographic --
-       the faces barely converge, which is what made it read as a flat sticker
-       sheet folded into a box rather than as a thing standing in a room. At
-       860 the vanishing point is close enough that the far edges visibly
-       taper. */
-    perspective: 860px;
-    perspective-origin: 50% 48%;
-    touch-action: pan-y;
-    cursor: grab;
-  }
-  .obj-stage.is-dragging {
-    cursor: grabbing;
-  }
-  .obj-cube {
-    /* Bigger. Sid: "the cube below should be a little bit bigger." With the
-       chapter head gone there is room for it, and it has to hold the eye on
-       its own now that nothing announces it. */
-    /* Sid: "i also wanted cube to be bigger" and "more space around it to feel
-       in a 3d space environment".
-
-       Sized against the stage rather than picked: a cube tumbling on two axes
-       presents its body diagonal at the extremes, which is sqrt(3) times its
-       edge -- so a 480px cube sweeps an 831px circle and the stage has to be
-       at least that or the section's own overflow clips the corners off at
-       precisely the moments the tumble is most legible. 480 against an 840
-       stage leaves 9px, which is the whole budget spent on the object. */
-    --size: clamp(230px, 25vw, 380px);
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    width: var(--size);
-    height: var(--size);
-    margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
-    transform-style: preserve-3d;
-    transform: rotateX(-18deg) rotateY(0deg);
-    will-change: transform;
-  }
-  .obj-face {
-    position: absolute;
-    inset: 0;
-    display: block;
-    overflow: hidden;
-    border-radius: 6px;
-    text-decoration: none;
-    background: #0a0d15;
-    border: 1px solid rgba(255, 255, 255, 0.09);
-    backface-visibility: hidden;
-    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.55);
-  }
-  /* ── THE CUBE IS DRAGGABLE AGAIN ──────────────────────────────────────
-     Sid: "not able to drag while hovering on cube."
-
-     Each face is an <a> wrapping an <img>, and both of those are things the
-     browser has its own drag behaviour for: press and move on a link or an
-     image and it starts a native drag of that link or that image. That
-     gesture begins on pointermove and takes the pointer with it, so the
-     stage's own pointermove handler stops receiving anything and the spin
-     dies the instant you actually try to spin it. It only failed ON the cube,
-     which is the one place you would ever try.
-
-     Suppressing the native drag gives the gesture back. The links still work
-     -- a click is not a drag -- and the drag handler already distinguishes
-     the two. */
-  .obj-face,
-  .obj-face img {
-    -webkit-user-drag: none;
-    user-select: none;
-  }
-  .obj-face img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.9;
-    transition:
-      opacity 0.4s ease,
-      transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-  .obj-face span {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 26px 12px 10px;
-    font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #eef2f8;
-    background: linear-gradient(180deg, transparent, rgba(5, 7, 13, 0.85));
-  }
-  .obj-face:hover img,
-  .obj-face:focus-visible img {
-    opacity: 1;
-    transform: scale(1.06);
-  }
-  .obj-face:focus-visible {
-    outline: 2px solid #eef2f8;
-    outline-offset: 3px;
-  }
-  /* Six faces of a cube: each pushed out half the edge length. The
-     shade darkens the sides so the form reads as lit from the front. */
-  .obj-face--front {
-    transform: translateZ(calc(var(--size) / 2));
-  }
-  .obj-face--back {
-    transform: rotateY(180deg) translateZ(calc(var(--size) / 2));
-  }
-  .obj-face--right {
-    transform: rotateY(90deg) translateZ(calc(var(--size) / 2));
-  }
-  .obj-face--left {
-    transform: rotateY(-90deg) translateZ(calc(var(--size) / 2));
-  }
-  /* ── THE LID AND THE BASE READ THE RIGHT WAY UP ──────────────────────────
-     These two were never seen before -- scroll drove one axis, so the four
-     sides were all anyone got -- and the moment they came into view both were
-     upside down. That is not a mistake in the markup, it is what a cube is: a
-     face laid flat by rotateX(90) has its own "up" pointing back down the Z
-     axis, so its artwork and its label arrive inverted to a camera looking at
-     it from outside.
-
-     A rotateZ appended after the translate turns the face about its own normal.
-     The face is square and centred, so it occupies exactly the same box; only
-     its contents come up the right way. Each needs the opposite sign, because
-     the two are mirror images of each other. */
-  .obj-face--top {
-    transform: rotateX(90deg) translateZ(calc(var(--size) / 2)) rotate(180deg);
-  }
-  .obj-face--bottom {
-    transform: rotateX(-90deg) translateZ(calc(var(--size) / 2));
-  }
-  .obj-face--right img,
-  .obj-face--left img {
-    filter: brightness(0.78);
-  }
-  .obj-face--top img,
-  .obj-face--bottom img {
-    filter: brightness(0.66);
-  }
-  /* ── THE CAPTION IS GONE ──────────────────────────────────────────────
-     "DRAG TO SPIN · CLICK A FACE TO OPEN IT" used to sit under the cube.
-     Sid: "let the cube not have text above it like drag to interact."
-
-     He is right, and the argument for keeping it was never strong: the
-     object already turns by itself as you scroll, the cursor is `grab` the
-     moment you are over it and `grabbing` the moment you press, and every
-     face is a link that lights up under the pointer. Three affordances,
-     none of which need announcing. A label explaining how to use an object
-     that is visibly moving is the thing that makes it read as a demo. */
-  /* No JS, no motion preference, or a browser without preserve-3d:
-     the faces collapse into a readable row of links instead. */
-  .hs-object.is-flat .obj-stage {
-    height: auto;
-    perspective: none;
-    cursor: default;
-  }
-  .hs-object.is-flat .obj-cube {
-    position: static;
-    width: auto;
-    height: auto;
-    margin: 0;
-    transform: none;
-    transform-style: flat;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-  }
-  .hs-object.is-flat .obj-face {
-    position: relative;
-    inset: auto;
-    aspect-ratio: 1;
-    transform: none !important;
-  }
-  .hs-object.is-flat .obj-face img {
-    filter: none;
-  }
-
-  /* ── Light theme ─────────────────────────────────────────────
-     The cube keeps its lighting model — front bright, sides and
-     top/bottom progressively shaded — but the floor glow and the
-     face chrome move onto paper. */
-  html[data-theme="light"] .hs-object::before {
-    background: radial-gradient(circle, rgba(80, 132, 210, 0.14), rgba(150, 108, 220, 0.07) 42%, transparent 70%);
-  }
-  html[data-theme="light"] .obj-head {
-    color: rgba(20, 22, 27, 0.6);
-  }
-  html[data-theme="light"] .obj-head .cine-rule {
-    background: rgba(20, 22, 27, 0.24);
-  }
-  html[data-theme="light"] .obj-face {
-    background: #e8e5de;
-    border-color: rgba(20, 22, 27, 0.12);
-    box-shadow: inset 0 0 60px rgba(24, 28, 38, 0.14);
-  }
-  html[data-theme="light"] .obj-face span {
-    color: #14161b;
-    background: linear-gradient(180deg, transparent, rgba(245, 243, 238, 0.9));
-  }
-  /* ── THE READOUT ──────────────────────────────────────────────────────── */
-  .obj-readout {
-    margin: clamp(28px, 5vh, 64px) auto 0;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    align-items: center;
-    font-family: "DM Mono", ui-monospace, monospace;
-  }
-  .obj-readout__kind {
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: rgba(232, 240, 255, 0.34);
-  }
-  .obj-readout__name {
-    font-size: clamp(14px, 1.5vw, 19px);
-    letter-spacing: 0.06em;
-    color: rgba(236, 244, 255, 0.92);
-    /* The name is swapped by script the instant a new face wins, so the fade
-       has to live on the element rather than on the swap: without it the text
-       hard-cuts mid-turn and reads as a glitch rather than as a reading. */
-    animation: objReadIn 420ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  @keyframes objReadIn {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-  }
-  html[data-theme="light"] .obj-readout__kind {
-    color: rgba(20, 22, 27, 0.42);
-  }
-  html[data-theme="light"] .obj-readout__name {
-    color: rgba(16, 18, 24, 0.9);
-  }
-  /* The facing side had a cool edge and a lifted label. Sid: "i hate ... the
-     glow on the cube." It was doing the job of saying which side is live, but
-     the readout under the object already says that in words, and a rim light
-     on one face of a six-sided object reads as a selection state rather than
-     as lighting. The class is still set on the facing face so anything later
-     can hang off it; nothing paints from it now. */
-  @media (prefers-reduced-motion: reduce) {
-    .obj-readout__name {
-      animation: none;
-    }
-  }
-
-  html[data-theme="light"] .obj-face:focus-visible {
-    outline-color: #14161b;
-  }
-</style>
-
-<section class="hs-object" id="hs-object" aria-label="The work as an object">
-  <!-- 01: the cube is the first chapter after the hero. It carried "03" from
-       the layout it was built for, where the order was work → numbers → cube;
-       the home rebuild moved it to the front and the number stayed behind, so
-       the page counted 03 → 01 → 02 → 03 → 04 with 03 used twice. -->
-  <!-- The chapter head is gone. Sid: "we dont need a section title for it."
-       The figure above hands straight to this object as you scroll, and a
-       mono label sitting between them was the one thing insisting they are
-       two separate sections rather than one movement. -->
-  <div class="obj-stage" id="obj-stage">
-    <div class="obj-cube" id="obj-cube">
-      <a class="obj-face obj-face--front" href="/mool/">
-        <!-- ── FACE SIZES ────────────────────────────────────────────────────────
-       Each face carried its project's full master — 1500 to 2048px wide — on a
-       surface that renders between 29 and 363px depending on where the cube has
-       turned. Six masters, eager, to paint a spinning object the size of a
-       postcard.
-
-       Two rungs, and `sizes: 420px` deliberately generous: a face never draws
-       wider than that, so on a 2x display the browser asks for ~840 and gets
-       the 900 rung, which is still more pixels than the surface can show. No
-       face ever renders from fewer pixels than it has room for. -->
-        <img src="/assets/img/work-previews/mool/cover-900.webp" srcset="/assets/img/work-previews/mool/cover-480.webp 480w, /assets/img/work-previews/mool/cover-900.webp 900w" sizes="420px" alt="Mool" loading="eager" decoding="async" fetchpriority="low"><span>Mool · Fintech</span>
-      </a>
-      <a class="obj-face obj-face--right" href="/encoded/">
-        <img src="/1.met/0-900.webp" srcset="/1.met/0-480.webp 480w, /1.met/0-900.webp 900w" sizes="420px" alt="Encoded" loading="eager" decoding="async" fetchpriority="low"><span>Encoded · Spatial</span>
-      </a>
-      <a class="obj-face obj-face--back" href="/m-health-fairview/">
-        <img src="/assets/img/fairview/cover-900.webp" srcset="/assets/img/fairview/cover-480.webp 480w, /assets/img/fairview/cover-900.webp 900w" sizes="420px" alt="M Health Fairview" loading="eager" decoding="async" fetchpriority="low"><span>Fairview · Health</span>
-      </a>
-      <a class="obj-face obj-face--left" href="/marriott/">
-        <img src="/assets/img/marriott/cover-900.webp" srcset="/assets/img/marriott/cover-480.webp 480w, /assets/img/marriott/cover-900.webp 900w" sizes="420px" alt="Marriott" loading="eager" decoding="async" fetchpriority="low"><span>Marriott · Enterprise</span>
-      </a>
-      <a class="obj-face obj-face--top" href="/naavo/">
-        <img src="/7.naavo/cover-900.webp" srcset="/7.naavo/cover-480.webp 480w, /7.naavo/cover-900.webp 900w" sizes="420px" alt="Naavo" loading="eager" decoding="async" fetchpriority="low"><span>Naavo · Brand</span>
-      </a>
-      <a class="obj-face obj-face--bottom" href="/aananda/">
-        <img src="/9.aananda/cover-900.webp" srcset="/9.aananda/cover-480.webp 480w, /9.aananda/cover-900.webp 900w" sizes="420px" alt="Aananda" loading="eager" decoding="async" fetchpriority="low"><span>Aananda · Brand</span>
-      </a>
-    </div>
-  </div>
-
-  <!-- ── WHAT YOU ARE LOOKING AT ────────────────────────────────────────────
-       Sid: "some scroll linked text to talk about ... what kinds of sid
-       projects."
-
-       Six covers turning past with a two-word label burned into each one told
-       you the names and nothing else, and the label is on the face, so it is
-       turned away or foreshortened exactly when you would want to read it.
-       This sits still under the object and names the side currently pointed at
-       you, so the object stays the thing you look at and the reading happens
-       where reading is comfortable. It is driven by the same rotation the cube
-       is, not by a timer, so it can never disagree with what is on screen. -->
-  <p class="obj-readout" aria-hidden="true">
-    <span class="obj-readout__kind">Currently facing</span>
-    <span class="obj-readout__name">Mool · Fintech</span>
-  </p>
-</section>
-
-<script>
-  (function () {
-    try {
-      var sec = document.getElementById("hs-object");
-      var stage = document.getElementById("obj-stage");
-      var cube = document.getElementById("obj-cube");
-      if (!sec || !stage || !cube) return;
-
-      var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      var supports3d = typeof CSS !== "undefined" && CSS.supports && CSS.supports("transform-style", "preserve-3d");
-      if (reduce || !supports3d) {
-        sec.classList.add("is-flat");
-        return;
-      }
-
-      var rotY = 0; // driven by scroll, nudged by drag
-      var rotX = -18;
-      var velY = 0; // drag inertia
-      var dragging = false;
-      var moved = 0;
-      var lastX = 0;
-      var lastY = 0;
-      var dragY = 0; // accumulated user offset, kept on top of scroll
-      var dragXAxis = 0;
-      var scrollY = 0;
-      var scrollX = -16;
-      var faces = sec.querySelectorAll(".obj-face");
-      var readout = sec.querySelector(".obj-readout__name");
-
-      var readScroll = function () {
-        var r = sec.getBoundingClientRect();
-        var vh = window.innerHeight || 1;
-        // -1 (below the fold) .. 1 (scrolled past); 0 while centred.
-        var p = (vh / 2 - (r.top + r.height / 2)) / (vh / 2 + r.height / 2);
-        /* ── ALL SIX SIDES ────────────────────────────────────────────────
-           Sid: "show all 6 sides."
-
-           It could not. Scroll drove rotateY alone and rotateX sat at a fixed
-           -18, and a cube spun about one axis only ever presents the four
-           faces around that axis -- the top and bottom are mathematically
-           unreachable. Naavo and Aananda have been on this object since it was
-           built and no visitor has ever seen either of them.
-
-           So the scroll drives both axes. Y turns 1.6 times across the
-           section, which walks the four sides past twice over; X sweeps from
-           -74 (looking down onto the lid) through the resting three-quarter
-           view to +46 (looking up at the base), so the two faces the old
-           mapping could not reach each get a clear moment. */
-        /* ── AND THE TOUR HAS TO FINISH WHILE YOU CAN STILL SEE IT ─────────
-           p reaches its ends when the SECTION has fully left the viewport,
-           which is long after the CUBE has. Measured at 1440x900, walking the
-           page in 50px steps and recording the facing face against the stage's
-           on-screen box: the cube is visible from about 400 to 1700 and the
-           six faces were winning at 400, 650, 900, 1200, 1550 and 2100. The
-           last of those is 400px after the object is gone -- the base only
-           ever came square to a camera that had nothing in front of it, and
-           roughly a third of the turn was spent above the top of the screen.
-
-           So the same fault the previous pass fixed, one layer out. That pass
-           asked "which face wins" and got six of six; it did not ask whether
-           the cube was on screen when it won, and the answer for one of the
-           two faces it existed to reveal was no.
-
-           The sweep is compressed onto the window where the object actually
-           reads, and biased slightly early because the cube enters slowly and
-           leaves fast. The ends now land near 520 and 1380, where it is about
-           half in frame at both -- and half in frame the right way round, since
-           entering from below shows its lid and leaving upward shows its base,
-           which are precisely the two faces the ends of the sweep present. */
-        /* Sid: "the cube is so big and rotates so fast i cant even see any
-           projects."
-
-           q is already a 2.4x compression of the scroll range, and 300 degrees
-           on top of that is nearly a full turn crossing in the short window
-           where the object is actually on screen. A face is edge-on again
-           before its label can be read, which makes a cube carrying six
-           projects unable to show you one. 150 walks the four sides past once,
-           slowly enough that each holds still while you look at it, and the X
-           sweep comes down for the same reason. */
-        var q = Math.max(-1, Math.min(1, (p + 0.08) * 2.4));
-        scrollY = q * 150;
-        scrollX = -14 + q * 44;
-      };
-
-      /* Which face is pointed most nearly at the camera, from the rotation
-         alone -- no per-frame getBoundingClientRect, no reading matrices back.
-         CSS applies `rotateX(a) rotateY(b)` as Rx*Ry, so a face's local normal
-         goes through the same product. The winner is whichever ends up with
-         the largest +Z. */
-      var FACE_N = [
-        ["front", 0, 0, 1],
-        ["back", 0, 0, -1],
-        ["right", 1, 0, 0],
-        ["left", -1, 0, 0],
-        /* rotateX(90) carries +Z to -Y. CSS +Y points DOWN the screen, so -Y
-           is UP and that face is the TOP -- which is also what the stylesheet
-           builds it as, `.obj-face--top { rotateX(90deg) translateZ(...) }`.
-           These two were named the other way round, and since they are the
-           only pair the readout can disagree with silently, it did: at the
-           moment Naavo was square to the camera the line underneath read
-           "Aananda - Brand", and the cool edge and the lifted label went on
-           the face pointing directly away from the viewer. Caught by reading
-           the readout against a screenshot rather than against this table. */
-        ["top", 0, -1, 0],
-        ["bottom", 0, 1, 0],
-      ];
-      var facing = "";
-      var frontOf = function (xDeg, yDeg) {
-        var a = (xDeg * Math.PI) / 180,
-          b = (yDeg * Math.PI) / 180;
-        var ca = Math.cos(a),
-          sa = Math.sin(a),
-          cb = Math.cos(b),
-          sb = Math.sin(b);
-        var best = null,
-          bestZ = -2;
-        for (var i = 0; i < FACE_N.length; i++) {
-          var n = FACE_N[i];
-          /* Ry then Rx, matching the order CSS composes them. */
-          var x1 = n[1] * cb + n[3] * sb;
-          var y1 = n[2];
-          var z1 = -n[1] * sb + n[3] * cb;
-          var z2 = y1 * sa + z1 * ca;
-          if (z2 > bestZ) {
-            bestZ = z2;
-            best = n[0];
-          }
-        }
-        return best;
-      };
-
-      var render = function () {
-        var y = scrollY + dragY;
-        var x = Math.max(-80, Math.min(80, scrollX + dragXAxis));
-        cube.style.transform = "rotateX(" + x.toFixed(2) + "deg) rotateY(" + y.toFixed(2) + "deg)";
-        var f = frontOf(x, y);
-        if (f !== facing) {
-          facing = f;
-          sec.setAttribute("data-facing", f);
-          for (var i = 0; i < faces.length; i++) {
-            faces[i].classList.toggle("is-facing", faces[i].className.indexOf("obj-face--" + f) > -1);
-          }
-          if (readout) {
-            var live = sec.querySelector(".obj-face--" + f + " span");
-            readout.textContent = live ? live.textContent : "";
-          }
-        }
-      };
-
-      var raf = null;
-      var loop = function () {
-        raf = null;
-        if (!dragging && Math.abs(velY) > 0.02) {
-          dragY += velY;
-          velY *= 0.94; // friction
-          request();
-        }
-        render();
-      };
-      var request = function () {
-        if (raf === null) raf = requestAnimationFrame(loop);
-      };
-
-      var onScroll = function () {
-        readScroll();
-        request();
-      };
-      window.addEventListener("scroll", onScroll, { passive: true });
-      window.addEventListener("resize", onScroll, { passive: true });
-
-      /* Firefox has no -webkit-user-drag, so the CSS above does not reach it.
-         Refusing the dragstart outright covers every engine. */
-      stage.addEventListener("dragstart", function (e) {
-        e.preventDefault();
-      });
-
-      stage.addEventListener("pointerdown", function (e) {
-        dragging = true;
-        moved = 0;
-        velY = 0;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        stage.classList.add("is-dragging");
-        try {
-          stage.setPointerCapture(e.pointerId);
-        } catch (err) {}
-      });
-      stage.addEventListener("pointermove", function (e) {
-        if (!dragging) return;
-        var dx = e.clientX - lastX;
-        var dy = e.clientY - lastY;
-        lastX = e.clientX;
-        lastY = e.clientY;
-        moved += Math.abs(dx) + Math.abs(dy);
-        dragY += dx * 0.42;
-        dragXAxis -= dy * 0.26;
-        velY = dx * 0.42;
-        request();
-      });
-      var endDrag = function (e) {
-        if (!dragging) return;
-        dragging = false;
-        stage.classList.remove("is-dragging");
-        try {
-          stage.releasePointerCapture(e.pointerId);
-        } catch (err) {}
-        request();
-      };
-      stage.addEventListener("pointerup", endDrag);
-      stage.addEventListener("pointercancel", endDrag);
-      // A drag that ends over a face must not count as a click on it.
-      stage.addEventListener(
-        "click",
-        function (e) {
-          if (moved > 8) {
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        },
-        true
-      );
-
-      onScroll();
-    } catch (e) {}
-  })();
-</script>
-<script src="/assets/js/object-ascii.js" defer></script>
-</div>
+      
 
       <!-- ───────────────── 02 how I think ───────────────── -->
       <section class="sec wrap" id="how" aria-labelledby="how-h">
@@ -15707,10 +15103,26 @@
   /* On cream the corners cool rather than darken. A light page with black
      corners reads as a photograph of a screen; a light page with cool
      corners reads as paper under a lamp. */
-  html[data-theme="light"] .film__vig {
+  /* ── AND THE PAPER HERO COUNTS AS CREAM ───────────────────────────────
+     Sid: "the navbar gray colour doesn't look good. Looks like a weird gray
+     blur."
+
+     It was not the navbar. The home page's hero is paper while the THEME is
+     still dark -- body.on-paper, not data-theme="light" -- so this layer was
+     laying a black vignette at 0.16 over a cream sheet. Being fixed to the
+     viewport, its top edge sits exactly behind the bar, which is why the
+     grey read as belonging to the nav: a soft dark band across the top of a
+     light page, moving with the window rather than with the page.
+
+     The theme is the wrong test. What this layer needs to know is whether
+     the ground under it is light, and on-paper is the other way that becomes
+     true. Same cool falloff and the same lighter grain as cream. */
+  html[data-theme="light"] .film__vig,
+  body.on-paper .film__vig {
     background: radial-gradient(135% 115% at 50% 45%, transparent 72%, rgba(46, 52, 66, 0.035) 90%, rgba(46, 52, 66, 0.08) 100%);
   }
-  html[data-theme="light"] .film__grain {
+  html[data-theme="light"] .film__grain,
+  body.on-paper .film__grain {
     opacity: 0.04;
   }
   @media (prefers-reduced-motion: reduce) {
