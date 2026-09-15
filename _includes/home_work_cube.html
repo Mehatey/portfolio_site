@@ -172,10 +172,6 @@
     width: min(56vw, 480px);
     aspect-ratio: 1;
     transform: translateX(min(16vw, 170px));
-    cursor: grab;
-  }
-  .wcube__space:active {
-    cursor: grabbing;
   }
   .wcube__box {
     --s: min(26vw, 340px);
@@ -414,15 +410,11 @@
     var ry = 0,
       tgt = 0,
       rx = -8,
-      held = false,
-      lastX = 0,
-      lastY = 0,
-      moved = 0,
       raf = 0;
 
     function frame() {
       raf = 0;
-      ry += (tgt - ry) * (held ? 1 : 0.12);
+      ry += (tgt - ry) * 0.12;
       box.style.setProperty("--ry", ry.toFixed(2));
       box.style.setProperty("--rx", rx.toFixed(2));
       if (Math.abs(tgt - ry) > 0.05) kick();
@@ -445,7 +437,6 @@
       var r = runway.getBoundingClientRect();
       var travel = Math.max(1, runway.offsetHeight - (window.innerHeight || 1));
       var p = Math.max(0, Math.min(1, -r.top / travel));
-      if (held) return;
       /* A hold at each end so the cube is square-on as the section arrives and
          as it leaves: a face caught mid-turn on the way in reads as a glitch
          rather than as a carousel. */
@@ -465,50 +456,21 @@
     );
     window.addEventListener("resize", read, { passive: true });
 
-    /* ── THE HAND ─────────────────────────────────────────────────────────
-       Drag to spin, and let go to snap to the nearest face. The snap is to
-       the nearest EQUIVALENT angle rather than to the canonical one, or a
-       cube spun twice around unwinds all of it on release. */
-    var space = sec.querySelector(".wcube__space");
-    space.addEventListener("pointerdown", function (e) {
-      held = true;
-      moved = 0;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      space.setPointerCapture(e.pointerId);
-    });
-    space.addEventListener("pointermove", function (e) {
-      if (!held) return;
-      var dx = e.clientX - lastX;
-      moved += Math.abs(dx) + Math.abs(e.clientY - lastY);
-      tgt += dx * 0.45;
-      ry = tgt;
-      rx = Math.max(-26, Math.min(12, rx - (e.clientY - lastY) * 0.1));
-      lastX = e.clientX;
-      lastY = e.clientY;
-      kick();
-    });
-    function release() {
-      if (!held) return;
-      held = false;
-      tgt = Math.round(ry / 90) * 90;
-      select(facing(tgt));
-      kick();
-    }
-    space.addEventListener("pointerup", release);
-    space.addEventListener("pointercancel", release);
+    /* ── NO DRAG ──────────────────────────────────────────────────────────
+       Sid: "we don't need drag-to-turn as such."
 
+       It is out. The scroll already turns the cube and a click already brings
+       a face forward, so dragging was a third way to do a thing that two
+       things already did -- and on a page that scrolls, a horizontal drag on
+       a large object is the gesture most likely to be a scroll attempt that
+       went sideways. What is left is the two gestures that cannot be
+       confused with each other. */
     /* A click on a face that is not in front turns to it instead of following
        the link -- otherwise the only reachable project is whichever one the
        scroll happens to have left facing you, and the other three are links
        you can see but cannot use. A click that ends a drag follows nothing. */
     faces.forEach(function (f, i) {
       f.addEventListener("click", function (e) {
-        if (moved > 12) {
-          e.preventDefault();
-          moved = 0;
-          return;
-        }
         if (i !== cur) {
           e.preventDefault();
           tgt = -i * 90 + Math.round((ry + i * 90) / 360) * 360;

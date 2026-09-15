@@ -64,6 +64,25 @@
      the same hue and the tile picks one from its own hash. */
   var INK = ["44, 74, 138", "30, 54, 108", "62, 98, 168"];
 
+  /* ── FOUR BLOCKS, NOT ONE ─────────────────────────────────────────────
+     Sid: "let every hover be a different pattern, and let there be a click on
+     those square interactives as well."
+
+     The press was already here. What was not is variety: one motif, repeated
+     for the life of the page, so the only thing an approach revealed was more
+     of the same star. A printer does not own one block. Four now, stepped
+     each time the pointer arrives at the band, all of them real jaali
+     vocabulary -- the eight-point star, the hexagonal net, the quatrefoil and
+     the chevron -- and all drawn as strokes in the same orders, so the band
+     opens the same way whichever block is loaded.
+
+     The containing square is common to all four and always drawn, so the grid
+     of the screen survives the block changing. The step happens on ENTER
+     rather than continuously: a screen that re-carves itself under a moving
+     hand is not a pattern. */
+  var BLOCKS = 4;
+  var block = 0;
+
   function hash(i, salt) {
     var n = Math.sin(i * 91.7 + salt * 47.3) * 43758.5453;
     return n - Math.floor(n);
@@ -95,21 +114,59 @@
     ctx.lineWidth = 1;
     ctx.strokeRect(-r, -r, r * 2, r * 2);
 
-    /* Order two: the eight-point star, two squares crossed. This is the
-       motif proper and it comes in almost immediately. */
+    /* Order two: the block's own figure. This is the motif proper and it
+       comes in almost immediately. Which figure is drawn is the block that
+       happens to be loaded; the four are described where BLOCKS is set. */
     if (lit > 0.06) {
       var a2 = Math.min(1, lit / 0.34);
       ctx.globalAlpha = a2;
       var s = r * 0.82;
-      ctx.beginPath();
-      ctx.rect(-s, -s, s * 2, s * 2);
-      ctx.stroke();
-      ctx.save();
-      ctx.rotate(Math.PI / 4);
-      ctx.beginPath();
-      ctx.rect(-s * 0.74, -s * 0.74, s * 1.48, s * 1.48);
-      ctx.stroke();
-      ctx.restore();
+      if (block === 0) {
+        /* The eight-point star: two squares crossed. */
+        ctx.beginPath();
+        ctx.rect(-s, -s, s * 2, s * 2);
+        ctx.stroke();
+        ctx.save();
+        ctx.rotate(Math.PI / 4);
+        ctx.beginPath();
+        ctx.rect(-s * 0.74, -s * 0.74, s * 1.48, s * 1.48);
+        ctx.stroke();
+        ctx.restore();
+      } else if (block === 1) {
+        /* The hexagonal net: one hexagon, and the half-hexagons that would
+           meet it from the tiles on either side. */
+        ctx.beginPath();
+        for (var hv = 0; hv < 6; hv++) {
+          var ha = (hv / 6) * Math.PI * 2 + Math.PI / 6;
+          var hx = Math.cos(ha) * s * 0.92,
+            hy = Math.sin(ha) * s * 0.92;
+          if (hv === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      } else if (block === 2) {
+        /* The quatrefoil: four arcs meeting at the diagonals, which is the
+           one figure in this set with no straight line in it. */
+        ctx.beginPath();
+        for (var qv = 0; qv < 4; qv++) {
+          var qa = (qv / 4) * Math.PI * 2;
+          ctx.arc(Math.cos(qa) * s * 0.46, Math.sin(qa) * s * 0.46, s * 0.54, 0, Math.PI * 2);
+        }
+        ctx.stroke();
+      } else {
+        /* The chevron: the zigzag a block print uses for a border, folded
+           back on itself so it fills a square. */
+        ctx.beginPath();
+        for (var cvn = -1; cvn <= 1; cvn++) {
+          var oy = cvn * s * 0.62;
+          ctx.moveTo(-s, oy + s * 0.3);
+          ctx.lineTo(-s * 0.33, oy - s * 0.3);
+          ctx.lineTo(s * 0.33, oy + s * 0.3);
+          ctx.lineTo(s, oy - s * 0.3);
+        }
+        ctx.stroke();
+      }
       ctx.globalAlpha = 1;
     }
 
@@ -224,6 +281,16 @@
     "scroll",
     function () {
       if (mx > -9000) wake();
+    },
+    { passive: true }
+  );
+  /* The band is at the very bottom of the page, so "arriving" is the pointer
+     crossing into it rather than into the footer as a whole. */
+  host.addEventListener(
+    "pointerenter",
+    function () {
+      block = (block + 1) % BLOCKS;
+      wake();
     },
     { passive: true }
   );

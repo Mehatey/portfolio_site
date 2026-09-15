@@ -457,7 +457,7 @@
 
   /* The drag affordance, stated once and only while it is true. */
   .fold__stage::after {
-    content: "Drag to turn";
+    content: "Click a face";
     position: absolute;
     left: 50%;
     bottom: clamp(18px, 4vh, 40px);
@@ -473,9 +473,6 @@
   }
   .fold.is-formed .fold__stage::after {
     opacity: 1;
-  }
-  .fold.is-held .fold__stage::after {
-    opacity: 0;
   }
 
   @media (max-width: 860px) {
@@ -599,15 +596,12 @@
       ry = 0,
       tgtRX = 0,
       tgtRY = 0,
-      held = false,
-      lastX = 0,
-      lastY = 0,
       f = 0,
       raf = 0;
 
     function frame() {
       raf = 0;
-      var k = held ? 1 : 0.11;
+      var k = 0.11;
       rx += (tgtRX - rx) * k;
       ry += (tgtRY - ry) * k;
       box.style.setProperty("--rx", rx.toFixed(2));
@@ -642,7 +636,7 @@
       }
       sec.classList.toggle("is-formed", p >= FOLD_END);
 
-      if (!held) {
+      {
         if (p < FOLD_END) {
           /* Flat on, while it is still a net: a net read at an angle is a
              heap of parallelograms with type on them. */
@@ -668,58 +662,14 @@
     );
     window.addEventListener("resize", read, { passive: true });
 
-    /* ── THE HAND ─────────────────────────────────────────────────────────
-       Drag anywhere on the stage once it is a cube. Vertical travel is damped
-       harder than horizontal and clamped, because a box you can roll all the
-       way over ends up upside down with its type mirrored. */
-    var space = sec.querySelector(".fold__space");
-    space.addEventListener("pointerdown", function (e) {
-      if (!sec.classList.contains("is-formed")) return;
-      held = true;
-      sec.classList.add("is-held");
-      lastX = e.clientX;
-      lastY = e.clientY;
-      space.setPointerCapture(e.pointerId);
-    });
-    space.addEventListener("pointermove", function (e) {
-      if (!held) return;
-      tgtRY += (e.clientX - lastX) * 0.42;
-      tgtRX = Math.max(-100, Math.min(100, tgtRX - (e.clientY - lastY) * 0.28));
-      lastX = e.clientX;
-      lastY = e.clientY;
-      rx = tgtRX;
-      ry = tgtRY;
-      kick();
-    });
-    function release() {
-      if (!held) return;
-      held = false;
-      sec.classList.remove("is-held");
-      /* Whichever face is nearest the front after a throw becomes the one the
-         readout is talking about, so the list never describes a face that is
-         pointing away. */
-      var best = 0,
-        bestD = Infinity;
-      for (var i = 0; i < AIM.length; i++) {
-        var dy = Math.abs(((((AIM[i].ry - ry) % 360) + 540) % 360) - 180);
-        var dx = Math.abs(AIM[i].rx - rx);
-        var d = (180 - dy) * 2 + dx;
-        if (d < bestD) {
-          bestD = d;
-          best = i;
-        }
-      }
-      cur = -1;
-      select(best, false);
-      tgtRX = AIM[best].rx;
-      /* Snap to the nearest equivalent angle rather than to the canonical
-         one, or a box dragged twice around unwinds all of it on release. */
-      tgtRY = AIM[best].ry + Math.round((ry - AIM[best].ry) / 360) * 360;
-      kick();
-    }
-    space.addEventListener("pointerup", release);
-    space.addEventListener("pointercancel", release);
+    /* ── NO DRAG ──────────────────────────────────────────────────────────
+       Sid: "we don't need drag-to-turn as such."
 
+       Out of both cubes. The scroll turns this one through the six faces and
+       a click brings any face forward, so a drag was a third route to a
+       destination two gestures already reached -- and a horizontal drag on a
+       large object, on a page whose primary gesture is scrolling, is mostly a
+       scroll that went sideways. */
     /* A click on a face brings it forward. Buttons, so this is keyboard
        reachable and announces itself without any extra wiring. */
     faces.forEach(function (el) {

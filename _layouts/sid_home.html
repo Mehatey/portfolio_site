@@ -411,19 +411,56 @@
          of the page. These are two classes deep so they beat the include's own
          rule on specificity rather than on load order, which for a style block
          that lives in the body would be fragile. */
+      /* ── AND THEN THE SCRIM ITSELF WAS THE PROBLEM ────────────────────
+         Sid: "in light mode, it's very gray ... the navbar gray colour
+         doesn't look good. Looks like a weird gray blur."
+
+         Right, and it is this rule. Replacing a dark wash with a pale one
+         still leaves a wash: a 72%-opaque band of off-white laid over paper
+         that is already off-white does not disappear, it reads as a strip of
+         slightly different paper across the top of the page, with a soft edge
+         where it fades out. A scrim is for separating type from a busy image.
+         The hero underneath is a light wash of ink on white, and the nav's own
+         type is now dark enough to stand on it unaided -- so the scrim is
+         solving a problem that was already solved and creating one that was
+         not there.
+
+         Gone entirely. What remains is a hairline at the foot of the bar,
+         which is what actually says "this is a bar" on a light ground. */
       body.on-paper .studio-nav::before {
-        background: linear-gradient(
-          180deg,
-          rgba(246, 244, 239, 0.72) 0%,
-          rgba(246, 244, 239, 0.56) 55%,
-          rgba(246, 244, 239, 0.24) 84%,
-          rgba(246, 244, 239, 0) 100%
-        );
-        box-shadow: inset 0 1px 0 rgba(20, 23, 29, 0.07);
+        background: none;
+        box-shadow: none;
+        /* ── THE BLUR WAS THE GREY ────────────────────────────────────────
+           Sid: "the navbar gray colour doesn't look good. Looks like a weird
+           gray blur."
+
+           Not a colour at all: the scrim carries no background now, and it
+           still painted a band, because it carries
+           `backdrop-filter: blur(30px) saturate(1.9) brightness(0.9)`.
+
+           On the dark site that is glass -- it blurs what passes behind the
+           bar and takes a tenth off its brightness so the type sits on
+           something. On the paper hero it does two things that both read as
+           damage: it blurs away the sheet's own grain, so a 72px strip of
+           the page loses the texture everything around it has, and it
+           darkens cream by ten per cent. A smooth, slightly darker band with
+           a soft lower edge is precisely "a weird gray blur", and it is why
+           the fault looked like it belonged to the navbar.
+
+           Paper wants the opposite of both: barely any blur, and a touch
+           BRIGHTER rather than darker, so the bar reads as a lighter pass
+           over the sheet rather than a smear on it. */
+        -webkit-backdrop-filter: blur(3px) saturate(1.02) brightness(1.035);
+        backdrop-filter: blur(3px) saturate(1.02) brightness(1.035);
+      }
+      body.on-paper.nav-lifted .studio-nav::before {
+        background: linear-gradient(180deg, rgba(246, 244, 239, 0.9), rgba(246, 244, 239, 0.66) 60%, rgba(246, 244, 239, 0) 100%);
       }
       body.on-paper .studio-mark-label,
       body.on-paper .studio-links a {
-        color: rgba(20, 23, 29, 0.82);
+        /* Up from 0.82. With the scrim gone the type stands directly on the
+           wash, and the wash is not a constant -- pigment drifts across it. */
+        color: rgba(14, 17, 22, 0.94);
       }
       /* The nav icons carry explicit per-part fills rather than currentColor,
          so setting `color` does nothing to them: on cream the brightest fill,
@@ -433,8 +470,47 @@
          were designed with, where overriding each fill would flatten them.
          0.7 puts that worst case at 4.71:1. */
       body.on-paper .nav-pixel {
-        color: rgba(20, 23, 29, 0.72);
-        filter: saturate(1.08) brightness(0.7);
+        /* Sid: "all those icons are also pretty messed up." On paper they were
+           being dimmed rather than darkened -- brightness(0.7) on a pale fill
+           is still a pale fill, so five faint grey glyphs sat in the corner
+           looking switched off. Darkened properly, they read as marks. */
+        color: rgba(14, 17, 22, 0.9);
+        filter: saturate(1.1) brightness(0.42) contrast(1.15);
+      }
+
+      /* ══ EVERYTHING ELSE THAT THINKS THE PAGE IS DARK ═════════════════
+         Sid: "mode has some weird heavy shadows ... and there's this weird
+         shadow when I hover on Sid AI, like the text which shows up on the
+         bottom."
+
+         One cause, several symptoms, and the same one as the vignette: this
+         hero is PAPER while the theme is still dark. Every piece of floating
+         chrome therefore paints its dark-page treatment over cream -- a black
+         drop shadow under each corner control, which on a light ground reads
+         as dirt rather than as lift, and a near-black radial pocket behind
+         the cursor's remark, which is the "weird shadow" behind the line that
+         appears at the foot of the screen.
+
+         Each of these already has a correct cream treatment written for the
+         light theme. The only thing missing was that `on-paper` is the other
+         way the ground becomes light, so they are pointed at it here. */
+      body.on-paper #cube-chat-fab,
+      body.on-paper #theme-toggle,
+      body.on-paper .sound-toggle,
+      body.on-paper .hand-toggle {
+        box-shadow: 0 8px 22px rgba(24, 34, 48, 0.14);
+        border-color: rgba(20, 24, 32, 0.14);
+        background: linear-gradient(168deg, rgba(255, 255, 255, 0.88), rgba(228, 232, 238, 0.7));
+        color: rgba(12, 16, 24, 0.92);
+      }
+      body.on-paper #cube-cursor {
+        color: #0a1727;
+      }
+      body.on-paper #cube-cursor::before {
+        background: radial-gradient(64% 64% at 26% 55%, rgba(246, 246, 242, 0.96), rgba(246, 246, 242, 0.62) 56%, transparent 80%);
+      }
+      body.on-paper .curhue {
+        color: #0a1727;
       }
 
       /* ── THE HERO BECOMES PAPER ───────────────────────────────────────
@@ -2073,7 +2149,26 @@
            a value picked once against the dark theme and never asked about
            again. */
         fill: currentColor;
-        opacity: 0.82;
+        /* ── AND IT HAS TO HOLD ON PAPER ────────────────────────────────
+           Sid: "the 6-year, 90-second reel is not visible properly, and the
+           text is not visible for that."
+
+           The ring takes currentColor from .hero__disc, which is near-white
+           on the dark theme and near-black on cream -- correct in both. What
+           was not correct is the alpha: 0.82 of near-black on a hero that is
+           PAPER, with a watercolour wash moving under it, lands somewhere
+           between 2:1 and 3:1 depending on where the wash happens to be. It
+           is opaque now and carries a faint halo of the page's own ground, so
+           the letters stay separated from whatever passes behind them. */
+        opacity: 1;
+        paint-order: stroke fill;
+        stroke: var(--home-bg, #05070b);
+        stroke-width: 1.6px;
+        stroke-linejoin: round;
+      }
+      html[data-theme="light"] .hero__disc-ring text,
+      body.on-paper .hero__disc-ring text {
+        stroke: rgba(244, 242, 236, 0.92);
       }
       .hero__disc {
         color: var(--home-ink, #fff);
@@ -4353,7 +4448,7 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 10px 26px;
+        gap: 12px 34px;
         font-family: var(--font-mono);
         font-size: 11.5px;
         letter-spacing: 0.08em;
@@ -4438,7 +4533,7 @@
       /* A hairline between the awards so they read as three facts rather than
          as one run-on sentence. */
       .proof-strip__award + .proof-strip__award {
-        padding-left: 26px;
+        padding-left: 34px;
         border-left: 1px solid rgba(160, 200, 245, 0.2);
       }
       .proof-strip__logos {
@@ -4449,8 +4544,22 @@
         flex-wrap: wrap;
         align-items: center;
         justify-content: center;
-        gap: 14px 34px;
+        gap: 20px 52px;
       }
+      /* ── AND THE ROW ANSWERS THE POINTER ──────────────────────────────
+         Sid: "the awards bar and the companies bar: can we make it better
+         spaced out, and then, when you hover, it can have some motion?"
+
+         Eight logos at a 34px gap is a run-on: the eye reads it as one grey
+         smear and stops before the end. Wider gaps give each mark its own
+         space, which is the whole reason a client row exists -- you are meant
+         to pick your employer out of it.
+
+         The motion is a lift and a focus. The one under the pointer rises,
+         comes to full colour and full opacity; the rest of the row steps
+         back a little while it does. That deference is what makes it read as
+         a response rather than as eight independent hover states: the row
+         acknowledges that you are looking at one of them. */
       .proof-strip__logos img {
         height: 26px;
         width: auto;
@@ -4459,12 +4568,22 @@
         opacity: 0.5;
         filter: grayscale(1);
         transition:
-          opacity 300ms ease,
-          filter 300ms ease;
+          opacity 320ms ease,
+          filter 320ms ease,
+          transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .proof-strip__logos:hover img {
+        opacity: 0.3;
       }
       .proof-strip__logos li:hover img {
-        opacity: 0.92;
-        filter: grayscale(0.35);
+        opacity: 1;
+        filter: grayscale(0);
+        transform: translateY(-4px);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .proof-strip__logos li:hover img {
+          transform: none;
+        }
       }
       html[data-theme="light"] .proof-strip__awards {
         color: rgba(22, 38, 64, 0.78);
@@ -5114,7 +5233,13 @@
            is the evidence for it. The object is not part of that argument,
            so it is the thing that moves. It now reads as the reward after
            the work rather than a toll before it. -->
-      <div class="obj-hold">{% include home_cube.html %}</div>
+      {% comment %} ── THERE WERE TWO CUBES ───────────────────────────────────────────────────────────────────────────────────────────────── Sid:
+      "the homepage still has a dead cube from last time, and the transition from the cube to the rotating cube is not working too smoothly." There
+      was no transition. There were two separate rotating project cubes on one page, both driven by scroll: home_cube.html, six faces with a
+      "Currently facing" readout, and the one built to replace the row of four cards further up. Scrolling out of the second and into the first is not
+      a transition failing, it is one object ending and a different object with the same idea starting, which is why it could not be smoothed.
+      home_cube.html is the one that goes. The newer one is the one Sid has been reviewing, it is wired into the colour reader and the cube's spoken
+      lines, and it carries the four projects the page argues for rather than six. The file stays in the repo; nothing includes it. {% endcomment %}
 
       <!-- ───────────────── 02 how I think ───────────────── -->
       <section class="sec wrap" id="how" aria-labelledby="how-h">
