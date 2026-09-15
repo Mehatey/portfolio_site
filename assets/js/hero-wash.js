@@ -60,15 +60,38 @@
     paper: [0.968, 0.96, 0.945],
     scale: small ? 0.35 : 0.5,
     dpr: small ? 1.25 : 1.6,
-    ambient: reduce ? 0 : 0.42,
-    drops: reduce ? 0 : 0.4,
-    dry: 0.9948,
-    settle: 0.9968,
-    diffuse: 0.34,
-    edge: 1.2,
-    granulate: 0.6,
-    density: 1.55,
-    bloom: 0.8,
+    /* ── WETTER, BUSIER, AND LET IT MIX ────────────────────────────────
+       Sid: "i want to paint more on the watercolor they should drift and mix
+       more with more pungence and funness."
+
+       Five numbers, and they are not independent -- turning any one of them
+       up alone makes a mess rather than a wash.
+
+       `drops` and `ambient` are how much happens and how much it moves: more
+       pigment arriving and a stronger drift under it. That alone would just
+       be a crowded sheet.
+
+       `dry` and `settle` are what decides whether two colours ever meet. A
+       wash that dries fast locks each drop where it landed, so the sheet
+       becomes a set of separate stains -- which is exactly what "they should
+       mix more" is describing the absence of. Both go up, so pigment stays
+       mobile long enough to run into its neighbours, and the sheet reads as
+       one wet surface instead of a page of dots.
+
+       `diffuse` is the capillary spread that does the mixing once they are
+       wet together, and `density` is how strongly the result reads. The
+       density comes DOWN as the rest goes up: more pigment at the same
+       darkness is mud, and the whole point of watercolour is that overlaps
+       glaze rather than stack. */
+    ambient: reduce ? 0 : 0.62,
+    drops: reduce ? 0 : 0.72,
+    dry: 0.9971,
+    settle: 0.9984,
+    diffuse: 0.46,
+    edge: 1.26,
+    granulate: 0.66,
+    density: 1.42,
+    bloom: 0.9,
     vignette: 0.18,
     grain: 0.016,
     /* The engine's own pointer binding listens on the canvas, which sits
@@ -109,7 +132,19 @@
           return;
         }
         var sp = Math.hypot(dx, dy);
-        if (sp > 0.0015) wc.push(px, py, dx * 46, dy * 46, 0.1, Math.min(1, sp * 26));
+        if (sp > 0.0015) wc.push(px, py, dx * 58, dy * 58, 0.12, Math.min(1, sp * 32));
+        /* ── AND THE POINTER LEAVES PIGMENT ────────────────────────────
+           Sid: "i want to paint more on the watercolor."
+
+           Moving the pointer only ever PUSHED the water before: it stirred
+           whatever was already on the sheet and added nothing, so a visitor
+           who never clicked could not paint at all. A fast sweep now sheds a
+           little colour as it goes, the way a loaded brush does, and the
+           threshold is high enough that reading the page in the ordinary way
+           does not cover it in ink. */
+        if (sp > 0.02 && Math.random() < 0.5) {
+          wc.drop(px, py, INKS[(Math.random() * INKS.length) | 0], 0.022 + Math.random() * 0.02, Math.min(0.7, sp * 9));
+        }
       },
       { passive: true }
     );
@@ -121,7 +156,13 @@
         /* drop() takes an ink TRIPLE, not an index into the palette. Passing
          an integer sets the uniform to a number and uniform3fv throws on
          every click, which kills the drop silently. */
-        wc.drop(p[0], p[1], INKS[(Math.random() * INKS.length) | 0], 0.055 + Math.random() * 0.05, 1);
+        /* Two drops of different inks a few pixels apart rather than one, so
+           a click starts a mix instead of a stain. The second is smaller and
+           offset, which is what a loaded brush actually does. */
+        var ink = INKS[(Math.random() * INKS.length) | 0];
+        var ink2 = INKS[(Math.random() * INKS.length) | 0];
+        wc.drop(p[0], p[1], ink, 0.07 + Math.random() * 0.06, 1);
+        wc.drop(p[0] + (Math.random() - 0.5) * 0.06, p[1] + (Math.random() - 0.5) * 0.06, ink2, 0.04 + Math.random() * 0.04, 0.8);
         wc.push(p[0], p[1], 0, 0, 0.09, 0.5);
       },
       { passive: true }

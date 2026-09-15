@@ -248,6 +248,42 @@
 
      It respects the toggle like everything else here. Sid asked for thunder;
      nobody asked to be startled by a website. */
+  /* ── ONE NOTE, FOR THE OPENING TOUR ───────────────────────────────────
+     Sid, on the nav icons: "after 3 to 5 sec i want all the icons one by one
+     to slowly animate with their text and some sound."
+
+     The hover chime with a pitch argument, so the five steps of the tour walk
+     up a scale instead of repeating one note five times -- a repeated note
+     reads as an alert, a rising figure reads as a sequence. It shares hover's
+     rate limit deliberately NOT: the tour's own timing is the limit, and the
+     700ms guard would swallow half the steps. */
+  window.__sidNote = function (semitone) {
+    if (!on) return;
+    var c = audio();
+    if (!c) return;
+    var base = 660 * Math.pow(2, (semitone || 0) / 12);
+    var g = c.createGain();
+    var lp = c.createBiquadFilter();
+    lp.type = "lowpass";
+    lp.frequency.setValueAtTime(800, c.currentTime);
+    lp.frequency.exponentialRampToValueAtTime(4600, c.currentTime + 0.08);
+    lp.Q.value = 0.7;
+    g.gain.setValueAtTime(0, c.currentTime);
+    g.gain.linearRampToValueAtTime(0.055, c.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.3);
+    [base, base * 1.5].forEach(function (fr, i) {
+      var o = c.createOscillator();
+      o.type = "sine";
+      o.frequency.value = fr;
+      o.detune.value = i ? 4 : 0;
+      o.connect(lp);
+      o.start();
+      o.stop(c.currentTime + 0.32);
+    });
+    lp.connect(g);
+    g.connect(c.destination);
+  };
+
   window.__thunder = function (distance) {
     if (!on) return;
     var c = audio();

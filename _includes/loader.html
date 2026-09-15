@@ -1442,6 +1442,25 @@
     if (localStorage.getItem("sid_loaded") || sessionStorage.getItem("sid_loaded")) {
       if (enterGate) enterGate.remove();
       loader.remove();
+      /* ── AND THE BLACK GOES WITH IT ─────────────────────────────────────
+         Sid: "the start of homepage is glitchy and shows some other page for
+         a second and then comes to white background."
+
+         This is that. #enter-backdrop is an opaque black sheet at z-index
+         8000 whose job is to hide the home page while the opening sequence
+         plays over it. On a returning visitor the sequence does not play at
+         all -- we are inside the branch that skips it -- but the backdrop was
+         still torn down on the loaderDone listener further up, which waits
+         200ms and then fades for 600. So the first thing anybody who has been
+         here before sees is four fifths of a second of black, and then a
+         cream page arriving through a fade. Black, then white, with nothing
+         in between: exactly "some other page for a second".
+
+         Nothing is being hidden on this path, so there is nothing to hide it
+         with. It goes now, in the same tick as the loader. */
+      var bd = document.getElementById("enter-backdrop");
+      if (bd && bd.parentNode) bd.remove();
+      document.documentElement.classList.add("home-instant");
       // Defer to next tick so listeners attached later in the document still receive it
       window.__loaderInstantDone = true;
       setTimeout(function () {
@@ -1499,6 +1518,9 @@
         var lessMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (lessMotion) {
           if (loader && loader.parentNode) loader.remove();
+          var bd2 = document.getElementById("enter-backdrop");
+          if (bd2 && bd2.parentNode) bd2.remove();
+          document.documentElement.classList.add("home-instant");
           window.__loaderInstantDone = true;
           window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: true } }));
           return;
