@@ -58,12 +58,12 @@
         <div class="fold__box" id="fold-box" style="--f: 0">
           <!-- The base. Everything else hinges off it, directly or through
                the face it is attached to, which is how a real box folds. -->
-          <button class="fold__face fold__face--base" type="button" data-face="0" style="--h: 196">
+          <button class="fold__face fold__face--base" type="button" data-face="0" style="--h: 196; --in: 0">
             <span class="fold__face-idx" aria-hidden="true">01</span>
             <span class="fold__face-word">Product</span>
           </button>
 
-          <button class="fold__face fold__face--right" type="button" data-face="1" style="--h: 268">
+          <button class="fold__face fold__face--right" type="button" data-face="1" style="--h: 268; --in: 1">
             <span class="fold__face-idx" aria-hidden="true">02</span>
             <span class="fold__face-word">Spatial</span>
           </button>
@@ -74,22 +74,22 @@
                browsers recover from it by moving the inner one out of the
                element it was supposed to hinge from. The double hinge is
                written into its transform instead; see the note in the CSS. -->
-          <button class="fold__face fold__face--far" type="button" data-face="2" style="--h: 22">
+          <button class="fold__face fold__face--far" type="button" data-face="2" style="--h: 22; --in: 2">
             <span class="fold__face-idx" aria-hidden="true">03</span>
             <span class="fold__face-word">Generative</span>
           </button>
 
-          <button class="fold__face fold__face--left" type="button" data-face="3" style="--h: 146">
+          <button class="fold__face fold__face--left" type="button" data-face="3" style="--h: 146; --in: 3">
             <span class="fold__face-idx" aria-hidden="true">04</span>
             <span class="fold__face-word">Research</span>
           </button>
 
-          <button class="fold__face fold__face--top" type="button" data-face="4" style="--h: 44">
+          <button class="fold__face fold__face--top" type="button" data-face="4" style="--h: 44; --in: 4">
             <span class="fold__face-idx" aria-hidden="true">05</span>
             <span class="fold__face-word">Interface</span>
           </button>
 
-          <button class="fold__face fold__face--bottom" type="button" data-face="5" style="--h: 336">
+          <button class="fold__face fold__face--bottom" type="button" data-face="5" style="--h: 336; --in: 5">
             <span class="fold__face-idx" aria-hidden="true">06</span>
             <span class="fold__face-word">Code</span>
           </button>
@@ -429,6 +429,98 @@
     color: rgba(198, 222, 244, 0.34);
   }
 
+  /* ══ THE ARRIVAL ═══════════════════════════════════════════════════════
+     Sid: "when i scroll towards the cube unfolded another nice animation."
+
+     The net used to be simply THERE, fully drawn, waiting for the scroll to
+     start folding it. Arriving at a finished object and then operating it is
+     a control panel; watching it assemble and then folding it is a sequence.
+
+     Two things move and neither of them touches `transform` on the faces,
+     because that property is owned by the scroll -- the hinges read --f every
+     frame, and an entrance animating the same property would fight it and
+     lose at whichever frame the scroll last wrote. So the entrance is spent
+     on the things the fold does not use: the stage gets the scale and the
+     tilt, and each face gets opacity and blur on a stagger, in reading order
+     from the base outward. The effect is a net being laid out, one piece at a
+     time, by whoever is about to fold it. */
+  .fold__space {
+    opacity: 0;
+    transform: translateX(min(15vw, 150px)) scale(0.82) rotateX(16deg);
+    transition:
+      opacity 900ms ease,
+      transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fold.is-arrived .fold__space {
+    opacity: 1;
+    transform: translateX(min(15vw, 150px)) scale(1) rotateX(0deg);
+  }
+  .fold__face {
+    opacity: 0;
+    filter: blur(6px);
+    transition:
+      opacity 620ms ease,
+      filter 620ms ease,
+      border-color 300ms ease,
+      box-shadow 300ms ease;
+  }
+  .fold.is-arrived .fold__face {
+    opacity: 1;
+    filter: none;
+    transition-delay: calc(var(--in, 0) * 105ms + 240ms);
+  }
+  .fold__read,
+  .fold__foot,
+  .fold__ticks {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 760ms ease,
+      transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fold__read {
+    transform: translateY(-50%) translateY(14px);
+  }
+  .fold.is-arrived .fold__read {
+    opacity: 1;
+    transform: translateY(-50%);
+    transition-delay: 460ms;
+  }
+  .fold.is-arrived .fold__foot {
+    opacity: 1;
+    transform: none;
+    transition-delay: 720ms;
+  }
+  .fold.is-arrived .fold__ticks {
+    opacity: 1;
+    transform: translateY(-50%);
+    transition-delay: 840ms;
+  }
+  .fold__ticks {
+    transform: translateY(-50%) translateY(14px);
+  }
+  @media (max-width: 860px) {
+    .fold__space,
+    .fold.is-arrived .fold__space {
+      transform: none;
+    }
+    .fold__read,
+    .fold.is-arrived .fold__read {
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .fold__space,
+    .fold__face,
+    .fold__read,
+    .fold__foot,
+    .fold__ticks {
+      opacity: 1;
+      filter: none;
+      transition: none;
+    }
+  }
+
   /* ── THE TICKS ────────────────────────────────────────────────────────── */
   .fold__ticks {
     position: absolute;
@@ -693,11 +785,28 @@
       });
     });
 
+    /* One shot, on arrival. Unobserved afterwards: a net that re-lays itself
+       every time you scroll back past it is a tic. */
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(
+        function (es) {
+          if (!es[0].isIntersecting) return;
+          sec.classList.add("is-arrived");
+          io.disconnect();
+        },
+        { threshold: 0.18 }
+      );
+      io.observe(sec);
+    } else {
+      sec.classList.add("is-arrived");
+    }
+
     if (reduce) {
       /* Assembled and aimed, with no sequence to sit through. */
       f = 1;
       box.style.setProperty("--f", "1");
       sec.classList.add("is-formed");
+      sec.classList.add("is-arrived");
       tgtRX = AIM[0].rx;
       tgtRY = AIM[0].ry;
       rx = tgtRX;
