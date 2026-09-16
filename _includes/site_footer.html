@@ -609,7 +609,25 @@ include film_grade.html %}
       /* 48, from 40. Two lines of title at 15px plus the kicker plus the 7px
          the block sits off the bottom edge, measured against the longest
          caption in the set rather than the first one that fits. */
-      padding: 9px 9px 48px;
+      /* ── ONE NUMBER, NOT THREE COPIES OF IT ───────────────────────────
+         Sid: "can u remove the line or the box around the images it doesnt
+         cut to the image properly and juts out."
+
+         There was a line, and it was not meant to be there. The paper's
+         bottom band was widened from 40 to 48 to fit two lines of caption,
+         and the two overlays that are supposed to sit exactly ON the
+         photograph -- the inset ring that makes the emulsion look recessed,
+         and the motion smear -- were left at `inset: 9px 9px 40px`. So both
+         ended 8px BELOW the picture: the ring drew a hairline across the
+         white band under the image, and the smear painted a strip of blurred
+         photograph onto the paper. It read as a box around the image that
+         does not line up with the image, because that is exactly what it was.
+
+         The inset is a variable now, and the padding and both overlays read
+         it. They cannot drift apart again. */
+      --pad: 9px;
+      --pad-b: 48px;
+      padding: var(--pad) var(--pad) var(--pad-b);
       border-radius: 2px;
       background:
         linear-gradient(178deg, #fdfbf6 0%, #f7f3ea 62%, #f1ece0 100%),
@@ -659,7 +677,8 @@ include film_grade.html %}
         0 6px 16px -8px rgba(48, 40, 28, 0.16);
     }
     html[data-theme="light"] .sid-tile:not(.sid-tile--type) img,
-    html[data-theme="light"] .sid-tile:not(.sid-tile--type) video {
+    html[data-theme="light"] .sid-tile:not(.sid-tile--type) video,
+    html[data-theme="light"] .sid-tile:not(.sid-tile--type)::before {
       border-radius: 6px;
     }
     html[data-theme="light"] .sid-tile:not(.sid-tile--type) figcaption em {
@@ -679,7 +698,10 @@ include film_grade.html %}
     .sid-tile:not(.sid-tile--type)::before {
       content: "";
       position: absolute;
-      inset: 9px 9px 40px;
+      inset: var(--pad) var(--pad) var(--pad-b);
+      /* Matches the radius the media takes in light mode, so the ring follows
+         the corner of the photograph instead of cutting across it. */
+      border-radius: inherit;
       z-index: 2;
       pointer-events: none;
       box-shadow:
@@ -709,7 +731,7 @@ include film_grade.html %}
       /* Inset to the emulsion. At inset 0 the blurred underlay painted over
          the paper border and the bottom band, which put a smear of the
          photograph across the white card. */
-      inset: 9px 9px 40px;
+      inset: var(--pad) var(--pad) var(--pad-b);
       pointer-events: none;
       background-image: var(--src);
       background-size: cover;
@@ -3863,7 +3885,25 @@ wall and the Buddha all sit inside the one `
           rowFocus += ((hoverIdx >= 0 ? 1 : 0) - rowFocus) * 0.16 * dt;
           if (rowFocus < 0.002) rowFocus = 0;
           if (!reduce && bandW > 0) {
-            var fade = bandW * 0.22;
+            /* ── THE EDGE IS THE EDGE, NOT THE OUTER FIFTH ────────────────
+               Sid: "the blurs from the side of the Get to Know Sid section
+               start a little bit too soon. Let me be able to see a little bit
+               more of the image, and let it go as soon as it goes off screen
+               on the sides, then only fully blur it out."
+
+               The ramp zone was 22% of the band on each side, so 44% of the
+               rail -- nearly half of every tile a visitor could see -- was
+               somewhere on the way out. A tile spent most of its time on
+               screen partially dissolved, which is why the row read as
+               permanently hazy rather than as objects passing an edge.
+
+               12% each side leaves three quarters of the band at full
+               strength, and the curve is biased on top of that: smoothstep is
+               symmetric, so half the ramp was still spent in the dim half.
+               Raised to 0.55 it reaches full within the first third of the
+               zone and does all of its collapsing in the last sliver, right
+               where the tile is actually leaving. */
+            var fade = bandW * 0.12;
             for (var i = 0; i < tiles.length; i++) {
               var left = offs[i] + x;
               var mid = left + widths[i] / 2;
@@ -3871,8 +3911,11 @@ wall and the Buddha all sit inside the one `
               var near = Math.min(mid, bandW - mid);
               var k = Math.max(0, Math.min(1, near / fade));
               /* Eased so the middle of the rail is flat and all of the change
-               happens in the outer band, where it is the point. */
+               happens in the outer band, where it is the point. The power
+               then pushes the whole curve up: full strength early, collapse
+               late. */
               k = k * k * (3 - 2 * k);
+              k = Math.pow(k, 0.55);
 
               /* ── AND THE CENTRE IS THE STAGE ───────────────────────────────
                Sid: "when they come to center they get bigger."
@@ -3976,7 +4019,10 @@ wall and the Buddha all sit inside the one `
                regardless of position, and the rest of the row gives up a
                little of both while it does. The row defers to the thing you
                are pointing at; that is the whole effect. */
-              var sat = 0.3 + 0.7 * k + 0.5 * c;
+              /* Floor raised from 0.3. Paired with the narrower ramp above,
+                 a tile is a photograph for as long as it is on screen and only
+                 gives up its colour on the way out. */
+              var sat = 0.55 + 0.45 * k + 0.5 * c;
               var bri = 0.9 + 0.3 * c;
               sat += (1.25 - sat) * hv;
               bri += (1.06 - bri) * hv;
@@ -3998,7 +4044,7 @@ wall and the Buddha all sit inside the one `
                 lastF[i] = fq;
                 st.filter = "saturate(" + sat.toFixed(2) + ") brightness(" + bri.toFixed(2) + ")";
               }
-              var op = Math.round((0.16 + 0.84 * k) * (1 - 0.3 * rowFocus * others) * 100);
+              var op = Math.round((0.1 + 0.9 * k) * (1 - 0.3 * rowFocus * others) * 100);
               if (op !== lastO[i]) {
                 lastO[i] = op;
                 st.opacity = (op / 100).toFixed(2);
