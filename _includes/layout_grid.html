@@ -9,9 +9,11 @@ at the point where the line is visible on a flat ground and invisible under a pa
 strong for something that appears on 40 pages. The horizontal set breathes with scroll velocity -- one shared --sva from scroll-velocity.js, no
 listener of its own -- so throwing the page separates the frame from the content for a moment and then lets it settle. {% endcomment %}
 
-<!-- The header's copy of the grid. See .lgrid-head in the stylesheet for why
-     it is a second layer rather than the same one raised. -->
-<div class="lgrid-head" aria-hidden="true"><i style="--i: 0"></i><i style="--i: 3"></i></div>
+<!-- The header's copy of the grid is gone. It existed because the page grid
+     sat under the content and so could not cross the nav's scrim, which meant
+     drawing the line a second time above it. The page grid is one continuous
+     layer above the content now, so a copy would be a second hairline in the
+     same place at a different alpha. See the z-index note in .lgrid below. -->
 
 <div class="lgrid" aria-hidden="true">
   <span class="lgrid__box">
@@ -36,7 +38,33 @@ listener of its own -- so throwing the page separates the frame from the content
        top of it. At 0 it sits behind the page's own content, which all
        declares 1 or above, so the lines now show in the space between cards
        and stop at their edges. */
-    z-index: 0;
+    /* ── AND THAT IS WHY IT STOPPED WORKING ────────────────────────────
+       Sid: "check on the grid lines i dont think the way we have them
+       currently is functional and its def not aesthetic see whats wrong."
+
+       Behind the content was the right instinct for a page of cards and the
+       wrong one for this site, because so much of it is full bleed. Measured
+       across five routes the two verticals land exactly on the content column
+       every time -- 58 and 1377 at 1440 -- so the geometry was never the
+       problem. What a reader actually saw was a line that existed for the
+       104px of the nav band, disappeared behind the hero image, came back in
+       the gap under it, then disappeared again behind the next full-bleed
+       frame. A rule that appears in patches does not read as a measure; it
+       reads as a rendering fault, which is the "not aesthetic" half.
+
+       It was also two layers: a copy clipped to the header and drawn ABOVE
+       the nav scrim, plus the page's own drawn below everything. Two layers
+       at two alphas from two different expressions is how the patchiness got
+       built in.
+
+       One layer now, continuous, above the content and under the bar's own
+       marks. That is what this include's opening note always said it was for
+       -- "it gives every full-bleed element something to be measured against"
+       -- which requires being visible ON the full-bleed element. The alpha
+       comes down to pay for it: over a photograph a hairline at 0.05 is a
+       suggestion, and a suggestion running the whole height of the page is
+       worth more than a firm line running a tenth of it. */
+    z-index: 8995;
     pointer-events: none;
     contain: strict;
     color: var(--ink, #f0f6fc);
@@ -89,6 +117,11 @@ listener of its own -- so throwing the page separates the frame from the content
     background: currentColor;
     opacity: 0.05;
     left: calc((var(--i) / 3) * 100%);
+    /* Over a photograph a flat ink hairline either vanishes into a highlight
+       or prints as a dark scratch across a shadow. Overlay resolves against
+       whatever it crosses, so the same line stays a line over the hero, over
+       cream and over black. */
+    mix-blend-mode: overlay;
   }
   /* The last line would sit one pixel outside the box on the right edge. */
   .lgrid__v:nth-child(2) {
@@ -99,7 +132,8 @@ listener of its own -- so throwing the page separates the frame from the content
      the four inside them are subdivisions and should read as quieter. */
   .lgrid__v:first-child,
   .lgrid__v:nth-child(2) {
-    opacity: 0.075;
+    /* Down from 0.075, because it is over the content now, not under it. */
+    opacity: 0.055;
   }
 
   .lgrid__h {
@@ -126,7 +160,7 @@ listener of its own -- so throwing the page separates the frame from the content
   }
   html[data-theme="light"] .lgrid__v:first-child,
   html[data-theme="light"] .lgrid__v:nth-child(2) {
-    opacity: 0.09;
+    opacity: 0.075;
   }
   html[data-theme="light"] .lgrid__h {
     opacity: 0.04;
@@ -1300,47 +1334,6 @@ listener of its own -- so throwing the page separates the frame from the content
 
      It sits below the nav's own contents at 8999 against the bar's 9000, so
      the mark and the links are always in front of it. */
-  .lgrid-head {
-    position: fixed;
-    inset: 0 0 auto 0;
-    height: 104px;
-    z-index: 8999;
-    pointer-events: none;
-    contain: strict;
-    color: var(--ink, #f0f6fc);
-  }
-  /* Positioned off --grid-left, the token the whole site measures from, so
-     these land on the same two verticals the page draws rather than on the
-     viewport edges. Copying the page grid's own `left: calc((var(--i)/3) *
-     100%)` was tried and put them at 0 and 1512: that rule is overridden
-     further down by a first-child / nth-child pair that pins them to the
-     measure, and duplicating one half of a two-part rule is how a copy drifts
-     from its original. */
-  .lgrid-head i {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: currentColor;
-    /* A touch stronger than the 0.05 the page uses. The scrim behind the bar
-       is denser than the page ground, so the same alpha reads as nothing
-       there -- matching the NUMBER would not match the line. */
-    opacity: 0.085;
-  }
-  .lgrid-head i:first-child {
-    left: var(--grid-left, 60px);
-  }
-  .lgrid-head i:last-child {
-    right: var(--grid-left, 60px);
-  }
-  html[data-theme="light"] .lgrid-head i {
-    opacity: 0.1;
-  }
-  @media (max-width: 900px) {
-    .lgrid-head {
-      display: none;
-    }
-  }
 </style>
 
 <script src="{{ site.baseurl }}/assets/js/idle-drift.js" defer></script>

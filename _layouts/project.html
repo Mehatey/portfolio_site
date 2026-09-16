@@ -832,6 +832,41 @@
         max-width: 620px;
       }
 
+      /* ══ THE OVERVIEW RESOLVES AS YOU COME TO IT ══════════════════════════
+         Sid: "on the project details, you have the one-liner. Can we have
+         scroll-based low-contrast-to-high-contrast activated text, where the
+         contrast increases based on the scroll, so we want them to read it?"
+
+         This is the one sentence on a thirty-screen page that has to be read,
+         and it was sitting at full strength before anybody had scrolled to
+         it, which is how a reader learns it is safe to skip. Resolving it word
+         by word as it crosses the window makes reading it the same gesture as
+         scrolling past it.
+
+         WHY THERE IS NO JAVASCRIPT PER WORD. The obvious build writes an
+         opacity to every span on every scroll event, which is thirty style
+         writes a frame on a page that is already animating. One custom
+         property on the paragraph carries the progress instead, and each word
+         works out its own opacity from that in CSS: `--p` is 0 to 1 for the
+         block, `--i` is the word's index and `--n` the count, so a word starts
+         resolving when the wave reaches it and is solid about one word later.
+         The browser recomputes those without a style recalculation of ours.
+
+         The floor is 0.2 rather than 0, because text that is invisible until
+         scrolled is text a reader can land in the middle of and find missing,
+         and it breaks find-in-page as a visual affordance. Faint is the
+         effect; absent is a bug. */
+      .intro-tagline w {
+        display: inline;
+        opacity: clamp(0.2, calc((var(--p, 1) * var(--n) - var(--i)) * 0.85 + 0.2), 1);
+        transition: opacity 120ms linear;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .intro-tagline w {
+          opacity: 1;
+        }
+      }
+
       /* ─── HIGHLIGHTS — recruiter-readable proof points ─── */
       .proj-highlights {
         display: grid;
@@ -3965,12 +4000,40 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
+      /* ── THE FACTS LINE UP, AND THEY ARE FACTS ────────────────────────
+         Sid: "the things below it in project details, like Who Are You,
+         Installation, Design and Build, and Generate a Visual System, have
+         alignment that is all off. I feel like the text is way too big in
+         contrast to the others."
+
+         Both, and they were the same fault. The value was rendering at 57.6px
+         against a 33.8px overview sentence, so three supporting facts were
+         nearly twice the size of the paragraph they support -- and at that
+         size "One question" wrapped to two lines while "Solo" did not, which
+         pushed its label 57px below the other two. The misalignment was the
+         oversize.
+
+         Each cell is a grid with the label on its own bottom row, so the
+         labels sit on one line whatever the values do above them, and the
+         value steps below the overview where a supporting fact belongs. */
       .proj-highlight {
         min-height: 0;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        gap: 10px;
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0));
       }
       .proj-highlight-value {
         font-weight: 420;
+        font-size: clamp(21px, 2.1vw, 31px) !important;
+        line-height: 1.12 !important;
+        letter-spacing: -0.02em !important;
+        margin: 0 !important;
+        align-self: start;
+      }
+      .proj-highlight-label {
+        margin: 0 !important;
+        align-self: end;
       }
       .proj-highlight-label,
       .meta-k,
@@ -5012,7 +5075,12 @@
       }
 
       .proj-highlight-value {
-        font-size: clamp(36px, 4vw, 64px) !important;
+        /* Was clamp(36px, 4vw, 64px), which rendered at 57.6px against a
+           33.8px overview sentence: three supporting facts at nearly twice
+           the size of the paragraph they support. See the note on
+           .proj-highlight above -- this is the rule that was actually
+           winning. */
+        font-size: clamp(21px, 2.1vw, 31px) !important;
       }
 
       .case-study-layout {
@@ -5239,8 +5307,12 @@
         font-variant-numeric: tabular-nums;
       }
 
-      html[data-theme="light"]
-      html[data-theme="light"]
+      /* Two dangling `html[data-theme="light"]` selectors used to sit here
+         with no declaration block between them and this @media. CSS parses
+         that as one selector list running into the at-rule, which is invalid,
+         so the reduced-motion block below was being discarded entirely and
+         the highlights still animated for readers who had asked them not to.
+         Left over from a deletion; nothing referenced them. */
       @media (prefers-reduced-motion: reduce) {
         .proj-highlight {
           opacity: 1;
@@ -5270,10 +5342,18 @@
   </head>
   <body data-pillar="{{ page.pillar }}">
     {% include site_field.html %}
-    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <!-- ── NO READING BAR ────────────────────────────────────────────────
+         Sid: "we don't need a progress bar if we're showing the thumbnail
+         image on the right when you're scrolling."
+
+         Right: the chapter rail down the right edge is a progress indicator
+         that also says WHERE you are, which is the only version of this worth
+         the pixels. A 2px fill under the nav says the same thing with less
+         information, and two of them competing is how a page ends up feeling
+         instrumented. -->
     <a class="skip-link" href="#main">Skip to project content</a>
 
-    {% include studio_nav.html active="work" %} {% comment %} One line for every case study rather than one per project: a per-project remark already
+    {% assign nav_now = page.project_title | default: page.title %}{% include studio_nav.html active="work" now=nav_now note=page.category %} {% comment %} One line for every case study rather than one per project: a per-project remark already
     exists as `cube` in _data/works.yml and is spoken by the cursor on the grid. Saying it twice would be the duplication cube_says.html exists to
     avoid. {% endcomment %} {% include cube_says.html line="He will show you what worked. Ask about the rest." %}
 
@@ -5302,10 +5382,22 @@
       its own hero, and it is the way back. One element, two jobs, no control added that duplicates another. It is a link rather than a button because
       that is what it does. It stands down for the handover at the bottom: the next-project panel is already saying where you are going, and a label
       saying where you have been would be arguing with it. {% endcomment %}
-      <a class="proj-marker" id="proj-marker" href="{{ site.baseurl }}/works/" aria-hidden="true" tabindex="-1">
-        <i class="proj-marker__arrow" aria-hidden="true"></i>
-        <span class="proj-marker__name">{{ page.project_title | default: page.title }}</span>
-      </a>
+      <!-- ── AND NO BACK PILL ──────────────────────────────────────────
+           Sid: "we don't need the back button on Bloom once you are in the
+           project ... take a decision on the top navbar loading and the back
+           button."
+
+           The decision: the nav is the way back and there is no second one.
+           It already returns the moment you scroll up, which is the gesture
+           somebody makes when they are looking for the way out, and its Work
+           link goes exactly where this pill went. The browser's own back
+           button is the other half and is always there.
+
+           The pill's second job was orientation -- naming the project once
+           the hero has gone -- and that is now the chapter rail's, which says
+           which section you are in rather than only which page. One floating
+           control that duplicates a nav item and a browser affordance is the
+           kind of thing that accumulates. -->
 
       <header class="proj-hero{% if page.hero_mode == 'artifact' %} proj-hero--artifact{% endif %}">
         {% if page.hero_image %}
@@ -5692,6 +5784,93 @@
          aria-hidden and tabindex are toggled with it rather than left set:
          a link that is invisible but still in the tab order is a trap, and
          one that is visible but hidden from assistive tech is worse. */
+      /* ── AND THE PROGRESS THAT DRIVES IT ─────────────────────────────
+         Words are wrapped once, at load, into <w> elements -- a custom
+         element name rather than a span so nothing in the sheet that styles
+         spans inside body copy has an opinion about them. Then one rAF-gated
+         scroll handler writes a single property.
+
+         The ramp is measured against the paragraph crossing the lower half of
+         the window: it begins as the block's top reaches 82% of the viewport
+         and completes by the time it has travelled to 38%, which is where a
+         reader's eye actually sits. Quantised to a hundredth so a slow scroll
+         does not write the same value forty times. */
+      (function () {
+        var el = document.querySelector(".intro-tagline");
+        if (!el || el.querySelector("w")) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        var words = (el.textContent || "").trim().split(/\s+/);
+        if (words.length < 2) return;
+        el.textContent = "";
+        for (var i = 0; i < words.length; i++) {
+          var w = document.createElement("w");
+          w.style.setProperty("--i", i);
+          w.textContent = words[i] + (i < words.length - 1 ? " " : "");
+          el.appendChild(w);
+        }
+        el.style.setProperty("--n", words.length);
+        el.style.setProperty("--p", "0");
+
+        var raf = 0,
+          last = -1,
+          onScreen = false;
+
+        function read() {
+          raf = 0;
+          var r = el.getBoundingClientRect();
+          var vh = window.innerHeight || 1;
+          var p = (vh * 0.82 - r.top) / (vh * 0.44);
+          p = Math.max(0, Math.min(1, p));
+          var q = Math.round(p * 100);
+          if (q === last) return;
+          last = q;
+          el.style.setProperty("--p", (q / 100).toFixed(2));
+        }
+        function ping() {
+          if (!raf && onScreen) raf = requestAnimationFrame(read);
+        }
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(
+            function (es) {
+              onScreen = es[0].isIntersecting;
+              if (onScreen) ping();
+            },
+            { rootMargin: "20% 0px" }
+          ).observe(el);
+        } else onScreen = true;
+        window.addEventListener("scroll", ping, { passive: true });
+        window.addEventListener("resize", ping, { passive: true });
+        read();
+      })();
+
+      /* ── THE BAR PICKS THE PROJECT UP WHERE THE HERO PUTS IT DOWN ──────
+         One class on <body>, flipped when the hero's last 140px leave the top
+         of the window, so the name arrives as the title goes rather than after
+         it. The same threshold the back pill used, because it was the right
+         threshold; it is the control that was redundant, not the timing. */
+      (function () {
+        var hero0 = document.querySelector(".proj-hero");
+        if (!hero0) return;
+        var on = false,
+          r0 = 0;
+        function look() {
+          r0 = 0;
+          var want = hero0.getBoundingClientRect().bottom < 72;
+          if (want === on) return;
+          on = want;
+          document.body.classList.toggle("nav-titled", on);
+        }
+        window.addEventListener(
+          "scroll",
+          function () {
+            if (!r0) r0 = requestAnimationFrame(look);
+          },
+          { passive: true }
+        );
+        look();
+      })();
+
       (function () {
         var marker = document.getElementById("proj-marker");
         var hero = document.querySelector(".proj-hero");

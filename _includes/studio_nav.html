@@ -22,6 +22,27 @@
     <span class="studio-mark-label">Sid Mehta</span>
   </a>
 
+  {%- if include.now -%}
+  <!-- ── THE BAR BECOMES THE PROJECT ────────────────────────────────────
+       Sid: "maybe if we change the navbar or if we add the case study name,
+       like how it's done in this portfolio ... an intuitive navbar that based
+       on your scroll activates and deactivates, and then it's replaced by the
+       project details and also maybe a one-liner about the project."
+
+       This is also the answer to "take a decision on the top navbar and the
+       back button", and it is a better answer than the one I had. A floating
+       back pill was a second control doing a job the bar was already doing;
+       the bar carrying the project's name is the same information with no new
+       object, and it fills a band that was otherwise empty for thirty screens.
+
+       It only renders where a page passes a name, so every other route's nav
+       is byte for byte what it was. -->
+  <div class="studio-now" aria-hidden="true">
+    <b>{{ include.now }}</b>
+    {%- if include.note %}<i>{{ include.note }}</i>{% endif -%}
+  </div>
+  {%- endif -%}
+
   <!-- ── THE TWO OUTBOUND LINKS SIT OUTSIDE THE PILL ────────────────────
        Sid: "I don't like how Resume and LinkedIn linkouts are full white, and
        when we hover on the nav icons it extends horribly and makes it weird
@@ -495,6 +516,81 @@
     outline: none;
     transform: translateX(calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px)));
   }
+  /* ── AND IT ARRIVES AS THE HERO LEAVES ────────────────────────────────
+     Not a fade in place: it rises, the way a caption arrives under something
+     you have just finished looking at. The one-liner is held to a single line
+     with an ellipsis, because a nav that changes height as you scroll past
+     different projects is a nav that cannot be trusted to stay where it was.
+
+     `max-width` is a clamp rather than a percentage so the row cannot grow
+     into the section links on a narrow window; below 1100px it drops the note
+     and keeps the name, and below 900 it goes entirely, where the bar is a
+     full-width band with no room to spare. */
+  .studio-now {
+    position: absolute;
+    /* Same start as the cube's own line, and for the same reason: it has to
+       clear the mark, whose right edge is --grid-left + 36. This one is
+       absolute INSIDE the nav, whose own left inset is already --grid-left,
+       so the offset is the bare 56 rather than the full expression -- adding
+       the token again put it at 171 instead of 114. */
+    left: 56px;
+    top: 50%;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    max-width: clamp(220px, 34vw, 520px);
+    transform: translateY(calc(-50% + 7px));
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 460ms ease,
+      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  body.nav-titled .studio-now {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+  .studio-now b {
+    flex: 0 0 auto;
+    font: 500 13px/1.2 var(--font-head, inherit);
+    letter-spacing: -0.005em;
+    color: var(--nav-ink);
+    white-space: nowrap;
+  }
+  .studio-now i {
+    flex: 0 1 auto;
+    min-width: 0;
+    font: 400 12px/1.3 var(--font-head, inherit);
+    font-style: normal;
+    color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 1180px) {
+    .studio-now i {
+      display: none;
+    }
+  }
+  @media (max-width: 900px) {
+    .studio-now {
+      display: none;
+    }
+  }
+  /* ── AND WHILE IT IS CARRYING ONE, THE BAR STAYS ──────────────────────
+     The retract-on-scroll-down rule is right for a page whose chrome is only
+     navigation: it is in the way of what you came for. A bar that is telling
+     you which project you are inside is no longer only navigation, and a
+     label that disappears exactly while you are reading past it is worse than
+     no label. So on a titled page it holds. */
+  body.nav-titled.nav-away .studio-nav,
+  body.nav-titled.nav-away .nav-scrim,
+  html[data-idle="on"] body.nav-titled .studio-nav {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   /* The bar becomes a full-width band on small screens and there is no margin
      left to sit in. */
   @media (max-width: 900px) {
@@ -2277,7 +2373,20 @@
       margin-left 420ms cubic-bezier(0.16, 1, 0.3, 1);
     margin-left: 0;
   }
-  .studio-link.is-active > span,
+  /* ── THE CURRENT PAGE DOES NOT NEED TO BE TOLD TO YOU ─────────────────
+     Sid: "no need for text to show up when u are on the page we can just have
+     the icon that is activated have color and a soft pulsating in and out
+     glow slowly to show its activated and we show the text on hover."
+
+     `.is-active` used to open its label permanently, so the bar carried one
+     word at all times naming the page you were already on. That word is also
+     what pushed the row wider and sent the colour swatches left into the
+     logomark, which is the thing he actually noticed.
+
+     The colour arriving in the mark already says "this one", and it says it
+     without spending horizontal space. The pulse below makes it unmissable
+     without adding an object. Hover and keyboard focus still open the label,
+     because those are questions, and a question deserves an answer. */
   .studio-link:hover > span,
   .studio-link:focus-visible > span {
     /* 9ch clears "Contact" with room; max-width animates to a bound rather
@@ -2286,6 +2395,47 @@
     opacity: 1;
     margin-left: 7px;
   }
+  /* ── AND IT BREATHES ──────────────────────────────────────────────────
+     A halo in the item's own colour, behind the mark, on a slow cycle. It is
+     a radial gradient on a pseudo-element animating opacity and transform,
+     both of which the compositor handles, rather than a `drop-shadow` filter
+     animation -- that would re-rasterise the glyph on every frame of a loop
+     that never stops.
+
+     3.8 seconds, because the point is "lit", not "alert". Anything near a
+     second reads as a notification badge asking to be dealt with. */
+  .studio-link.is-active .nav-ico::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 42px;
+    height: 42px;
+    margin: -21px 0 0 -21px;
+    border-radius: 50%;
+    background: radial-gradient(circle, currentColor 0%, transparent 68%);
+    opacity: 0.22;
+    pointer-events: none;
+    animation: navPulse 3800ms ease-in-out infinite;
+  }
+  @keyframes navPulse {
+    0%,
+    100% {
+      opacity: 0.16;
+      transform: scale(0.88);
+    }
+    50% {
+      opacity: 0.46;
+      transform: scale(1.1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .studio-link.is-active .nav-ico::before {
+      animation: none;
+      opacity: 0.3;
+    }
+  }
+
   /* The mark is what is always there, so it carries the state instead. */
   .studio-link .nav-icon,
   .studio-link img {
@@ -2293,6 +2443,30 @@
       opacity 260ms ease,
       transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
   }
+  /* ── SID AI IS NOT ONE OF THE FOUR ───────────────────────────────────
+     Sid: "see that the Talk to AI button and the icons on the navbar are
+     spaced out properly."
+
+     Work, Play, Contact and About are places on this site; Sid AI is a thing
+     that answers you. They were five icons on one even 18px rhythm, so the
+     bar read as five sections, one of which happened to be a chat. A wider
+     gap and a hairline before the last one is the least that says "different
+     kind of thing" without adding a control or a label. */
+  .studio-link:last-of-type {
+    margin-left: 16px;
+  }
+  .studio-link:last-of-type::before {
+    content: "";
+    position: absolute;
+    left: -17px;
+    top: 50%;
+    width: 1px;
+    height: 15px;
+    margin-top: -7px;
+    background: currentColor;
+    opacity: 0.16;
+  }
+
   .studio-link:not(.is-active) {
     opacity: 0.62;
   }
