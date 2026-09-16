@@ -417,6 +417,7 @@
 
   /* ── idle ─────────────────────────────────────────────────────────────── */
   var timer = 0,
+    leaveTimer = 0,
     on = false;
 
   function wake() {
@@ -424,6 +425,14 @@
       on = false;
       offAt = performance.now();
       layer.classList.remove("is-on");
+      /* Paintable for exactly as long as the fade needs it, then out of the
+         compositor entirely. See the note on content-visibility in
+         _includes/layout_grid.html. */
+      layer.classList.add("is-leaving");
+      clearTimeout(leaveTimer);
+      leaveTimer = setTimeout(function () {
+        layer.classList.remove("is-leaving");
+      }, 700);
       /* ── AND THE CHROME COMES BACK ────────────────────────────────────
          Sid: "when you're showing the screensaver, you can remove the nav
          bar." Set on the root rather than on the layer so the navigation's
@@ -451,6 +460,8 @@
     if (document.hidden) return;
     on = true;
     holeAt = performance.now();
+    clearTimeout(leaveTimer);
+    layer.classList.remove("is-leaving");
     layer.classList.add("is-on");
     document.documentElement.setAttribute("data-idle", "on");
     warped = warpTargets();
