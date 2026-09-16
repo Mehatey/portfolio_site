@@ -10698,10 +10698,21 @@
   /* ══ AND WHEN IT IS NOT RUNNING IT IS NOT THERE ════════════════════════
      Sid: "its a very heavy page and lags a great deal."
 
-     Measured in real Chrome on the live site, the home page was producing ONE
-     frame every six seconds, with zero long tasks -- so nothing was blocking
-     the main thread and the cost was entirely in compositing. This layer was
-     most of it.
+     A CORRECTION FIRST, because the commit that introduced this rule got it
+     wrong. Driving real Chrome over CDP, the home page appeared to be
+     producing one frame every six seconds and a frame-rate probe timed out
+     with "the renderer may be frozen". That was an artifact: the Chrome
+     window was occluded, document.visibilityState was "hidden", and Chrome
+     throttles requestAnimationFrame to nothing in a hidden tab. Re-measured
+     in a headed browser that was actually on screen and focused, the hero
+     holds 110fps with a 32ms worst frame. The page was never frozen.
+
+     The same artifact explains what looked like a second bug: the headline
+     typing five characters in eight seconds. At 22ms a character that reads
+     as broken, and it was simply rAF being throttled. It types correctly.
+
+     This rule stays, because it is right on its own terms rather than because
+     it fixed a freeze.
 
      `opacity: 0` does not stop an element being composited. It was
      display:block and visibility:visible the whole time, holding six glass
