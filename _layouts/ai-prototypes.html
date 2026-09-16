@@ -27,13 +27,13 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.permalink }}" />
     <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/assets/img/ai-proto-cover.jpg" />
-    <meta property="og:image:alt" content="2026 AI Experiments by Sid Mehta" />
+    <meta property="og:image:alt" content="AI Experiments by Sid Mehta" />
     <meta property="og:site_name" content="Sid Mehta" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{{ page.title }} · Sid Mehta" />
     <meta name="twitter:description" content="{{ page.tagline | strip_newlines | truncate: 200 }}" />
     <meta name="twitter:image" content="{{ site.url }}{{ site.baseurl }}/assets/img/ai-proto-cover.jpg" />
-    <meta name="twitter:image:alt" content="2026 AI Experiments by Sid Mehta" />
+    <meta name="twitter:image:alt" content="AI Experiments by Sid Mehta" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -85,8 +85,26 @@
          ──────────────────────────────────────────────────────────────────── */
       :root {
         --t-display: clamp(40px, 6vw, 72px);
-        --t-name: clamp(26px, 3.2vw, 44px);
+        /* ── TWELVE NAMES ARE A LIST, NOT TWELVE HEADLINES ──────────────
+           Sid: "the sizes of the font not being proper ... the font getting
+           repetitive."
+
+           At 44px the prototype name was within a step of the 72px page
+           title, which meant twelve of them came down the page at very nearly
+           the weight of the thing that names the page -- the same face, the
+           same weight, the same colour, once a screen. Repetition at display
+           scale is what reads as monotony; the title has to out-rank them or
+           there is no top to the page.
+
+           38 puts a real interval between the two and gives the name room to
+           sit above its own line rather than crowd it. */
+        --t-name: clamp(25px, 2.9vw, 38px);
         --t-body: clamp(15px, 1.5vw, 17px);
+        /* The index sits between the body and the micro labels. It was
+           --t-small, which resolved to 16 against a 17px body -- a one-pixel
+           difference is not a size distinction, it is a rendering accident,
+           and it left the index reading as another paragraph. */
+        --t-index: 15px;
         /* ── 10px WAS TOO SMALL FOR CONTENT ────────────────────────────
            --t-micro carries two of the three things on every card here: the
            tools line, which is the one piece of metadata an engineer reading
@@ -320,13 +338,32 @@
         margin: 0 auto;
         padding: calc(var(--nav-h) + 82px + env(safe-area-inset-top, 0px)) var(--gutter) 0;
       }
-      /* Over the cover the hero loses its top padding -- the nav clearance is
-         the cover's job now -- and pulls up into the scrim. */
+      /* ── THE TITLE CANNOT FALL OFF THE PICTURE ─────────────────────────
+         This block is white type, so it only works while it is over the
+         darkened cover. It used to be a SIBLING of the cover pulled back up
+         into it by a negative margin -- `clamp(-200px, -18vh, -120px)` -- which
+         is a guess at its own height, and the guess was wrong: the sentence
+         runs to two lines, the pull is measured in viewport height, and the
+         two quantities have nothing to do with each other. At a 1440x853
+         window the block ran 21px past the bottom of the image.
+
+         On the dark theme that was invisible, because the ground below the
+         cover is nearly the same black. On cream it was the bug Sid would
+         have found first: the tagline's opening line, in white, half on the
+         picture and half on paper, unreadable across the join.
+
+         It is a child of the cover now, anchored to its bottom edge, so no
+         amount of text and no viewport can push it off. The cover is
+         `overflow: hidden` and its scrim is painted first, so this still sits
+         on top of both. */
       .ai-hero--over {
-        position: relative;
-        margin-top: clamp(-200px, -18vh, -120px);
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: clamp(18px, 3.2vh, 44px);
+        margin-top: 0;
         padding-top: 0;
-        padding-bottom: 4px;
+        padding-bottom: 0;
         z-index: 2;
       }
       .ai-hero--over .ai-hero-title,
@@ -335,7 +372,7 @@
         color: #fff;
       }
       .ai-hero--over .ai-hero-tagline {
-        color: rgba(255, 255, 255, 0.82);
+        color: rgba(255, 255, 255, 0.88);
       }
       .ai-hero--over .ai-hero-kicker {
         color: rgba(255, 255, 255, 0.72);
@@ -351,7 +388,10 @@
          entries are visibly the same list. */
       .ai-index {
         max-width: var(--content-max);
-        margin: 28px auto 0;
+        /* The index is its own thing, not a footnote to the tagline. It was
+           28px under a 27px line of body copy, which is a gap smaller than
+           the leading above it. */
+        margin: clamp(38px, 4vw, 58px) auto 0;
         padding: 0 var(--gutter);
       }
       .ai-index__label {
@@ -362,38 +402,66 @@
         color: var(--ink-3);
         margin: 0 0 10px;
       }
+      /* ── A TABLE, NOT A RUN-ON LINE ────────────────────────────────────
+         Sid: "too much typography in a row without proper spacing."
+
+         Exactly that: twelve names set as inline pills that wrapped wherever
+         they happened to run out of width, so the numbers landed at twelve
+         arbitrary horizontal positions and the last entry was orphaned on a
+         line of its own. The pill borders took `--rule`, which at this size
+         is below the threshold of visible, so nothing was actually holding
+         each item apart -- what a reader saw was one long row of alternating
+         mono digits and names.
+
+         It is a grid now: fixed columns, so the names stack in straight
+         vertical runs and the numbers form their own column down the left of
+         each. Same twelve items, same space, and the alignment does the
+         separating that the invisible borders were failing to do. */
       .ai-index__list {
         list-style: none;
         margin: 0;
         padding: 0;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px 10px;
+        display: grid;
+        /* Wide enough for the longest name on the list, "CAPTCHA: After
+           Human", to stay on one line -- a single wrapped item breaks the row
+           the other eleven are holding. */
+        grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+        gap: 2px clamp(20px, 2.4vw, 40px);
       }
       .ai-index__list a {
-        display: inline-flex;
+        /* The number gets a column of its own so every name in a column
+           starts on the same vertical, which is the whole point. */
+        display: grid;
+        grid-template-columns: 2.5em 1fr;
         align-items: baseline;
-        gap: 6px;
         text-decoration: none;
         color: var(--ink-2);
-        font-size: var(--t-small);
+        font-size: var(--t-index);
         line-height: 1.4;
-        padding: 3px 9px 3px 7px;
-        border: 1px solid var(--rule);
-        border-radius: 999px;
-        transition:
-          color 0.18s ease,
-          border-color 0.18s ease;
+        /* ── NO RULE PER ROW ──────────────────────────────────────────
+           Sid: "there are way too many divider lines without proper spacing."
+           He is right, and half of them were mine: a hairline over each of
+           twelve index rows, on a page that already draws one over each of
+           twelve entries and carries the site's own column rails behind all
+           of it. The grid is already doing the separating -- twelve names in
+           straight columns do not also need twelve lines to prove they are a
+           list. */
+        padding: 7px 0;
+        transition: color 0.18s ease;
       }
       .ai-index__list a:hover,
       .ai-index__list a:focus-visible {
         color: var(--ink-1);
-        border-color: var(--ink-3);
+      }
+      .ai-index__list a:hover .ai-index__n,
+      .ai-index__list a:focus-visible .ai-index__n {
+        color: var(--accent);
       }
       .ai-index__n {
         font-family: var(--font-mono);
         font-size: var(--t-micro);
-        color: var(--ink-3);
+        color: var(--ink-4);
+        transition: color 0.18s ease;
       }
       .ai-hero-kicker {
         font-family: var(--font-mono);
@@ -416,7 +484,9 @@
         font-size: var(--t-body);
         font-weight: 300;
         line-height: 1.6;
-        color: var(--ink-3);
+        /* The sentence that says what the whole page is was set in the same
+           ink as the section labels under it. */
+        color: var(--ink-2);
         margin: 0;
       }
 
@@ -442,9 +512,19 @@
         gap: clamp(72px, 9vw, 132px);
       }
 
+      /* ── AND ROOM TO BREATHE ──────────────────────────────────────────
+         Sid: "isnt formated and spaced out."
+
+         One 20px gap set the distance between every pair of rows in the entry,
+         so nothing grouped: the numeral sat as far from the name as the name
+         sat from the video, and the block read as five separate things at
+         equal remove rather than as a heading with its work under it. The rows
+         are spaced by role now -- the name pulled up under its own index, the
+         line tight to the name, air only before the video and before the way
+         in. */
       .proto {
         display: grid;
-        gap: 20px;
+        gap: 14px;
       }
       /* ── THE REVEAL FAILS OPEN ────────────────────────────────────────────
          Reveal is a fade only. The old cards also travelled 20px upward, which
@@ -486,7 +566,7 @@
       }
 
       .proto__name {
-        margin: 0;
+        margin: -4px 0 0;
         font-family: var(--font-title);
         font-size: var(--t-name);
         font-weight: 300;
@@ -508,12 +588,19 @@
       .proto__proves {
         display: flex;
         align-items: baseline;
-        gap: 10px;
-        margin: 10px 0 0;
+        flex-wrap: wrap;
+        gap: 4px 16px;
+        margin: 4px 0 0;
         font-size: var(--t-body);
         font-weight: 300;
         line-height: 1.5;
         color: var(--ink-2);
+      }
+      /* The claim takes the row and the stack takes what is left; below about
+         thirty characters of room the stack drops to its own line rather than
+         squeezing the sentence into a column. */
+      .proto__claim {
+        flex: 1 1 30ch;
       }
       .proto__proves i {
         flex: none;
@@ -544,16 +631,22 @@
          that reads as lazy, and it was lazy for free. */
       .proto__line {
         max-width: 62ch;
-        margin: -8px 0 0;
+        margin: -6px 0 4px;
         font-size: var(--t-body);
-        font-weight: 300;
+        /* Up from 300. This is the one sentence a reader is meant to take from
+           each entry, and at 300 in --ink-2 it was the faintest thing in the
+           block it is supposed to lead. */
+        font-weight: 360;
         line-height: 1.6;
-        color: var(--ink-2);
+        color: var(--ink-1, var(--ink-2));
       }
       /* The models and libraries, as one line of running text rather than as
          chips. The old page put these in bordered pills, which turns four
          factual words into four boxes competing with the project name. */
       .proto__parts {
+        /* Now a span sharing the claim's row rather than a paragraph under
+           it. */
+        flex: 0 1 auto;
         margin: 0;
         font-family: var(--font-mono);
         font-size: var(--t-micro);
@@ -741,10 +834,22 @@
         background: #f5f3ee;
         color: #07090f;
       }
-      html[data-theme="light"] .ai-hero-kicker {
+      /* ── THE HERO IS ON A PICTURE IN BOTH THEMES ──────────────────────
+         These two rules used to name `.ai-hero-kicker` and `.ai-hero-tagline`
+         flat, and `html[data-theme="light"] .ai-hero-tagline` outranks
+         `.ai-hero--over .ai-hero-tagline` on specificity, so switching to
+         cream repainted the hero's white type in dark page ink -- while it
+         was still sitting on the darkened cover image. The tagline
+         disappeared into the photograph.
+
+         The cover does not change with the theme, so neither does the type on
+         it. `:not(.ai-hero--over *)` is not a thing, so the scope goes on the
+         parent: these apply to a hero that is NOT over the cover, which is
+         the only case where the page's own ground is behind them. */
+      html[data-theme="light"] .ai-hero:not(.ai-hero--over) .ai-hero-kicker {
         color: var(--accent-ink);
       }
-      html[data-theme="light"] .ai-hero-tagline,
+      html[data-theme="light"] .ai-hero:not(.ai-hero--over) .ai-hero-tagline,
       html[data-theme="light"] .proto__line {
         color: var(--ink-3);
       }
@@ -818,12 +923,12 @@
           width="2400"
           height="900"
         />
+        <header class="ai-hero ai-hero--over">
+          <p class="ai-hero-kicker">Works · Browser AI</p>
+          <h1 class="ai-hero-title">{{ page.title }}</h1>
+          <p class="ai-hero-tagline">{{ page.tagline }}</p>
+        </header>
       </div>
-      <header class="ai-hero ai-hero--over">
-        <p class="ai-hero-kicker">Works · Browser AI</p>
-        <h1 class="ai-hero-title">{{ page.title }}</h1>
-        <p class="ai-hero-tagline">{{ page.tagline }}</p>
-      </header>
 
       <nav class="ai-index" aria-label="All prototypes">
         <p class="ai-index__label">Index</p>
@@ -893,11 +998,29 @@
               </svg>
             </button>
           </div>
-          {% endif %} {% if proto.proves %}
-          <!-- What the piece is EVIDENCE of, as distinct from what it is made
-               of. `tools` answers "what stack"; this answers "what can he do",
-               which is the question a hiring manager brought to the page. -->
-          <p class="proto__proves"><i aria-hidden="true"></i>{{ proto.proves }}</p>
+          {% endif %} {% if proto.proves or proto.tools %}
+          <!-- ── THE CLAIM AND THE STACK ARE ONE ROW ──────────────────────
+               Sid: "the ai experiments page has way too many text labels and
+               isnt formated and spaced out and hard to read."
+
+               Counted, each entry was running five text blocks around the
+               video: a numeral, a name, a tagline, a claim, a stack list and a
+               link. Three of those were small type in three different greys
+               stacked directly on top of each other, which is what reads as
+               labels rather than as writing.
+
+               `proves` answers "what can he do" and `tools` answers "what is
+               it made of" -- two halves of one question, which arrive
+               together. They are one row now, the claim leading and the stack
+               held to its right, dropping under it only when there is no room.
+               Same two facts, one block instead of two, and the page loses a
+               whole tier of stacked micro type. -->
+          <p class="proto__proves">
+            {% if proto.proves %}<i aria-hidden="true"></i><span class="proto__claim">{{ proto.proves }}</span>{% endif %} {% if proto.tools %}<span
+              class="proto__parts"
+              >{{ proto.tools | join: " · " }}</span
+            >{% endif %}
+          </p>
           {% endif %}
           <!-- ── THE CAPTION IS NO LONGER PRINTED HERE ────────────────────
                Sid, twice: "there's too many text layers per project and the
@@ -917,9 +1040,6 @@
                _data/ai_prototypes.yml -- it is good writing and it is what
                each prototype's own page is built from -- it is simply not
                stacked on this index. -->
-          {% if proto.tools %}
-          <p class="proto__parts">{{ proto.tools | join: " · " }}</p>
-          {% endif %}
           <a class="proto__open" href="{{ href | relative_url }}" target="_blank" rel="noopener noreferrer"
             >Open {{ proto.title }}<span class="xarrow" aria-hidden="true"></span
           ></a>
