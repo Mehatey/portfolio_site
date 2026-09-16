@@ -1026,8 +1026,13 @@
         font-weight: 600;
         letter-spacing: -0.04em;
         line-height: 0.88;
-        color: rgba(255, 255, 255, 0.06);
-        margin-bottom: 40px;
+        /* 0.06 alpha is about 1.1:1 against the ground. At 220px that is not
+           understatement, it is a shape you cannot resolve as a number, which
+           is also the most template thing on the page: every 404 has a giant
+           grey 404 behind it. Ours can at least be legible enough to read as
+           deliberate. */
+        color: rgba(255, 255, 255, 0.11);
+        margin-bottom: 32px;
         user-select: none;
       }
       .notfound-label {
@@ -1059,25 +1064,50 @@
 
            A ch-based measure moves with the type instead of against it: 24ch
            is the same proportion at every step of the clamp, and it settles
-           this copy onto three lines. `balance` then evens them, which matters
-           more here than anywhere else on the site — the joke only lands if
-           "the seventh side of a cube" arrives in one piece. */
-        max-width: 24ch;
+           this copy onto two lines. `balance` then evens them. */
+        max-width: 26ch;
         text-wrap: balance;
         margin-bottom: 32px;
       }
+      /* ── WHEN THERE IS AN ANSWER, IT IS THE PAGE ──────────────────────
+         This was 12px uppercase mono at half alpha sitting under a 52px
+         headline: the one element that can actually end the visit, set as the
+         quietest thing on the screen. If the matcher has found the page
+         somebody was looking for, that is not a footnote.
+
+         It only renders when there IS a match, so it costs the plain case
+         nothing. */
       .notfound-suggest {
+        display: flex;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 0 8px;
         font-family: var(--font-mono);
-        font-size: 12px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        color: rgba(255, 255, 255, 0.5);
+        font-size: 13px;
+        letter-spacing: 0.06em;
+        color: rgba(255, 255, 255, 0.58);
         margin-bottom: 32px;
       }
+      .notfound-suggest.is-live {
+        animation: nfSuggest 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      @keyframes nfSuggest {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
       .notfound-suggest a {
-        color: rgba(180, 220, 255, 0.95);
-        border-bottom: 1px solid rgba(180, 220, 255, 0.4);
-        padding-bottom: 1px;
+        font-family: var(--font-title);
+        font-size: clamp(19px, 2.1vw, 27px);
+        letter-spacing: -0.015em;
+        color: rgba(190, 226, 255, 0.98);
+        border-bottom: 1px solid rgba(180, 220, 255, 0.34);
+        padding-bottom: 2px;
         transition:
           color 0.2s,
           border-color 0.2s;
@@ -4490,8 +4520,13 @@
            its own type, and .notfound-num keeps its. Measured after: the
            painted pixels are identical in both themes. -->
       <p class="notfound-num" aria-hidden="true">404</p>
-      <p class="notfound-label">// the alien square went looking for a side that wasn't there</p>
-      <h1 class="notfound-msg">This page doesn't exist. Or it moved. Or it was never built, like the seventh side of a cube.</h1>
+      <!-- The narrator line is gone. It explained the cube's joke to
+           somebody who was already looking at the cube, and the headline then
+           made the same joke a second time after hedging three ways about
+           what might have happened. One line, and it points at the object
+           beside it, which is also the only thing on this page worth
+           touching. -->
+      <h1 class="notfound-msg">This page doesn't exist. Turn the cube for five that do.</h1>
       <p class="notfound-suggest" id="notfound-suggest" style="display: none">
         <span>Did you mean </span><a id="notfound-suggest-link" href="#"></a><span>?</span>
       </p>
@@ -4626,70 +4661,117 @@
     </script>
 
     <script>
-      // ── SMART 404 SUGGESTION ── if the typed path is close to a real one, surface it as a clickable hint
+      /* ── DID YOU MEAN ─────────────────────────────────────────────────
+         This existed and had never once fired, which is worse than not
+         existing: a recovery path that only works on inputs nobody types.
+
+         It ran a Levenshtein distance over the WHOLE path against a
+         hand-written list of eighteen routes, and suggested only at three
+         edits or fewer. Three edits catches a typo. It does not catch any of
+         the ways a URL actually goes wrong: a path with something appended to
+         it, a truncated copy-paste, a stale link with a suffix, or the case
+         that produced this rewrite -- a whole sentence pasted into the
+         address bar after a real path. `/mandalas/ I had made a guided
+         meditation for my thesis…` is about eighty edits from `/mandalas/`,
+         and the right answer is sitting in the first segment, exact.
+
+         So it reads the first segment first, and only falls back to fuzzy
+         matching on that segment rather than on the whole string. The
+         thresholds scale with length, because two edits in a four-letter word
+         is a different claim from two edits in a sixteen-letter one.
+
+         The route list is generated from the site now. The hand-written one
+         had already drifted: it was missing /cv/, /play/ subpages and every
+         prototype page, so those could never be suggested even for a
+         one-character typo. */
       (function () {
-        var paths = [
-          "/works/",
-          "/ai-prototypes/",
-          "/play/",
-          "/about/",
-          "/contact/",
-          "/encoded/",
-          "/bloom/",
-          "/mandalas/",
-          "/cube-guy/",
-          "/illustrations/",
-          "/mool/",
-          "/ai-self/",
-          "/mind-your-feelings/",
-          "/b-plus-b/",
-          "/shot-on-iphone/",
-          "/naavo/",
-          "/aananda/",
-          "/alpha-stockathon/",
-        ];
-        // Strip baseurl + trailing/leading slashes for comparison
-        var cur = window.location.pathname.replace(/\/$/, "").replace(/^\//, "").toLowerCase();
+        var ROUTES = [
+          "/aananda/","/about/","/","/ai-prototypes/","/ai-self/","/alpha-stockathon/","/arcana/","/b-plus-b/","/bloom/","/contact/","/cube-guy/","/encoded/","/illustrations/","/play/immersive/","/play/","/og/","/m-health-fairview/","/mandalas/","/marriott/","/mind-your-feelings/","/mool/","/naavo/","/shot-on-iphone/","/works/","/ai-prototypes/feral/","/ai-prototypes/latent-atlas/","/ai-prototypes/mimic/","/ai-prototypes/guise/","/ai-prototypes/forecast/","/ai-prototypes/watcher/","/ai-prototypes/mirror/","/ai-prototypes/revision/","/ai-prototypes/vantage/","/ai-prototypes/flatten/","/ai-prototypes/amnesiac/","/ai-prototypes/captcha/",];
+
+        var el = document.getElementById("notfound-suggest");
+        var link = document.getElementById("notfound-suggest-link");
+        if (!el || !link || !ROUTES.length) return;
+
+        var BASE = "";
+        function clean(u) {
+          try {
+            u = decodeURIComponent(u);
+          } catch (_) {}
+          if (BASE && u.indexOf(BASE) === 0) u = u.slice(BASE.length);
+          return u.toLowerCase().replace(/\.html$/, "").replace(/^\/+|\/+$/g, "");
+        }
+
+        var cur = clean(window.location.pathname);
         if (!cur) return;
-        // Levenshtein distance (small implementation, good enough for 16 candidates)
+        /* The segment that carries the identity. Everything after the first
+           slash is almost always the part that went wrong. */
+        var head = cur.split("/")[0];
+        if (!head) return;
+
         function dist(a, b) {
           var m = a.length,
-            n = b.length;
-          if (m === 0) return n;
-          if (n === 0) return m;
-          var prev = new Array(n + 1),
-            curr = new Array(n + 1);
-          for (var j = 0; j <= n; j++) prev[j] = j;
-          for (var i = 1; i <= m; i++) {
+            nn = b.length;
+          if (!m) return nn;
+          if (!nn) return m;
+          var prev = [],
+            curr = [],
+            i,
+            j;
+          for (j = 0; j <= nn; j++) prev[j] = j;
+          for (i = 1; i <= m; i++) {
             curr[0] = i;
-            for (var j2 = 1; j2 <= n; j2++) {
-              var cost = a[i - 1] === b[j2 - 1] ? 0 : 1;
-              curr[j2] = Math.min(curr[j2 - 1] + 1, prev[j2] + 1, prev[j2 - 1] + cost);
+            for (j = 1; j <= nn; j++) {
+              curr[j] = Math.min(curr[j - 1] + 1, prev[j] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
             }
-            for (var k = 0; k <= n; k++) prev[k] = curr[k];
+            for (j = 0; j <= nn; j++) prev[j] = curr[j];
           }
-          return prev[n];
+          return prev[nn];
         }
+
         var best = null,
-          bestDist = Infinity;
-        paths.forEach(function (p) {
-          var clean = p.replace(/\/$/, "").replace(/^\//, "").toLowerCase();
-          var d = dist(cur, clean);
-          if (d < bestDist) {
-            bestDist = d;
-            best = p;
+          bestScore = Infinity;
+        for (var k = 0; k < ROUTES.length; k++) {
+          var c = clean(ROUTES[k]);
+          if (!c || c === cur) continue;
+          var ch = c.split("/")[0];
+          var score;
+          if (ch === head) {
+            /* The first segment is exactly a real route's first segment: the
+               pasted-sentence case and the stale-suffix case, and the most
+               confident answer available. But a whole section can match the
+               head -- twelve routes start with `ai-prototypes` -- so the rest
+               of the path has to break the tie, or /ai-prototypes/mimick
+               resolves to whichever prototype happens to be listed first. */
+            var curRest = cur.slice(head.length).replace(/^\/+/, "");
+            var cRest = c.slice(ch.length).replace(/^\/+/, "");
+            if (!curRest && !cRest) score = 0;
+            else if (!curRest || !cRest)
+              /* One of them is the section index. A fair answer, but beaten by
+                 any leaf whose name is actually close. */
+              score = 0.9;
+            else {
+              var d2 = dist(curRest.split("/")[0], cRest.split("/")[0]);
+              score = d2 <= Math.max(2, Math.floor(cRest.split("/")[0].length / 3)) ? 0.1 + d2 * 0.1 : 0.95;
+            }
+          } else if (cur.indexOf(c) === 0 || c.indexOf(cur) === 0) score = 2;
+          else {
+            var d = dist(head, ch);
+            /* Two edits in a short word is a different claim from two edits in
+               a long one, so the budget scales. */
+            if (d > Math.max(2, Math.floor(ch.length / 4))) continue;
+            score = 3 + d;
           }
-        });
-        // Only suggest if the match is reasonably close (≤3 edits, and not longer than 50% of shorter string)
-        if (best && bestDist > 0 && bestDist <= 3) {
-          var el = document.getElementById("notfound-suggest");
-          var link = document.getElementById("notfound-suggest-link");
-          if (el && link) {
-            link.textContent = best;
-            link.href = "" + best;
-            el.style.display = "block";
+          if (score < bestScore) {
+            bestScore = score;
+            best = ROUTES[k];
           }
         }
+
+        if (!best) return;
+        link.textContent = best;
+        link.href = BASE + best;
+        el.style.display = "";
+        el.classList.add("is-live");
       })();
     </script>
 
@@ -6784,7 +6866,25 @@
       /* 48, from 40. Two lines of title at 15px plus the kicker plus the 7px
          the block sits off the bottom edge, measured against the longest
          caption in the set rather than the first one that fits. */
-      padding: 9px 9px 48px;
+      /* ── ONE NUMBER, NOT THREE COPIES OF IT ───────────────────────────
+         Sid: "can u remove the line or the box around the images it doesnt
+         cut to the image properly and juts out."
+
+         There was a line, and it was not meant to be there. The paper's
+         bottom band was widened from 40 to 48 to fit two lines of caption,
+         and the two overlays that are supposed to sit exactly ON the
+         photograph -- the inset ring that makes the emulsion look recessed,
+         and the motion smear -- were left at `inset: 9px 9px 40px`. So both
+         ended 8px BELOW the picture: the ring drew a hairline across the
+         white band under the image, and the smear painted a strip of blurred
+         photograph onto the paper. It read as a box around the image that
+         does not line up with the image, because that is exactly what it was.
+
+         The inset is a variable now, and the padding and both overlays read
+         it. They cannot drift apart again. */
+      --pad: 9px;
+      --pad-b: 48px;
+      padding: var(--pad) var(--pad) var(--pad-b);
       border-radius: 2px;
       background:
         linear-gradient(178deg, #fdfbf6 0%, #f7f3ea 62%, #f1ece0 100%),
@@ -6834,7 +6934,8 @@
         0 6px 16px -8px rgba(48, 40, 28, 0.16);
     }
     html[data-theme="light"] .sid-tile:not(.sid-tile--type) img,
-    html[data-theme="light"] .sid-tile:not(.sid-tile--type) video {
+    html[data-theme="light"] .sid-tile:not(.sid-tile--type) video,
+    html[data-theme="light"] .sid-tile:not(.sid-tile--type)::before {
       border-radius: 6px;
     }
     html[data-theme="light"] .sid-tile:not(.sid-tile--type) figcaption em {
@@ -6854,7 +6955,10 @@
     .sid-tile:not(.sid-tile--type)::before {
       content: "";
       position: absolute;
-      inset: 9px 9px 40px;
+      inset: var(--pad) var(--pad) var(--pad-b);
+      /* Matches the radius the media takes in light mode, so the ring follows
+         the corner of the photograph instead of cutting across it. */
+      border-radius: inherit;
       z-index: 2;
       pointer-events: none;
       box-shadow:
@@ -6884,7 +6988,7 @@
       /* Inset to the emulsion. At inset 0 the blurred underlay painted over
          the paper border and the bottom band, which put a smear of the
          photograph across the white card. */
-      inset: 9px 9px 40px;
+      inset: var(--pad) var(--pad) var(--pad-b);
       pointer-events: none;
       background-image: var(--src);
       background-size: cover;
@@ -10875,7 +10979,25 @@
           rowFocus += ((hoverIdx >= 0 ? 1 : 0) - rowFocus) * 0.16 * dt;
           if (rowFocus < 0.002) rowFocus = 0;
           if (!reduce && bandW > 0) {
-            var fade = bandW * 0.22;
+            /* ── THE EDGE IS THE EDGE, NOT THE OUTER FIFTH ────────────────
+               Sid: "the blurs from the side of the Get to Know Sid section
+               start a little bit too soon. Let me be able to see a little bit
+               more of the image, and let it go as soon as it goes off screen
+               on the sides, then only fully blur it out."
+
+               The ramp zone was 22% of the band on each side, so 44% of the
+               rail -- nearly half of every tile a visitor could see -- was
+               somewhere on the way out. A tile spent most of its time on
+               screen partially dissolved, which is why the row read as
+               permanently hazy rather than as objects passing an edge.
+
+               12% each side leaves three quarters of the band at full
+               strength, and the curve is biased on top of that: smoothstep is
+               symmetric, so half the ramp was still spent in the dim half.
+               Raised to 0.55 it reaches full within the first third of the
+               zone and does all of its collapsing in the last sliver, right
+               where the tile is actually leaving. */
+            var fade = bandW * 0.12;
             for (var i = 0; i < tiles.length; i++) {
               var left = offs[i] + x;
               var mid = left + widths[i] / 2;
@@ -10883,8 +11005,11 @@
               var near = Math.min(mid, bandW - mid);
               var k = Math.max(0, Math.min(1, near / fade));
               /* Eased so the middle of the rail is flat and all of the change
-               happens in the outer band, where it is the point. */
+               happens in the outer band, where it is the point. The power
+               then pushes the whole curve up: full strength early, collapse
+               late. */
               k = k * k * (3 - 2 * k);
+              k = Math.pow(k, 0.55);
 
               /* ── AND THE CENTRE IS THE STAGE ───────────────────────────────
                Sid: "when they come to center they get bigger."
@@ -10988,7 +11113,10 @@
                regardless of position, and the rest of the row gives up a
                little of both while it does. The row defers to the thing you
                are pointing at; that is the whole effect. */
-              var sat = 0.3 + 0.7 * k + 0.5 * c;
+              /* Floor raised from 0.3. Paired with the narrower ramp above,
+                 a tile is a photograph for as long as it is on screen and only
+                 gives up its colour on the way out. */
+              var sat = 0.55 + 0.45 * k + 0.5 * c;
               var bri = 0.9 + 0.3 * c;
               sat += (1.25 - sat) * hv;
               bri += (1.06 - bri) * hv;
@@ -11010,7 +11138,7 @@
                 lastF[i] = fq;
                 st.filter = "saturate(" + sat.toFixed(2) + ") brightness(" + bri.toFixed(2) + ")";
               }
-              var op = Math.round((0.16 + 0.84 * k) * (1 - 0.3 * rowFocus * others) * 100);
+              var op = Math.round((0.1 + 0.9 * k) * (1 - 0.3 * rowFocus * others) * 100);
               if (op !== lastO[i]) {
                 lastO[i] = op;
                 st.opacity = (op / 100).toFixed(2);
