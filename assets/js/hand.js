@@ -86,24 +86,48 @@
   btn.innerHTML =
     '<span class="hand-toggle__ico" aria-hidden="true">' +
     '<svg class="nav-pixel" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
-    /* the raised finger */
-    '<rect x="9" y="3" width="3" height="3" rx="1"/>' +
-    '<rect x="9" y="6" width="3" height="3" rx="1"/>' +
-    /* the knuckles */
+    /* ── AND IT WAS A THUMBS-UP ────────────────────────────────────────
+       Sid: "I do like the pixel art style for the hand, but even the hand
+       thing, can you not make it look more like a thumbs-up? I want it to
+       feel like an actual hand."
+
+       Fair. It was ONE raised digit over a solid four-cell block with a nub
+       off the side, and a single thing sticking up out of a fist is the
+       thumbs-up glyph whatever you meant to draw. Nothing in it said hand
+       except the label.
+
+       What reads as a hand at twenty pixels is separated fingers. Three of
+       them, at columns 6, 12 and 18 with an empty column between each, over a
+       palm that spans all of them and tapers to a wrist -- and the thumb out
+       to the left at the height a thumb actually joins, which is below the
+       fingers, not beside them. Three digits plus a thumb is what every
+       cartoon hand has had for a century and it is the only count that fits
+       four separated columns in a 24-unit box on this grid's 3px cell. */
+    /* finger tips */
+    '<rect x="6" y="3" width="3" height="3" rx="1"/>' +
+    '<rect x="12" y="3" width="3" height="3" rx="1"/>' +
+    '<rect x="18" y="3" width="3" height="3" rx="1"/>' +
+    /* and their second joint, so they have length rather than being dots */
+    '<rect x="6" y="6" width="3" height="3" rx="1"/>' +
+    '<rect x="12" y="6" width="3" height="3" rx="1"/>' +
+    '<rect x="18" y="6" width="3" height="3" rx="1"/>' +
+    /* the knuckle line, where the fingers become one hand, plus the thumb */
+    '<rect x="3" y="9" width="3" height="3" rx="1"/>' +
     '<rect x="6" y="9" width="3" height="3" rx="1"/>' +
     '<rect x="9" y="9" width="3" height="3" rx="1"/>' +
     '<rect x="12" y="9" width="3" height="3" rx="1"/>' +
     '<rect x="15" y="9" width="3" height="3" rx="1"/>' +
-    /* the thumb */
-    '<rect x="3" y="12" width="3" height="3" rx="1"/>' +
+    '<rect x="18" y="9" width="3" height="3" rx="1"/>' +
     /* the palm */
     '<rect x="6" y="12" width="3" height="3" rx="1"/>' +
     '<rect x="9" y="12" width="3" height="3" rx="1"/>' +
     '<rect x="12" y="12" width="3" height="3" rx="1"/>' +
     '<rect x="15" y="12" width="3" height="3" rx="1"/>' +
-    '<rect x="6" y="15" width="3" height="3" rx="1"/>' +
+    '<rect x="18" y="12" width="3" height="3" rx="1"/>' +
+    /* tapering to the wrist */
     '<rect x="9" y="15" width="3" height="3" rx="1"/>' +
     '<rect x="12" y="15" width="3" height="3" rx="1"/>' +
+    '<rect x="15" y="15" width="3" height="3" rx="1"/>' +
     "</svg></span>";
   document.body.appendChild(btn);
 
