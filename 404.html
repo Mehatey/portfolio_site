@@ -1321,6 +1321,7 @@
      underline that grows from the left on the active page. Two changes on
      top: the "Open to roles" chip is removed, and spacing is re-rounded to
      the 4pt scale so the restore does not undo the system pass. -->
+<div class="nav-scrim" aria-hidden="true"></div>
 <header class="studio-nav" aria-label="Primary navigation">
   <a class="studio-mark" href="/" aria-label="Sid Mehta, home">
     <span class="mark-fly"><!-- ── SID'S MARK: THE BLINKING CUBE FACE, RESTORED ──────────────────────────
@@ -1856,13 +1857,40 @@
 
      Height stays 104px and the ink stays where it was; this replaces how the
      band is drawn, not where it is or what it holds. */
-  .studio-nav::before {
-    content: "";
+  /* ══ THE SCRIM IS NOT INSIDE THE NAV ══════════════════════════════════
+     Sid: "when u scroll the nav bar behind it the content feels weird there
+     are some lines and its not blurring content on nav bar like it does on
+     other pages."
+
+     It was not blurring anything, on any page. This was `.studio-nav::before`
+     -- a `backdrop-filter` living INSIDE an element that is `position: fixed`
+     with `z-index: 9000`, which is a stacking context, and Chrome takes the
+     nearest such ancestor as the BACKDROP ROOT. The backdrop a filter samples
+     is whatever was painted below it inside that root, and inside the nav
+     there is nothing: the blur ran against an empty surface every frame and
+     produced no change, so the page scrolled past underneath in full focus
+     with only the tint over it. Proved rather than guessed -- an identical
+     band appended to `body` blurred correctly, the same band appended to the
+     nav did not, at any z-index.
+
+     So the panel is its own element, a sibling of the nav rather than a child
+     of it, sitting at 8990: under the bar, over the page. Its backdrop root is
+     now the document, which is where the content it is meant to be blurring
+     actually lives. Everything else about the panel -- the tint, the mask, the
+     falloff, the specular edge above it -- is unchanged; this is only about
+     which box it hangs in.
+
+     It mirrors the nav's own retraction below, because the two have to leave
+     together or the bar slides out from behind its own glass. */
+  .nav-scrim {
     position: fixed;
     inset: 0 0 auto 0;
     height: 104px;
-    z-index: -1;
+    z-index: 8990;
     pointer-events: none;
+    transition:
+      transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.28s ease;
     /* ── THE GLASS IS FLAT, THEN IT STOPS ─────────────────────────────────
        Sid: "just above the navbar we have a little bit which is still kind of
        not blurred ... it's not clear to me where the navbar really starts and
@@ -1968,7 +1996,7 @@
      not a veil — but it is now doing that on top of the same blur and
      saturation, so it reads as the same material in both themes rather than
      as glass on one and paint on the other. */
-  html[data-theme="light"] .studio-nav::before {
+  html[data-theme="light"] .nav-scrim {
     background: linear-gradient(
       180deg,
       rgba(246, 244, 239, 0.5) 0%,
@@ -2821,6 +2849,7 @@
      the About portrait both use. The site has one idea about how things
      arrive, and the mark is the first thing a visitor sees arrive. */
   html.is-onboarding .studio-nav,
+  html.is-onboarding .nav-scrim,
   html.is-onboarding .studio-mark,
   html.is-onboarding .site-logo {
     opacity: 0 !important;
@@ -2848,8 +2877,36 @@
   html.mark-forms .site-logo {
     animation: markForm 820ms cubic-bezier(0.2, 1.3, 0.36, 1) both;
   }
+  /* ── THE BAR FORMS ON OPACITY AND NOTHING ELSE ────────────────────────
+     Sid: "when u scroll the nav bar behind it the content feels weird ...
+     its not blurring content on nav bar like it does on other pages."
+
+     He was right, and it was this rule. The nav borrowed the mark's own
+     `markForm` keyframes, which end on `filter: blur(0)` and `transform:
+     scale(1)`, and `animation-fill-mode: both` means the element KEEPS that
+     final frame forever. A `filter` of any kind -- `blur(0)` very much
+     included, because the computed value is a filter list, not `none` --
+     makes the element a BACKDROP ROOT. The scrim is a `::before` inside the
+     nav, so from that moment its `backdrop-filter` samples the inside of the
+     nav, which is empty: the blur silently does nothing and the page scrolls
+     past underneath in full focus. The retained `transform` is the same
+     mistake one step down, since it also makes the nav the containing block
+     for its own `position: fixed` scrim.
+
+     Neither is load-bearing. The forming is the MARK's job -- it still scales
+     up out of blur, and a filter on a child is nobody else's business. The
+     bar around it only ever needed to arrive, which is opacity, whose final
+     value is 1 and therefore no root at all. */
+  @keyframes navForm {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
   html.mark-forms .studio-nav {
-    animation: markForm 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: navForm 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
     animation-delay: 160ms;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -2898,6 +2955,14 @@
     transform: translateY(calc(-100% - 46px));
     opacity: 0;
     pointer-events: none;
+  }
+  /* The glass leaves with the bar. It travels its own height rather than the
+     nav's, because it is a taller box and translating it by the nav's
+     distance would leave a band of blur hanging at the top of the page. */
+  html[data-idle="on"] .nav-scrim,
+  body.nav-away .nav-scrim {
+    transform: translateY(-100%);
+    opacity: 0;
   }
   /* An invisible strip along the very top. Pointing at where the nav was is
      the other way people ask for it back, and on a trackpad it is often the
@@ -2961,7 +3026,7 @@
        last 27px to nothing. Content passes beneath a surface instead of
        colliding with floating glyphs. Chromium gets the blur; everywhere else
        the flat ground alone already fixes the occlusion. */
-    .studio-nav::before {
+    .nav-scrim {
       height: 88px;
       background: linear-gradient(180deg, var(--nav-ground) 0%, var(--nav-ground) 61px, transparent 100%), var(--nav-ground);
       -webkit-backdrop-filter: blur(14px) saturate(1.1);
@@ -3701,7 +3766,7 @@
      blur belonged to no header at all and read as a smeared strip hanging
      under the bar. 72px is the nav plus its 14px offset and a little air.
      ══════════════════════════════════════════════════════════════════════ */
-  .studio-nav::before {
+  .nav-scrim {
     height: 72px;
   }
   .studio-links,
