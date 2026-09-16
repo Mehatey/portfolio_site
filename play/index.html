@@ -13770,16 +13770,43 @@
      Z-ORDER. 7000: over the page and the layout grid, under the film grade at
      8000 and under the nav. Glass that sits on top of the navigation is a
      modal; glass that passes behind it is weather. */
+  /* ══ AND WHEN IT IS NOT RUNNING IT IS NOT THERE ════════════════════════
+     Sid: "its a very heavy page and lags a great deal."
+
+     Measured in real Chrome on the live site, the home page was producing ONE
+     frame every six seconds, with zero long tasks -- so nothing was blocking
+     the main thread and the cost was entirely in compositing. This layer was
+     most of it.
+
+     `opacity: 0` does not stop an element being composited. It was
+     display:block and visibility:visible the whole time, holding six glass
+     pieces that each carry a backdrop-filter plus a full-viewport rain
+     canvas, so on every frame of every page the compositor was sampling and
+     blurring the page behind six objects nobody could see, underneath eight
+     other full-screen layers. A screensaver that costs more when it is off
+     than most pages cost when they are on.
+
+     `content-visibility: hidden` is the right tool rather than display:none:
+     it skips painting and compositing the subtree entirely while keeping the
+     element's box, so the fade in and out still work and the script does not
+     have to know anything about it. The transition needs the element paintable
+     while it runs, so `is-on` and `is-leaving` both restore it and the script
+     drops `is-leaving` when the fade is over. */
   .idle-drift {
     position: fixed;
     inset: 0;
     z-index: 7000;
     pointer-events: none;
     opacity: 0;
+    content-visibility: hidden;
     /* In slowly, out fast. Arriving over 2.4s is what makes it ambient rather
        than an event; leaving in 0.45 is what keeps it from ever being in the
        way of somebody who has just decided to read something. */
     transition: opacity 450ms ease;
+  }
+  .idle-drift.is-on,
+  .idle-drift.is-leaving {
+    content-visibility: visible;
   }
   .idle-drift.is-on {
     opacity: 1;
