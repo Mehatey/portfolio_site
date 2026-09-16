@@ -19197,9 +19197,9 @@
             <figcaption><em>Rabbit hole</em><b>Faces, meshed</b></figcaption>
           </figure>
           
-          <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 1.77; --src: url(/assets/img/sid-strip/biggles-poster.webp)">
-            <video src="/assets/video/sid-strip/biggles.mp4" poster="/assets/img/sid-strip/biggles-poster.webp" muted loop playsinline preload="none" aria-label="A gorilla playing an acoustic guitar under a rainbow"></video>
-            <figcaption><em>Comfort watch</em><b>The Biggles show</b></figcaption>
+          <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 1.77; --src: url(/assets/img/sid-strip/big-lez-poster.webp)">
+            <video src="/assets/video/sid-strip/big-lez.mp4" poster="/assets/img/sid-strip/big-lez-poster.webp" muted loop playsinline preload="none" aria-label="Sassy the Sasquatch from The Big Lez Show, playing guitar under a rainbow"></video>
+            <figcaption><em>Comfort watch</em><b>The Big Lez Show</b></figcaption>
           </figure>
           <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid-strip/black-mirror.webp)">
             <img src="/assets/img/sid-strip/black-mirror.webp" alt="The Black Mirror title card, cracked glass over black" loading="lazy" decoding="async">
@@ -19253,11 +19253,295 @@
             <img src="/assets/img/sid-strip/kids-crowd.webp" alt="A crowd of school children packed into frame, all grinning" loading="lazy" decoding="async">
             <figcaption><em>Toughest audience</em><b>A classroom that mobbed the camera</b></figcaption>
           </figure>
-          <figure class="sid-tile sid-tile--type" style="--s: 0.9; --ar: 1">
-            <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u>
-            <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption>
-          </figure>
-            
+           <!-- ══════════════════════════════════════════════════════════════════════════
+     THE GLOBE
+
+     Sid: "instead of last place i landed and the lat and long we can have an
+     interactive globe type thing with hotspots of where all ive been in the
+     get to know bar."
+
+     The tile it replaces printed 40.71 N, -74.01 W. A coordinate pair is a
+     fact about one place stated in the least legible notation available: it
+     tells a reader who already knows where New York is that he was in New
+     York. Twenty-odd places on a turning globe says something the list never
+     could, which is the shape of it -- three continents, a lot of India, and
+     one place he has not been yet.
+
+     ── WHY A CANVAS AND NOT THREE.JS ────────────────────────────────────────
+     Because this is a 150px object in a footer rail, and the page it sits on
+     already carries eight full-viewport canvases. An orthographic projection
+     is nine lines of trigonometry; a WebGL globe would be a third-party
+     library, a texture and another GL context for the same picture. The
+     graticule is what makes it read as a globe without a landmass texture:
+     meridians and parallels turning together are the drawing convention for
+     "this is the Earth" and have been since before anyone could photograph it.
+
+     ── AND IT STOPS ─────────────────────────────────────────────────────────
+     Scrolled out of the rail, the rAF is cancelled rather than early-returned.
+     The same omission cost this site a fluid simulation running for the life
+     of every page, and it is not going to be repeated in the thing added to
+     fix a list of complaints about lag.
+     ══════════════════════════════════════════════════════════════════════ -->
+<figure class="sid-tile sid-tile--type sid-tile--globe" style="--s: 0.96; --ar: 1">
+  <canvas class="globe__cv" width="380" height="380" aria-hidden="true"></canvas>
+  <span class="globe__label" aria-hidden="true"></span>
+  <figcaption><em>Where I have been</em><b>Sixteen stops, one still to go</b></figcaption>
+</figure>
+
+<style>
+  .sid-tile--globe {
+    position: relative;
+    overflow: hidden;
+  }
+  .globe__cv {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 78%;
+    height: auto;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    /* The tile's own caption sits below; the globe takes the space above it
+       and no more. */
+    pointer-events: none;
+  }
+  /* The name of whichever hotspot is nearest the front. It replaces itself
+     rather than accumulating, and it is the only text the drawing carries --
+     labelling all sixteen at this size would be a smear. */
+  .globe__label {
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    top: 8px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+    color: rgba(38, 44, 56, 0.62);
+    pointer-events: none;
+    transition: opacity 400ms ease;
+  }
+  .globe__label.is-next {
+    color: rgba(30, 90, 170, 0.9);
+  }
+</style>
+
+<script>
+  (function () {
+    /* ── EVERY COPY, NOT THE FIRST ─────────────────────────────────────
+       The rail duplicates its tiles to make the drift loop seamless, and it
+       does that by cloning nodes -- which copies a canvas element and none of
+       its pixels, and runs no script. Binding to one canvas therefore left
+       the second globe a blank square, visible every time the rail came round.
+
+       So the loop owns the spin and the canvases are found fresh each frame.
+       At two elements that lookup is free, and it means a clone made at any
+       point later is drawn from the frame it appears in. */
+    if (!document.querySelector(".globe__cv")) return;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* Where he has been, and the one he has not. Coordinates are approximate
+       on purpose: this is a picture of a life, not a flight log, and at 150px
+       a tenth of a degree is a fraction of a pixel. */
+    var STOPS = [
+      { n: "Mumbai", lat: 19.08, lon: 72.88 },
+      { n: "Delhi", lat: 28.61, lon: 77.21 },
+      { n: "Bengaluru", lat: 12.97, lon: 77.59 },
+      { n: "Jaipur", lat: 26.91, lon: 75.79 },
+      { n: "Kolkata", lat: 22.57, lon: 88.36 },
+      { n: "Goa", lat: 15.3, lon: 74.08 },
+      { n: "Sydney", lat: -33.87, lon: 151.21 },
+      { n: "Melbourne", lat: -37.81, lon: 144.96 },
+      { n: "Gold Coast", lat: -28.02, lon: 153.4 },
+      { n: "Shanghai", lat: 31.23, lon: 121.47 },
+      { n: "Hong Kong", lat: 22.32, lon: 114.17 },
+      { n: "Edinburgh", lat: 55.95, lon: -3.19 },
+      { n: "London", lat: 51.51, lon: -0.13 },
+      { n: "Zurich", lat: 47.38, lon: 8.54 },
+      { n: "Rome", lat: 41.9, lon: 12.5 },
+      { n: "New York", lat: 40.71, lon: -74.01 },
+      { n: "Baltimore", lat: 39.29, lon: -76.61 },
+      { n: "Boston", lat: 42.36, lon: -71.06 },
+      { n: "Florida", lat: 27.99, lon: -81.76 },
+      { n: "Singapore", lat: 1.35, lon: 103.82 },
+      { n: "Dubai", lat: 25.2, lon: 55.27 },
+      /* The one he has not been to yet, drawn open rather than filled. */
+      { n: "Norway, next", lat: 60.47, lon: 8.47, next: true },
+    ];
+
+    var R = 0,
+      cx = 0,
+      cy = 0;
+    function fit(cv, ctx) {
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      var w = cv.clientWidth || 150;
+      var want = Math.round(w * dpr);
+      if (cv.width !== want) {
+        cv.width = want;
+        cv.height = want;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      R = w * 0.42;
+      cx = w / 2;
+      cy = w / 2;
+      return w;
+    }
+
+    /* Orthographic projection: rotate the point by the globe's own spin and
+       tilt, then drop the z. A point with z < 0 is on the far side and is not
+       drawn -- that occlusion is the entire reason this reads as a sphere
+       rather than as a circle with dots on it. */
+    var TILT = (-18 * Math.PI) / 180;
+    function project(lat, lon, spin) {
+      var a = (lat * Math.PI) / 180;
+      var b = ((lon + spin) * Math.PI) / 180;
+      var x = Math.cos(a) * Math.sin(b);
+      var y = Math.sin(a);
+      var z = Math.cos(a) * Math.cos(b);
+      var y2 = y * Math.cos(TILT) - z * Math.sin(TILT);
+      var z2 = y * Math.sin(TILT) + z * Math.cos(TILT);
+      return { x: cx + x * R, y: cy - y2 * R, z: z2 };
+    }
+
+    var spin = 0,
+      raf = 0,
+      onScreen = true;
+
+    function draw() {
+      var all = document.querySelectorAll(".globe__cv");
+      for (var q = 0; q < all.length; q++) drawOne(all[q]);
+    }
+
+    function drawOne(cv) {
+      var ctx = cv.getContext("2d");
+      if (!ctx) return;
+      var label = cv.parentElement ? cv.parentElement.querySelector(".globe__label") : null;
+      var w = fit(cv, ctx);
+      ctx.clearRect(0, 0, w, w);
+
+      /* The sphere itself: a faint disc so the far-side dots have something to
+         be behind, and a rim so the edge is an edge. */
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(40, 62, 96, 0.05)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(40, 62, 96, 0.22)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      /* The graticule. Meridians every 30 degrees and parallels every 30, both
+         drawn through the same projection so they turn with the globe. */
+      ctx.strokeStyle = "rgba(40, 62, 96, 0.14)";
+      ctx.lineWidth = 0.7;
+      var i, t, p, started;
+      for (i = 0; i < 12; i++) {
+        ctx.beginPath();
+        started = false;
+        for (t = -90; t <= 90; t += 4) {
+          p = project(t, i * 30, spin);
+          if (p.z < 0) {
+            started = false;
+            continue;
+          }
+          if (!started) {
+            ctx.moveTo(p.x, p.y);
+            started = true;
+          } else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+      for (i = -60; i <= 60; i += 30) {
+        ctx.beginPath();
+        started = false;
+        for (t = 0; t <= 360; t += 4) {
+          p = project(i, t, spin);
+          if (p.z < 0) {
+            started = false;
+            continue;
+          }
+          if (!started) {
+            ctx.moveTo(p.x, p.y);
+            started = true;
+          } else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+
+      /* The stops. Nearest the front is named below; everything else is a dot
+         that fades with its own z, so the far side of the globe reads as far
+         away rather than as dots that have been switched off. */
+      var best = null,
+        bestZ = -2;
+      for (i = 0; i < STOPS.length; i++) {
+        p = project(STOPS[i].lat, STOPS[i].lon, spin);
+        if (p.z <= 0.02) continue;
+        var a = 0.25 + p.z * 0.75;
+        if (STOPS[i].next) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2.6, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(30, 110, 210," + a.toFixed(2) + ")";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.9, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(196, 84, 40," + a.toFixed(2) + ")";
+          ctx.fill();
+        }
+        if (p.z > bestZ) {
+          bestZ = p.z;
+          best = STOPS[i];
+        }
+      }
+      if (best && label && label.textContent !== best.n) {
+        label.textContent = best.n;
+        label.classList.toggle("is-next", !!best.next);
+      }
+    }
+
+    function frame() {
+      raf = requestAnimationFrame(frame);
+      spin += 0.16;
+      if (spin > 360) spin -= 360;
+      draw();
+    }
+
+    draw();
+    window.addEventListener("resize", draw);
+
+    if (!reduce && "IntersectionObserver" in window) {
+      new IntersectionObserver(
+        function (es) {
+          var vis = es[0].isIntersecting;
+          if (vis === onScreen) return;
+          onScreen = vis;
+          if (vis && !raf) raf = requestAnimationFrame(frame);
+          else if (!vis && raf) {
+            cancelAnimationFrame(raf);
+            raf = 0;
+          }
+        },
+        { threshold: 0 }
+      ).observe(document.querySelector(".sid-strip") || document.querySelector(".globe__cv"));
+    } else if (!reduce) {
+      raf = requestAnimationFrame(frame);
+    }
+    document.addEventListener(
+      "visibilitychange",
+      function () {
+        if (document.hidden && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        } else if (!document.hidden && onScreen && !raf && !reduce) {
+          raf = requestAnimationFrame(frame);
+        }
+      },
+      { passive: true }
+    );
+  })();
+</script>
+   
           
           <figure class="sid-tile sid-tile--clip" style="--s: 1.06; --ar: 0.56; --src: url(/assets/img/sid-strip/street-brooklyn-poster.webp)">
             <video src="/assets/video/sid-strip/street-brooklyn.mp4" poster="/assets/img/sid-strip/street-brooklyn-poster.webp" muted loop playsinline preload="none" aria-label="A street in summer, walking in a patterned shirt"></video>
@@ -19272,9 +19556,9 @@
             <figcaption><em>Rabbit hole</em><b>Faces, meshed</b></figcaption>
           </figure>
           
-          <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 1.77; --src: url(/assets/img/sid-strip/biggles-poster.webp)">
-            <video src="/assets/video/sid-strip/biggles.mp4" poster="/assets/img/sid-strip/biggles-poster.webp" muted loop playsinline preload="none" aria-label="A gorilla playing an acoustic guitar under a rainbow"></video>
-            <figcaption><em>Comfort watch</em><b>The Biggles show</b></figcaption>
+          <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 1.77; --src: url(/assets/img/sid-strip/big-lez-poster.webp)">
+            <video src="/assets/video/sid-strip/big-lez.mp4" poster="/assets/img/sid-strip/big-lez-poster.webp" muted loop playsinline preload="none" aria-label="Sassy the Sasquatch from The Big Lez Show, playing guitar under a rainbow"></video>
+            <figcaption><em>Comfort watch</em><b>The Big Lez Show</b></figcaption>
           </figure>
           <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid-strip/black-mirror.webp)">
             <img src="/assets/img/sid-strip/black-mirror.webp" alt="The Black Mirror title card, cracked glass over black" loading="lazy" decoding="async">
@@ -19328,11 +19612,295 @@
             <img src="/assets/img/sid-strip/kids-crowd.webp" alt="A crowd of school children packed into frame, all grinning" loading="lazy" decoding="async">
             <figcaption><em>Toughest audience</em><b>A classroom that mobbed the camera</b></figcaption>
           </figure>
-          <figure class="sid-tile sid-tile--type" style="--s: 0.9; --ar: 1">
-            <i>40.71° N</i><i>−74.01° W</i><u>Last place I landed</u>
-            <figcaption><em>Last place I landed</em><b>New York, NY</b></figcaption>
-          </figure>
-            
+           <!-- ══════════════════════════════════════════════════════════════════════════
+     THE GLOBE
+
+     Sid: "instead of last place i landed and the lat and long we can have an
+     interactive globe type thing with hotspots of where all ive been in the
+     get to know bar."
+
+     The tile it replaces printed 40.71 N, -74.01 W. A coordinate pair is a
+     fact about one place stated in the least legible notation available: it
+     tells a reader who already knows where New York is that he was in New
+     York. Twenty-odd places on a turning globe says something the list never
+     could, which is the shape of it -- three continents, a lot of India, and
+     one place he has not been yet.
+
+     ── WHY A CANVAS AND NOT THREE.JS ────────────────────────────────────────
+     Because this is a 150px object in a footer rail, and the page it sits on
+     already carries eight full-viewport canvases. An orthographic projection
+     is nine lines of trigonometry; a WebGL globe would be a third-party
+     library, a texture and another GL context for the same picture. The
+     graticule is what makes it read as a globe without a landmass texture:
+     meridians and parallels turning together are the drawing convention for
+     "this is the Earth" and have been since before anyone could photograph it.
+
+     ── AND IT STOPS ─────────────────────────────────────────────────────────
+     Scrolled out of the rail, the rAF is cancelled rather than early-returned.
+     The same omission cost this site a fluid simulation running for the life
+     of every page, and it is not going to be repeated in the thing added to
+     fix a list of complaints about lag.
+     ══════════════════════════════════════════════════════════════════════ -->
+<figure class="sid-tile sid-tile--type sid-tile--globe" style="--s: 0.96; --ar: 1">
+  <canvas class="globe__cv" width="380" height="380" aria-hidden="true"></canvas>
+  <span class="globe__label" aria-hidden="true"></span>
+  <figcaption><em>Where I have been</em><b>Sixteen stops, one still to go</b></figcaption>
+</figure>
+
+<style>
+  .sid-tile--globe {
+    position: relative;
+    overflow: hidden;
+  }
+  .globe__cv {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: 78%;
+    height: auto;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    /* The tile's own caption sits below; the globe takes the space above it
+       and no more. */
+    pointer-events: none;
+  }
+  /* The name of whichever hotspot is nearest the front. It replaces itself
+     rather than accumulating, and it is the only text the drawing carries --
+     labelling all sixteen at this size would be a smear. */
+  .globe__label {
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    top: 8px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: center;
+    color: rgba(38, 44, 56, 0.62);
+    pointer-events: none;
+    transition: opacity 400ms ease;
+  }
+  .globe__label.is-next {
+    color: rgba(30, 90, 170, 0.9);
+  }
+</style>
+
+<script>
+  (function () {
+    /* ── EVERY COPY, NOT THE FIRST ─────────────────────────────────────
+       The rail duplicates its tiles to make the drift loop seamless, and it
+       does that by cloning nodes -- which copies a canvas element and none of
+       its pixels, and runs no script. Binding to one canvas therefore left
+       the second globe a blank square, visible every time the rail came round.
+
+       So the loop owns the spin and the canvases are found fresh each frame.
+       At two elements that lookup is free, and it means a clone made at any
+       point later is drawn from the frame it appears in. */
+    if (!document.querySelector(".globe__cv")) return;
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* Where he has been, and the one he has not. Coordinates are approximate
+       on purpose: this is a picture of a life, not a flight log, and at 150px
+       a tenth of a degree is a fraction of a pixel. */
+    var STOPS = [
+      { n: "Mumbai", lat: 19.08, lon: 72.88 },
+      { n: "Delhi", lat: 28.61, lon: 77.21 },
+      { n: "Bengaluru", lat: 12.97, lon: 77.59 },
+      { n: "Jaipur", lat: 26.91, lon: 75.79 },
+      { n: "Kolkata", lat: 22.57, lon: 88.36 },
+      { n: "Goa", lat: 15.3, lon: 74.08 },
+      { n: "Sydney", lat: -33.87, lon: 151.21 },
+      { n: "Melbourne", lat: -37.81, lon: 144.96 },
+      { n: "Gold Coast", lat: -28.02, lon: 153.4 },
+      { n: "Shanghai", lat: 31.23, lon: 121.47 },
+      { n: "Hong Kong", lat: 22.32, lon: 114.17 },
+      { n: "Edinburgh", lat: 55.95, lon: -3.19 },
+      { n: "London", lat: 51.51, lon: -0.13 },
+      { n: "Zurich", lat: 47.38, lon: 8.54 },
+      { n: "Rome", lat: 41.9, lon: 12.5 },
+      { n: "New York", lat: 40.71, lon: -74.01 },
+      { n: "Baltimore", lat: 39.29, lon: -76.61 },
+      { n: "Boston", lat: 42.36, lon: -71.06 },
+      { n: "Florida", lat: 27.99, lon: -81.76 },
+      { n: "Singapore", lat: 1.35, lon: 103.82 },
+      { n: "Dubai", lat: 25.2, lon: 55.27 },
+      /* The one he has not been to yet, drawn open rather than filled. */
+      { n: "Norway, next", lat: 60.47, lon: 8.47, next: true },
+    ];
+
+    var R = 0,
+      cx = 0,
+      cy = 0;
+    function fit(cv, ctx) {
+      var dpr = Math.min(2, window.devicePixelRatio || 1);
+      var w = cv.clientWidth || 150;
+      var want = Math.round(w * dpr);
+      if (cv.width !== want) {
+        cv.width = want;
+        cv.height = want;
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      R = w * 0.42;
+      cx = w / 2;
+      cy = w / 2;
+      return w;
+    }
+
+    /* Orthographic projection: rotate the point by the globe's own spin and
+       tilt, then drop the z. A point with z < 0 is on the far side and is not
+       drawn -- that occlusion is the entire reason this reads as a sphere
+       rather than as a circle with dots on it. */
+    var TILT = (-18 * Math.PI) / 180;
+    function project(lat, lon, spin) {
+      var a = (lat * Math.PI) / 180;
+      var b = ((lon + spin) * Math.PI) / 180;
+      var x = Math.cos(a) * Math.sin(b);
+      var y = Math.sin(a);
+      var z = Math.cos(a) * Math.cos(b);
+      var y2 = y * Math.cos(TILT) - z * Math.sin(TILT);
+      var z2 = y * Math.sin(TILT) + z * Math.cos(TILT);
+      return { x: cx + x * R, y: cy - y2 * R, z: z2 };
+    }
+
+    var spin = 0,
+      raf = 0,
+      onScreen = true;
+
+    function draw() {
+      var all = document.querySelectorAll(".globe__cv");
+      for (var q = 0; q < all.length; q++) drawOne(all[q]);
+    }
+
+    function drawOne(cv) {
+      var ctx = cv.getContext("2d");
+      if (!ctx) return;
+      var label = cv.parentElement ? cv.parentElement.querySelector(".globe__label") : null;
+      var w = fit(cv, ctx);
+      ctx.clearRect(0, 0, w, w);
+
+      /* The sphere itself: a faint disc so the far-side dots have something to
+         be behind, and a rim so the edge is an edge. */
+      ctx.beginPath();
+      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(40, 62, 96, 0.05)";
+      ctx.fill();
+      ctx.strokeStyle = "rgba(40, 62, 96, 0.22)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      /* The graticule. Meridians every 30 degrees and parallels every 30, both
+         drawn through the same projection so they turn with the globe. */
+      ctx.strokeStyle = "rgba(40, 62, 96, 0.14)";
+      ctx.lineWidth = 0.7;
+      var i, t, p, started;
+      for (i = 0; i < 12; i++) {
+        ctx.beginPath();
+        started = false;
+        for (t = -90; t <= 90; t += 4) {
+          p = project(t, i * 30, spin);
+          if (p.z < 0) {
+            started = false;
+            continue;
+          }
+          if (!started) {
+            ctx.moveTo(p.x, p.y);
+            started = true;
+          } else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+      for (i = -60; i <= 60; i += 30) {
+        ctx.beginPath();
+        started = false;
+        for (t = 0; t <= 360; t += 4) {
+          p = project(i, t, spin);
+          if (p.z < 0) {
+            started = false;
+            continue;
+          }
+          if (!started) {
+            ctx.moveTo(p.x, p.y);
+            started = true;
+          } else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+
+      /* The stops. Nearest the front is named below; everything else is a dot
+         that fades with its own z, so the far side of the globe reads as far
+         away rather than as dots that have been switched off. */
+      var best = null,
+        bestZ = -2;
+      for (i = 0; i < STOPS.length; i++) {
+        p = project(STOPS[i].lat, STOPS[i].lon, spin);
+        if (p.z <= 0.02) continue;
+        var a = 0.25 + p.z * 0.75;
+        if (STOPS[i].next) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2.6, 0, Math.PI * 2);
+          ctx.strokeStyle = "rgba(30, 110, 210," + a.toFixed(2) + ")";
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 1.9, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(196, 84, 40," + a.toFixed(2) + ")";
+          ctx.fill();
+        }
+        if (p.z > bestZ) {
+          bestZ = p.z;
+          best = STOPS[i];
+        }
+      }
+      if (best && label && label.textContent !== best.n) {
+        label.textContent = best.n;
+        label.classList.toggle("is-next", !!best.next);
+      }
+    }
+
+    function frame() {
+      raf = requestAnimationFrame(frame);
+      spin += 0.16;
+      if (spin > 360) spin -= 360;
+      draw();
+    }
+
+    draw();
+    window.addEventListener("resize", draw);
+
+    if (!reduce && "IntersectionObserver" in window) {
+      new IntersectionObserver(
+        function (es) {
+          var vis = es[0].isIntersecting;
+          if (vis === onScreen) return;
+          onScreen = vis;
+          if (vis && !raf) raf = requestAnimationFrame(frame);
+          else if (!vis && raf) {
+            cancelAnimationFrame(raf);
+            raf = 0;
+          }
+        },
+        { threshold: 0 }
+      ).observe(document.querySelector(".sid-strip") || document.querySelector(".globe__cv"));
+    } else if (!reduce) {
+      raf = requestAnimationFrame(frame);
+    }
+    document.addEventListener(
+      "visibilitychange",
+      function () {
+        if (document.hidden && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        } else if (!document.hidden && onScreen && !raf && !reduce) {
+          raf = requestAnimationFrame(frame);
+        }
+      },
+      { passive: true }
+    );
+  })();
+</script>
+   
           
         </div>
       </div>
