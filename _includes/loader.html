@@ -1923,16 +1923,49 @@
          Nothing was slowed down -- the opening is the same length -- the
          second line simply now happens while there is still a page for it to
          happen on. */
-      var lines = [
-        /* `at` is a position in the film, in seconds. The film runs 5.07s and
-           the loader holds briefly past its end, so 2.5 puts the second line
-           at the midpoint with the whole back half to be read in. */
-        { text: "Hey, I'm Sid. Welcome to my portfolio.", at: 0.15 },
-        /* Later than 2.85 so the first line is not still being read when the
-           second arrives, and early enough that the longer hold above leaves
-           it comfortably on screen. */
-        { text: "I hope you feel the love I put into it.", at: 3.2 },
-      ];
+      /* ── ONE LINE ───────────────────────────────────────────────────────
+         Sid: "just have text as 'Welcome to me. I hope you feel the love'",
+         and "hi im sid welcome to my portfolio was getting too long".
+
+         Two sentences meant two entries and two exits inside an opening that
+         runs about six seconds, and every one of those transitions is time the
+         words are not readable. One line costs one entry, and it is the half
+         that was worth keeping: the greeting was doing the job the page's own
+         title bar already does, and the second sentence is the only thing in
+         the opening that could not be said anywhere else. */
+      var lines = [{ text: "Welcome to me. I hope you feel the love", at: 0.35 }];
+
+      /* ── THE WORD REVEAL ──────────────────────────────────────────────
+         Each word in its own span, lifted and faded on a 55ms stagger. The
+         line is legible from the first frame because nothing is ever
+         substituted for a real character -- the only thing animating is where
+         the word is, not what it says. */
+      function wordsIn(el, text, opts) {
+        opts = opts || {};
+        el.textContent = "";
+        var words = String(text).split(" ");
+        var frag = document.createDocumentFragment();
+        words.forEach(function (w, i) {
+          var sp = document.createElement("span");
+          sp.textContent = w + (i < words.length - 1 ? " " : "");
+          sp.style.display = "inline-block";
+          sp.style.whiteSpace = "pre";
+          sp.style.opacity = "0";
+          sp.style.transform = "translateY(0.42em)";
+          sp.style.transition = "opacity 260ms ease " + i * 55 + "ms, transform 460ms cubic-bezier(0.16, 1, 0.3, 1) " + i * 55 + "ms";
+          frag.appendChild(sp);
+        });
+        el.appendChild(frag);
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            [].forEach.call(el.children, function (sp) {
+              sp.style.opacity = "1";
+              sp.style.transform = "translateY(0)";
+            });
+          });
+        });
+        if (opts.done) setTimeout(opts.done, words.length * 55 + 220);
+      }
 
       // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
       // Replaces the typewriter; reads as a creative-tech / hacker reveal that suits the Inter 200 face.
@@ -2053,8 +2086,22 @@
                 hello.style.opacity = "0.34";
                 hello.style.filter = "blur(3px)";
                 hello.style.transform = "translate(-50%, 0)";
-                scrambleTo(hello, line.text, {
-                  duration: 620,
+                /* ── WORDS RISE, NOTHING SCRAMBLES ────────────────────
+                   Sid: "even the entry and exit animations eat up too much
+                   time try some other animation."
+
+                   The scramble was the cost. It is unreadable for its whole
+                   duration by definition -- the note further down this file
+                   says so in as many words -- so every millisecond of it was
+                   subtracted from the time the sentence could be read. A
+                   reveal that cannot be read while it runs is a reveal that
+                   has to be paid for twice.
+
+                   The words rise instead, each a beat behind the one before.
+                   It is legible from the first frame of the first word, the
+                   whole line is in within 360ms against 620, and it reads as
+                   somebody speaking rather than as a machine decoding. */
+                wordsIn(hello, line.text, {
                   done: function () {
                     /* Settled: full strength, sharp, at rest. */
                     /* ── 620 -> 240 ────────────────────────────────────
