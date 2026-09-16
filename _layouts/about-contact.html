@@ -692,6 +692,16 @@
       /* The grid the portrait resolves out of. Above both photographs and
          below the seal, so the seal stays crisp while the picture is still
          assembling. */
+      /* ── AND IT TAKES THE CARD'S OWN EDGE ─────────────────────────────
+         Sid: "in about, the top of image is a plane line and isnt aligned
+         with the text."
+
+         The straight edge was this canvas. The card carries a blob mask that
+         dissolves its top into the page, and the mosaic drawn over it had no
+         mask at all -- an opaque rectangle painted across a shape that was
+         carefully not a rectangle, so at rest the soft edge was simply hidden
+         under a hard one. Same mask, so the cells end where the photograph
+         ends. */
       .about-pixels {
         position: absolute;
         inset: 0;
@@ -702,6 +712,62 @@
         pointer-events: none;
         opacity: 0;
         transition: opacity 600ms ease;
+        -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 9%, #000 26%, #000 100%);
+        mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.35) 9%, #000 26%, #000 100%);
+      }
+
+      /* ══ THE BLUR THAT RUNS DOWN ═══════════════════════════════════════
+         Sid: "can we add a nice moving directional blur from the top of the
+         image going down."
+
+         A band of real blur -- backdrop-filter, so it is blurring the
+         photograph rather than painting a grey gradient over it -- masked to a
+         soft horizontal band and walked from the top of the card to the
+         bottom on a long cycle. Where it passes, the picture goes momentarily
+         out of focus and comes back.
+
+         It does the alignment job as well as the atmospheric one: the top of
+         the image is now a place where focus arrives rather than a ruled line
+         that has to agree with the paragraph beside it, so there is nothing
+         left to misalign. */
+      .about-focus {
+        position: absolute;
+        inset: 0;
+        z-index: 3;
+        pointer-events: none;
+        -webkit-backdrop-filter: blur(9px) saturate(1.05);
+        backdrop-filter: blur(9px) saturate(1.05);
+        -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 6%, #000 12%, rgba(0, 0, 0, 0.55) 20%, transparent 30%);
+        mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.9) 6%, #000 12%, rgba(0, 0, 0, 0.55) 20%, transparent 30%);
+        -webkit-mask-size: 100% 300%;
+        mask-size: 100% 300%;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        animation: aboutFocusFall 11s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+      }
+      @keyframes aboutFocusFall {
+        0% {
+          -webkit-mask-position: 0 -12%;
+          mask-position: 0 -12%;
+          opacity: 0;
+        }
+        12% {
+          opacity: 1;
+        }
+        82% {
+          opacity: 1;
+        }
+        100% {
+          -webkit-mask-position: 0 112%;
+          mask-position: 0 112%;
+          opacity: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-focus {
+          animation: none;
+          opacity: 0;
+        }
       }
       .about-pixels.is-on {
         opacity: 1;
@@ -2774,6 +2840,7 @@
             is the one image of the person making that argument, so it ought to be made of it. The canvas is drawn from the <img /> itself, so there
             is no second asset and nothing to keep in sync, and if the script never runs the photograph is simply a photograph. {% endcomment %}
             <canvas class="about-pixels" id="about-pixels" aria-hidden="true"></canvas>
+            <span class="about-focus" aria-hidden="true"></span>
             <img class="about-photo active" src="{{ site.baseurl }}/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta" />
             <img class="about-photo" src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta" />
             <!-- ── THE SEAL ────────────────────────────────────────────────
