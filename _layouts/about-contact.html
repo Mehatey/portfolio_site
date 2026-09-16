@@ -689,6 +689,29 @@
          a percent and a half, the same slow clock as the footer wall's
          ripple, so the frame is never quite still without ever visibly
          moving. */
+      /* The grid the portrait resolves out of. Above both photographs and
+         below the seal, so the seal stays crisp while the picture is still
+         assembling. */
+      .about-pixels {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        display: block;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 600ms ease;
+      }
+      .about-pixels.is-on {
+        opacity: 1;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .about-pixels {
+          display: none;
+        }
+      }
+
       .about-photo {
         width: 100%;
         height: 100%;
@@ -2741,6 +2764,16 @@
             role="button"
             aria-label="Portrait of Sid Mehta. Move your pointer over the card or select it to see another photo."
           >
+            {% comment %} ── IT RESOLVES OUT OF THE GRID ───────────────────────────────────────────────────────────────────────────────── Sid: "can
+            we improve the treatment and be more creative with the image in about me section and how we are showing it it feels janky and not smooth
+            and not creative at all." He is right, and the reason is that there was no idea in it. A desaturated photograph that gains colour on hover
+            is a filter, not a treatment: the picture is doing nothing the site has any opinion about, and at rest it reads as a grey studio backdrop
+            pasted onto a black page. So it arrives the way everything else on this site is built. At rest the portrait is drawn as coarse colour
+            cells -- the same squares the cursor reads off media, the same grid the nav glyphs and the collectibles are drawn on -- and it resolves
+            into the photograph as you approach it, cell by cell from the centre out. The grid is the site's whole visual argument about images; this
+            is the one image of the person making that argument, so it ought to be made of it. The canvas is drawn from the <img /> itself, so there
+            is no second asset and nothing to keep in sync, and if the script never runs the photograph is simply a photograph. {% endcomment %}
+            <canvas class="about-pixels" id="about-pixels" aria-hidden="true"></canvas>
             <img class="about-photo active" src="{{ site.baseurl }}/assets/img/sid_about.jpg" alt="Portrait of Sid Mehta" />
             <img class="about-photo" src="{{ site.baseurl }}/assets/img/sid_about3.jpg" alt="A second portrait of Sid Mehta" />
             <!-- ── THE SEAL ────────────────────────────────────────────────
@@ -2786,9 +2819,16 @@
                   <path id="seal-top" fill="none" d="M60,60 m-45,0 a45,45 0 0,1 90,0" />
                   <path id="seal-bot" fill="none" d="M60,60 m-38,0 a38,38 0 0,0 76,0" />
                 </defs>
-                <text>
-                  <textPath href="#seal-top" startOffset="50%" text-anchor="middle">years designing</textPath>
-                </text>
+                <!-- ── ONE LEGEND, NOT TWO ──────────────────────────────
+                     The top arc read "years designing" and the bottom reads
+                     "years building": the same word twice around one numeral,
+                     which is not a stamp, it is a stamp that could not decide.
+                     The top one was also the half that did not fit -- at this
+                     radius and size it ran past the arc and rendered as a
+                     fragment, so the ring's most visible text was "NING".
+
+                     The bottom arc says what the numeral counts, which is the
+                     whole job. -->
                 <text>
                   <textPath href="#seal-bot" startOffset="50%" text-anchor="middle">years building</textPath>
                 </text>
@@ -3819,6 +3859,174 @@
             }
           }).observe(card);
         } else wake();
+      })();
+    </script>
+    <script>
+      /* ── THE PORTRAIT RESOLVES ──────────────────────────────────────────
+         Coarse colour cells at rest, the photograph when you approach. The
+         cells are sampled from the <img> the page already loaded, so there is
+         no second asset; `resolve` runs 0 to 1 and each cell crosses over at
+         its own threshold, ordered by distance from the centre, so the
+         picture opens outward rather than fading uniformly.
+
+         Cheap by construction: it draws only while `resolve` is actually
+         changing, and it stops entirely once the photograph is fully out. */
+      (function () {
+        var card = document.getElementById("about-profile-card");
+        var cv = document.getElementById("about-pixels");
+        if (!card || !cv) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var ctx = cv.getContext("2d");
+        if (!ctx) return;
+
+        var img = card.querySelector(".about-photo.active") || card.querySelector(".about-photo");
+        if (!img) return;
+
+        var CELL = 13; /* px on screen. Small enough to read as a face, large
+                          enough to read as cells. */
+        var cells = [];
+        var W = 0,
+          H = 0,
+          ready = false;
+
+        function build() {
+          var r = card.getBoundingClientRect();
+          if (!r.width || !img.naturalWidth) return false;
+          var dpr = Math.min(2, window.devicePixelRatio || 1);
+          W = Math.round(r.width);
+          H = Math.round(r.height);
+          cv.width = Math.round(W * dpr);
+          cv.height = Math.round(H * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+          var cols = Math.ceil(W / CELL),
+            rows = Math.ceil(H / CELL);
+          /* Sampled once, off a scratch canvas at grid resolution: reading the
+             photograph per cell per frame would be the expensive way to do
+             exactly the same thing. */
+          var s = document.createElement("canvas");
+          s.width = cols;
+          s.height = rows;
+          var sx = s.getContext("2d", { willReadFrequently: true });
+          try {
+            sx.drawImage(img, 0, 0, cols, rows);
+            var d = sx.getImageData(0, 0, cols, rows).data;
+            cells = [];
+            var cxm = cols / 2,
+              cym = rows / 2,
+              maxd = Math.hypot(cxm, cym) || 1;
+            for (var y = 0; y < rows; y++) {
+              for (var x = 0; x < cols; x++) {
+                var o = (y * cols + x) * 4;
+                cells.push({
+                  x: x * CELL,
+                  y: y * CELL,
+                  c: "rgb(" + d[o] + "," + d[o + 1] + "," + d[o + 2] + ")",
+                  /* Distance from the centre, normalised: the cell's own
+                     threshold, so the picture opens outward. */
+                  t: Math.hypot(x - cxm, y - cym) / maxd,
+                });
+              }
+            }
+            ready = true;
+            return true;
+          } catch (e) {
+            /* A tainted canvas would throw here. The photograph is same-origin,
+               but if that ever changes the portrait should still be a
+               portrait. */
+            return false;
+          }
+        }
+
+        var resolve = 0,
+          want = 0,
+          raf = 0;
+
+        function paint() {
+          raf = 0;
+          resolve += (want - resolve) * 0.12;
+          if (Math.abs(want - resolve) < 0.004) resolve = want;
+          ctx.clearRect(0, 0, W, H);
+          for (var i = 0; i < cells.length; i++) {
+            var c = cells[i];
+            /* Each cell holds until the front reaches it, then goes in its own
+               short window rather than all of them crossing together. */
+            var a = 1 - Math.max(0, Math.min(1, (resolve - c.t * 0.82) / 0.22));
+            if (a <= 0.01) continue;
+            ctx.globalAlpha = a;
+            ctx.fillStyle = c.c;
+            /* No gap. A cell drawn a pixel short leaves the photograph
+               showing through every seam, which turns a mosaic into a lattice
+               laid over the picture -- the thing looked like graph paper. The
+               cells butt up, so at rest the portrait is genuinely made of
+               them and the reveal is cells leaving rather than lines fading. */
+            ctx.fillRect(c.x, c.y, CELL + 1, CELL + 1);
+          }
+          ctx.globalAlpha = 1;
+          cv.classList.toggle("is-on", resolve < 0.999);
+          if (resolve !== want) kick();
+        }
+        function kick() {
+          if (!raf) raf = requestAnimationFrame(paint);
+        }
+
+        function start() {
+          if (!ready && !build()) return;
+          cv.classList.add("is-on");
+          paint();
+        }
+
+        if (img.complete && img.naturalWidth) start();
+        else img.addEventListener("load", start, { once: true });
+        window.addEventListener(
+          "resize",
+          function () {
+            ready = false;
+            if (build()) kick();
+          },
+          { passive: true }
+        );
+
+        card.addEventListener("pointerenter", function () {
+          want = 1;
+          kick();
+        });
+        card.addEventListener("focus", function () {
+          want = 1;
+          kick();
+        });
+        card.addEventListener("pointerleave", function () {
+          want = 0;
+          kick();
+        });
+        card.addEventListener("blur", function () {
+          want = 0;
+          kick();
+        });
+
+        /* And it opens once on its own as the card arrives, so a visitor who
+           never points at it still sees the photograph. It closes again after
+           a beat, which is what makes the hover worth doing. */
+        if ("IntersectionObserver" in window) {
+          var io = new IntersectionObserver(
+            function (es) {
+              if (!es[0].isIntersecting) return;
+              io.disconnect();
+              setTimeout(function () {
+                want = 1;
+                kick();
+                setTimeout(function () {
+                  if (!card.matches(":hover")) {
+                    want = 0;
+                    kick();
+                  }
+                }, 2600);
+              }, 500);
+            },
+            { threshold: 0.35 }
+          );
+          io.observe(card);
+        }
       })();
     </script>
   </body>
