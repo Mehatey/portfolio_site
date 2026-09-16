@@ -2866,7 +2866,9 @@
       }
       .hero__disc-ring {
         position: absolute;
-        inset: 0;
+        /* The path is wider than the disc now, so the svg has to be too or
+           the browser scales the whole drawing down to fit. */
+        inset: -13%;
         width: 100%;
         height: 100%;
         overflow: visible;
@@ -2897,26 +2899,23 @@
            a value picked once against the dark theme and never asked about
            again. */
         fill: currentColor;
-        /* ── AND IT HAS TO HOLD ON PAPER ────────────────────────────────
-           Sid: "the 6-year, 90-second reel is not visible properly, and the
-           text is not visible for that."
+        /* ── NO HALO ─────────────────────────────────────────────────────
+           Sid: "what the fuck is that type treatment for my video it looks
+           horrid."
 
-           The ring takes currentColor from .hero__disc, which is near-white
-           on the dark theme and near-black on cream -- correct in both. What
-           was not correct is the alpha: 0.82 of near-black on a hero that is
-           PAPER, with a watercolour wash moving under it, lands somewhere
-           between 2:1 and 3:1 depending on where the wash happens to be. It
-           is opaque now and carries a faint halo of the page's own ground, so
-           the letters stay separated from whatever passes behind them. */
-        opacity: 1;
-        paint-order: stroke fill;
-        stroke: var(--home-bg, #05070b);
-        stroke-width: 1.6px;
-        stroke-linejoin: round;
-      }
-      html[data-theme="light"] .hero__disc-ring text,
-      body.on-paper .hero__disc-ring text {
-        stroke: rgba(244, 242, 236, 0.92);
+           Fair. The previous pass gave every glyph a 1.6px stroke of the page
+           colour so it would stay legible wherever the wash drifted under it.
+           At 5.6px type that stroke is nearly a third of the cap height, so
+           the letters fattened into white blobs with holes in them -- a
+           legibility fix that destroyed the thing it was making legible.
+
+           The real fault was position, not contrast. The ring was drawn at
+           r=41 inside a disc that fills the box, so the words ran across the
+           photograph, and a halo was the only way to separate them from it.
+           At r=52 they sit OUTSIDE the disc on the page's own ground, where
+           plain ink at three quarters alpha reads cleanly and needs nothing
+           behind it. The svg already carries overflow: visible. */
+        opacity: 0.72;
       }
       .hero__disc {
         color: var(--home-ink, #fff);
@@ -2939,7 +2938,10 @@
           animation: none;
         }
       }
-      html[data-theme="light"] .hero__disc {
+      html[data-theme="light"] .hero__disc,
+      body.on-paper .hero__disc {
+        /* on-paper is the other way the ground becomes light. Without it the
+           ring took --home-ink, which is white, and drew white type on cream. */
         color: #171b22;
       }
       @keyframes heroDiscRing {
@@ -10636,106 +10638,7 @@
      sound toggle the waveform control writes. See assets/js/name-say.js. -->
 <script src="/assets/js/name-say.js" data-base="" defer></script>
 
-<script>
-  /* ── THE OPENING TOUR ───────────────────────────────────────────────────
-     Walks the nav once, a few seconds after the page has settled, lighting
-     each icon and sliding its label out.
 
-     THREE RULES, and each one is the difference between a flourish and a nag.
-
-     It runs ONCE per browser. A tour that replays on every visit is a thing
-     you learn to wait out.
-
-     It CANCELS the moment the visitor does anything -- a pointer move, a
-     scroll, a key. Someone who has already started reading is not waiting to
-     be shown the navigation, and continuing to animate at them while they
-     work is the definition of chrome that will not take a hint.
-
-     It starts after the page is open and settled rather than on load, because
-     the first seconds belong to the hero: two sequences competing for
-     attention is neither.
-
-     The sound is gated on the site's own sound preference, which is off by
-     default. Nothing here makes a noise at a stranger who has not asked. */
-  (function () {
-    var nav = document.querySelector(".studio-nav");
-    if (!nav) return;
-    if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    var KEY = "sid_nav_toured";
-    try {
-      if (localStorage.getItem(KEY)) return;
-    } catch (_) {}
-
-    var links = [].slice.call(nav.querySelectorAll(".studio-link"));
-    if (!links.length) return;
-
-    var cancelled = false;
-    var timers = [];
-    function stop() {
-      cancelled = true;
-      timers.forEach(clearTimeout);
-      links.forEach(function (l) {
-        l.classList.remove("is-touring");
-      });
-      off();
-    }
-    function off() {
-      window.removeEventListener("pointermove", stop);
-      window.removeEventListener("wheel", stop);
-      window.removeEventListener("keydown", stop);
-      window.removeEventListener("pointerdown", stop);
-    }
-
-    function run() {
-      if (cancelled) return;
-      try {
-        localStorage.setItem(KEY, "1");
-      } catch (_) {}
-      window.addEventListener("pointermove", stop, { passive: true, once: true });
-      window.addEventListener("wheel", stop, { passive: true, once: true });
-      window.addEventListener("keydown", stop, { once: true });
-      window.addEventListener("pointerdown", stop, { once: true });
-
-      var STEP = 620; /* how long each icon holds its label */
-      var GAP = 190; /* dark between one and the next, so they read as a sequence */
-      links.forEach(function (link, i) {
-        timers.push(
-          setTimeout(
-            function () {
-              if (cancelled) return;
-              link.classList.add("is-touring");
-              /* Walks up a scale rather than repeating one note: a repeated
-                 note is an alert, a rising figure is a sequence. */
-              if (window.__sidNote) window.__sidNote(i * 2);
-              timers.push(
-                setTimeout(function () {
-                  link.classList.remove("is-touring");
-                }, STEP)
-              );
-            },
-            i * (STEP + GAP)
-          )
-        );
-      });
-      timers.push(
-        setTimeout(
-          function () {
-            off();
-          },
-          links.length * (STEP + GAP) + 400
-        )
-      );
-    }
-
-    /* After the door is open and the hero has had its own moment. */
-    function arm() {
-      timers.push(setTimeout(run, 3600));
-    }
-    if (window.__loaderInstantDone === true || !document.getElementById("site-loader")) arm();
-    else window.addEventListener("loaderDone", arm, { once: true });
-  })();
-</script>
  
 
 <div id="cube-says" data-line="He built all of this. I merely watch the door." hidden>
@@ -11508,6 +11411,351 @@
            needs no scroll listener, cannot desynchronise from the scrollbar,
            and releases by itself at the bottom of the wrapper. -->
       <div class="hero-runway">
+         <!-- ══════════════════════════════════════════════════════════════════════════
+     THE WELCOME
+
+     Sid: "in the beginning, before anything shows up, I want the chat thing to
+     be the first thing ... it spurts out, and then it shows the three
+     different icons and what they do. It slowly animates and highlights each
+     one: the audio, the hand gesture, and then it animates and starts the
+     other homepage content. I feel like this will anchor and help guide the
+     user onto what the cube icon is right from the start instead of
+     overloading them with everything."
+
+     This is the answer to a complaint he made earlier in the same session --
+     "there is no structure or order of experience" -- and it is the right
+     answer, because the problem was never that the page lacked animation. It
+     was that everything arrived at once, so nothing was first. A page where
+     eleven things appear together has no hierarchy no matter how well each
+     one is drawn.
+
+     SO THE CUBE GOES FIRST, AND IT SPEAKS. The character that lives in the
+     corner introduces the site, then introduces its own controls one at a
+     time, and only then hands over to the page. Three seconds, four beats,
+     and by the end a recruiter knows there is a thing in the corner that
+     talks, that the site has sound, and that the camera control is a toy
+     rather than a tracker.
+
+     THE SPURT is the point of the first beat. The bubble does not fade in
+     near the cube -- it scales out OF the cube, from a transform origin at the
+     cube's own corner, with an overshoot that settles. Fading says "a label
+     has appeared"; springing from a point says "that object said this". The
+     distinction is the whole reason the cube has a face.
+
+     ── WHAT THIS REPLACES ──────────────────────────────────────────────────
+     The nav tour added earlier the same day. That walked the five links at
+     the top right, which is a second sequence competing with this one for the
+     same opening seconds, and this one is better sited: it starts at the
+     control a visitor has no way to interpret on their own. One opening, not
+     two.
+
+     ── AND IT GETS OUT OF THE WAY ──────────────────────────────────────────
+     Once per browser, cancelled by the first scroll, key or click anywhere,
+     and skipped entirely for reduced motion and for touch. Anyone who has
+     started reading is not waiting to be introduced to the furniture.
+     ══════════════════════════════════════════════════════════════════════ -->
+<div class="wlc" id="wlc" aria-hidden="true">
+  <p class="wlc__bubble" id="wlc-bubble"><span id="wlc-text"></span></p>
+</div>
+
+<style>
+  .wlc {
+    position: fixed;
+    inset: 0;
+    z-index: 9500;
+    pointer-events: none;
+    /* Nothing is composited until the sequence actually starts. */
+    content-visibility: hidden;
+  }
+  .wlc.is-live {
+    content-visibility: visible;
+  }
+
+  /* The bubble. No plate, no tail, no border: the site's voice has been a
+     pocket of dark behind words everywhere else it speaks, and a chat bubble
+     with a tail would be a different character arriving in the same corner. */
+  .wlc__bubble {
+    position: absolute;
+    margin: 0;
+    max-width: 22ch;
+    padding: 0 2px;
+    font-family: var(--font-head, system-ui, sans-serif);
+    font-size: clamp(15px, 1.5vw, 19px);
+    font-weight: 480;
+    line-height: 1.34;
+    letter-spacing: -0.012em;
+    color: var(--ink, #f2f6fb);
+    text-align: right;
+    opacity: 0;
+    /* Out of the cube, not near it: the origin is the cube's own corner and
+       the scale runs from nothing. */
+    /* Bottom right corner, which is the corner nearest the cube now that the
+       bubble sits to its left: the spurt reads as coming from the object. */
+    transform-origin: 100% 100%;
+    transform: scale(0.2) translate(26px, 10px);
+  }
+  .wlc__bubble::before {
+    content: "";
+    position: absolute;
+    inset: -18px -26px;
+    z-index: -1;
+    background: radial-gradient(70% 70% at 72% 55%, rgba(2, 5, 10, 0.96), rgba(2, 5, 10, 0.8) 54%, transparent 84%);
+    filter: blur(10px);
+  }
+  body.on-paper .wlc__bubble,
+  html[data-theme="light"] .wlc__bubble {
+    color: #0a1727;
+  }
+  body.on-paper .wlc__bubble::before,
+  html[data-theme="light"] .wlc__bubble::before {
+    background: radial-gradient(70% 70% at 72% 55%, rgba(246, 246, 242, 0.96), rgba(246, 246, 242, 0.66) 56%, transparent 82%);
+  }
+  .wlc.is-out .wlc__bubble {
+    opacity: 1;
+    transform: scale(1) translate(0, 0);
+    /* The overshoot is in the curve, not in a keyframe: one spring, so the
+       bubble arrives slightly past its mark and settles. */
+    transition:
+      opacity 260ms ease,
+      transform 640ms cubic-bezier(0.2, 1.42, 0.36, 1);
+  }
+  .wlc.is-gone .wlc__bubble {
+    opacity: 0;
+    transform: scale(0.94) translate(4px, 6px);
+    transition:
+      opacity 320ms ease,
+      transform 420ms ease;
+  }
+
+  /* ── THE HIGHLIGHT ─────────────────────────────────────────────────────
+     A ring that lands on whichever control is being named. It is one element
+     that moves, rather than a class on each control, so the sequence reads as
+     one pointer travelling down the stack instead of three separate things
+     lighting up. */
+  .wlc__ring {
+    position: fixed;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent, #8fc2ff);
+    box-shadow:
+      0 0 0 5px rgba(143, 194, 255, 0.12),
+      0 0 22px rgba(143, 194, 255, 0.35);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9501;
+    transition:
+      opacity 300ms ease,
+      top 520ms cubic-bezier(0.16, 1, 0.3, 1),
+      left 520ms cubic-bezier(0.16, 1, 0.3, 1),
+      width 520ms cubic-bezier(0.16, 1, 0.3, 1),
+      height 520ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .wlc.is-ringing .wlc__ring {
+    opacity: 1;
+  }
+
+  @media (max-width: 760px), (hover: none), (pointer: coarse) {
+    .wlc {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wlc {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  (function () {
+    var wrap = document.getElementById("wlc");
+    var bubble = document.getElementById("wlc-bubble");
+    var textEl = document.getElementById("wlc-text");
+    if (!wrap || !bubble) return;
+    if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
+    if (window.innerWidth < 760) return;
+
+    var KEY = "sid_welcomed";
+    var done = false;
+    function finish() {
+      if (done) return;
+      done = true;
+      wrap.classList.remove("is-ringing");
+      wrap.classList.add("is-gone");
+      setTimeout(function () {
+        wrap.classList.remove("is-live");
+      }, 500);
+      /* The page's own opening waits on this. Fired exactly once, and also
+         fired by every cancel path, so the hero can never be left waiting on
+         a sequence that was skipped. */
+      window.__welcomeDone = true;
+      window.dispatchEvent(new CustomEvent("sid:welcomedone"));
+      off();
+    }
+
+    var seen = false;
+    try {
+      seen = !!localStorage.getItem(KEY);
+    } catch (_) {}
+    if (seen) {
+      window.__welcomeDone = true;
+      /* Deferred so a listener attached later in the document still hears it. */
+      setTimeout(function () {
+        window.dispatchEvent(new CustomEvent("sid:welcomedone"));
+      }, 0);
+      return;
+    }
+
+    var timers = [];
+    function cancel() {
+      timers.forEach(clearTimeout);
+      finish();
+    }
+    function off() {
+      window.removeEventListener("wheel", cancel);
+      window.removeEventListener("keydown", cancel);
+      window.removeEventListener("pointerdown", cancel);
+    }
+
+    /* The three things the corner can do, in the order they are least
+       obvious. The cube is last because it is the one being introduced by
+       everything before it. */
+    /* ── THREE WORDS, NOT A SENTENCE ──────────────────────────────────
+       Sid: "text on icons bottom right is too much and too big and going into
+       two lines, think like a ui ux designer."
+
+       Right. These were full sentences at 19px beside a 48px control, so each
+       wrapped to three lines and the label ended up physically larger than the
+       thing it was labelling. A caption on a control has one job -- to name
+       the control -- and the moment it takes two lines it has stopped naming
+       and started explaining. One short phrase each, on one line. */
+    var BEATS = [
+      { sel: "#sound-toggle", say: "Sound, off by default" },
+      { sel: "#hand-toggle", say: "Steer with your hand" },
+      { sel: "#cube-chat-fab", say: "Ask me anything" },
+    ];
+
+    var ring = document.createElement("div");
+    ring.className = "wlc__ring";
+    wrap.appendChild(ring);
+
+    function place(el, pad) {
+      var r = el.getBoundingClientRect();
+      if (!r.width) return false;
+      ring.style.top = r.top - pad + "px";
+      ring.style.left = r.left - pad + "px";
+      ring.style.width = r.width + pad * 2 + "px";
+      ring.style.height = r.height + pad * 2 + "px";
+      return true;
+    }
+
+    /* The bubble sits above and to the left of the cube, so it reads as coming
+       out of it. Measured rather than positioned in CSS, because the cube's
+       own position is set in three different stylesheets depending on the
+       route and the breakpoint. */
+    function anchor(target) {
+      var fab = document.querySelector("#cube-chat-fab");
+      if (!fab) return false;
+      var r = fab.getBoundingClientRect();
+      if (!r.width) return false;
+      /* ── BESIDE THE STACK, NOT ON TOP OF IT ──────────────────────────
+         Anchoring the bubble's right edge to the cube's right edge put the
+         words directly over the column of controls the sequence is in the
+         middle of pointing at -- so the one moment the text and the icons
+         both matter was the one moment they overlapped. It sits to the LEFT
+         of the column now, ending before the icons begin, and rides up the
+         stack to whichever control is being named so the speech stays level
+         with the thing it is about. */
+      var t = target ? target.getBoundingClientRect() : r;
+      bubble.style.right = window.innerWidth - r.left + 20 + "px";
+      /* Level with the control it is naming, not merely near it. Positioned
+         from the TOP with the bubble's own measured height taken off, because
+         a `bottom` offset has to predict that height and gets it wrong the
+         moment a line wraps -- which is exactly what happens between one beat
+         and the next. */
+      bubble.style.bottom = "auto";
+      var bh = bubble.offsetHeight || 40;
+      bubble.style.top = Math.max(16, Math.min(window.innerHeight - bh - 16, t.top + t.height / 2 - bh / 2)) + "px";
+      return true;
+    }
+
+    function say(t) {
+      textEl.textContent = t;
+    }
+
+    function run() {
+      if (done) return;
+      try {
+        localStorage.setItem(KEY, "1");
+      } catch (_) {}
+      if (!anchor()) {
+        finish();
+        return;
+      }
+      wrap.classList.add("is-live");
+      window.addEventListener("wheel", cancel, { passive: true, once: true });
+      window.addEventListener("keydown", cancel, { once: true });
+      window.addEventListener("pointerdown", cancel, { once: true });
+
+      /* Beat one: the cube speaks. Nothing else on the page has started. */
+      say("Welcome to Sid’s portfolio.");
+      anchor();
+      requestAnimationFrame(function () {
+        wrap.classList.add("is-out");
+      });
+      if (window.__sidNote) window.__sidNote(0);
+
+      /* The corner has to be open for the ring to have anything to land on.
+         controls-peek is the class the proximity script already uses. */
+      timers.push(
+        setTimeout(function () {
+          document.body.classList.add("controls-peek");
+        }, 900)
+      );
+
+      var t = 1750;
+      BEATS.forEach(function (beat, i) {
+        timers.push(
+          setTimeout(
+            function () {
+              if (done) return;
+              var el = document.querySelector(beat.sel);
+              if (!el || !place(el, 9)) return;
+              wrap.classList.add("is-ringing");
+              anchor();
+              say(beat.say);
+              if (window.__sidNote) window.__sidNote((i + 1) * 3);
+            },
+            t + i * 1250
+          )
+        );
+      });
+
+      timers.push(
+        setTimeout(
+          function () {
+            document.body.classList.remove("controls-peek");
+            finish();
+          },
+          t + BEATS.length * 1250 + 500
+        )
+      );
+    }
+
+    /* After the door, and one beat after it so the page is settled rather than
+       still arriving. */
+    function arm() {
+      timers.push(setTimeout(run, 500));
+    }
+    if (window.__loaderInstantDone === true || !document.getElementById("site-loader")) arm();
+    else window.addEventListener("loaderDone", arm, { once: true });
+
+    /* A failsafe, because everything downstream waits on this. If any of the
+       above never runs, the page must still open. */
+    setTimeout(finish, 12000);
+  })();
+</script>
+
+
         <section class="hero" id="hero" aria-labelledby="hero-title" data-cube="He has been doing this six years. I have been watching for three.">
           <!-- ── THE HERO LEAVES BEHIND A LIGHT ──────────────────────────────
              Sid: "instead try another scroll transition without the cube guy
@@ -12104,7 +12352,7 @@
               <span class="hero__disc-glass" aria-hidden="true"></span>
               <svg class="hero__disc-ring" viewbox="0 0 100 100" aria-hidden="true" focusable="false">
                 <defs>
-                  <path id="hero-ring-path" fill="none" d="M50,50 m-41,0 a41,41 0 1,1 82,0 a41,41 0 1,1 -82,0"></path>
+                  <path id="hero-ring-path" fill="none" d="M50,50 m-52,0 a52,52 0 1,1 104,0 a52,52 0 1,1 -104,0"></path>
                 </defs>
                 <text>
                   <!-- Once around, not twice. Two laps of the same sentence
@@ -18842,6 +19090,15 @@
             <video src="/assets/video/sid-strip/face-scans.mp4" poster="/assets/img/sid-strip/face-scans-poster.webp" muted loop playsinline preload="none" aria-label="Wireframe head scans turning against a room"></video>
             <figcaption><em>Rabbit hole</em><b>Faces, meshed</b></figcaption>
           </figure>
+          
+          <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 1.77; --src: url(/assets/img/sid-strip/biggles-poster.webp)">
+            <video src="/assets/video/sid-strip/biggles.mp4" poster="/assets/img/sid-strip/biggles-poster.webp" muted loop playsinline preload="none" aria-label="A gorilla playing an acoustic guitar under a rainbow"></video>
+            <figcaption><em>Comfort watch</em><b>The Biggles show</b></figcaption>
+          </figure>
+          <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid-strip/black-mirror.webp)">
+            <img src="/assets/img/sid-strip/black-mirror.webp" alt="The Black Mirror title card, cracked glass over black" loading="lazy" decoding="async">
+            <figcaption><em>Keeps him up</em><b>Black Mirror</b></figcaption>
+          </figure>
           <figure class="sid-tile" style="--s: 1.05; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)">
             <img src="/assets/img/sid-strip/cats.webp" alt="Two cats under a duvet, refusing to move" loading="lazy" decoding="async">
             <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption>
@@ -18853,6 +19110,14 @@
           <figure class="sid-tile sid-tile--clip" style="--s: 1.05; --ar: 0.56; --src: url(/assets/img/sid-strip/gold-room-poster.webp)">
             <video src="/assets/video/sid-strip/gold-room.mp4" poster="/assets/img/sid-strip/gold-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a gold room in a saffron kurta"></video>
             <figcaption><em>Dressed up</em><b>A room made of gold</b></figcaption>
+          </figure>
+          <figure class="sid-tile" style="--s: 1.06; --ar: 1; --src: url(/assets/img/sid-strip/golden-record.webp)">
+            <img src="/assets/img/sid-strip/golden-record.webp" alt="The Voyager Golden Record, its gold cover engraved with instructions for playing it" loading="lazy" decoding="async">
+            <figcaption><em>Inspired by</em><b>The Golden Record</b></figcaption>
+          </figure>
+          <figure class="sid-tile" style="--s: 1.02; --ar: 1.33; --src: url(/assets/img/sid-strip/strangers-project.webp)">
+            <img src="/assets/img/sid-strip/strangers-project.webp" alt="A wall of handwritten pages pegged on strings, a woman reading them" loading="lazy" decoding="async">
+            <figcaption><em>Best wall</em><b>The Strangers Project</b></figcaption>
           </figure>
           <figure class="sid-tile" style="--s: 1.03; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)">
             <img src="/assets/img/sid-strip/song-sky-i.webp" alt="A still from a favourite music video, arms out against the sky" loading="lazy" decoding="async">
@@ -18900,6 +19165,15 @@
             <video src="/assets/video/sid-strip/face-scans.mp4" poster="/assets/img/sid-strip/face-scans-poster.webp" muted loop playsinline preload="none" aria-label="Wireframe head scans turning against a room"></video>
             <figcaption><em>Rabbit hole</em><b>Faces, meshed</b></figcaption>
           </figure>
+          
+          <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 1.77; --src: url(/assets/img/sid-strip/biggles-poster.webp)">
+            <video src="/assets/video/sid-strip/biggles.mp4" poster="/assets/img/sid-strip/biggles-poster.webp" muted loop playsinline preload="none" aria-label="A gorilla playing an acoustic guitar under a rainbow"></video>
+            <figcaption><em>Comfort watch</em><b>The Biggles show</b></figcaption>
+          </figure>
+          <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid-strip/black-mirror.webp)">
+            <img src="/assets/img/sid-strip/black-mirror.webp" alt="The Black Mirror title card, cracked glass over black" loading="lazy" decoding="async">
+            <figcaption><em>Keeps him up</em><b>Black Mirror</b></figcaption>
+          </figure>
           <figure class="sid-tile" style="--s: 1.05; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)">
             <img src="/assets/img/sid-strip/cats.webp" alt="Two cats under a duvet, refusing to move" loading="lazy" decoding="async">
             <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption>
@@ -18911,6 +19185,14 @@
           <figure class="sid-tile sid-tile--clip" style="--s: 1.05; --ar: 0.56; --src: url(/assets/img/sid-strip/gold-room-poster.webp)">
             <video src="/assets/video/sid-strip/gold-room.mp4" poster="/assets/img/sid-strip/gold-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a gold room in a saffron kurta"></video>
             <figcaption><em>Dressed up</em><b>A room made of gold</b></figcaption>
+          </figure>
+          <figure class="sid-tile" style="--s: 1.06; --ar: 1; --src: url(/assets/img/sid-strip/golden-record.webp)">
+            <img src="/assets/img/sid-strip/golden-record.webp" alt="The Voyager Golden Record, its gold cover engraved with instructions for playing it" loading="lazy" decoding="async">
+            <figcaption><em>Inspired by</em><b>The Golden Record</b></figcaption>
+          </figure>
+          <figure class="sid-tile" style="--s: 1.02; --ar: 1.33; --src: url(/assets/img/sid-strip/strangers-project.webp)">
+            <img src="/assets/img/sid-strip/strangers-project.webp" alt="A wall of handwritten pages pegged on strings, a woman reading them" loading="lazy" decoding="async">
+            <figcaption><em>Best wall</em><b>The Strangers Project</b></figcaption>
           </figure>
           <figure class="sid-tile" style="--s: 1.03; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)">
             <img src="/assets/img/sid-strip/song-sky-i.webp" alt="A still from a favourite music video, arms out against the sky" loading="lazy" decoding="async">
@@ -23460,18 +23742,39 @@
          failsafe, it is the implementation. */
       (function () {
         function whenOpen(run) {
-          var loader = document.getElementById("site-loader");
-          if (!loader || window.__loaderInstantDone === true) {
-            run();
-            return;
-          }
+          /* ── AND AFTER THE CUBE HAS SPOKEN ────────────────────────────────
+             Sid: "it animates and starts the other homepage content."
+
+             The hero's typing is the page's second beat now, not its first.
+             It waits for the welcome sequence, which is itself waiting for the
+             door -- so the chain is: loader out, cube speaks, cube names its
+             three controls, THEN the sentence begins to type.
+
+             Two failsafes, because a sentence that never appears is a far
+             worse outcome than one that appears early. The welcome fires its
+             event on every path including every cancel, and this waits no more
+             than fourteen seconds for it regardless. */
           var fired = false;
           var go = function () {
             if (fired) return;
             fired = true;
             run();
           };
-          window.addEventListener("loaderDone", go, { once: true });
+          var afterDoor = function () {
+            if (window.__welcomeDone === true) {
+              go();
+              return;
+            }
+            window.addEventListener("sid:welcomedone", go, { once: true });
+            setTimeout(go, 14000);
+          };
+
+          var loader = document.getElementById("site-loader");
+          if (!loader || window.__loaderInstantDone === true) {
+            afterDoor();
+            return;
+          }
+          window.addEventListener("loaderDone", afterDoor, { once: true });
           setTimeout(go, 30000);
         }
 
@@ -23506,6 +23809,17 @@
             var ink = document.createElement("span");
             ink.className = "tw__ink";
             ink.textContent = txt;
+            /* ── HIDDEN FROM THE FIRST FRAME ────────────────────────────
+               Every line is written out in full and then typed over, which is
+               what reserves the box's final height before anything animates.
+               The hiding used to happen inside whenOpen, and whenOpen now
+               waits for the welcome sequence -- so for the six seconds the
+               cube was talking, the finished headline sat there fully
+               readable, and then blanked and retyped itself. Text that
+               appears, disappears and comes back is worse than text that was
+               never there. It is hidden at creation now; the height is still
+               reserved, and the only thing deferred is the reveal. */
+            ink.style.visibility = "hidden";
             ink.style.animationDelay = 240 + (hi * 2 + i) * 110 + "ms";
             el.appendChild(ink);
             host.appendChild(el);
@@ -23606,6 +23920,11 @@
             /* The story is over before it starts here, which is correct: the
              beats exist to stage an animation, and this is the branch that
              has asked for none. Everything the beats gate is present. */
+            /* Nothing types on this branch, so nothing would ever reveal
+               the lines that are now hidden from creation. */
+            inks.forEach(function (o) {
+              o.ink.style.visibility = "visible";
+            });
             document.documentElement.setAttribute("data-story", "3");
             document.documentElement.setAttribute("data-hero-typed", "1");
             window.dispatchEvent(new CustomEvent("sid:herotyped"));
