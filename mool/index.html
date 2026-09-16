@@ -1440,6 +1440,41 @@
         max-width: 620px;
       }
 
+      /* ══ THE OVERVIEW RESOLVES AS YOU COME TO IT ══════════════════════════
+         Sid: "on the project details, you have the one-liner. Can we have
+         scroll-based low-contrast-to-high-contrast activated text, where the
+         contrast increases based on the scroll, so we want them to read it?"
+
+         This is the one sentence on a thirty-screen page that has to be read,
+         and it was sitting at full strength before anybody had scrolled to
+         it, which is how a reader learns it is safe to skip. Resolving it word
+         by word as it crosses the window makes reading it the same gesture as
+         scrolling past it.
+
+         WHY THERE IS NO JAVASCRIPT PER WORD. The obvious build writes an
+         opacity to every span on every scroll event, which is thirty style
+         writes a frame on a page that is already animating. One custom
+         property on the paragraph carries the progress instead, and each word
+         works out its own opacity from that in CSS: `--p` is 0 to 1 for the
+         block, `--i` is the word's index and `--n` the count, so a word starts
+         resolving when the wave reaches it and is solid about one word later.
+         The browser recomputes those without a style recalculation of ours.
+
+         The floor is 0.2 rather than 0, because text that is invisible until
+         scrolled is text a reader can land in the middle of and find missing,
+         and it breaks find-in-page as a visual affordance. Faint is the
+         effect; absent is a bug. */
+      .intro-tagline w {
+        display: inline;
+        opacity: clamp(0.2, calc((var(--p, 1) * var(--n) - var(--i)) * 0.85 + 0.2), 1);
+        transition: opacity 120ms linear;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .intro-tagline w {
+          opacity: 1;
+        }
+      }
+
       /* ─── HIGHLIGHTS — recruiter-readable proof points ─── */
       .proj-highlights {
         display: grid;
@@ -4573,12 +4608,40 @@
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
       }
+      /* ── THE FACTS LINE UP, AND THEY ARE FACTS ────────────────────────
+         Sid: "the things below it in project details, like Who Are You,
+         Installation, Design and Build, and Generate a Visual System, have
+         alignment that is all off. I feel like the text is way too big in
+         contrast to the others."
+
+         Both, and they were the same fault. The value was rendering at 57.6px
+         against a 33.8px overview sentence, so three supporting facts were
+         nearly twice the size of the paragraph they support -- and at that
+         size "One question" wrapped to two lines while "Solo" did not, which
+         pushed its label 57px below the other two. The misalignment was the
+         oversize.
+
+         Each cell is a grid with the label on its own bottom row, so the
+         labels sit on one line whatever the values do above them, and the
+         value steps below the overview where a supporting fact belongs. */
       .proj-highlight {
         min-height: 0;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        gap: 10px;
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0));
       }
       .proj-highlight-value {
         font-weight: 420;
+        font-size: clamp(21px, 2.1vw, 31px) !important;
+        line-height: 1.12 !important;
+        letter-spacing: -0.02em !important;
+        margin: 0 !important;
+        align-self: start;
+      }
+      .proj-highlight-label {
+        margin: 0 !important;
+        align-self: end;
       }
       .proj-highlight-label,
       .meta-k,
@@ -5620,7 +5683,12 @@
       }
 
       .proj-highlight-value {
-        font-size: clamp(36px, 4vw, 64px) !important;
+        /* Was clamp(36px, 4vw, 64px), which rendered at 57.6px against a
+           33.8px overview sentence: three supporting facts at nearly twice
+           the size of the paragraph they support. See the note on
+           .proj-highlight above -- this is the rule that was actually
+           winning. */
+        font-size: clamp(21px, 2.1vw, 31px) !important;
       }
 
       .case-study-layout {
@@ -5847,8 +5915,12 @@
         font-variant-numeric: tabular-nums;
       }
 
-      html[data-theme="light"]
-      html[data-theme="light"]
+      /* Two dangling `html[data-theme="light"]` selectors used to sit here
+         with no declaration block between them and this @media. CSS parses
+         that as one selector list running into the at-rule, which is invalid,
+         so the reduced-motion block below was being discarded entirely and
+         the highlights still animated for readers who had asked them not to.
+         Left over from a deletion; nothing referenced them. */
       @media (prefers-reduced-motion: reduce) {
         .proj-highlight {
           opacity: 1;
@@ -5908,7 +5980,7 @@
       width: 100%;
       height: 100%;
     }
-  </style> <script src="/assets/js/site-field.js" defer></script> </body> <div class="progress-bar"><div class="progress-fill" id="progress"></div></div> <a class="skip-link" href="#main">Skip to project content</a> <div class="nav-scrim" aria-hidden="true"></div> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <span class="mark-fly"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-face cube-top" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <rect class="cube-face cube-right" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))"> <rect class="logo-eye" x="13.83" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> <rect class="logo-eye" x="20.88" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> </g> <rect class="logo-mouth" x="15.86" y="21.9" width="4.3" height="0.9" rx="0.45"></rect> <path class="logo-scan" d="M8.5 18 H27.5"></path> </svg> </span> <span class="studio-mark-label">Sid Mehta</span> </a> <div class="studio-right"> <nav class="studio-links" aria-label="Portfolio sections"> <span class="studio-out"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </span> <a class="studio-link is-active" href="/works/" aria-label="Work"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Play</b></span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Contact</b></span> </a> <a class="studio-link" href="/about/" aria-label="About"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>About</b></span> </a> <a class="studio-link" href="/sid-ai/" aria-label="Talk to Sid AI"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Sid AI</b></span> </a> </nav> </div> </header> <style>
+  </style> <script src="/assets/js/site-field.js" defer></script> </body> <a class="skip-link" href="#main">Skip to project content</a> <div class="nav-scrim" aria-hidden="true"></div> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <span class="mark-fly"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-face cube-top" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <rect class="cube-face cube-right" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))"> <rect class="logo-eye" x="13.83" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> <rect class="logo-eye" x="20.88" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> </g> <rect class="logo-mouth" x="15.86" y="21.9" width="4.3" height="0.9" rx="0.45"></rect> <path class="logo-scan" d="M8.5 18 H27.5"></path> </svg> </span> <span class="studio-mark-label">Sid Mehta</span> </a> <div class="studio-now" aria-hidden="true"> <b>Mool</b><i>UI · Fintech</i> </div> <div class="studio-right"> <nav class="studio-links" aria-label="Portfolio sections"> <span class="studio-out"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </span> <a class="studio-link is-active" href="/works/" aria-label="Work"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Play</b></span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Contact</b></span> </a> <a class="studio-link" href="/about/" aria-label="About"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>About</b></span> </a> <a class="studio-link" href="/sid-ai/" aria-label="Talk to Sid AI"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Sid AI</b></span> </a> </nav> </div> </header> <style>
   /* ── THE GLASS LAYER ──────────────────────────────────────────────────
      The canvas that draws the refracting capsules. Behind the nav's own
      content and above the scrim, spanning the whole bar so one surface can
@@ -6322,6 +6394,81 @@
     outline: none;
     transform: translateX(calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px)));
   }
+  /* ── AND IT ARRIVES AS THE HERO LEAVES ────────────────────────────────
+     Not a fade in place: it rises, the way a caption arrives under something
+     you have just finished looking at. The one-liner is held to a single line
+     with an ellipsis, because a nav that changes height as you scroll past
+     different projects is a nav that cannot be trusted to stay where it was.
+
+     `max-width` is a clamp rather than a percentage so the row cannot grow
+     into the section links on a narrow window; below 1100px it drops the note
+     and keeps the name, and below 900 it goes entirely, where the bar is a
+     full-width band with no room to spare. */
+  .studio-now {
+    position: absolute;
+    /* Same start as the cube's own line, and for the same reason: it has to
+       clear the mark, whose right edge is --grid-left + 36. This one is
+       absolute INSIDE the nav, whose own left inset is already --grid-left,
+       so the offset is the bare 56 rather than the full expression -- adding
+       the token again put it at 171 instead of 114. */
+    left: 56px;
+    top: 50%;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    max-width: clamp(220px, 34vw, 520px);
+    transform: translateY(calc(-50% + 7px));
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity 460ms ease,
+      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  body.nav-titled .studio-now {
+    opacity: 1;
+    transform: translateY(-50%);
+  }
+  .studio-now b {
+    flex: 0 0 auto;
+    font: 500 13px/1.2 var(--font-head, inherit);
+    letter-spacing: -0.005em;
+    color: var(--nav-ink);
+    white-space: nowrap;
+  }
+  .studio-now i {
+    flex: 0 1 auto;
+    min-width: 0;
+    font: 400 12px/1.3 var(--font-head, inherit);
+    font-style: normal;
+    color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  @media (max-width: 1180px) {
+    .studio-now i {
+      display: none;
+    }
+  }
+  @media (max-width: 900px) {
+    .studio-now {
+      display: none;
+    }
+  }
+  /* ── AND WHILE IT IS CARRYING ONE, THE BAR STAYS ──────────────────────
+     The retract-on-scroll-down rule is right for a page whose chrome is only
+     navigation: it is in the way of what you came for. A bar that is telling
+     you which project you are inside is no longer only navigation, and a
+     label that disappears exactly while you are reading past it is worse than
+     no label. So on a titled page it holds. */
+  body.nav-titled.nav-away .studio-nav,
+  body.nav-titled.nav-away .nav-scrim,
+  html[data-idle="on"] body.nav-titled .studio-nav {
+    transform: none;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
   /* The bar becomes a full-width band on small screens and there is no margin
      left to sit in. */
   @media (max-width: 900px) {
@@ -8104,7 +8251,20 @@
       margin-left 420ms cubic-bezier(0.16, 1, 0.3, 1);
     margin-left: 0;
   }
-  .studio-link.is-active > span,
+  /* ── THE CURRENT PAGE DOES NOT NEED TO BE TOLD TO YOU ─────────────────
+     Sid: "no need for text to show up when u are on the page we can just have
+     the icon that is activated have color and a soft pulsating in and out
+     glow slowly to show its activated and we show the text on hover."
+
+     `.is-active` used to open its label permanently, so the bar carried one
+     word at all times naming the page you were already on. That word is also
+     what pushed the row wider and sent the colour swatches left into the
+     logomark, which is the thing he actually noticed.
+
+     The colour arriving in the mark already says "this one", and it says it
+     without spending horizontal space. The pulse below makes it unmissable
+     without adding an object. Hover and keyboard focus still open the label,
+     because those are questions, and a question deserves an answer. */
   .studio-link:hover > span,
   .studio-link:focus-visible > span {
     /* 9ch clears "Contact" with room; max-width animates to a bound rather
@@ -8113,6 +8273,47 @@
     opacity: 1;
     margin-left: 7px;
   }
+  /* ── AND IT BREATHES ──────────────────────────────────────────────────
+     A halo in the item's own colour, behind the mark, on a slow cycle. It is
+     a radial gradient on a pseudo-element animating opacity and transform,
+     both of which the compositor handles, rather than a `drop-shadow` filter
+     animation -- that would re-rasterise the glyph on every frame of a loop
+     that never stops.
+
+     3.8 seconds, because the point is "lit", not "alert". Anything near a
+     second reads as a notification badge asking to be dealt with. */
+  .studio-link.is-active .nav-ico::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 42px;
+    height: 42px;
+    margin: -21px 0 0 -21px;
+    border-radius: 50%;
+    background: radial-gradient(circle, currentColor 0%, transparent 68%);
+    opacity: 0.22;
+    pointer-events: none;
+    animation: navPulse 3800ms ease-in-out infinite;
+  }
+  @keyframes navPulse {
+    0%,
+    100% {
+      opacity: 0.16;
+      transform: scale(0.88);
+    }
+    50% {
+      opacity: 0.46;
+      transform: scale(1.1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .studio-link.is-active .nav-ico::before {
+      animation: none;
+      opacity: 0.3;
+    }
+  }
+
   /* The mark is what is always there, so it carries the state instead. */
   .studio-link .nav-icon,
   .studio-link img {
@@ -8120,6 +8321,30 @@
       opacity 260ms ease,
       transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
   }
+  /* ── SID AI IS NOT ONE OF THE FOUR ───────────────────────────────────
+     Sid: "see that the Talk to AI button and the icons on the navbar are
+     spaced out properly."
+
+     Work, Play, Contact and About are places on this site; Sid AI is a thing
+     that answers you. They were five icons on one even 18px rhythm, so the
+     bar read as five sections, one of which happened to be a chat. A wider
+     gap and a hairline before the last one is the least that says "different
+     kind of thing" without adding a control or a label. */
+  .studio-link:last-of-type {
+    margin-left: 16px;
+  }
+  .studio-link:last-of-type::before {
+    content: "";
+    position: absolute;
+    left: -17px;
+    top: 50%;
+    width: 1px;
+    height: 15px;
+    margin-top: -7px;
+    background: currentColor;
+    opacity: 0.16;
+  }
+
   .studio-link:not(.is-active) {
     opacity: 0.62;
   }
@@ -8752,7 +8977,16 @@
        line starting just past the mark belongs to the mark. It begins one
        grid step right of the first vertical, which puts clear air between it
        and the cube without letting it drift toward the nav. */
-    left: calc(var(--grid-left) + 26px);
+    /* ── AND CLEAR OF THE MARK, WHICH IT WAS NOT ──────────────────────
+       Sid: "why are the color squares crossing over to my logomark."
+
+       Measured: the mark occupies 58 to 94 at 1440 and this sat at 84, so the
+       first two swatches were printed over the logo. `--grid-left + 26` was
+       written when the mark still sat ON the grid line; it has since been
+       pulled into the left margin, which moved its right edge 36px further
+       right and left this where it was. +56 puts twenty pixels of air between
+       the cube and the first thing it says. */
+    left: calc(var(--grid-left) + 56px);
     transform: translateY(4px);
     height: 48px;
     display: flex;
@@ -8918,6 +9152,14 @@
   /* Goes with the chrome. The FAB and the theme toggle already fade out while
      the page is moving, and a bubble that stayed put while they left would
      read as a separate system stuck to the glass. */
+  /* One thing at a time in the bar. On a project page the nav carries the
+     project's name from the moment the hero leaves, and that is persistent
+     state; this is a transient hover thought. Two of them starting at the
+     same x would overlap, and the passing remark is the one that can wait. */
+  body.nav-titled #cube-says {
+    opacity: 0 !important;
+    transform: translateX(-10px) !important;
+  }
   body.is-scrolling #cube-says {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -9416,7 +9658,7 @@
       { passive: true }
     );
   })();
-</script> <main id="main" data-cube="Most banks speak only to those who already have."> <a class="proj-marker" id="proj-marker" href="/works/" aria-hidden="true" tabindex="-1"> <i class="proj-marker__arrow" aria-hidden="true"></i> <span class="proj-marker__name">Mool</span> </a> <header class="proj-hero"> <img class="hero-video" src="/5.mool/cover-award.jpg" alt="Mool cover, Kyoorius Design Award 2021" loading="eager" fetchpriority="high" style="--hero-pos: 22% 42%;"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title" data-livetype data-livetype-zone=".proj-hero, section, main" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="150"> Mool </h1> </div> <aside class="hero-recruiter-brief" aria-label="Project at a glance"> <span class="hero-brief-shade" aria-hidden="true"></span> <p class="hero-brief-label">At a glance</p> <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">UI · Fintech</span></p> <p class="hero-brief-fact hero-brief-fact--role"> <span class="hero-brief-key">Role</span><span class="hero-brief-value">Visual Designer · Leaf Design Studio</span> </p> <p class="hero-brief-fact"> <span class="hero-brief-key">Proof</span><span class="hero-brief-value">100k+ · downloads</span> </p> </aside> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Duration</p> <p class="meta-v"> 6 months </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2021 </p> </div> <div class="meta-item"> <p class="meta-k">Tools</p> <p class="meta-v"> Figma </p> </div> <div class="meta-item"> <p class="meta-k">Team</p> <p class="meta-v"> Leaf Design Studio </p> </div> <div class="meta-item"> <p class="meta-k">Case Study</p> <p class="meta-v"> <a href="https://www.leafdesign.co/work/mool" target="_blank" rel="noopener noreferrer">View on Leaf Design<span class="xarrow" aria-hidden="true"></span></a> </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Led visual design for a neo-banking product that made everyday financial tools feel familiar and trustworthy for underserved communities across India. </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">100k+</p> <p class="proj-highlight-label">downloads</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">6 months</p> <p class="proj-highlight-label">design timeline</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Kyoorius</p> <p class="proj-highlight-label">Design Award · 2021</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <div class="proj-body" id="case-archive"> <style>
+</script> <main id="main" data-cube="Most banks speak only to those who already have."> <header class="proj-hero"> <img class="hero-video" src="/5.mool/cover-award.jpg" alt="Mool cover, Kyoorius Design Award 2021" loading="eager" fetchpriority="high" style="--hero-pos: 22% 42%;"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title" data-livetype data-livetype-zone=".proj-hero, section, main" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="150"> Mool </h1> </div> <aside class="hero-recruiter-brief" aria-label="Project at a glance"> <span class="hero-brief-shade" aria-hidden="true"></span> <p class="hero-brief-label">At a glance</p> <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">UI · Fintech</span></p> <p class="hero-brief-fact hero-brief-fact--role"> <span class="hero-brief-key">Role</span><span class="hero-brief-value">Visual Designer · Leaf Design Studio</span> </p> <p class="hero-brief-fact"> <span class="hero-brief-key">Proof</span><span class="hero-brief-value">100k+ · downloads</span> </p> </aside> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Duration</p> <p class="meta-v"> 6 months </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2021 </p> </div> <div class="meta-item"> <p class="meta-k">Tools</p> <p class="meta-v"> Figma </p> </div> <div class="meta-item"> <p class="meta-k">Team</p> <p class="meta-v"> Leaf Design Studio </p> </div> <div class="meta-item"> <p class="meta-k">Case Study</p> <p class="meta-v"> <a href="https://www.leafdesign.co/work/mool" target="_blank" rel="noopener noreferrer">View on Leaf Design<span class="xarrow" aria-hidden="true"></span></a> </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Led visual design for a neo-banking product that made everyday financial tools feel familiar and trustworthy for underserved communities across India. </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">100k+</p> <p class="proj-highlight-label">downloads</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">6 months</p> <p class="proj-highlight-label">design timeline</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Kyoorius</p> <p class="proj-highlight-label">Design Award · 2021</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <div class="proj-body" id="case-archive"> <style>
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
   .cs-bleed::before { display: none !important; }
@@ -10517,7 +10759,7 @@
       }
     });
   })();
-</script> <div class="lgrid-head" aria-hidden="true"> <i style="--i: 0"></i><i style="--i: 3"></i> </div> <div class="lgrid" aria-hidden="true"> <span class="lgrid__box"> <i class="lgrid__v" style="--i: 0"></i> <i class="lgrid__v" style="--i: 3"></i> </span> </div> <style>
+</script> <div class="lgrid" aria-hidden="true"> <span class="lgrid__box"> <i class="lgrid__v" style="--i: 0"></i> <i class="lgrid__v" style="--i: 3"></i> </span> </div> <style>
   .lgrid {
     position: fixed;
     inset: 0;
@@ -10533,7 +10775,33 @@
        top of it. At 0 it sits behind the page's own content, which all
        declares 1 or above, so the lines now show in the space between cards
        and stop at their edges. */
-    z-index: 0;
+    /* ── AND THAT IS WHY IT STOPPED WORKING ────────────────────────────
+       Sid: "check on the grid lines i dont think the way we have them
+       currently is functional and its def not aesthetic see whats wrong."
+
+       Behind the content was the right instinct for a page of cards and the
+       wrong one for this site, because so much of it is full bleed. Measured
+       across five routes the two verticals land exactly on the content column
+       every time -- 58 and 1377 at 1440 -- so the geometry was never the
+       problem. What a reader actually saw was a line that existed for the
+       104px of the nav band, disappeared behind the hero image, came back in
+       the gap under it, then disappeared again behind the next full-bleed
+       frame. A rule that appears in patches does not read as a measure; it
+       reads as a rendering fault, which is the "not aesthetic" half.
+
+       It was also two layers: a copy clipped to the header and drawn ABOVE
+       the nav scrim, plus the page's own drawn below everything. Two layers
+       at two alphas from two different expressions is how the patchiness got
+       built in.
+
+       One layer now, continuous, above the content and under the bar's own
+       marks. That is what this include's opening note always said it was for
+       -- "it gives every full-bleed element something to be measured against"
+       -- which requires being visible ON the full-bleed element. The alpha
+       comes down to pay for it: over a photograph a hairline at 0.05 is a
+       suggestion, and a suggestion running the whole height of the page is
+       worth more than a firm line running a tenth of it. */
+    z-index: 8995;
     pointer-events: none;
     contain: strict;
     color: var(--ink, #f0f6fc);
@@ -10586,6 +10854,11 @@
     background: currentColor;
     opacity: 0.05;
     left: calc((var(--i) / 3) * 100%);
+    /* Over a photograph a flat ink hairline either vanishes into a highlight
+       or prints as a dark scratch across a shadow. Overlay resolves against
+       whatever it crosses, so the same line stays a line over the hero, over
+       cream and over black. */
+    mix-blend-mode: overlay;
   }
   /* The last line would sit one pixel outside the box on the right edge. */
   .lgrid__v:nth-child(2) {
@@ -10596,7 +10869,8 @@
      the four inside them are subdivisions and should read as quieter. */
   .lgrid__v:first-child,
   .lgrid__v:nth-child(2) {
-    opacity: 0.075;
+    /* Down from 0.075, because it is over the content now, not under it. */
+    opacity: 0.055;
   }
 
   .lgrid__h {
@@ -10623,7 +10897,7 @@
   }
   html[data-theme="light"] .lgrid__v:first-child,
   html[data-theme="light"] .lgrid__v:nth-child(2) {
-    opacity: 0.09;
+    opacity: 0.075;
   }
   html[data-theme="light"] .lgrid__h {
     opacity: 0.04;
@@ -11797,47 +12071,6 @@
 
      It sits below the nav's own contents at 8999 against the bar's 9000, so
      the mark and the links are always in front of it. */
-  .lgrid-head {
-    position: fixed;
-    inset: 0 0 auto 0;
-    height: 104px;
-    z-index: 8999;
-    pointer-events: none;
-    contain: strict;
-    color: var(--ink, #f0f6fc);
-  }
-  /* Positioned off --grid-left, the token the whole site measures from, so
-     these land on the same two verticals the page draws rather than on the
-     viewport edges. Copying the page grid's own `left: calc((var(--i)/3) *
-     100%)` was tried and put them at 0 and 1512: that rule is overridden
-     further down by a first-child / nth-child pair that pins them to the
-     measure, and duplicating one half of a two-part rule is how a copy drifts
-     from its original. */
-  .lgrid-head i {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: currentColor;
-    /* A touch stronger than the 0.05 the page uses. The scrim behind the bar
-       is denser than the page ground, so the same alpha reads as nothing
-       there -- matching the NUMBER would not match the line. */
-    opacity: 0.085;
-  }
-  .lgrid-head i:first-child {
-    left: var(--grid-left, 60px);
-  }
-  .lgrid-head i:last-child {
-    right: var(--grid-left, 60px);
-  }
-  html[data-theme="light"] .lgrid-head i {
-    opacity: 0.1;
-  }
-  @media (max-width: 900px) {
-    .lgrid-head {
-      display: none;
-    }
-  }
 </style> <script src="/assets/js/idle-drift.js" defer></script> <script src="/assets/js/drifters.js" defer></script> <script src="/assets/js/site-caustics.js" defer></script> <div class="film" aria-hidden="true"> <div class="film__grain" id="film-grain"></div> <div class="film__vig"></div> </div> <style>
   .film {
     position: fixed;
@@ -16622,6 +16855,93 @@
          aria-hidden and tabindex are toggled with it rather than left set:
          a link that is invisible but still in the tab order is a trap, and
          one that is visible but hidden from assistive tech is worse. */
+      /* ── AND THE PROGRESS THAT DRIVES IT ─────────────────────────────
+         Words are wrapped once, at load, into <w> elements -- a custom
+         element name rather than a span so nothing in the sheet that styles
+         spans inside body copy has an opinion about them. Then one rAF-gated
+         scroll handler writes a single property.
+
+         The ramp is measured against the paragraph crossing the lower half of
+         the window: it begins as the block's top reaches 82% of the viewport
+         and completes by the time it has travelled to 38%, which is where a
+         reader's eye actually sits. Quantised to a hundredth so a slow scroll
+         does not write the same value forty times. */
+      (function () {
+        var el = document.querySelector(".intro-tagline");
+        if (!el || el.querySelector("w")) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+        var words = (el.textContent || "").trim().split(/\s+/);
+        if (words.length < 2) return;
+        el.textContent = "";
+        for (var i = 0; i < words.length; i++) {
+          var w = document.createElement("w");
+          w.style.setProperty("--i", i);
+          w.textContent = words[i] + (i < words.length - 1 ? " " : "");
+          el.appendChild(w);
+        }
+        el.style.setProperty("--n", words.length);
+        el.style.setProperty("--p", "0");
+
+        var raf = 0,
+          last = -1,
+          onScreen = false;
+
+        function read() {
+          raf = 0;
+          var r = el.getBoundingClientRect();
+          var vh = window.innerHeight || 1;
+          var p = (vh * 0.82 - r.top) / (vh * 0.44);
+          p = Math.max(0, Math.min(1, p));
+          var q = Math.round(p * 100);
+          if (q === last) return;
+          last = q;
+          el.style.setProperty("--p", (q / 100).toFixed(2));
+        }
+        function ping() {
+          if (!raf && onScreen) raf = requestAnimationFrame(read);
+        }
+        if ("IntersectionObserver" in window) {
+          new IntersectionObserver(
+            function (es) {
+              onScreen = es[0].isIntersecting;
+              if (onScreen) ping();
+            },
+            { rootMargin: "20% 0px" }
+          ).observe(el);
+        } else onScreen = true;
+        window.addEventListener("scroll", ping, { passive: true });
+        window.addEventListener("resize", ping, { passive: true });
+        read();
+      })();
+
+      /* ── THE BAR PICKS THE PROJECT UP WHERE THE HERO PUTS IT DOWN ──────
+         One class on <body>, flipped when the hero's last 140px leave the top
+         of the window, so the name arrives as the title goes rather than after
+         it. The same threshold the back pill used, because it was the right
+         threshold; it is the control that was redundant, not the timing. */
+      (function () {
+        var hero0 = document.querySelector(".proj-hero");
+        if (!hero0) return;
+        var on = false,
+          r0 = 0;
+        function look() {
+          r0 = 0;
+          var want = hero0.getBoundingClientRect().bottom < 72;
+          if (want === on) return;
+          on = want;
+          document.body.classList.toggle("nav-titled", on);
+        }
+        window.addEventListener(
+          "scroll",
+          function () {
+            if (!r0) r0 = requestAnimationFrame(look);
+          },
+          { passive: true }
+        );
+        look();
+      })();
+
       (function () {
         var marker = document.getElementById("proj-marker");
         var hero = document.querySelector(".proj-hero");
