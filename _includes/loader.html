@@ -35,11 +35,23 @@
     width: clamp(64px, 7vw, 104px);
     height: clamp(64px, 7vw, 104px);
     transform: translate(-50%, -50%);
-    border: 1.5px solid rgba(244, 247, 251, 0.82);
-    border-radius: 10px;
-    box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.4),
-      0 0 60px -10px rgba(176, 226, 255, 0.4);
+    /* ── NO STROKE ────────────────────────────────────────────────────
+       Sid: "i dont like the weird white stroke square and the black bg in the
+       starting entry animation."
+
+       A 1.5px white outline is a frame, and a frame around the first thing a
+       visitor sees says "here is a picture" rather than "here is a thing
+       arriving". Worse, it never dissolves: the eye resolves inside it and
+       the outline stays crisp, so the moment that should read as an image
+       forming reads as an image loading into a box.
+
+       What is left is the light, which was doing the actual work: a soft
+       bloom at the size the eye will occupy, with no edge of its own. It
+       still marks the place, and it has nothing to stay crisp. */
+    border: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(176, 226, 255, 0.16), rgba(176, 226, 255, 0.05) 52%, transparent 74%);
+    box-shadow: 0 0 70px -8px rgba(176, 226, 255, 0.34);
     z-index: 8;
     pointer-events: none;
     /* Breathes while it waits, so a visitor who has not scrolled yet can see
@@ -49,12 +61,12 @@
   @keyframes slSquareHold {
     0%,
     100% {
-      opacity: 0.9;
-      border-radius: 10px;
+      opacity: 0.85;
+      transform: translate(-50%, -50%) scale(1);
     }
     50% {
-      opacity: 0.55;
-      border-radius: 26px;
+      opacity: 0.5;
+      transform: translate(-50%, -50%) scale(1.14);
     }
   }
   /* .sl-phase.active owns the fade in. It briefly carried `opacity: 0` here
@@ -2012,6 +2024,34 @@
           /* The line leaves on its own, a beat ahead of the panel, so it
              departs rather than being switched off with everything else. */
           fadeHelloOnVideoEnd();
+          /* ── AND IT DISSOLVES THROUGH, NOT OFF ────────────────────────
+             Sid: "a seamless nice animation transition from the initial
+             onboarding sequence for new users to the homepage ... crucial to
+             get right and smooth otherwise recruiter might get mood off from
+             beginning of bad ux."
+
+             The loader already faded out over 800ms, which sounds seamless
+             and was not, because of what is underneath: the opening is black
+             and the home page is paper. Fading a black sheet to nothing over
+             a cream page is a dissolve from black to white, and the eye reads
+             that as a flash however long you give it.
+
+             So the black goes first and the content second. The backdrop and
+             the phase grounds fade out over the first half, which brings the
+             paper up THROUGH the film while the film is still legible, and
+             the film itself follows. What a visitor sees is the opening
+             becoming the page rather than the opening leaving and the page
+             arriving. */
+          var grounds = [document.getElementById("enter-backdrop")].concat(
+            [].slice.call(loader.querySelectorAll(".sl-phase, #sl-video-phase, #sl-loading-phase"))
+          );
+          grounds.forEach(function (g) {
+            if (!g) return;
+            g.style.transition = "background-color " + Math.round(fade * 0.6) + "ms ease, opacity " + Math.round(fade * 0.6) + "ms ease";
+            g.style.backgroundColor = "transparent";
+          });
+          var bd3 = document.getElementById("enter-backdrop");
+          if (bd3) bd3.style.opacity = "0";
           loader.style.transition = "opacity " + fade + "ms ease";
           loader.style.opacity = "0";
 
