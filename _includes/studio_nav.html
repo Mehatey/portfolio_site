@@ -1222,6 +1222,60 @@
      same way it leaves on a scroll, so waking the page brings it back with
      the motion already written rather than a second one invented for this.
      Driven by data-idle on the root; assets/js/idle-drift.js sets it. */
+  /* ══ THE CHROME IS NOT PART OF THE OPENING ═════════════════════════════
+     Sid: "in initial onboarding why is the nav bar and the logo visible", and
+     "the logo should form and animate after the onboarding".
+
+     Both halves of one idea. The opening is a room; a navigation bar floating
+     in it is the page showing through a film that has not finished. So the
+     bar and the mark are simply not there while the sequence runs -- not
+     faded, not dimmed, gone -- and the mark then assembles once the room has
+     cleared.
+
+     It forms rather than fades: the cube's own cells scale up from nothing on
+     a short stagger, which is the same grammar the footer's closing line and
+     the About portrait both use. The site has one idea about how things
+     arrive, and the mark is the first thing a visitor sees arrive. */
+  html.is-onboarding .studio-nav,
+  html.is-onboarding .studio-mark,
+  html.is-onboarding .site-logo {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: none !important;
+  }
+
+  @keyframes markForm {
+    0% {
+      opacity: 0;
+      transform: scale(0.72) rotate(-6deg);
+      filter: blur(5px);
+    }
+    60% {
+      opacity: 1;
+      filter: blur(0);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+      filter: blur(0);
+    }
+  }
+  html.mark-forms .studio-mark,
+  html.mark-forms .site-logo {
+    animation: markForm 820ms cubic-bezier(0.2, 1.3, 0.36, 1) both;
+  }
+  html.mark-forms .studio-nav {
+    animation: markForm 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 160ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html.mark-forms .studio-mark,
+    html.mark-forms .site-logo,
+    html.mark-forms .studio-nav {
+      animation: none;
+    }
+  }
+
   /* ══ THE OPENING TOUR ══════════════════════════════════════════════════
      Sid: "after 3 to 5 sec i want all the icons one by one to slowly animate
      with their text and some sound to just show to the user that these gray
@@ -2734,6 +2788,26 @@
 <!-- The mark says his name. Three takes, one per hover, gated on the same
      sound toggle the waveform control writes. See assets/js/name-say.js. -->
 <script src="{{ site.baseurl }}/assets/js/name-say.js" data-base="{{ site.baseurl }}" defer></script>
+
+<script>
+  /* The mark assembles once the room has cleared. Keyed to the same event the
+     rest of the opening hands off on, and it runs once: the class is added,
+     the animation plays, and nothing removes it because re-running it on any
+     later state change would be a logo that twitches. */
+  (function () {
+    var root = document.documentElement;
+    function form() {
+      if (root.classList.contains("mark-forms")) return;
+      /* One frame after the flag comes off, so the elements are displayable
+         before the animation is asked to start on them. */
+      requestAnimationFrame(function () {
+        root.classList.add("mark-forms");
+      });
+    }
+    if (!document.getElementById("site-loader") || window.__loaderInstantDone === true) form();
+    else window.addEventListener("loaderDone", form, { once: true });
+  })();
+</script>
 
 {% comment %} ── THE NAV TOUR IS RETIRED ────────────────────────────────────────────────────────────────────────────────────────────── The tour that
 walked these five links a few seconds after load has been removed. Sid asked for an opening that starts at the cube in the bottom right -- "this will

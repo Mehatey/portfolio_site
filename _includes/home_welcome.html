@@ -296,10 +296,13 @@
       timers.push(
         setTimeout(function () {
           document.body.classList.add("controls-peek");
-        }, 900)
+        }, 520)
       );
 
-      var t = 1750;
+      /* Tightened from 1750/1250. The whole sequence now runs in about half
+         the time it did, because it is playing alongside the headline rather
+         than in front of it and has no reason to be stately. */
+      var t = 1000;
       BEATS.forEach(function (beat, i) {
         timers.push(
           setTimeout(
@@ -323,15 +326,38 @@
             document.body.classList.remove("controls-peek");
             finish();
           },
-          t + BEATS.length * 1250 + 500
+          t + BEATS.length * 900 + 400
         )
       );
     }
 
-    /* After the door, and one beat after it so the page is settled rather than
-       still arriving. */
+    /* ── AFTER THE FIRST CLAUSE, NOT BEFORE THE PAGE ────────────────────
+       This used to run before the hero typed anything, which put the page's
+       own sentence thirteen seconds behind the open. It waits for the first
+       clause to land instead -- data-story counts completed lines, so beat one
+       is the claim having arrived -- and then talks over the reading of the
+       second. If the typing never starts for any reason, a timer still opens
+       it, because the corner should be explained whether or not the headline
+       cooperated. */
     function arm() {
-      timers.push(setTimeout(run, 500));
+      if (document.documentElement.getAttribute("data-story")) {
+        timers.push(setTimeout(run, 150));
+        return;
+      }
+      var fired = false;
+      var start = function () {
+        if (fired) return;
+        fired = true;
+        timers.push(setTimeout(run, 150));
+      };
+      var mo = new MutationObserver(function () {
+        if (document.documentElement.getAttribute("data-story")) {
+          mo.disconnect();
+          start();
+        }
+      });
+      mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-story"] });
+      timers.push(setTimeout(start, 3800));
     }
     if (window.__loaderInstantDone === true || !document.getElementById("site-loader")) arm();
     else window.addEventListener("loaderDone", arm, { once: true });

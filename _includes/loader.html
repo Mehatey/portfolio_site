@@ -3,7 +3,23 @@
     position: fixed;
     inset: 0;
     z-index: 9999;
-    background: transparent;
+    /* ── A BLACK ROOM ──────────────────────────────────────────────────────
+       Sid: "i dont like the bg shader we have for the onboarding ... instead
+       just place the stuff in a black room with some live dust and noise with
+       focus on image and typography."
+
+       It was transparent, which meant the opening was composited over
+       whatever the home page happened to be doing underneath -- the starfield,
+       the nebula, the hero's own GL stage -- and none of that was chosen for
+       it. Hence a shader nobody designed showing through an intro nobody could
+       control, and an #enter-backdrop that had drifted to cream and was
+       lighting the whole thing from behind.
+
+       The room is the loader's own ground now: solid black, with the dust
+       canvas and a fine grain over it and nothing else. Everything that was
+       showing through is simply behind an opaque surface, which is also why
+       the film's matte stopped mattering. */
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -48,10 +64,17 @@
        What is left is the light, which was doing the actual work: a soft
        bloom at the size the eye will occupy, with no edge of its own. It
        still marks the place, and it has nothing to stay crisp. */
+    /* ── AND NOT A CIRCLE EITHER ──────────────────────────────────────
+       Sid: "there is this weird circle on a black square coming."
+
+       The circle was mine. Replacing the stroked square with a bloom, I gave
+       it border-radius 50% and a box-shadow -- and a box-shadow on a rounded
+       box has an edge by definition, so the frame came back as a ring of
+       light instead of a line. A glow should have no boundary at all: one
+       radial gradient falling to nothing, and the element itself invisible. */
     border: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(176, 226, 255, 0.16), rgba(176, 226, 255, 0.05) 52%, transparent 74%);
-    box-shadow: 0 0 70px -8px rgba(176, 226, 255, 0.34);
+    background: radial-gradient(circle, rgba(176, 226, 255, 0.13), rgba(176, 226, 255, 0.04) 46%, transparent 70%);
+    box-shadow: none;
     z-index: 8;
     pointer-events: none;
     /* Breathes while it waits, so a visitor who has not scrolled yet can see
@@ -119,6 +142,39 @@
       margin-top: 0;
     }
   }
+  /* ── THE EYE HAS NO PLATE ───────────────────────────────────────────────
+     Sid: "there is this weird circle on a black square coming."
+
+     The square is the footage. loading-ani-web.mp4 carries a black matte, and
+     a black rectangle laid over a starfield is not invisible -- the field is
+     lighter than pure black, so the matte reads as a plate with a hard edge
+     around the eye, which is the "black square".
+
+     `screen` composites by taking the lighter of the two, so a pure black
+     matte contributes nothing and vanishes while the lit part of the frame
+     stays. The eye then sits IN the field rather than on a card in front of
+     it, which is what the phase was always trying to say. The phase loses its
+     own black ground for the same reason. */
+  #sl-loading-phase {
+    background: transparent;
+  }
+  #sl-loading-phase video {
+    /* ── THE MATTE, MASKED RATHER THAN BLENDED ────────────────────────────
+       `screen` was the obvious answer and it cannot work here. The blend
+       composites against this element's own backdrop, and between the film
+       and the starfield sits #enter-backdrop, which is opaque black -- and
+       screen against pure black is the identity. So the matte stayed, and the
+       eye kept its plate.
+
+       A mask does not care what is behind it. The footage is a centred
+       subject on black, so a soft-edged radial takes the corners and the rim
+       out and leaves the middle untouched: the film ends by running out of
+       light rather than by running out of frame, which is the same thing the
+       desk plate and the footer film both do further down the site. */
+    mix-blend-mode: screen;
+    -webkit-mask-image: radial-gradient(closest-side, #000 52%, rgba(0, 0, 0, 0.72) 74%, transparent 97%);
+    mask-image: radial-gradient(closest-side, #000 52%, rgba(0, 0, 0, 0.72) 74%, transparent 97%);
+  }
   /* Phase 2 loading-ani video — bigger on mobile so the brain/eyes read clearly */
   @media (max-width: 700px) {
     #sl-loading-phase video {
@@ -146,20 +202,45 @@
     margin-top: clamp(18px, 2.2vh, 30px);
     z-index: 10;
     font-family: var(--font-head);
-    font-size: clamp(14px, 1.15vw, 18px);
-    font-weight: 300;
-    letter-spacing: 0.012em;
-    line-height: 1.45;
-    color: rgba(232, 242, 252, 0.82);
-    /* A whisper of the old glow. The 28px bloom belonged to 72px type and at
-       this size it only fuzzes the letterforms. */
-    text-shadow: 0 0 18px rgba(140, 200, 255, 0.28);
+    /* ── THE LINE THAT MATTERS MOST WAS THE SMALLEST ──────────────────
+       Sid: "i hope you feel the love i put into it is barely legible and too
+       small."
+
+       It was 14 to 18px at weight 300 and 0.82 alpha, with a glow on top. All
+       four of those work against reading: light weight at small size on a
+       dark ground is the classic way to make type look elegant in a mock-up
+       and vanish on a screen, and a bloom at this size fuzzes the letterforms
+       rather than lifting them.
+
+       This is the one sentence in the opening that is not about the work --
+       it is the person saying why the thing exists -- and it was the quietest
+       element on screen. Half again as large, a weight up, nearly opaque, and
+       the glow gone so the edges stay sharp. */
+    font-size: clamp(19px, 1.7vw, 27px);
+    font-weight: 350;
+    letter-spacing: -0.004em;
+    line-height: 1.4;
+    color: rgba(240, 247, 255, 0.96);
+    text-shadow: 0 1px 16px rgba(4, 8, 16, 0.55);
     min-height: 1.45em;
     text-align: center;
     white-space: nowrap;
     pointer-events: none;
   }
   /* Loader dust */
+  /* The noise. One tiling data URI at low alpha, which is the cheapest way to
+     stop a large black field reading as a dead rectangle -- a room has air in
+     it. Above the dust so both are in the same atmosphere. */
+  #site-loader::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+  }
   #loader-dust {
     position: absolute;
     inset: 0;
@@ -247,6 +328,19 @@
 
 <!-- Solid dark backdrop — hides homepage content during entry + loader phases -->
 <div id="enter-backdrop"></div>
+<script>
+  /* The flag is set where the sequence starts and there are four places it can
+     end -- the normal finish, the 25s failsafe, the skip, and the reduced
+     motion path. Clearing it on the event instead of at each of them means a
+     route added later cannot forget. */
+  window.addEventListener(
+    "loaderDone",
+    function () {
+      document.documentElement.classList.remove("is-onboarding");
+    },
+    { once: true }
+  );
+</script>
 
 <!-- Portal flash — the payoff beat when Buddha collapses into the loader on Enter click -->
 <div id="enter-flash" aria-hidden="true"></div>
@@ -1155,7 +1249,7 @@
   /* Hello — push down on small phones so it doesn't overlap the cube video. */
   @media (max-width: 700px) {
     #sl-hello {
-      font-size: clamp(13px, 3.5vw, 16px);
+      font-size: clamp(16px, 4.4vw, 21px);
       white-space: normal;
       max-width: 86vw;
       line-height: 1.4;
@@ -1581,6 +1675,16 @@
          so the escape hatch has never been visible either. */
       loader.style.display = "flex";
       loader.classList.add("is-running");
+      /* ── AND THE SITE'S CHROME IS NOT IN THE ROOM ───────────────────────
+         Sid: "in initial onboarding why is the nav bar and the logo visible."
+
+         Because nothing ever told them not to be. The loader sits at z-index
+         9999 and the nav at 9000, so the bar was simply below it and showing
+         through wherever the opening was transparent -- and the mark in the
+         corner sits above even that. An opening that shares the screen with
+         the navigation is not an opening, it is a page with a video on it.
+         One flag on the root, and the nav's own stylesheet answers it. */
+      document.documentElement.classList.add("is-onboarding");
 
       setTimeout(function () {
         if (loader && loader.parentNode) {
@@ -1824,7 +1928,10 @@
            the loader holds briefly past its end, so 2.5 puts the second line
            at the midpoint with the whole back half to be read in. */
         { text: "Hey, I'm Sid. Welcome to my portfolio.", at: 0.15 },
-        { text: "I hope you feel the love I put into it.", at: 2.85 },
+        /* Later than 2.85 so the first line is not still being read when the
+           second arrives, and early enough that the longer hold above leaves
+           it comfortably on screen. */
+        { text: "I hope you feel the love I put into it.", at: 3.2 },
       ];
 
       // ── SCRAMBLE REVEAL ── each char cycles through random glyphs then settles to the real char.
@@ -2018,7 +2125,17 @@
            six seconds either way and the last sentence is the one a visitor
            is most likely to actually read, because by then the film has their
            attention. */
-        var hold = quick ? 0 : 1150;
+        /* ── AND IT IS NOT IN A HURRY ──────────────────────────────────
+           Sid: "that whole sequence i feel is a little too fast."
+
+           1150 was tuned to the question "is the last line readable at all",
+           and the answer it reached -- about 1.1 seconds of legibility -- is
+           the floor rather than the target. The note above is honest that
+           anything past 1150 stopped changing that measurement, which is true
+           and was the wrong thing to optimise: the point is not that the
+           sentence can be read, it is that somebody has time to take it in
+           before the page arrives. 2100 gives it a beat to land in. */
+        var hold = quick ? 0 : 2100;
         var fade = quick ? 260 : 800;
         setTimeout(function () {
           /* The line leaves on its own, a beat ahead of the panel, so it
@@ -2056,6 +2173,7 @@
           loader.style.opacity = "0";
 
           setTimeout(function () {
+            document.documentElement.classList.remove("is-onboarding");
             if (loader.parentNode) loader.remove();
             window.dispatchEvent(new CustomEvent("loaderDone", { detail: { instant: false } }));
           }, fade);
