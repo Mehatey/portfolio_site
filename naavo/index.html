@@ -7050,6 +7050,60 @@
      same way it leaves on a scroll, so waking the page brings it back with
      the motion already written rather than a second one invented for this.
      Driven by data-idle on the root; assets/js/idle-drift.js sets it. */
+  /* ══ THE CHROME IS NOT PART OF THE OPENING ═════════════════════════════
+     Sid: "in initial onboarding why is the nav bar and the logo visible", and
+     "the logo should form and animate after the onboarding".
+
+     Both halves of one idea. The opening is a room; a navigation bar floating
+     in it is the page showing through a film that has not finished. So the
+     bar and the mark are simply not there while the sequence runs -- not
+     faded, not dimmed, gone -- and the mark then assembles once the room has
+     cleared.
+
+     It forms rather than fades: the cube's own cells scale up from nothing on
+     a short stagger, which is the same grammar the footer's closing line and
+     the About portrait both use. The site has one idea about how things
+     arrive, and the mark is the first thing a visitor sees arrive. */
+  html.is-onboarding .studio-nav,
+  html.is-onboarding .studio-mark,
+  html.is-onboarding .site-logo {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: none !important;
+  }
+
+  @keyframes markForm {
+    0% {
+      opacity: 0;
+      transform: scale(0.72) rotate(-6deg);
+      filter: blur(5px);
+    }
+    60% {
+      opacity: 1;
+      filter: blur(0);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+      filter: blur(0);
+    }
+  }
+  html.mark-forms .studio-mark,
+  html.mark-forms .site-logo {
+    animation: markForm 820ms cubic-bezier(0.2, 1.3, 0.36, 1) both;
+  }
+  html.mark-forms .studio-nav {
+    animation: markForm 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 160ms;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html.mark-forms .studio-mark,
+    html.mark-forms .site-logo,
+    html.mark-forms .studio-nav {
+      animation: none;
+    }
+  }
+
   /* ══ THE OPENING TOUR ══════════════════════════════════════════════════
      Sid: "after 3 to 5 sec i want all the icons one by one to slowly animate
      with their text and some sound to just show to the user that these gray
@@ -8546,7 +8600,25 @@
       })(marks[i]);
     }
   })();
-</script> <script src="/assets/js/nav-glass.js" defer></script> <script src="/assets/js/name-say.js" data-base="" defer></script> <div id="cube-says" data-line="He will show you what worked. Ask about the rest." hidden> <span class="cube-says__hues" aria-hidden="true"></span> <p class="cube-says__text" role="status" aria-live="polite"></p> </div> <style>
+</script> <script src="/assets/js/nav-glass.js" defer></script> <script src="/assets/js/name-say.js" data-base="" defer></script> <script>
+  /* The mark assembles once the room has cleared. Keyed to the same event the
+     rest of the opening hands off on, and it runs once: the class is added,
+     the animation plays, and nothing removes it because re-running it on any
+     later state change would be a logo that twitches. */
+  (function () {
+    var root = document.documentElement;
+    function form() {
+      if (root.classList.contains("mark-forms")) return;
+      /* One frame after the flag comes off, so the elements are displayable
+         before the animation is asked to start on them. */
+      requestAnimationFrame(function () {
+        root.classList.add("mark-forms");
+      });
+    }
+    if (!document.getElementById("site-loader") || window.__loaderInstantDone === true) form();
+    else window.addEventListener("loaderDone", form, { once: true });
+  })();
+</script> <div id="cube-says" data-line="He will show you what worked. Ask about the rest." hidden> <span class="cube-says__hues" aria-hidden="true"></span> <p class="cube-says__text" role="status" aria-live="polite"></p> </div> <style>
   /* ── IT IS A THOUGHT, NOT A TOOLTIP ─────────────────────────────────────
      Sid: "I don't like the way you style the cube comment. It feels like some
      tooltip and not like a living being ... it shouldn't feel like a tooltip
@@ -12411,14 +12483,53 @@
        is still separate because of the shadow it casts and the tiny bit of
        dirt at its edge, so: a hairline border, and a shadow that is tighter
        and darker rather than the soft bloom that works against black. */
+    /* ── LIGHTER, SOFTER, ROUNDER ─────────────────────────────────────────
+       Sid: "on light mode the get to know sid section feels heavy like a lot
+       of bad shadows tough to read text also think about maybe blurred or
+       curved edges no treatment looks too jagged and rugged and not smooth."
+
+       Three separate faults and all three are the same misjudgement: this was
+       styled for a dark page and then given a cream variant that kept the
+       dark page's weights.
+
+       THE SHADOW. 0.5 and 0.32 alpha of near-black under every tile is a
+       photographic drop shadow, which on a dark ground disappears into the
+       ground and on cream reads as dirt under each card. A light ground wants
+       a short, low, neutral lift -- enough to say the card is above the page,
+       never enough to be a shape of its own. The 1px ring goes too: an edge
+       AND a shadow is two ways of saying the same thing, and on paper the
+       shadow alone does it.
+
+       THE CORNERS. 2px is a square with the very tip taken off, which at this
+       size reads as a cut rather than as a radius -- "jagged and rugged" is
+       exactly right. 9px is visibly a rounded card.
+
+       THE KICKER. It sat at 0.9 alpha of a mid grey on white, which is the
+       lightest text on the section and the one nobody could read. */
     html[data-theme="light"] .sid-tile:not(.sid-tile--type) {
       background:
-        linear-gradient(178deg, #fffefb 0%, #fbf8f1 62%, #f4efe4 100%),
+        linear-gradient(178deg, #fffefb 0%, #fbf8f1 62%, #f5f1e7 100%),
         #fffdf8;
+      border-radius: 9px;
       box-shadow:
-        0 0 0 1px rgba(60, 52, 38, 0.14),
-        0 10px 20px -10px rgba(48, 40, 28, 0.5),
-        0 2px 4px -1px rgba(48, 40, 28, 0.32);
+        0 1px 2px rgba(48, 40, 28, 0.06),
+        0 6px 16px -8px rgba(48, 40, 28, 0.16);
+    }
+    html[data-theme="light"] .sid-tile:not(.sid-tile--type) img,
+    html[data-theme="light"] .sid-tile:not(.sid-tile--type) video {
+      border-radius: 6px;
+    }
+    html[data-theme="light"] .sid-tile:not(.sid-tile--type) figcaption em {
+      color: rgba(58, 64, 78, 0.92);
+    }
+    html[data-theme="light"] .sid-tile:not(.sid-tile--type) figcaption b {
+      color: rgba(16, 20, 28, 0.96);
+    }
+    /* The colour field behind the rail is tuned for a near-black ground. On
+       cream the same alphas make a busy pastel check that competes with the
+       photographs standing on it. */
+    html[data-theme="light"] .sid-field {
+      opacity: 0.26;
     }
 
     /* The well the emulsion sits in. */
@@ -14702,7 +14813,7 @@
     -webkit-backdrop-filter: blur(16px) saturate(1.2);
     backdrop-filter: blur(16px) saturate(1.2);
     border: 1px solid rgba(150, 190, 240, 0.2);
-    box-shadow: 0 20px 44px -20px rgba(0, 0, 0, 0.82);
+    box-shadow: 0 12px 30px -14px rgba(6, 14, 30, 0.44);
   }
   html[data-theme="light"] .hand-hud__panel {
     background: rgba(255, 253, 248, 0.9);
@@ -19065,7 +19176,21 @@
        you see THROUGH, with one edge and a cast shadow. The blur and the rim
        stay; the moulded highlights go, and the gloss sitting on top of them
        goes with them. */
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.42);
+    /* ── A LIFT, NOT A DROP ────────────────────────────────────────────
+       Sid: "the icons and the cube chat logo and the other icons have this
+       bad drop shadow."
+
+       0.42 alpha of pure black thrown 30px is a shadow for a solid object
+       sitting on a surface. These are small pieces of glass floating over a
+       page, and the shadow's job is only to say they are in front of it --
+       past that it stops reading as depth and starts reading as a smudge
+       underneath each control, which on the paper hero is exactly what it
+       looked like. Shorter, softer, and tinted toward the page's own blue
+       rather than neutral black, which is what keeps it feeling like light
+       falling past glass instead of ink. */
+    box-shadow:
+      0 2px 6px rgba(6, 12, 24, 0.18),
+      0 10px 24px -10px rgba(6, 14, 30, 0.34);
   }
   /* On home (has fixed .bottom-bar): lift theme above bottom-bar so it doesn't cover the
      "Design & Technology · Parsons NYC" text. Hide chat FAB entirely so the desk-stage
@@ -19335,9 +19460,10 @@
     /* The cube keeps its blue bloom, which is its signature; it loses the
        moulded top and bottom edges, which were the emboss. */
     box-shadow:
-      0 12px 32px rgba(0, 0, 0, 0.42),
+      0 2px 6px rgba(6, 12, 24, 0.18),
+      0 10px 26px -10px rgba(6, 14, 30, 0.34),
       0 0 0 1px rgba(160, 200, 255, 0.05),
-      0 0 24px rgba(80, 130, 220, 0.18);
+      0 0 22px rgba(80, 130, 220, 0.16);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -19357,9 +19483,10 @@
     transform: scale(1.08) rotate(-6deg);
     border-color: rgba(180, 220, 255, 0.45);
     box-shadow:
-      0 14px 38px rgba(0, 0, 0, 0.45),
+      0 3px 8px rgba(6, 12, 24, 0.2),
+      0 14px 32px -12px rgba(6, 14, 30, 0.38),
       0 0 0 1px rgba(180, 220, 255, 0.1),
-      0 0 36px rgba(120, 180, 255, 0.3);
+      0 0 34px rgba(120, 180, 255, 0.28);
   }
   /* ── THE PULSE IS OFF ──────────────────────────────────────────────────
      Sid: "for the AI cube, remove the animation where it sort of glows."
@@ -21759,7 +21886,9 @@
     right: 24px;
     /* The emboss came off the corner controls; this rule restated it a
        thousand lines away and would have put it straight back. */
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
+    box-shadow:
+      0 2px 6px rgba(6, 12, 24, 0.16),
+      0 9px 22px -10px rgba(6, 14, 30, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.18);
   }
   #cube-chat-fab {
@@ -21770,7 +21899,8 @@
     /* Third restatement of this shadow in one file, and the last one wins --
        which is why the emboss survived being removed from the other two. */
     box-shadow:
-      0 10px 26px rgba(0, 0, 0, 0.3),
+      0 2px 6px rgba(6, 12, 24, 0.16),
+      0 9px 22px -10px rgba(6, 14, 30, 0.3),
       0 0 14px rgba(80, 130, 220, 0.1);
   }
   #theme-toggle {
