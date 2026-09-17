@@ -10,7 +10,14 @@ category: UI · Fintech
 year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
 hero_image: "5.mool/cover-award.jpg"
-hero_pos: "22% 42%"
+# The Kyoorius ribbon is the point of this cover and it was being cut in half.
+# Measured: the image is 2000x1333 and the hero box is 1440x520, so `cover`
+# scales to 1440x960 and shows a 520px band -- 54% of the picture. The ribbon
+# occupies the top 2% to 18%, which is 19px to 173px of the scaled image, so
+# the band has to start at or above 19px. `object-position` Y maps to
+# Y * (960 - 520) = Y * 440, which puts the ceiling at 4.3%. At the old 42%
+# the band started at 185px, eleven pixels below the bottom of the ribbon.
+hero_pos: "22% 4%"
 og_image: "assets/img/og/mool-award.jpg"
 award_badge: "Kyoorius Design Award 2021"
 meta:
