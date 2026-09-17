@@ -3591,21 +3591,82 @@
          get there. The shorter picture sits centred in its cell with air
          above and below, which is the honest trade -- a little space beats
          either a crop or a ragged row. */
+      /* ── AND CENTRING WAS THE WRONG TRADE ──────────────────────────────
+         Sid, after that fix shipped: "in all the grids in project pages all
+         the media is aligned properly, a lot of projects had media which was
+         a little more up or a little down."
+
+         He is describing the exact thing the note above calls "the honest
+         trade". Stretching the CELLS and centring the picture inside gives
+         you cells that share edges and PICTURES that do not: a 4:3 next to a
+         3:2 in equal-width columns renders at two different heights, and
+         centring splits the difference into air above and below. The frames
+         end up offset by half that difference each, which reads as one image
+         sitting slightly high and its neighbour slightly low. Measured
+         across the project pages: /naavo/ 3 of 7 rows out, worst 68px;
+         /ledger/ 42px; /m-health-fairview/ 9px; /mool/ 7px.
+
+         The trade was false, because there is a third option neither version
+         considered. Equal-width columns are the assumption doing the damage.
+         Give each cell a width PROPORTIONAL TO ITS PICTURE'S ASPECT RATIO
+         and every picture in the row renders at the same height by
+         construction -- flush top, flush bottom, nothing cropped and nothing
+         letterboxed. It is how a justified photo row has always worked, and
+         it is the only one of the three that has no cost: the previous two
+         each bought aligned edges with either a crop or a band of dead
+         ground.
+
+         flex-basis 0 with flex-grow set to the aspect ratio is the whole
+         mechanism. The ratio is measured from the file and written to
+         --ar by the script at the bottom of this layout; until it lands
+         every cell grows by 1, which is the equal-width layout that was
+         here before, so a row is never worse than it used to be while it
+         waits.
+
+         The grid becomes a flex row to do it. `gap` carries over unchanged,
+         and a row of one is unaffected -- a single cell grows to the full
+         measure whatever its ratio. */
       .case-story .cs-grid,
       .case-story .cs-grid-3 {
-        align-items: stretch !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        flex-wrap: wrap;
       }
       .case-story .cs-grid-item {
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
+        display: block !important;
+        flex: var(--ar, 1) 1 0 !important;
+        min-width: 0 !important;
       }
       .case-story .cs-grid-item img,
       .case-story .cs-grid-item video {
+        /* The cell is now the picture's own shape, so the picture fills it
+           exactly and there is nothing for object-fit to resolve. */
         width: 100% !important;
         height: auto !important;
-        max-height: 100% !important;
-        object-fit: contain !important;
+        max-height: none !important;
+        object-fit: fill !important;
+        display: block !important;
+      }
+
+      /* The credit that came off the cover. Set as a quiet second line under
+         the tagline rather than as a panel: it is context for the sentence
+         above it, not a specification, and the middot between the facts is
+         the only furniture it needs. */
+      .intro-credit {
+        margin: 14px 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 12px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--ink-2, rgba(198, 214, 236, 0.66));
+      }
+      .intro-credit span + span::before {
+        content: "·";
+        margin-right: 14px;
+        opacity: 0.5;
       }
 
       /* ══ A TALL PICTURE IS ALLOWED TO BE TALL ═══════════════════════════
@@ -5856,51 +5917,29 @@
             <span class="status-pill"><span class="status-dot"></span>{{ page.status }}</span>
             {% endif %}
           </div>
-          <aside class="hero-recruiter-brief" aria-label="Project at a glance">
-            <!-- The shade behind the rail. This is a real element and not the
-                 ::before it started life as, for one measured reason: a
-                 backdrop-filter declared on a pseudo-element here is inert —
-                 the declaration computes, the mask computes, and the backdrop
-                 comes back untouched. Verified against a control div in the
-                 same position with the same rule, which blurs correctly. A
-                 span costs one node and works. See the long note on
-                 .hero-brief-shade in the stylesheet for what it is doing. -->
-            <span class="hero-brief-shade" aria-hidden="true"></span>
-            <p class="hero-brief-label">At a glance</p>
-            {% if page.category %}
-            <p class="hero-brief-fact"><span class="hero-brief-key">Scope</span><span class="hero-brief-value">{{ page.category }}</span></p>
-            {% endif %} {% if page.meta %}
-            <!-- Role now carries who it was made with.
+          <!-- ── THE AT-A-GLANCE PLATE IS GONE ────────────────────────────
+               Sid: "i dont like the black gradient blur u have on project
+               hero pages to show text of solo designer or whatever on the
+               bottom right it doesnt work."
 
-                 It used to render the Role value alone — "Visual Designer" —
-                 while "Team: Leaf Design Studio" and "Partner: Deloitte
-                 Digital" sat inside the collapsed <details> drawer below.
-                 Nobody assumes agency work was solo; what a hiring manager
-                 wants is the shape of the room it was made in, and hiding it
-                 behind a click reads as concealment even when nothing is being
-                 concealed. Every project already carries the data, so the
-                 credit is assembled from it rather than authored per page.
+               It does not, and the plate was never the fix for the real
+               problem. It existed because three facts were being set over a
+               photograph, and text over a photograph needs either a scrim or
+               somewhere else to be. Every round of work on this went into
+               making the scrim less ugly -- backdrop-filter, which computes
+               to nothing here, then a painted seven stop gradient, then a
+               text-shadow on the values -- and none of it addressed why a
+               dark rectangle was sitting in the corner of his cover in the
+               first place. It is the same complaint as "we don't need to
+               show text on top of the image all the time because it's
+               getting a little chaotic".
 
-                 Role is also the one fact in this brief a hiring manager is
-                 actually looking for, and all three lines were set identically.
-                 It gets the ink now; Scope and Proof stay quiet. -->
-            {% assign _role = "" %}{% assign _org = "" %}{% assign _client = "" %}{% for item in page.meta %}{% if item.label == 'Role' %}{% assign
-            _role = item.value %}{% elsif item.label == 'Team' or item.label == 'Partner' or item.label == 'Studio' %}{% assign _org = item.value %}{%
-            elsif item.label == 'Client' %}{% assign _client = item.value %}{% endif %}{% endfor %}
-            <p class="hero-brief-fact hero-brief-fact--role">
-              <span class="hero-brief-key">Role</span
-              ><span class="hero-brief-value"
-                >{{ _role }}{% if _org != "" %} · {{ _org }}{% if _client != "" %} for {{ _client }}{% endif %}{% elsif _client != "" %} · {{ _client
-                }}{% endif %}</span
-              >
-            </p>
-            {% endif %} {% if page.highlights %}
-            <p class="hero-brief-fact">
-              <span class="hero-brief-key">Proof</span
-              ><span class="hero-brief-value">{{ page.highlights[0].value }} · {{ page.highlights[0].label }}</span>
-            </p>
-            {% endif %}
-          </aside>
+               So the facts move off the picture. Scope and Role are now one
+               line in the Overview block, twenty pixels below the fold, on a
+               real ground where they need no plate and can be set at reading
+               size instead of squeezed into a corner. Nothing is lost: Proof
+               was already the first of the highlights, which render in full
+               just under it. The cover is a cover now. -->
         </div>
       </header>
 
@@ -5929,6 +5968,16 @@
         <div class="intro-inner">
           <span class="intro-label">Overview</span>
           <p class="intro-tagline">{{ page.quick_read | default: page.tagline }}</p>
+          {% assign _role = "" %}{% assign _org = "" %}{% assign _client = "" %}{% for item in page.meta %}{% if item.label == 'Role' %}{% assign
+          _role = item.value %}{% elsif item.label == 'Studio' or item.label == 'Agency' %}{% assign _org = item.value %}{% elsif item.label ==
+          'Client' %}{% assign _client = item.value %}{% endif %}{% endfor %}{% if page.category or _role != "" %}
+          <p class="intro-credit">
+            {% if page.category %}<span>{{ page.category }}</span>{% endif %}{% if _role != "" %}<span
+              >{{ _role }}{% if _org != "" %} · {{ _org }}{% if _client != "" %} for {{ _client }}{% endif %}{% elsif _client != "" %} · {{ _client
+              }}{% endif %}</span
+            >{% endif %}
+          </p>
+          {% endif %}
         </div>
       </div>
       {% endunless %} {% if page.highlights %}
@@ -6582,6 +6631,70 @@
           });
           m.addEventListener("loadedmetadata", function () {
             mark(m);
+          });
+        });
+      })();
+
+      /* ── AND THE RATIO EVERY GRID ROW NEEDS ────────────────────────────
+         The justified rows in the stylesheet size each cell by its own
+         picture's aspect ratio, which is the only thing that makes a pair of
+         differently shaped images share both edges without a crop or a band
+         of dead ground. CSS cannot read a file's dimensions, so the ratio is
+         written here as --ar on the cell.
+
+         Same shape as the tagger above, for the same reason: some images are
+         already decoded when this runs and the rest arrive whenever they
+         arrive, including the lazy ones well after load. Until a ratio
+         lands the cell keeps flex-grow 1, which is the equal-width layout
+         these rows had before, so a row is never worse while it waits. */
+      (function () {
+        /* ── A ROW IS JUSTIFIED ALL AT ONCE, OR NOT AT ALL ────────────────
+           The first version of this set --ar per element as each one
+           reported its size, which produces a HALF justified row whenever
+           one cell's media is slow: measured on /b-plus-b/, an image got its
+           real ratio while the video beside it was still flex-grow 1, and
+           the pair came out 294px different at the bottom. The video's
+           dimensions were never going to arrive either -- it carries
+           `<source data-src>` and is not hydrated until it is scrolled to,
+           so videoWidth is 0 for as long as nobody looks at it.
+
+           So the unit of work is the ROW. Ratios are written only when every
+           media in that row can report one, and the row otherwise stays on
+           equal widths, which is the layout it had before any of this. A row
+           can be justified or not; it can never be partly justified.
+
+           The width/height ATTRIBUTES count as a report. Most images here
+           carry them, they are correct, and they are available before a
+           single byte of the file arrives -- which means a row of plain
+           images is justified on the first frame rather than on decode. */
+        function dims(m) {
+          var w = m.naturalWidth || m.videoWidth || parseFloat(m.getAttribute("width")) || 0;
+          var h = m.naturalHeight || m.videoHeight || parseFloat(m.getAttribute("height")) || 0;
+          return w && h ? w / h : 0;
+        }
+        function justify(row) {
+          var cells = [].slice.call(row.querySelectorAll(".cs-grid-item"));
+          var out = [];
+          for (var i = 0; i < cells.length; i++) {
+            var m = cells[i].querySelector("img, video");
+            if (!m) return;
+            var r = dims(m);
+            if (!r) return;
+            out.push([cells[i], r]);
+          }
+          out.forEach(function (pair) {
+            pair[0].style.setProperty("--ar", pair[1].toFixed(4));
+          });
+        }
+        [].slice.call(document.querySelectorAll(".case-story .cs-grid, .case-story .cs-grid-3")).forEach(function (row) {
+          justify(row);
+          [].slice.call(row.querySelectorAll("img, video")).forEach(function (m) {
+            m.addEventListener("load", function () {
+              justify(row);
+            });
+            m.addEventListener("loadedmetadata", function () {
+              justify(row);
+            });
           });
         });
       })();
