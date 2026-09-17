@@ -1123,9 +1123,34 @@
          The horizontal scrim keeps its full strength because the title
          depends on it. The vertical one gives up its middle, where nothing is
          set, and keeps its bottom, which is the transition into the page. */
+      /* ── AND IT MUST NOT CUT THE PICTURE IN HALF ──────────────────────
+         Sid: "the cover pic animation not cutting it in half needs to be
+         changed."
+
+         Not the animation -- this gradient. It fell 0.74 to 0.26 between the
+         34% and 54% stops: nearly half the scrim's total alpha discharged
+         across a fifth of the frame. A ramp that steep is not read as a ramp,
+         it is read as an EDGE, and on /m-health-fairview/ it lands at x=31%
+         and looks like the cover has been sliced and the left half darkened.
+         In an interview that is the first thing on screen.
+
+         Same total coverage, spread over seven stops instead of four, with no
+         interval giving up more than about 0.16. The title still has 0.9 of
+         ink behind it at the left margin and the picture still opens out to
+         nothing on the right; what is gone is the step in between. */
       .proj-hero--artifact .hero-overlay {
         background:
-          linear-gradient(to right, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.74) 34%, rgba(0, 0, 0, 0.26) 54%, rgba(0, 0, 0, 0) 70%),
+          linear-gradient(
+            to right,
+            rgba(0, 0, 0, 0.9) 0%,
+            rgba(0, 0, 0, 0.84) 16%,
+            rgba(0, 0, 0, 0.7) 32%,
+            rgba(0, 0, 0, 0.54) 46%,
+            rgba(0, 0, 0, 0.36) 58%,
+            rgba(0, 0, 0, 0.2) 70%,
+            rgba(0, 0, 0, 0.08) 82%,
+            rgba(0, 0, 0, 0) 94%
+          ),
           linear-gradient(to bottom, rgba(0, 0, 0, 0.28) 0%, rgba(0, 0, 0, 0.14) 28%, rgba(0, 0, 0, 0.46) 72%, rgba(0, 0, 0, 0.94) 100%);
       }
       /* On a phone the frame is too narrow for a left/right split to mean
@@ -4260,14 +4285,85 @@
         grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
         padding-bottom: clamp(36px, 5vw, 58px);
       }
+      /* ══ THE TITLE ARRIVES ═════════════════════════════════════════════
+         Sid: "i would like some title text animation for title."
+
+         Word by word, rising out of a small blur. Two reasons it is words
+         rather than letters: a project title is two or three words and
+         per-letter staggers on short strings read as a novelty typewriter,
+         and `data-livetype` already owns the individual glyphs for the
+         optical-size pass -- splitting them again here would fight it.
+
+         The blur is the part doing the work. Opacity alone is a fade, and a
+         fade on a 76px headline over a photograph is barely visible; coming
+         out of 8px of blur reads as the title resolving out of the picture,
+         which is also the gesture the rest of this page uses.
+
+         `both` fill, so the first frame is the hidden state and there is no
+         flash of a finished title before it animates. Nothing here touches
+         `transform` after it lands, because the hero parallax writes to that
+         later -- the animation is on a wrapper span instead. */
+      .proj-title w {
+        display: inline-block;
+        animation: projTitleIn 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        animation-delay: calc(var(--w, 0) * 110ms + 140ms);
+      }
+      @keyframes projTitleIn {
+        from {
+          opacity: 0;
+          transform: translateY(0.34em);
+          filter: blur(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+          filter: blur(0);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .proj-title w {
+          animation: none;
+        }
+      }
+
+      /* ── A PLATE, NOT A SMUDGE ────────────────────────────────────────
+         Sid: "some of these black blurs look ugly and the text also is hard
+         to read in general."
+
+         Both of those were one declaration. Every line in this block carried
+         `text-shadow: rgba(0,0,0,.9) 0 2px 14px` -- a fourteen pixel black
+         blur at nine tenths alpha, per line. Three lines of it pool into a
+         dark cloud with no edge sitting on the photograph, which is the ugly
+         blur; and because the shadow spreads under the glyphs as well as
+         behind them, it eats the counters of the type, which is why it is
+         also hard to read. A shadow that large is not separating text from a
+         background, it is painting a background badly.
+
+         So the background becomes a real surface: a bounded glass panel with
+         a defined edge, blurring the picture behind it rather than smearing
+         ink over it. That is what Sid asked for on the nav in the same
+         breath -- "more controlled with a little rectangle" -- and it is the
+         same problem. The text shadow drops to a hairline, which is all that
+         is needed once the type has a surface to sit on. */
       .hero-recruiter-brief {
         max-width: 360px;
-        padding: 20px 0 20px 24px;
+        padding: 20px 22px 20px 24px;
         align-self: end;
         border-left-color: var(--accent-dim);
-        background:
-          linear-gradient(90deg, rgba(255, 255, 255, 0.045), transparent 78%),
-          radial-gradient(220px 160px at 0% 8%, rgba(141, 196, 255, 0.08), transparent 70%);
+        border-radius: 0 10px 10px 0;
+        /* A gradient, not a backdrop-filter. Measured: `backdropFilter`
+           computes to `none` inside this hero -- `.proj-hero` carries
+           `isolation` and the parallax writes a transform to it, either of
+           which makes it a backdrop root, so a filter in here samples the
+           hero's own empty interior. Same trap as the nav scrim two commits
+           ago. A painted plate needs no backdrop to work and cannot be
+           silently cancelled by an ancestor. */
+        background: linear-gradient(100deg, rgba(8, 11, 18, 0.72), rgba(8, 11, 18, 0.46) 72%, rgba(8, 11, 18, 0.3));
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+      }
+      .hero-recruiter-brief .hero-brief-value,
+      .hero-recruiter-brief .hero-brief-jump {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45) !important;
       }
       .hero-brief-label { display: none; }
       .hero-brief-value {
@@ -5033,7 +5129,13 @@
 
         .proj-title {
           max-width: 12ch !important;
-          font-size: clamp(56px, 7.2vw, 124px) !important;
+          /* ── AND NOT QUITE SO LOUD ──────────────────────────────────────
+             Sid: "i also feel sometimes its too big." Measured at 1440 it was
+             86px and the cap ran to 124. A project title is the loudest thing
+             on the page and should be; at 124 on a wide screen it is louder
+             than the picture it is printed on, and the brief beside it has to
+             shout back. 76 at this width, 104 at the cap. */
+          font-size: clamp(50px, 6.2vw, 104px) !important;
           line-height: 0.9 !important;
           letter-spacing: -0.055em !important;
         }
@@ -9109,8 +9211,14 @@
        Centred on the window rather than on the nav box, because the nav is
        inset by the grid margin and a thing centred inside it reads as
        slightly right of centre against the page. */
-    left: 50%;
-    transform: translate(-50%, 4px);
+    /* Back beside the mark. Sid: "we can have color squares on the right of
+       the logo mark only, center looks weird." Centring it was the fix for a
+       collision with the project title that no longer happens -- the title
+       starts at 56px from the nav's edge and the swatch row is 10 squares at
+       13px, so the two only met when the row began at the mark's own edge.
+       Starting it clear of the mark is enough. */
+    left: calc(var(--grid-left) + 56px);
+    transform: translateY(4px);
     transform: translateY(4px);
     height: 48px;
     display: flex;
@@ -9282,6 +9390,27 @@
   /* The project title no longer collides with this, so it no longer has to
      stand down for it. Both can be true at once, which is the point of
      moving it: see the centring note above. */
+  /* ══ NOT ON A PROJECT PAGE ════════════════════════════════════════════
+     Sid: "how about we just show pixel squares for other pages and other
+     things and not on individual work pages cause it then clashes with the
+     title of the project."
+
+     Measured on /m-health-fairview/: the nav reads "▮▮alth Fairview" -- the
+     swatch row is printed straight over the first two characters of the
+     project's own name. Centring the row was the previous attempt at avoiding
+     this and Sid rejected the look; beside the mark it collides. There is no
+     third position, because on a case study that stretch of bar already has a
+     permanent tenant and the swatches are the passing remark.
+
+     So they keep their place everywhere else and stand down here. A project
+     page is the one route where the bar is already saying something specific
+     about what you are looking at, which is the job the swatches do on every
+     other page. */
+  body.nav-titled #cube-says,
+  body.nav-titled #cube-says.is-hues {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
   body.is-scrolling #cube-says {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -25063,6 +25192,27 @@
           { threshold: 0.35 }
         );
         io.observe(row);
+      })();
+
+      /* ── AND THE WORDS IT ANIMATES ──────────────────────────────────
+         Wrapped once, before `data-livetype` runs, so the optical-size pass
+         still sees the text nodes it expects underneath. <w> rather than a
+         span for the same reason as the overview line: nothing in the sheet
+         has an opinion about a custom element. */
+      (function () {
+        var t = document.querySelector(".proj-title");
+        if (!t || t.querySelector("w")) return;
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var words = (t.textContent || "").trim().split(/\s+/);
+        if (!words.length || words.length > 8) return;
+        t.textContent = "";
+        words.forEach(function (word, i) {
+          var w = document.createElement("w");
+          w.style.setProperty("--w", i);
+          w.textContent = word;
+          t.appendChild(w);
+          if (i < words.length - 1) t.appendChild(document.createTextNode(" "));
+        });
       })();
 
       // Progress bar + hero parallax (combined into one rAF loop for perf)
