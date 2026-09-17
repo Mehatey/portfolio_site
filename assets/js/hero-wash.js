@@ -67,11 +67,23 @@
      actually painted, and "is it dark" is that same colour's luminance. They
      cannot disagree, because there is only one of them. */
   function ground() {
-    var c = getComputedStyle(document.body).backgroundColor || "";
-    var m = c.match(/rgba?\(([^)]+)\)/);
-    var p = m ? m[1].split(",").map(parseFloat) : [];
-    if (!(p[0] >= 0)) return [0.968, 0.96, 0.945];
-    return [p[0] / 255, p[1] / 255, p[2] / 255];
+    /* body first, then the root. A transparent body is legal and common -- the
+       root's background propagates to the canvas -- so asking only the body
+       returns `rgba(0, 0, 0, 0)` on any theme that did not restate it, and a
+       transparent answer is indistinguishable from "no answer" to the parser
+       below. Measured: that is exactly what dark mode returned, and the cream
+       fallback then painted paper over a black page. */
+    var els = [document.body, document.documentElement];
+    for (var i = 0; i < els.length; i++) {
+      var c = getComputedStyle(els[i]).backgroundColor || "";
+      var m = c.match(/rgba?\(([^)]+)\)/);
+      if (!m) continue;
+      var p = m[1].split(",").map(parseFloat);
+      /* A zero alpha is transparent, not black. */
+      if (!(p[0] >= 0) || p[3] === 0) continue;
+      return [p[0] / 255, p[1] / 255, p[2] / 255];
+    }
+    return [0.968, 0.96, 0.945];
   }
   function isDark() {
     var g = ground();
