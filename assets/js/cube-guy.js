@@ -1403,6 +1403,26 @@
     if (moved < 6 && performance.now() - downAt < 400) strike();
   });
 
+  /* A plain click, not a drag. `pointerup` within a short distance of where
+     the pointer went down, so turning him with the mouse never accidentally
+     sets him dancing -- the drag handler below owns the same gesture and the
+     two must not both fire. */
+  var _downX = 0,
+    _downY = 0,
+    _downT = 0;
+  host.addEventListener("pointerdown", function (e) {
+    _downX = e.clientX;
+    _downY = e.clientY;
+    _downT = performance.now();
+  });
+  host.addEventListener("pointerup", function (e) {
+    var moved = Math.abs(e.clientX - _downX) + Math.abs(e.clientY - _downY);
+    if (moved < 8 && performance.now() - _downT < 600) {
+      danceAt = performance.now();
+      if (window.__sidNote) window.__sidNote(7);
+    }
+  });
+
   host.addEventListener("pointerdown", function (e) {
     downAt = performance.now();
     downX = e.clientX;
@@ -1486,6 +1506,30 @@
      it has to be asked every frame rather than once at boot: hero-scene
      gains .is-live only after its 1.4MB of points has landed, and it can
      remove itself entirely at any point before that. */
+  /* ══ HE BREATHES, AND HE DANCES WHEN YOU ASK ═══════════════════════════
+     Sid: "I kind of want him on the homepage, just standing. Now we are
+     dancing when you click on him, just like a breathing small."
+
+     Both are driven from here rather than from the shader, because the two
+     things they need -- the rotation matrix and the overall scale -- are
+     already uniforms this loop writes every frame. Adding a term to each is
+     free; adding a uniform would mean editing three shader strings and the
+     attribute plumbing for an effect that is two sine waves.
+
+     BREATHING is deliberately almost nothing: a 4.5 second cycle at about
+     one and a half per cent of scale, with a slow sway of a fiftieth of a
+     radian on a period that does not divide into it. The two never line up,
+     so he never looks like he is on a loop. Anything larger stops reading as
+     breath and starts reading as a float.
+
+     THE DANCE is 2.6 seconds and decays. Three terms on different periods --
+     a twist, a bob, a squash -- so it is a routine rather than a wobble, and
+     the envelope is `(1 - u)^2` so it lands rather than fades out. He is not
+     a toy that keeps going; he does a thing and returns to standing. */
+  var breath = 0,
+    danceAt = -1e9,
+    DANCE_MS = 2600;
+
   var _hs = null,
     _hsQueried = false;
   function heroSceneLive() {
@@ -1496,7 +1540,31 @@
     if (_hs && !_hs.isConnected) {
       _hs = null;
     }
-    return !!(_hs && _hs.classList.contains("is-live"));
+    if (!_hs || !_hs.classList.contains("is-live")) return false;
+    /* ── LIVE IS NOT THE SAME AS VISIBLE ──────────────────────────────────
+       Sid: "we had a 3D model of this cube guy. I kind of want him on the
+       homepage, just standing."
+
+       He has been on the homepage the whole time, drawing nothing, because
+       this asked the wrong question. `.hero.has-wash .hero-scene` sets the
+       scene to opacity 0 -- the watercolour hero does not want a second
+       subject, and the wash is always on now -- but the scene keeps its
+       `is-live` class, so both this and the CSS rule beside it stood the cube
+       guy down for a figure that was itself invisible. Measured on the live
+       page: hero-scene opacity 0 with is-live true, cg-stage display none at
+       0x0, its WebGL context alive, its 336KB of points fetched, and the
+       centre pixel of its canvas fully transparent. The right two thirds of
+       the first screen a recruiter sees were empty.
+
+       Opacity is the honest test, and it is cached per frame-ish by the
+       browser anyway. If the scene ever comes back to full strength the cube
+       guy stands down again, which is what this rule was always for. */
+    var vis = 1;
+    try {
+      var cs = getComputedStyle(_hs);
+      vis = cs.display === "none" ? 0 : parseFloat(cs.opacity);
+    } catch (e) {}
+    return vis > 0.02;
   }
 
   function frame(now) {
@@ -1623,7 +1691,19 @@
 
     var targetYaw = 0.62;
     var targetPitch = -0.31;
-    setRot(yaw * (1 - morph) + targetYaw * morph, pitch * (1 - morph) + targetPitch * morph);
+
+    /* The idle sway and, on top of it, whatever is left of the dance. Both
+       fold into the yaw and pitch that are already being interpolated, so the
+       drag, the morph and the routine cannot fight over the matrix. */
+    var dU = Math.min(1, (now - danceAt) / DANCE_MS);
+    var dance = dU < 1 ? (1 - dU) * (1 - dU) : 0;
+    var sway = Math.sin(t * 0.37) * 0.02;
+    var twist = dance * Math.sin(t * 7.4) * 0.34;
+    var bob = dance * Math.sin(t * 5.1) * 0.12;
+
+    setRot(yaw * (1 - morph) + targetYaw * morph + (sway + twist) * (1 - morph), pitch * (1 - morph) + targetPitch * morph + bob * (1 - morph));
+    /* 4.5s, and the squash rides the same envelope as the twist. */
+    breath = 1 + Math.sin(t * 1.395) * 0.015 + dance * Math.sin(t * 9.2) * 0.05;
     gl.uniformMatrix3fv(U.u_rot, false, rot);
     gl.uniform1f(U.u_time, t);
     gl.uniform1f(U.u_hov, hov);
@@ -1806,7 +1886,7 @@
        breakaway, which is not him and which Sid has not asked to change. */
     gl.uniform1f(U.u_scroll, 0);
     var cubeSize = cubeObject ? cubeObject.getBoundingClientRect().width : figureWidth();
-    gl.uniform1f(U.u_grow, 1 + (cubeSize / Math.max(1, figureWidth()) - 1) * morph);
+    gl.uniform1f(U.u_grow, (1 + (cubeSize / Math.max(1, figureWidth()) - 1) * morph) * breath);
     var morphFade = 1 - Math.max(0, Math.min(1, (morph - 0.84) / 0.16));
     gl.uniform1f(U.u_fade, fade * morphFade);
     /* The band travels the height of the figure and wraps, a shade slower

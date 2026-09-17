@@ -3308,8 +3308,51 @@
       /* display, not opacity. At opacity 0 the old canvas is still composited
          every frame and its renderer is still drawing 55,843 points into it --
          paying twice for one figure, and the second one invisible. */
-      .hero-scene.is-live ~ .cg-stage {
+      /* ── AND ONLY WHILE THE SCENE IS ACTUALLY VISIBLE ─────────────────
+         Sid: "we had a 3D model of this cube guy. I kind of want him on the
+         homepage, just standing."
+
+         He was there the whole time, and hidden by the interaction of two
+         rules that were each correct alone. `.hero.has-wash .hero-scene` sets
+         the scene to opacity 0 -- the watercolour hero does not want a second
+         subject, and the wash is always on now. This rule then hid the cube
+         guy because the scene was LIVE, which it is: live and invisible.
+
+         So the hero had no figure at all. Measured: `.hero-scene` opacity 0
+         with `is-live` true, `.cg-stage` display none at 0x0, its WebGL
+         context alive and its 336KB of points fetched and drawing into a box
+         nobody could see. The right two thirds of the first screen a recruiter
+         lands on were empty.
+
+         Liveness is not visibility. The guard asks for both now, so the
+         moment the wash takes the scene down the cube guy takes the stage. */
+      .hero:not(.has-wash) .hero-scene.is-live ~ .cg-stage {
         display: none !important;
+      }
+
+      /* ── THE COPY LAYER LETS HIM BE TOUCHED ───────────────────────────
+         Sid: "we are dancing when you click on him."
+
+         The click never reached him. `.hero__inner` is the headline's box and
+         it spans the hero, sitting above `.cg-stage` in the stacking order,
+         so `elementsFromPoint` at the centre of the figure returned
+         hero__cols > hero-title > hero__inner and only then the stage. He was
+         behind a pane of glass made of a heading that is not even painted
+         where he stands.
+
+         The copy layer stops catching the pointer and its own interactive
+         children take it back. Nothing about what is clickable changes -- the
+         links and buttons in there are still links and buttons -- but the
+         empty space around them becomes his again. */
+      .hero__inner {
+        pointer-events: none;
+      }
+      .hero__inner a,
+      .hero__inner button,
+      .hero__inner [role="button"],
+      .hero__inner input,
+      .hero__inner summary {
+        pointer-events: auto;
       }
 
       .cg-stage {
