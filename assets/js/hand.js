@@ -86,48 +86,45 @@
   btn.innerHTML =
     '<span class="hand-toggle__ico" aria-hidden="true">' +
     '<svg class="nav-pixel" viewBox="0 0 24 24" aria-hidden="true" focusable="false">' +
-    /* ── AND IT WAS A THUMBS-UP ────────────────────────────────────────
-       Sid: "I do like the pixel art style for the hand, but even the hand
-       thing, can you not make it look more like a thumbs-up? I want it to
-       feel like an actual hand."
+    /* ── THIRD ATTEMPT, AND THE FIRST TWO SAY WHY ──────────────────────
+       Sid: "the hand icon doesn't really look like a hand", after an earlier
+       "can you not make it look more like a thumbs-up."
 
-       Fair. It was ONE raised digit over a solid four-cell block with a nub
-       off the side, and a single thing sticking up out of a fist is the
-       thumbs-up glyph whatever you meant to draw. Nothing in it said hand
-       except the label.
+       Attempt one was a padlock. Attempt two was one raised digit over a
+       solid block, which is the thumbs-up glyph. Attempt three put three
+       separated fingers over a palm, which was closer and still read as a
+       fork, because every finger was the same length and they sat in a
+       straight row.
 
-       What reads as a hand at twenty pixels is separated fingers. Three of
-       them, at columns 6, 12 and 18 with an empty column between each, over a
-       palm that spans all of them and tapers to a wrist -- and the thumb out
-       to the left at the height a thumb actually joins, which is below the
-       fingers, not beside them. Three digits plus a thumb is what every
-       cartoon hand has had for a century and it is the only count that fits
-       four separated columns in a 24-unit box on this grid's 3px cell. */
-    /* finger tips */
-    '<rect x="6" y="3" width="3" height="3" rx="1"/>' +
-    '<rect x="12" y="3" width="3" height="3" rx="1"/>' +
-    '<rect x="18" y="3" width="3" height="3" rx="1"/>' +
-    /* and their second joint, so they have length rather than being dots */
-    '<rect x="6" y="6" width="3" height="3" rx="1"/>' +
-    '<rect x="12" y="6" width="3" height="3" rx="1"/>' +
-    '<rect x="18" y="6" width="3" height="3" rx="1"/>' +
-    /* the knuckle line, where the fingers become one hand, plus the thumb */
-    '<rect x="3" y="9" width="3" height="3" rx="1"/>' +
-    '<rect x="6" y="9" width="3" height="3" rx="1"/>' +
-    '<rect x="9" y="9" width="3" height="3" rx="1"/>' +
-    '<rect x="12" y="9" width="3" height="3" rx="1"/>' +
-    '<rect x="15" y="9" width="3" height="3" rx="1"/>' +
-    '<rect x="18" y="9" width="3" height="3" rx="1"/>' +
+       A hand is not a comb. What makes a hand legible at twenty pixels is
+       that the fingers are DIFFERENT lengths and the middle one is tallest --
+       that silhouette is recognisable long before any detail is, which is why
+       a child's drawing of a hand works. So the middle finger runs three
+       cells, the two beside it run two, and the thumb comes off the side at
+       the height a thumb actually joins, below the knuckles. Same 3px cell as
+       every other glyph on the site. */
+    /* middle finger, the tallest thing in the mark */
+    '<rect x="10.5" y="2" width="3" height="3" rx="1"/>' +
+    '<rect x="10.5" y="5" width="3" height="3" rx="1"/>' +
+    /* index and ring, one cell shorter each side */
+    '<rect x="6.5" y="5" width="3" height="3" rx="1"/>' +
+    '<rect x="14.5" y="5" width="3" height="3" rx="1"/>' +
+    /* the knuckle row, where four digits become one hand */
+    '<rect x="6.5" y="8" width="3" height="3" rx="1"/>' +
+    '<rect x="10.5" y="8" width="3" height="3" rx="1"/>' +
+    '<rect x="14.5" y="8" width="3" height="3" rx="1"/>' +
+    /* the thumb, off the side and below the knuckles */
+    '<rect x="3" y="11" width="3" height="3" rx="1"/>' +
     /* the palm */
-    '<rect x="6" y="12" width="3" height="3" rx="1"/>' +
-    '<rect x="9" y="12" width="3" height="3" rx="1"/>' +
-    '<rect x="12" y="12" width="3" height="3" rx="1"/>' +
-    '<rect x="15" y="12" width="3" height="3" rx="1"/>' +
-    '<rect x="18" y="12" width="3" height="3" rx="1"/>' +
+    '<rect x="6.5" y="11" width="3" height="3" rx="1"/>' +
+    '<rect x="10.5" y="11" width="3" height="3" rx="1"/>' +
+    '<rect x="14.5" y="11" width="3" height="3" rx="1"/>' +
+    '<rect x="6.5" y="14" width="3" height="3" rx="1"/>' +
+    '<rect x="10.5" y="14" width="3" height="3" rx="1"/>' +
+    '<rect x="14.5" y="14" width="3" height="3" rx="1"/>' +
     /* tapering to the wrist */
-    '<rect x="9" y="15" width="3" height="3" rx="1"/>' +
-    '<rect x="12" y="15" width="3" height="3" rx="1"/>' +
-    '<rect x="15" y="15" width="3" height="3" rx="1"/>' +
+    '<rect x="8.5" y="17" width="3" height="3" rx="1"/>' +
+    '<rect x="12.5" y="17" width="3" height="3" rx="1"/>' +
     "</svg></span>";
   document.body.appendChild(btn);
 

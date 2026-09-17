@@ -214,8 +214,20 @@
        (z-index -1) and a ::before/::after on a backdrop-filtered box cannot
        get behind its own host. */
     if (d.kind === "cube" || d.kind === "eye") el.insertAdjacentHTML("beforeend", '<i class="flare" aria-hidden="true"></i>');
-    if (d.kind === "eye")
-      el.insertAdjacentHTML("beforeend", '<i class="iris" aria-hidden="true"><i class="pupil"></i></i><i class="lid" aria-hidden="true"></i>');
+    /* ── THE EYE IS EMPTY GLASS NOW ──────────────────────────────────
+       Sid: "in the screensaver, we have this eye ... remove the cube in the
+       eye and just have the same translucent Liquid Glass eye."
+
+       The iris carried a dark square pupil, which at drift scale is a small
+       block sitting in the middle of a lens -- the cube he is describing. It
+       also made the piece a face, and there is already a face in this
+       screensaver: the cube with the site's own eyes and mouth. Two of them
+       looking at you is one too many.
+
+       The lid stays, because it is what keeps the shape an eye rather than a
+       lozenge, and the flare stays because that is the glass. What is left is
+       a translucent lens that blinks and refracts what it drifts over. */
+    if (d.kind === "eye") el.insertAdjacentHTML("beforeend", '<i class="lid" aria-hidden="true"></i>');
 
     if (d.face) {
       el.classList.add("has-face");
