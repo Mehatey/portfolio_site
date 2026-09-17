@@ -11695,7 +11695,7 @@
       }
     });
   })();
-</script> <div class="lgrid" aria-hidden="true"> <span class="lgrid__box"> <i class="lgrid__v" style="--i: 0"></i> <i class="lgrid__v" style="--i: 3"></i> </span> </div> <style>
+</script> <div class="lgrid" aria-hidden="true"> <span class="lgrid__box"> <svg class="lgrid__string" viewbox="0 0 25 1000" preserveaspectratio="none" aria-hidden="true" focusable="false"> <path class="lgrid__path" d="M12.5 0 Q12.5 500 12.5 1000" vector-effect="non-scaling-stroke"></path> </svg> <span class="lgrid__marks"></span> </span> </div> <style>
   .lgrid {
     position: fixed;
     inset: 0;
@@ -11782,6 +11782,59 @@
 
      What is left is the measure: one line down each edge of the content
      column, which is the only pair that describes something true. */
+  /* The string. 25px wide so the curve has somewhere to go, offset back by
+     half of that so the path's centre lands exactly where the old 1px div
+     did -- measured at 58 and 1377 on a 1440 viewport, and the left one must
+     not move by even a pixel or it stops describing the measure. */
+  .lgrid__string {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -12.5px;
+    width: 25px;
+    height: 100%;
+    overflow: visible;
+  }
+  .lgrid__path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1;
+    opacity: 0.055;
+    /* Over a photograph a flat ink hairline either vanishes into a highlight
+       or prints as a dark scratch across a shadow. Overlay resolves against
+       whatever it crosses, so the same line stays a line over the hero, over
+       cream and over black. */
+    mix-blend-mode: overlay;
+  }
+  /* ── THE TICKS ──────────────────────────────────────────────────────────
+     Each one is a section, placed at that section's fraction of the
+     document. 7px of rule crossing the line at rest; the section you are
+     actually in runs to 15px and comes up to full strength, so the spine
+     reads as a position indicator without anything moving. */
+  .lgrid__marks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .lgrid__mark {
+    position: absolute;
+    left: -3px;
+    width: 7px;
+    height: 1px;
+    background: currentColor;
+    opacity: 0.1;
+    mix-blend-mode: overlay;
+    transform: translateY(-0.5px);
+    transition:
+      width 420ms cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 420ms ease,
+      left 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .lgrid__mark.is-here {
+    left: -6px;
+    width: 15px;
+    opacity: 0.4;
+  }
   .lgrid__v {
     position: absolute;
     top: 0;
@@ -11809,21 +11862,11 @@
     opacity: 0.055;
   }
 
-  .lgrid__h {
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: currentColor;
-    opacity: 0.03;
-    top: calc(var(--f) * 100%);
-    /* Scroll velocity, damped and shared. The horizontals are the ones that
-       move because they are perpendicular to the travel — a vertical line
-       sliding up and down is invisible, a horizontal one is the frame
-       lagging behind the page. */
-    transform: translateY(calc(var(--sva, 0) * 26px));
-    will-change: transform;
-  }
+  /* .lgrid__h is gone with the last element that used it. It was already
+     dead CSS for one round -- the markup stopped emitting horizontals and
+     the rule stayed -- which is how it was available to be reused for the
+     top rule above and put a line through Sid's cover. A rule with no
+     element is a trap, not a spare part. */
 
   html[data-theme="light"] .lgrid {
     color: #2e3442;
@@ -11831,27 +11874,43 @@
   html[data-theme="light"] .lgrid__v {
     opacity: 0.055;
   }
+  html[data-theme="light"] .lgrid__path {
+    opacity: 0.075;
+  }
+  html[data-theme="light"] .lgrid__mark {
+    opacity: 0.14;
+  }
+  html[data-theme="light"] .lgrid__mark.is-here {
+    opacity: 0.5;
+  }
   html[data-theme="light"] .lgrid__v:first-child,
   html[data-theme="light"] .lgrid__v:nth-child(2) {
     opacity: 0.075;
-  }
-  html[data-theme="light"] .lgrid__h {
-    opacity: 0.04;
   }
 
   /* On a phone six columns at a 24px gutter puts a line every 55px, which is
      a texture rather than a structure. Two lines: the measure, and nothing
      else. The horizontals stay — they cost nothing and they are what makes a
      small screen read as a page rather than as a feed. */
+  /* One line on a phone too, and the ticks come off it: a 24px gutter puts
+     the measure close enough to the screen edge that a 15px tick would hang
+     half off the page, and a section spine is a desktop reading aid anyway. */
   @media (max-width: 760px) {
-    .lgrid__v:not(:first-child):not(:nth-child(2)) {
+    .lgrid__marks {
       display: none;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .lgrid__h {
-      transform: none;
+    /* The string does not ring for anyone who asked for less motion. The
+       script checks the same query and returns before it ever plucks, so
+       this is the belt to that braces: if the path is bent when the setting
+       changes, it snaps straight. */
+    .lgrid__path {
+      d: path("M12.5 0 Q12.5 500 12.5 1000");
+    }
+    .lgrid__mark {
+      transition: none;
     }
   }
 
@@ -13007,7 +13066,234 @@
 
      It sits below the nav's own contents at 8999 against the bar's 9000, so
      the mark and the links are always in front of it. */
-</style> <script src="/assets/js/idle-drift.js" defer></script> <script src="/assets/js/drifters.js" defer></script> <script src="/assets/js/site-caustics.js" defer></script> <div class="film" aria-hidden="true"> <div class="film__grain" id="film-grain"></div> <div class="film__vig"></div> </div> <style>
+</style> <script>
+  /* ══ THE SPINE, AND THE STRING ══════════════════════════════════════════
+     Two jobs on one hairline, and they share a rAF because they are both
+     driven by where things are on screen.
+
+     ── THE SPINE ──────────────────────────────────────────────────────────
+     A tick per section, placed at that section's fraction of the document,
+     and the one you are in is marked. The sections are found rather than
+     declared, because this include is on forty routes and none of them would
+     maintain a list: anything that is a real landmark on this site is a
+     <section> or a .cs-section with an id, which is also exactly what the
+     project pages' own chapter rail keys off. A page with fewer than two of
+     them gets no ticks at all -- a spine with one mark on it is a smudge.
+
+     ── THE STRING ─────────────────────────────────────────────────────────
+     NO HIT TARGET, which is the whole trick. The obvious way to know the
+     pointer is on the line is to put a wide transparent strip over it with
+     pointer-events, and that strip would sit exactly where every line of
+     type on the site begins -- swallowing text selection and any link within
+     twelve pixels of the measure. So nothing is ever intercepted: a passive
+     pointermove asks how far the cursor is from the line's x, and that is
+     all. The grid layer keeps pointer-events: none, unchanged.
+
+     The pluck is a damped standing wave -- one control point on the path,
+     moving as A0 * e^(-t/tau) * sin(2*pi*f*t). 9Hz and a 180ms decay is a
+     string being touched rather than strummed; Sid: "not go crazy, just some
+     motion in that area". It plucks on ENTRY, not continuously, or running
+     the cursor down the edge would hold the line permanently bent.
+
+     ── AND THE NOTES ──────────────────────────────────────────────────────
+     Seven regions down the line, one note each, through window.__sidNote --
+     which already exists for the nav tour and is already gated on the sound
+     toggle. That gate is the reason this is allowed to make a sound at all:
+     nothing here plays for a visitor who has not switched sound on.
+
+     A major pentatonic, so any order of regions is consonant -- a chromatic
+     run would let a fast diagonal produce a semitone clash, and the point is
+     that it sounds intentful. Bottom to top ascending: the line is read
+     downward, so the lower you touch it the higher it should not be. */
+  (function () {
+    var grid = document.querySelector(".lgrid");
+    if (!grid) return;
+    var path = grid.querySelector(".lgrid__path");
+    var box = grid.querySelector(".lgrid__box");
+    var marksHost = grid.querySelector(".lgrid__marks");
+    if (!path || !box) return;
+    var less = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    /* ── 1. THE TICKS ──────────────────────────────────────────────────── */
+    var marks = [];
+    var sections = [];
+    var here = -1;
+    function buildSpine() {
+      if (!marksHost) return;
+      /* .cs-section FIRST and without an id, because that is what a case
+         study is actually built from -- measured on /mool/: sixteen
+         .cs-section blocks and exactly three elements on the whole page
+         matching `section[id]`, which is why the first version of this drew
+         three ticks on a thirty-six screen document and put two of them in
+         the last quarter. The id was a requirement borrowed from the
+         chapter rail, which keys off headings rather than sections. */
+      var found = [].slice.call(document.querySelectorAll(".cs-section, .wk-lane, .proj-highlights, .proj-reflection, section[id], [data-section]"));
+      /* Deduplicate by position: some layouts wrap a section in a section,
+         and two ticks one pixel apart is a thicker tick, not two landmarks. */
+      var seen = {};
+      sections = found.filter(function (el) {
+        var r = el.getBoundingClientRect();
+        /* 40, not 120. A .cs-section on these pages is the section's LABEL
+           row -- a flex line measuring 85px -- not a container holding the
+           section's content, so a 120px floor threw away every chapter
+           heading on the page and kept only the three big blocks at the end.
+           Measured on /mool/: six landmarks matched, three survived, and two
+           of the three were in the last quarter of the document. The floor
+           only exists to drop an empty or collapsed match, and 40px does
+           that without having an opinion about what a landmark looks like. */
+        if (r.height < 40) return false;
+        var y = Math.round((r.top + window.scrollY) / 40);
+        if (seen[y]) return false;
+        seen[y] = 1;
+        return true;
+      });
+      marksHost.textContent = "";
+      marks = [];
+      /* The ticks are rebuilt a few times as lazy media settles the document
+         height, and `here` is an index INTO the old array. Leaving it set
+         meant the next spine() found idx === here, returned early, and never
+         marked anything on the new ticks -- measured as "active index = -1"
+         after a scroll, with the marks all present and none lit. */
+      here = -1;
+      if (sections.length < 2) return;
+      var doc = document.documentElement.scrollHeight;
+      sections.forEach(function (el) {
+        var t = el.getBoundingClientRect().top + window.scrollY;
+        var m = document.createElement("i");
+        m.className = "lgrid__mark";
+        m.style.top = ((t / doc) * 100).toFixed(2) + "%";
+        marksHost.appendChild(m);
+        marks.push(m);
+      });
+    }
+
+    function spine() {
+      if (!marks.length) return;
+      /* The section whose top is the last one above the reading line, which
+         is a third down the viewport rather than the very top -- a heading
+         that has just appeared at the bottom edge is not the section you are
+         reading. */
+      var line = window.scrollY + window.innerHeight / 3;
+      var idx = 0;
+      for (var i = 0; i < sections.length; i++) {
+        if (sections[i].getBoundingClientRect().top + window.scrollY <= line) idx = i;
+      }
+      if (idx === here) return;
+      if (marks[here]) marks[here].classList.remove("is-here");
+      here = idx;
+      if (marks[here]) marks[here].classList.add("is-here");
+    }
+
+    /* ── 2. THE STRING ─────────────────────────────────────────────────── */
+    var W = 25,
+      MID = 12.5;
+    var amp = 0,
+      t0 = 0,
+      raf = 0,
+      near = false;
+    var SCALE = [0, 2, 4, 7, 9, 12, 14]; /* major pentatonic, two octaves */
+    var region = -1,
+      lastNote = 0;
+
+    function draw(bend) {
+      /* One quadratic. The control point is at the pluck height so the belly
+         of the curve forms where the finger is, which is what makes it read
+         as a string rather than as a bowed line. */
+      var h = 1000;
+      var y = Math.max(40, Math.min(960, pluckY * h));
+      path.setAttribute("d", "M" + MID + " 0 Q" + (MID + bend).toFixed(2) + " " + y.toFixed(0) + " " + MID + " " + h);
+    }
+    var pluckY = 0.5;
+
+    function ring(now) {
+      raf = 0;
+      var el = (now - t0) / 1000;
+      /* 180ms decay, 9Hz. Past four time constants the motion is under a
+         tenth of a pixel, so it is finished rather than asymptotic. */
+      var a = amp * Math.exp(-el / 0.18) * Math.sin(2 * Math.PI * 9 * el);
+      if (Math.abs(a) < 0.08 && el > 0.1) {
+        draw(0);
+        return;
+      }
+      draw(a);
+      raf = requestAnimationFrame(ring);
+    }
+
+    function pluck(y, fromLeft) {
+      if (less) return;
+      pluckY = y;
+      /* 7px, and signed by which side the cursor came from, so the line
+         moves away from the hand. */
+      amp = fromLeft ? 7 : -7;
+      t0 = performance.now();
+      if (!raf) raf = requestAnimationFrame(ring);
+    }
+
+    function note(y) {
+      if (!window.__sidNote) return;
+      var r = Math.max(0, Math.min(SCALE.length - 1, Math.floor(y * SCALE.length)));
+      if (r === region) return;
+      var now = performance.now();
+      if (now - lastNote < 140) return;
+      region = r;
+      lastNote = now;
+      /* Read downward, so the top of the line is the top of the scale. */
+      window.__sidNote(SCALE[SCALE.length - 1 - r]);
+    }
+
+    window.addEventListener(
+      "pointermove",
+      function (e) {
+        if (e.pointerType === "touch") return;
+        var r = box.getBoundingClientRect();
+        var dx = e.clientX - r.left;
+        var within = Math.abs(dx) <= 13;
+        var y = Math.max(0, Math.min(1, e.clientY / window.innerHeight));
+        if (within) {
+          if (!near) {
+            near = true;
+            pluck(y, dx < 0);
+          }
+          note(y);
+        } else if (near) {
+          near = false;
+          region = -1;
+        }
+      },
+      { passive: true }
+    );
+
+    /* ── 3. ONE LOOP ───────────────────────────────────────────────────── */
+    var sraf = 0;
+    function onScroll() {
+      if (!sraf)
+        sraf = requestAnimationFrame(function () {
+          sraf = 0;
+          spine();
+        });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener(
+      "resize",
+      function () {
+        buildSpine();
+        spine();
+      },
+      { passive: true }
+    );
+    /* Late, and again later: sections on these pages arrive with lazy media
+       and reveal observers, so the document height at DOM ready is not the
+       one the ticks should be placed against. */
+    function boot() {
+      buildSpine();
+      spine();
+    }
+    boot();
+    [600, 1800, 4000].forEach(function (d) {
+      setTimeout(boot, d);
+    });
+  })();
+</script> <script src="/assets/js/idle-drift.js" defer></script> <script src="/assets/js/drifters.js" defer></script> <script src="/assets/js/site-caustics.js" defer></script> <div class="film" aria-hidden="true"> <div class="film__grain" id="film-grain"></div> <div class="film__vig"></div> </div> <style>
   .film {
     position: fixed;
     inset: 0;
@@ -20262,13 +20548,6 @@
   }
 
   /* Existing reading progress bar — light-mode tuning */
-  html[data-theme="light"] .progress-bar {
-    background: rgba(7, 9, 15, 0.05);
-  }
-  html[data-theme="light"] .progress-fill {
-    background: linear-gradient(90deg, rgba(40, 90, 180, 0.6) 0%, rgba(60, 160, 140, 0.55) 50%, rgba(220, 130, 60, 0.6) 100%);
-    box-shadow: 0 0 8px rgba(40, 90, 180, 0.18);
-  }
   /* Cube-chat header / avatar / close */
   html[data-theme="light"] .cc-header {
     border-bottom-color: rgba(0, 0, 0, 0.08);
@@ -20649,7 +20928,6 @@
     #sid-lightbox,
     #sid-toast,
     .scroll-edge,
-    .progress-bar,
     .site-footer-cta,
     .works-end-btn,
     .filter-bar,
