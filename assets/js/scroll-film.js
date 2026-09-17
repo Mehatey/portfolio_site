@@ -105,9 +105,77 @@
       b.scrollIntoView({ behavior: "smooth", block: "center" });
     });
     rail.appendChild(cell);
-    shots.push({ el: cell, block: b });
+    shots.push({ el: cell, block: b, media: media, filled: !!src });
   });
   if (shots.length < 4) return;
+
+  /* ── AN UNEXPOSED FRAME IS STILL A BLANK FRAME ────────────────────────
+     Sid: "the preview thumbnail is not loaded on the right."
+
+     Measured across three case studies: /mool/ 0 blank of 11, /illustrations/
+     1 of 20, and /cube-guy/ 33 of 39. The rule above draws a video file as a
+     blank cell rather than setting an .mp4 as a background image, which is
+     correct as far as it goes -- but on a page that is 85% video it produces
+     a strip of empty boxes, which is what he is looking at.
+
+     A video that is playing has the picture already. These autoplay when they
+     reach the viewport, so by the time a reader is anywhere near one there is
+     a decoded frame sitting in it, and one 26x36 drawImage is the whole cost
+     of getting it out. Each cell is filled once, the first time its video has
+     enough data, and then never looked at again.
+
+     `willReadFrequently` is not set because nothing is read back -- the canvas
+     goes straight to a data URL. The size is the cell's, not the video's, so
+     the string stays small. */
+  (function fillBlanks() {
+    var pending = shots.filter(function (s) {
+      return !s.filled && s.media && s.media.tagName === "VIDEO";
+    });
+    if (!pending.length) return;
+
+    var cv = document.createElement("canvas");
+    cv.width = 52;
+    cv.height = 72;
+    var cx = cv.getContext("2d");
+
+    function grab(s) {
+      var v = s.media;
+      /* HAVE_CURRENT_DATA. Anything less and drawImage paints nothing, which
+         would burn the one attempt this cell gets. */
+      if (!v || v.readyState < 2 || s.filled) return false;
+      try {
+        cx.drawImage(v, 0, 0, cv.width, cv.height);
+        s.el.style.backgroundImage = "url(" + cv.toDataURL("image/jpeg", 0.6) + ")";
+        s.el.classList.remove("is-blank");
+        s.filled = true;
+        return true;
+      } catch (e) {
+        /* A cross origin frame taints the canvas. Nothing to do but leave the
+           cell blank, which is where it already was. */
+        s.filled = true;
+        return false;
+      }
+    }
+
+    function sweep() {
+      for (var i = pending.length - 1; i >= 0; i--) if (grab(pending[i])) pending.splice(i, 1);
+      if (!pending.length && iv) {
+        clearInterval(iv);
+        iv = 0;
+      }
+    }
+    /* Twice a second while there is anything left, and it stops itself. A
+       video only has a frame once it has been near the viewport, so this is
+       waiting on the reader rather than on the network. */
+    var iv = setInterval(sweep, 500);
+    setTimeout(function () {
+      if (iv) {
+        clearInterval(iv);
+        iv = 0;
+      }
+    }, 120000);
+    sweep();
+  })();
 
   var frame = document.createElement("span");
   frame.className = "sfilm__view";
