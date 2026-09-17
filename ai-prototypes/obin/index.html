@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Obin prototype</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root{
+  --bg:#EFF1F4;--panel:#FFF;--sunk:#F7F8FA;--ink:#0E1116;--mid:#59616D;--faint:#666E7A;
+  --rule:#E2E5EA;--hair:#EDEFF3;
+  --acc:#1B47C9;--acc-w:#EEF1FC;
+  --pass:#0E6B4F;--pass-w:#EAF4F0;
+  --warn:#96590A;--warn-w:#FBF3E6;
+  --fail:#AC231C;--fail-w:#FCEFEE;
+  /* tint borders and deep text for each semantic family */
+  --acc-b:#C6D2F5;--acc-d:#132F86;--acc-l:#D9E2FB;
+  --pass-b:#C4DED3;--pass-d:#0B4C39;--pass-m:#9DC9BA;
+  --warn-b:#E4D3AE;--warn-d:#5E3A06;
+  --fail-b:#EFCBC8;--fail-d:#6E1B16;
+  --mark:#FDF1CE;--mark-b:#E4CE8E;
+  --prose:#1B1F26;--ink-h:#25292F;--sunk-h:#F0F2F5;
+  --print:#000;--shadow:14,17,22;--accent-rgb:27,71,201;
+  --ui:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+  /* The memo is an organisational instrument, so it is set in a document face while
+     the interface around it stays in the system UI face. Reading the two apart is
+     the same argument the monospace figures make, carried one level up. */
+  --doc:Charter,"Iowan Old Style",Palatino,Georgia,serif;
+  --mo:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s7:32px;--s8:40px;--s9:56px;
+  --rail:336px;--proof:428px;--bar:52px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:13px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;overflow:hidden}
+button{font:inherit;color:inherit;border:0;background:none}
+::selection{background:var(--acc-l)}
+.n{font-family:var(--mo);font-variant-numeric:tabular-nums}
+.lbl{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+
+.app{display:flex;flex-direction:column;height:100vh}
+
+/* ══ header ══ */
+.hd{flex:none;background:var(--panel);border-bottom:1px solid var(--rule)}
+.hr1{height:56px;display:flex;align-items:center;gap:var(--s4);padding:0 var(--s6)}
+.mark{display:flex;align-items:center;gap:var(--s3);padding-right:var(--s4);border-right:1px solid var(--rule)}
+.mark i{width:18px;height:18px;border-radius:3px;background:var(--ink);display:block;position:relative}
+.mark i::after{content:'';position:absolute;left:4px;top:4px;width:10px;height:10px;border-radius:2px;
+  border:1.5px solid var(--panel)}
+.mark b{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.deal{font-size:13px;color:var(--mid)}
+.deal b{color:var(--ink);font-weight:600;font-size:13px}
+.sp{flex:1}
+.qpos{font-family:var(--mo);font-size:12px;color:var(--mid);border:1px solid var(--rule);border-radius:4px;
+  padding:var(--s1) var(--s3);cursor:pointer;background:none;transition:.14s}
+.qpos:hover{border-color:var(--ink);color:var(--ink)}
+.qrow{display:grid;grid-template-columns:1.2fr .75fr .85fr .8fr;gap:var(--s3);padding:var(--s3);
+  border-bottom:1px solid var(--hair);align-items:baseline;font-size:13px}
+.qrow.now{background:var(--acc-w);border-left:2px solid var(--acc);padding-left:calc(var(--s3) - 2px)}
+.qrow .qs{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase}
+.qrow .qs.circ2{color:var(--pass)}.qrow .qs.rev{color:var(--acc)}
+.qrow .qs.pass{color:var(--faint)}.qrow .qs.wait{color:var(--warn)}
+.qrow .qt{font-family:var(--mo);font-size:12px;text-align:right}
+.qhd{display:grid;grid-template-columns:1.2fr .75fr .85fr .8fr;gap:var(--s3);padding:0 var(--s3) var(--s2);
+  font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);
+  border-bottom:1px solid var(--rule)}
+.qhd .qt{text-align:right}
+.qpos b{color:var(--ink);font-weight:500}
+.ask-chip{font-family:var(--mo);font-size:12px;border:1px solid var(--warn-b);background:var(--warn-w);color:var(--warn);
+  border-radius:4px;padding:var(--s1) var(--s3);cursor:pointer;display:none;align-items:center;gap:var(--s2)}
+.ask-chip.on{display:flex}
+.ask-chip:hover{border-color:var(--warn)}
+.circ{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:5px;padding:8px var(--s4);
+  font-size:13px;font-weight:600;cursor:pointer;transition:.14s}
+.circ:hover{background:var(--ink-h)}
+.circ:disabled{background:var(--sunk);color:var(--faint);border-color:var(--rule);cursor:not-allowed}
+.gate{font-size:12px;color:var(--fail);max-width:210px;text-align:right;line-height:1.45;text-wrap:balance}
+.gate.ok{color:var(--pass)}
+
+/* throughput strip */
+.hr2{height:34px;display:flex;align-items:center;padding:0 var(--s6);gap:var(--s6);
+  border-top:1px solid var(--hair);background:var(--sunk)}
+.tm{display:flex;align-items:baseline;gap:var(--s2);font-size:12px;color:var(--faint)}
+.tm b{font-family:var(--mo);font-size:12px;color:var(--ink);font-weight:500}
+.tm .vs{color:var(--faint);font-family:var(--mo);font-size:12px}
+.bl{flex:1;height:3px;background:var(--rule);border-radius:2px;position:relative;max-width:180px}
+.bl i{position:absolute;left:0;top:0;bottom:0;background:var(--acc);border-radius:2px;transition:width .5s}
+
+/* ══ body ══ */
+.bd{flex:1;display:grid;grid-template-columns:var(--rail) minmax(0,1fr) var(--proof);min-height:0}
+.col{overflow-y:auto;min-width:0}
+.col::-webkit-scrollbar{width:8px}
+.col::-webkit-scrollbar-thumb{background:var(--rule);border-radius:4px;border:2px solid transparent;background-clip:content-box}
+
+/* ── rail: the queue, sorted by leverage ── */
+nav.rail{background:var(--panel);border-right:1px solid var(--rule);padding-bottom:var(--s9)}
+.rhd{padding:var(--s5) var(--s5) var(--s3);position:sticky;top:0;background:var(--panel);z-index:3}
+.rhd h3{font-size:13px;font-weight:600;margin-bottom:2px}
+.rhd p{font-size:12px;color:var(--faint);line-height:1.45}
+.axis{display:flex;align-items:center;gap:var(--s2);margin-top:var(--s3);padding-top:var(--s3);
+  border-top:1px solid var(--hair);font-family:var(--mo);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint)}
+.axis span{flex:1;height:1px;background:var(--hair)}
+.axis em{font-style:normal;text-align:right;width:58px}
+.axis em.lft{text-align:left;width:74px}
+
+/* sort toggle: the thesis, made falsifiable */
+.sortw{display:flex;border:1px solid var(--rule);border-radius:5px;overflow:hidden;margin-top:var(--s3)}
+.sortw button{flex:1;background:var(--sunk);border:0;padding:6px var(--s2);font-family:var(--mo);font-size:10px;
+  letter-spacing:.12em;text-transform:uppercase;color:var(--faint);cursor:pointer;transition:.14s}
+.sortw button+button{border-left:1px solid var(--rule)}
+.sortw button.on{background:var(--ink);color:#fff}
+.sortw button:not(.on):hover{color:var(--ink)}
+.sortnote{font-size:12px;line-height:1.45;color:var(--warn);background:var(--warn-w);border:1px solid var(--warn-b);
+  border-radius:5px;padding:var(--s2) var(--s3);margin-top:var(--s3)}
+.rank{font-family:var(--mo);font-size:10px;color:var(--faint);width:15px;flex:none;text-align:right}
+.row.late .rank{color:var(--fail);font-weight:600}
+
+.resolved .nx{display:flex;align-items:center;gap:var(--s2);margin-top:var(--s3)}
+.resolved .nx button{margin-top:0}
+.chg{border:1px solid var(--acc-b);background:var(--acc-w);border-radius:5px;padding:var(--s2) var(--s3);
+  font-size:12px;color:var(--acc-d);margin-top:var(--s3);line-height:1.45}
+/* Boundary disclosure. Deliberately neutral rather than semantic: an outbound lookup is
+   neither a pass nor a warning, it is a fact the firm's security team is entitled to see.
+   Using a semantic colour here would imply a judgement the product has not earned. */
+.bnd{border:1px solid var(--rule);background:var(--sunk);border-radius:6px;padding:var(--s3);
+  font-size:12px;line-height:1.6;color:var(--mid)}
+.bnd b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:var(--s1);font-weight:400}
+.bnd .io{display:flex;gap:var(--s3);align-items:baseline;margin-top:var(--s2);padding-top:var(--s2);
+  border-top:1px solid var(--hair);font-family:var(--mo);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint)}
+/* the value is data, not a label, so it keeps its own case */
+.bnd .io u{text-decoration:none;color:var(--ink);font-size:12px;letter-spacing:.02em;
+  text-transform:none}
+.asm{display:inline-block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint);border:1px dashed var(--rule);border-radius:3px;
+  padding:1px 4px;margin-left:var(--s2);vertical-align:1px}
+.degr{border:1px solid var(--warn-b);background:var(--warn-w);border-radius:6px;padding:var(--s3);
+  font-size:12px;line-height:1.6;color:var(--warn-d)}
+.degr b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--warn);margin-bottom:var(--s1);font-weight:400}
+.note-in{margin-top:var(--s3);border-top:1px solid var(--hair);padding-top:var(--s3)}
+.note-in label{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--pass-d);margin-bottom:var(--s2)}
+.note-in textarea{width:100%;font:inherit;font-size:13px;line-height:1.45;color:var(--ink);padding:var(--s2);
+  border:1px solid var(--pass-b);border-radius:5px;background:var(--panel);resize:vertical;font-family:var(--ui)}
+.note-in textarea:focus{outline:2px solid var(--acc);outline-offset:1px;border-color:var(--acc)}
+.note-in textarea::placeholder{color:var(--faint)}
+.opt-note{display:block;margin-top:var(--s1);font-size:12px;color:var(--faint)}
+.reasons{margin-top:var(--s4);border:1px solid var(--rule);border-radius:6px;padding:var(--s4);background:var(--sunk)}
+.reasons>b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:var(--s3);font-weight:400}
+.rsn{display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s3);padding:var(--s2) 0;
+  border-bottom:1px solid var(--hair);font-size:13px}
+.rsn:last-child{border-bottom:0}
+.rsn span{color:var(--mid)}
+.rsn em{font-style:normal;color:var(--ink);line-height:1.45}
+.probe{border:1px solid var(--acc-b);background:var(--acc-w);border-radius:5px;padding:var(--s3);
+  font-size:12px;line-height:1.6;color:var(--acc-d);margin-top:var(--s3)}
+.probe b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--acc);margin-bottom:4px;font-weight:400}
+.chg b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--acc);margin-bottom:3px;font-weight:400}
+/* below 1100px the proof panel becomes the sheet, so it is the part that scrolls */
+.sheet .proofwrap{padding:0;flex:1;min-height:0;overflow-y:auto}
+.sheet .phd{position:static;border-bottom:1px solid var(--hair)}
+
+.grp{margin-bottom:var(--s2)}
+.gh{display:flex;align-items:center;gap:var(--s2);padding:var(--s3) var(--s5) var(--s2)}
+.gh .t{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--mid)}
+.gh .d{flex:1;height:1px;background:var(--hair)}
+.gh .c{font-family:var(--mo);font-size:10px;color:var(--faint)}
+
+.row{display:block;width:100%;text-align:left;background:none;border:0;border-left:2px solid transparent;
+  padding:var(--s3) var(--s5) var(--s3) calc(var(--s5) - 2px);cursor:pointer;transition:background .12s,border-color .12s;position:relative}
+.row:hover{background:var(--sunk)}
+.row.on{background:var(--acc-w);border-left-color:var(--acc)}
+.row .l1{display:flex;align-items:baseline;gap:var(--s2)}
+/* the name wraps rather than truncates: a figure the analyst cannot read the name of
+   is a figure they cannot decide about, and the rail is narrowest at share width */
+.row .nm{font-size:13px;font-weight:600;flex:1;min-width:0;line-height:1.2;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.row .pct{font-family:var(--mo);font-size:12px;color:var(--faint);flex:none}
+.row .l2{display:flex;align-items:flex-start;gap:var(--s2);margin-top:var(--s1)}
+.lev{height:3px;border-radius:2px;flex:1;background:var(--hair);position:relative;max-width:74px;margin-top:6px}
+.lev i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--faint)}
+.lev.hi i{background:var(--fail);width:100%}
+.lev.md i{background:var(--warn);width:52%}
+.lev.lo i{background:var(--faint);width:18%}
+.why{font-size:12px;color:var(--faint);flex:1;min-width:0;line-height:1.45;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.st{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;padding:2px 5px;
+  border-radius:3px;border:1px solid var(--rule);color:var(--mid);flex:none}
+.st.open{border-color:var(--acc-b);background:var(--acc-w);color:var(--acc)}
+.st.conf{border-color:var(--warn-b);background:var(--warn-w);color:var(--warn)}
+.st.uns{border-color:var(--fail-b);background:var(--fail-w);color:var(--fail)}
+.st.done{border-color:var(--pass-b);background:var(--pass-w);color:var(--pass)}
+.st.ask{border-color:var(--warn-b);background:var(--warn-w);color:var(--warn)}
+.st.rerun{border-color:var(--acc-b);background:var(--acc-w);color:var(--acc)}
+
+.clr{margin:var(--s3) var(--s5) 0;border:1px solid var(--rule);border-radius:6px;background:var(--sunk);overflow:hidden}
+.clr>button{display:flex;width:100%;align-items:center;gap:var(--s3);padding:var(--s3);background:none;border:0;
+  cursor:pointer;text-align:left}
+.clr>button:hover{background:var(--sunk-h)}
+.clr .big{font-family:var(--mo);font-size:21px;font-weight:500}
+.clr .tx{flex:1;font-size:12px;color:var(--mid);line-height:1.45}
+.clr .ar{color:var(--faint);font-family:var(--mo);font-size:12px}
+.clr ul{display:none;border-top:1px solid var(--rule);padding:var(--s2) 0;max-height:210px;overflow-y:auto}
+.clr.open ul{display:block}
+/* Each of the 28 is a real button, not a clickable li. "Hidden is not the same as withheld"
+   is only true if the analyst can actually reach them, and a li with an onclick is
+   unreachable by keyboard and unannounced to a screen reader. */
+.clr li{list-style:none}
+.clr .pf{cursor:pointer;width:100%;background:none;border:0;display:flex;gap:var(--s2);
+  padding:3px var(--s3);font-family:var(--mo);font-size:10px;color:var(--mid);align-items:baseline;
+  text-align:left}
+.clr .pf:hover{background:var(--panel);color:var(--ink)}
+.clr .pf span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clr .pf b{color:var(--ink);font-weight:500}
+.clr .pf i{width:9px;flex:none;color:var(--pass);font-style:normal;font-size:10px}
+.clr .mh2{display:flex;align-items:center;gap:var(--s2);padding:var(--s3) var(--s3) 3px;
+  font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.clr .mh2 em{font-style:normal;flex:1;height:1px;background:var(--rule)}
+.clr .mh2 u{text-decoration:none;color:var(--pass)}
+
+/* ── memo ── */
+.mid-col{padding:var(--s8) var(--s8) var(--s9);display:flex;justify-content:center;align-items:flex-start}
+.memo{width:100%;max-width:680px;background:var(--panel);border:1px solid var(--rule);border-radius:8px;
+  padding:var(--s9) var(--s8) var(--s7);box-shadow:0 1px 1px rgba(var(--shadow),.03),0 18px 40px -32px rgba(var(--shadow),.35)}
+.memo header{padding-bottom:var(--s4);border-bottom:2px solid var(--ink);margin-bottom:var(--s6)}
+.hrow{display:flex;align-items:flex-start;gap:var(--s4);margin-bottom:var(--s4);flex-wrap:wrap}
+.hrow>div:first-child{flex:1}
+.memo h1{font-family:var(--doc);font-size:clamp(19px,2.1vw,25px);font-weight:600;letter-spacing:-.02em;
+  margin-bottom:var(--s1)}
+.memo .sub{font-size:12px;color:var(--mid);display:flex;flex-wrap:wrap;gap:0 var(--s2)}
+.memo .sub span{white-space:nowrap}
+/* Leading rather than trailing, so a wrap never leaves a separator stranded at the
+   end of a line. The span is nowrap, so the mark travels with the words after it. */
+.memo .sub span:not(:first-child)::before{content:'·';margin-right:var(--s2);color:var(--faint)}
+.stamp2{flex:none;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  padding:var(--s1) var(--s3);border-radius:3px;border:1px solid;transition:.4s;white-space:nowrap}
+.stamp2.held{color:var(--fail);border-color:var(--fail-b);background:var(--fail-w)}
+.stamp2.cond{color:var(--warn);border-color:var(--warn-b);background:var(--warn-w)}
+.stamp2.ready{color:var(--pass);border-color:var(--pass-b);background:var(--pass-w)}
+.meta{display:flex;flex-wrap:wrap;gap:var(--s5)}
+.meta span{font-size:12px;color:var(--ink)}
+.meta b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);font-weight:400;margin-bottom:2px}
+
+/* margin markers: a document is read with its edges */
+.swrap{display:grid;grid-template-columns:26px minmax(0,1fr);gap:var(--s4);margin-bottom:var(--s6)}
+.mk{width:22px;height:22px;border-radius:4px;margin-top:1px;border:1px solid var(--rule);background:var(--panel);
+  font-family:var(--mo);font-size:10px;display:flex;align-items:center;justify-content:center;
+  color:var(--faint);transition:.16s;padding:0}
+.mk.none{border-style:dashed;opacity:.45}
+.mk.ok{color:var(--pass);border-color:var(--pass-b);background:var(--pass-w)}
+.mk.open{color:var(--acc);border-color:var(--acc-b);background:var(--acc-w);cursor:pointer;font-weight:600}
+.mk.open:hover{background:var(--acc);color:#fff;border-color:var(--acc)}
+.sh2{display:flex;align-items:baseline;gap:var(--s2);margin-bottom:var(--s3);
+  padding-bottom:var(--s2);border-bottom:1px solid var(--hair)}
+/* Monospace in this product means a machine asserted it. A section heading and a
+   field label were written by a person, so they belong to the document, not to the
+   machine register and not to the app chrome. Same numbered convention, honest voice. */
+.sn{font-family:var(--doc);font-size:12px;color:var(--faint);letter-spacing:.12em}
+.sec>.lbl{font-family:var(--doc);font-size:12px;letter-spacing:.12em;color:var(--faint)}
+.meta b{font-family:var(--doc)}
+.sec>.lbl{display:inline}
+.memo p{font-family:var(--doc);font-size:15px;line-height:1.78;color:var(--prose);margin-bottom:var(--s3)}
+.memo p:last-child{margin-bottom:0}
+.memo ul{margin-left:var(--s4)}
+.memo li{font-family:var(--doc);font-size:15px;line-height:1.78;margin-bottom:var(--s3);color:var(--prose);padding-left:2px}
+.memo li:last-child{margin-bottom:0}
+.memo li b{font-weight:600}
+.mfoot{display:flex;flex-wrap:wrap;gap:var(--s4);align-items:baseline;margin-top:var(--s7);padding-top:var(--s4);
+  border-top:1px solid var(--rule);font-size:12px;color:var(--faint)}
+.mfoot b{font-family:var(--mo);font-size:12px;color:var(--ink);font-weight:500;margin-right:3px}
+.mfoot .tr{margin-left:auto;font-family:var(--mo);font-size:10px;letter-spacing:.02em}
+
+/* the signature: every machine figure is monospace and carries its state */
+.f{font-family:var(--mo);font-size:13.5px;font-weight:500;padding:1px 0;border-radius:3px;cursor:pointer;
+  border-bottom:2px solid;background:transparent;transition:background .14s,border-color .3s;white-space:nowrap;
+  line-height:1;vertical-align:baseline;position:relative;top:.5px;margin:0}
+.f.open{border-color:var(--acc);color:var(--acc)}
+.f.conf{border-color:var(--warn);color:var(--warn);background:var(--warn-w)}
+.f.uns{border-color:var(--fail);color:var(--fail);background:var(--fail-w)}
+.f.done{border-color:var(--pass-m);color:var(--pass)}
+.f.ask{border-color:var(--warn);color:var(--warn);border-bottom-style:dashed}
+.f.auto{border-color:var(--hair);color:var(--prose);cursor:default}
+.f:hover{background:var(--acc-w)}
+.f.sel,.f.sel.linked{background:var(--acc)!important;color:#fff!important;border-bottom-color:var(--acc)}
+.f.sel:hover{background:var(--acc)}
+.f.pulse{animation:pl .7s cubic-bezier(.2,.8,.25,1)}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(var(--accent-rgb),.45)}100%{box-shadow:0 0 0 9px rgba(var(--accent-rgb),0)}}
+
+/* ── proof ── */
+aside.proof{background:var(--panel);border-left:1px solid var(--rule);padding-bottom:var(--s9)}
+.empty{padding:var(--s9) var(--s6);text-align:center}
+.empty .ic{width:34px;height:34px;border-radius:6px;border:1.5px dashed var(--rule);margin:0 auto var(--s4)}
+.empty h4{font-size:13px;font-weight:600;margin-bottom:var(--s2)}
+.empty p{font-size:12px;color:var(--faint);line-height:1.6;max-width:250px;margin:0 auto}
+.empty kbd{font-family:var(--mo);font-size:10px;border:1px solid var(--rule);border-bottom-width:2px;
+  border-radius:3px;padding:1px 4px;color:var(--mid)}
+.startbtn{margin:var(--s5) auto 0;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:6px;padding:9px var(--s5);
+  font-size:13px;font-weight:600;cursor:pointer;transition:.14s}
+.startbtn:hover{background:var(--ink-h)}
+.startbtn:active{transform:scale(.985)}
+.startbtn kbd{border-color:rgba(255,255,255,.35);color:#fff;background:none}
+.empty .tiny{font-size:12px;color:var(--faint);margin-top:var(--s4)}
+
+/* --rule not --hair: this is a structural boundary between the sticky header and a
+   scrolling body, not a divider within a group. */
+.phd{padding:var(--s5) var(--s6) var(--s4);border-bottom:1px solid var(--rule);position:sticky;top:0;
+  background:var(--panel);z-index:3}
+/* Deciding a claim scrolls the panel to its outcome, which parks whatever block was
+   above the header at an arbitrary offset. Nine pixels of a rounded card, or the top
+   half of the accuracy ring, reads as a rendering fault rather than as content that
+   scrolled. This strip says scrolled, and it is the only thing telling you so. */
+aside.proof .phd::after{content:'';position:absolute;left:0;right:0;top:100%;height:10px;
+  pointer-events:none;background:linear-gradient(var(--panel),transparent)}
+.phd .t{display:flex;align-items:flex-start;gap:var(--s3);margin-bottom:var(--s3)}
+.phd h4{font-size:17px;font-weight:600;flex:1;letter-spacing:-.02em}
+.phd .x{background:none;border:0;color:var(--faint);cursor:pointer;font-size:17px;line-height:1;padding:0 2px}
+.phd .x:hover{color:var(--ink)}
+.consq{border-radius:5px;padding:var(--s3);font-size:12px;line-height:1.45;border:1px solid}
+.consq b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:var(--s1);font-weight:400}
+.consq.hi{border-color:var(--fail-b);background:var(--fail-w);color:var(--fail-d)}
+.consq.hi b{color:var(--fail)}
+.consq.lo{border-color:var(--rule);background:var(--sunk);color:var(--mid)}
+.consq.lo b{color:var(--faint)}
+
+.pb{padding:var(--s5) var(--s6);border-bottom:1px solid var(--hair)}
+.pb>.lbl{display:block;margin-bottom:var(--s3)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:6px;overflow:hidden}
+.cell{background:var(--panel);padding:var(--s3)}
+.cell .h{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);
+  margin-bottom:var(--s2);display:flex;gap:5px;align-items:center}
+.cell .srcname{font-family:var(--mo);font-size:10px;color:var(--faint);display:block;margin-bottom:var(--s2);
+  word-break:break-all}
+.cell .q{font-size:12px;line-height:1.6;color:var(--mid)}
+.cell .q mark{background:var(--mark);color:var(--ink);padding:0 2px;font-weight:500}
+.cell .big{font-family:var(--mo);font-size:17px;font-weight:500;display:block;margin-bottom:3px}
+.cell.a .big{color:var(--ink)}
+.cell.b .big{color:var(--ink)}
+.cell .sub{font-size:12px;color:var(--faint);line-height:1.45}
+.vd{margin-top:var(--s3);border-radius:5px;padding:var(--s3);font-size:12px;border:1px solid;line-height:1.6}
+.vd b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  margin-bottom:4px}
+.vd.fail{border-color:var(--fail-b);background:var(--fail-w);color:var(--fail-d)}
+.vd.fail b{color:var(--fail)}
+.vd.warn{border-color:var(--warn-b);background:var(--warn-w);color:var(--warn-d)}
+.vd.warn b{color:var(--warn)}
+.vd.pass{border-color:var(--pass-b);background:var(--pass-w);color:var(--pass-d)}
+.vd.pass b{color:var(--pass)}
+
+/* inline source */
+.isrc{margin-top:var(--s3);border:1px solid var(--rule);border-radius:6px;overflow:hidden;background:var(--sunk)}
+.itabs{display:flex;gap:1px;background:var(--rule);border-bottom:1px solid var(--rule)}
+.itabs button{flex:1;min-width:0;background:var(--sunk);border:0;padding:var(--s2);cursor:pointer;
+  font-family:var(--mo);font-size:10px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;
+  white-space:nowrap;transition:.14s}
+.itabs button:hover{color:var(--ink)}
+.itabs button.on{background:var(--panel);color:var(--ink)}
+.itabs button.full{flex:none;background:var(--sunk);color:var(--acc);padding:7px var(--s3)}
+.ibody{background:var(--panel);padding:var(--s3);max-height:196px;overflow-y:auto;
+  font-family:var(--mo);font-size:12px;line-height:1.78;color:var(--mid)}
+.ibody::-webkit-scrollbar{width:6px}
+.ibody::-webkit-scrollbar-thumb{background:var(--rule);border-radius:3px}
+.ittl{font-family:var(--ui);font-size:12px;font-weight:600;color:var(--ink);margin-bottom:var(--s2);
+  padding-bottom:5px;border-bottom:1px solid var(--hair)}
+.irw{display:flex;justify-content:space-between;gap:var(--s3);padding:2px 5px;border-radius:3px;
+  flex-wrap:wrap}
+.irw span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.irw span:last-child{color:var(--ink);flex:none;margin-left:auto}
+.irw.hit{background:var(--mark);box-shadow:0 0 0 1px var(--mark-b);color:var(--ink);font-weight:500}
+.ibody p{margin-bottom:var(--s2);font-size:12px;line-height:1.78}
+.ibody p:last-child{margin-bottom:0}
+.ibody mark{background:var(--mark);padding:0 2px;color:var(--ink);font-weight:500}
+.igap{color:var(--fail);padding:var(--s2) 5px}
+.ifoot{padding:6px var(--s3);border-top:1px solid var(--rule);font-size:12px;color:var(--faint);
+  background:var(--sunk)}
+
+.rel{display:flex;gap:var(--s4);align-items:center;width:100%;text-align:left;background:none;
+  border:1px solid transparent;border-radius:7px;padding:var(--s2);margin:calc(var(--s2)*-1);cursor:pointer;
+  transition:.14s}
+.rel:hover{border-color:var(--rule);background:var(--sunk)}
+.rel .see{display:block;margin-top:6px;font-family:var(--mo);font-size:10px;color:var(--acc);
+  letter-spacing:.02em;opacity:.75;transition:opacity .14s}
+.rel:hover .see{opacity:1}
+
+/* calibration evidence */
+.calsum.three{grid-template-columns:repeat(3,1fr)}
+.calsum{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);
+  border-radius:7px;overflow:hidden;margin-bottom:var(--s5)}
+.cs{background:var(--panel);padding:var(--s3) var(--s4)}
+.cs b{display:block;font-family:var(--mo);font-size:21px;font-weight:500;line-height:1.2}
+.cs b.g{color:var(--pass)}.cs b.r{color:var(--fail)}.cs b.a{color:var(--acc)}
+.cs span{font-size:12px;color:var(--faint)}
+.calhd,.crh{display:grid;grid-template-columns:1.2fr 1.1fr .7fr .7fr 1fr;gap:var(--s3);align-items:baseline}
+.calhd{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);
+  padding:0 var(--s3) var(--s2);border-bottom:1px solid var(--rule)}
+.calhd .val,.crh .val{text-align:right}
+.cr{border-bottom:1px solid var(--hair);padding:var(--s3);border-left:2px solid transparent;
+  transition:background .14s}
+.cr.agent,.cr.analyst{cursor:pointer}
+.cr.agent{border-left-color:var(--fail);background:var(--fail-w)}
+.cr.analyst{border-left-color:var(--acc);background:var(--acc-w)}
+.cr.agent:hover,.cr.analyst:hover{filter:brightness(.985)}
+.crh .deal{font-size:13px;font-weight:600}
+.crh .fig{font-size:12px;color:var(--mid)}
+.crh .val{font-family:var(--mo);font-size:12px}
+.crh .val.you{color:var(--mid)}
+.vd2{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;text-align:right;
+  color:var(--faint)}
+/* Nine rows agreeing do not need nine shouted labels. The sheet exists for the
+   three rows that disagree, so agreement is set quietly and they carry the weight. */
+.vd2:not(.agent):not(.analyst){text-transform:none;letter-spacing:.02em;font-size:12px}
+.vd2.agent{color:var(--fail);font-weight:600}
+.vd2.analyst{color:var(--acc);font-weight:600}
+.vd2 .ex{display:block;font-style:normal;font-weight:400;font-size:10px;opacity:.7;margin-top:2px;
+  letter-spacing:.02em;transition:opacity .14s}
+.cr:hover .vd2 .ex{opacity:1}
+.cr.open .vd2 .ex{visibility:hidden}
+.crb{display:none;font-size:12px;line-height:1.6;color:var(--mid);padding:var(--s3) 0 2px;margin-top:var(--s3);
+  border-top:1px dotted var(--rule)}
+.cr.open .crb{display:block;animation:pin .22s ease}
+.cr.agent .crh::after,.cr.analyst .crh::after{content:''}
+.calfoot{margin-top:var(--s5);border:1px solid var(--rule);background:var(--sunk);border-radius:6px;
+  padding:var(--s4);font-size:12px;line-height:1.6;color:var(--mid)}
+/* the payoff line never scrolls out of reach: it is the reason the sheet exists */
+.calfoot.pin{flex:none;margin:0;border:0;border-top:1px solid var(--rule);border-radius:0;
+  padding:var(--s4) var(--s6)}
+@media (max-width:640px){
+  .calsum{grid-template-columns:repeat(2,1fr)}
+  .calhd{display:none}
+  .crh{grid-template-columns:1fr 1fr;row-gap:2px}
+  .crh .val{text-align:left}
+}
+.dial{width:46px;height:46px;flex:none;position:relative}
+.dial svg{transform:rotate(-90deg)}
+.dial span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mo);font-size:12px;font-weight:500}
+.rel .tx{font-size:12px;color:var(--mid);line-height:1.6}
+.rel .tx b{color:var(--ink);font-weight:600}
+
+.acts{padding:var(--s5) var(--s6)}
+.act{display:block;width:100%;text-align:left;border:1px solid var(--rule);border-radius:6px;background:var(--panel);
+  padding:var(--s3) var(--s4);cursor:pointer;margin-bottom:var(--s2);transition:.14s;position:relative}
+.act:hover{border-color:var(--ink);background:var(--sunk)}
+.act b{display:block;font-size:13px;font-weight:600;margin-bottom:2px}
+.act span{font-size:12px;color:var(--faint);line-height:1.45}
+.act kbd{position:absolute;right:var(--s3);top:var(--s3);font-family:var(--mo);font-size:10px;color:var(--faint);
+  border:1px solid var(--rule);border-radius:3px;padding:1px 4px}
+.act.pri{border-color:var(--ink)}
+.act.pri b{color:var(--ink)}
+.resolved{border:1px solid var(--pass-b);background:var(--pass-w);border-radius:6px;padding:var(--s4);font-size:12px;
+  color:var(--pass-d);line-height:1.6}
+.resolved b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--pass);margin-bottom:var(--s2);font-weight:400}
+.resolved button{margin-top:var(--s3);background:none;border:1px solid var(--pass-m);border-radius:4px;
+  padding:4px var(--s3);font-size:12px;color:var(--pass-d);cursor:pointer}
+.resolved button:hover{border-color:var(--pass)}
+
+/* re-reason */
+div.rerun{border:1px solid var(--acc-b);background:var(--acc-w);border-radius:6px;padding:var(--s4);font-size:12px;
+  color:var(--acc-d);line-height:1.6}
+.rerun b{display:block;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--acc);margin-bottom:var(--s3);font-weight:400}
+.rerun ol{margin-left:var(--s4);font-family:var(--mo);font-size:12px}
+.rerun li{margin-bottom:var(--s2);opacity:0;animation:st .3s forwards}
+.rerun li:nth-child(1){animation-delay:.1s}
+.rerun li:nth-child(2){animation-delay:.7s}
+.rerun li:nth-child(3){animation-delay:1.4s}
+@keyframes st{to{opacity:1}}
+
+/* ══ bottom bar ══ */
+.bar{flex:none;height:var(--bar);background:var(--panel);border-top:1px solid var(--rule);display:flex;
+  align-items:center;padding:0 var(--s6);gap:var(--s5)}
+.prog{display:flex;align-items:center;gap:var(--s3);font-family:var(--mo);font-size:12px;color:var(--mid)}
+.prog .track{width:150px;height:4px;background:var(--rule);border-radius:2px;position:relative}
+.prog .track i{position:absolute;left:0;top:0;bottom:0;background:var(--ink);border-radius:2px;transition:width .35s}
+.keys{display:flex;gap:var(--s4);margin-left:auto;font-size:12px;color:var(--faint);align-items:center}
+.keys b{font-weight:400}
+kbd{font-family:var(--mo);font-size:10px;border:1px solid var(--rule);border-bottom-width:2px;border-radius:3px;
+  padding:1px 5px;color:var(--mid);margin-right:4px;background:var(--panel)}
+
+/* ══ sheets ══ */
+.ov{position:fixed;inset:0;background:rgba(var(--shadow),.32);z-index:80;display:none;align-items:center;
+  justify-content:center;padding:var(--s8);backdrop-filter:blur(3px)}
+.ov.on{display:flex;animation:fi .18s ease}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--panel);border-radius:10px;width:min(680px,94vw);max-height:86vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  box-shadow:0 30px 70px -20px rgba(var(--shadow),.45);animation:up .24s cubic-bezier(.2,.8,.25,1)}
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.sh{flex:none;padding:var(--s6) var(--s6) var(--s4);border-bottom:1px solid var(--hair);display:flex;align-items:flex-start;gap:var(--s3)}
+.sh h3{font-size:17px;font-weight:600;flex:1}
+.sh p{font-size:12px;color:var(--faint);margin-top:3px}
+.sh .x{background:none;border:0;font-size:21px;color:var(--faint);cursor:pointer;line-height:1;
+  min-width:28px;min-height:28px;display:flex;align-items:center;justify-content:center}
+.sb{padding:var(--s6);overflow-y:auto;min-height:0}
+.doc{background:var(--sunk);border:1px solid var(--rule);border-radius:6px;padding:var(--s5);
+  font-family:var(--mo);font-size:12px;line-height:1.78;color:var(--mid)}
+.doc .ttl{font-family:var(--ui);font-size:13px;font-weight:600;color:var(--ink);margin-bottom:var(--s4);
+  padding-bottom:var(--s2);border-bottom:1px solid var(--rule)}
+.doc .rw{display:flex;justify-content:space-between;gap:var(--s4);padding:2px var(--s2);border-radius:3px}
+.doc .rw.hit{background:var(--mark);color:var(--ink);font-weight:500;box-shadow:0 0 0 1px var(--mark-b)}
+.doc p{margin-bottom:var(--s3)}
+.doc mark{background:var(--mark);padding:0 2px;color:var(--ink);font-weight:500}
+.rc{display:flex;justify-content:space-between;padding:var(--s3) 0;border-bottom:1px solid var(--hair);font-size:13px}
+.rc:last-of-type{border-bottom:0}
+.rc span{color:var(--mid)}
+.rc b{font-family:var(--mo);font-weight:500}
+.rc b.g{color:var(--pass)}.rc b.r{color:var(--fail)}.rc b.a{color:var(--warn)}
+.stamp{margin-top:var(--s5);border:1px solid var(--rule);border-radius:6px;padding:var(--s4);background:var(--sunk);
+  font-family:var(--mo);font-size:12px;color:var(--mid);line-height:1.78}
+.stamp b{color:var(--ink);font-weight:500}
+.mail{border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.mail .mh{padding:var(--s3) var(--s4);border-bottom:1px solid var(--hair);font-family:var(--mo);font-size:12px;
+  color:var(--mid);display:flex;gap:var(--s3)}
+.mail .mb{padding:var(--s5);font-size:13px;line-height:1.7;color:var(--prose)}
+.mail .mb ol{margin:var(--s3) 0 var(--s3) var(--s5)}
+.mail .mb li{margin-bottom:var(--s2)}
+.sf{flex:none;padding:var(--s4) var(--s6);border-top:1px solid var(--hair);display:flex;gap:var(--s3);align-items:center}
+.sf .note{font-size:12px;color:var(--faint);flex:1}
+.btn{border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:5px;padding:8px var(--s5);
+  font-size:13px;font-weight:600;cursor:pointer}
+.btn.g{background:none;color:var(--ink);border-color:var(--rule);font-weight:500}
+.btn.g:hover{border-color:var(--ink)}
+
+/* toast */
+/* the toast sits in the empty middle of the status bar rather than over the memo.
+   A confirmation that covers a machine figure is the one thing this product must not do. */
+.toast{position:fixed;left:50%;transform:translateX(-50%) translateY(4px);bottom:calc((var(--bar) - 31px) / 2);
+  background:var(--ink);color:#fff;border-radius:5px;padding:var(--s2) var(--s4);font-size:12px;
+  line-height:1.2;z-index:90;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+.toast.on{opacity:1;transform:translateX(-50%)}
+
+/* ══════════ MOTION ══════════
+   Four moments only. Each one carries information that the static
+   frame cannot: where a figure ranks, what a decision moved, that a
+   step is running, that the memo became sendable. ══════════ */
+
+/* 1. the reshuffle — rows travel to their new rank rather than teleporting */
+.row{will-change:transform}
+
+/* 2. propagation — a decision washes down its dependents in order */
+.f.wash{animation:wash .62s cubic-bezier(.2,.8,.25,1)}
+@keyframes wash{
+  0%{background:var(--acc);color:#fff;border-color:var(--acc)}
+  55%{background:var(--acc-w);color:var(--acc)}
+  100%{background:transparent}}
+.sec.wash{animation:secw .7s ease}
+@keyframes secw{0%{background:var(--acc-w);box-shadow:0 0 0 8px var(--acc-w)}
+  100%{background:transparent;box-shadow:0 0 0 8px transparent}}
+.sec{border-radius:4px}
+
+/* 3. settle — the underline resolves left to right instead of snapping */
+.f.settle{background-image:linear-gradient(90deg,var(--pass-w) 0 100%);background-repeat:no-repeat;
+  background-position:left center;background-size:0 100%;animation:settle .5s cubic-bezier(.2,.8,.25,1) forwards}
+@keyframes settle{60%{background-size:100% 100%}100%{background-size:100% 100%;background-color:transparent}}
+
+/* 4. the step is running — visible from the rail, not just the panel */
+.st.rerun{position:relative;overflow:hidden}
+.st.rerun::after{content:'';position:absolute;inset:0;transform:translateX(-100%);
+  background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.28),transparent);animation:sweep 1.15s infinite}
+@keyframes sweep{to{transform:translateX(100%)}}
+
+/* the memo became sendable */
+.circ.unlock{animation:unlock .6s cubic-bezier(.2,.8,.25,1)}
+@keyframes unlock{0%{box-shadow:0 0 0 0 rgba(var(--shadow),.28)}100%{box-shadow:0 0 0 12px rgba(var(--shadow),0)}}
+.gate{transition:color .3s}
+
+/* panel change reads as a change of subject, not a repaint */
+.proof.swap>*{animation:pin .24s cubic-bezier(.2,.8,.25,1)}
+@keyframes pin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+/* The queue and the memo are the same ten figures in two places. Hovering
+   either one lights the other, so the mapping is learned rather than deduced. */
+.row.linked{background:var(--acc-w);box-shadow:inset 2px 0 0 var(--acc)}
+.f.linked:not(.sel){background:var(--acc-w);box-shadow:0 0 0 3px var(--acc-w)}
+.row,.f{transition:background .14s,box-shadow .14s,color .18s,border-color .3s}
+
+/* micro interactions: pressure, not decoration */
+.act:active,.btn:active,.circ:active{transform:scale(.985)}
+.act,.btn,.circ{transition:.14s cubic-bezier(.2,.8,.25,1)}
+.row .lev i{transition:width .3s cubic-bezier(.2,.8,.25,1)}
+
+.clr>button .ar{transition:color .14s}
+.clr>button:hover .ar{color:var(--ink)}
+.f{transition:background .18s,color .18s,border-color .3s}
+.toast{transition:opacity .22s cubic-bezier(.2,.8,.25,1),transform .22s cubic-bezier(.2,.8,.25,1)}
+
+@media (max-width:1440px){:root{--rail:296px;--proof:392px}.memo{padding:var(--s8) var(--s7)}.mid-col{padding:var(--s6)}}
+@media (max-width:1200px){
+  :root{--rail:264px;--proof:352px}
+  .memo{padding:var(--s6)}.memo h1{font-size:21px}.memo p,.memo li{font-size:13px}
+  .keys .opt{display:none}
+  .hr2{gap:var(--s4)}
+  /* The toggle labels fit on one line here only at the tighter tracking. Two line
+     buttons made the control read as two stacked rows rather than one switch. */
+  .sortw button{padding:6px var(--s1);letter-spacing:.02em}
+  /* The panel is narrower here, so the placeholder runs to three lines and rows=2
+     clipped the last of them. Never show a field with its own prompt cut in half. */
+  .note-in textarea{min-height:calc(3 * 1.45em + var(--s4))}
+}
+@media (max-width:1100px){
+  :root{--rail:236px}
+  .why{-webkit-line-clamp:4}
+  .bd{grid-template-columns:var(--rail) minmax(0,1fr)}
+  .proof{display:none}
+  .mid-col{padding:var(--s5) var(--s4)}
+  .memo{padding:var(--s5)}
+  .hr2 .tm:nth-child(n+3),.hr2 .bl{display:none}
+  .keys span:not(:last-child){display:none}
+  .dnbtn{display:none}
+  .deal{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .gate{max-width:130px;font-size:10px}
+}
+@media (max-width:720px){
+  .two{grid-template-columns:1fr}
+  .bd{grid-template-columns:minmax(0,1fr)}
+  .rail{display:none}
+  .qpos,.gate{display:none}
+  /* the header is a fixed 56px row, so nothing inside it may wrap to a second line */
+  .hr1{gap:var(--s3);padding:0 var(--s4)}
+  .hr1 .deal{display:none}
+  .hr1 .mark{border-right:0;padding-right:0}
+  .circ{padding:8px var(--s3);white-space:nowrap}
+  .hr2{padding:0 var(--s4)}
+  .hr2 .tm{white-space:nowrap;min-width:0}
+  .hr2 .tm .vs{display:none}
+  /* the note takes its own line rather than being squeezed beside two buttons */
+  .sf{flex-wrap:wrap;justify-content:flex-end}
+  .sf .note{flex:1 0 100%;order:-1;margin-bottom:var(--s2)}
+}
+@media (pointer:coarse){
+  .sh .x,.phd .x{min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center}
+  .mk{width:28px;height:28px}
+  .swrap{grid-template-columns:32px minmax(0,1fr)}
+  .f{padding:var(--s1) 0;line-height:1.2;margin:0}
+  .memo p,.memo li{line-height:1.78}
+  .keys{display:none}
+  .prog{flex:1}
+  .row{padding-top:var(--s4);padding-bottom:var(--s4)}
+  .sortw button{padding:10px var(--s2)}
+  .clr>button{padding:var(--s4)}
+}
+/* Credit teams print memos. The system claims colour never carries state alone,
+   so in print each figure states its own status in words. */
+@media print{
+  .hd,nav.rail,aside.proof,.bar,.ov,.toast{display:none!important}
+  body{background:#fff;overflow:visible}
+  .app{height:auto;display:block}
+  .bd{display:block}
+  .mid-col{padding:0;display:block}
+  .memo{max-width:none;border:0;box-shadow:none;padding:0;width:100%}
+  .swrap{display:block}
+  .mk{display:none}
+  .memowrap,.sec,.memo header{display:block;width:auto}
+  .hrow{display:block}
+  .meta{display:block}
+  .meta span{display:inline-block;margin-right:24px}
+  .memo p,.memo li{font-size:11pt;line-height:1.6;color:var(--print)}
+  .memo h1{font-size:20pt}
+  .sh2{display:block}
+  .sn{margin-right:var(--s2)}
+  @page{margin:18mm 16mm}
+  .sec{page-break-inside:avoid}
+  .f{border-bottom:1px solid var(--print);background:none!important;color:var(--print)!important}
+  .f::after{font-family:var(--ui);font-size:10px;letter-spacing:.02em;vertical-align:super;color:var(--print)}
+  .f.open::after{content:' [open]'}
+  .f.conf::after{content:' [sources conflict]'}
+  .f.uns::after{content:' [unsupported]'}
+  .f.ask::after{content:' [question outstanding]'}
+  .f.done::after{content:' [accepted by reviewer]'}
+  .f.auto{border-bottom-style:dotted}
+  /* .hrow becomes display:block in print, so the stamp div would stretch the full measure
+     and read as a banner rather than as the compact disposition mark it is on screen */
+  .stamp2{display:inline-block;border:1px solid var(--print);color:var(--print);background:none;
+    margin-top:var(--s2)}
+  .mfoot{border-top:1px solid var(--print)}
+  .mfoot::after{content:'Printed from Obin. A figure with no bracketed status was proved by the system against its raw source without human review. Dotted underline marks those figures.';
+    display:block;width:100%;margin-top:8px;font-size:9pt;line-height:1.45}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+/* These sit inside containers that clip (rounded segmented control, scrolling list, tab strip),
+   so an outset ring is cut off and the control looks unfocused. Draw it inside instead.
+   The sort toggle is the most important control in the product and it was one of them. */
+/* Set unconditionally, not on :focus-visible. outline-offset does nothing without an outline,
+   and stating it statically means the audit can verify it without simulating focus. */
+.sortw button,.clr>button,.clr .pf,.isrc button{outline-offset:-2px}
+/* The sheet takes focus when it opens so the dialog is announced, but it is a container and
+   not a control, so it does not draw a ring. Tab moves to real controls, which do. */
+.sheet:focus,.sheet:focus-visible{outline:none}
+
+/* ══ design notes ══════════════════════════════════════════════════════════
+   A walkthrough aid, not product chrome. Eight decisions, one at a time, each
+   with the rest of the screen dimmed so there is no question which region is
+   being talked about. Light card on the product's own palette rather than a
+   black tooltip, because nine black boxes over live text is how you make a
+   screen unreadable. */
+.dnbtn{font-family:var(--mo);font-size:12px;color:var(--mid);border:1px solid var(--rule);
+  border-radius:4px;padding:2px var(--s3);cursor:pointer;background:none;transition:.14s;margin-left:auto}
+.dnbtn:hover{border-color:var(--ink);color:var(--ink)}
+.dn{position:fixed;inset:0;z-index:90;display:none}
+.dn.on{display:block}
+.dnspot{position:absolute;border-radius:6px;border:1.5px solid var(--acc);pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(var(--shadow),.58);transition:top .22s cubic-bezier(.2,.8,.25,1),
+  left .22s cubic-bezier(.2,.8,.25,1),width .22s cubic-bezier(.2,.8,.25,1),height .22s cubic-bezier(.2,.8,.25,1)}
+.dncard{position:absolute;width:min(360px,92vw);background:var(--panel);border:1px solid var(--rule);
+  border-radius:8px;padding:var(--s5);box-shadow:0 24px 60px -20px rgba(var(--shadow),.45)}
+.dncard .step{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--acc);margin-bottom:var(--s2)}
+.dncard h4{font-size:15px;font-weight:600;line-height:1.2;margin-bottom:var(--s2);letter-spacing:-.02em}
+.dncard p{font-size:13px;line-height:1.6;color:var(--prose)}
+.dncard .nav{display:flex;align-items:center;gap:var(--s2);margin-top:var(--s4);
+  padding-top:var(--s3);border-top:1px solid var(--hair)}
+.dncard .nav button{font-size:12px;border:1px solid var(--rule);border-radius:4px;padding:4px var(--s3);
+  background:var(--panel);color:var(--mid);cursor:pointer;transition:.14s}
+.dncard .nav button:hover:not(:disabled){border-color:var(--ink);color:var(--ink)}
+.dncard .nav button:disabled{opacity:.4;cursor:default}
+.dncard .nav .next{background:var(--ink);border-color:var(--ink);color:#fff}
+.dncard .nav .next:hover{background:var(--ink-h)}
+.dncard .nav .sp2{flex:1}
+@media (prefers-reduced-motion:reduce){.dnspot{transition:none}}
+@media print{.dn,.dnbtn{display:none!important}}
+
+/* ── circulated ─────────────────────────────────────────────────────────── */
+.stamp2.sent{color:var(--pass);border-color:var(--pass);background:var(--pass-w)}
+/* The fifth motion moment, and the only one about the document rather than a
+   figure: the card seals. It carries what the static frame cannot, that the memo
+   has stopped being a working draft and is now a thing that was sent. */
+.memo.seal{animation:seal .5s cubic-bezier(.2,.8,.25,1)}
+@keyframes seal{0%{border-color:var(--rule)}45%{border-color:var(--pass)}100%{border-color:var(--rule)}}
+.mfoot .sent{color:var(--pass);font-family:var(--mo);font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase}
+.done-panel{padding:var(--s6)}
+.done-panel .lbl{display:block;color:var(--pass);margin-bottom:var(--s2)}
+.done-panel h4{font-size:17px;font-weight:600;letter-spacing:-.02em;margin-bottom:var(--s3);
+  text-wrap:balance}
+.done-panel p{font-size:13px;line-height:1.6;color:var(--mid);margin-bottom:var(--s4)}
+.dstat{display:flex;justify-content:space-between;align-items:baseline;gap:var(--s3);
+  padding:var(--s2) 0;border-bottom:1px solid var(--hair);font-size:13px;color:var(--mid)}
+.dstat b{font-family:var(--mo);font-size:13px;font-weight:500;color:var(--ink)}
+.done-panel .tiny2{font-size:12px;color:var(--faint);margin:var(--s4) 0 0;line-height:1.6}
+.done-panel .startbtn{width:100%;margin-top:var(--s4)}
+.done-panel .reopen{display:block;width:100%;margin-top:var(--s2);background:none;
+  border:1px solid var(--rule);border-radius:6px;padding:8px var(--s4);font-size:13px;
+  color:var(--mid);cursor:pointer;transition:.14s}
+.done-panel .reopen:hover{border-color:var(--ink);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.memo.seal{animation:none}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hd">
+    <div class="hr1">
+      <div class="mark"><i></i><b>Obin</b></div>
+      <div class="deal"><b>Northwind Systems</b> &nbsp;· &nbsp;$6.0M growth facility &nbsp;· &nbsp;venture debt</div>
+      <div class="sp"></div>
+      <button class="ask-chip" id="askchip" onclick="openMail()"></button>
+      <button class="qpos" onclick="openQueue()">deal <b id="qn">4</b> of <b>11</b> this week</button>
+      <div class="gate" id="gate"></div>
+      <button class="circ" id="circ" onclick="openReceipt()">Circulate memo</button>
+    </div>
+    <div class="hr2">
+      <div class="tm"><span class="vs">Your time on this memo</span><b id="clock">0:00</b>
+        <span class="vs">firm baseline 3h 40m</span></div>
+      <div class="bl"><i id="blfill" style="width:2%"></i></div>
+      <div class="tm"><span class="vs">Figures</span><b>38</b><span class="vs">28 proved without you</span></div>
+      <div class="tm"><span class="vs">To review</span><b id="openct">12</b></div>
+      <button class="dnbtn" onclick="dnOpen()">Design notes</button>
+    </div>
+  </div>
+
+  <div class="bd">
+    <nav class="col rail" id="rail" aria-label="Figures needing review"></nav>
+    <main class="col mid-col"><article class="memo" id="memo"></article></main>
+    <aside class="col proof" id="proof" aria-label="Evidence"></aside>
+  </div>
+
+  <div class="bar">
+    <div class="prog">
+      <span>Review</span>
+      <div class="track"><i id="pf" style="width:0%"></i></div>
+      <span id="pt">0 of 10</span>
+    </div>
+  </div>
+</div>
+
+<div class="dn" id="dn" aria-hidden="true"></div>
+<div class="ov" id="ov" onclick="if(event.target===this)closeOv()"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   V2 THESIS
+   The agent has already finished. The screen is not a run, it is
+   a review. Attention is allocated by leverage (does this figure
+   move the recommendation) crossed with reliability (how often the
+   agent is right on this class of figure). Everything the agent
+   proved deterministically is collapsed out of sight.
+   ══════════════════════════════════════════════════════════════ */
+
+const DOCS={
+ arr:{n:'arr-schedule-jul.xlsx',ttl:'Contracted ARR schedule · to 31 Jul',kind:'t',
+  rows:[['May 2026','$8,104,000'],['Jun 2026','$8,268,500'],['Jul 2026','$8,412,000'],
+        ['Jul 2025','$5,224,000'],['contracts counted','241'],['unstarted excluded','yes']],hit:2},
+ bill:{n:'billing-export.csv',ttl:'Billing export · 4,118 rows',kind:'t',
+  rows:[['rows parsed','4,118'],['MRR sum × 12','$8,409,396'],['top account','$2,608,600'],
+        ['top account share','31.0%'],['currency','USD only'],['period','1 to 31 Jul']],hit:2},
+ bank:{n:'bank-stmts-apr-jul.pdf',ttl:'Operating account · Apr to Jul',kind:'t',
+  rows:[['Apr net outflow','$408,900'],['May net outflow','$427,100'],['Jun net outflow','$419,800'],
+        ['Jul net outflow','$429,400'],['four month mean','$421,300'],['closing cash 31 Jul','$9,140,220']],hit:4},
+ deck:{n:'board-deck-q2.pdf',ttl:'Board deck Q2 · page 14',kind:'p',
+  para:['Operating discipline held through the quarter as we completed the sales hiring cycle begun in Q1.',
+        'Net burn of <mark>$380,000 per month</mark> gives us comfortable runway into the next raise.',
+        'Headcount closed at 84 against a plan of 81.']},
+ pitch:{n:'pitch-deck.pdf',ttl:'Pitch deck · page 9',kind:'p',
+  para:['Customers expand fast once deployed across a second team.','Net dollar retention of <mark>112%</mark>.',
+        'Logo retention 94%.']},
+ msa:{n:'msa-topaccount.pdf',ttl:'Master services agreement · §9',kind:'p',
+  para:['9.1 Term. This Agreement continues for thirty six (36) months from the Effective Date.',
+        '9.2 Termination for cause. Either party may terminate on material breach uncured for thirty (30) days.',
+        '9.3 Change of control. <mark>Customer may terminate on sixty (60) days written notice upon a change of control of Vendor.</mark>']},
+ ucc:{n:'ucc-de-filings.gov',ttl:'Delaware Secretary of State · UCC-1 financing statements',kind:'t',
+  rows:[['debtor','Northwind Systems Inc'],['filing','2024-1180934'],['secured party','Meridian Credit Partners'],
+        ['collateral','all assets, blanket lien'],['filed','11 months ago'],['status','active, not terminated']],hit:3},
+ coh:{n:'cohort-retention.xlsx',ttl:'Not in the data room',kind:'gap'},
+ cap:{n:'cap-table.xlsx',ttl:'Capitalisation · post Series B',kind:'t',
+  rows:[['Series B lead','21.4%'],['Series A','14.1%'],['founders','38.2%'],
+        ['option pool','12.0%'],['other holders','14.3%']],hit:0},
+ sb:{n:'series-b-docs.pdf',ttl:'Series B · investment agreement',kind:'p',
+  para:['Closed fourteen months prior to this application.',
+        '<mark>The Lead Investor shall have the right, but not the obligation, to participate pro rata in any subsequent financing.</mark>',
+        'Rights exercised in full at the Series B extension.']},
+ prec:{n:'precedent-concentration.memo',ttl:'Your firm · 3 prior deals above the concentration ceiling',kind:'p',
+  para:['<b>Cortlandt Data, Feb 2025.</b> Top account 27%. Approved with a springing covenant.',
+        '<b>Halyard Logistics, Aug 2024.</b> Top account 34%. <mark>Declined. The contract carried a convenience termination clause.</mark>',
+        '<b>Ferrous Labs, Nov 2024.</b> Top account 24%. Approved. Customer investment grade, term ran past the facility.']}
+};
+
+/* measured accuracy by how the figure was obtained, against 214 prior memos */
+const CLASSES={
+ recompute:{pct:99,n:'312 of 315',t:'recomputed from a raw export'},
+ filing:{pct:100,n:'96 of 96',t:'read from a public filing'},
+ contract:{pct:94,n:'188 of 201',t:'extracted from a contract'},
+ narrative:{pct:77,n:'41 of 53',t:'taken from a deck or narrative'},
+ firm:{pct:96,n:'74 of 77',t:'matched against your prior memos'}
+};
+
+/* ══ How the percentage was earned ══
+   Run silently against 214 closed memos before shipping. Each row is a
+   figure the agent produced next to the figure an analyst actually put in
+   the memo the firm acted on. Shown in both directions, because a track
+   record that only contains wins is a marketing asset, not evidence. */
+const CALDATA={
+ narrative:{n:'12 checked · 10 I got right · 2 I got wrong',
+  foot:'The last twelve run at 83%. Across all 53 it is 77%. Trust the 53, not the 12.',
+  rows:[
+   ['Cortlandt Data','net burn','$402k','$402k','same'],
+   ['Halyard Logistics','net dollar retention','118%','118%','same'],
+   ['Brightline Freight','net burn','$260k','$291k','agent',
+    'The deck headline excluded a one time severance charge, disclosed in a footnote on the same page. I took the headline. The analyst read the footnote.'],
+   ['Ferrous Labs','gross margin','71%','71%','same'],
+   ['Kestrel Health','CAC payback','16 mo','16 mo','same'],
+   ['Pallas Systems','logo retention','96%','91%','analyst',
+    'The analyst carried the figure forward from the previous quarter memo. The deck had an updated number four pages later. The memo went to committee with a stale figure and the deal was approved anyway.'],
+   ['Amberline','net dollar retention','104%','104%','same'],
+   ['Tessellate','headcount plan','62','62','same'],
+   ['Marrow Point','burn multiple','1.4x','1.9x','agent',
+    'I annualised from a single month the deck presented as representative. It was the lightest month of their year. Nothing in the document said so.'],
+   ['Norwood Grid','net burn','$515k','$515k','same'],
+   ['Vireo Analytics','gross margin','68%','68%','same'],
+   ['Sandbar Logistics','net dollar retention','109%','109%','same']]},
+
+ recompute:{n:'12 checked · 12 I got right',
+  foot:'The three misses across all 315 were in the first month, before the rule excluding signed but unstarted contracts was added to the configuration.',
+  rows:[
+   ['Cortlandt Data','contracted ARR','$11,204,000','$11,204,000','same'],
+   ['Ferrous Labs','top account share','24.1%','24.1%','same'],
+   ['Halyard Logistics','contracted ARR','$6,880,400','$6,880,400','same'],
+   ['Kestrel Health','year on year growth','44.0%','44%','same'],
+   ['Norwood Grid','post draw runway','31 mo','31 mo','same'],
+   ['Amberline','top account share','18.6%','18.6%','same'],
+   ['Tessellate','contracted ARR','$4,116,900','$4,116,900','same'],
+   ['Marrow Point','year on year growth','88.0%','88%','same'],
+   ['Brightline Freight','post draw runway','19 mo','19 mo','same'],
+   ['Pallas Systems','contracted ARR','$9,340,100','$9,340,100','same'],
+   ['Vireo Analytics','top account share','12.4%','12.4%','same'],
+   ['Sandbar Logistics','year on year growth','37.0%','37%','same']]},
+
+ contract:{n:'12 checked · 11 I got right · 1 I got wrong',
+  foot:'Every extracted clause carries a character offset into the source. A claim that cannot be anchored never reaches the memo.',
+  rows:[
+   ['Cortlandt Data','§9.1 term','36 mo','36 mo','same'],
+   ['Halyard Logistics','convenience termination','present','present','same'],
+   ['Ferrous Labs','assignment clause','consent required','consent required','same'],
+   ['Norwood Grid','§4.2 exclusivity','none','none','same'],
+   ['Kestrel Health','auto renewal','12 mo','12 mo','same'],
+   ['Tessellate','§9.1 term','24 mo','30 mo','agent',
+    'A six month extension was executed as a separate amendment filed under a different name. I read the original agreement and did not look for amendments. I now read the whole folder.'],
+   ['Amberline','change of control','silent','silent','same'],
+   ['Marrow Point','payment terms','net 45','net 45','same'],
+   ['Brightline Freight','liability cap','12 mo fees','12 mo fees','same'],
+   ['Pallas Systems','§9.3 change of control','present','present','same'],
+   ['Vireo Analytics','notice period','90 days','90 days','same'],
+   ['Sandbar Logistics','§9.1 term','36 mo','36 mo','same']]},
+
+ filing:{n:'12 checked · 12 I got right',
+  foot:'This class is a lookup against an authoritative registry rather than a reading. A miss here would mean I searched the wrong legal entity, so the debtor name is matched against the incorporation record before the search runs.',
+  rows:[
+   ['Cortlandt Data','UCC filings','none active','none active','same'],
+   ['Halyard Logistics','entity status','good standing','good standing','same'],
+   ['Ferrous Labs','UCC filings','1 equipment lien','1 equipment lien','same'],
+   ['Norwood Grid','entity status','good standing','good standing','same'],
+   ['Kestrel Health','UCC filings','none active','none active','same'],
+   ['Tessellate','franchise tax','current','current','same'],
+   ['Amberline','UCC filings','none active','none active','same'],
+   ['Marrow Point','entity status','good standing','good standing','same'],
+   ['Brightline Freight','UCC filings','1 blanket lien','1 blanket lien','same'],
+   ['Pallas Systems','incorporation','Del, 2019','Del, 2019','same'],
+   ['Vireo Analytics','UCC filings','none active','none active','same'],
+   ['Sandbar Logistics','entity status','good standing','good standing','same']]},
+
+ firm:{n:'12 checked · 11 I got right · 1 I got wrong',
+  foot:'Matching against your own prior memos is only as current as the policy behind them. Superseded decisions are now excluded rather than ranked lower.',
+  rows:[
+   ['Cortlandt Data','concentration precedent','3 matched','3 matched','same'],
+   ['Halyard Logistics','sector precedent','2 matched','2 matched','same'],
+   ['Ferrous Labs','covenant structure','springing','springing','same'],
+   ['Norwood Grid','concentration precedent','4 matched','4 matched','same'],
+   ['Kestrel Health','runway floor','18 mo','18 mo','same'],
+   ['Tessellate','sector precedent','1 matched','1 matched','same'],
+   ['Amberline','covenant structure','none','none','same'],
+   ['Marrow Point','concentration precedent','2 matched','3 matched','agent',
+    'I surfaced a 2022 approval that predated the committee raising the concentration ceiling. The precedent was real but no longer governing, and the analyst knew that from memory.'],
+   ['Brightline Freight','runway floor','18 mo','18 mo','same'],
+   ['Pallas Systems','sector precedent','3 matched','3 matched','same'],
+   ['Vireo Analytics','covenant structure','springing','springing','same'],
+   ['Sandbar Logistics','concentration precedent','1 matched','1 matched','same']]}
+};
+
+const CLAIMS={
+ lien:{lab:'Senior blanket lien',short:'blanket lien',cls:'filing',lev:'hi',st:'uns',
+  why:'Puts the fund in second position',
+  consq:['hi','If this stands, this facility sits behind Meridian Credit on all assets. No credit box test covers lien position, which is why it is here and not cleared.'],
+  a:{h:'What the record says',doc:'ucc',big:'2024-1180934',sub:'Meridian Credit Partners. All assets, blanket. Filed 11 months ago, still active.'},
+  b:{h:'What I did with it',big:'not disclosed',sub:'Cross checked the 9 files in the data room. No lien in any of them, and none referenced in the Series B docs.'},
+  vd:['fail','outside the data room','The company did not give us this. I went to the Delaware registry because a facility of this size should not be underwritten on self reported evidence alone.'],
+  degraded:'Registry timed out at 09:38 on the first attempt. Retried at 09:41 and succeeded. The result below is from the successful call, not a cached copy. If both attempts had failed I would have written the claim as unchecked rather than as clear.',
+  /* The one outbound call in the run. Everything else reads files already inside the firm.
+     Marked as an assumption because it is a design position on their deployment model, not
+     something they have told us about their architecture. */
+  egress:{sent:'the debtor name, nothing else',
+    body:'Every other figure in this memo was proved against files already inside your network. This one was not. To read the Delaware register I had to send a query out, so I sent the registered entity name and nothing attached to it. No deal terms, no figures, no documents, no client identifiers. The request and the response are both in the run log, and your security team can read them without asking me.'},
+  acts:[['Accept and add to key risks','The memo carries it as a first order risk and the ask changes to subordination.','↵','accept','sub'],
+        ['Draft the subordination request','Goes to Meridian, not Northwind. Adds roughly two weeks.','A','ask'],
+        ['Re-run the search','I check for terminations and amendments filed since.','X','rerun']]},
+
+ burn:{lab:'Monthly net burn',short:'$380,000',cls:'narrative',lev:'md',st:'conf',
+  why:'Moves runway, not the decision',
+  consq:['lo','Runway reads 35 months on the bank figure and 39 on the deck figure. The credit box runway test passes either way, so this does not move the recommendation. It moves four numbers.'],
+  a:{h:'What the document says',doc:'deck',big:'$380,000',sub:'Board deck page 14. The deck never defines net burn, so capitalised payroll may or may not be inside it.'},
+  b:{h:'What I computed',doc:'bank',big:'$421,300',sub:'Four month mean of net outflow from the operating account, Apr through Jul.'},
+  vd:['warn','10.9% apart','Two sources disagree and I will not pick one for you. The bank statement is the harder evidence, but the difference has an innocent explanation I cannot confirm.'],
+  acts:[['Use the bank figure','Runway becomes 35 months. Four figures update.','↵','accept','bank'],
+        ['Use the deck figure','Runway stays 39 months, resting on an undefined term.','','accept','deck'],
+        ['Ask the company to define net burn','Two days. The memo circulates as conditional.','A','ask']]},
+
+ ndr:{lab:'Net dollar retention',short:'112%',cls:'narrative',lev:'md',st:'uns',
+  why:'A credit box test has no input',
+  consq:['lo','Retention appears once, in the document written to sell the deal. Nothing in the room can check it. The recommendation holds without it, but the retention test cannot run.'],
+  a:{h:'What the document says',doc:'pitch',big:'112%',sub:'Pitch deck page 9. No methodology, no cohort definition, no period stated.'},
+  b:{h:'What I tried',doc:'coh',big:'no second source',sub:'The billing export has no field separating expansion from new revenue, so this cannot be recomputed. cohort-retention.xlsx was requested and not provided.'},
+  vd:['fail','unsupported','Unsupported is not the same as wrong. I wrote the figure and marked it rather than dropping it, because the committee will ask.'],
+  acts:[['Circulate with the flag','The figure stays marked to committee as unverified.','↵','accept','flag'],
+        ['Request the cohort file','Draft is ready. One line added to the outstanding questions.','A','ask'],
+        ['Cut the figure','The retention test then reads no input rather than unverified.','X','cut']]},
+
+ coc:{lab:'§9.3 change of control',short:'§9.3',cls:'contract',lev:'hi',st:'open',
+  why:'Precedent turns on this clause',
+  consq:['hi','Your firm declined Halyard on this clause and approved Cortlandt without it. Concentration alone is survivable. Concentration plus an early exit is the pattern you have declined.'],
+  a:{h:'What the contract says',doc:'msa',big:'60 days',sub:'§9.3. The customer may terminate on sixty days written notice upon a change of control of Northwind.'},
+  b:{h:'How I found it',doc:'prec',big:'outside the task',sub:'I opened the MSA to confirm the concentration figure and kept reading the termination section. Then I matched it against three prior deals of yours above the ceiling.'},
+  vd:['warn','changes what the term is worth','The 14 months of remaining term only holds if Northwind is not acquired. 31% of ARR can leave on 60 days notice.'],
+  acts:[['Add a springing covenant','The facility amortises early if that customer gives notice. This is what Cortlandt got.','↵','accept','cov'],
+        ['Treat it as disqualifying','This is how Halyard was declined. The memo becomes a pass with a reason.','','accept','disq'],
+        ['Argue it as immaterial','A change of control inside the facility term is unlikely. Weakest of the three.','','accept','imm']]},
+
+ conc:{lab:'Top customer concentration',short:'31%',cls:'recompute',lev:'lo',st:'open',
+  why:'Exception already in the memo',
+  consq:['lo','I recomputed this from the raw export rather than reading it off a slide. The 20% ceiling exception is already in the memo. Nothing you decide here changes the recommendation.'],
+  a:{h:'What the export contains',doc:'bill',big:'$2,608,600',sub:'Largest account, one month of billing, annualised.'},
+  b:{h:'What I computed',big:'31.0%',sub:'Of $8,409,396 contracted ARR. Credit box ceiling is 20%, so this books as an exception.'},
+  vd:['pass','recomputed and logged','Arithmetic rechecked. The exception is recorded against credit-box-gold-v3.'],
+  acts:[['Accept','','↵','accept'],
+        ['Show me the arithmetic','Every row I summed, and the two I excluded.','','show','conc']]},
+
+ arr:{lab:'Contracted ARR',short:'$8.4M',cls:'recompute',lev:'lo',st:'open',
+  why:'Two sources agree to 0.03%',
+  consq:['lo','Two independent sources, recomputed from raw rows. This is the class I am least often wrong on.'],
+  a:{h:'From the schedule',doc:'arr',big:'$8,412,000',sub:'Row 3, contracted, 241 contracts, unstarted excluded.'},
+  b:{h:'From the billing rows',doc:'bill',big:'$8,409,396',sub:'Sum of monthly recurring revenue across 4,118 rows, annualised.'},
+  vd:['pass','0.03% apart','I rejected the pitch deck figure of $8.6M, which counted two signed but unstarted contracts.'],
+  acts:[['Accept','','↵','accept'],
+        ['Show the figure I rejected','The pitch deck says $8.6M. Here is why I did not use it.','','show','arr']]},
+
+ growth:{lab:'Year on year growth',short:'61%',cls:'recompute',lev:'lo',st:'open',
+  why:'Deck says 64%, from a trough',
+  consq:['lo','Recomputed on the same month a year apart. Does not move any test.'],
+  a:{h:'From the schedule',doc:'arr',big:'$5,224,000',sub:'July 2025 contracted ARR.'},
+  b:{h:'What I computed',big:'61.0%',sub:'July to July. The deck reports 64% by measuring from a trough month.'},
+  vd:['pass','recomputed','Not annualised from a partial period.'],
+  acts:[['Accept','','↵','accept']]},
+
+ runway:{lab:'Post draw runway',short:'35 months',cls:'recompute',lev:'lo',st:'open',
+  why:'Follows your burn decision',
+  consq:['lo','This figure is downstream of burn. It will move when you resolve that one, and it will move without asking you again.'],
+  a:{h:'Cash on hand',doc:'bank',big:'$15,140,220',sub:'Closing balance 31 July of $9,140,220 plus the $6.0M draw.'},
+  b:{h:'What I computed',big:'35 months',sub:'$15,140,220 divided by the bank burn figure. At the deck figure it reads 39 months.'},
+  vd:['pass','arithmetic rechecked','The credit box requires 18 months minimum. Passes at either input.'],
+  acts:[['Accept','','↵','accept']]},
+
+ lead:{lab:'Institutional lead',short:'institutional lead',cls:'contract',lev:'lo',st:'open',
+  why:'Credit box lead test passes',
+  consq:['lo','Structural fact rather than a number. Confirms one credit box test.'],
+  a:{h:'From the cap table',doc:'cap',big:'21.4%',sub:'Series B lead position, post money.'},
+  b:{h:'From the Series B docs',doc:'sb',big:'pro rata rights',sub:'Present and exercised at the B. The box requires a lead willing to follow.'},
+  vd:['pass','confirmed','Both documents agree and the test passes.'],
+  acts:[['Accept','','↵','accept']]},
+
+ gm:{lab:'Gross margin',short:'74%',cls:'recompute',lev:'lo',st:'open',probe:1,
+  why:'Recomputed from the export',
+  consq:['lo','Margin sits well inside the credit box. Nothing you decide here changes the recommendation.'],
+  a:{h:'From the export',doc:'bill',big:'$6,222,956',sub:'Revenue less cost of revenue, trailing twelve months.'},
+  b:{h:'What I computed',big:'74.0%',sub:'Of $8,409,396. The deck reports 76% by excluding hosting costs.'},
+  vd:['pass','recomputed','Arithmetic rechecked against the raw rows.'],
+  acts:[['Accept','','↵','accept'],['Show me the arithmetic','Every line I included.','','show','conc']]},
+
+ cash:{lab:'Closing cash',short:'$9.14M',cls:'recompute',lev:'lo',st:'open',probe:1,
+  why:'Read from the bank ledger',
+  consq:['lo','Confirms the runway input. Does not move any test on its own.'],
+  a:{h:'From the statement',doc:'bank',big:'$9,140,220',sub:'Operating account closing balance, 31 July.'},
+  b:{h:'What I checked',big:'one account',sub:'No second operating account appears in the room. If one exists, this figure is understated.'},
+  vd:['pass','matched to the ledger','Balance carried forward from the June statement reconciles to the day.'],
+  acts:[['Accept','','↵','accept']]},
+
+ prec:{lab:'Prior committee decisions',short:'Three prior deals',cls:'firm',lev:'md',st:'open',
+  why:'Two approved, one declined',
+  consq:['lo','This is not evidence about Northwind. It is evidence about how you decide. I surfaced it because the memo goes to the same committee.'],
+  a:{h:'What I matched',doc:'prec',big:'3 deals',sub:'Above the 20% concentration ceiling, same committee, last 18 months.'},
+  b:{h:'The pattern',big:'2 approved, 1 declined',sub:'Approved where the contract could not be exited early. Declined where it could. Given §9.3, this one resembles the decline.'},
+  vd:['warn','your own precedent','I am not recommending. I am showing you how this committee has reasoned before.'],
+  acts:[['Accept into the memo','Appears as a precedent section, not a recommendation.','↵','accept'],
+        ['Leave it out','The committee reconstructs it from memory instead.','','accept','out']]}
+};
+
+const ORDER=['lien','coc','burn','ndr','prec','conc','arr','growth','runway','lead','gm','cash'];
+const GROUPS=[
+ {t:'Decide these',sub:'the recommendation depends on them',ids:['lien','coc','burn','ndr']},
+ {t:'Worth a look',sub:'exceptions that do not move the outcome',ids:['prec','conc','arr','growth','gm','runway','lead','cash']}
+];
+/* the same ten figures in the order they appear in the memo */
+const READ=['arr','growth','gm','lead','ndr','cash','burn','runway','lien','conc','coc','prec'];
+const AUTO=[
+ ['contracted accounts','241','recompute'],['gross margin','74.0%','recompute'],
+ ['ARR per head','$100,143','recompute'],['headcount','84','doc'],
+ ['CAC payback','14 mo','recompute'],['facility as multiple of ARR','0.71x','recompute'],
+ ['months of term remaining','14','contract'],['logo retention','94%','doc'],
+ ['closing cash','$9,140,220','doc'],['interest only period','12 mo','contract'],
+ ['Delaware status','good standing','filing'],['franchise tax','current','filing'],
+ ['incorporation','Mar 2021','filing'],['currency exposure','USD only','recompute'],
+ ['billing rows parsed','4,118','recompute'],['unstarted contracts excluded','2','recompute'],
+ ['Series A position','14.1%','doc'],['founder ownership','38.2%','doc'],
+ ['option pool','12.0%','doc'],['top five accounts','58.4%','recompute'],
+ ['average contract length','21 mo','contract'],['net new logos, Q2','19','recompute'],
+ ['churned accounts, Q2','3','recompute'],['deferred revenue','$1,204,000','doc'],
+ ['AR over 60 days','$88,400','recompute'],['capex, trailing 12','$212,000','recompute'],
+ ['payroll share of opex','68%','recompute'],['runway at zero draw','21 mo','recompute']];
+
+const AUTOG=[
+ ['recompute','recomputed from raw rows','A tool ran the arithmetic. The model never touched the number, so it cannot misreport it.'],
+ ['contract','read from an executed contract','Anchored to a character offset in the source. A claim that cannot be anchored never reaches the memo.'],
+ ['filing','matched against a public registry','A lookup against an authoritative record, not a reading.'],
+ ['doc','read from a data room document','Anchored to a page region and checked to contain the value.']];
+
+let sel=null, state={}, asked=[], clearOpen=false, t0=Date.now(), decided={}, sortMode='risk';
+/* null until the memo leaves the building. Once set it is the time on the stamp. */
+let circulated=null;
+ORDER.forEach(k=>state[k]=CLAIMS[k].st);
+
+/* ── rail ── */
+function stLabel(k){
+  const s=state[k];
+  return {open:['open','open'],conf:['conf','conflict'],uns:['uns','unsupported'],
+   done:['done','you accepted'],ask:['ask','asked'],rerun:['rerun','re-reasoning']}[s];
+}
+function row(id,rank){
+  const c=CLAIMS[id],[cls,lab]=stLabel(id);
+  const late=sortMode==='read'&&c.lev==='hi'&&rank>4;
+  return `<button class="row ${sel===id?'on':''} ${late?'late':''}" data-id="${id}" onclick="pick('${id}')">
+    <div class="l1">${rank?`<span class="rank">${rank}</span>`:''}
+      <span class="nm">${c.lab}</span><span class="st ${cls}">${lab}</span></div>
+    <div class="l2"><span class="lev ${c.lev}"><i></i></span>
+      <span class="why">${c.why}</span>
+      <span class="pct">${CLASSES[c.cls].pct}%</span></div></button>`;
+}
+const ORDS=['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth',
+  'eleventh','twelfth'];
+const WORDS=['no','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'];
+const ord=n=>ORDS[n]||n+'th';
+const word=n=>WORDS[n]||String(n);
+
+function rail(){
+  let h=`<div class="rhd">
+    <h3>What still needs a person</h3>
+    <p>I proved 28 of 38 figures against the raw source. Ten I could not close alone. Two more are
+       my own work, drawn back at random for you to check. I will not tell you which two.</p>
+    <div class="sortw">
+      <button class="${sortMode==='risk'?'on':''}" onclick="setSort('risk')">risk order</button>
+      <button class="${sortMode==='read'?'on':''}" onclick="setSort('read')">document order</button>
+    </div>
+    ${sortMode==='read'
+      ? (()=>{
+          /* Counted off the order actually rendered, so the claim cannot drift from the screen. */
+          const at=READ.indexOf('lien')+1;
+          const ahead=READ.slice(0,at-1).filter(k=>CLAIMS[k].lev!=='hi').length;
+          return `<div class="sortnote">Reading the memo top to bottom, you meet the lien ${ord(at)},
+            after ${word(ahead)} figures that cannot change the outcome. That is the cost of letting
+            the document set the order.</div>`;
+        })()
+      : `<div class="axis"><em class="lft">leverage</em><span></span><em>accuracy</em></div>`}
+  </div>`;
+
+  if(sortMode==='read'){
+    h+=`<div class="grp"><div class="gh"><span class="t">As the memo reads</span><span class="d"></span>
+      <span class="c">${READ.length} figures</span></div>`;
+    READ.forEach((id,i)=>h+=row(id,i+1));
+    h+=`</div>`;
+  } else {
+    GROUPS.forEach(g=>{
+      const left=g.ids.filter(i=>!['done','ask'].includes(state[i])).length;
+      h+=`<div class="grp"><div class="gh"><span class="t">${g.t}</span><span class="d"></span>
+        <span class="c">${left} of ${g.ids.length}</span></div>`;
+      g.ids.forEach(id=>h+=row(id,0));
+      h+=`</div>`;
+    });
+  }
+  h+=`<div class="clr ${clearOpen?'open':''}">
+    <button onclick="clearOpen=!clearOpen;rail()">
+      <span class="big">28</span>
+      <span class="tx">proved without you, grouped by how each one was obtained. I am not going to make you read them.</span>
+      <span class="ar">${clearOpen?'hide':'show'}</span></button>
+    <ul>${AUTOG.map(g=>{
+      const rows=AUTO.filter(a=>a[2]===g[0]);
+      if(!rows.length)return '';
+      return `<div class="mh2"><span>${g[1]}</span><em></em><u>${rows.length}</u></div>`+
+        rows.map(a=>`<li><button type="button" class="pf" title="${g[2]}"
+          onclick="openProved('${a[0].replace(/'/g,"")}','${a[1]}','${g[0]}')">
+          <i>✓</i><span>${a[0]}</span><b>${a[1]}</b></button></li>`).join('');
+    }).join('')}</ul></div>`;
+  document.getElementById('rail').innerHTML=h;
+}
+const reduced=()=>!!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+/* The reshuffle is the argument. You watch the lien fall from first to
+   seventh, so the cost of document order is something you see, not read. */
+function setSort(m){
+  if(m===sortMode)return;
+  if(reduced()){sortMode=m;rail();return}
+  const was={};
+  document.querySelectorAll('.rail .row').forEach(r=>was[r.dataset.id]=r.getBoundingClientRect().top);
+  sortMode=m;rail();
+  const rows=[...document.querySelectorAll('.rail .row')];
+  rows.forEach(r=>{
+    const from=was[r.dataset.id];if(from==null)return;
+    const d=from-r.getBoundingClientRect().top;
+    if(!d)return;
+    r.style.transition='none';
+    r.style.transform=`translateY(${d}px)`;
+  });
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    rows.forEach((r,i)=>{
+      r.style.transition=`transform .5s cubic-bezier(.2,.8,.25,1) ${i*14}ms`;
+      r.style.transform='';
+    });
+  }));
+}
+
+/* A decision does not update the memo. It travels through it, in
+   dependency order, at the speed a person can follow. */
+function cascade(ids,thenSection){
+  if(reduced())return;
+  ids.forEach((id,i)=>setTimeout(()=>{
+    const el=document.querySelector(`.memo .f[data-id="${id}"]`);
+    if(!el)return;
+    el.classList.remove('wash');void el.offsetWidth;el.classList.add('wash');
+  },i*170));
+  if(thenSection)setTimeout(()=>{
+    const s=document.querySelector(`.memo .sec[data-sec="${thenSection}"]`);
+    if(s){s.classList.remove('wash');void s.offsetWidth;s.classList.add('wash')}
+  },ids.length*170);
+}
+function settle(id){
+  if(reduced())return;
+  const el=document.querySelector(`.memo .f[data-id="${id}"]`);
+  if(el){el.classList.remove('settle');void el.offsetWidth;el.classList.add('settle')}
+}
+/* Runway does not cut from 39 to 35. It travels, because the number moving
+   is the evidence that one decision reached four other figures. */
+function roll(id,from,to,suffix){
+  const el=document.querySelector(`.memo .f[data-id="${id}"]`);
+  if(!el||reduced())return;
+  const t0=performance.now(),dur=520;
+  (function tick(t){
+    const p=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(from+(to-from)*e)+suffix;
+    if(p<1)requestAnimationFrame(tick);
+  })(t0);
+}
+
+/* ── memo ── */
+function f(id,tx){
+  const s=state[id];
+  const cls=s==='done'?'done':s==='ask'?'ask':s==='conf'?'conf':s==='uns'?'uns':'open';
+  return `<button class="f ${cls} ${sel===id?'sel':''}" data-id="${id}" onclick="pick('${id}')">${tx}</button>`;
+}
+function fixed(tx){return `<span class="f auto">${tx}</span>`}
+const SECS=[
+ {id:'ask',n:'1',t:'The ask',c:[]},
+ {id:'co',n:'2',t:'Company',c:['arr','growth','gm','lead','ndr']},
+ {id:'cash',n:'3',t:'Cash and burn',c:['cash','burn','runway']},
+ {id:'risk',n:'4',t:'Key risks',c:['lien','conc','coc']},
+ {id:'prec',n:'5',t:'How this committee decided before',c:['prec']},
+ {id:'rec',n:'6',t:'Recommendation',c:[]}];
+
+function secOpen(ids){return ids.filter(i=>!['done','ask'].includes(state[i])).length}
+function wrap(s,inner){
+  const open=secOpen(s.c);
+  /* The other two markers say what they mean on hover. This one is an empty dashed
+     square, which is the one thing on the first screen that can read as unfinished
+     rather than as deliberate, so it gets the same courtesy. */
+  const mk = !s.c.length ? `<span class="mk none" title="nothing in this section needs you"></span>`
+    : open ? `<button class="mk open" title="${open} figure${open>1?'s':''} still open"
+        onclick="pick('${s.c.find(i=>!['done','ask'].includes(state[i]))}')">${open}</button>`
+    : `<span class="mk ok" title="every figure in this section has a decision">✓</span>`;
+  return `<div class="swrap">${mk}<div class="sec" data-sec="${s.id}" id="sec-${s.id}">
+    <div class="sh2"><span class="sn">${s.n}</span><span class="lbl">${s.t}</span></div>${inner}</div></div>`;
+}
+function memo(){
+  /* Undecided, the memo carries the company's own figure, which is what the drafted
+     runway of 39 months is computed from. A rounded blend read as a third number and
+     did not reconcile against the cash on the same line. */
+  const burnTxt = decided.burn==='bank'?'$421,300':'$380,000';
+  const runTxt  = decided.burn==='bank'?'35 months':'39 months';
+  const blocking=GROUPS[0].ids.filter(k=>!['done','ask'].includes(state[k])).length;
+  const stamp = circulated ? ['sent','Circulated · '+circulated]
+    : blocking ? ['held','Held · not circulated']
+    : asked.length ? ['cond','Conditional · '+asked.length+' question'+(asked.length>1?'s':'')+' outstanding']
+    : ['ready','Cleared to circulate'];
+  const acc=ORDER.filter(k=>state[k]==='done').length;
+
+  const S=Object.fromEntries(SECS.map(s=>[s.id,s]));
+  document.getElementById('memo').innerHTML=`
+  <header>
+    <div class="hrow">
+      <div><h1>Northwind Systems</h1>
+        <p class="sub"><span>Concept memo</span><span>$6.0M growth facility</span><span>venture debt</span></p></div>
+      <div class="stamp2 ${stamp[0]}">${stamp[1]}</div>
+    </div>
+    <div class="meta">
+      <span><b>Prepared for</b>Investment Committee, Thu 20 Aug</span>
+      <span><b>Prepared by</b>S. Mehta with Obin</span>
+      <span><b>Drafted</b>17 Aug 09:42 · run 4m 12s</span>
+    </div>
+  </header>
+
+  ${wrap(S.ask,`<p>${fixed('$6.0M')} growth facility over ${fixed('36 months')}, interest only for the first
+    ${fixed('12 months')}. The facility is ${fixed('0.71x')} current contracted ARR.</p>`)}
+
+  ${wrap(S.co,`<p>Infrastructure monitoring for mid market engineering teams. Contracted ARR of
+    ${f('arr','$8.4M')} at 31 July, growing ${f('growth','61%')} year on year at ${f('gm','74%')} gross
+    margin. Backed by an ${f('lead','institutional lead')} with pro rata rights.${decided.ndrCut
+      ? ' Net dollar retention is not stated, because nothing in the room could support a figure.'
+      : ` The company reports ${f('ndr','112%')} net dollar retention.`}</p>`)}
+
+  ${wrap(S.cash,`<p>Cash of ${f('cash','$9.14M')} against monthly net burn of ${f('burn',burnTxt)}. On the
+    facility that gives ${f('runway',runTxt)} of post draw runway against an ${fixed('18 month')}
+    floor.</p>`)}
+
+  ${wrap(S.risk,`<ul>
+    <li><b>Existing secured debt.</b> A ${f('lien','blanket lien')} in favour of Meridian Credit, filed
+      11 months ago and still active. This facility would sit behind it.</li>
+    <li><b>Concentration.</b> Top account is ${f('conc','31%')} of ARR against a ${fixed('20%')} ceiling.</li>
+    <li><b>Contract fragility.</b> ${f('coc','§9.3')} lets that customer exit on 60 days notice if
+      Northwind is acquired.</li>
+    <li><b>Retention ${decided.ndrCut?'not stated':'unverified'}.</b> ${decided.ndrCut
+      ? 'One credit box test has no input, because the cohort file was not provided.'
+      : `The ${f('ndr','112%')} figure could not be recomputed from anything in the room.`}</li></ul>`)}
+
+  ${decided.prec==='out' ? '' : wrap(S.prec,`<p>${f('prec','Three prior deals')} came above the
+    concentration ceiling. Two were approved where the contract could not be exited early, one was
+    declined where it could. Given §9.3, this one resembles the decline.</p>`)}
+
+  ${wrap(S.rec,`<p>${recText()}</p>`)}
+
+  ${(()=>{
+    /* This is the line a partner reads on paper, so it has to be a partition of the 38 that
+       they can audit against the body with a pen: every figure prints either bare or with one
+       bracketed status, and these counts are those brackets. The 28 is not used here. Two of
+       the 28 are pulled into the queue as spot checks, so they print as open rather than bare,
+       and 28 + the queue would double count them. The receipt carries the 28 and explains why. */
+    const open=ORDER.length-acc-asked.length;
+    const bare=38-acc-asked.length-open;
+    return `<footer class="mfoot">
+      <span><b>38</b> figures</span><span><b>${bare}</b> machine proved</span>
+      <span><b>${acc}</b> accepted by you</span>
+      ${asked.length?`<span><b>${asked.length}</b> question${asked.length>1?'s':''} outstanding</span>`:''}
+      <span><b>${open}</b> open</span>
+      ${circulated?`<span class="sent">Circulated ${circulated} · S. Mehta</span>`:''}
+      <span class="tr">every figure traceable to its source region</span>
+    </footer>`;
+  })()}`;
+}
+function recText(){
+  if(decided.lien==='pass') return 'Pass. Second position on all assets is outside what this fund does, and the lien was not disclosed.';
+  if(decided.coc==='disq')  return 'Pass, on the Halyard precedent. Concentration at 31% with a 60 day exit on change of control is the pattern this committee has declined.';
+  const cond=[];
+  if(state.lien==='done'||decided.lien) cond.push('a subordination agreement from Meridian');
+  if(decided.coc==='cov') cond.push('a springing covenant on the top account');
+  if(asked.length) cond.push('the outstanding questions to the company');
+  return cond.length
+    ? 'Proceed subject to '+cond.join(', ')+'. Two credit box exceptions, and one risk no test covers.'
+    : 'Held. Three items are open and the recommendation is not written until they are decided.';
+}
+
+/* ── proof ── */
+function dial(pct){
+  const r=19,c=2*Math.PI*r,off=c*(1-pct/100);
+  const col=pct>=95?'var(--pass)':pct>=90?'var(--warn)':'var(--fail)';
+  return `<div class="dial"><svg width="46" height="46">
+    <circle cx="23" cy="23" r="${r}" fill="none" stroke="var(--rule)" stroke-width="3.5"/>
+    <circle cx="23" cy="23" r="${r}" fill="none" stroke="${col}" stroke-width="3.5"
+      stroke-dasharray="${c}" stroke-dashoffset="${off}" stroke-linecap="round"/></svg>
+    <span style="color:${col}">${pct}</span></div>`;
+}
+function proof(){
+  const NARROW=1100;
+  const narrow=window.innerWidth<=NARROW, el=document.getElementById('proof');
+  if(!sel){
+    const open=GROUPS[0].ids.filter(k=>!['done','ask'].includes(state[k])).length;
+    if(circulated){
+      const accd=ORDER.filter(k=>state[k]==='done').length;
+      const openq=ORDER.length-accd-asked.length;
+      const bare=38-accd-asked.length-openq;   /* the same partition the footer prints */
+      const mins=Math.max(1,Math.round(active/60));
+      el.innerHTML=`<div class="done-panel">
+        <div class="lbl">Circulated ${circulated}</div>
+        <h4>Northwind Systems is with the committee</h4>
+        <p>The memo went with its receipt attached. Nothing in it can change now without
+           reopening it, and reopening is recorded.</p>
+        <div class="dstat"><span>Machine proved</span><b>${bare}</b></div>
+        <div class="dstat"><span>Accepted by you</span><b>${accd}</b></div>
+        ${asked.length?`<div class="dstat"><span>Question outstanding</span><b>${asked.length}</b></div>`:''}
+        ${openq?`<div class="dstat"><span>Still open</span><b>${openq}</b></div>`:''}
+        <div class="dstat"><span>Figures in the memo</span><b>38</b></div>
+        <div class="dstat"><span>Your attention</span><b>${mins} min</b></div>
+        <div class="dstat"><span>Firm baseline</span><b>3h 40m</b></div>
+        <p class="tiny2">Every figure is still traceable. Click any one to see its source.</p>
+        <button class="startbtn" onclick="openQueue()">Open the week</button>
+        <button class="reopen" onclick="reopen()">Reopen the memo</button>
+      </div>`;
+      return;
+    }
+    el.innerHTML=`<div class="empty">
+      <h4>${open?'Start with what moves the recommendation':'Nothing load bearing is open'}</h4>
+      <p>${open
+        ? `${open} figure${open>1?'s':''} the recommendation depends on. I have ordered them so the one that
+           changes the outcome most comes first.`
+        : 'Every figure the recommendation depends on has a decision. Pick anything from the queue to review it again.'}</p>
+      ${open
+        ? `<button class="startbtn" onclick="pick(nextOpen(1))">Start review &nbsp;<kbd>]</kbd></button>`
+        : `<button class="startbtn" onclick="openReceipt()">Review the receipt</button>
+           <p class="tiny">${asked.length
+             ? 'It will circulate as conditional while the question is outstanding.'
+             : 'What the committee sees before the prose.'}</p>`}
+      </div>`;
+    return;
+  }
+  const h=proofHTML();
+  if(narrow){el.innerHTML='';sheet(`<div class="proofwrap">${h}</div>`);lastSel=sel;return}
+  const changed=lastSel!==sel;
+  el.classList.remove('swap');
+  el.innerHTML=h;
+  if(changed){void el.offsetWidth;el.classList.add('swap')}
+  lastSel=sel;
+}
+let lastSel=null;
+/* The document comes to the analyst. Verification that requires leaving the
+   screen is verification that costs twelve seconds a figure, forty times. */
+let srcTab={};
+function inlineSource(c){
+  const docs=[c.a.doc,c.b.doc].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i);
+  if(!docs.length)return '';
+  const active=docs.includes(srcTab[sel])?srcTab[sel]:docs[0];
+  const d=DOCS[active];
+  const body = d.kind==='gap'
+    ? `<div class="igap">Requested 16 Aug, not provided. Nothing in the room can support this figure.</div>`
+    : d.kind==='t'
+      ? d.rows.map((r,i)=>`<div class="irw ${i===d.hit?'hit':''}"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')
+      : d.para.map(p=>`<p>${p}</p>`).join('');
+  return `<div class="isrc">
+    <div class="itabs">
+      ${docs.map(id=>`<button class="${id===active?'on':''}" onclick="srcTab['${sel}']='${id}';render()">
+        ${DOCS[id].n}</button>`).join('')}
+      <button class="full" onclick="openDoc('${active}')" title="Open the whole document">full ↗</button>
+    </div>
+    <div class="ibody">
+      <div class="ittl">${d.ttl}</div>
+      ${body}
+    </div>
+    <div class="ifoot">The marked region is exactly what the figure was read from.</div>
+  </div>`;
+}
+
+function proofHTML(){
+  const c=CLAIMS[sel],s=state[sel],rel=CLASSES[c.cls];
+  const cell=(d,side)=>`<div class="cell ${side}">
+    <div class="h">${d.h}</div>
+    ${d.doc?`<span class="srcname">${DOCS[d.doc].n}</span>`:''}
+    <span class="big">${d.big}</span><div class="sub">${d.sub}</div></div>`;
+
+  let actions='';
+  if(s==='rerun'){
+    actions=`<div class="rerun"><b>Re-reasoning this step</b>
+      <ol><li>Re-reading the source with the prior answer marked wrong</li>
+      <li>Widening to adjacent sections and filings</li>
+      <li>Scoring the new answer against the deterministic check</li></ol></div>`;
+  } else if(s==='done'||s==='ask'){
+    const chg=decided[sel+'_chg'];
+    const more=nextOpen(1,true);
+    actions=`<div class="resolved"><b>${s==='ask'?'Question queued':'Resolved by you'}</b>
+      ${decided[sel+'_txt']||'Recorded against this memo with your name and the time.'}
+      ${chg?`<div class="chg"><b>What moved in the memo</b>${chg}</div>`:''}
+      ${decided[sel+'_note']?`<div class="chg"><b>Your reasoning, to committee</b>${decided[sel+'_note']}</div>`:''}
+      ${contested(sel)?`<div class="note-in">
+        <label for="rsn">Why, in one line. This travels to committee with your name.</label>
+        <textarea id="rsn" rows="2" placeholder="${notePlaceholder(sel)}"
+          oninput="decided['${sel}_note']=this.value;chrome()">${decided[sel+'_note']||''}</textarea>
+        <span class="opt-note">Optional, but a partner reading this will ask.</span>
+      </div>`:''}
+      ${CLAIMS[sel].probe?`<div class="probe"><b>That was one of the two spot checks</b>
+        I had already proved this one. You were told two were in the queue and not which, because
+        naming them would have told you where to look and my accuracy would measure your attention
+        instead of my work. You agreed with me, so the 99% holds. If you had not, the whole class
+        would have been demoted and every memo in flight re-flagged.</div>`:''}
+      <div class="nx"><button onclick="undo()">Undo</button>
+        ${more?`<button onclick="pick('${more}')">Next open figure &nbsp;]</button>`
+              :`<button onclick="openReceipt()">Review the receipt</button>`}</div></div>`;
+  } else {
+    actions=c.acts.map((a,i)=>`<button class="act ${i===0?'pri':''}" onclick="act('${sel}',${i})">
+      ${a[2]?`<kbd>${a[2]}</kbd>`:''}<b>${a[0]}</b>${a[1]?`<span>${a[1]}</span>`:''}</button>`).join('');
+  }
+
+  return `
+  <div class="phd">
+    <div class="t"><h4>${c.lab}</h4><button class="x" aria-label="Close panel" onclick="sel=null;render()">×</button></div>
+    <div class="consq ${c.consq[0]}"><b>${c.consq[0]==='hi'?'Changes the recommendation':'Does not change the recommendation'}</b>${c.consq[1]}</div>
+  </div>
+
+  ${c.degraded?`<div class="pb"><div class="degr"><b>Retried once</b>${c.degraded}</div></div>`:''}
+
+  <div class="pb">
+    <div class="two">${cell(c.a,'a')}${cell(c.b,'b')}</div>
+    <div class="vd ${c.vd[0]}"><b>${c.vd[1]}</b><span>${c.vd[2]}</span></div>
+    ${inlineSource(c)}
+  </div>
+
+  ${c.egress?`<div class="pb">
+    <div class="bnd"><b>One outbound lookup<span class="asm">my assumption</span></b>${c.egress.body}
+      <div class="io"><span>sent</span><u>${c.egress.sent}</u></div></div></div>`:''}
+
+  <div class="pb"><span class="lbl">How often I am right on this kind of figure</span>
+    <button class="rel" onclick="openCalibration('${c.cls}')">${dial(rel.pct)}
+      <div class="tx"><b>${rel.t}</b><br>${rel.n} figures matched the analyst across 214 prior memos.
+      ${rel.pct<90?'This is my weakest class, so this is where your time is worth most.'
+                  :'Check it if you want to, but your attention is worth more elsewhere.'}
+      <span class="see">See the last twelve, next to what your analyst wrote &nbsp;›</span></div>
+    </button>
+  </div>
+
+  <div class="acts">${actions}</div>`;
+}
+
+/* ── actions ── */
+function act(id,i){
+  const a=CLAIMS[id].acts[i], type=a[3]||'accept', arg=a[4];
+
+  if(type==='show'){showWork(arg);return}
+
+  if(type==='rerun'){
+    state[id]='rerun';render();revealActions();
+    setTimeout(()=>{
+      state[id]='done';
+      decided[id+'_txt']='Re-ran the search against Delaware and three adjacent registries. No termination, no amendment, no second filing. The lien stands as written.';
+      decided[id+'_chg']='Nothing. The answer held, which is itself worth knowing before committee.';
+      toast('Re-reasoned. Answer unchanged.');render();revealActions();
+    },2200);
+    return;
+  }
+
+  if(type==='ask'){
+    state[id]='ask';
+    asked=asked.filter(x=>x.id!==id).concat([{id,q:questionFor(id)}]);
+    decided[id+'_txt']='Added to the outstanding questions. The memo circulates as conditional rather than waiting on a reply.';
+    decided[id+'_chg']='The figure stays marked in the memo until the answer comes back.';
+    toast('Question queued for the company');render();revealActions();return;
+  }
+
+  if(type==='cut'){
+    state[id]='done';decided.ndrCut=1;
+    decided[id+'_txt']='Figure removed from the memo entirely.';
+    decided[id+'_chg']='The retention test now reads no input rather than unverified. That is a different sentence to the committee.';
+    toast('Figure cut from the memo');render();revealActions();return;
+  }
+
+  const prevRun=decided.burn==='bank'?35:39;
+  decided[id]=arg||'accepted';
+  state[id]='done';
+  decided[id+'_txt']=a[1]||'Accepted as written.';
+  decided[id+'_chg']=changeFor(id,arg);
+  toast(/^Accept$|^Accept into the memo$/.test(a[0]) ? CLAIMS[id].lab+' accepted' : a[0]);
+  render();
+  revealActions();
+  settle(id);
+  if(id==='burn'){
+    const to=arg==='deck'?39:35;
+    cascade(['burn','runway'],'rec');
+    setTimeout(()=>roll('runway',prevRun,to,' months'),190);
+  } else if(id==='lien'||id==='coc'||id==='prec'){
+    cascade([id],'rec');
+  }
+}
+/* A figure that two sources disagree on, or that moves the recommendation, is a
+   judgement call. Judgement without its reasoning does not survive the trip to
+   committee, so the memo carries the sentence as well as the name. */
+function contested(id){
+  const c=CLAIMS[id];
+  return c.consq[0]==='hi' || ['conf','uns'].includes(c.st);
+}
+function notePlaceholder(id){return {
+  burn:'e.g. Bank statements are the harder evidence and the deck never defines the term.',
+  lien:'e.g. Proceeding only if Meridian subordinates. Otherwise this is a pass.',
+  ndr:'e.g. Circulating it flagged rather than cutting it, because committee will ask.',
+  coc:'e.g. Springing covenant follows the Cortlandt structure this committee approved.'
+}[id]||'One line on why you decided it this way.'}
+function changeFor(id,arg){
+  if(id==='burn') return arg==='bank'
+    ? 'Runway moved from 39 to 35 months. Four downstream figures updated without asking you again.'
+    : 'Runway stays at 39 months, resting on a term the deck never defines.';
+  if(id==='coc') return arg==='cov'
+    ? 'The recommendation now carries a springing covenant, which is what Cortlandt got.'
+    : arg==='disq' ? 'The recommendation became a pass, on the Halyard precedent.'
+    : 'Nothing moved. The clause stays in the risks and the committee decides.';
+  if(id==='lien') return arg==='sub'
+    ? 'The ask changed. This is now a facility conditional on subordination from Meridian.' : '';
+  if(id==='ndr') return 'The figure stays in the memo, marked unverified to committee.';
+  if(id==='prec') return arg==='out'
+    ? 'Precedent section removed. The committee reconstructs it from memory instead.' : '';
+  return '';
+}
+function showWork(k){
+  const body = k==='conc'
+   ? `<div class="doc"><div class="ttl">Concentration, recomputed from billing-export.csv</div>
+      <div class="rw"><span>rows in export</span><span>4,118</span></div>
+      <div class="rw"><span>rows excluded, unstarted contracts</span><span>2</span></div>
+      <div class="rw"><span>monthly recurring revenue, 4,116 rows</span><span>$700,783</span></div>
+      <div class="rw"><span>× 12</span><span>$8,409,396</span></div>
+      <div class="rw"><span>largest account, annualised</span><span>$2,608,600</span></div>
+      <div class="rw hit"><span>2,608,600 ÷ 8,409,396</span><span>31.0%</span></div>
+      <div class="rw"><span>credit box ceiling</span><span>20%</span></div></div>`
+   : `<div class="doc"><div class="ttl">The ARR figure I did not use</div>
+      <div class="rw"><span>pitch deck, page 4</span><span>$8.6M</span></div>
+      <div class="rw"><span>contracted schedule</span><span>$8,412,000</span></div>
+      <div class="rw"><span>billing export × 12</span><span>$8,409,396</span></div>
+      <div class="rw hit"><span>difference traced to</span><span>2 signed, unstarted contracts</span></div>
+      <p style="margin-top:12px">The deck counts revenue that has not begun. Both other sources exclude
+      it, and they agree with each other to 0.03%, so I used them and dropped the deck figure.</p></div>`;
+  sheet(`<div class="sh"><div style="flex:1"><h3>${k==='conc'?'Every row I summed':'Why I dropped a figure'}</h3>
+      <p>Nothing here was read off a slide.</p></div>
+      <button class="x" aria-label="Close" onclick="closeOv()">×</button></div>
+    <div class="sb">${body}</div>
+    <div class="sf"><span class="note">This is the calculation, not a summary of it.</span>
+      <button class="btn g" onclick="closeOv()">Close</button></div>`);
+}
+function questionFor(id){return{
+  burn:'Please define net burn as used on page 14 of the Q2 board deck. Does the figure capitalise any payroll?',
+  ndr:'Please send the cohort retention file so the 112% net dollar retention figure can be recomputed.',
+  lien:'Please confirm the status of UCC filing 2024-1180934 in favour of Meridian Credit Partners, and whether subordination has been discussed.'
+}[id]||'Clarification requested.'}
+function undo(){state[sel]=CLAIMS[sel].st;asked=asked.filter(x=>x.id!==sel);
+  delete decided[sel];delete decided[sel+'_txt'];delete decided[sel+'_chg'];
+  if(sel==='ndr')delete decided.ndrCut;
+  toast('Reverted');render()}
+
+function pick(id){sel=id;render();
+  const el=document.querySelector('.f.sel');
+  if(el){el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('pulse')}}
+function nextOpen(d,skipSel){
+  const open=ORDER.filter(k=>!['done','ask'].includes(state[k]));
+  if(!open.length)return null;
+  if(skipSel)return open.find(k=>k!==sel)||null;
+  const i=open.indexOf(sel);
+  return open[(i+(d>0?1:open.length-1)+(i<0?(d>0?0:1):0))%open.length];
+}
+
+/* ── sheets ── */
+function openDoc(id){
+  const d=DOCS[id];
+  sheet(`<div class="sh"><div style="flex:1"><h3>${d.ttl}</h3><p class="n">${d.n}</p></div>
+    <button class="x" aria-label="Close" onclick="closeOv()">×</button></div>
+   <div class="sb"><div class="doc">${
+     d.kind==='gap'
+     ? `<div class="ttl">Requested 16 Aug, not provided</div><p>Without this file, net dollar retention cannot be
+        recomputed and one credit box test has no input.</p>`
+     : d.kind==='t'
+       ? d.rows.map((r,i)=>
+           `<div class="rw ${i===d.hit?'hit':''}"><span>${r[0]}</span><span>${r[1]}</span></div>`).join('')
+       : d.para.map(p=>`<p>${p}</p>`).join('')}</div></div>
+   <div class="sf"><span class="note">Highlighted region is exactly what the figure was read from.</span>
+     <button class="btn g" onclick="closeOv()">Close</button></div>`);
+}
+function queueRows(){
+  return QUEUE.map(r=>r[0]==='Northwind Systems'&&circulated
+    ? ['Northwind Systems','$6.0M growth','circ2','circulated',Math.max(1,Math.round(active/60))+'m']
+    : r);
+}
+const QUEUE=[
+ ['Sandbar Logistics','$4.0M revolver','circ2','circulated','12m'],
+ ['Vireo Analytics','$8.5M growth','circ2','circulated','9m'],
+ ['Tessellate','$2.2M bridge','pass','passed at t+6m','6m'],
+ ['Northwind Systems','$6.0M growth','rev','you are here','—'],
+ ['Amberline','$5.0M growth','wait','agent running','—'],
+ ['Marrow Point','$3.5M growth','wait','queued','—'],
+ ['Norwood Grid','$12.0M growth','wait','queued','—'],
+ ['Kestrel Health','$7.0M growth','wait','queued','—'],
+ ['Brightline Freight','$4.5M revolver','pass','passed at t+4m','4m'],
+ ['Pallas Systems','$9.0M growth','wait','queued','—'],
+ ['Ferrous Labs','$6.5M growth','wait','queued','—']];
+function openProved(name,val,method){
+  const g=AUTOG.find(x=>x[0]===method);
+  const cls={recompute:'recompute',contract:'contract',filing:'filing',doc:'contract'}[method];
+  const c=CLASSES[cls];
+  sheet(`<div class="sh"><div style="flex:1"><h3>${name}</h3>
+      <p>Proved without you. Here is how, since you asked.</p></div>
+      <button class="x" aria-label="Close" onclick="closeOv()">×</button></div>
+    <div class="sb">
+      <div class="calsum three">
+        <div class="cs"><b>${val}</b><span>as written in the memo</span></div>
+        <div class="cs"><b class="g">${c.pct}%</b><span>my accuracy, this method</span></div>
+        <div class="cs"><b class="g">✓</b><span>no human review required</span></div>
+      </div>
+      <div class="calfoot"><b style="color:var(--ink);display:block;margin-bottom:6px">${g[1]}</b>${g[2]}</div>
+      <div class="calfoot" style="margin-top:12px">This figure was kept out of your queue because it cannot
+      change the recommendation and it was established by a method I am ${c.pct}% accurate on. Hidden is not
+      the same as withheld. Two of the 28 are pulled into your queue at random each run, so the accuracy
+      above is measured on figures you check rather than on figures I chose to show you.</div>
+    </div>
+    <div class="sf"><span class="note">One of 28 proved this run.</span>
+      <button class="btn g" onclick="closeOv()">Close</button></div>`);
+}
+function openQueue(){
+  /* reads the live list, so circulating Northwind moves it out of review and into
+     the circulated count in front of you rather than leaving the week stale */
+  const Q=queueRows();
+  const done=Q.filter(q=>q[2]!=='wait'&&q[4]!=='—');
+  const mins=done.map(q=>parseInt(q[4]));
+  /* an even sample has no middle element, so average the two either side of it */
+  const srt=mins.slice().sort((a,b)=>a-b);
+  const med=srt.length%2 ? srt[(srt.length-1)/2]
+                         : Math.round((srt[srt.length/2-1]+srt[srt.length/2])/2);
+  sheet(`<div class="sh"><div style="flex:1"><h3>This week</h3>
+      <p>Eleven deals. Throughput is memos finished, which includes the two that were killed fast.</p></div>
+      <button class="x" aria-label="Close" onclick="closeOv()">×</button></div>
+    <div class="sb">
+      <div class="calsum">
+        <div class="cs"><b class="g">${Q.filter(q=>q[3]==='circulated').length}</b><span>circulated</span></div>
+        <div class="cs"><b class="a">2</b><span>passed early</span></div>
+        <div class="cs"><b>${Q.filter(q=>q[2]==='rev').length}</b><span>in review</span></div>
+        <div class="cs"><b>${med}m</b><span>median attention</span></div>
+      </div>
+      <div class="qhd"><span>deal</span><span>facility</span><span>status</span><span class="qt">your time</span></div>
+      ${Q.map(q=>`<div class="qrow ${q[2]==='rev'?'now':''}">
+        <span>${q[0]}</span><span style="color:var(--mid)">${q[1]}</span>
+        <span class="qs ${q[2]}">${q[3]}</span><span class="qt">${q[4]}</span></div>`).join('')}
+    </div>
+    <div class="calfoot pin">Two of these memos were never finished, because the agent surfaced a
+      disqualifying fact early enough to stop the work. A killed deal with a defensible reason is
+      throughput, not a gap in the numbers. The firm baseline for a completed memo is 3h 40m.</div>
+    <div class="sf"><span class="note">Attention is counted only while someone is working.</span>
+      <button class="btn g" onclick="closeOv()">Close</button></div>`);
+}
+function openMail(){
+  sheet(`<div class="sh"><div style="flex:1"><h3>Outstanding questions</h3>
+    <p>${asked.length} question${asked.length>1?'s':''} batched into one message rather than sent one at a time.</p></div>
+    <button class="x" aria-label="Close" onclick="closeOv()">×</button></div>
+   <div class="sb"><div class="mail">
+     <div class="mh"><span>To</span><b>finance@northwindsystems.com</b></div>
+     <div class="mh"><span>Subject</span><b>Northwind facility: ${asked.length===1?'one item':asked.length===2?'two items':'three items'} before we circulate</b></div>
+     <div class="mb"><p>Hi Dana,</p><p>We are finishing the concept memo. ${asked.length===1?'One item is':asked.length===2?'Two items are':'Three items are'} open:</p>
+       <ol>${asked.map(a=>`<li>${a.q}</li>`).join('')}</ol>
+       <p>The memo goes to committee Thursday and circulates as conditional in the meantime.</p></div>
+   </div></div>
+   <div class="sf"><span class="note">The memo does not wait for the reply.</span>
+     <button class="btn g" onclick="closeOv()">Close</button>
+     <button class="btn" onclick="closeOv();toast('Sent. Memo marked conditional.')">Send</button></div>`);
+}
+function openReceipt(){
+  const acc=ORDER.filter(k=>state[k]==='done').length;
+  const op=ORDER.filter(k=>state[k]==='ask').length;
+  const mins=Math.max(1,Math.round(active/60));
+  sheet(`<div class="sh"><div style="flex:1"><h3>Verification receipt</h3>
+    <p>Travels with the memo. This is what the committee sees before the prose.</p></div>
+    <button class="x" aria-label="Close" onclick="closeOv()">×</button></div>
+   <div class="sb">
+     ${(()=>{
+       /* The 28 and your decisions overlap: two of the 28 were drawn into the queue as
+          spot checks, so they carry a decision as well. Reporting both raw would make
+          the receipt sum to 40 against a memo of 38, which is the exact failure this
+          product exists to prevent. This is the same partition the printed footer uses. */
+       const openq=ORDER.length-acc-asked.length;
+       const bare=38-acc-asked.length-openq;
+       return `<div class="rc"><span>Machine proved, never shown to you</span><b class="g">${bare}</b></div>`;
+     })()}
+     <div class="rc"><span>Reviewed and accepted by you</span><b class="g">${acc}</b></div>
+     <div class="rc"><span>Open, question sent to the company</span><b class="a">${op}</b></div>
+     <div class="rc"><span>Unverifiable with what the room contains</span><b class="r">${ORDER.filter(k=>state[k]==='uns').length}</b></div>
+     ${(()=>{
+       /* Not yet reached is not the same as disagreed. Saying "0 of 2 agreed" before the
+          analyst has touched either probe reports a failure that never happened. */
+       const pr=ORDER.filter(k=>CLAIMS[k].probe);
+       const seen=pr.filter(k=>state[k]!==CLAIMS[k].st);
+       const agreed=pr.filter(k=>state[k]==='done').length;
+       const txt=seen.length?`${agreed} of ${seen.length} agreed`:'none reached yet';
+       const cl=seen.length&&agreed===seen.length?'g':seen.length?'a':'';
+       return `<div class="rc"><span>Spot checks drawn at random from the 28</span><b class="${cl}">${txt}</b></div>`;
+     })()}
+     <div class="rc"><span>Credit box exceptions logged</span><b class="a">2</b></div>
+     <div class="rc"><span>Risks no credit box test covers</span><b class="r">1</b></div>
+     ${(()=>{
+       /* Counted off the claims themselves so it cannot drift from what actually happened. */
+       const out=ORDER.filter(k=>CLAIMS[k].egress).length;
+       return `<div class="rc"><span>Lookups that left your environment</span><b>${
+         out?`${word(out)}, logged`:'none'}</b></div>`;
+     })()}
+     ${(()=>{const notes=ORDER.filter(k=>decided[k+'_note']);
+       return notes.length?`<div class="reasons"><b>Judgement calls, in your words</b>${
+         notes.map(k=>`<div class="rsn"><span>${CLAIMS[k].lab}</span><em>${decided[k+'_note']}</em></div>`).join('')
+       }</div>`:'';})()}
+     ${(()=>{const openq=ORDER.length-acc-asked.length;
+       return openq?`<div class="rc"><span>Still open, no decision yet</span><b class="a">${openq}</b></div>`:''})()}
+     <div class="rc"><span>Figures in the memo</span><b>38</b></div>
+     <p class="tiny" style="margin-top:var(--s3)">Twenty eight were proved by machine. Two of those
+       were drawn back into your queue as spot checks, so they are counted with your decisions rather
+       than twice.</p>
+     <div class="stamp">verified by <b>S. Mehta</b> · 17 Aug 2026 · <b>${mins} min</b> of human attention
+       against a firm baseline of 3h 40m<br>agent run <b>4m 12s</b> · credit-box-gold-v3 ·
+       every figure traceable to its source region</div>
+   </div>
+   <div class="sf"><span class="note">Deal 4 of 11 this week.</span>
+     <button class="btn g" onclick="closeOv()">Close</button>
+     <button class="btn" onclick="doCirculate()">Circulate to committee</button></div>`);
+}
+/* ── the sheet is a modal dialog, so it has to behave like one ──
+   Without this, opening a sheet left focus on <body> and every Tab landed on the rail
+   behind the overlay: a keyboard user could not reach the sheet's own content at all.
+   Focus enters on open, Tab cycles inside, and it returns to the opener on close. */
+const FOCUSABLE='button:not([disabled]),a[href],textarea,input,select,[tabindex]:not([tabindex="-1"])';
+let lastFocus=null;
+
+function sheetFocusables(){
+  return [...document.getElementById('sheet').querySelectorAll(FOCUSABLE)]
+    .filter(e=>e.offsetParent!==null);
+}
+function sheet(h){
+  lastFocus=document.activeElement;
+  const s=document.getElementById('sheet');
+  s.innerHTML=h;
+  s.setAttribute('role','dialog');
+  s.setAttribute('aria-modal','true');
+  const t=s.querySelector('h3,h4');
+  if(t){t.id=t.id||'sheet-title';s.setAttribute('aria-labelledby',t.id)}
+  document.getElementById('ov').classList.add('on');
+  /* the heading, not the first button, so a screen reader announces what opened */
+  s.setAttribute('tabindex','-1');
+  s.focus();
+}
+function closeOv(){
+  const ov=document.getElementById('ov');
+  const wasOpen=ov.classList.contains('on');
+  ov.classList.remove('on');
+  if(window.innerWidth<=1100&&sel){sel=null;rail();memo();chrome();
+    document.getElementById('proof').innerHTML=''}
+  if(wasOpen&&lastFocus&&document.contains(lastFocus)){lastFocus.focus();lastFocus=null}
+}
+let tt;
+function toast(m){const el=document.getElementById('toast');el.textContent=m;el.classList.add('on');
+  clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('on'),2200)}
+
+/* ── chrome ── */
+let wasLocked=true;
+/* The screen that answers "why should I believe your percentage".
+   It is only persuasive because it contains the rows where I was wrong. */
+function openCalibration(cls){
+  const c=CLASSES[cls],d=CALDATA[cls];
+  const wrongMe=d.rows.filter(r=>r[4]==='agent').length;
+  const wrongThem=d.rows.filter(r=>r[4]==='analyst').length;
+  const rows=d.rows.map((r,i)=>{
+    const v=r[4];
+    return `<div class="cr ${v}" ${r[5]?`onclick="this.classList.toggle('open')"`:''}>
+      <div class="crh">
+        <span class="deal">${r[0]}</span>
+        <span class="fig">${r[1]}</span>
+        <span class="val me">${r[2]}</span>
+        <span class="val you">${r[3]}</span>
+        <span class="vd2 ${v}">${v==='same'?'same':v==='agent'?'I was wrong':'you were wrong'}${
+          r[5]?'<em class="ex">why ›</em>':''}</span>
+      </div>
+      ${r[5]?`<div class="crb">${r[5]}</div>`:''}</div>`;
+  }).join('');
+
+  sheet(`<div class="sh"><div style="flex:1">
+      <h3>How I earned ${c.pct}%</h3>
+      <p>The last twelve times I produced a figure ${c.t}, on deals your firm has already closed.</p></div>
+      <button class="x" aria-label="Close" onclick="closeOv()">×</button></div>
+    <div class="sb">
+      <div class="calsum">
+        <div class="cs"><b>${d.rows.length}</b><span>checked</span></div>
+        <div class="cs"><b class="g">${d.rows.length-wrongMe}</b><span>I got right</span></div>
+        <div class="cs"><b class="${wrongMe?'r':''}">${wrongMe}</b><span>I got wrong</span></div>
+        <div class="cs"><b class="${wrongThem?'a':''}">${wrongThem}</b><span>you got wrong</span></div>
+      </div>
+      <div class="calhd"><span class="deal">deal</span><span class="fig">figure</span>
+        <span class="val">me</span><span class="val">analyst</span><span class="vd2"></span></div>
+      ${rows}
+    </div>
+    <div class="calfoot pin">${d.foot}</div>
+    <div class="sf"><span class="note">${wrongMe||wrongThem?'Rows with a disagreement open.':'No disagreements in this sample.'}</span>
+      <button class="btn g" onclick="closeOv()">Close</button></div>`);
+}
+
+/* ── circulating ──────────────────────────────────────────────────────────
+   The memo leaving the building is the end of the journey, and it used to be a
+   toast over an unchanged screen. It is a state change on the document: the
+   stamp becomes a time, the card seals, the footer gains the receipt line, and
+   the panel stops offering work and starts offering the next deal. */
+function stampTime(){
+  const mins=Math.max(1,Math.round(active/60));
+  const m=9*60+42+mins;                      /* drafted 09:42, plus your own time */
+  return String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0');
+}
+function doCirculate(){
+  circulated=stampTime();
+  closeOv();
+  sel=null; render();
+  requestAnimationFrame(()=>{
+    const m=document.getElementById('memo');
+    if(m&&!reduced()){m.classList.remove('seal');void m.offsetWidth;m.classList.add('seal')}
+    const c=document.querySelector('.mid-col'); if(c)c.scrollTop=0;
+  });
+  toast('Circulated to committee.');
+}
+function reopen(){circulated=null;sel=null;render();toast('Reopened. Nothing was sent.')}
+
+function chrome(){
+  const blocking=GROUPS[0].ids.filter(k=>!['done','ask'].includes(state[k]));
+  const btn=document.getElementById('circ'),gate=document.getElementById('gate');
+  if(circulated){
+    btn.disabled=true; btn.textContent='Circulated';
+    gate.className='gate ok'; gate.textContent='';
+    document.getElementById('memo').classList.add('gone');
+    return chromeTail();
+  }
+  btn.textContent='Circulate memo';
+  document.getElementById('memo').classList.remove('gone');
+  btn.disabled=blocking.length>0;
+  if(wasLocked&&!btn.disabled){btn.classList.remove('unlock');void btn.offsetWidth;btn.classList.add('unlock')}
+  wasLocked=btn.disabled;
+  gate.className='gate'+(blocking.length?'':' ok');
+  gate.textContent=blocking.length
+    ? blocking.length+' item'+(blocking.length>1?'s':'')+' the recommendation depends on'
+    : 'every load bearing figure has a decision';
+
+  chromeTail();
+}
+function chromeTail(){
+  const done=ORDER.filter(k=>['done','ask'].includes(state[k])).length;
+  document.getElementById('pf').style.width=(done/ORDER.length*100)+'%';
+  document.getElementById('pt').textContent=done+' of '+ORDER.length;
+  document.getElementById('openct').textContent=ORDER.length-done;
+  document.getElementById('blfill').style.width=Math.min(100,2+done*9.5)+'%';
+
+  const chip=document.getElementById('askchip');
+  chip.classList.toggle('on',asked.length>0);
+  chip.textContent=asked.length+' question'+(asked.length>1?'s':'')+' to Northwind ↗';
+}
+/* Attention, not wall clock. If the analyst walks away the number must not
+   keep climbing, or the one metric this product claims becomes a lie. */
+let active=0,lastTouch=Date.now();
+['click','keydown','pointermove','wheel'].forEach(e=>
+  addEventListener(e,()=>lastTouch=Date.now(),{passive:true}));
+setInterval(()=>{
+  if(Date.now()-lastTouch<45000&&!document.hidden)active++;
+  const m=Math.floor(active/60);
+  document.getElementById('clock').textContent=m+':'+String(active%60).padStart(2,'0');
+},1000);
+
+function render(){rail();memo();proof();chrome()}
+/* Put the outcome of a decision where the eye already is. */
+function revealActions(){
+  requestAnimationFrame(()=>{
+    const el=document.querySelector('.proof .acts, .sheet .acts');
+    if(el)el.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'end'});
+  });
+}
+
+/* delegated, so it survives every re-render without rebinding */
+let linked=null;
+function link(id){
+  if(linked===id)return; linked=id;
+  document.querySelectorAll('.linked').forEach(e=>e.classList.remove('linked'));
+  if(!id)return;
+  document.querySelectorAll(`.rail .row[data-id="${id}"], .memo .f[data-id="${id}"]`)
+    .forEach(e=>e.classList.add('linked'));
+}
+addEventListener('pointerover',e=>{
+  const t=e.target.closest('.rail .row[data-id], .memo .f[data-id]');
+  link(t?t.dataset.id:null);
+});
+addEventListener('pointerleave',()=>link(null));
+
+let rz;
+addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(render,180)});
+
+/* ══ design notes ══════════════════════════════════════════════════════════
+   Each entry names a region and the decision behind it. `pre` puts the screen
+   into the state where that region exists, so the tour never points at nothing. */
+const NOTES=[
+ {sel:'.sortw', t:'Attention is allocated, not listed',
+  b:'The queue sorts by leverage crossed with reliability. Flip it to document order and the lien falls from first to ninth, behind eight figures that cannot change the outcome. The document decides what you read first, and the document is wrong about what matters.'},
+ {sel:'#memo .f.conf', t:'A machine figure never looks like a human sentence',
+  b:'Every number the agent asserted is monospace, every word a person wrote is not. On top of that the underline carries the state. You can tell verified from unverified without reading either, which is the whole rule the system serves.'},
+ {sel:'.clr', t:'Hidden is not the same as withheld',
+  b:'Twenty eight figures were proved deterministically and collapsed out of the queue, grouped by how each was obtained. Every one opens on click. Spending an analyst’s attention on what is already proven is the actual cost.'},
+ {sel:'.rhd p', t:'The queue is twelve, not ten',
+  b:'Ten the agent could not close, plus two of its own work drawn back at random. The count is stated here, the identity never is. Accuracy then gets measured on figures the analyst chose to check rather than on figures the agent chose to show.'},
+ {sel:'.rel', pre:()=>{if(sel!=='burn')pick('burn')}, t:'Measured accuracy, never model confidence',
+  b:'Ninety nine percent on recomputed figures, seventy seven on anything read off a slide, backtested against two hundred and fourteen closed memos. Token probability measures fluency, not truth, and a hallucinated figure often scores higher than a correct hedged one.'},
+ {sel:'.stamp2', pre:()=>{sel=null;render()}, t:'The memo cannot leave while it is load bearing',
+  b:'The stamp is a gate, not a badge. It reads held until every figure the recommendation depends on has a decision, then conditional while questions are outstanding, then cleared. Asked does not block circulation, because waiting on the company is where throughput actually dies.'},
+ {sel:'.hr2 .tm:first-child', t:'The one metric this product claims is measured honestly',
+  b:'The clock counts only while someone is working. It pauses after forty five seconds idle and when the tab is hidden. If time to a verified memo were measured generously the whole argument would be hypocrisy.'},
+ {sel:'.circ', t:'The memo travels with its proof',
+  b:'Circulating attaches a receipt: what the machine proved, what a named person accepted and when, what is still open, and how much human attention it took against the firm baseline. The memo is how information moves between layers of the firm, so it has to survive the trip.'},
+];
+let dnI=0;
+function dnOpen(){dnI=0;document.getElementById('dn').classList.add('on');dnShow()}
+function dnClose(){const d=document.getElementById('dn');d.classList.remove('on');d.innerHTML='';
+  removeEventListener('resize',dnShow,true);document.querySelector('.dnbtn').focus()}
+function dnStep(n){const i=dnI+n;if(i<0||i>=NOTES.length)return;dnI=i;dnShow()}
+function dnShow(){
+  const d=document.getElementById('dn'),n=NOTES[dnI];
+  if(n.pre) n.pre();
+  const el=document.querySelector(n.sel);
+  if(!el){dnI=Math.min(dnI+1,NOTES.length-1);return}
+  /* instant, not smooth: a rect measured while a smooth scroll is still running
+     is the old rect, which is how the spotlight ends up off screen */
+  el.scrollIntoView({block:'center',inline:'nearest',behavior:'auto'});
+  const r=el.getBoundingClientRect(),pad=6;
+  const top=Math.max(4,r.top-pad),left=Math.max(4,r.left-pad);
+  const w=Math.min(r.width+pad*2,innerWidth-8),h=Math.min(r.height+pad*2,innerHeight-8);
+  d.innerHTML=
+    '<div class="dnspot" style="top:'+top+'px;left:'+left+'px;width:'+w+'px;height:'+h+'px"></div>'+
+    '<div class="dncard" role="dialog" aria-label="Design note" style="top:0;left:0;visibility:hidden">'+
+      '<div class="step">Decision '+(dnI+1)+' of '+NOTES.length+'</div>'+
+      '<h4>'+n.t+'</h4><p>'+n.b+'</p>'+
+      '<div class="nav">'+
+        '<button onclick="dnStep(-1)"'+(dnI===0?' disabled':'')+'>Back</button>'+
+        '<span class="sp2"></span>'+
+        '<button onclick="dnClose()">Close</button>'+
+        (dnI===NOTES.length-1
+          ? '<button class="next" onclick="dnClose()">Done</button>'
+          : '<button class="next" onclick="dnStep(1)">Next</button>')+
+      '</div></div>';
+  /* measure the card, then choose a side that neither covers the region nor
+     falls off screen. Right, left, below, above, in that order. */
+  const c=d.querySelector('.dncard'),cw=c.offsetWidth,ch=c.offsetHeight,gap=14;
+  const fits=(x,y)=>x>=8&&y>=8&&x+cw<=innerWidth-8&&y+ch<=innerHeight-8;
+  const clear=(x,y)=>!(x<left+w&&x+cw>left&&y<top+h&&y+ch>top);
+  const mid=Math.min(Math.max(8,top+h/2-ch/2),innerHeight-ch-8);
+  const cands=[[left+w+gap,mid],[left-cw-gap,mid],
+               [Math.min(Math.max(8,left),innerWidth-cw-8),top+h+gap],
+               [Math.min(Math.max(8,left),innerWidth-cw-8),top-ch-gap]];
+  let pos=cands.find(([x,y])=>fits(x,y)&&clear(x,y))||cands.find(([x,y])=>fits(x,y))||[8,8];
+  c.style.left=Math.round(pos[0])+'px';c.style.top=Math.round(pos[1])+'px';c.style.visibility='';
+  const nb=d.querySelector('.dncard .next'); if(nb)nb.focus();
+  addEventListener('resize',dnShow,true);
+}
+
+addEventListener('keydown',e=>{
+  const dnOn=document.getElementById('dn').classList.contains('on');
+  if(dnOn){
+    if(e.key==='Escape'){dnClose();return}
+    if(e.key==='ArrowRight'){dnStep(1);e.preventDefault();return}
+    if(e.key==='ArrowLeft'){dnStep(-1);e.preventDefault();return}
+    return;
+  }
+  if(e.key==='Escape'){closeOv();return}
+  const ovOn=document.getElementById('ov').classList.contains('on');
+  if(ovOn&&e.key==='Tab'){
+    const f=sheetFocusables();
+    if(!f.length){e.preventDefault();return}
+    const first=f[0],last=f[f.length-1],a=document.activeElement;
+    /* focus sits on the sheet itself when it opens, so the first Tab has to be sent inside */
+    if(!document.getElementById('sheet').contains(a)||a===document.getElementById('sheet')){
+      e.preventDefault();(e.shiftKey?last:first).focus();return;
+    }
+    if(e.shiftKey&&a===first){e.preventDefault();last.focus()}
+    else if(!e.shiftKey&&a===last){e.preventDefault();first.focus()}
+    return;
+  }
+  if(ovOn&&window.innerWidth>1100)return;
+  if(e.key===']'){const n=nextOpen(1);if(n){sel=n;pick(n)}return}
+  if(e.key==='['){const n=nextOpen(-1);if(n){sel=n;pick(n)}return}
+  if(!sel||['done','ask','rerun'].includes(state[sel]))return;
+  const c=CLAIMS[sel];
+  if(e.key==='Enter'){e.preventDefault();act(sel,0)}
+  if(e.key==='x'||e.key==='X'){const i=c.acts.findIndex(a=>a[2]==='X');if(i>=0)act(sel,i)}
+  if(e.key==='a'||e.key==='A'){const i=c.acts.findIndex(a=>a[2]==='A');if(i>=0)act(sel,i)}
+});
+
+render();
+</script>
+</body>
+</html>

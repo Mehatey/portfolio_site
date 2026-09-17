@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Obin design system</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+:root{
+  --bg:#EFF1F4;--panel:#FFF;--sunk:#F7F8FA;--ink:#0E1116;--mid:#59616D;--faint:#666E7A;
+  --rule:#E2E5EA;--hair:#EDEFF3;
+  --acc:#1B47C9;--acc-w:#EEF1FC;
+  --pass:#0E6B4F;--pass-w:#EAF4F0;
+  --warn:#96590A;--warn-w:#FBF3E6;
+  --fail:#AC231C;--fail-w:#FCEFEE;
+  --pass-m:#9DC9BA;--prose:#1B1F26;
+  --ui:-apple-system,"Segoe UI",Roboto,system-ui,sans-serif;
+  --doc:Charter,"Iowan Old Style",Palatino,Georgia,serif;
+  --mo:ui-monospace,"SF Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s7:32px;--s8:40px;--s9:56px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--ui);font-size:13px;line-height:1.55;
+  -webkit-font-smoothing:antialiased}
+.lbl{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint)}
+.mo{font-family:var(--mo)}
+
+.wrap{max-width:1080px;margin:0 auto;padding:var(--s9) var(--s6) var(--s9)}
+header.top{margin-bottom:var(--s9);padding-bottom:var(--s6);border-bottom:2px solid var(--ink)}
+.mark{display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s5)}
+.mark i{width:20px;height:20px;border-radius:4px;background:var(--ink);position:relative;display:block}
+.mark i::after{content:'';position:absolute;left:5px;top:5px;width:10px;height:10px;border-radius:2px;
+  border:1.5px solid #fff}
+.mark b{font-size:17px;font-weight:600}
+h1{font-size:32px;font-weight:600;letter-spacing:-.02em;margin-bottom:var(--s3)}
+.sub{font-size:15px;color:var(--mid);max-width:620px;line-height:1.65}
+
+section{margin-bottom:var(--s9)}
+h2{font-size:21px;font-weight:600;letter-spacing:-.02em;margin-bottom:var(--s2)}
+.note{font-size:13.5px;color:var(--mid);max-width:640px;margin-bottom:var(--s5);line-height:1.65}
+h3{font-size:13px;font-weight:600;margin:var(--s6) 0 var(--s3)}
+
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:8px;padding:var(--s5);
+  margin-bottom:var(--s3)}
+.grid{display:grid;gap:var(--s3)}
+.g2{grid-template-columns:repeat(2,1fr)}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.g5{grid-template-columns:repeat(5,1fr)}
+
+/* colour */
+/* the hex sits on one line across the row, whatever the description wraps to */
+.sw{border:1px solid var(--rule);border-radius:6px;overflow:hidden;background:var(--panel);
+  display:flex;flex-direction:column}
+.sw .chip{height:56px;flex:none}
+.sw .meta{padding:var(--s3);flex:1;display:flex;flex-direction:column}
+.sw .meta b{display:block;font-family:var(--mo);font-size:12px;font-weight:500}
+.sw .meta span{font-size:12px;color:var(--faint);display:block;margin-top:2px;line-height:1.45}
+.sw .meta u{text-decoration:none;font-family:var(--mo);font-size:10px;color:var(--mid);display:block;
+  margin-top:auto;padding-top:5px}
+
+/* type */
+.tr{display:grid;grid-template-columns:150px minmax(0,1fr);gap:var(--s5);padding:var(--s4) 0;
+  border-bottom:1px solid var(--hair);align-items:baseline}
+.tr:last-child{border-bottom:0}
+.tr .spec{font-family:var(--mo);font-size:12px;color:var(--faint);line-height:1.6}
+.tr .spec b{display:block;color:var(--ink);font-weight:500;font-size:12px;text-transform:uppercase;
+  letter-spacing:.12em;margin-bottom:3px}
+
+/* claim states */
+.f{font-family:var(--mo);font-size:13.5px;font-weight:500;padding:1px 3px;border-radius:3px;
+  border-bottom:2px solid;white-space:nowrap;line-height:1}
+.f.open{border-color:var(--acc);color:var(--acc)}
+.f.conf{border-color:var(--warn);color:var(--warn);background:var(--warn-w)}
+.f.uns{border-color:var(--fail);color:var(--fail);background:var(--fail-w)}
+.f.done{border-color:var(--pass-m);color:var(--pass)}
+.f.ask{border-color:var(--warn);color:var(--warn);border-bottom-style:dashed}
+.f.auto{border-color:var(--hair);color:var(--prose)}
+.strow{display:grid;grid-template-columns:130px 150px minmax(0,1fr);gap:var(--s4);align-items:center;
+  padding:var(--s3) 0;border-bottom:1px solid var(--hair)}
+.strow:last-child{border-bottom:0}
+.strow .n{font-family:var(--mo);font-size:12px;color:var(--faint)}
+.strow .d{font-size:12px;color:var(--mid);line-height:1.5}
+
+/* state machine */
+.fsm{background:var(--sunk);border:1px solid var(--rule);border-radius:8px;padding:var(--s6);
+  overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fsm svg{display:block;min-width:640px}
+.fsmhint{display:none;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);margin-bottom:var(--s2)}
+@media (max-width:720px){
+  .fsm{padding:var(--s4)}
+  .fsmhint{display:block}
+}
+
+/* components */
+.spec-table{width:100%;border-collapse:collapse;font-size:13px}
+.spec-table th{text-align:left;font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--faint);font-weight:400;padding:0 var(--s3) var(--s2) 0;border-bottom:1px solid var(--rule)}
+.spec-table td{padding:var(--s3) var(--s3) var(--s3) 0;border-bottom:1px solid var(--hair);
+  vertical-align:top;color:var(--mid);line-height:1.55}
+.spec-table td:first-child{color:var(--ink);font-weight:600;white-space:nowrap}
+.spec-table td code{font-family:var(--mo);font-size:12px;color:var(--ink);background:var(--sunk);
+  padding:1px 4px;border-radius:3px}
+
+.rule-list{counter-reset:r}
+.rule{display:flex;gap:var(--s4);padding:var(--s4) 0;border-bottom:1px solid var(--hair)}
+.rule:last-child{border-bottom:0}
+.rule::before{counter-increment:r;content:counter(r);font-family:var(--mo);font-size:12px;color:var(--faint);
+  flex:none;width:20px;padding-top:2px}
+.rule div b{display:block;font-size:13px;font-weight:600;margin-bottom:3px}
+.rule div span{font-size:13px;color:var(--mid);line-height:1.6;display:block;max-width:70ch}
+
+.motion{display:grid;grid-template-columns:130px 90px minmax(0,1fr);gap:var(--s4);padding:var(--s3) 0;
+  border-bottom:1px solid var(--hair);align-items:baseline;font-size:13px}
+.motion:last-child{border-bottom:0}
+.motion b{font-weight:600}
+.motion .t{font-family:var(--mo);font-size:12px;color:var(--faint)}
+.motion span{color:var(--mid);font-size:12px;line-height:1.5}
+
+.dont{border-left:2px solid var(--fail);padding-left:var(--s4);margin-top:var(--s4)}
+.dont b{font-family:var(--mo);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--fail);
+  display:block;margin-bottom:var(--s2)}
+.dont p{font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:var(--s2);max-width:70ch}
+
+footer{margin-top:var(--s9);padding-top:var(--s5);border-top:1px solid var(--rule);font-size:12px;
+  color:var(--faint);display:flex;gap:var(--s5);flex-wrap:wrap}
+
+@media (max-width:820px){
+  .g5,.g4{grid-template-columns:repeat(2,1fr)}
+  .g3,.g2{grid-template-columns:1fr}
+  .tr,.strow,.motion{grid-template-columns:1fr;gap:var(--s2)}
+  h1{font-size:25px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="mark"><i></i><b>Obin</b></div>
+  <h1>Verification workspace<br>design system</h1>
+  <p class="sub">The system exists to serve one rule: a figure a machine asserted and a figure a human
+  verified must never look the same. Every token, state, and motion below is downstream of that.</p>
+</header>
+
+<section>
+  <h2>The one rule</h2>
+  <p class="note">Read this before changing anything. Most decisions in this system look arbitrary until
+  you hold them against it.</p>
+  <div class="card">
+    <div class="rule-list">
+      <div class="rule"><div><b>Fluency is not evidence</b><span>Well written prose carrying an unverifiable
+        number is the failure this product exists to prevent. Anything that makes machine output look more
+        finished without making it more provable is a regression.</span></div></div>
+      <div class="rule"><div><b>Attention is the scarce resource, not screen space</b><span>Surfacing
+        everything the agent did is the lazy answer. The system hides what has been proven and ranks what
+        has not. Adding an always visible panel is a cost, not a feature.</span></div></div>
+      <div class="rule"><div><b>Confidence is never displayed</b><span>Model confidence and token
+        probability measure fluency, not truth. Only measured historical accuracy appears anywhere in this
+        product, and it is always attributed to a source class and a sample size.</span></div></div>
+      <div class="rule"><div><b>Colour never carries state alone</b><span>Every claim state is also
+        distinguished by border style, a glyph, or a written label, because credit teams print memos and
+        because roughly one in twelve male users cannot separate the amber and green states.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Colour</h2>
+  <p class="note">Four semantic families and one accent. The accent is reserved for things the analyst has
+  not yet decided, which is why it reads as attention rather than as brand.</p>
+
+  <h3>Surface</h3>
+  <div class="grid g5">
+    <div class="sw"><div class="chip" style="background:#EFF1F4"></div><div class="meta">
+      <b>--bg</b><span>Workspace ground</span><u>#EFF1F4</u></div></div>
+    <div class="sw"><div class="chip" style="background:#FFF;border-bottom:1px solid var(--rule)"></div>
+      <div class="meta"><b>--panel</b><span>Documents and panels</span><u>#FFFFFF</u></div></div>
+    <div class="sw"><div class="chip" style="background:#F7F8FA"></div><div class="meta">
+      <b>--sunk</b><span>Recessed, disabled</span><u>#F7F8FA</u></div></div>
+    <div class="sw"><div class="chip" style="background:#E2E5EA"></div><div class="meta">
+      <b>--rule</b><span>Structural borders</span><u>#E2E5EA</u></div></div>
+    <div class="sw"><div class="chip" style="background:#EDEFF3"></div><div class="meta">
+      <b>--hair</b><span>Within a group</span><u>#EDEFF3</u></div></div>
+  </div>
+
+  <h3>Ink</h3>
+  <div class="grid g3">
+    <div class="sw"><div class="chip" style="background:#0E1116"></div><div class="meta">
+      <b>--ink</b><span>Primary text, primary action</span><u>#0E1116 · 17.4:1</u></div></div>
+    <div class="sw"><div class="chip" style="background:#59616D"></div><div class="meta">
+      <b>--mid</b><span>Secondary and supporting text</span><u>#59616D · 6.2:1</u></div></div>
+    <div class="sw"><div class="chip" style="background:#666E7A"></div><div class="meta">
+      <b>--faint</b><span>Labels and metadata. Floor for text.</span><u>#666E7A · 4.6:1</u></div></div>
+  </div>
+
+  <h3>Semantic</h3>
+  <div class="grid g4">
+    <div class="sw"><div class="chip" style="background:#1B47C9"></div><div class="meta">
+      <b>--acc</b><span>Open. Awaiting a human decision.</span><u>#1B47C9</u></div></div>
+    <div class="sw"><div class="chip" style="background:#0E6B4F"></div><div class="meta">
+      <b>--pass</b><span>Proved, or accepted by a person.</span><u>#0E6B4F</u></div></div>
+    <div class="sw"><div class="chip" style="background:#96590A"></div><div class="meta">
+      <b>--warn</b><span>Sources conflict, or question outstanding.</span><u>#96590A</u></div></div>
+    <div class="sw"><div class="chip" style="background:#AC231C"></div><div class="meta">
+      <b>--fail</b><span>Unsupported by anything available.</span><u>#AC231C</u></div></div>
+  </div>
+
+  <div class="dont"><b>Do not</b>
+    <p>Do not introduce a fifth semantic colour. If a state needs one, the state model is wrong.</p>
+    <p>Do not use <code>--pass</code> for a figure the agent proved but a human has not seen. Green means a
+    person is accountable for it, or a deterministic tool produced it. Those are the only two cases.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Type</h2>
+  <p class="note"><b>Three registers, and the split is the argument.</b> Monospace means a machine
+  asserted the value. The document face carries everything a person wrote, including the memo's own
+  headings and field labels. The interface face is for the tool around the document. Nothing a human
+  wrote is ever set in the machine register.</p>
+  <p class="note">The signature decision in this system. Prose is set in the interface sans. Every figure a
+  machine asserted is set in monospace. The analyst can see which words a human chose and which numbers a
+  machine claimed without reading either.</p>
+  <div class="card">
+    <div class="tr"><div class="spec"><b>Memo heading</b>12px / 1.2<br>--doc · .12em · uppercase</div>
+      <div style="font-family:var(--doc);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+        color:var(--faint)">3 &nbsp;Cash and burn</div></div>
+    <div class="tr"><div class="spec"><b>Memo body</b>15px / 1.78<br>--doc · 400</div>
+      <div style="font-family:var(--doc);font-size:15px;line-height:1.78;color:var(--prose)">Cash of
+      <span class="f auto">$9.14M</span> against monthly net burn of <span class="f conf">$380,000</span>.
+      On the facility that gives <span class="f open">39 months</span> of post draw runway.</div></div>
+    <div class="tr"><div class="spec"><b>Machine figure</b>13.5px / 1<br>--mo · 500 · baseline locked</div>
+      <div><span class="f done">$8,412,000</span> &nbsp; <span class="f uns">112%</span> &nbsp;
+      <span class="f ask">$421,300</span></div></div>
+    <div class="tr"><div class="spec"><b>Document title</b>25px / 1.2<br>--ui · 600 · -.022em</div>
+      <div style="font-size:25px;font-weight:600;letter-spacing:-.022em">Northwind Systems</div></div>
+    <div class="tr"><div class="spec"><b>Section label</b>10px<br>--mo · .12em · upper</div>
+      <div class="lbl">Key risks</div></div>
+    <div class="tr"><div class="spec"><b>Panel heading</b>17px / 1.3<br>--ui · 600</div>
+      <div style="font-size:17px;font-weight:600">Senior blanket lien</div></div>
+    <div class="tr"><div class="spec"><b>Supporting</b>12px / 1.6<br>--ui · 400 · --mid</div>
+      <div style="font-size:12px;color:var(--mid);max-width:420px">Cross checked the 9 files in the
+      data room. No lien in any of them.</div></div>
+    <div class="tr"><div class="spec"><b>Source excerpt</b>12px / 1.78<br>--mo · --mid</div>
+      <div class="mo" style="font-size:12px;color:var(--mid)">collateral &nbsp;·&nbsp; all assets, blanket
+      lien</div></div>
+  </div>
+  <h3>The scale, in full</h3>
+  <div class="card">
+    <table class="spec-table">
+      <tr><th>Axis</th><th>Permitted values</th></tr>
+      <tr><td>Size</td><td><code>10</code> label · <code>12</code> supporting · <code>13</code> UI ·
+        <code>15</code> prose · <code>17</code> panel · <code>21</code> figure · <code>25</code> title.
+        <code>13.5</code> is the one exception: the machine figure, sized so monospace sits optically with
+        15px prose.</td></tr>
+      <tr><td>Weight</td><td><code>400</code> body · <code>500</code> figures and numerals ·
+        <code>600</code> headings and emphasis. Nothing between, because 550 renders inconsistently on
+        fallback fonts.</td></tr>
+      <tr><td>Leading</td><td><code>1</code> figures · <code>1.2</code> display · <code>1.45</code> dense UI ·
+        <code>1.6</code> supporting · <code>1.78</code> prose.</td></tr>
+      <tr><td>Tracking</td><td><code>-.02em</code> display · <code>.02em</code> monospace body ·
+        <code>.12em</code> uppercase labels. Three values only.</td></tr>
+    </table>
+  </div>
+
+  <div class="dont"><b>Do not</b>
+    <p>Do not set a machine figure below 13px or unlock its baseline. Mono inside prose shifts the line box
+    and the paragraph leading goes uneven.</p>
+    <p>Do not set analyst written prose in monospace. The distinction stops meaning anything the moment it
+    is used decoratively.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Claim states</h2>
+  <p class="note">Every figure in the memo is in exactly one of six states. Five are visible to the analyst.
+  The sixth, auto, is deliberately quiet: it was proved deterministically and is not the analyst's problem.</p>
+  <div class="card">
+    <div class="strow"><span class="f auto">$9.14M</span><span class="n">auto</span>
+      <span class="d">Proved by a tool without a person. Hairline underline, no colour. One of the 28.</span></div>
+    <div class="strow"><span class="f open">35 months</span><span class="n">open</span>
+      <span class="d">In the queue, no decision yet. Accent underline plus accent text.</span></div>
+    <div class="strow"><span class="f conf">$380,000</span><span class="n">conflict</span>
+      <span class="d">Two sources disagree. Warn underline, warn wash. The agent will not pick one.</span></div>
+    <div class="strow"><span class="f uns">112%</span><span class="n">unsupported</span>
+      <span class="d">Nothing available can check it. Fail underline, fail wash. Written, never dropped.</span></div>
+    <div class="strow"><span class="f ask">$421,300</span><span class="n">asked</span>
+      <span class="d">Question outstanding with the company. Dashed underline, so it differs from conflict
+      without colour.</span></div>
+    <div class="strow"><span class="f done">$8,412,000</span><span class="n">accepted</span>
+      <span class="d">A named person is accountable for it, with a timestamp on the receipt.</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>The state machine</h2>
+  <p class="note">Four actions move a claim. Only two of them close it. Rejecting does not mark a figure
+  wrong, it re-reasons the step and returns a new answer, which may be the same answer.</p>
+  <div class="fsmhint">scroll sideways to follow the flow →</div>
+  <div class="fsm">
+    <svg viewBox="0 0 700 278" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Menlo,monospace">
+      <defs><marker id="a" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto">
+        <path d="M0,0 L7,3.5 L0,7 z" fill="#666E7A"/></marker></defs>
+      <g stroke="#666E7A" stroke-width="1" marker-end="url(#a)" fill="none">
+        <path d="M126,60 L206,60"/><path d="M126,130 L206,130"/><path d="M126,200 L206,200"/><path d="M126,60 C160,60 168,84 168,100" opacity="0"/>
+        <path d="M330,60 L410,60"/><path d="M330,130 L410,130"/>
+        <path d="M534,60 C580,60 590,110 592,124"/>
+        <path d="M534,130 L590,130"/>
+        <path d="M269,220 C269,244 200,248 90,240 C40,236 32,228 44,222" stroke-dasharray="3 3"/>
+      </g>
+      <g font-size="11">
+        <rect x="16" y="42" width="110" height="36" rx="4" fill="#EEF1FC" stroke="#1B47C9"/>
+        <text x="71" y="65" text-anchor="middle" fill="#1B47C9">open</text>
+        <rect x="16" y="112" width="110" height="36" rx="4" fill="#FBF3E6" stroke="#96590A"/>
+        <text x="71" y="135" text-anchor="middle" fill="#96590A">conflict</text>
+        <rect x="16" y="182" width="110" height="36" rx="4" fill="#FCEFEE" stroke="#AC231C"/>
+        <text x="71" y="205" text-anchor="middle" fill="#AC231C">unsupported</text>
+
+        <rect x="208" y="42" width="122" height="36" rx="4" fill="#FFF" stroke="#E2E5EA"/>
+        <text x="269" y="65" text-anchor="middle" fill="#0E1116">accept</text>
+        <rect x="208" y="112" width="122" height="36" rx="4" fill="#FFF" stroke="#E2E5EA"/>
+        <text x="269" y="135" text-anchor="middle" fill="#0E1116">ask the company</text>
+        <rect x="208" y="182" width="122" height="36" rx="4" fill="#FFF" stroke="#E2E5EA"/>
+        <text x="269" y="205" text-anchor="middle" fill="#0E1116">reject</text>
+
+        <rect x="412" y="42" width="122" height="36" rx="4" fill="#EAF4F0" stroke="#0E6B4F"/>
+        <text x="473" y="65" text-anchor="middle" fill="#0E6B4F">accepted</text>
+        <rect x="412" y="112" width="122" height="36" rx="4" fill="#FBF3E6" stroke="#96590A"/>
+        <text x="473" y="135" text-anchor="middle" fill="#96590A">asked</text>
+
+        <rect x="592" y="106" width="94" height="48" rx="4" fill="#FFF" stroke="#0E1116"/>
+        <text x="639" y="126" text-anchor="middle" fill="#0E1116">memo</text>
+        <text x="639" y="142" text-anchor="middle" fill="#666E7A" font-size="10">circulates</text>
+      </g>
+      <g font-size="9.5" fill="#666E7A">
+        <text x="269" y="268" text-anchor="middle">re-reasons the step, returns a new answer</text>
+        <text x="639" y="98" text-anchor="middle">conditional</text>
+      </g>
+    </svg>
+  </div>
+  <p class="note" style="margin-top:var(--s4)">Asked does not block circulation. The memo goes to committee
+  marked conditional rather than waiting on a reply, because blocking on the company is where throughput
+  actually dies.</p>
+</section>
+
+<section>
+  <h2>Components</h2>
+  <table class="spec-table">
+    <tr><th>Component</th><th>Purpose</th><th>Rules</th></tr>
+    <tr><td>Queue row</td><td>One unresolved claim</td>
+      <td>Always carries three signals: leverage bar, accuracy percentage for its source class, and state
+      chip. Never sorted by document order except in the explicit comparison mode.</td></tr>
+    <tr><td>Proof panel</td><td>Evidence for one claim</td>
+      <td>Fixed order: consequence, side by side proof, inline source, track record, actions. The
+      consequence comes first because it decides whether the analyst reads the rest.</td></tr>
+    <tr><td>Inline source</td><td>The document region cited</td>
+      <td>Tabbed when a claim cites more than one document. Max height 196px then scrolls. The cited region
+      is always marked. Never the only way to reach the full document.</td></tr>
+    <tr><td>Accuracy dial</td><td>Measured track record</td>
+      <td>Always a button. Always opens the sample behind it, including the rows where the agent lost.
+      Never displays a value the analyst cannot audit.</td></tr>
+    <tr><td>Margin marker</td><td>Section level state</td>
+      <td>Count of open figures, or a tick. Clicking jumps to the first open claim in that section.</td></tr>
+    <tr><td>Status stamp</td><td>Memo disposition</td>
+      <td>Three values only: held, conditional, cleared. Derived from claim states, never set directly.</td></tr>
+    <tr><td>Receipt</td><td>What travels with the memo</td>
+      <td>Machine proved, human accepted, open, spot checks, exceptions, attention spent. Generated, never
+      composed.</td></tr>
+    <tr><td>Sheet</td><td>Full document, queue, calibration</td>
+      <td>Max 680px. Header, body, footer with a provenance note on the left and a ghost Close on the
+      right. Escape always closes. Header and footer are pinned and only the body scrolls, so the line
+      that is the reason the sheet exists is never below the fold.</td></tr>
+    <tr><td>Boundary block</td><td>What left the firm's environment</td>
+      <td>Deliberately neutral, <code>--sunk</code> on <code>--rule</code>, never a semantic colour. An
+      outbound lookup is neither a pass nor a warning, it is a fact the security team is entitled to see,
+      and colouring it would assert a judgement the product has not earned. States what was sent and what
+      was not. Appears only on claims that made a call outside the network.</td></tr>
+    <tr><td>Assumption tag</td><td>This is my call, not their fact</td>
+      <td>Dashed border, <code>--faint</code>, sits against the block label. Marks anything inferred about
+      the customer rather than told to us. Never on a figure, only on a design position. If it is on a
+      figure the state model is being used wrongly.</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>Motion</h2>
+  <p class="note">Four moments. Each carries information the static frame cannot. Anything else does not
+  ship. All of it is suppressed under prefers-reduced-motion.</p>
+  <div class="card">
+    <div class="motion"><b>Reshuffle</b><span class="t">500ms · 14ms stagger</span>
+      <span>Rows travel to their new rank when the sort changes, so the cost of document order is seen
+      rather than described.</span></div>
+    <div class="motion"><b>Propagation</b><span class="t">170ms interval</span>
+      <span>A decision walks down its dependents in order, at the speed an eye moves down a page. Numbers
+      count rather than cut.</span></div>
+    <div class="motion"><b>Settle</b><span class="t">500ms wipe</span>
+      <span>A resolved figure closes left to right, so it reads as the claim resolving rather than the page
+      repainting.</span></div>
+    <div class="motion"><b>Running</b><span class="t">1150ms loop</span>
+      <span>A re-reasoning step sweeps its status chip, visible from the queue without the panel open.</span></div>
+  <div class="motion"><b>Seal</b><span class="t">500ms border</span>
+      <span>The memo is circulated. The card seals and the stamp becomes a time. The only motion
+      about the document rather than a figure.</span></div>
+  </div>
+  <div class="dont"><b>Do not</b>
+    <p>No entrance animation on load. No motion on hover beyond a 140ms colour or border change. No spring
+    easing. A credit tool that bounces reads as a toy.</p>
+  </div>
+</section>
+
+<section>
+  <h2>Layout and space</h2>
+  <p class="note">4px base unit. Three columns collapse in a fixed order as width is lost, and the queue is
+  the last thing to go because it carries the thesis.</p>
+  <table class="spec-table">
+    <tr><th>Width</th><th>Queue</th><th>Memo</th><th>Proof</th></tr>
+    <tr><td>1440px and up</td><td>336px</td><td>680px</td><td>428px</td></tr>
+    <tr><td>1200 to 1440</td><td>296px</td><td>fills</td><td>392px</td></tr>
+    <tr><td>1100 to 1200</td><td>264px</td><td>fills</td><td>352px</td></tr>
+    <tr><td>720 to 1100</td><td>236px</td><td>fills</td><td>becomes a sheet</td></tr>
+    <tr><td>Below 720</td><td>hidden</td><td>full width</td><td>sheet</td></tr>
+  </table>
+  <p class="note" style="margin-top:var(--s4)">Under a coarse pointer every target grows to at least 28px
+  and memo leading opens to 2.0, because the memo is read on a phone far more often than it is edited
+  there.</p>
+</section>
+
+<section>
+  <h2>Accessibility floor</h2>
+  <table class="spec-table">
+    <tr><th>Requirement</th><th>Standard</th></tr>
+    <tr><td>Text contrast</td><td>4.5:1 minimum against its own background, verified in browser at six
+      viewports. <code>--faint</code> at 4.6:1 is the floor and nothing lighter carries text.</td></tr>
+    <tr><td>Type floor</td><td>10px, and only for uppercase monospace labels with .1em tracking or
+      more.</td></tr>
+    <tr><td>State encoding</td><td>Never colour alone. Border style, glyph, or written label
+      accompanies every state.</td></tr>
+    <tr><td>Keyboard</td><td>Full review loop without a mouse: <code>]</code> <code>[</code> to move,
+      <code>Enter</code> to accept, <code>X</code> to reject, <code>A</code> to ask,
+      <code>Esc</code> to close.</td></tr>
+    <tr><td>Focus</td><td>2px accent ring on every interactive element, at 2px offset. Controls inside a
+      container that clips, the sort toggle, the tab strip, the list of 28, draw the ring inside
+      themselves at <code>-2px</code> instead, because an outset ring is cut off there and the control
+      reads as unfocused.</td></tr>
+    <tr><td>Reachability</td><td>Anything clickable is a real control, never a div or li with a click
+      handler. The 28 proved figures are buttons for this reason: hidden is not the same as withheld, and
+      a row a keyboard cannot reach is withheld.</td></tr>
+    <tr><td>Dialogs</td><td>A sheet carries <code>role="dialog"</code> and <code>aria-modal</code>, is
+      labelled by its own heading, takes focus when it opens, traps Tab and Shift Tab inside itself, and
+      returns focus to whatever opened it. Without the trap a keyboard user tabs through the rail behind
+      an overlay they cannot reach.</td></tr>
+    <tr><td>Motion</td><td>All animation suppressed under prefers-reduced-motion, in CSS and at four
+      JavaScript call sites.</td></tr>
+  </table>
+</section>
+
+<footer>
+  <span>Obin verification workspace</span>
+  <span>Design system v1</span>
+  <span>S. Mehta · August 2026</span>
+</footer>
+
+</div>
+</body>
+</html>
