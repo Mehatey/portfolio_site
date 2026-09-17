@@ -16,32 +16,48 @@ thing this feature is for. The four images per project are curated in _data/work
 top of a case study is intro and process. See the commit for how they were chosen. {%- endcomment -%}
 
 <div class="wq" id="wq" role="dialog" aria-modal="true" aria-labelledby="wq-title" hidden>
+  <!-- "The sides." A real element under the sheet rather than a click handler
+       on the wrapper, so the hit area is exactly the part of the screen that
+       is not the sheet. -->
   <div class="wq__scrim" data-wq-close></div>
-  <div class="wq__panel" role="document">
-    <button class="wq__x" type="button" data-wq-close aria-label="Close quick view">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
-    </button>
 
-    <div class="wq__media" id="wq-media"></div>
+  <div class="wq__panel" role="document" id="wq-panel" tabindex="-1">
+    <!-- The bar holds still while the body scrolls under it, because the two
+         things a reader wants at any moment in here are "what am I looking at"
+         and "let me out". -->
+    <header class="wq__bar">
+      <p class="wq__now" id="wq-now"></p>
+      <div class="wq__acts">
+        <button class="wq__nav" type="button" data-wq-step="-1" aria-label="Previous project">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+        </button>
+        <p class="wq__count" id="wq-count" aria-live="polite"></p>
+        <button class="wq__nav" type="button" data-wq-step="1" aria-label="Next project">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+        </button>
+        <a class="wq__open" id="wq-open" href="#"
+          >Open case study
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </a>
+        <button class="wq__x" type="button" data-wq-close aria-label="Close quick view">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
+    </header>
 
-    <div class="wq__side">
-      <p class="wq__eyebrow"><span id="wq-year"></span><span id="wq-proof"></span></p>
-      <h2 class="wq__title" id="wq-title"></h2>
-      <p class="wq__desc" id="wq-desc"></p>
-      <p class="wq__tags" id="wq-tags"></p>
-      <a class="wq__open" id="wq-open" href="#">
-        Read the full story
+    <div class="wq__body" id="wq-body">
+      <div class="wq__head">
+        <p class="wq__eyebrow"><span id="wq-year"></span><span id="wq-proof"></span></p>
+        <h2 class="wq__title" id="wq-title"></h2>
+        <p class="wq__desc" id="wq-desc"></p>
+        <p class="wq__tags" id="wq-tags"></p>
+      </div>
+      <div class="wq__media" id="wq-media"></div>
+      <a class="wq__tail" id="wq-tail" href="#"
+        >Read the full story
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
       </a>
     </div>
-
-    <button class="wq__nav wq__nav--prev" type="button" data-wq-step="-1" aria-label="Previous project">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
-    </button>
-    <button class="wq__nav wq__nav--next" type="button" data-wq-step="1" aria-label="Next project">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
-    </button>
-    <p class="wq__count" id="wq-count" aria-live="polite"></p>
   </div>
 </div>
 
@@ -73,9 +89,12 @@ top of a case study is intro and process. See the commit for how they were chose
     position: fixed;
     inset: 0;
     z-index: 9600;
-    display: grid;
-    place-items: center;
-    padding: clamp(16px, 4vh, 48px) clamp(16px, 4vw, 56px);
+    /* Bottom anchored, so the sheet takes its inset back from the TOP as it
+       grows. Centring it would make it expand from both edges at once, which
+       reads as a zoom rather than as a panel being pulled up. */
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
   }
   .wq__scrim {
     position: absolute;
@@ -93,32 +112,52 @@ top of a case study is intro and process. See the commit for how they were chose
     background: rgba(240, 238, 232, 0.7);
   }
 
+  /* ══ AND IT ADDS TO THE TOP ═══════════════════════════════════════════
+     Sid: "you click on it, and then it opens it up. You can click on the sides
+     to exit it. It gives you a quick look at the project, and when you scroll,
+     it scrolls and then adds to the top."
+
+     The panel that was here got the first two right and refused the third on
+     purpose: it was a fixed 2x2 board with a note beside it, and a comment
+     arguing that anything needing a scroll reintroduces the problem the panel
+     exists to solve. That reasoning held while the panel showed four crops.
+     It does not survive contact with the actual result -- `object-fit: cover`
+     on a 2x2 board sliced the Mool case study's headline mid-word and cut the
+     wordmark in half, and the note column ran out of copy a third of the way
+     down and left two thirds of the sheet empty. A quick look that crops the
+     work and pads the text is not quick, it is thin.
+
+     So: pictures at their own aspect, stacked full width, and the sheet
+     scrolls. The commitment problem the old comment worried about is answered
+     by the LIFT rather than by refusing to scroll. The sheet opens inset from
+     the top, reading as an object laid over the grid; scrolling inside it
+     takes that inset back and squares off its top corners, so by about 160px
+     of reading it is a full-height surface. That is the gesture saying "you
+     are in this now" without a second click, and it reverses on the way up --
+     scrolling back to the top of the sheet is already halfway to closing it.
+
+     --lift is one number written by the scroll handler, 1 at rest and 0 once
+     committed. The inset and the radius are the only things that read it. */
   .wq__panel {
+    --lift: 1;
+    --inset: clamp(26px, 6vh, 76px);
     position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1.32fr) minmax(268px, 0.68fr);
-    /* The row has to be told it may shrink. Left implicit it sizes to
-       max-content, which is the stacked intrinsic height of the images, and
-       max-height then just lets that spill past the rounded corner instead of
-       clipping it. minmax(0, 1fr) plus overflow: hidden keeps every preview
-       inside the same frame whatever the media is. */
-    grid-template-rows: minmax(0, 1fr);
-    gap: clamp(18px, 2.4vw, 34px);
+    display: flex;
+    flex-direction: column;
     width: min(1120px, 100%);
-    height: min(86vh, 760px);
-    max-height: min(86vh, 760px);
+    height: calc(100% - var(--lift) * var(--inset));
     overflow: hidden;
-    padding: clamp(18px, 2.2vw, 28px);
-    border-radius: 20px;
-    background: rgba(16, 21, 31, 0.86);
+    border-radius: calc(var(--lift) * 20px) calc(var(--lift) * 20px) 0 0;
+    background: rgba(13, 17, 26, 0.94);
     border: 1px solid rgba(150, 190, 240, 0.16);
-    box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.8);
+    border-bottom: 0;
+    box-shadow: 0 -30px 120px -34px rgba(0, 0, 0, 0.86);
     /* Rises rather than zooms: a panel that scales up from nothing reads as a
        popup, one that lifts reads as a card being picked up. */
-    transform: translateY(14px);
+    transform: translateY(22px);
     opacity: 0;
     transition:
-      transform 0.42s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.46s cubic-bezier(0.16, 1, 0.3, 1),
       opacity 0.3s ease;
   }
   .wq.is-open .wq__panel {
@@ -126,51 +165,113 @@ top of a case study is intro and process. See the commit for how they were chose
     opacity: 1;
   }
   html[data-theme="light"] .wq__panel {
-    background: rgba(255, 253, 248, 0.94);
+    background: rgba(252, 250, 246, 0.97);
     border-color: rgba(40, 70, 120, 0.16);
+    box-shadow: 0 -30px 120px -40px rgba(30, 26, 18, 0.36);
   }
 
-  /* ── FOUR AT ONCE, AND NO SCROLLING ────────────────────────────────────
-     A 2x2 grid rather than a stack, because the whole point is that the
-     reader takes the project in at a glance. Anything that needs scrolling
-     inside here reintroduces exactly the problem the panel exists to solve. */
+  .wq__bar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 11px clamp(14px, 2vw, 22px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  html[data-theme="light"] .wq__bar {
+    border-bottom-color: rgba(30, 26, 18, 0.12);
+  }
+  /* The name of the thing you are looking at, in the bar, because once the
+     sheet has grown to the top the title has scrolled away. */
+  .wq__now {
+    margin: 0;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(190, 214, 240, 0.62);
+  }
+  html[data-theme="light"] .wq__now {
+    color: rgba(30, 44, 68, 0.62);
+  }
+  .wq__acts {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .wq__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: clamp(24px, 3.4vw, 46px) clamp(16px, 2.6vw, 40px) clamp(40px, 5vw, 72px);
+  }
+  .wq__head {
+    max-width: 640px;
+  }
+
+  /* ── THE PICTURES ARE THE QUICK LOOK ───────────────────────────────────
+     Full width, own aspect, stacked. No object-fit, because there is nothing
+     to fit to: the box takes the picture's shape rather than the picture
+     taking the box's. That is the entire fix for the cropping. */
   .wq__media {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-rows: 1fr;
-    gap: 10px;
-    min-height: 0;
+    gap: clamp(10px, 1.4vw, 18px);
+    margin-top: clamp(26px, 3.4vw, 44px);
   }
   .wq__media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 11px;
-    background: rgba(255, 255, 255, 0.04);
     display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
     opacity: 0;
     transition: opacity 0.5s ease;
   }
   .wq__media img.is-in {
     opacity: 1;
   }
-  /* One image fills the frame; three put the first across the top. */
-  .wq__media[data-n="1"] {
-    grid-template-columns: 1fr;
-  }
-  .wq__media[data-n="3"] img:first-child,
-  .wq__media[data-n="1"] img:first-child {
-    grid-column: 1 / -1;
+  html[data-theme="light"] .wq__media img {
+    background: rgba(30, 26, 18, 0.05);
   }
 
-  .wq__side {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-    overflow-y: auto;
-    scrollbar-width: none;
-    padding-right: 4px;
+  .wq__tail {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: clamp(26px, 3.4vw, 44px);
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(200, 222, 248, 0.86);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 3px;
   }
+  .wq__tail svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  html[data-theme="light"] .wq__tail {
+    color: rgba(24, 40, 66, 0.86);
+  }
+
+  /* .wq__side is gone with the two-column board. Its contents are .wq__head
+     at the top of the scroller now. */
   .wq__eyebrow {
     display: flex;
     flex-wrap: wrap;
@@ -294,20 +395,18 @@ top of a case study is intro and process. See the commit for how they were chose
     background: rgba(30, 44, 66, 0.92);
     border-color: rgba(180, 215, 255, 0.5);
   }
-  .wq__x {
-    top: 12px;
-    right: 12px;
-    z-index: 3;
+  /* The close and the chevrons used to be absolutely positioned against the
+     panel's edges -- the chevrons hanging 19px OUTSIDE it, which only works
+     for a board floating in the middle of the window. They are in the bar
+     now, which is also where a reader looks for them. */
+  .wq__x,
+  .wq__nav {
+    position: static;
   }
-  .wq__nav--prev {
-    left: -19px;
-    top: 50%;
-    margin-top: -19px;
-  }
-  .wq__nav--next {
-    right: -19px;
-    top: 50%;
-    margin-top: -19px;
+  /* The panel takes focus on open so the dialog is announced; it is not an
+     interactive control, so it does not draw a ring. */
+  .wq__panel:focus {
+    outline: none;
   }
   .wq__nav[disabled] {
     opacity: 0.28;
@@ -320,11 +419,8 @@ top of a case study is intro and process. See the commit for how they were chose
     color: rgba(20, 40, 72, 0.9);
   }
   .wq__count {
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -26px;
-    margin: 0;
+    margin: 0 2px;
+    min-width: 5ch;
     text-align: center;
     font-family: var(--font-mono, ui-monospace, monospace);
     font-size: 10.5px;
@@ -334,29 +430,24 @@ top of a case study is intro and process. See the commit for how they were chose
 
   /* The chevrons sit outside the panel on a wide screen and would fall off a
      narrow one, and two columns cannot hold at phone width. */
-  @media (max-width: 900px) {
+  /* On a phone the sheet is the page: there is no room for an inset that
+     communicates "layer", and it only eats reading height. */
+  @media (max-width: 700px) {
     .wq__panel {
-      grid-template-columns: 1fr;
-      grid-template-rows: minmax(0, 1fr) auto;
-      height: 90vh;
-      max-height: 90vh;
+      --inset: 0px;
+      border-radius: 0;
+      border-left: 0;
+      border-right: 0;
     }
-    .wq__nav--prev {
-      left: 10px;
+    .wq__now {
+      display: none;
     }
-    .wq__nav--next {
-      right: 10px;
-    }
-    .wq__nav {
-      top: auto;
-      bottom: 12px;
-      margin-top: 0;
-    }
-    .wq__media {
-      max-height: 42vh;
+    .wq__open span,
+    .wq__open {
+      font-size: 10px;
     }
     .wq__title {
-      font-size: 21px;
+      font-size: 24px;
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -400,13 +491,34 @@ top of a case study is intro and process. See the commit for how they were chose
       elProof = document.getElementById("wq-proof"),
       elTags = document.getElementById("wq-tags"),
       elOpen = document.getElementById("wq-open"),
+      elTail = document.getElementById("wq-tail"),
+      elNow = document.getElementById("wq-now"),
+      body = document.getElementById("wq-body"),
+      panel = root.querySelector(".wq__panel"),
       elCount = document.getElementById("wq-count"),
       prevBtn = root.querySelector('[data-wq-step="-1"]'),
       nextBtn = root.querySelector('[data-wq-step="1"]');
 
     var idx = -1,
       lastFocus = null,
-      open = false;
+      open = false,
+      scrollY = 0;
+
+    /* ── THE LIFT ──────────────────────────────────────────────────────
+       0 to 160px of inner scroll maps --lift 1 to 0, which drives the top
+       inset and the corner radius and nothing else. Quantised to a fiftieth
+       so a slow scroll does not write the property on every frame, and read
+       inside a rAF so the write never lands in the scroll handler itself. */
+    var rafLift = 0,
+      lastLift = -1;
+    function readLift() {
+      rafLift = 0;
+      var v = 1 - Math.min(1, body.scrollTop / 160);
+      var q = Math.round(v * 50);
+      if (q === lastLift) return;
+      lastLift = q;
+      panel.style.setProperty("--lift", (q / 50).toFixed(2));
+    }
 
     function render(i) {
       var d = DATA[i];
@@ -415,6 +527,12 @@ top of a case study is intro and process. See the commit for how they were chose
 
       media.innerHTML = "";
       media.setAttribute("data-n", String(d.q.length));
+      /* A new project starts at the top of its own sheet, and gives the inset
+         back, so stepping through projects does not leave the reader halfway
+         down a page they have not seen. */
+      body.scrollTop = 0;
+      lastLift = -1;
+      panel.style.setProperty("--lift", "1");
       d.q.forEach(function (src, n) {
         var im = new Image();
         im.alt = "";
@@ -441,18 +559,35 @@ top of a case study is intro and process. See the commit for how they were chose
         elTags.appendChild(s);
       });
       elOpen.setAttribute("href", d.u);
+      elTail.setAttribute("href", d.u);
+      elNow.textContent = d.t + " · Quick look";
       elCount.textContent = i + 1 + " / " + DATA.length;
       prevBtn.disabled = i === 0;
       nextBtn.disabled = i === DATA.length - 1;
     }
 
-    function show(i) {
+    /* ── IT HAS AN ADDRESS ─────────────────────────────────────────────
+       `?p=<slug>` while it is open. Three things follow from that and all of
+       them are what a visitor already expects: the browser's Back button
+       closes it, a link to a project someone liked opens straight into it,
+       and a reload does not dump them back at the top of a seventeen-card
+       grid. It is a replaceState-free pushState so each project stepped
+       through is its own history entry. */
+    function slugOf(u) {
+      var b = u.replace(/\/+$/, "").split("/");
+      return b[b.length - 1] || "";
+    }
+
+    function show(i, push) {
       if (open) {
         render(i);
+        if (push !== false) mark(i);
         return;
       }
       lastFocus = document.activeElement;
       render(i);
+      if (push !== false) mark(i);
+      scrollY = window.scrollY || window.pageYOffset || 0;
       root.hidden = false;
       document.documentElement.classList.add("wq-locked");
       /* One frame, so the opening transition has a state to move from. */
@@ -460,16 +595,34 @@ top of a case study is intro and process. See the commit for how they were chose
         root.classList.add("is-open");
       });
       open = true;
-      /* Focus lands on the close button rather than the panel, so the first
-         thing a keyboard reader hears is the way out. */
-      root.querySelector(".wq__x").focus();
+      /* Focus lands on the PANEL, not on the close button. Focusing the
+         button was the previous answer and it painted a bright focus ring on
+         the loudest control in the sheet every time somebody opened it with a
+         mouse, which is a keyboard affordance shown to people who did not use
+         a keyboard. The panel carries role="dialog" and aria-labelledby, so
+         moving focus here is what makes a screen reader announce what just
+         opened, and the close button is the first thing Tab reaches. */
+      panel.focus({ preventScroll: true });
     }
 
-    function hide() {
+    function mark(i) {
+      try {
+        history.pushState({ wq: i }, "", "?p=" + encodeURIComponent(slugOf(DATA[i].u)));
+      } catch (e) {}
+    }
+
+    function hide(pop) {
       if (!open) return;
       open = false;
       root.classList.remove("is-open");
       document.documentElement.classList.remove("wq-locked");
+      /* Locking the page scrolls it to the top; put it back where it was. */
+      window.scrollTo(0, scrollY);
+      if (!pop) {
+        try {
+          history.pushState({}, "", location.pathname);
+        } catch (e) {}
+      }
       var done = function () {
         if (!open) root.hidden = true;
       };
@@ -481,7 +634,41 @@ top of a case study is intro and process. See the commit for how they were chose
       var n = idx + by;
       if (n < 0 || n >= DATA.length) return;
       render(n);
+      mark(n);
     }
+
+    body.addEventListener(
+      "scroll",
+      function () {
+        if (!rafLift) rafLift = requestAnimationFrame(readLift);
+      },
+      { passive: true }
+    );
+
+    window.addEventListener("popstate", function () {
+      var want = new URLSearchParams(location.search).get("p");
+      if (want) {
+        for (var k = 0; k < DATA.length; k++) {
+          if (slugOf(DATA[k].u) === want) {
+            if (k !== idx || !open) show(k, false);
+            return;
+          }
+        }
+      }
+      if (open) hide(true);
+    });
+
+    /* A shared link opens straight into it. */
+    (function () {
+      var want = new URLSearchParams(location.search).get("p");
+      if (!want) return;
+      for (var k = 0; k < DATA.length; k++) {
+        if (slugOf(DATA[k].u) === want) {
+          show(k, false);
+          return;
+        }
+      }
+    })();
 
     /* ── THE CARDS STAY LINKS ──────────────────────────────────────────
        Only a plain left click opens the panel. Anything a person does to
@@ -498,14 +685,14 @@ top of a case study is intro and process. See the commit for how they were chose
         var i = byUrl[href];
         if (i === undefined) return; /* Not a project we have a quick view for. */
         e.preventDefault();
-        show(i);
+        show(i, true);
       },
       false
     );
 
     root.addEventListener("click", function (e) {
       if (e.target.closest("[data-wq-close]")) {
-        hide();
+        hide(false);
         return;
       }
       var s = e.target.closest("[data-wq-step]");
@@ -516,8 +703,8 @@ top of a case study is intro and process. See the commit for how they were chose
        The panel morphs into the real case study: real URL, working Back
        button, no second document held open on top of an 11.9MB page. Same
        startViewTransition the hero morph and the lightbox already use. */
-    elOpen.addEventListener("click", function (e) {
-      var href = elOpen.getAttribute("href");
+    function expand(e) {
+      var href = this.getAttribute("href");
       if (!href) return;
       var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (!document.startViewTransition || reduce) return; /* Plain navigation. */
@@ -525,13 +712,15 @@ top of a case study is intro and process. See the commit for how they were chose
       document.startViewTransition(function () {
         location.href = href;
       });
-    });
+    }
+    elOpen.addEventListener("click", expand);
+    elTail.addEventListener("click", expand);
 
     document.addEventListener("keydown", function (e) {
       if (!open) return;
       if (e.key === "Escape") {
         e.preventDefault();
-        hide();
+        hide(false);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
         step(1);
