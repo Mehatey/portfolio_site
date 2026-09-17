@@ -55,9 +55,59 @@
      drawing this, not how wide the window happens to be. */
   var small = matchMedia("(pointer: coarse)").matches || innerWidth < 760;
 
+  /* ── WHAT COLOUR IS THE PAGE RIGHT NOW ─────────────────────────────────
+     Measured, not asked. The first version of this asked
+     `prefers-color-scheme`, and on this site that is simply the wrong
+     question: the default with no `data-theme` set is DARK whatever the OS
+     says, so on a machine set to light the helper answered "light", the sheet
+     was painted in the dark ground it correctly read from the body, and the
+     blend stayed `normal` -- a black sheet with black type on it.
+
+     One reading now serves both answers. The ground is whatever the body is
+     actually painted, and "is it dark" is that same colour's luminance. They
+     cannot disagree, because there is only one of them. */
+  function ground() {
+    var c = getComputedStyle(document.body).backgroundColor || "";
+    var m = c.match(/rgba?\(([^)]+)\)/);
+    var p = m ? m[1].split(",").map(parseFloat) : [];
+    if (!(p[0] >= 0)) return [0.968, 0.96, 0.945];
+    return [p[0] / 255, p[1] / 255, p[2] / 255];
+  }
+  function isDark() {
+    var g = ground();
+    /* Rec. 709 luma. A mid grey would be ambiguous; nothing on this site is. */
+    return 0.2126 * g[0] + 0.7152 * g[1] + 0.0722 * g[2] < 0.42;
+  }
+  function groundRGB() {
+    /* The dark theme cannot take the page's near-black: this is a SUBTRACTIVE
+       model and pigment only ever removes light, so on a black sheet every
+       colour resolves to black. Dark mode paints on a mid tone and the canvas
+       is composited with `screen`, which turns the pigment into coloured light
+       over the page instead of ink into it. Same simulation, inverted optics. */
+    return isDark() ? [0.135, 0.145, 0.175] : ground();
+  }
+
   var wc = Watercolour(wash, {
     palette: INKS,
-    paper: [0.968, 0.96, 0.945],
+    /* ── THE SHEET IS THE PAGE'S OWN GROUND ────────────────────────────
+       Sid: "use the background color of the particular light or dark mode
+       that is selected. Even if we are in dark mode, sometimes it starts from
+       white mode, then goes into the dark mode, and it looks weird. It's just
+       a gray or black rectangle."
+
+       It was a hard-coded cream, so in dark mode the hero painted a sheet of
+       paper over a black page and then the rest of the theme arrived on top
+       of it: the rectangle he is describing. `groundRGB()` reads whatever the
+       page is actually painted in right now, so the wash starts from the
+       ground it is sitting on and there is no seam to notice.
+
+       The dark theme cannot simply take the near-black ground, because this
+       is a SUBTRACTIVE model -- `c = paper * exp(-density)` -- and pigment can
+       only ever remove light. On a black sheet every colour resolves to
+       black. So dark mode paints on a mid tone and the canvas is composited
+       with `screen`, which turns the pigment into coloured light over the
+       page instead of ink into it. Same simulation, inverted optics. */
+    paper: groundRGB(),
     scale: small ? 0.35 : 0.5,
     dpr: small ? 1.25 : 1.6,
     /* ── WETTER, BUSIER, AND LET IT MIX ────────────────────────────────
@@ -83,8 +133,15 @@
        density comes DOWN as the rest goes up: more pigment at the same
        darkness is mud, and the whole point of watercolour is that overlaps
        glaze rather than stack. */
-    ambient: reduce ? 0 : 0.62,
-    drops: reduce ? 0 : 0.72,
+    /* ── AND THERE IS LESS OF IT ────────────────────────────────────────
+       Sid: "reduce the amount of background, that painting effect ... there's
+       too much heavy load on that section."
+
+       Down from 0.62 and 0.72. Fewer drops arriving and a gentler drift under
+       them, which leaves the same wash reading as a stained sheet rather than
+       as a painting competing with the headline in front of it. */
+    ambient: reduce ? 0 : 0.34,
+    drops: reduce ? 0 : 0.4,
     dry: 0.9971,
     settle: 0.9984,
     diffuse: 0.46,
@@ -247,6 +304,49 @@
     return true;
   }
 
+  /* ── AND IT FOLLOWS THE SWITCH ─────────────────────────────────────────
+     The theme can change while the hero is on screen, and the sheet has to
+     change with it or the seam comes back the moment somebody presses the
+     toggle. `set` writes straight into the options object the paint pass
+     uploads every frame, so this costs one uniform rather than a rebuild. */
+  function dressForTheme() {
+    var dark = isDark();
+    wc.set("paper", groundRGB());
+    wash.style.mixBlendMode = dark ? "screen" : "normal";
+    /* Less of it in the dark, where a wash reads as haze rather than as
+       pigment and the same strength is twice as loud. */
+    wash.style.opacity = "";
+    hero.classList.toggle("wash-dark", dark);
+    /* `on-paper` is derived from the theme as well as from the scroll
+       position, and switching theme is not a scroll -- without this the nav
+       and the corner controls kept their cream treatment over a dark hero
+       until the next wheel event. */
+    if (typeof onPaper === "function") onPaper();
+  }
+  /* ── AND MEASURED AFTER THE COLOUR HAS ACTUALLY MOVED ────────────────
+     The body's background is transitioned, so at the instant `data-theme`
+     changes the computed value is still the OLD colour -- measured: switching
+     to light read `rgb(4, 6, 11)` and kept the dark sheet and the `screen`
+     blend on a cream page. Reading it once on the change is reading it too
+     early.
+
+     So: once immediately, for the case where there is no transition, and
+     again after it has had time to land. Two uniform writes on a theme switch
+     is nothing, and it removes a race that is otherwise invisible until
+     somebody presses the toggle. */
+  function dressSoon() {
+    dressForTheme();
+    setTimeout(dressForTheme, 260);
+    setTimeout(dressForTheme, 700);
+  }
+  dressForTheme();
+  new MutationObserver(dressSoon).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  if (window.matchMedia) {
+    try {
+      matchMedia("(prefers-color-scheme: dark)").addEventListener("change", dressSoon);
+    } catch (_) {}
+  }
+
   var last = 0,
     acc = 0,
     raf = 0,
@@ -258,7 +358,12 @@
      dark again and the dark scrim is the correct one. */
   function onPaper() {
     var r = hero.getBoundingClientRect();
-    document.body.classList.toggle("on-paper", r.top <= 0 && r.bottom > 120);
+    /* ── AND ONLY WHEN THE PAPER IS ACTUALLY PALE ────────────────────────
+       `on-paper` exists to tell the nav and the corner controls that they are
+       sitting on a light ground. In dark mode they are not, and flipping them
+       to their cream treatment over a near-black hero is half of what made
+       the switch look wrong. */
+    document.body.classList.toggle("on-paper", !isDark() && r.top <= 0 && r.bottom > 120);
   }
   onPaper();
   addEventListener("scroll", onPaper, { passive: true });

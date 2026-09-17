@@ -2,7 +2,7 @@
 layout: project
 pillar: product
 permalink: /marriott/
-project_title: Marriott Bonvoy SPOG
+project_title: Marriott
 proj_num: "09"
 tagline: >
   Marriott staff ran daily hotel operations across a scatter of disconnected tools. Working with Deloitte Digital, I designed SPOG, a Single Pane of Glass, an end to end employee application that unifies operations across every Marriott Bonvoy property. One place for a front desk associate to see the day at a glance, arrivals and departures, room occupancy, open cases and events, and to run loyalty enrolment, reservations and requests without ever leaving the screen.

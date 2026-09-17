@@ -55,7 +55,7 @@ decisions:
     tradeoff: >
       More goals on one page risks clutter. We contained it by keeping everything inside the urgency framework, so promotional content never competed with a patient who needed care right now.
 next_project:
-  title: "Marriott Bonvoy SPOG"
+  title: "Marriott"
   url: /marriott/
   desc: A single pane of glass for the world's largest hotel network.
 ---
