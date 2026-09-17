@@ -4377,10 +4377,36 @@
          flash of a finished title before it animates. Nothing here touches
          `transform` after it lands, because the hero parallax writes to that
          later -- the animation is on a wrapper span instead. */
+      /* ── AND IT WAITS FOR THE COVER ───────────────────────────────────
+         Sid: "title doesn't animate."
+
+         It did -- measured, `animationName` was projTitleIn and it had
+         already finished. It ran at parse time, which on a case study is
+         while the hero photograph is still arriving, so by the time there is
+         anything to look at the words have long since landed. An animation
+         nobody is present for is the same as no animation.
+
+         It is held until `html.hero-in`, which the script below sets once the
+         cover has actually painted. The words then rise as the picture
+         appears, which is the moment the gesture was for. */
       .proj-title w {
         display: inline-block;
+        opacity: 0;
+      }
+      html.hero-in .proj-title w {
         animation: projTitleIn 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
-        animation-delay: calc(var(--w, 0) * 110ms + 140ms);
+        /* A beat after the cover lands rather than on the same frame. On a
+           warm cache `complete` is already true, so without this the words
+           rise while the page is still assembling itself and the gesture is
+           over before anyone is looking at it -- which is what Sid was
+           reporting. */
+        animation-delay: calc(var(--w, 0) * 120ms + 340ms);
+      }
+      /* If the cover never loads, the title must not stay invisible. */
+      @media (prefers-reduced-motion: reduce) {
+        .proj-title w {
+          opacity: 1;
+        }
       }
       @keyframes projTitleIn {
         from {
@@ -25568,6 +25594,22 @@
           t.appendChild(w);
           if (i < words.length - 1) t.appendChild(document.createTextNode(" "));
         });
+
+        /* ── RELEASED WHEN THE COVER IS THERE ──────────────────────────
+           Two ways in, because either alone fails somewhere: the hero media's
+           own load event, and a 1.6s floor so a cached image, a video that
+           never fires load, or a missing file can never leave the title at
+           opacity 0. Whichever happens first wins and the other is a no-op. */
+        var go = function () {
+          document.documentElement.classList.add("hero-in");
+        };
+        var cover = document.querySelector(".proj-hero img, .proj-hero video");
+        if (!cover || cover.complete || cover.readyState >= 2) requestAnimationFrame(go);
+        else {
+          cover.addEventListener("load", go, { once: true });
+          cover.addEventListener("loadeddata", go, { once: true });
+        }
+        setTimeout(go, 1600);
       })();
 
       // Progress bar + hero parallax (combined into one rAF loop for perf)
