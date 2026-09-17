@@ -6521,7 +6521,59 @@
           margin-left: calc(var(--gutter, 56px) * (1 - var(--hp))) !important;
           margin-right: calc(var(--gutter, 56px) * (1 - var(--hp))) !important;
           border-radius: calc(12px * (1 - var(--hp))) !important;
-          min-height: calc(64svh + 36svh * var(--hp)) !important;
+          /* ── AT REST THE FRAME IS THE COVER'S OWN SHAPE ──────────────
+             Sid: "i feel in a lot of the project cover pics the top bar is
+             being cut."
+
+             Measured across sixteen project pages, and he is understating
+             it: twelve of them lose between 8 and 19 percent off the top,
+             and the same again off the bottom. /naavo/ 19.3%, /illustrations/
+             17.2%, /marriott/ 17.1%, /aananda/ 17.1%, /cube-guy/ 12.7%.
+
+             The cause is a fixed hero aspect. A 64svh frame at the grid
+             measure is 1374x603, which is 2.28:1, and these covers are
+             1.5:1 -- so `object-fit: cover` has to throw away a third of
+             the picture's height, and at the default 50% it takes half of
+             that off the top. On a UI screenshot the top is the app's own
+             bar, which is the most identifying thing in the frame and the
+             first thing a centre crop removes.
+
+             It is the same mistake the case-study grids had, in the same
+             words: the container was imposing a shape on the picture
+             instead of taking the picture's shape. At rest the frame is now
+             the cover's own aspect ratio -- --cov-ar, measured from the
+             file by the script at the bottom of this layout -- so NOTHING
+             is cropped in the state a visitor lands on. The crop only
+             arrives as the aperture opens to a viewport that genuinely is
+             2.28:1, by which point the whole cover has already been seen.
+
+             AND THE DEFAULT CROP IS ANCHORED NEAR THE TOP. The frame at
+             the cover's own ratio takes most of the crop out, but not all of
+             it: the tallest covers want 981px at the grid measure and the cap
+             allows 757, so the squarest few still lose about six percent.
+             WHERE that loss lands is a choice, and it was being made by a
+             default of 50% -- split evenly top and bottom. Since the
+             complaint is specifically the top bar, and since the bottom of a
+             UI screenshot is its least informative edge, the default is 8%:
+             the residual crop comes almost entirely off the bottom. Pages
+             that set hero_pos themselves are untouched.
+
+             AND THE COVER OWNS THE FIRST VIEWPORT. Sid: "in one viewport
+             we dont need project details to show up." The floor is 86svh
+             rather than 52, so whatever the cover's ratio, the first screen
+             is the cover and the title and nothing else -- Project details,
+             which is a disclosure control, was appearing beside the poster.
+             The aspect ratio still drives the height between the floor and
+             the cap, so a tall cover gets the room it needs; a panoramic one
+             takes the floor and its residual crop comes off the bottom,
+             because hero_pos defaults to 8%.
+
+             Capped at 92svh so a nearly square cover cannot push the first
+             line of the case study two screens down. 2.28 is the fallback
+             ratio, which is the frame it had before this existed. */
+          min-height: calc(
+            clamp(86svh, (100vw - 2 * var(--gutter, 56px)) / var(--cov-ar, 2.28), 92svh) * (1 - var(--hp)) + 100svh * var(--hp)
+          ) !important;
           overflow: hidden !important;
           will-change: margin, min-height;
         }
@@ -6540,19 +6592,506 @@
           transform: translateY(calc(-14px * var(--hp)));
           opacity: calc(1 - 0.72 * var(--hp));
           will-change: transform, opacity;
+          /* ── ONE LEFT EDGE, IN BOTH STATES ────────────────────────────
+             Sid: "it doesnt align vertically with the other captions and
+             title type below, like about the project or project details, it
+             looks weird."
+
+             Measured on /naavo/, /mool/ and /marriott/: the hero text began
+             at x=112 while the captions, the Overview and Project details
+             all began at x=56. A 56px step between the biggest type on the
+             page and everything under it, which is the one misalignment a
+             reader cannot help noticing -- it is the whole left edge of the
+             page disagreeing with itself.
+
+             The cause is two insets stacking. At rest the frame is already
+             pulled in by the gutter, and .hero-inner then adds its own
+             padding of the same amount inside that -- so the title was
+             inset twice.
+
+             It cannot just be zeroed, because when the aperture opens the
+             frame's margin goes to 0 and the text would sit flush against
+             the viewport. So the inner padding is the COMPLEMENT of the
+             frame's margin: zero while the frame is inset, a full gutter
+             once it is not. The sum is one gutter at every point in the
+             animation, so the title and the first caption share a left edge
+             the whole way through. */
+          /* The inset has to be on the WIDTH, not the padding, because
+             that is where the base rule puts it: .hero-inner is `width:
+             calc(100% - 2 * var(--gutter))` centred with auto margins, and
+             padding cannot undo a width. Measured after zeroing the padding:
+             still 112. Complementing the WIDTH gives one gutter of total
+             inset at every point -- full width inside an inset frame, the
+             old centred measure once the frame is flush. */
+          width: calc(100% - 2 * var(--gutter, 56px) * var(--hp)) !important;
+          max-width: calc(100% - 2 * var(--gutter, 56px) * var(--hp)) !important;
+          padding-left: 0 !important;
+          padding-right: 0 !important;
         }
         /* The scrim is only needed while the title is on the picture, so it
            leaves with the title instead of sitting over the open cover --
            which is the whole of Sid's "the black blurs look ugly" note
            applied to the one place a scrim was still earning its keep. */
+        /* ── AND THE SCRIM COMES DOWN ──────────────────────────────────
+           It was at full strength at rest because the title needed
+           protecting from the photograph. It does not any more: the title IS
+           the photograph, magnified, with its own light and dark edges. So
+           the scrim was only darkening the cover it had been hired to
+           protect -- photographed, it took a lit hotel lobby to near-black.
+           A third of it seats the type; the rest of the frame gets to be the
+           picture Sid chose. */
         .proj-hero .hero-overlay {
-          opacity: calc(1 - 0.85 * var(--hp)) !important;
+          opacity: calc(0.34 - 0.29 * var(--hp)) !important;
         }
       }
       @media (prefers-reduced-motion: reduce) {
         .proj-hero {
           --hp: 1 !important;
         }
+      }
+
+
+      /* ══ THE TITLE IS A LABEL, THE SENTENCE IS THE HEADLINE ═════════════
+         Last block in the file on purpose. .proj-title is declared in four
+         separate places in this stylesheet, three of them with !important --
+         42/4.6vw/88, 48/6vw/96, 58/7.4vw/132 -- and the winner is simply
+         whichever comes last. Rather than edit four rules and hope, the
+         final word on the size lives here, once, where it cannot be
+         outranked by something further down.
+
+         clamp(26px, 2.5vw, 40px). That is a label on a picture: big enough
+         to be the name of the thing, small enough that it is not competing
+         with either the cover or the sentence under it. The name is also the
+         one fact the visitor arrived already knowing, which is the argument
+         for it being the small element rather than the large one.
+
+         The one-liner takes the weight instead, at 19-26px in the head face
+         -- large enough to be read from the doorway, small enough to be a
+         sentence rather than a headline. 58ch, because a line this long set
+         across a 1284px frame would be unreadable in a different way. */
+      /* ══ THE TITLE IS GLASS ═════════════════════════════════════════════
+         Sid: "go for large type across image with a cool refractive quality
+         or a nice blending mode, make the large type worth it."
+
+         WHAT REFRACTION ACTUALLY IS, and why this is not a blur. Glass over
+         a picture does not soften what is behind it -- it MAGNIFIES and
+         displaces it. So the letterforms are filled with the cover itself,
+         scaled up and pushed off-register from the copy behind them:
+         background-clip: text on the same image the hero is showing, sized
+         at 128% against the hero's 100%. Inside the glyphs you are looking
+         at the same photograph through a lens, which is why the fill moves
+         with the picture instead of sitting on it as a texture.
+
+         It is the one treatment that makes large type on a cover legible
+         rather than less so. Type filled with a FLAT colour has to win a
+         contrast fight with whatever it lands on; type filled with a
+         magnified, brightened copy of its own backdrop is always different
+         from what surrounds it, because it is the same content at a
+         different scale. Two hairlines do the rest: a light inner edge where
+         the glass catches the room, and a dark drop below it so the
+         letterform has a silhouette even where fill and backdrop agree.
+
+         AND A CHROMATIC EDGE. ::before and ::after are the same text filled
+         the same way and offset a pixel and a half either side, tinted warm
+         and cool, at low alpha. That is dispersion -- the thing that makes a
+         real lens edge look like a lens rather than like an outline -- and
+         it is three composited layers of text, which costs nothing to
+         animate because nothing animates.
+
+         NO BLUR ANYWHERE. Sid has objected to every blurred thing on this
+         site in the last hour, and he is right that blur is the lazy way to
+         say glass. There is none here: the whole effect is scale,
+         displacement and two 1px edges. */
+      /* ══ IN THE MIDDLE, AND EXTRUDED ════════════════════════════════════
+         Sid: "try middle text and larger and more 3d and across the image."
+
+         Three changes and they are one idea: the title stops being a caption
+         in the corner of a photograph and becomes the poster's subject. So
+         it is centred in the frame, it is set to SPAN the frame rather than
+         wrap inside a measure, and it has a solid side.
+
+         ACROSS, which is a sizing decision and not a font-size. 13vw with a
+         max-width of none means the word runs the width of the cover at any
+         viewport; the clamp's ceiling only stops a short title from becoming
+         absurd on a very wide screen. `text-wrap: nowrap` is deliberate --
+         a two-line centred title at this size is a wall, and every project
+         name here is one or two words.
+
+         THE 3D IS AN EXTRUSION, not a perspective trick. Ten stacked
+         text-shadows stepping down and right in darkening increments give
+         the letterform a solid side, the way cut or cast type has one --
+         and because the FACE is the glass fill, what you get is a
+         transparent lens on the front of a solid object, which is more
+         dimensional than either on its own. The shadows are drawn from the
+         glyph outline, so they cost one paint and nothing animates.
+
+         A 6 degree rotateX on top of that. Small on purpose: past about
+         eight degrees a centred title stops reading as a dimensional object
+         and starts reading as a slide in a deck. */
+      /* ── AND THE TWO THINGS HOLDING IT OFF-CENTRE ──────────────────────
+         Measured rather than assumed, and neither was what "center" was
+         being applied to.
+
+         VERTICALLY: .proj-hero is a flex column with `justify-content:
+         flex-end`, which is correct for a title that sits on the frame's
+         foot and is the reason the inner measured y710..874 in an 810px
+         frame. Centre the hero itself and the stack lands in the middle.
+
+         HORIZONTALLY: .hero-inner is a GRID, and it was a two column one --
+         `minmax(0, 1fr) 220px`, the second track being the at-a-glance panel
+         that was removed two commits ago. So `justify-content: center` was
+         centring two TRACKS whose first one measured 813w, and the title was
+         centred inside a column that was itself hard left. One column, and
+         the stack spans the measure: 56..1344 rather than 56..869. */
+      .proj-hero {
+        justify-content: center !important;
+      }
+      .proj-hero .hero-inner {
+        grid-template-columns: minmax(0, 1fr) !important;
+        justify-items: center !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        padding-bottom: 0 !important;
+        padding-top: 0 !important;
+      }
+      .proj-hero .hero-title-stack {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+      .proj-hero .proj-title {
+        position: relative;
+        max-width: none !important;
+        width: 100%;
+        text-align: center;
+        white-space: nowrap;
+        font-size: clamp(88px, 13vw, 260px) !important;
+        line-height: 0.9 !important;
+        letter-spacing: -0.05em !important;
+        font-weight: 300 !important;
+        margin: 0 !important;
+        transform: perspective(1400px) rotateX(6deg);
+        transform-origin: 50% 80%;
+        /* The solid side. Ten steps rather than a blur, because an extrusion
+           has an edge -- a blurred one is a shadow, which is the thing this
+           hero has spent three commits removing. */
+        text-shadow:
+          1px 1px 0 rgba(10, 14, 22, 0.92),
+          2px 2px 0 rgba(10, 14, 22, 0.86),
+          3px 3px 0 rgba(9, 13, 20, 0.8),
+          4px 4px 0 rgba(9, 13, 20, 0.74),
+          5px 5px 0 rgba(8, 12, 19, 0.68),
+          6px 6px 0 rgba(8, 12, 19, 0.62),
+          7px 7px 0 rgba(7, 11, 18, 0.56),
+          8px 8px 0 rgba(7, 11, 18, 0.5),
+          10px 10px 0 rgba(6, 10, 16, 0.4),
+          12px 12px 24px rgba(3, 6, 11, 0.55);
+        /* The lens. Same source as the cover, larger, and offset -- the
+           combination is what reads as "through" rather than "on". */
+        background-image: var(--cover-src);
+        background-size: 116% auto;
+        background-position: 50% 42%;
+        background-repeat: no-repeat;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent !important;
+        /* The room caught on the inside of the letter, and the shadow that
+           gives it a silhouette. Both 1px: this is an edge, not a glow. */
+        filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.34)) drop-shadow(0 3px 18px rgba(3, 6, 11, 0.55))
+          brightness(1.24) saturate(1.12);
+      }
+      /* ── AND NO DISPERSION LAYERS ──────────────────────────────────────
+         There were two: ::before and ::after, each `content: attr(data-title)`
+         filled the same way and offset a pixel either side, for a chromatic
+         fringe. They are gone, because they printed the title a SECOND time
+         in the wrong place -- photographed on /marriott/ as a ghost
+         "Marriott" starting at the frame's left edge with the real one
+         centred over it.
+
+         The cause is that the real text is not a direct child any more. A
+         script wraps each word in a <w> for the staggered entry, so the h1's
+         own text-align centres that wrapper while an absolutely positioned
+         pseudo-element at `left: 0` centres within its own 100% box -- and
+         those two boxes are not the same, because the h1 is 1288 wide and
+         the word is 810. Two centring contexts, one visible mistake.
+
+         It could be chased with a transform, and it is not worth it: the
+         fringe was a nicety nobody asked for, while the extrusion and the
+         glass face are the effect Sid did ask for and they read at full
+         strength without it. One text node, one place.
+
+         The transparent face plus the ten-step extrusion is also what makes
+         this legible over a photograph: where the picture behind the letter
+         is dark, the extrusion reads as the letter; where it is light, the
+         extrusion reads as its shadow. Nothing has to win a contrast fight. */
+      /* A cover that never loaded, or a page with no cover at all, must not
+         leave an invisible title. Without --cover-src the fill has no image,
+         and transparent text on nothing is nothing. */
+      .proj-hero:not([style*="--cover-src"]) .proj-title,
+      .proj-hero:not([style*="--cover-src"]) .proj-title::before,
+      .proj-hero:not([style*="--cover-src"]) .proj-title::after {
+        -webkit-text-fill-color: currentColor;
+        color: var(--ink, #f0f6fc) !important;
+        background-image: none;
+        filter: drop-shadow(0 2px 14px rgba(3, 6, 11, 0.6));
+      }
+      @media (max-width: 760px) {
+        .proj-hero .proj-title {
+          font-size: clamp(40px, 15vw, 88px) !important;
+          text-shadow:
+            1px 1px 0 rgba(10, 14, 22, 0.9),
+            2px 2px 0 rgba(9, 13, 20, 0.8),
+            3px 3px 0 rgba(8, 12, 19, 0.7),
+            4px 4px 0 rgba(7, 11, 18, 0.6),
+            6px 6px 14px rgba(3, 6, 11, 0.5);
+          transform: none;
+        }
+      }
+      /* ── AND NO ONE-LINER AT ALL ──────────────────────────────────────
+         Sid: "how about we dont do description one liner also, and go for
+         large type across image with a cool refractive quality or a nice
+         blending mode. make the large type worth it."
+
+         Two attempts at a sentence on this cover, both wrong, and the
+         second was wrong for a reason worth keeping: page.tagline is a
+         PARAGRAPH on most of these pages -- Marriott's is 47 words -- so
+         "one line" was never what the field contained. Setting it on the
+         cover put six lines of running text over a photograph of a tablet.
+
+         The instinct behind making the title small was that a project's name
+         is the one fact a visitor already has. That is true and it is not
+         the whole argument: a cover is a POSTER, and a poster's job is not
+         to inform, it is to be worth stopping for. Big type earns its size
+         by being made of something. So the name goes back up, and it is
+         made of the picture it is sitting on. */
+      /* THE TAGLINE IS NOT SAID TWICE. .proj-intro falls back to page.tagline
+         when there is no quick_read, so a project without one would now print
+         the same sentence on the cover and again forty pixels below it. The
+         Overview keeps its own copy only when it is a DIFFERENT sentence. */
+      .proj-hero ~ .proj-body .intro-tagline[data-dupe="1"] {
+        display: none;
+      }
+
+
+      /* ══ THE COVER RAILS ════════════════════════════════════════════════
+         Driven by --hp2, which the aperture script writes: 0 while the cover
+         still owns the screen, 1 once it has left. So the sequence a reader
+         gets is one continuous move -- the frame opens, the frame leaves, and
+         what is left of it are two strips down the sides of everything else.
+
+         WIDTH IS THE GUTTER. Not a decorative band: it is exactly the column
+         the page's measure already excludes, so the rails take no space from
+         the content and the case study's left edge does not move by a pixel
+         when they arrive. Verified against the one-left-edge rule above --
+         everything on these pages begins at the gutter.
+
+         The image is sized to the VIEWPORT height rather than the strip, so
+         the left and right rails are two slices of one continuous picture
+         rather than two independently squashed copies. `background-position`
+         puts the left rail on the picture's left edge and the right rail on
+         its right, which is what makes them read as the same frame seen
+         through two windows. */
+      .cover-rail {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        width: var(--gutter, 56px);
+        z-index: 2;
+        pointer-events: none;
+        background-image: var(--cover-src);
+        background-size: auto 100%;
+        background-repeat: no-repeat;
+        /* Hidden, and OUT of the compositor, until the cover has left: at
+           --hp2 0 these are translated fully off their own edge, so a
+           reader who never scrolls past the hero never pays for them. */
+        opacity: var(--hp2, 0);
+        transition: opacity 240ms linear;
+      }
+      .cover-rail--l {
+        left: 0;
+        background-position: left center;
+        transform: translateX(calc(-100% + 100% * var(--hp2, 0)));
+        /* The liquid edge. Only the inner corners move -- the outer two stay
+           square against the viewport, because a strip that is round on all
+           four sides is a pill sitting on the page rather than the page's
+           own edge. */
+        border-radius: 0 var(--rail-a, 40%) var(--rail-b, 60%) 0 / 0 var(--rail-c, 30%) var(--rail-d, 70%) 0;
+        animation: railFlowL 19s ease-in-out infinite alternate;
+      }
+      .cover-rail--r {
+        right: 0;
+        background-position: right center;
+        transform: translateX(calc(100% - 100% * var(--hp2, 0)));
+        border-radius: var(--rail-a, 40%) 0 0 var(--rail-b, 60%) / var(--rail-c, 30%) 0 0 var(--rail-d, 70%);
+        animation: railFlowR 23s ease-in-out infinite alternate;
+      }
+      /* Two different periods, so the two edges are never symmetrical --
+         symmetry is what would make this read as a frame rather than as
+         something flowing. */
+      @keyframes railFlowL {
+        0% {
+          border-radius: 0 46% 54% 0 / 0 28% 72% 0;
+        }
+        50% {
+          border-radius: 0 58% 40% 0 / 0 44% 56% 0;
+        }
+        100% {
+          border-radius: 0 38% 62% 0 / 0 62% 38% 0;
+        }
+      }
+      @keyframes railFlowR {
+        0% {
+          border-radius: 52% 0 0 48% / 34% 0 0 66%;
+        }
+        50% {
+          border-radius: 40% 0 0 60% / 58% 0 0 42%;
+        }
+        100% {
+          border-radius: 62% 0 0 38% / 26% 0 0 74%;
+        }
+      }
+      /* A rail is a slice of a photograph running the height of the screen,
+         which at full strength competes with the body copy beside it. It sits
+         back far enough to read as the page's edge and no further -- and it
+         lifts on the light theme, where the page around it is cream and a
+         dark slice would read as a bar rather than as an image. */
+      .cover-rail {
+        opacity: calc(var(--hp2, 0) * 0.5);
+      }
+      html[data-theme="light"] .cover-rail {
+        opacity: calc(var(--hp2, 0) * 0.62);
+      }
+      /* Not on a phone. The gutter is 24px there, which is a 24px-wide slice
+         of a photograph -- a texture, not an image -- and it would be taking
+         a tenth of the screen's width on the device with least of it. */
+      @media (max-width: 900px) {
+        .cover-rail {
+          display: none;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .cover-rail {
+          animation: none;
+        }
+      }
+
+      /* ══ AND THE TYPE ANSWERS THE SCROLL ════════════════════════════════
+         Sid: "something to happen to type too when i scroll from the top, if
+         the image is having something it shud also, and an entry thing."
+
+         The title is filled with the cover, so the honest thing for it to do
+         on scroll is what a lens does when you move it: the view THROUGH it
+         changes. --hp drives the fill's position and scale, so as the frame
+         opens the picture inside the letterforms travels and widens -- the
+         same gesture as the aperture, one layer deeper. Nothing about the
+         letterforms themselves animates, so there is no reflow and no
+         re-raster; it is a background-position, which the compositor takes.
+
+         The extrusion shortens as it goes, which is the part that sells it as
+         dimensional: a solid side that stays the same depth while the object
+         recedes reads as a sticker. */
+      .proj-hero .proj-title {
+        background-size: calc(116% + 26% * var(--hp, 0)) auto;
+        background-position: 50% calc(42% - 16% * var(--hp, 0));
+      }
+
+      /* THE ENTRY. The words already rise on a stagger from html.hero-in --
+         that machinery is above and unchanged. What it lacked was depth: the
+         extrusion arrived at full length with the letter, so the type was
+         solid before it had landed. It grows in from flat instead, which
+         means the first thing a visitor sees is type lying on the picture and
+         the second is it standing up off it. */
+      /* ── ON THE WRAPPER, NOT ON THE TITLE ──────────────────────────────
+         This was `html.hero-in .proj-hero .proj-title { animation:
+         titleRise ... }`, which made the title INVISIBLE on every project
+         page -- and the reason is worth writing down because it is silent.
+
+         .proj-title already carries `opacity: 0; animation: introFadeUp
+         ... both` at the top of this stylesheet: the zero is its resting
+         state and the animation is the only thing that brings it back. The
+         `animation` shorthand does not merge, so a later, more specific
+         rule setting a DIFFERENT animation replaces it -- introFadeUp
+         stopped running, nothing else set opacity, and the base zero stood.
+         Measured: computed opacity 0 on a page whose html carries hero-in,
+         with the words themselves correctly at 1 inside a parent nobody can
+         see. Photographed as a cover with no title on it.
+
+         So the entry goes on .hero-title-stack, which owns no animation of
+         its own. The two gestures then compose the way they should: the
+         words rise and fade in from introFadeUp, and the block they are in
+         stands up out of the picture. */
+      html.hero-in .proj-hero .hero-title-stack {
+        animation: titleRise 1100ms cubic-bezier(0.16, 1, 0.3, 1) 280ms both;
+      }
+      @keyframes titleRise {
+        from {
+          transform: perspective(1400px) rotateX(15deg) scale(0.968);
+        }
+        to {
+          transform: perspective(1400px) rotateX(0deg) scale(1);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html.hero-in .proj-hero .hero-title-stack {
+          animation: none;
+        }
+      }
+
+
+      /* ══ THE FILL BELONGS TO THE WORD, NOT THE HEADING ══════════════════
+         The glass title printed TWICE: a bright outline copy starting at the
+         heading's left edge and the real extruded one centred, 360px apart.
+         Measured, that is exactly the gap between the h1's box (56) and the
+         <w> wrapper the entry script puts the word in (416).
+
+         `background-clip: text` clips an element's background to its text.
+         With the word inside an inline-block child that the centring and the
+         entry animation both move, the background box and the glyphs stop
+         agreeing: the glyphs paint where the <w> is and the clipped fill
+         paints against the h1's own origin. Two positions for one word.
+
+         So the fill moves onto the <w>, where the background box IS the
+         glyph box and they cannot disagree, and the heading's own fill is
+         switched off whenever a <w> exists. The heading keeps the
+         extrusion, which was always drawn from the real glyph outline and
+         was never the half that was wrong.
+
+         :has() rather than a class, because nothing else has to know: the
+         rule is true exactly when the wrapper is present, including the
+         frames before the script has run and the case where it never does. */
+      .proj-hero .proj-title:has(w) {
+        background-image: none;
+        -webkit-text-fill-color: currentColor;
+      }
+      .proj-hero .proj-title w {
+        display: inline-block;
+        background-image: var(--cover-src);
+        background-size: calc(116% + 26% * var(--hp, 0)) auto;
+        background-position: 50% calc(42% - 16% * var(--hp, 0));
+        background-repeat: no-repeat;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+        filter: brightness(1.24) saturate(1.12);
+      }
+      /* Without a cover there is no fill, and transparent text on nothing is
+         nothing -- so the word goes back to ink. */
+      .proj-hero:not([style*="--cover-src"]) .proj-title w {
+        background-image: none;
+        -webkit-text-fill-color: currentColor;
+        color: var(--ink, #f0f6fc);
+        filter: none;
+      }
+      /* The heading's brightness filter came off with its fill: applied to
+         the h1 it was also brightening the ten dark extrusion shadows, which
+         is what made the solid side look washed rather than cut. */
+      .proj-hero .proj-title:has(w) {
+        filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.28)) drop-shadow(0 3px 18px rgba(3, 6, 11, 0.55));
       }
 
     </style> </head> <body data-pillar=""> <div id="site-field" aria-hidden="true"></div> <style>
@@ -10515,7 +11054,7 @@
       { passive: true }
     );
   })();
-</script> <main id="main" data-cube="Numbers move faster than the people watching them."> <header class="proj-hero"> <img class="hero-video" src="/10.alpha/cover.jpg" alt="Alpha Stockathon" loading="eager" fetchpriority="high" style="--hero-pos: 50% 50%;"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title" data-livetype data-livetype-zone=".proj-hero, section, main" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="150"> Alpha Stockathon </h1> </div> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Duration</p> <p class="meta-v"> 3 days </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2021 </p> </div> <div class="meta-item"> <p class="meta-k">Tools</p> <p class="meta-v"> Figma · Pixel Art </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> Self Initiated </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Designed a pixel-art desktop game that teaches options, shorting and market cap through consequence rather than instruction, taken from research to working prototype in three days.</p> <p class="intro-credit"> <span>UI · Gamification</span><span>Solo · Self Initiated</span> </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">3 days</p> <p class="proj-highlight-label">research to prototype</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Pixel art</p> <p class="proj-highlight-label">financial learning system</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Solo</p> <p class="proj-highlight-label">product concept &amp; UI</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <div class="proj-body" id="case-archive"> <style>
+</script> <main id="main" data-cube="Numbers move faster than the people watching them."> <div class="cover-rail cover-rail--l" aria-hidden="true"></div> <div class="cover-rail cover-rail--r" aria-hidden="true"></div> <header class="proj-hero" style="--cover-src: url('/10.alpha/cover.jpg'); --hero-pos: 50% 8%;"> <img class="hero-video" src="/10.alpha/cover.jpg" alt="Alpha Stockathon" loading="eager" fetchpriority="high" style="--hero-pos: 50% 8%;"> <div class="hero-overlay"></div> <div class="hero-inner"> <div class="hero-title-stack"> <h1 class="proj-title" data-livetype data-livetype-zone=".proj-hero, section, main" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="150"> Alpha Stockathon </h1> </div> </div> </header> <details class="project-details"> <summary>Project details</summary> <div class="meta-row"> <div class="meta-item"> <p class="meta-k">Duration</p> <p class="meta-v"> 3 days </p> </div> <div class="meta-item"> <p class="meta-k">Year</p> <p class="meta-v"> 2021 </p> </div> <div class="meta-item"> <p class="meta-k">Tools</p> <p class="meta-v"> Figma · Pixel Art </p> </div> <div class="meta-item"> <p class="meta-k">Client</p> <p class="meta-v"> Self Initiated </p> </div> </div> </details> <div class="proj-intro" id="case-overview"> <div class="intro-inner"> <span class="intro-label">Overview</span> <p class="intro-tagline">Designed a pixel-art desktop game that teaches options, shorting and market cap through consequence rather than instruction, taken from research to working prototype in three days.</p> <p class="intro-credit"> <span>UI · Gamification</span><span>Solo · Self Initiated</span> </p> </div> </div> <section class="proj-highlights" id="case-proof" aria-labelledby="project-highlights"> <h2 id="project-highlights" class="sr-only">Project highlights</h2> <div class="proj-highlight"> <p class="proj-highlight-value">3 days</p> <p class="proj-highlight-label">research to prototype</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Pixel art</p> <p class="proj-highlight-label">financial learning system</p> </div> <div class="proj-highlight"> <p class="proj-highlight-value">Solo</p> <p class="proj-highlight-label">product concept &amp; UI</p> </div> </section> <div class="case-study-layout"> <aside class="case-context" aria-label="Case-study navigation"> <p class="case-context__eyebrow">Story path</p> <div class="case-progress" aria-live="off"> <div class="case-progress__head"> <span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span> </div> <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div> <p class="case-progress__note" id="case-progress-note">Mapping visual moments</p> </div> <nav class="case-context__links" aria-label="Project sections"> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> </aside> <div class="case-story"> <nav class="case-rail" aria-label="Case study path"> <span class="case-rail-label">Visual story</span> <a href="#case-overview">Overview</a> <a href="#case-proof">Proof</a> <a href="#case-archive">Visual story</a> <a href="#project-next-step">Next project</a> </nav> <div class="proj-body" id="case-archive"> <style>
   /* cs-bleed: natural-ratio for sparse photo-essay layout */
   .cs-bleed { aspect-ratio: auto !important; overflow: visible !important; background: transparent !important; }
   .cs-bleed img { object-fit: contain !important; height: auto !important; }
@@ -18298,6 +18837,27 @@
                responding to the hand. */
             var e = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2;
             ap.style.setProperty("--hp", e.toFixed(4));
+
+            /* ── AND THE SECOND PHASE ────────────────────────────────────
+               --hp2 is the rails: 0 while the cover still owns the screen,
+               1 once it has gone. It starts where the aperture finishes, so
+               the whole thing is one continuous gesture -- open, leave,
+               become the edges -- rather than two effects that happen to
+               share a scrollbar.
+
+               Measured against the hero's own height rather than a fixed
+               distance, because these covers are between 86 and 92svh and a
+               hard number would start the rails early on the short ones and
+               late on the tall ones. They are fully in one viewport-third
+               after the cover's bottom edge passes the top of the screen.
+
+               Written on the root rather than the hero: the rails are fixed
+               to the viewport and are siblings of the hero, so a property on
+               the hero would not reach them. */
+            var h = ap.getBoundingClientRect().height || window.innerHeight;
+            var p2 = (window.scrollY - h * 0.72) / (window.innerHeight * 0.34);
+            p2 = Math.min(1, Math.max(0, p2));
+            document.documentElement.style.setProperty("--hp2", p2.toFixed(4));
           }
           function onScroll() {
             /* Off the listener entirely once the hero is behind you: this is
@@ -26441,6 +27001,25 @@
          arrive, including the lazy ones well after load. Until a ratio
          lands the cell keeps flex-grow 1, which is the equal-width layout
          these rows had before, so a row is never worse while it waits. */
+      /* ── THE COVER'S OWN RATIO ─────────────────────────────────────────
+         The hero frame sizes itself from this at rest, so nothing is cropped
+         in the state a visitor lands on. Until it arrives the frame uses the
+         2.28 fallback, which is exactly the hero it had before this existed,
+         so the page is never caught mid-layout while it waits. */
+      (function () {
+        var hero = document.querySelector(".proj-hero");
+        var m = hero && hero.querySelector(".hero-video");
+        if (!hero || !m) return;
+        function ratio() {
+          var w = m.naturalWidth || m.videoWidth || 0;
+          var h = m.naturalHeight || m.videoHeight || 0;
+          if (!w || !h) return;
+          hero.style.setProperty("--cov-ar", (w / h).toFixed(4));
+        }
+        ratio();
+        m.addEventListener("load", ratio);
+        m.addEventListener("loadedmetadata", ratio);
+      })();
       (function () {
         /* ── A ROW IS JUSTIFIED ALL AT ONCE, OR NOT AT ALL ────────────────
            The first version of this set --ar per element as each one
