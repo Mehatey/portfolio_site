@@ -78,16 +78,30 @@ next_project:
   .cs-grid + .cs-grid { margin-top: 16px !important; }
 </style>
 
-<div class="cs-bleed">
+<!-- ── A RUN OF PEERS IS A RAIL, NOT A COLUMN ─────────────────────────
+     Sid: "think about where we can have horizontally scrollable media,
+     because a lot of the media are sometimes similar ... it becomes a
+     long-ass scroll of just the same type of thing."
+
+     These are peers with no reading order -- consecutive full-bleed frames of
+     the same kind, each about 780px tall, so three of them is two and a half
+     screens of vertical scroll spent on one idea. Sideways they are one
+     screen, and the fact that they are a set becomes visible instead of being
+     something a reader has to remember from four swipes ago.
+
+     Only runs of three or more convert. Two frames read as a pair and a pair
+     reads better stacked; a rail with two items in it is a scrollbar with
+     nothing to scroll. -->
+<div class="cs-rail" tabindex="0" role="group" aria-label="Alpha Stockathon screens, scroll sideways">
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/0.webp" alt="The brief: design a gamified desktop application that teaches people to trade and learn about the stock market, in four days" loading="eager" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/1.webp" alt="A stock market simulator game for people who want to learn about investing in a fun manner" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/2.png" alt="Competitive landscape, plotted from simulating to learning and from gamified to earnest" loading="lazy" decoding="async" />
+  </figure>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Brand positioning.</em></p>
@@ -97,33 +111,60 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Ideation for gamification.</em></p>
-<div class="cs-bleed">
+<!-- ── A RUN OF PEERS IS A RAIL, NOT A COLUMN ─────────────────────────
+     Sid: "think about where we can have horizontally scrollable media,
+     because a lot of the media are sometimes similar ... it becomes a
+     long-ass scroll of just the same type of thing."
+
+     These are peers with no reading order -- consecutive full-bleed frames of
+     the same kind, each about 780px tall, so three of them is two and a half
+     screens of vertical scroll spent on one idea. Sideways they are one
+     screen, and the fact that they are a set becomes visible instead of being
+     something a reader has to remember from four swipes ago.
+
+     Only runs of three or more convert. Two frames read as a pair and a pair
+     reads better stacked; a rail with two items in it is a scrollbar with
+     nothing to scroll. -->
+<div class="cs-rail" tabindex="0" role="group" aria-label="Alpha Stockathon screens, scroll sideways">
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/4.png" alt="Name your hero, and begin the adventure" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/5.webp" alt="The three characters: Stock Baba the guide, the Dragon, and the Hero" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/6.webp" alt="The four places in the world: the racecourse of stallions, the tavern of legend, the garden of optimism, the library of eternal knowledge" loading="lazy" decoding="async" />
+  </figure>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Characters.</em></p>
-<div class="cs-bleed">
+<!-- ── A RUN OF PEERS IS A RAIL, NOT A COLUMN ─────────────────────────
+     Sid: "think about where we can have horizontally scrollable media,
+     because a lot of the media are sometimes similar ... it becomes a
+     long-ass scroll of just the same type of thing."
+
+     These are peers with no reading order -- consecutive full-bleed frames of
+     the same kind, each about 780px tall, so three of them is two and a half
+     screens of vertical scroll spent on one idea. Sideways they are one
+     screen, and the fact that they are a set becomes visible instead of being
+     something a reader has to remember from four swipes ago.
+
+     Only runs of three or more convert. Two frames read as a pair and a pair
+     reads better stacked; a rail with two items in it is a scrollbar with
+     nothing to scroll. -->
+<div class="cs-rail" tabindex="0" role="group" aria-label="Alpha Stockathon screens, scroll sideways">
+  <figure class="cs-rail-item">
   <img class="breathe" src="{{ site.baseurl }}/10.alpha/7.webp" alt="The screen set at a glance" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/8.webp" alt="The city map, with Stock Baba introducing himself outside the library" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/9.webp" alt="The dragon arrives on the city map" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/10.webp" alt="Inside the library of eternal knowledge, unlocking stock market strategies" loading="lazy" decoding="async" />
+  </figure>
 </div>
 
 <div class="cs-grid">
@@ -154,16 +195,30 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/10.alpha/19.2.webp" alt="Your bet has been placed" loading="lazy" decoding="async" /></div>
 </div>
 
-<div class="cs-bleed">
+<!-- ── A RUN OF PEERS IS A RAIL, NOT A COLUMN ─────────────────────────
+     Sid: "think about where we can have horizontally scrollable media,
+     because a lot of the media are sometimes similar ... it becomes a
+     long-ass scroll of just the same type of thing."
+
+     These are peers with no reading order -- consecutive full-bleed frames of
+     the same kind, each about 780px tall, so three of them is two and a half
+     screens of vertical scroll spent on one idea. Sideways they are one
+     screen, and the fact that they are a set becomes visible instead of being
+     something a reader has to remember from four swipes ago.
+
+     Only runs of three or more convert. Two frames read as a pair and a pair
+     reads better stacked; a rail with two items in it is a scrollbar with
+     nothing to scroll. -->
+<div class="cs-rail" tabindex="0" role="group" aria-label="Alpha Stockathon screens, scroll sideways">
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/21.webp" alt="The portfolio dashboard: account value, best and worst stock, and holdings by breed" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/22.webp" alt="The garden of optimism, where the portfolio is managed as a garden" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/23.webp" alt="The tavern, where you can view the leaderboard, talk to other students and read news" loading="lazy" decoding="async" />
+  </figure>
 </div>
 
 <div class="cs-grid">

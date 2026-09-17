@@ -317,6 +317,32 @@ title: Play · Sid Mehta
       }
       /* Columns, not grid -- see the note on the markup. column-fill: balance
          is what keeps the last column from running short by half a screen. */
+      .play-grid > .is-held {
+        display: none !important;
+      }
+      .play-more {
+        display: block;
+        margin: clamp(28px, 4vw, 52px) auto clamp(40px, 6vw, 80px);
+        padding: 13px 26px;
+        border: 1px solid var(--line, rgba(255, 255, 255, 0.18));
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--play-ink, #eef3fa);
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 11.5px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .play-more:hover,
+      .play-more:focus-visible {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.34);
+      }
+
       .play-grid {
         column-width: 320px;
         column-gap: var(--sp-4, 16px);
@@ -1175,10 +1201,53 @@ title: Play · Sid Mehta
              while on-screen ones waited. */
           for (var n = 0; n < 3; n++) eager[top + n] = true;
         }
+        /* ══ 225 PIECES IS NOT A FIRST IMPRESSION ══════════════════════════
+           Measured: the archive built a 39,344px column inside a 44,893px
+           page. Forty-seven screens of it, and a screenshot of the page timed
+           out at thirty seconds. Nobody scrolls that, and the pieces at the
+           bottom are the ones nobody ever sees -- so showing all of them at
+           once is not generosity, it is the reason most of them go unseen.
+
+           The first 72 stand, which is still six or seven screens of work, and
+           the rest wait behind one control that says how many there are. The
+           page comes down to about a third of its height and the archive is
+           still all there for anyone who wants it. Nothing is removed.
+
+           Held with a class rather than by not building them, because the
+           lightbox, the reveal observer and the clip loader all index into
+           `built` and `sources` in step -- unbuilding the tail would put every
+           one of those out of alignment for a saving the browser already
+           makes by not laying out a `display: none` subtree. */
+        var HOLD_FROM = 72;
+        if (built.length > HOLD_FROM + 12) {
+          for (var hi = HOLD_FROM; hi < built.length; hi++) built[hi].classList.add("is-held");
+          var more = document.createElement("button");
+          more.type = "button";
+          more.className = "play-more";
+          more.textContent = "Show all " + built.length + " pieces";
+          more.addEventListener("click", function () {
+            for (var k = HOLD_FROM; k < built.length; k++) built[k].classList.remove("is-held");
+            more.remove();
+            /* The held tail never got a src, because the eager/lazy pass below
+               ran while it was hidden and the reveal observer never saw it.
+               Attach on release so the pictures actually arrive. */
+            for (var m = HOLD_FROM; m < built.length; m++) {
+              var el = built[m];
+              if (sources[m].type !== "video" && !el.getAttribute("src")) {
+                el.loading = "lazy";
+                el.src = sources[m].src;
+              }
+            }
+          });
+          grid.parentNode.insertBefore(more, grid.nextSibling);
+        }
+
         built.forEach(function (image, index) {
           /* A <video> has no `loading` attribute, and its source is attached
              on reveal rather than here — see the observer below. */
           if (sources[index].type === "video") return;
+          /* The held tail is not fetched until it is asked for. */
+          if (image.classList.contains("is-held")) return;
           image.loading = eager[index] ? "eager" : "lazy";
           if (eager[index]) image.setAttribute("fetchpriority", "high");
           image.src = sources[index].src;

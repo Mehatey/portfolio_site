@@ -172,16 +172,30 @@ next_project:
 <p class="cube-cap cube-cap--above">
   <em>What I wanted the space to feel like: quiet enough to think, open enough not to feel alone.</em>
 </p>
-<div class="cs-bleed">
+<!-- ── A RUN OF PEERS IS A RAIL, NOT A COLUMN ─────────────────────────
+     Sid: "think about where we can have horizontally scrollable media,
+     because a lot of the media are sometimes similar ... it becomes a
+     long-ass scroll of just the same type of thing."
+
+     These are peers with no reading order -- consecutive full-bleed frames of
+     the same kind, each about 780px tall, so three of them is two and a half
+     screens of vertical scroll spent on one idea. Sideways they are one
+     screen, and the fact that they are a set becomes visible instead of being
+     something a reader has to remember from four swipes ago.
+
+     Only runs of three or more convert. Two frames read as a pair and a pair
+     reads better stacked; a rail with two items in it is a scrollbar with
+     nothing to scroll. -->
+<div class="cs-rail" tabindex="0" role="group" aria-label="Broken and Beautiful frames, scroll sideways">
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/5.bb/4.webp" alt="Space reference: what it should feel like" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/5.bb/5.webp" alt="The cardboard prototype, the responses plotted by emotion, and a sketch of the stand on a Manhattan street" loading="lazy" decoding="async" />
-</div>
-
-<div class="cs-bleed">
+  </figure>
+  <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/5.bb/6.webp" alt="In the city's rush, we often feel small. This space is an oasis, a break from it all" loading="lazy" decoding="async" />
+  </figure>
 </div>
 
 <div class="cs-grid">
@@ -237,22 +251,36 @@ next_project:
   </div>
 </div>
 
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/5.bb/board5.mp4" type="video/mp4" />
-  </video>
-</div>
+<!-- ── A RUN OF PEERS IS A RAIL, NOT A COLUMN ─────────────────────────
+     Sid: "think about where we can have horizontally scrollable media,
+     because a lot of the media are sometimes similar ... it becomes a
+     long-ass scroll of just the same type of thing."
 
-<div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/5.bb/board6.mp4" type="video/mp4" />
-  </video>
-</div>
+     These are peers with no reading order -- consecutive full-bleed frames of
+     the same kind, each about 780px tall, so three of them is two and a half
+     screens of vertical scroll spent on one idea. Sideways they are one
+     screen, and the fact that they are a set becomes visible instead of being
+     something a reader has to remember from four swipes ago.
 
-<div class="cs-bleed">
+     Only runs of three or more convert. Two frames read as a pair and a pair
+     reads better stacked; a rail with two items in it is a scrollbar with
+     nothing to scroll. -->
+<div class="cs-rail" tabindex="0" role="group" aria-label="Broken and Beautiful frames, scroll sideways">
+  <figure class="cs-rail-item">
   <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-    <source data-src="{{ site.baseurl }}/5.bb/board7.mp4" type="video/mp4" />
+  <source data-src="{{ site.baseurl }}/5.bb/board5.mp4" type="video/mp4" />
   </video>
+  </figure>
+  <figure class="cs-rail-item">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+  <source data-src="{{ site.baseurl }}/5.bb/board6.mp4" type="video/mp4" />
+  </video>
+  </figure>
+  <figure class="cs-rail-item">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+  <source data-src="{{ site.baseurl }}/5.bb/board7.mp4" type="video/mp4" />
+  </video>
+  </figure>
 </div>
 
 <div class="bb-process-link-bar">
