@@ -6,6 +6,7 @@
        page silently exceeds iOS Safari's ~8-context limit and an unrelated
        canvas goes blank. See assets/js/gl-budget.js. -->
     <script src="{{ '/assets/js/gl-budget.js' | relative_url }}"></script>
+    <script src="{{ '/assets/js/about-portrait.js' | relative_url }}" defer></script>
 
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="{{ site.baseurl }}/favicon.svg" />
@@ -392,116 +393,47 @@
          The bloom drifts, slowly and only vertically, so the top of the frame
          is never quite still. Twenty-two seconds, well under any threshold
          where a visitor would call it an animation. */
-      /* ── THE TOP OF THE PICTURE IS IN MOTION ─────────────────────────────
-         Sid: "add some layer blur and motion blur to the top of my pic and
-         also add some slow effects."
+      /* ── AND BOTH BLUR LAYERS ARE GONE ─────────────────────────────────
+         Sid: "i dont like the blur and the treatment of my image on about,
+         the blur isnt good, it looks like a weird cloud, the whole image is
+         blurred. when it moves or animates its super janky. im not a fan.
+         can you try something else or make it better."
 
-         Two blurs, doing different jobs, which is why one was not enough.
+         Every word of that is a symptom of the same three decisions, and he
+         has now objected to some version of them four times.
 
-         The LAYER blur is this element: an over-scaled copy of the portrait
-         sitting behind it, heavily defocused, spilling upward past where the
-         picture ends. It is what the masked top edge dissolves INTO, so the
-         space the mask takes is filled with the photograph's own colour
-         rather than page background.
+         WHY IT LOOKED LIKE A CLOUD. There were three softening layers over
+         one photograph: a 34px-blurred over-scaled copy behind it, three
+         copies of the top band stacked with `background-blend-mode: screen`
+         and blurred again, and a four-layer mask of drifting radial blobs
+         cutting the picture itself. Screen-blending a photograph with two
+         offset copies of itself IS how you make a cloud -- the highlights
+         compound and the edges stop existing. None of the three was wrong on
+         its own; together they were a weather system.
 
-         The MOTION blur is directional -- see .about-ident-drag below. A
-         gaussian blur is a lens out of focus; a blur along one axis is a
-         thing that MOVED, and it is the second one that makes the top of the
-         frame read as unresolved rather than merely soft. */
-      .about-ident-bloom {
-        position: absolute;
-        left: -14%;
-        right: -14%;
-        top: -22%;
-        height: 78%;
-        z-index: 0;
-        pointer-events: none;
-        background-image: var(--bloom-src);
-        background-size: cover;
-        background-position: center 26%;
-        filter: blur(34px) saturate(0.7) brightness(0.86);
-        opacity: 0.5;
-        -webkit-mask-image: linear-gradient(180deg, transparent 0%, #000 34%, #000 62%, transparent 100%);
-        mask-image: linear-gradient(180deg, transparent 0%, #000 34%, #000 62%, transparent 100%);
-        animation: about-bloom-drift 22s ease-in-out infinite alternate;
-      }
-      /* ── AND THE BLOOM'S OWN BLEED HAD TO BE CORRECTED ────────────────
-         `left: -14%; right: -14%` is a deliberate bleed, and it was measured
-         against a narrower ancestor. Once `.hero-ident` became the containing
-         block the same percentages resolved against the full column, which on
-         a 390px screen put the bloom's right edge at 445 -- 55px of body
-         overflow, exactly what QA reported.
+         WHY IT WAS JANKY. Both of the blurred layers were animated, and an
+         animated transform on a `filter: blur(34px)` box cannot be handed to
+         the compositor -- the blur is re-rendered from source every frame at
+         full size. The blob mask was worse: animating the POSITION of three
+         radial gradients re-rasterises the whole mask sixty times a second.
+         Three expensive re-rasters a frame, on the largest element on the
+         page, is the jank, and no amount of easing would have fixed it.
 
-         Zeroed below the breakpoint where the hero stops being two columns.
-         The bleed is a desktop nicety: at 390px there is no margin either
-         side for it to bleed INTO, so it was only ever making a scrollbar. */
-      @media (max-width: 900px) {
-        .about-ident-bloom {
-          left: 0;
-          right: 0;
-        }
-      }
-      html[data-theme="light"] .about-ident-bloom {
-        opacity: 0.34;
-        filter: blur(34px) saturate(0.66) brightness(1.06);
-      }
-      @keyframes about-bloom-drift {
-        from {
-          transform: translateY(0) scale(1);
-        }
-        to {
-          transform: translateY(2.2%) scale(1.05);
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .about-ident-bloom {
-          animation: none;
-        }
-      }
+         WHAT REPLACED IT. A crisp photograph, and a dissolve made of
+         PIXELS. The top of the frame breaks into squares that get sparser as
+         they rise, so the picture stops being a rectangle without anything
+         being blurred -- which is the whole point. It is also the site's own
+         language rather than a borrowed one: the cursor is a pixel block,
+         the nav icons are pixel drawings, the footer field is pixels, and
+         this portrait already resolves out of a colour-cell grid when you
+         approach it. A photograph dissolving into the same squares belongs
+         here in a way a lens blur never did.
 
-      /* The motion smear. Three copies of the top band offset vertically and
-         stacked at low opacity, which is what a real motion blur IS -- a
-         subject sampled at several points along its travel. Cheaper and more
-         accurate than a filter, and the only way to get direction into it.
-
-         Masked to the top fifth, because a smear over the face would read as
-         a mistake rather than as a treatment. */
-      .about-ident-drag {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        height: 34%;
-        z-index: 2;
-        pointer-events: none;
-        background-image: var(--bloom-src), var(--bloom-src), var(--bloom-src);
-        background-size: cover, cover, cover;
-        background-position:
-          center 0%,
-          center 1.4%,
-          center 3%;
-        background-blend-mode: screen, screen, normal;
-        filter: blur(3px) brightness(0.9) saturate(0.8);
-        opacity: 0.55;
-        -webkit-mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 42%, transparent 100%);
-        mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 42%, transparent 100%);
-        animation: about-drag 19s ease-in-out infinite alternate;
-      }
-      @keyframes about-drag {
-        from {
-          transform: translateY(0) scaleY(1);
-          opacity: 0.42;
-        }
-        to {
-          transform: translateY(-1.6%) scaleY(1.05);
-          opacity: 0.62;
-        }
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .about-ident-drag {
-          animation: none;
-        }
-      }
+         And it does not move. The mask is one static SVG, generated once
+         with a fixed seed so the dissolve is identical on every build and in
+         every theme -- no filter, no blend, nothing to re-raster, nothing to
+         animate. The motion on this element is now the one motion a visitor
+         asks for: the colour-cell resolve on approach. */
 
       /* ── THE PORTRAIT STAYS WHILE YOU READ ────────────────────────────
          The two paragraphs now live in a 200vh sticky section inside the
@@ -538,35 +470,10 @@
           position: static;
         }
       }
-      /* The blob breathes. Three of the four mask layers move; the fourth is
-         the top fade and stays put, or the dissolve into the nav would slide
-         up and down the page. */
-      @keyframes aboutBlob {
-        0%,
-        100% {
-          --blob-a: 62% 58% at 34% 40%;
-          --blob-b: 58% 64% at 68% 56%;
-          --blob-c: 70% 52% at 50% 74%;
-        }
-        33% {
-          --blob-a: 66% 54% at 40% 46%;
-          --blob-b: 54% 70% at 62% 50%;
-          --blob-c: 64% 58% at 56% 70%;
-        }
-        66% {
-          --blob-a: 58% 62% at 30% 44%;
-          --blob-b: 62% 58% at 72% 60%;
-          --blob-c: 72% 50% at 46% 78%;
-        }
-      }
-      /* Registered so the percentages interpolate. An unregistered custom
-         property has no type and can only be swapped at each keyframe, which
-         would make the blob jump three times a cycle instead of drifting. */
-      @property --blob-a {
-        syntax: "*";
-        inherits: false;
-        initial-value: 62% 58% at 34% 40%;
-      }
+      /* The @property registration for --blob-a went with the blob. It
+         existed so three radial-gradient positions could interpolate across
+         a 26s cycle, which is the animation that was re-rasterising the
+         mask every frame. Nothing interpolates now. */
       @media (prefers-reduced-motion: reduce) {
         .about-profile-card {
           animation: none !important;
@@ -603,18 +510,22 @@
            The drift is on the MASK, not on the image: moving the picture
            would make the face swim, which is the difference between an
            abstract frame and a broken one. */
-        --blob-a: 62% 58% at 34% 40%;
-        --blob-b: 58% 64% at 68% 56%;
-        --blob-c: 70% 52% at 50% 74%;
-        -webkit-mask-image:
-          radial-gradient(var(--blob-a), #000 58%, transparent 74%), radial-gradient(var(--blob-b), #000 56%, transparent 76%),
-          radial-gradient(var(--blob-c), #000 54%, transparent 78%), linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 12%, #000 26%);
-        mask-image:
-          radial-gradient(var(--blob-a), #000 58%, transparent 74%), radial-gradient(var(--blob-b), #000 56%, transparent 76%),
-          radial-gradient(var(--blob-c), #000 54%, transparent 78%), linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 12%, #000 26%);
-        -webkit-mask-composite: source-in;
-        mask-composite: add, add, intersect;
-        animation: aboutBlob 26s ease-in-out infinite;
+        /* The dissolve. 24 columns by 9 rows of square dropouts over the
+           top fifth, each cell's survival weighted by the square of its
+           distance down the band -- so the bottom of the band is almost
+           solid, the top is a scatter, and there is no smooth ramp anywhere
+           in it. Generated with a fixed seed and inlined, so it is the same
+           picture every build and costs one decode.
+
+           preserveAspectRatio="none" lets the 24 columns stretch to whatever
+           the card's width is, which keeps the cells square-ish at every
+           breakpoint without a media query. */
+        -webkit-mask-image: url("data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 40%22 preserveAspectRatio=%22none%22><g fill=%22white%22><rect x=%228%22 y=%222%22 width=%221%22 height=%221%22/><rect x=%2222%22 y=%222%22 width=%221%22 height=%221%22/><rect x=%226%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%2216%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%223%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%224%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%225%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%226%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%2219%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%222%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%224%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%225%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%226%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%227%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2211%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2213%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2214%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2217%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2218%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2219%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2220%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2221%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%222%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%223%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%224%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%225%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%227%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2211%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2213%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2214%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2218%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2219%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2220%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2222%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%227%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2211%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2213%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2214%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2215%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2217%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2221%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2222%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2223%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%222%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%223%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%224%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%225%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%226%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%227%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2211%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2213%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2214%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2215%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2216%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2217%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2219%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2220%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2221%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2222%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2223%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%229%22 width=%2224%22 height=%2231%22/></g></svg>");
+        mask-image: url("data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 40%22 preserveAspectRatio=%22none%22><g fill=%22white%22><rect x=%228%22 y=%222%22 width=%221%22 height=%221%22/><rect x=%2222%22 y=%222%22 width=%221%22 height=%221%22/><rect x=%226%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%2216%22 y=%223%22 width=%221%22 height=%221%22/><rect x=%223%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%224%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%225%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%226%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%2219%22 y=%224%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%222%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%224%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%225%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%226%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%227%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2211%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2213%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2214%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2217%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2218%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2219%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2220%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%2221%22 y=%225%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%222%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%223%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%224%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%225%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%227%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2211%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2213%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2214%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2218%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2219%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2220%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%2222%22 y=%226%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%227%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2211%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2213%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2214%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2215%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2217%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2221%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2222%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%2223%22 y=%227%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%221%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%222%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%223%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%224%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%225%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%226%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%227%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%228%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%229%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2210%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2211%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2212%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2213%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2214%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2215%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2216%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2217%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2219%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2220%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2221%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2222%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%2223%22 y=%228%22 width=%221%22 height=%221%22/><rect x=%220%22 y=%229%22 width=%2224%22 height=%2231%22/></g></svg>");
+        -webkit-mask-size: 100% 100%;
+        mask-size: 100% 100%;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
         /* ── NOT A CARD ────────────────────────────────────────────────────
            Sid: "the card looks way too basic, like a Figma UI card."
 
@@ -702,6 +613,58 @@
          carefully not a rectangle, so at rest the soft edge was simply hidden
          under a hard one. Same mask, so the cells end where the photograph
          ends. */
+      /* ── THE SHADER LAYER ────────────────────────────────────────────────
+         assets/js/about-portrait.js. It sits above the photograph and the
+         pixel canvas and, once it is actually drawing, both of those stand
+         down -- see .gl-live. Two treatments of the same face at once is how
+         the cloud got built in the first place. */
+      .about-gl {
+        position: absolute;
+        inset: 0;
+        z-index: 4;
+        width: 100%;
+        height: 100%;
+        display: block;
+        pointer-events: none;
+      }
+      /* When the shader is live it OWNS the picture. The card drops its own
+         mask, because the shader draws its own silhouette and a square
+         dissolve laid over a metaball one would cut the blob into steps. The
+         photograph goes invisible but stays in the DOM -- it is the alt text
+         and it is the texture source. The 2D cell canvas stops competing,
+         and .about-focus, which is a backdrop-filter band walking down the
+         frame on an animated mask-position, comes out entirely: it is the
+         third animated blur on this element and the most expensive of them,
+         since animating a mask over a backdrop-filter re-blurs the backdrop
+         every frame. */
+      .about-profile-card.gl-live {
+        -webkit-mask-image: none !important;
+        mask-image: none !important;
+        /* And the card stops being a card. The shader draws its own
+           silhouette, so anything the element paints for itself -- ground,
+           edge, shadow, radius -- shows up as the rectangle the silhouette
+           was supposed to replace. Photographed with a dark panel corner
+           sitting outside the blob at the top left. */
+        background: none !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        overflow: visible !important;
+      }
+      .about-profile-card.gl-live .about-photo,
+      .about-profile-card.gl-live .about-pixels {
+        opacity: 0 !important;
+      }
+      .about-profile-card.gl-live .about-focus {
+        display: none !important;
+      }
+      /* The specular sweep and the two vignette gradients were drawn for a
+         rectangle. There is not one any more, so they read as a ghost frame
+         standing just outside the silhouette. */
+      .about-profile-card.gl-live::before,
+      .about-profile-card.gl-live::after {
+        content: none !important;
+      }
       .about-pixels {
         position: absolute;
         inset: 0;
@@ -2822,7 +2785,6 @@
                sides sitting between the photograph and the navigation, which
                is a rectangle however soft its top is. The card's own blob
                mask already does the dissolving. -->
-          <span class="about-ident-drag" aria-hidden="true"></span>
           <div
             class="about-profile-card"
             id="about-profile-card"
