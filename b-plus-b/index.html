@@ -18177,7 +18177,18 @@
        which is the opposite of what he asked for. */
     width: 38px;
     height: 38px;
-    border-radius: 50%;
+    /* ── THE PLATE IS A ROUNDED SQUARE NOW ───────────────────────────
+       Sid: "i do like the bg liquify and warping ... of the big translucent
+       circle, i would like that animation to be mixed into the pixel cursor."
+
+       So the displacement plate stays exactly as it is -- same `url(#cur-lens)`
+       warp, same edge, same specular -- and stops being a disc. A circle
+       carrying a pixel cluster reads as two unrelated objects that happen to
+       share a position; a rounded square carrying one reads as a pane with
+       pixels in it, which is the same grammar as every glyph on this site.
+       The radius is generous enough that it is still clearly glass and not a
+       tile. */
+    border-radius: 6px;
     /* Barely there. The body only has to catch the light at the top and pool
        very slightly at the bottom; anything more and it stops being see
        through. */
@@ -23526,44 +23537,142 @@
          Outlines rather than fills, because the ring is an outline. A filled
          wake would be a different object trailing the cursor instead of the
          cursor's own history. */
-      var grad = streak();
-      var G = 8;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.strokeStyle = grad;
-      for (var k = 0; k < G; k++) {
-        var gt = k / (G - 1);
-        /* Sampled off the chain rather than spaced evenly in screen space, so
-           the ghosts bunch up when you slow down and string out when you
-           sweep. The spacing IS the speed, which is the same trick the old
-           line used, just told in objects. */
-        var gi = 1 + Math.round(gt * (N - 3));
-        var p = pts[gi];
-        /* Starts just under the 13px ring and runs down. Nothing here is ever
-           bigger than the pointer: a wake that outgrew its source would read
-           as something chasing you. */
-        var sz = 11 * (1 - gt * 0.62);
-        /* Circle to square. Full radius at the head, none at the tail. */
-        var rad = (sz / 2) * Math.pow(1 - gt, 1.6);
-        var ga = (1 - gt) * (1 - gt) * 0.78 * (light ? 0.9 : 1);
-        if (ga < 0.012) break;
-        /* The far ghosts turn with the gesture. A square that stays axis
-           aligned while the hand moves diagonally looks pasted on; one that
-           leans into the direction of travel looks left behind. */
-        var vx1 = pts[gi - 1].x - p.x,
-          vy1 = pts[gi - 1].y - p.y;
-        var ang = Math.atan2(vy1, vx1) * gt * 0.5;
+      /* ══ A PIXEL CURSOR, AND THE ABERRATION IS THE MOVEMENT ═══════════
+         Sid: "i asked for a pixel chromatic aberration movement liquifying
+         pixel cursor with a nice elegant trail. my current cursor is a range
+         of different circles."
 
-        ctx.globalAlpha = ga;
-        ctx.lineWidth = 1.5 * (1 - gt * 0.45);
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(ang);
-        ctx.beginPath();
-        if (ctx.roundRect) ctx.roundRect(-sz / 2, -sz / 2, sz, sz, rad);
-        else ctx.rect(-sz / 2, -sz / 2, sz, sz);
-        ctx.stroke();
-        ctx.restore();
+         Fair, and the eight rings this replaces were exactly that: circles
+         becoming squares, drawn as outlines. Everything below is squares only,
+         and the square is the site's own unit -- the nav glyphs, the strip
+         field, the logo are all built from it, and the pointer was the one
+         thing still drawn with a compass.
+
+         THE GRID IS REAL. Every cell is snapped to a CELL-pixel lattice with
+         `Math.round(x / CELL) * CELL`, so the trail does not slide smoothly
+         after the pointer -- it steps, cell to cell, the way a pixel cursor
+         in a game does. Unsnapped squares are just small rectangles following
+         a mouse; the snap is what makes it read as pixels.
+
+         THE ABERRATION IS DRIVEN BY SPEED, which is the part he asked for
+         twice. Three passes -- warm, cool, and the bright core -- offset along
+         the direction of travel by a distance proportional to velocity. At
+         rest the three coincide and the cursor is one clean cluster; on a
+         sweep they separate and the head smears into red and blue fringes,
+         then snap back together the moment you stop. That is what chromatic
+         aberration IS: a lens failing to bring wavelengths to the same point,
+         and the failure scaling with how hard you push it.
+
+         THE LIQUIFY STAYS ON THE PLATE. The displacement he likes --
+         `url(#cur-lens)` on #cur-dot -- is untouched and still bends the page
+         behind the pointer; it is now a rounded square rather than a disc so
+         it belongs to the same family. This canvas draws the pixels over it,
+         so the two read as one object: a warped pane with a pixel cluster
+         sitting in it.
+
+         Additive in the dark, source-over on cream, same as the streak it
+         replaces, because light accumulates and ink does not. */
+      /* 4, not 3. At a 3px cell the trail is six device pixels on a 2x
+         screen, which is under the threshold where a square reads as a square
+         rather than as a speck -- measured on the page, the wake was present
+         in the canvas and invisible to the eye. 4 is the same cell the nav
+         glyphs and the strip field use, which is also the point. */
+      var CELL = 4;
+      var snap = function (v) {
+        return Math.round(v / CELL) * CELL;
+      };
+      var head = pts[0];
+      var hvx = pts[0].x - pts[1].x,
+        hvy = pts[0].y - pts[1].y;
+      var speed = Math.min(1, Math.hypot(hvx, hvy) / 26);
+      var dirx = 0,
+        diry = 0;
+      if (speed > 0.001) {
+        var hl = Math.hypot(hvx, hvy) || 1;
+        dirx = hvx / hl;
+        diry = hvy / hl;
+      }
+
+      /* The cluster: a plus of five cells, which is the smallest shape that
+         reads as a cursor rather than as a speck, and the same figure the nav
+         icons are built from. */
+      var CLUSTER = [
+        [0, 0],
+        [-1, 0],
+        [1, 0],
+        [0, -1],
+        [0, 1],
+      ];
+
+      /* Fringe distance. Two and a half cells at full tilt, which is enough
+         to see the colours part and not enough to break the cluster into
+         three separate cursors. */
+      /* 3.5 cells at full tilt, up from 2.5. The fringes have to clear the
+         core cluster to read as dispersion; at 2.5 they sat inside its own
+         footprint and the three passes just made the head brighter. */
+      var ab = speed * CELL * 3.5;
+
+      var passes = light
+        ? [
+            [-ab, "rgba(196,64,96,", 0.5],
+            [ab, "rgba(34,96,196,", 0.5],
+            [0, "rgba(16,26,44,", 0.92],
+          ]
+        : [
+            [-ab, "rgba(255,110,140,", 0.55],
+            [ab, "rgba(110,190,255,", 0.6],
+            [0, "rgba(226,246,255,", 0.95],
+          ];
+
+      for (var pi = 0; pi < passes.length; pi++) {
+        var off = passes[pi][0],
+          col = passes[pi][1],
+          al = passes[pi][2];
+        /* The fringes only exist while moving. At rest three coincident
+           passes would just thicken the core, and a cursor that is heavier
+           standing still than in motion has the physics backwards. */
+        if (off !== 0) al *= speed;
+        ctx.fillStyle = col + al.toFixed(3) + ")";
+        for (var ci = 0; ci < CLUSTER.length; ci++) {
+          var cx0 = snap(head.x + dirx * off) + CLUSTER[ci][0] * CELL;
+          var cy0 = snap(head.y + diry * off) + CLUSTER[ci][1] * CELL;
+          ctx.fillRect(cx0 - CELL / 2, cy0 - CELL / 2, CELL, CELL);
+        }
+      }
+
+      /* ── THE TRAIL IS THE SAME CELL, LOSING ITS GRIP ──────────────────
+         Sampled off the chain so the spacing is the speed -- cells bunch when
+         you slow and string out when you sweep, which is the one property of
+         the old line worth keeping. Each step is a single cell, dimmer and
+         with a one-in-three chance of being dropped as it goes back, so the
+         tail dissolves into loose pixels rather than ending on a hard stop.
+         The drop is seeded off the node index, not Math.random, or it would
+         flicker every frame instead of holding still. */
+      var STEPS = 16;
+      for (var t2 = 1; t2 < STEPS; t2++) {
+        var tt = t2 / STEPS;
+        var ni = 1 + Math.round(tt * (N - 3));
+        var q = pts[ni];
+        /* Was (1-tt)^2 * 0.62, which spends almost all of its alpha in the
+           first three cells and leaves the rest of the wake below the
+           threshold of visible. A linear-ish falloff carries weight the whole
+           length of the trail, which is what makes it read as a wake rather
+           than as a slightly wide cursor. */
+        var qa = (1 - tt * 0.82) * 0.85 * life * (light ? 0.9 : 1);
+        if (qa < 0.02) break;
+        /* Deterministic thinning: the further back, the more cells sit out. */
+        if (tt > 0.34 && (ni * 2654435761) % 3 === 0) continue;
+        ctx.fillStyle = (light ? "rgba(26,42,72," : "rgba(186,226,255,") + qa.toFixed(3) + ")";
+        var sx = snap(q.x),
+          sy = snap(q.y);
+        ctx.fillRect(sx - CELL / 2, sy - CELL / 2, CELL, CELL);
+        /* One companion cell on the perpendicular for the first third, so the
+           near trail has body and the far trail is a single thread. */
+        if (tt < 0.34) {
+          ctx.globalAlpha = 0.55;
+          ctx.fillRect(sx - CELL / 2 - diry * CELL, sy - CELL / 2 + dirx * CELL, CELL, CELL);
+          ctx.globalAlpha = 1;
+        }
       }
 
       ctx.globalAlpha = 1;
@@ -24073,10 +24182,29 @@
       var denom = Math.max(1, Math.abs(lagX) + Math.abs(lagY));
       var ux = lagX / denom,
         uy = lagY / denom;
-      var lead = (50 - lag * 16).toFixed(1),
-        trail = (50 + lag * 20).toFixed(1);
+      /* ── THE LIQUIFY, BASED ON A SQUARE ───────────────────────────────
+         Sid: "i do like the bg liquify and warping ... of the big translucent
+         circle, i would like that animation to be mixed into the pixel
+         cursor."
+
+         This is that animation and none of it changes: the plate still leads
+         and trails and still deforms asymmetrically along the lag vector,
+         which is the surface tension he is describing. What changes is the
+         shape it deforms FROM. The base was 50%, which is a circle by
+         definition, so every frame of a very good liquify was spent on the
+         one form the pixel cluster has nothing to do with.
+
+         32% is a generously rounded square. It reads as a pane of glass with
+         pixels in it rather than as a bubble that happens to have pixels
+         beside it, and the deformation is if anything more legible on a shape
+         with corners -- a corner stretching is visible where an arc
+         stretching is not. The deform terms keep their full amplitude, so a
+         fast sweep still pulls it into a teardrop. */
+      var BASE = 32;
+      var lead = (BASE - lag * 14).toFixed(1),
+        trail = (BASE + lag * 22).toFixed(1);
       var q = function (a, b) {
-        return (50 + (a * ux + b * uy) * lag * 15).toFixed(1) + "%";
+        return (BASE + (a * ux + b * uy) * lag * 15).toFixed(1) + "%";
       };
       dot.style.borderRadius =
         q(-1, -1) + " " + q(1, -1) + " " + q(1, 1) + " " + q(-1, 1) + " / " + lead + "% " + lead + "% " + trail + "% " + trail + "%";
