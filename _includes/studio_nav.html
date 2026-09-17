@@ -514,7 +514,26 @@
     gap: 8px;
     min-height: 48px;
     outline: none;
-    transform: translateX(calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px)));
+    /* ── LEFT OF THE LINE, AND NOT A TRANSFORM ────────────────────────
+       Sid: "shouldn't my logo be on the left side of the line rather than on
+       the right side?"
+
+       It should, and the rule asking for it was being silently cancelled.
+       The offset was `translateX`, and `.studio-mark` runs the `markForm`
+       entrance with `animation-fill-mode: both`, whose final keyframe is
+       `transform: scale(1) rotate(0deg)`. A filled animation wins over the
+       stylesheet's own transform, so the computed value was the identity
+       matrix and the mark sat where the flex row put it: left edge exactly on
+       the grid line. Measured `matrix(1, 0, 0, 1, 0, 0)` on a rule asking for
+       a 46px shift.
+
+       That is the second time this animation has quietly eaten a property it
+       had no business owning; the first was the nav's backdrop-filter, two
+       commits ago. The number itself was always right -- `--grid-left/2 + 18`
+       centres the mark in the margin -- it simply had to stop being a
+       transform. A margin cannot be overwritten by a keyframe, so the
+       position holds and the entrance keeps the transform it needs. */
+    margin-left: calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px));
   }
   /* ── AND IT ARRIVES AS THE HERO LEAVES ────────────────────────────────
      Not a fade in place: it rises, the way a caption arrives under something
