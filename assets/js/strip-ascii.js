@@ -451,13 +451,30 @@
            visibly the colour of the picture and still obviously behind it. */
         var a = 0.2 + v * 0.07 + flare * 0.55;
 
-        /* The pointer. A warm patch rather than a circle of cells, same
-           reasoning as before: a hard radius following the mouse is a
-           cursor, a falloff is light. */
+        /* ── THE POINTER LIFTS THE WALL ─────────────────────────────────
+           Sid: "when i hover on pixels in bg of this let it be more of a
+           hover effect and a glow and it should feel like that area is
+           getting uplifted or something else in hover."
+
+           It was one line: add 0.34 to the alpha inside a gaussian. A patch
+           of the wall going brighter is a light being shone on a flat
+           surface, which is the opposite of the surface moving.
+
+           Three things together read as RISING, and none of them is
+           brightness on its own: the cells near the pointer grow, they move
+           UP off their own grid position, and they carry a halo under them.
+           The grid is regular, so a cell that has left its slot is visibly
+           out of line with its neighbours -- that broken alignment is what
+           the eye reads as height, the same way a dropped shadow does.
+
+           `wgt` is the proximity, 0 to 1, computed once and used by all
+           three below rather than recomputed per effect. */
+        var wgt = 0;
         if (warm > 0) {
           var wx = x - px,
             wy = (y - py) * 1.6;
-          a += Math.exp(-(wx * wx + wy * wy) / 12000) * 0.34 * warm;
+          wgt = Math.exp(-(wx * wx + wy * wy) / 11000) * warm;
+          a += wgt * 0.42;
         }
 
         /* The click's ring. A band of brightness whose radius grows and whose
@@ -477,12 +494,33 @@
 
         if (a <= 0.012) continue;
 
-        bgx.globalAlpha = Math.min(0.72, a);
+        bgx.globalAlpha = Math.min(0.8, a);
         /* Two pixels of gap, and a radius that grows with the flare, so a
            cell the front is passing through swells into a rounder, brighter
-           dot and settles back to a square. */
-        var sz = CELL - 3 + flare * 2;
-        var rad = 1 + flare * 2;
+           dot and settles back to a square. The pointer adds to both, and
+           takes the cell up off its row. */
+        var sz = CELL - 3 + flare * 2 + wgt * 3.4;
+        var rad = 1 + flare * 2 + wgt * 1.8;
+        /* Up and back toward its own centre, so it grows about the middle
+           instead of sliding right as it gets wider. */
+        var oy = 2 - wgt * 5.5;
+        var ox = 2 - wgt * 1.7;
+
+        /* The halo. A second, larger, much fainter copy under the cell rather
+           than `shadowBlur`, which is a per-fill blur and is the one thing in
+           this loop that would actually cost frames -- there are several
+           hundred cells and the shadow would be recomputed for every one.
+           Gated above a threshold so it is drawn for the handful of cells
+           near the pointer and for nothing else. */
+        if (wgt > 0.06 && !isStar) {
+          bgx.globalAlpha = Math.min(0.34, a * 0.4) * wgt;
+          var hsz = sz + 7 * wgt;
+          bgx.beginPath();
+          if (bgx.roundRect) bgx.roundRect(x + ox - (hsz - sz) / 2, y + oy - (hsz - sz) / 2, hsz, hsz, rad + 2);
+          else bgx.rect(x + ox - (hsz - sz) / 2, y + oy - (hsz - sz) / 2, hsz, hsz);
+          bgx.fill();
+          bgx.globalAlpha = Math.min(0.8, a);
+        }
         bgx.beginPath();
         if (isStar) {
           /* Sid: "can we have some animated pixel-star and sky-type icons?"
@@ -497,8 +535,8 @@
           bgx.rect(x + CELL / 2 - arm / 2, y + CELL / 2 + c - arm, arm, arm);
           bgx.rect(x + CELL / 2 - c, y + CELL / 2 - arm / 2, arm, arm);
           bgx.rect(x + CELL / 2 + c - arm, y + CELL / 2 - arm / 2, arm, arm);
-        } else if (bgx.roundRect) bgx.roundRect(x + 2, y + 2, sz, sz, rad);
-        else bgx.rect(x + 2, y + 2, sz, sz);
+        } else if (bgx.roundRect) bgx.roundRect(x + ox, y + oy, sz, sz, rad);
+        else bgx.rect(x + ox, y + oy, sz, sz);
         bgx.fill();
       }
     }
