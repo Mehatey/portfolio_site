@@ -1991,12 +1991,30 @@
        refraction and the rim rather than the paint. Legibility is unchanged
        because the type it protects sits in the pill, which has its own
        surface. */
-    background: linear-gradient(180deg, rgba(6, 10, 16, 0.42) 0%, rgba(6, 10, 16, 0.34) 55%, rgba(6, 10, 16, 0.18) 84%, rgba(6, 10, 16, 0) 100%);
-    -webkit-backdrop-filter: blur(30px) saturate(1.9) brightness(0.9);
-    backdrop-filter: blur(30px) saturate(1.9) brightness(0.9);
-    -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 88%, transparent 100%);
-    mask-image: linear-gradient(180deg, #000 0%, #000 88%, transparent 100%);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    /* ── CONTROLLED, NOT SMEARED ──────────────────────────────────────
+       Sid: "I don't like how we have this blurred shadow on the bottom
+       because when we have duller brownish colors, it looks really ugly ...
+       should we have a more strict sort of a line on the bottom where we have
+       it more glassy ... but also a little bit more controlled."
+
+       Two things made it ugly over a photograph. `saturate(1.9)` nearly
+       doubles the chroma of whatever is behind it, so a brown hotel lobby or
+       a red banner does not soften as it passes under the bar, it intensifies
+       into a smear of colour. And the mask feathered the last twelve per cent
+       away, so the panel had no bottom -- it dissolved into the picture,
+       which is what reads as a shadow rather than as glass.
+
+       Glass takes colour OUT of what it diffuses, so saturate goes below one.
+       The tint is a touch heavier and neutral, so the band holds its own
+       value rather than borrowing the picture's. And the panel ends on a
+       hairline instead of a fade: an edge is what makes a surface read as a
+       surface, and it is the "strict line" he asked for. */
+    background: linear-gradient(180deg, rgba(8, 11, 17, 0.52) 0%, rgba(8, 11, 17, 0.46) 62%, rgba(8, 11, 17, 0.4) 100%);
+    -webkit-backdrop-filter: blur(26px) saturate(0.72) brightness(0.86);
+    backdrop-filter: blur(26px) saturate(0.72) brightness(0.86);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.11);
   }
   /* The specular edge, as its own element so it is not subject to the mask
      that dissolves the panel below it. A single hairline, brightest in the
@@ -2059,7 +2077,7 @@
        mask carried the blur to 88, leaving a pale blurred stripe under the
        panel with a line across the top of it. On cream that stripe was the
        more obvious of the two. */
-    -webkit-backdrop-filter: blur(30px) saturate(1.4) brightness(1.05);
+    -webkit-backdrop-filter: blur(26px) saturate(0.8) brightness(1.05);
     backdrop-filter: blur(30px) saturate(1.4) brightness(1.05);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
   }
@@ -2167,12 +2185,27 @@
        so the offset is the bare 56 rather than the full expression -- adding
        the token again put it at 171 instead of 114. */
     left: 56px;
-    top: 50%;
+    /* ── CENTRED BY THE BOX, NOT BY A HALF PIXEL ──────────────────────
+       Sid: "there's a lot of smearing happening in the nav bar and even in
+       tooltip text."
+
+       `top: 50%` with `translateY(-50%)` centres by measuring the element
+       against itself, and when its height is odd the result is a fractional
+       offset -- measured on the project title, `translateY(-0.796875px)`.
+       Text drawn at a fractional vertical offset is resampled, which is
+       exactly the soft, smeared look he is pointing at, and it appears only
+       on the routes where the bar carries a title.
+
+       Stretching the element to the bar's full height and centring its
+       CONTENTS with flex gives the same position with no transform at all,
+       so every glyph lands on the pixel grid. */
+    top: 0;
+    bottom: 0;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 12px;
     max-width: clamp(220px, 34vw, 520px);
-    transform: translateY(calc(-50% + 7px));
+    transform: none;
     opacity: 0;
     pointer-events: none;
     transition:
@@ -2181,7 +2214,7 @@
   }
   body.nav-titled .studio-now {
     opacity: 1;
-    transform: translateY(-50%);
+    transform: none;
   }
   .studio-now b {
     flex: 0 0 auto;
@@ -3022,9 +3055,47 @@
       filter: blur(0);
     }
   }
+  /* ── AND THE MARK FORMS WITHOUT A FILTER ──────────────────────────────
+     Sid: "does my logo mark still look a little blurred and smeared? Please
+     check all this smearing."
+
+     It does, and this is the third property `markForm` has quietly taken
+     hostage. `animation-fill-mode: both` retains the final keyframe forever,
+     and that keyframe sets `filter: blur(0)`. Blur of zero is not nothing: the
+     computed value is a filter list, which promotes the element to its own
+     composited layer, and a promoted layer sitting at a fractional offset --
+     measured, the mark lands at x=12.01 -- is resampled rather than drawn on
+     the pixel grid. That resampling is the smear. It is the same mechanism
+     that broke the nav's backdrop-filter and the mark's own position, both
+     traced to this one animation.
+
+     The blur is doing nothing for a 36px mark anyway. Scale and opacity give
+     the same arrival and leave no filter behind, so the mark rasterises sharp
+     at every step. */
+  @keyframes markFormSharp {
+    0% {
+      opacity: 0;
+      transform: scale(0.72) rotate(-6deg);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+  }
   html.mark-forms .studio-mark,
   html.mark-forms .site-logo {
-    animation: markForm 820ms cubic-bezier(0.2, 1.3, 0.36, 1) both;
+    animation: markFormSharp 820ms cubic-bezier(0.2, 1.3, 0.36, 1) both;
+  }
+  /* A belt for the brace: anything that leaves a filter on the mark, now or
+     later, is overridden here. A logo is the one element on the page that has
+     to be pixel crisp on every route. */
+  .studio-mark,
+  .studio-mark .logo-cube,
+  .mark-fly {
+    filter: none;
+  }
+  .studio-mark .logo-cube {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
   }
   /* ── THE BAR FORMS ON OPACITY AND NOTHING ELSE ────────────────────────
      Sid: "when u scroll the nav bar behind it the content feels weird ...
