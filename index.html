@@ -4118,9 +4118,24 @@
         pointer-events: auto;
       }
 
+      .cg-stage model-viewer {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background: transparent;
+        --progress-bar-color: transparent;
+        --poster-color: transparent;
+      }
+
+      /* ── AND HE STANDS CLEAR OF THE SENTENCE ──────────────────────────
+         Sid: "on the right of the text". At dead centre his left hand landed
+         on the comma after "designer" -- the headline runs to about x=830 at
+         this width and his silhouette started at 790. 58% puts his near edge
+         past the end of the longest line with air between them, and he is
+         still inside the measure rather than pushed into the margin. */
       .cg-stage {
         position: absolute;
-        left: 50%;
+        left: 58%;
         /* Dead centre, not 38%. He was lifted up the frame to clear a block
            of copy sitting along the bottom edge; the copy is on his own
            centre line now, in the gap this canvas occupies, so anything other
@@ -12954,8 +12969,32 @@
              and does not gain one here. -->
           <div class="hero-scene" id="hero-scene" data-base="" aria-hidden="true"></div>
 
+          <!-- ══ THE CHARACTER, NOT THE POINT CLOUD ══════════════════════
+               Sid: "i dont want this 3d character there was another 3d
+               character model right".
+
+               There was, and it is the real one. What stood here was
+               cube-guy.js, a depth map: the model sampled to 55,843 points
+               and drawn as gl.POINTS. It is a good effect and it is not a
+               character -- at hero size it reads as a grey speckled figure,
+               which is why Sid did not recognise him.
+
+               `cube-guy-rigged.glb` is the actual model: white cube head with
+               the face, the orange tee with his signature on it, teal
+               trousers, navy shoes. 2.4MB, and it ships SIX baked animations
+               -- Idle, ClickReact, Wave, Walk, Look, ThoughtRelease -- which
+               is the whole brief already authored. "Just standing" is Idle.
+               "Dancing when you click on him" is ClickReact. Neither needs a
+               sine wave from me.
+
+               model-viewer rather than raw WebGL, unlike everything else on
+               this page, because a rigged GLB needs a glTF parser, a skinning
+               pipeline and an animation mixer. That is three of the four
+               reasons three.js exists, and hand-rolling them to avoid a
+               dependency the site already loads for the cap and the Buddha
+               would be the wrong kind of stubborn. -->
           <div class="cg-stage" id="cg-stage" aria-hidden="true">
-            <canvas id="cg-gl" data-base=""></canvas>
+            <model-viewer id="cg-model" src="/assets/models/cube-guy-rigged.glb" camera-orbit="18deg 82deg 105%" field-of-view="30deg" environment-image="neutral" exposure="1.05" shadow-intensity="0.4" shadow-softness="1" animation-name="Idle" autoplay disable-zoom disable-pan disable-tap interaction-prompt="none" loading="eager"></model-viewer>
           </div>
 
            
@@ -25773,7 +25812,81 @@
     </style>
 
     <script src="/assets/js/home-gl.js" defer></script>
-    <script src="/assets/js/cube-guy.js" defer></script>
+    <!-- cube-guy.js is no longer loaded on this page. It owns the point
+         cloud, and the rigged model has replaced it; running both would put
+         two figures in one box and pay for 55,843 points nobody sees. The
+         file stays in the repo because /cube-guy/ still uses it further down
+         that page for the depth-map section, which is where the effect
+         actually belongs. -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
+    <script>
+      /* ── HE STANDS, AND HE REACTS ────────────────────────────────────────
+         Idle runs from load. A click swaps to ClickReact once and hands back
+         to Idle when it finishes, so the reaction is a beat rather than a new
+         resting state. `animation-crossfade-duration` is what stops the swap
+         reading as a cut.
+
+         The wave is kept for first arrival: he greets you once, then settles.
+         Sid asked for an opening animation and the model already carries the
+         right one. */
+      (function () {
+        var m = document.getElementById("cg-model");
+        if (!m) return;
+        var stage = document.getElementById("cg-stage");
+        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        function play(name, then) {
+          if (!m.availableAnimations || m.availableAnimations.indexOf(name) === -1) return false;
+          m.animationName = name;
+          m.play({ repetitions: 1 });
+          if (then) {
+            var dur = (m.duration || 1.2) * 1000 + 80;
+            setTimeout(then, dur);
+          }
+          return true;
+        }
+        function rest() {
+          m.animationName = "Idle";
+          m.play();
+        }
+
+        m.addEventListener("load", function () {
+          stage.classList.add("is-live");
+          m.animationCrossfadeDuration = 320;
+          if (reduce) {
+            rest();
+            return;
+          }
+          /* One wave on arrival, then standing. */
+          if (!play("Wave", rest)) rest();
+        });
+
+        /* A click, not a drag: the model-viewer canvas is not draggable here
+           (zoom, pan and tap are all off) but a pointer that travels is still
+           somebody selecting text behind him. */
+        var dx = 0,
+          dy = 0,
+          busy = false;
+        stage.addEventListener("pointerdown", function (e) {
+          dx = e.clientX;
+          dy = e.clientY;
+        });
+        stage.addEventListener("pointerup", function (e) {
+          if (busy || reduce) return;
+          if (Math.abs(e.clientX - dx) + Math.abs(e.clientY - dy) > 8) return;
+          busy = true;
+          if (window.__sidNote) window.__sidNote(7);
+          if (
+            !play("ClickReact", function () {
+              rest();
+              busy = false;
+            })
+          ) {
+            busy = false;
+          }
+        });
+      })();
+    </script>
     <!-- One damped scroll velocity for the whole page to read, as --sv and
          --sva on <html> and window.__sv() for the WebGL layers. Loaded before
          anything that consumes it. -->
