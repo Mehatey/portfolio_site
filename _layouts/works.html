@@ -1018,7 +1018,13 @@
           </div>
           <ul class="wk-grid">
             {% for w in featured %} {% assign img_base = w.img | remove: ".webp" | remove: ".jpg" | remove: ".jpeg" | remove: ".png" %}
-            <li>
+            <!-- The lane travels with the card. Counted: the pills are built
+                 from every visible project, but the lane grids below render
+                 only the NON-featured ones, so "Product design 3" showed one
+                 card and "Culture, brand and image 6" showed five. The three
+                 up here are the missing two and one. Filtering this row with
+                 the rest makes every count exact. -->
+            <li data-lane="{{ w.lane }}">
               <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}" {% if w.cube %} data-cube="{{ w.cube }}" {% endif %}>
                 <div class="wk-cover">
                   <img
@@ -1209,6 +1215,9 @@
         (function () {
           var pills = [].slice.call(document.querySelectorAll(".wk-pill"));
           var lanes = [].slice.call(document.querySelectorAll(".wk-lane"));
+          var shelf = document.querySelector(".wk-featured");
+          var featuredCards = shelf ? [].slice.call(shelf.querySelectorAll("li[data-lane]")) : [];
+          var shelfCount = shelf ? shelf.querySelector(".wk-lane-n") : null;
           if (!pills.length || !lanes.length) return;
           pills.forEach(function (btn) {
             btn.addEventListener("click", function () {
@@ -1224,6 +1233,31 @@
                    no filter. */
                 sec.hidden = want !== "all" && lane !== want;
               });
+              /* ── AND THE SHELF FILTERS WITH THEM ──────────────────────
+                 Sid: "check that the filters on the work page work properly."
+
+                 They ran, but the numbers lied. The pills count every visible
+                 project while the lane grids render only the ones that are
+                 not featured, so the three cards on the top shelf were in
+                 every total and in no filter: "Product design 3" produced one
+                 card, "Culture, brand and image 6" produced five. Measured
+                 against the data -- product 3 all / 1 unfeatured, culture 6 /
+                 5, ai 5 / 5 -- the shortfall is exactly the two product and
+                 one culture project sitting on the shelf.
+
+                 So the shelf answers the filter too, and the heading says
+                 which set it is showing. Every pill now renders its own
+                 number. */
+              featuredCards.forEach(function (li) {
+                li.hidden = want !== "all" && li.getAttribute("data-lane") !== want;
+              });
+              if (shelf) {
+                var left = featuredCards.filter(function (li) {
+                  return !li.hidden;
+                }).length;
+                shelf.hidden = left === 0;
+                if (shelfCount) shelfCount.textContent = left;
+              }
             });
           });
         })();
