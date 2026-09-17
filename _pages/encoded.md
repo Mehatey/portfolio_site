@@ -230,12 +230,12 @@ next_project:
      pointer. Swap it back to an <a> the moment the URL is known. -->
 <div style="padding:0 var(--gutter);margin-top:40px;display:flex;gap:16px;flex-wrap:wrap;">
   <div class="enc-award-tile enc-award-tile--static" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;">
-    <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
+    <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.09em;text-transform:uppercase;color:rgba(178,214,255,0.9);margin-bottom:8px;">Webby Winner · 2026</p>
     <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Use of Augmented Reality</p>
     <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">Apps, Software & Immersive</p>
   </div>
   <a href="https://winners.webbyawards.com/2026/apps-software-immersive/immersive-experiences/best-community-engagement/365377/encoded-an-unsanctioned-takeover-of-the-metropolitan-museum-of-art" target="_blank" rel="noopener" class="enc-award-tile" style="flex:1;min-width:240px;border:1px solid rgba(255,255,255,0.08);padding:20px 24px;text-decoration:none;transition:border-color 0.2s,background 0.2s;">
-    <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:rgba(156,198,255,0.75);margin-bottom:8px;">Webby Winner · 2026</p>
+    <p class="enc-award-kicker" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.09em;text-transform:uppercase;color:rgba(178,214,255,0.9);margin-bottom:8px;">Webby Winner · 2026</p>
     <p class="enc-award-title" style="font-family:var(--font-head);font-size:15px;color:rgba(255,255,255,0.85);font-weight:500;margin-bottom:4px;">Best Community Engagement</p>
     <p class="enc-award-sub" style="font-family:var(--font-mono);font-size:10px;color:rgba(255,255,255,0.5);">Apps, Software & Immersive</p>
     <span class="xarrow" aria-hidden="true"></span>
