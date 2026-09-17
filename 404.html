@@ -8564,7 +8564,9 @@
     align-items: start;
     column-gap: clamp(32px, 6vw, 120px);
     row-gap: clamp(20px, 3.4vh, 38px);
-    padding: 0 var(--gutter, clamp(22px, 4vw, 64px)) 0;
+    /* Bottom padding is the room the corner ornament stands in. See
+       .ftr__buddha above. */
+    padding: 0 var(--gutter, clamp(22px, 4vw, 64px)) clamp(84px, 9vw, 120px);
     max-width: 1560px;
     margin: clamp(-220px, -22vh, -120px) auto 0;
     position: relative;
@@ -9449,6 +9451,51 @@
   html[data-theme="light"] .ftr__jaali {
     opacity: 0.5;
   }
+  .ftr__buddha {
+    /* ── IN THE CORNER, NOT ON THE LINKS ──────────────────────────────
+       First placement put it at x 1206..1335 over a right column that runs
+       to 1321, so it sat on top of Behance, Resume and the colophon line.
+       Measured rather than eyeballed, and the fix is room rather than a
+       nudge: the footer body carries bottom padding for it now and the head
+       sits under the text in the corner, which is where an ornament belongs
+       anyway. Slightly smaller too -- at 132px it was competing with the
+       type rather than accompanying it. */
+    /* ── IN THE FLOW, SO IT CANNOT LAND ON ANYTHING ───────────────────
+       Two absolute placements both sat on the colophon line -- measured at
+       x 1249..1350 against a right column that right-aligns to 1321, so
+       "Built with lots of love and coffee" ran straight through the head. An
+       absolute ornament in a corner shared with right-aligned text is a
+       collision waiting for the next copy change.
+
+       So it is the last item in the right column instead. It cannot overlap
+       what it is stacked under, it right-aligns with the links above it by
+       itself, and if the colophon ever gains a line the head moves down with
+       it rather than onto it. */
+    margin: clamp(18px, 2.4vw, 34px) 0 0 auto;
+    width: clamp(72px, 7vw, 104px);
+    aspect-ratio: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 900ms ease;
+    z-index: 2;
+  }
+  .ftr__buddha.is-live {
+    opacity: 0.62;
+  }
+  .ftr__buddha model-viewer {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: transparent;
+    --progress-bar-color: transparent;
+    --poster-color: transparent;
+  }
+  @media (max-width: 760px) {
+    .ftr__buddha {
+      display: none;
+    }
+  }
+
   /* The body has to clear the band, or the colophon sits inside the lattice. */
   .ftr__body {
     padding-bottom: 78px;
@@ -9765,6 +9812,99 @@
     }
   }
 </style>
+<script>
+  /* ── THE FOOTER BUDDHA ────────────────────────────────────────────────
+     Built only when the footer is close, and it stops turning the moment it
+     leaves. A model-viewer left on `auto-rotate` at the bottom of every page
+     is a WebGL context and an animation loop running for the whole visit
+     behind content nobody has scrolled to -- the same waste the cap tile in
+     the strip was fixed for.
+
+     18 degrees a second. Sid asked for slow and a head coming round in twenty
+     seconds reads as contemplative; anything quicker reads as a product
+     turntable, which is the wrong register for this object in particular. */
+  /* ── AFTER THE MARKUP, NOT BEFORE IT ──────────────────────────────────
+     This script sits in the footer's <style>/<script> head, which the include
+     emits BEFORE the footer's own markup -- so `getElementById("ftr-buddha")`
+     returned null on first run and the whole thing returned silently. Every
+     guard passed, the element existed by the time anybody looked, and the
+     model simply never built: the worst kind of bug, because there is nothing
+     in the console to find. Deferred to DOM ready, which is true in every
+     case including a cached parse. */
+  function startFooterBuddha() {
+    var host = document.getElementById("ftr-buddha");
+    if (!host) return;
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var built = false;
+
+    function lib() {
+      if (window.customElements && customElements.get("model-viewer")) return;
+      if (document.querySelector("script[data-mv-lib]")) return;
+      var t = document.createElement("script");
+      t.type = "module";
+      t.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js";
+      t.crossOrigin = "anonymous";
+      t.setAttribute("data-mv-lib", "");
+      document.head.appendChild(t);
+    }
+
+    function build() {
+      if (built) return;
+      built = true;
+      lib();
+      var mv = document.createElement("model-viewer");
+      mv.setAttribute("src", "/assets/models/buddha-web.glb");
+      mv.setAttribute("camera-orbit", "0deg 82deg 105%");
+      mv.setAttribute("field-of-view", "26deg");
+      mv.setAttribute("environment-image", "neutral");
+      mv.setAttribute("exposure", "1.1");
+      mv.setAttribute("shadow-intensity", "0");
+      mv.setAttribute("auto-rotate", "");
+      mv.setAttribute("rotation-per-second", "18deg");
+      mv.setAttribute("auto-rotate-delay", "0");
+      mv.setAttribute("interaction-prompt", "none");
+      mv.setAttribute("disable-zoom", "");
+      mv.setAttribute("disable-pan", "");
+      mv.setAttribute("disable-tap", "");
+      mv.setAttribute("loading", "lazy");
+      mv.addEventListener("load", function () {
+        host.classList.add("is-live");
+      });
+      host.appendChild(mv);
+
+      if ("IntersectionObserver" in window) {
+        new IntersectionObserver(
+          function (es) {
+            var on = es[0].isIntersecting && !document.hidden;
+            if (on) mv.setAttribute("auto-rotate", "");
+            else mv.removeAttribute("auto-rotate");
+          },
+          { threshold: 0 }
+        ).observe(host);
+      }
+    }
+
+    if ("IntersectionObserver" in window) {
+      /* `new IntersectionObserver(...).observe(host)` returns undefined, so
+         assigning that to `io` and then calling `io.disconnect()` in the
+         callback throws -- and because the throw happens inside an observer
+         callback it never reached the page error handler, so the only symptom
+         was a model that silently never built. Construct, keep the reference,
+         then observe. */
+      var io = new IntersectionObserver(
+        function (es) {
+          if (!es[0].isIntersecting) return;
+          io.disconnect();
+          build();
+        },
+        { rootMargin: "600px" }
+      );
+      io.observe(host);
+    } else build();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", startFooterBuddha);
+  else startFooterBuddha();
+</script>
 
 <!-- No record contains a space: multi-word facts are written with `~` and put
      back with `replace` at the point of use. Prettier reflows a capture block
@@ -13736,6 +13876,24 @@
           </nav>
 
           <p class="ftr__made">Built with lots of love and coffee</p>
+          <!-- ══ THE BUDDHA IN THE CORNER ══════════════════════════════════
+               Sid: "in small i want u to add the buddha head to footer and make
+               it rotate slowly somewhere either on the bottom left or the bottom
+               right."
+
+               Bottom right, because bottom left is where the CTA sits and a
+               slowly turning head beside "Let's build something" would compete
+               with the one thing in the footer that is asking to be clicked.
+
+               The same buddha-web.glb the screensaver and /bloom/ use, so this
+               adds no asset -- it is the same 1.8MB file, already cached by the
+               time most visitors reach a footer. Nothing is requested until the
+               footer is near the viewport, and it stops turning when it is not.
+
+               It is decoration rather than a control, so it is aria-hidden and
+               takes no pointer events: a rotating object that cannot be clicked
+               should not be reachable by a keyboard either. -->
+          <div class="ftr__buddha" id="ftr-buddha" aria-hidden="true"></div>
         </div>
 
         
@@ -21106,142 +21264,72 @@
          Outlines rather than fills, because the ring is an outline. A filled
          wake would be a different object trailing the cursor instead of the
          cursor's own history. */
-      /* ══ A PIXEL CURSOR, AND THE ABERRATION IS THE MOVEMENT ═══════════
-         Sid: "i asked for a pixel chromatic aberration movement liquifying
-         pixel cursor with a nice elegant trail. my current cursor is a range
-         of different circles."
+      /* ══ A PIXEL CURSOR, SECOND ATTEMPT ═══════════════════════════════
+         Sid: "the cursor looks terrible what is this plus hospital sign and
+         the trail looks bad too, its supposed to feel like a pixel cursor."
 
-         Fair, and the eight rings this replaces were exactly that: circles
-         becoming squares, drawn as outlines. Everything below is squares only,
-         and the square is the site's own unit -- the nav glyphs, the strip
-         field, the logo are all built from it, and the pointer was the one
-         thing still drawn with a compass.
+         Both fair. The first attempt drew a plus of five cells, and a plus of
+         five cells is a medical cross -- there is no reading of it that is not
+         that. And the trail was one cell per step with a deterministic
+         thinning, which at 4px produced a dotted diagonal: a line of specks,
+         not a wake.
 
-         THE GRID IS REAL. Every cell is snapped to a CELL-pixel lattice with
-         `Math.round(x / CELL) * CELL`, so the trail does not slide smoothly
-         after the pointer -- it steps, cell to cell, the way a pixel cursor
-         in a game does. Unsnapped squares are just small rectangles following
-         a mouse; the snap is what makes it read as pixels.
+         What actually reads as a pixel cursor is a BLOCK. The terminal caret,
+         the Mac 8-bit era, every pixel-art game: a solid square of a couple of
+         cells, hard-edged, sitting on the grid. It cannot be mistaken for a
+         glyph because it is not a glyph, and the square is the site's own unit.
 
-         THE ABERRATION IS DRIVEN BY SPEED, which is the part he asked for
-         twice. Three passes -- warm, cool, and the bright core -- offset along
-         the direction of travel by a distance proportional to velocity. At
-         rest the three coincide and the cursor is one clean cluster; on a
-         sweep they separate and the head smears into red and blue fringes,
-         then snap back together the moment you stop. That is what chromatic
-         aberration IS: a lens failing to bring wavelengths to the same point,
-         and the failure scaling with how hard you push it.
-
-         THE LIQUIFY STAYS ON THE PLATE. The displacement he likes --
-         `url(#cur-lens)` on #cur-dot -- is untouched and still bends the page
-         behind the pointer; it is now a rounded square rather than a disc so
-         it belongs to the same family. This canvas draws the pixels over it,
-         so the two read as one object: a warped pane with a pixel cluster
-         sitting in it.
-
-         Additive in the dark, source-over on cream, same as the streak it
-         replaces, because light accumulates and ink does not. */
-      /* 4, not 3. At a 3px cell the trail is six device pixels on a 2x
-         screen, which is under the threshold where a square reads as a square
-         rather than as a speck -- measured on the page, the wake was present
-         in the canvas and invisible to the eye. 4 is the same cell the nav
-         glyphs and the strip field use, which is also the point. */
+         So the head is a 2x2 block of cells -- 8px, one object -- and the wake
+         is the same block getting smaller, every step drawn, nothing skipped.
+         Fewer steps and each one solid beats many steps and each one a dot. */
       var CELL = 4;
       var snap = function (v) {
         return Math.round(v / CELL) * CELL;
       };
+
       var head = pts[0];
       var hvx = pts[0].x - pts[1].x,
         hvy = pts[0].y - pts[1].y;
-      var speed = Math.min(1, Math.hypot(hvx, hvy) / 26);
-      var dirx = 0,
-        diry = 0;
-      if (speed > 0.001) {
-        var hl = Math.hypot(hvx, hvy) || 1;
-        dirx = hvx / hl;
-        diry = hvy / hl;
+      var hl = Math.hypot(hvx, hvy);
+      var speed = Math.min(1, hl / 26);
+      var dirx = hl > 0.001 ? hvx / hl : 0,
+        diry = hl > 0.001 ? hvy / hl : 0;
+
+      /* ── THE BLOCK, AND THE FRINGES IT SPLITS INTO ────────────────────
+         Two cells square. The warm pass trails and the cool pass leads,
+         because that is which way a lens throws them, and both are scaled by
+         speed so a still cursor is one clean white block with no colour on it
+         at all. At full tilt they part by a cell and a half, which is visible
+         as a fringe and not enough to read as three cursors. */
+      var BS = CELL * 2;
+      var ab = speed * CELL * 1.5;
+
+      function block(x, y, size, fill) {
+        ctx.fillStyle = fill;
+        ctx.fillRect(snap(x) - size / 2, snap(y) - size / 2, size, size);
       }
 
-      /* The cluster: a plus of five cells, which is the smallest shape that
-         reads as a cursor rather than as a speck, and the same figure the nav
-         icons are built from. */
-      var CLUSTER = [
-        [0, 0],
-        [-1, 0],
-        [1, 0],
-        [0, -1],
-        [0, 1],
-      ];
-
-      /* Fringe distance. Two and a half cells at full tilt, which is enough
-         to see the colours part and not enough to break the cluster into
-         three separate cursors. */
-      /* 3.5 cells at full tilt, up from 2.5. The fringes have to clear the
-         core cluster to read as dispersion; at 2.5 they sat inside its own
-         footprint and the three passes just made the head brighter. */
-      var ab = speed * CELL * 3.5;
-
-      var passes = light
-        ? [
-            [-ab, "rgba(196,64,96,", 0.5],
-            [ab, "rgba(34,96,196,", 0.5],
-            [0, "rgba(16,26,44,", 0.92],
-          ]
-        : [
-            [-ab, "rgba(255,110,140,", 0.55],
-            [ab, "rgba(110,190,255,", 0.6],
-            [0, "rgba(226,246,255,", 0.95],
-          ];
-
-      for (var pi = 0; pi < passes.length; pi++) {
-        var off = passes[pi][0],
-          col = passes[pi][1],
-          al = passes[pi][2];
-        /* The fringes only exist while moving. At rest three coincident
-           passes would just thicken the core, and a cursor that is heavier
-           standing still than in motion has the physics backwards. */
-        if (off !== 0) al *= speed;
-        ctx.fillStyle = col + al.toFixed(3) + ")";
-        for (var ci = 0; ci < CLUSTER.length; ci++) {
-          var cx0 = snap(head.x + dirx * off) + CLUSTER[ci][0] * CELL;
-          var cy0 = snap(head.y + diry * off) + CLUSTER[ci][1] * CELL;
-          ctx.fillRect(cx0 - CELL / 2, cy0 - CELL / 2, CELL, CELL);
-        }
+      if (speed > 0.02) {
+        block(head.x - dirx * ab, head.y - diry * ab, BS, (light ? "rgba(198,54,92," : "rgba(255,104,138,") + (0.5 * speed).toFixed(3) + ")");
+        block(head.x + dirx * ab, head.y + diry * ab, BS, (light ? "rgba(30,92,198," : "rgba(104,186,255,") + (0.55 * speed).toFixed(3) + ")");
       }
+      block(head.x, head.y, BS, light ? "rgba(14,22,38,0.95)" : "rgba(232,248,255,0.96)");
 
-      /* ── THE TRAIL IS THE SAME CELL, LOSING ITS GRIP ──────────────────
-         Sampled off the chain so the spacing is the speed -- cells bunch when
-         you slow and string out when you sweep, which is the one property of
-         the old line worth keeping. Each step is a single cell, dimmer and
-         with a one-in-three chance of being dropped as it goes back, so the
-         tail dissolves into loose pixels rather than ending on a hard stop.
-         The drop is seeded off the node index, not Math.random, or it would
-         flicker every frame instead of holding still. */
-      var STEPS = 16;
-      for (var t2 = 1; t2 < STEPS; t2++) {
-        var tt = t2 / STEPS;
-        var ni = 1 + Math.round(tt * (N - 3));
+      /* ── THE WAKE IS THE SAME BLOCK, STEPPING DOWN ────────────────────
+         Ten steps, sampled off the chain so the spacing is the speed. Each one
+         is a whole block, one cell smaller as it goes back, and every step is
+         drawn -- the gap between them is the pointer's own velocity rather
+         than a thinning rule. The last two are a single cell, which is where
+         a pixel wake should end: on one pixel. */
+      var STEPS = 10;
+      for (var k = 1; k <= STEPS; k++) {
+        var tt = k / STEPS;
+        var ni = Math.min(N - 1, 1 + Math.round(tt * (N - 3)));
         var q = pts[ni];
-        /* Was (1-tt)^2 * 0.62, which spends almost all of its alpha in the
-           first three cells and leaves the rest of the wake below the
-           threshold of visible. A linear-ish falloff carries weight the whole
-           length of the trail, which is what makes it read as a wake rather
-           than as a slightly wide cursor. */
-        var qa = (1 - tt * 0.82) * 0.85 * life * (light ? 0.9 : 1);
+        var sz = Math.max(CELL, BS - Math.round(tt * 1.4) * CELL);
+        var qa = (1 - tt * 0.86) * 0.7 * life * (light ? 0.95 : 1);
         if (qa < 0.02) break;
-        /* Deterministic thinning: the further back, the more cells sit out. */
-        if (tt > 0.34 && (ni * 2654435761) % 3 === 0) continue;
-        ctx.fillStyle = (light ? "rgba(26,42,72," : "rgba(186,226,255,") + qa.toFixed(3) + ")";
-        var sx = snap(q.x),
-          sy = snap(q.y);
-        ctx.fillRect(sx - CELL / 2, sy - CELL / 2, CELL, CELL);
-        /* One companion cell on the perpendicular for the first third, so the
-           near trail has body and the far trail is a single thread. */
-        if (tt < 0.34) {
-          ctx.globalAlpha = 0.55;
-          ctx.fillRect(sx - CELL / 2 - diry * CELL, sy - CELL / 2 + dirx * CELL, CELL, CELL);
-          ctx.globalAlpha = 1;
-        }
+        block(q.x, q.y, sz, (light ? "rgba(22,38,66," : "rgba(190,230,255,") + qa.toFixed(3) + ")");
       }
 
       ctx.globalAlpha = 1;
