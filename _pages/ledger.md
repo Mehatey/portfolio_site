@@ -9,13 +9,31 @@ quick_read: >
 category: Agentic AI · Design Systems
 year: "2026"
 hero_bg: "radial-gradient(ellipse at 45% 40%, #1b1e2c 0%, #12141d 55%, #0a0b11 100%)"
-hero_image: "17.ledger/00-landing.webp"
-hero_pos: "50% 26%"
-# No hero_mode: artifact here. That mode exists to tame a BRIGHT interface
-# screenshot with a heavy left-to-right scrim, which is right for Obin's pale
-# memo and wrong for this cover -- Ledger's landing is already near-black, so
-# the same scrim crushed "Read the work, not the tabs" to about 1.5:1. The
-# standard vertical ramp releases the middle of the frame and keeps it.
+hero_image: "17.ledger/01-review.webp"
+hero_pos: "50% 16%"
+# ── THE COVER IS THE PRODUCT NOW ──────────────────────────────────────────
+# Sid: "ledger cover pic looks bad and tells me nothing about the product, at
+# least mock it up or have a ui shot."
+#
+# Fair. 00-landing is the marketing page: a headline on a near-black ground
+# with most of the frame empty, and cropped to a hero band it showed almost
+# nothing but that emptiness. It told a visitor the project has a tagline.
+#
+# 01-review is the working surface, and it answers "what is this" in one
+# look: the three question strip, the candidate, the live prototype running
+# inline, the completeness checklist and the scorecard all visible at once.
+# A dense real interface is the honest cover for a tool, and the density is
+# the point rather than a problem -- nobody has to read it to understand
+# they are looking at something for reviewing submissions.
+#
+# hero_pos 16% rather than centre, because the top of this screenshot is
+# where the three questions and the name are. A centre crop would land on
+# the middle of the live preview and lose the frame that does the explaining.
+#
+# Still no hero_mode: artifact. That mode lays a heavy left-to-right scrim to
+# tame a BRIGHT screenshot, which is right for Obin's pale memo; this one is
+# already dark, and with the aperture the title sits on the frame's own foot
+# rather than on the picture, so there is nothing left for a scrim to fix.
 meta:
   - label: Year
     value: "2026"
