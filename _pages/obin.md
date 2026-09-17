@@ -45,6 +45,53 @@ next_project:
   <p>Obin's agent drafts a venture debt credit memo end to end. The draft is fluent, and fluency is the problem: a model that writes well makes a wrong number look exactly like a right one. This tool cannot stop a bad number. It can stop one from looking like a good one.</p>
 </div>
 
+<!-- ══ THE AGENT, WORKING AND THEN STOPPING ═══════════════════════════════
+     Sid: "for obin i do have one video, you can feed this up a little, its
+     some 50 seconds."
+
+     Sped to 1.4x, which is 52.6 seconds down to 37.5. That is the most it
+     takes without becoming unreadable: the whole point of the recording is
+     that you can see WHICH file the agent opened and WHICH figure it pulled
+     out of it, and past about 1.5x the filenames in the data room stop
+     resolving as you watch. It is not a time-lapse, it is evidence.
+
+     THE CAPTION DOES NOT STATE THE SPEED OR THE DURATION, and both were in
+     the first draft. "One and a half times" was wrong -- it is 1.4 -- and
+     "four minutes of work" contradicted the recording itself, whose own
+     status bar reads "3m of 3m" when it halts. A caption that argues with
+     the picture above it is worse than no caption, and the multiplier is a
+     fact about the encode rather than about the work.
+
+     It earns the top of the page because it is the argument in one take. The
+     first half is the agent doing the work -- reading the data room, the ARR
+     schedule, the public filings, the case law, and writing the memo with
+     every figure it asserts marked as it lands. The second half is the part
+     that makes this a design project rather than a demo: it STOPS. "Stopped,
+     waiting on you", and four things it will not decide -- the concentration
+     against the ceiling, the contract fragility, a round that does not
+     reconcile, a blanket lien it found in a public filing and the retention
+     figure it could not recompute.
+
+     Which is the page's whole thesis, shown instead of claimed: the machine
+     is fast at the part that is arithmetic and silent about the part that is
+     judgment, and the interface has to make the difference legible. -->
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The whole run, sped up. It reads the data room, writes the memo, marks every figure it asserts as it lands, and then stops and names the four things it will not decide.</em></p>
+<div class="cs-bleed">
+  <video width="1600" height="910" autoplay muted loop playsinline preload="auto" aria-label="The Obin agent reading a data room, drafting a credit memo with each asserted figure marked, then halting and listing four decisions for a person">
+    <source src="{{ site.baseurl }}/16.obin/v1-agent.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-intro">
+  <p>The speed is not the achievement. Four minutes to a drafted memo only matters if a person can tell, without rereading the data room, which of its numbers were proved and which were asserted well. Everything below is that distinction, made visible.</p>
+</div>
+
+<!-- ── AND THE WAY IN ──────────────────────────────────────────────────── -->
+<div class="cs-intro cs-try">
+  <p><a class="cs-try__link" href="{{ site.baseurl }}/ai-prototypes/obin/"><span>Open the Obin prototype</span><i aria-hidden="true">&rarr;</i></a></p>
+  <p class="cs-try__note">The verification workspace, running in this browser. Open any figure to see what it was proved against, or what it was not.</p>
+</div>
+
 <!-- The signature move -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Serif for what a person wrote. Monospace for what the machine asserted. The underline carries the state, so it survives being printed in black and white.</em></p>
 <div class="cs-bleed">
