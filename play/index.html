@@ -1126,7 +1126,24 @@
          about six the picture starts to distort and a photograph is not a
          card in a game. */
       .play-grid {
-        perspective: 1400px;
+        /* ── NO SHARED PERSPECTIVE ON A 39,000px COLUMN ──────────────────
+           Sid: "play page starts horribly warped."
+
+           This was it, and it was not the curl. `perspective` on a parent
+           projects every 3D child from that parent's OWN origin, which is the
+           centre of its box -- and this box is 39,344px tall, so the camera
+           sits roughly nineteen thousand pixels below anything at the top of
+           the page. A three degree rotateX from the scroll curve, applied to
+           a 381x610 photograph at that distance, came back measuring 451x2872
+           at y=-1161. Three of them, one at the head of each column, which is
+           the pile of stretched overlapping pictures on arrival.
+
+           The idea behind it was sound -- one vanishing point so the wall
+           bends as a single surface -- and it is simply not available on an
+           element this tall. Every item that needs depth already carries its
+           own `perspective()` inside its transform, at a distance scaled to
+           the thing being rotated, which is the only version that cannot
+           diverge. */
       }
       .play-grid img,
       .play-grid video {
@@ -5870,8 +5887,42 @@
               if (!el.classList.contains("is-in")) return;
               var r = rectOf(el);
               if (!r) return;
-              var TOP = h * 0.26;
+              /* ── THE CURL BAND WAS A QUARTER OF THE WINDOW ─────────────
+                 Sid: "play page starts horribly warped."
+
+                 It did, and this line is why. TOP was 26% of the viewport, so
+                 at rest -- before any scroll at all -- every card in the top
+                 quarter of the window was being rolled. On arrival that is the
+                 FIRST card in each of the three columns, which have never
+                 moved and are not leaving anything. Measured on load: a
+                 381x610 photograph came back with a rendered box of 451x2872
+                 at y=-1161, three of them, which is the pile of warped
+                 overlapping pictures in his screenshot.
+
+                 A card is leaving when it is at the very top edge, not when it
+                 is a quarter of the way down a screen somebody is reading. 6%
+                 is a strip, and a strip is what the gesture is for.
+
+                 The roll is smaller too. 34 degrees about the top edge swings
+                 a card's bottom toward the lens by height x sin(34), which for
+                 the 3,260px strips in this grid is 1,823px -- past any camera
+                 you can put in front of it, which is how a 610px card became
+                 2,872. 16 degrees with the same scaleY compression reads as
+                 the same gesture and cannot diverge. */
+              var TOP = h * 0.06;
               var BOT = h * 0.86;
+              /* And a card taller than the window can never leave cleanly:
+                 while its top is in the strip its bottom is still two screens
+                 below, so any rotation is applied to something that is mostly
+                 still being read. Those simply do not curl. */
+              if (r.height > h * 1.2) {
+                if (el.__curled) {
+                  el.style.transform = "";
+                  el.style.opacity = "";
+                  el.__curled = 0;
+                }
+                return;
+              }
 
               if (r.top < TOP) {
                 /* 0 as the top edge crosses into the band, 1 once the card is
@@ -5915,7 +5966,7 @@
                   "px) translateY(" +
                   (e * -8).toFixed(1) +
                   "px) rotateX(" +
-                  (e * 34).toFixed(1) +
+                  (e * 16).toFixed(1) +
                   "deg) rotateZ(" +
                   (e * 2).toFixed(2) +
                   "deg) scaleY(" +
