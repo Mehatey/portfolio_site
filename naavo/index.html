@@ -8321,6 +8321,44 @@
        to antialiasing than a thin light line on near-black. */
     stroke-width: 1;
   }
+
+  /* ── THINNER, BUT ONLY WHERE THINNER SURVIVES ─────────────────────────
+     Sid, a fourth time: "u can make my cube stroke size thinner overall its
+     taking too much eye real estate."
+
+     The three earlier reductions -- 1.55, 1.15, 0.9, 0.75 -- each stopped at
+     the same reasoning, written into the comment above: below about 0.7 a
+     non-scaling stroke drops out on a 1x screen. That is true and it is also
+     the wrong place to stop, because it holds every display to the limit of
+     the worst one. `non-scaling-stroke` means the number is device
+     INDEPENDENT pixels, so 0.75 is a single hairline at 1x and a solid 1.5
+     device pixels at 2x. There is room underneath it on a retina screen and
+     none on a cheap one.
+
+     So the floor becomes conditional. 0.75 stays as the base, which is what
+     a 1x display gets and the only place the dropout argument applies. At
+     2dppx and up the mark goes to 0.55 -- 1.1 device pixels, still a clean
+     solid line, and about a quarter less ink than before, which is the "eye
+     real estate" being asked for. Cream keeps its hair of extra weight for
+     the reason the rule above already gives: dark ink on a light ground
+     loses more of a thin line to antialiasing than light ink on near-black.
+
+     The scan line comes down with it. It is the same drawing and a sweep at
+     1.1 over faces at 0.55 would read as a highlight rather than as part of
+     the cube. */
+  @media (min-resolution: 2dppx) {
+    .studio-mark .logo-cube .cube-face,
+    .site-logo .logo-cube .cube-face {
+      stroke-width: 0.55;
+    }
+    html[data-theme="light"] .studio-mark .logo-cube .cube-face,
+    html[data-theme="light"] .site-logo .logo-cube .cube-face {
+      stroke-width: 0.72;
+    }
+    .studio-mark .logo-cube .logo-scan {
+      stroke-width: 0.85;
+    }
+  }
   html[data-theme="light"] .studio-mark:hover .logo-cube .cube-face,
   html[data-theme="light"] .studio-mark:focus-visible .logo-cube .cube-face {
     opacity: 0.72;
@@ -9579,7 +9617,41 @@
     display: flex;
     align-items: center;
     text-align: left;
-    max-width: min(52ch, calc(100vw - var(--grid-left) - 520px));
+    /* ── ONE LINE ──────────────────────────────────────────────────────
+       Sid: "for the cursor interactive dynamic text bubble we can have it
+       just one line so its not hard to read in 2 lines."
+
+       The wrap was not a space problem, which is why widening the bar would
+       never have fixed it. The cap was `min(52ch, available)` and 52ch at
+       14px is about 380px, while the band beside the mark measures 862px at
+       1440 -- so the 52ch was the binding constraint and the line was being
+       folded inside a 48px box with room to spare on both sides. Dropping
+       the ch cap and forbidding the wrap puts it on one line using space the
+       element already had.
+
+       The ellipsis is a floor, not the plan: at the narrowest desktop width
+       a long aside could still run out of band, and a clipped tail is better
+       than a second line pushed under a 48px bar. */
+    /* ── AND A WIDTH THAT SURVIVES BEING SHRINK-TO-FIT ─────────────────
+       Two bugs here, found by measuring rather than by reading. The first:
+       `calc(100vw - var(--grid-left) - 520px)` computed to `none`, because
+       --grid-left is itself a nested max() and the calc was dropped whole --
+       so the "cap" that was supposedly forcing the wrap had never applied to
+       anything. The second is the one that matters: this element is
+       absolutely positioned, so its width is shrink-to-fit, and an item
+       inside it carrying `overflow: hidden` has an automatic minimum size of
+       zero. The sentence therefore collapsed to 0x0 and the box sized itself
+       to the only thing left with an intrinsic width -- the ten 13px colour
+       swatches, measured at exactly 130px. The line was not wrapping. It was
+       gone.
+
+       `width: max-content` is what breaks that circularity: the sentence
+       contributes its full unwrapped width, the cap clamps the box, and the
+       paragraph then shrinks and ellipsises inside a width that is already
+       decided. */
+    width: max-content;
+    max-width: min(74ch, 46vw);
+    overflow: hidden;
     /* ── ABOVE THE SCRIM, NOT UNDER IT ─────────────────────────────────
        .studio-nav is z-index 9000 and paints a scrim across the whole top
        band, so at 8999 the line was rendered UNDERNEATH it. In dark mode the
@@ -9602,10 +9674,14 @@
      screens, so the thought sits just under it and still reads downward from
      the cube rather than upward from the floor. */
   @media (max-width: 900px) {
+    .cube-says__text {
+      white-space: normal;
+    }
     #cube-says {
       top: 68px;
       left: clamp(18px, 2.5vw, 40px);
       height: auto;
+      width: auto;
       max-width: min(44ch, calc(100vw - 48px));
     }
   }
@@ -9682,6 +9758,12 @@
      written in — because it is the same voice. */
   .cube-says__text {
     margin: 0;
+    /* One line, and the clip lives here rather than on the flex parent so
+       the ellipsis has a block to render in. */
+    white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-family: var(--font-head);
     font-size: 14px;
     /* Lifted from 400/--ink-2 when the line moved up to the logo. Down at the
@@ -18772,11 +18854,29 @@
     height: 28px !important;
   }
   /* The mark rests as a 2D face, then opens into a clean cube when explored. */
+  /* ── THE OTHER CUBE, WHICH IS THE THICK ONE ────────────────────────────
+     Sid: "u can make my cube stroke size thinner overall its taking too much
+     eye real estate."
+
+     There are two cubes on this site and only one of them had ever been
+     thinned. `.studio-mark .logo-cube .cube-face` in studio_nav.html came
+     down 1.55 -> 1.15 -> 0.9 -> 0.75 across three separate rounds of exactly
+     this note; this declaration, which dresses the bare `.logo-cube` that
+     site_logo.html emits on the project, about, 404 and prototype layouts,
+     sat at 1.35 the whole time. Two classes against three means it never
+     fought the nav mark and never got corrected with it, so the cube was
+     nearly twice as heavy on most of the site as on the home page -- which
+     is the version Sid keeps seeing and keeps asking about.
+
+     1.0 as the base, 0.75 at 2dppx. That is the weight the nav mark had
+     before this round rather than the weight it has after it, on purpose:
+     this one renders at 36px against the 28px mark, and matching numbers on
+     different sizes would make the larger drawing look underweight. */
   .logo-cube .cube-face {
     fill: currentColor;
     fill-opacity: 0;
     stroke: currentColor;
-    stroke-width: 1.35;
+    stroke-width: 1;
     stroke-linejoin: round;
     opacity: 0;
     transform-box: fill-box;
@@ -18785,6 +18885,11 @@
       opacity 0.42s var(--ease-out),
       transform 0.42s var(--ease-out),
       fill-opacity 0.42s ease;
+  }
+  @media (min-resolution: 2dppx) {
+    .logo-cube .cube-face {
+      stroke-width: 0.75;
+    }
   }
   .logo-cube .cube-top {
     transform: translateY(1.8px);
