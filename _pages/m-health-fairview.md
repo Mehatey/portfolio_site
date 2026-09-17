@@ -12,7 +12,7 @@ hero_bg: "radial-gradient(ellipse at 50% 35%, #3a0d16 0%, #1e0710 50%, #0a0305 1
 hero_image: "assets/img/fairview/cover.webp"
 hero_mode: artifact
 og_image: "assets/img/og/m-health-fairview.jpg"
-refl_bg: "assets/img/fairview/13-impact.webp"
+refl_bg: "assets/img/fairview/13-impact-crop.webp"
 meta:
   - label: Role
     value: Product Designer
@@ -126,7 +126,8 @@ next_project:
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">$13.6M in scheduling revenue, and 32% more new patients booking themselves.</p>
-<div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/fairview/13-impact.webp" alt="Our impact, key metrics" loading="lazy" style="animation:fvBreathe 6s ease-in-out infinite;" decoding="async" /></div>
+<!-- The "OUR IMPACT" title panel and the 3D climber above it are cropped off. Sid: "there's this whole image which says Our Impact, like it's a long image. We can cut that Our Impact 3D model section and just have this latter part of the image." A stock 3D character holding a flag is stage dressing in front of the only numbers on the page, and on a 2,545px tall image it is the first thousand pixels a reader has to scroll past to reach them. The crop starts at y=900, just above "With each update we elevate our customer's experience", which is where the content actually begins. -->
+<div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/fairview/13-impact-crop.webp" alt="Impact metrics: $13.6M revenue through scheduling, 22% more e-visits, 32% more new patients scheduling" loading="lazy" decoding="async" /></div>
 
 <div class="cs-section">
   <h2 class="cs-section-label">The system</h2>
