@@ -4124,13 +4124,48 @@
         overflow: visible !important;
         background: transparent !important;
       }
+      /* ══ THE BOX TAKES THE PICTURE'S SHAPE ═════════════════════════════
+         Sid: "a lot of the cover pics ... are too zoomed in, and I feel like
+         the project media is also a little too stretched. Can you check the
+         actual size of what the industry standard is for the media?"
+
+         The standard is that a picture is displayed at its own proportions.
+         This did the opposite: `.cs-bleed` is `aspect-ratio: 16/9`, so every
+         container is a fixed 1321x785 landscape box whatever is put in it,
+         and `.case-story` then sets the media to `object-fit: contain` inside
+         that box. Contain does not stretch -- it letterboxes -- so the result
+         is dead ground either side of anything that is not 16:9, and the
+         artwork shrinks to fit the bars.
+
+         Counted across the case studies: on /illustrations/ ten of thirteen
+         full-bleed images, on /mool/ two, on /marriott/ three. The worst was
+         the Marriott spec sheet at 1400x1786 rendering 615x785 -- 44% of its
+         natural size with 350px of nothing on each side.
+
+         Now the container has no shape of its own and the media is bounded
+         rather than filled: `width: auto` with `max-width: 100%` and a
+         max-height, so the browser scales it against whichever limit binds
+         first and keeps the aspect either way. No bars, no crop, nothing
+         stretched, and a wide board still cannot run past most of a screen.
+         Tall sheets opt out of the height cap entirely -- see .is-tall. */
+      .case-story .cs-bleed,
+      .case-story .cs-bleed-full,
+      .case-story .cs-wide-inner {
+        aspect-ratio: auto !important;
+        height: auto !important;
+        min-height: 0 !important;
+        background: none !important;
+        display: flex !important;
+        justify-content: center !important;
+      }
       .case-story .cs-bleed img,
       .case-story .cs-bleed video,
       .case-story .cs-wide-inner img,
       .case-story .cs-wide-inner video,
       .case-story .cs-bleed-full img,
       .case-story .cs-bleed-full video {
-        width: 100% !important;
+        width: auto !important;
+        max-width: 100% !important;
         height: auto !important;
         /* This was `max-height: none !important`, and it is the reason the
            window cap defined up with .cs-bleed never fired on the pages that
@@ -4140,8 +4175,47 @@
            Mool board and a 1580px Marriott spec sheet on a 900px screen.
            Same cap, stated where it can win. */
         max-height: 92svh !important;
-        object-fit: contain !important;
+        /* No object-fit: the element now has the picture's own ratio, so
+           there is nothing to fit it to. `fill` is the no-op. */
+        object-fit: fill !important;
         display: block;
+      }
+
+      /* ══ A TALL PICTURE IS ALLOWED TO BE TALL ═══════════════════════════
+         Sid: "in Marriott, a lot of the vertical images, which are supposed
+         to be long, are getting cropped and too small, and I can't really
+         read the text."
+
+         Measured on /marriott/: the spec sheet is 1400x1786 natural, and the
+         rule above gives it `width: 100%` with `max-height: 92svh` and
+         `object-fit: contain`. Those three together are a trap. The width
+         forces a 1321px box, the cap forces it to 785px tall, and `contain`
+         then fits the portrait inside that landscape box -- so the artwork
+         renders 615px wide with 350px of dead ground either side, at 44% of
+         its natural size. It is not cropped, it is letterboxed, and a
+         specification sheet at 44% is a picture of text rather than text.
+
+         The cap is right for a wide image, where 92svh stops a 1500px-wide
+         board from filling two screens. It is exactly wrong for a tall one,
+         where the whole point is that you scroll down it and read it.
+
+         So tall media is tagged on load and released: full column width, its
+         own height, no cap. The Marriott sheet goes from 615x785 to
+         1321x1685, which is 94% of natural size and legible.
+
+         Tagged in script rather than guessed in CSS because the aspect ratio
+         is a property of the file, not of the markup, and no author should
+         have to remember to add a class to every portrait they drop in. */
+      .case-story .cs-bleed img.is-tall,
+      .case-story .cs-bleed video.is-tall,
+      .case-story .cs-wide-inner img.is-tall,
+      .case-story .cs-wide-inner video.is-tall,
+      .case-story .cs-bleed-full img.is-tall,
+      .case-story .cs-bleed-full video.is-tall {
+        max-height: none !important;
+        width: 100% !important;
+        height: auto !important;
+        object-fit: fill !important;
       }
       .case-story .cs-bleed::before,
       .case-story .cs-bleed-full::before,
@@ -25244,6 +25318,37 @@
           { threshold: 0.35 }
         );
         io.observe(row);
+      })();
+
+      /* ── WHICH PICTURES ARE TALL ────────────────────────────────────
+         A portrait is one whose natural height beats its width by a clear
+         margin -- 1.05 rather than 1.0, so a square-ish board does not flip
+         into the tall treatment over a couple of pixels.
+
+         Images that are already decoded are handled immediately; the rest are
+         tagged on their own load event, which also covers the lazy ones that
+         arrive long after this runs. Videos report their size on
+         loadedmetadata, and these are `preload=none`, so that listener may
+         not fire until the reader reaches them -- which is fine, because that
+         is also when it matters. */
+      (function () {
+        var sel = ".case-story .cs-bleed img, .case-story .cs-bleed video, .case-story .cs-wide-inner img, .case-story .cs-wide-inner video, .case-story .cs-bleed-full img, .case-story .cs-bleed-full video";
+        function mark(m) {
+          var w = m.naturalWidth || m.videoWidth || 0;
+          var h = m.naturalHeight || m.videoHeight || 0;
+          if (!w || !h) return false;
+          if (h > w * 1.05) m.classList.add("is-tall");
+          return true;
+        }
+        [].slice.call(document.querySelectorAll(sel)).forEach(function (m) {
+          if (mark(m)) return;
+          m.addEventListener("load", function () {
+            mark(m);
+          });
+          m.addEventListener("loadedmetadata", function () {
+            mark(m);
+          });
+        });
       })();
 
       /* ── AND THE WORDS IT ANIMATES ──────────────────────────────────
