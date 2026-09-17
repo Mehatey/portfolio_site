@@ -2824,6 +2824,22 @@
          Small, bottom right of the hero, and quiet. It is the second thing on
          this screen after the sentence, so it is sized as the second thing:
          one line of type with a mark that moves beside it. */
+      /* ── IT WAS PINNED TO A BOX THAT MOVES ────────────────────────────
+         Sid: "im not a fan of how the play showreel button comes to the
+         center when i scroll."
+
+         It was not animating to the centre; it was anchored to one. Its
+         offset parent is `.hero__plate`, which is `position: absolute` with
+         ZERO width -- it exists to place the disciplines plate, not to hold
+         anything -- and its left edge travels from 1364 to 1047 as the hero
+         scrolls. A button positioned `right: 72px` inside a zero-width box
+         goes wherever that box's single edge goes, which is inward. Measured:
+         the reel starts at x=1096 and is at x=586 by 300px of scroll.
+
+         `position: fixed` would stop the drift and introduce a worse problem,
+         a control that follows you down a page it does not belong to. The
+         hero itself is the right anchor: a real 1436-wide sticky box that the
+         reel belongs to and leaves with. */
       .hero__reel {
         position: absolute;
         right: clamp(22px, 5vw, 96px);
@@ -2838,10 +2854,24 @@
         white-space: nowrap;
         gap: 11px;
         margin: 0;
-        padding: 9px 16px 9px 13px;
-        border: 1px solid rgba(150, 190, 240, 0.28);
+        /* ── AND IT IS NOT A GREY PILL ──────────────────────────────────
+           Sid: "dont make it look like such a boring ass button."
+
+           It was a hairline capsule with a 7%-alpha fill, which is the shape
+           every cookie banner ships. What makes this one worth looking at is
+           the thing already inside it: three bars that are genuinely moving.
+           So the button gets out of their way and becomes a surface instead
+           of an outline -- real glass, a lit top edge, and the accent showing
+           only in the mark and in the rule under the word. */
+        padding: 10px 17px 10px 14px;
+        border: 1px solid rgba(150, 190, 240, 0.34);
         border-radius: 99px;
-        background: rgba(126, 168, 226, 0.07);
+        background: linear-gradient(180deg, rgba(190, 216, 250, 0.16), rgba(120, 160, 220, 0.06));
+        -webkit-backdrop-filter: blur(14px) saturate(1.4);
+        backdrop-filter: blur(14px) saturate(1.4);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.34),
+          0 8px 22px -14px rgba(0, 0, 0, 0.5);
         color: inherit;
         font-family: var(--font-mono, ui-monospace, monospace);
         font-size: 11px;
@@ -2855,15 +2885,48 @@
       }
       .hero__reel:hover,
       .hero__reel:focus-visible {
-        background: rgba(126, 168, 226, 0.15);
-        border-color: rgba(168, 206, 250, 0.6);
+        background: linear-gradient(180deg, rgba(200, 224, 255, 0.28), rgba(130, 172, 232, 0.12));
+        border-color: rgba(168, 206, 250, 0.72);
         transform: translateY(-2px);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.5),
+          0 12px 26px -14px rgba(0, 0, 0, 0.55);
+      }
+      /* The word gets a rule that draws itself on hover, so the control
+         answers rather than only lighting up. */
+      .hero__reel-t {
+        position: relative;
+      }
+      .hero__reel-t::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -3px;
+        height: 1px;
+        background: currentColor;
+        opacity: 0.55;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .hero__reel:hover .hero__reel-t::after,
+      .hero__reel:focus-visible .hero__reel-t::after {
+        transform: scaleX(1);
       }
       body.on-paper .hero__reel,
       html[data-theme="light"] .hero__reel {
-        border-color: rgba(30, 44, 64, 0.26);
-        background: rgba(30, 44, 64, 0.05);
+        border-color: rgba(30, 44, 64, 0.22);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.4));
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.9),
+          0 8px 20px -14px rgba(28, 34, 46, 0.4);
         color: #141a22;
+      }
+      body.on-paper .hero__reel:hover,
+      html[data-theme="light"] .hero__reel:hover {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 255, 255, 0.62));
+        border-color: rgba(30, 44, 64, 0.4);
       }
       /* Three bars on the site's own grid, each on its own phase. The sound
          control speaks the same way, which is the point: a mark that moves
@@ -8726,7 +8789,26 @@
     gap: 8px;
     min-height: 48px;
     outline: none;
-    transform: translateX(calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px)));
+    /* ── LEFT OF THE LINE, AND NOT A TRANSFORM ────────────────────────
+       Sid: "shouldn't my logo be on the left side of the line rather than on
+       the right side?"
+
+       It should, and the rule asking for it was being silently cancelled.
+       The offset was `translateX`, and `.studio-mark` runs the `markForm`
+       entrance with `animation-fill-mode: both`, whose final keyframe is
+       `transform: scale(1) rotate(0deg)`. A filled animation wins over the
+       stylesheet's own transform, so the computed value was the identity
+       matrix and the mark sat where the flex row put it: left edge exactly on
+       the grid line. Measured `matrix(1, 0, 0, 1, 0, 0)` on a rule asking for
+       a 46px shift.
+
+       That is the second time this animation has quietly eaten a property it
+       had no business owning; the first was the nav's backdrop-filter, two
+       commits ago. The number itself was always right -- `--grid-left/2 + 18`
+       centres the mark in the margin -- it simply had to stop being a
+       transform. A margin cannot be overwritten by a keyframe, so the
+       position holds and the entrance keeps the transform it needs. */
+    margin-left: calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px));
   }
   /* ── AND IT ARRIVES AS THE HERO LEAVES ────────────────────────────────
      Not a fade in place: it rises, the way a caption arrives under something
@@ -12382,7 +12464,18 @@
             document.body.classList.remove("controls-peek");
             finish();
           },
-          t + BEATS.length * 900 + 400
+          /* ── IT WAS ENDING BEFORE THE LAST BEAT HAD SPOKEN ────────────
+             Sid: "i didn't see any of the onboarding or guiding me through
+             this is what the icons mean."
+
+             He was not missing it; it was being cut off. The beats are spaced
+             1250ms apart, so the third lands at t+2500. This timer still said
+             `BEATS.length * 900`, which is t+2700 -- the spacing was raised
+             from 900 to 1250 in the loop above and not here, so the last
+             control got 200ms of ring before the whole thing dismissed
+             itself. Derived from the same constant now instead of repeating
+             it, which is why they drifted apart in the first place. */
+          t + (BEATS.length - 1) * 1250 + 1400
         )
       );
     }
@@ -13000,12 +13093,12 @@
              one showreel on this page and two ways in. -->
           <div class="hero__plate" data-story="plate" aria-hidden="true">
             
-            <button type="button" id="hero-reel" class="hero__reel" aria-haspopup="dialog" aria-controls="reel-modal">
-              <span class="hero__reel-mark" aria-hidden="true"><i></i><i></i><i></i></span>
-              <span class="hero__reel-t">Watch showreel</span>
-              <span class="hero__reel-n" aria-hidden="true">90s</span>
-            </button>
           </div>
+          <button type="button" id="hero-reel" class="hero__reel" aria-haspopup="dialog" aria-controls="reel-modal">
+            <span class="hero__reel-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="hero__reel-t">Watch showreel</span>
+            <span class="hero__reel-n" aria-hidden="true">90s</span>
+          </button>
 
           <!-- ══════════════════════════════════════════════════════════════
              THE FIVE HOMEPAGES
@@ -31439,6 +31532,34 @@
      very surface it exists to support. It also inherits the parent's
      opacity, so it clears away on scroll with the button rather than
      leaving a bare smudge in the corner. */
+  /* ══ THE HALO IS GONE ══════════════════════════════════════════════════
+     Sid, twice. First: "i feel the icons and the cube chat logo and the other
+     icons have this bad drop shadow." Then, pointing at the home page: "as
+     soon as I scroll down from the homepage, it brings back this really ugly
+     shadow, and the icon changes."
+
+     The second report is the diagnosis of the first. This halo had a route
+     exception -- "Home and Play are dark stages at every theme" -- written
+     when the home page WAS a dark stage. It is paper now, top to bottom, so
+     below the hero the rule paints a near-black radial under a button sitting
+     on cream. That is the bruise, and it appears on scroll because that is
+     when `on-paper` comes off and the exception takes over.
+
+     Fixing the exception would keep a third way of saying "this is a button"
+     on top of the two that already work: these controls carry a border and a
+     backdrop-filter, which is a surface and an edge. A soft dark disc behind
+     them is not a shadow -- a shadow is cast by a light direction the rest of
+     this page does not have -- it is a smudge. Removed, in both themes and on
+     every route, which also means the control is identical before and after
+     you scroll. That was the actual complaint.
+
+     The rules below are left in place, unreached, because `content: none`
+     above them is the one-line way to be sure no theme or route variant
+     resurrects it. */
+  #theme-toggle::before,
+  #cube-chat-fab:not(.is-open)::before {
+    content: none !important;
+  }
   #theme-toggle::before,
   #cube-chat-fab:not(.is-open)::before {
     content: "";

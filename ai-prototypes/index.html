@@ -2196,7 +2196,26 @@
     gap: 8px;
     min-height: 48px;
     outline: none;
-    transform: translateX(calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px)));
+    /* ── LEFT OF THE LINE, AND NOT A TRANSFORM ────────────────────────
+       Sid: "shouldn't my logo be on the left side of the line rather than on
+       the right side?"
+
+       It should, and the rule asking for it was being silently cancelled.
+       The offset was `translateX`, and `.studio-mark` runs the `markForm`
+       entrance with `animation-fill-mode: both`, whose final keyframe is
+       `transform: scale(1) rotate(0deg)`. A filled animation wins over the
+       stylesheet's own transform, so the computed value was the identity
+       matrix and the mark sat where the flex row put it: left edge exactly on
+       the grid line. Measured `matrix(1, 0, 0, 1, 0, 0)` on a rule asking for
+       a 46px shift.
+
+       That is the second time this animation has quietly eaten a property it
+       had no business owning; the first was the nav's backdrop-filter, two
+       commits ago. The number itself was always right -- `--grid-left/2 + 18`
+       centres the mark in the margin -- it simply had to stop being a
+       transform. A margin cannot be overwritten by a keyframe, so the
+       position holds and the entrance keeps the transform it needs. */
+    margin-left: calc(-1 * min(var(--grid-left) / 2 + 18px, var(--grid-left) - 12px));
   }
   /* ── AND IT ARRIVES AS THE HERO LEAVES ────────────────────────────────
      Not a fade in place: it rises, the way a caption arrives under something
@@ -19687,6 +19706,34 @@
      very surface it exists to support. It also inherits the parent's
      opacity, so it clears away on scroll with the button rather than
      leaving a bare smudge in the corner. */
+  /* ══ THE HALO IS GONE ══════════════════════════════════════════════════
+     Sid, twice. First: "i feel the icons and the cube chat logo and the other
+     icons have this bad drop shadow." Then, pointing at the home page: "as
+     soon as I scroll down from the homepage, it brings back this really ugly
+     shadow, and the icon changes."
+
+     The second report is the diagnosis of the first. This halo had a route
+     exception -- "Home and Play are dark stages at every theme" -- written
+     when the home page WAS a dark stage. It is paper now, top to bottom, so
+     below the hero the rule paints a near-black radial under a button sitting
+     on cream. That is the bruise, and it appears on scroll because that is
+     when `on-paper` comes off and the exception takes over.
+
+     Fixing the exception would keep a third way of saying "this is a button"
+     on top of the two that already work: these controls carry a border and a
+     backdrop-filter, which is a surface and an edge. A soft dark disc behind
+     them is not a shadow -- a shadow is cast by a light direction the rest of
+     this page does not have -- it is a smudge. Removed, in both themes and on
+     every route, which also means the control is identical before and after
+     you scroll. That was the actual complaint.
+
+     The rules below are left in place, unreached, because `content: none`
+     above them is the one-line way to be sure no theme or route variant
+     resurrects it. */
+  #theme-toggle::before,
+  #cube-chat-fab:not(.is-open)::before {
+    content: none !important;
+  }
   #theme-toggle::before,
   #cube-chat-fab:not(.is-open)::before {
     content: "";
