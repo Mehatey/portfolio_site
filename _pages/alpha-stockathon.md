@@ -125,6 +125,7 @@ next_project:
      Only runs of three or more convert. Two frames read as a pair and a pair
      reads better stacked; a rail with two items in it is a scrollbar with
      nothing to scroll. -->
+
 <div class="cs-rail" tabindex="0" role="group" aria-label="Alpha Stockathon screens, scroll sideways">
   <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/10.alpha/4.png" alt="Name your hero, and begin the adventure" loading="lazy" decoding="async" />
@@ -152,6 +153,7 @@ next_project:
      Only runs of three or more convert. Two frames read as a pair and a pair
      reads better stacked; a rail with two items in it is a scrollbar with
      nothing to scroll. -->
+
 <div class="cs-rail" tabindex="0" role="group" aria-label="Alpha Stockathon screens, scroll sideways">
   <figure class="cs-rail-item">
   <img class="breathe" src="{{ site.baseurl }}/10.alpha/7.webp" alt="The screen set at a glance" loading="lazy" decoding="async" />

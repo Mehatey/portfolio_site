@@ -730,6 +730,146 @@
          them. The border only runs along the two inner edges now, because a
          highlight drawn along an edge that is flush with the picture is a
          seam, not a bevel. */
+
+      /* ── THE CONTROL GOES FIRST, AND THEN IT STAYS ─────────────────────
+         Sid: "the filter tag buttons are not at the top and are clashing in
+         the middle with the project thumbnails."
+
+         Measured before the move: the pills sat at y 668, directly under a
+         top shelf that ended at y 668. Zero gap, so the row of controls read
+         as a caption belonging to the card above it rather than as a filter
+         for the page below -- and on a page seven thousand pixels long a
+         visitor who scrolled past that one row never met the control again.
+
+         The older note in the markup argued the shelf should come first so a
+         stranger meets work before a control. That reasoning is sound and it
+         is answered better by making the pills STICKY than by pushing them
+         down: they are the first thing at the top, where a filter belongs,
+         and they follow the page, so choosing "Product design" at lane three
+         no longer means scrolling back up to the middle to do it.
+
+         Painted, not blurred. The row travels over covers, so it needs an
+         opaque ground -- and backdrop-filter here samples a stacking context
+         that has already been isolated by the grid layer above it, which
+         computes to no blur at all (the same trap that killed the nav scrim
+         and the hero brief plate). A solid --bg cannot fail that way. */
+      .wk-filters {
+        position: sticky;
+        top: 54px;
+        z-index: 40;
+        margin: 4px 0 clamp(30px, 3.4vw, 48px);
+        padding: 10px 0 11px;
+        background: var(--bg, #0a0c11);
+        box-shadow:
+          0 1px 0 rgba(140, 165, 200, 0.14),
+          0 10px 22px -18px rgba(0, 0, 0, 0.8);
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .wk-filters {
+          transition: box-shadow 220ms ease;
+        }
+      }
+
+      /* ── NOT SEVENTEEN OF THE SAME RECTANGLE ───────────────────────────
+         Sid: "can we not have each project be same size, the ones at top we
+         can have one or two more images as a horizontal scroll and varied
+         shapes and sizes in order of importance, rn all the same rect
+         thumbnails feels like a boring grid."
+
+         Every cover on the page measured 419x314. Seventeen identical 4:3
+         boxes is a contact sheet, and a contact sheet says every item on it
+         is worth the same -- which is the opposite of what a portfolio is
+         for. The page already knows the ranking: the shelf is the strongest
+         three, the lanes are ordered, the lead of each lane is its best
+         piece. None of that was visible in the geometry.
+
+         So size carries the rank. The shelf lead takes two columns and both
+         rows and holds a 16:10 frame; the other two stack beside it at the
+         old size. Each lane lead takes two columns at 16:9. One card further
+         down every lane is a 4:5 upright, which is the part that stops the
+         tail being a grid again -- variety needs a shape that is not just a
+         wider version of the same shape.
+
+         Only above 1080px. Two columns cannot carry a two column span, and
+         one column has no rhythm to vary. */
+      @media (min-width: 1081px) {
+        .wk-featured .wk-grid {
+          align-items: start;
+        }
+        .wk-featured .wk-grid > li.is-lead {
+          grid-column: span 2;
+          grid-row: span 2;
+        }
+        .wk-featured .wk-grid > li.is-lead .wk-cover {
+          aspect-ratio: 16 / 10;
+        }
+        .wk-featured .wk-grid > li.is-lead .wk-name {
+          font-size: 1.36rem;
+        }
+        .wk-featured .wk-grid > li.is-lead .wk-desc {
+          max-width: 54ch;
+        }
+        .wk-lane .wk-grid > li:first-child {
+          grid-column: span 2;
+        }
+        .wk-lane .wk-grid > li:first-child .wk-cover {
+          aspect-ratio: 16 / 9;
+        }
+        .wk-lane .wk-grid > li:nth-child(5) .wk-cover {
+          aspect-ratio: 4 / 5;
+        }
+      }
+
+      /* ── THE LEAD CARD CARRIES MORE THAN ONE PICTURE ───────────────────
+         A cover is one frame of a project, and for the piece at the top of
+         the page one frame is thin. The lead holds a snapped horizontal
+         strip: the cover, then two more images from inside the work.
+
+         It lives inside an <a>, so the interaction has to be honest about
+         both jobs -- a two finger swipe or a trackpad scroll moves the strip,
+         a click still opens the project. Dragging is not bound to anything,
+         which is what keeps a click from ever being read as a swipe. */
+      .wk-strip {
+        display: flex;
+        height: 100%;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+        overscroll-behavior-x: contain;
+      }
+      .wk-strip::-webkit-scrollbar {
+        display: none;
+      }
+      .wk-strip > img {
+        flex: 0 0 100%;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        scroll-snap-align: start;
+      }
+      /* Two or three dots, and only on the card that has a strip. Without
+         them the extra frames are a secret: nothing on a static cover says
+         it can move sideways. */
+      .wk-frames {
+        position: absolute;
+        left: 12px;
+        bottom: 11px;
+        z-index: 3;
+        display: flex;
+        gap: 5px;
+        pointer-events: none;
+      }
+      .wk-frames i {
+        width: 14px;
+        height: 3px;
+        border-radius: 0;
+        background: rgba(255, 255, 255, 0.34);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+      }
+      .wk-frames i:first-child {
+        background: rgba(255, 255, 255, 0.9);
+      }
+
       .wk-award {
         position: absolute;
         top: 0;
@@ -737,29 +877,44 @@
         z-index: 2;
         overflow: hidden;
         font-family: var(--font-mono);
-        font-size: 9px;
+        /* ── LEGIBLE FIRST, METAL SECOND ───────────────────────────────
+           Sid: "the kurius and webby badges are too small and text not
+           legible and the gold is too much." All three are the same mistake
+           made three ways. 9px mono at 0.16em tracking is around 5px of
+           actual letter height, and it was sitting on a five stop gradient
+           that put a light band straight through the middle of the words --
+           so the type was competing with the brightest thing behind it at
+           the smallest size on the page.
+
+           11px with the tracking pulled back to 0.09em reads at arm's
+           length, which is the only test that matters for an award: a
+           recruiter should be able to tell it says Webby without leaning in.
+           The metal is now two stops of lower chroma brass with a single
+           quiet highlight, so it still reads as a foil ribbon and no longer
+           shouts over the picture it is pinned to. */
+        font-size: 11px;
         font-weight: 500;
-        letter-spacing: 0.16em;
+        letter-spacing: 0.09em;
         text-transform: uppercase;
-        color: #2b2418;
-        background: linear-gradient(135deg, #cbb37e 0%, #f6ecc9 22%, #c2a463 46%, #efe0b4 70%, #c7ac72 100%);
+        color: #2a2317;
+        background: linear-gradient(135deg, #c3ad82 0%, #ddcba2 52%, #bda678 100%);
         border: 0;
         border-left: 1px solid rgba(255, 250, 235, 0.5);
         border-bottom: 1px solid rgba(255, 250, 235, 0.5);
         border-radius: 0;
-        clip-path: polygon(0 0, 100% 0, 100% 100%, 13px 100%, 0 calc(100% - 13px));
-        padding: 6px 11px 7px 16px;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 15px 100%, 0 calc(100% - 15px));
+        padding: 7px 13px 8px 18px;
         box-shadow:
-          0 2px 12px rgba(0, 0, 0, 0.4),
-          inset 0 1px 0 rgba(255, 255, 255, 0.6);
-        text-shadow: 0 1px 0 rgba(255, 250, 235, 0.45);
+          0 2px 12px rgba(0, 0, 0, 0.36),
+          inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        text-shadow: 0 1px 0 rgba(255, 250, 235, 0.4);
       }
       .wk-award::after {
         content: "";
         position: absolute;
         inset: -40%;
         pointer-events: none;
-        background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, 0.92) 50%, transparent 62%);
+        background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.46) 50%, transparent 60%);
         transform: translateX(-130%);
         animation: wk-award-sheen 6s ease-in-out infinite;
       }
@@ -997,6 +1152,15 @@
           <p>{{ visible | size }} projects</p>
         </div>
 
+        <nav class="wk-filters" aria-label="Filter work by kind">
+          <button type="button" class="wk-pill is-on" data-filter="all">All<span>{{ visible | size }}</span></button>
+          {% assign fl = "product,ai,culture" | split: "," %}{% for f in fl %}{% case f %}{% when "product" %}{% assign fn = "Product design" %}{%
+          when "ai" %}{% assign fn = "AI and creative tech" %}{% when "culture" %}{% assign fn = "Culture, brand and image" %}{% endcase %}{% assign
+          fc = visible | where: "lane", f | size %}
+          <button type="button" class="wk-pill" data-filter="{{ f }}">{{ fn }}<span>{{ fc }}</span></button>
+          {% endfor %}
+        </nav>
+
         {% comment %} ── FILTER PILLS, AND WHY THEY DO NOT START AT "ALL AND EMPTY" ────────── Sid: "can we also have like some filter pill or
         something?" The note below this argues against filter chips, and the argument is still right about the thing it was arguing against: a filter
         that starts every visitor at an unfiltered grid and hides two thirds of the work behind a control a stranger has to notice is the state that
@@ -1027,6 +1191,25 @@
             <li data-lane="{{ w.lane }}">
               <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}" {% if w.cube %} data-cube="{{ w.cube }}" {% endif %}>
                 <div class="wk-cover">
+                  {% comment %} The cover is the first frame of a strip when the entry declares extras, and a plain cover when it does not -- so a
+                  project with nothing more to show is never given an empty scroller with one slide in it. {% endcomment %}{% if w.extra %}
+                  <div class="wk-strip" aria-label="{{ w.title }}, {{ w.extra | size | plus: 1 }} images">
+                    <img
+                      src="{{ site.baseurl }}{{ img_base }}-900.webp"
+                      srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} {{ w.imgw }}w"
+                      sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)"
+                      alt="{{ w.title }}"
+                      loading="eager"
+                      decoding="async"
+                      width="1200"
+                      height="900"
+                    />
+                    {% for x in w.extra %}
+                    <img src="{{ site.baseurl }}{{ x }}" alt="" loading="lazy" decoding="async" />
+                    {% endfor %}
+                  </div>
+                  <span class="wk-frames" aria-hidden="true">{% for n in (0..w.extra.size) %}<i></i>{% endfor %}</span>
+                  {% else %}
                   <img
                     src="{{ site.baseurl }}{{ img_base }}-900.webp"
                     srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} {{ w.imgw }}w"
@@ -1037,9 +1220,9 @@
                     width="1200"
                     height="900"
                   />
-                  {% comment %} No mark on the top shelf. The lanes number from 01 within themselves, so a second numbered sequence on the same page
-                  would read as a rank the page never explains, and Sid's standing note on this grid is no year dates. The award ribbon is the only
-                  mark these three need. {% endcomment %} {% if w.award %}<span class="wk-award">{{ w.award }}</span>{% endif %}
+                  {% endif %} {% comment %} No mark on the top shelf. The lanes number from 01 within themselves, so a second numbered sequence on the
+                  same page would read as a rank the page never explains, and Sid's standing note on this grid is no year dates. The award ribbon is
+                  the only mark these three need. {% endcomment %} {% if w.award %}<span class="wk-award">{{ w.award }}</span>{% endif %}
                 </div>
                 <div class="wk-body">
                   <h3 class="wk-name">{{ w.title }}<i aria-hidden="true">&rarr;</i></h3>
@@ -1052,15 +1235,6 @@
           </ul>
         </section>
         {% endif %}
-
-        <nav class="wk-filters" aria-label="Filter work by kind">
-          <button type="button" class="wk-pill is-on" data-filter="all">All<span>{{ visible | size }}</span></button>
-          {% assign fl = "product,ai,culture" | split: "," %}{% for f in fl %}{% case f %}{% when "product" %}{% assign fn = "Product design" %}{%
-          when "ai" %}{% assign fn = "AI and creative tech" %}{% when "culture" %}{% assign fn = "Culture, brand and image" %}{% endcase %}{% assign
-          fc = visible | where: "lane", f | size %}
-          <button type="button" class="wk-pill" data-filter="{{ f }}">{{ fn }}<span>{{ fc }}</span></button>
-          {% endfor %}
-        </nav>
 
         <!-- ── WHY THIS PAGE IS IN THREE PARTS NOW ────────────────────────
              Seventeen projects competed equally in one grid, which asked a
@@ -1219,6 +1393,23 @@
           var featuredCards = shelf ? [].slice.call(shelf.querySelectorAll("li[data-lane]")) : [];
           var shelfCount = shelf ? shelf.querySelector(".wk-lane-n") : null;
           if (!pills.length || !lanes.length) return;
+
+          /* ── WHICHEVER ONE IS ACTUALLY FIRST ──────────────────────────
+             The hero treatment on the shelf cannot be :first-child, because
+             the filter hides shelf cards individually: filter to Culture and
+             Mool -- the first card in the DOM -- goes hidden, so the span
+             would land on something nobody can see, and Encoded would sit in
+             the third column as a thumbnail with two rows of dead space
+             beside it. The class follows the first VISIBLE card instead. */
+          function lead() {
+            var first = true;
+            featuredCards.forEach(function (li) {
+              var on = !li.hidden && first;
+              li.classList.toggle("is-lead", on);
+              if (on) first = false;
+            });
+          }
+          lead();
           pills.forEach(function (btn) {
             btn.addEventListener("click", function () {
               var want = btn.getAttribute("data-filter");
@@ -1257,6 +1448,7 @@
                 }).length;
                 shelf.hidden = left === 0;
                 if (shelfCount) shelfCount.textContent = left;
+                lead();
               }
             });
           });

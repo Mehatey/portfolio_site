@@ -121,7 +121,41 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
     display: flex;
     align-items: center;
     text-align: left;
-    max-width: min(52ch, calc(100vw - var(--grid-left) - 520px));
+    /* ── ONE LINE ──────────────────────────────────────────────────────
+       Sid: "for the cursor interactive dynamic text bubble we can have it
+       just one line so its not hard to read in 2 lines."
+
+       The wrap was not a space problem, which is why widening the bar would
+       never have fixed it. The cap was `min(52ch, available)` and 52ch at
+       14px is about 380px, while the band beside the mark measures 862px at
+       1440 -- so the 52ch was the binding constraint and the line was being
+       folded inside a 48px box with room to spare on both sides. Dropping
+       the ch cap and forbidding the wrap puts it on one line using space the
+       element already had.
+
+       The ellipsis is a floor, not the plan: at the narrowest desktop width
+       a long aside could still run out of band, and a clipped tail is better
+       than a second line pushed under a 48px bar. */
+    /* ── AND A WIDTH THAT SURVIVES BEING SHRINK-TO-FIT ─────────────────
+       Two bugs here, found by measuring rather than by reading. The first:
+       `calc(100vw - var(--grid-left) - 520px)` computed to `none`, because
+       --grid-left is itself a nested max() and the calc was dropped whole --
+       so the "cap" that was supposedly forcing the wrap had never applied to
+       anything. The second is the one that matters: this element is
+       absolutely positioned, so its width is shrink-to-fit, and an item
+       inside it carrying `overflow: hidden` has an automatic minimum size of
+       zero. The sentence therefore collapsed to 0x0 and the box sized itself
+       to the only thing left with an intrinsic width -- the ten 13px colour
+       swatches, measured at exactly 130px. The line was not wrapping. It was
+       gone.
+
+       `width: max-content` is what breaks that circularity: the sentence
+       contributes its full unwrapped width, the cap clamps the box, and the
+       paragraph then shrinks and ellipsises inside a width that is already
+       decided. */
+    width: max-content;
+    max-width: min(74ch, 46vw);
+    overflow: hidden;
     /* ── ABOVE THE SCRIM, NOT UNDER IT ─────────────────────────────────
        .studio-nav is z-index 9000 and paints a scrim across the whole top
        band, so at 8999 the line was rendered UNDERNEATH it. In dark mode the
@@ -144,10 +178,14 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
      screens, so the thought sits just under it and still reads downward from
      the cube rather than upward from the floor. */
   @media (max-width: 900px) {
+    .cube-says__text {
+      white-space: normal;
+    }
     #cube-says {
       top: 68px;
       left: clamp(18px, 2.5vw, 40px);
       height: auto;
+      width: auto;
       max-width: min(44ch, calc(100vw - 48px));
     }
   }
@@ -224,6 +262,12 @@ include cube_says.html line="..." %}{% endraw %} Keep lines under about twelve w
      written in — because it is the same voice. */
   .cube-says__text {
     margin: 0;
+    /* One line, and the clip lives here rather than on the flex parent so
+       the ellipsis has a block to render in. */
+    white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
     font-family: var(--font-head);
     font-size: 14px;
     /* Lifted from 400/--ink-2 when the line moved up to the logo. Down at the

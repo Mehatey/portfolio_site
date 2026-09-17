@@ -186,6 +186,7 @@ next_project:
      Only runs of three or more convert. Two frames read as a pair and a pair
      reads better stacked; a rail with two items in it is a scrollbar with
      nothing to scroll. -->
+
 <div class="cs-rail" tabindex="0" role="group" aria-label="Broken and Beautiful frames, scroll sideways">
   <figure class="cs-rail-item">
   <img src="{{ site.baseurl }}/5.bb/4.webp" alt="Space reference: what it should feel like" loading="lazy" decoding="async" />
