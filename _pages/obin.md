@@ -69,7 +69,6 @@ next_project:
 </div>
 
 <!-- The count -->
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Accuracy is measured on figures the analyst chose to check, not on figures the agent chose to show. The count is disclosed. Which two never is.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/16.obin/05-header.webp" alt="The header strip: time on the memo against a firm baseline, 38 figures, 28 proved without you, 12 to review" loading="lazy" decoding="async" />
 </div>
@@ -78,7 +77,6 @@ next_project:
   <p>Model confidence appears nowhere in the product. A score is 99 when a tool ran the arithmetic and the model never touched the number, and 77 when it read the figure off a slide someone wrote to persuade you. Both are backtested against two hundred and fourteen closed memos where the analyst's own number exists to compare against. Probability measures fluency, and a hallucinated figure often scores higher than a correct hedged one.</p>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The assumptions are stated on the page rather than defended afterwards, including the one that there was no user research.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/16.obin/06-thesis.webp" alt="The walkthrough page, stating the thesis and listing the four assumptions the design rests on" loading="lazy" decoding="async" />
 </div>

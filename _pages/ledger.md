@@ -78,12 +78,10 @@ next_project:
   <p>The system view is part of the prototype rather than a document beside it: tokens, component anatomy, the state matrix and the accessibility contract are all inspectable from inside the thing they describe. Contrast is audited in a script that runs against both themes and reports zero failures.</p>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Tokens, anatomy and states, inspectable from inside the product they govern.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/17.ledger/04-system.webp" alt="The system view showing colour tokens, component anatomy and the full state matrix" loading="lazy" decoding="async" />
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Evidence first on a small screen, with the review controls docked where a thumb can reach them.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/17.ledger/06-mobile.webp" alt="The mobile review layout, evidence stacked first with a sticky review dock" loading="lazy" decoding="async" />

@@ -103,6 +103,22 @@ next_project:
   <h2 class="cs-section-label">The brief</h2>
 </div>
 
+<!-- ── ONE CAPTION PER GROUP, NOT PER PICTURE ──────────────────────────
+     Sid: "see that we're not using captions for every single divider page,
+     because that increases more vertical spacing and we have a longer scroll
+     in general." And: "we don't need a dash which says Loyalty Enrollment and
+     then another number which says Loyalty Enrollment below it."
+
+     Counted, this page captioned every image it had. Consecutive runs then
+     said the same thing three ways -- the dashboard, then the dashboard
+     specified, then the dashboard's occupancy, then the dashboard's
+     reservations -- and each caption costs a 24px margin plus its own line
+     before the picture it introduces.
+
+     What survives is the caption that carries a DESIGN point: what the screen
+     is for, or what was decided. What goes is the caption that names what a
+     reader can already see. The pictures still read in sequence because they
+     are in sequence; they did not each need announcing. -->
 <p class="cube-cap cube-cap--above">The requirement, broken down with Deloitte Digital.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/01-requirements.webp" alt="Client requirements and problems to solve" loading="lazy" decoding="async" /></div>
 
@@ -136,16 +152,13 @@ next_project:
 <p class="cube-cap cube-cap--above">The new entry point. One clear place to start.</p>
 <div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
 
-<p class="cube-cap cube-cap--above">Get Care Today and Schedule Your Care, separated into two paths.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/08-getcare.webp" alt="Get Care Today and Schedule Your Care" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">Care types compared by cost, wait and what they treat.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/09-comparison.webp" alt="Side by side comparison of every care type by cost, wait and what it treats" loading="lazy" decoding="async" /></div>
 
-<p class="cube-cap cube-cap--above">The specialty icons, designed and animated by hand.</p>
 <div class="cs-bleed"><video width="1600" height="908" src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
 
-<p class="cube-cap cube-cap--above">Choosing a care type. Routine preventive, primary and specialty care surfaced as three clear routes.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/10-caretypes.gif" alt="Care type selection in motion" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">A helper for patients who would rather be led than browse.</p>

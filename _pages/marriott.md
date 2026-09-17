@@ -64,6 +64,22 @@ next_project:
   @keyframes mkBreathe { 0%,100%{transform:scale(1) translateY(0);} 50%{transform:scale(1.006) translateY(-2px);} }
 </style>
 
+<!-- ── ONE CAPTION PER GROUP, NOT PER PICTURE ──────────────────────────
+     Sid: "see that we're not using captions for every single divider page,
+     because that increases more vertical spacing and we have a longer scroll
+     in general." And: "we don't need a dash which says Loyalty Enrollment and
+     then another number which says Loyalty Enrollment below it."
+
+     Counted, this page captioned every image it had. Consecutive runs then
+     said the same thing three ways -- the dashboard, then the dashboard
+     specified, then the dashboard's occupancy, then the dashboard's
+     reservations -- and each caption costs a 24px margin plus its own line
+     before the picture it introduces.
+
+     What survives is the caption that carries a DESIGN point: what the screen
+     is for, or what was decided. What goes is the caption that names what a
+     reader can already see. The pictures still read in sequence because they
+     are in sequence; they did not each need announcing. -->
 <p class="cube-cap cube-cap--above">An employee app for Marriott staff, across every Bonvoy property.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/marriott/01-what.webp" alt="What we did, Marriott Bonvoy employee app" loading="lazy" decoding="async" /></div>
 
@@ -77,10 +93,8 @@ next_project:
 <p class="cube-cap cube-cap--above">The specification. Every element mapped to a requirement.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/marriott/03-spec.webp" alt="Annotated dashboard specification" loading="lazy" decoding="async" /></div>
 
-<p class="cube-cap cube-cap--above">Arrived, departed, in house and no shows, with live occupancy.</p>
 <div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source src="{{ site.baseurl }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
 
-<p class="cube-cap cube-cap--above">Reservation flow through the day, and cases at a glance.</p>
 <div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
 
 <div class="cs-section">
@@ -90,10 +104,8 @@ next_project:
 <p class="cube-cap cube-cap--above">Loyalty enrolment, without leaving the desk.</p>
 <div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source src="{{ site.baseurl }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
 
-<p class="cube-cap cube-cap--above">Enrolment, specified. Every tier, benefit and interaction.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/marriott/07-enrollspec.webp" alt="Loyalty enrolment key functionality" loading="lazy" decoding="async" /></div>
 
-<p class="cube-cap cube-cap--above">Enrol a new member, in a modal over the work already open.</p>
 <div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>
 
 <div class="cs-section">
