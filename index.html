@@ -1095,11 +1095,35 @@
       }
       /* Faded up only once the simulation is running, so a browser without
          WebGL2 shows the hero it always had rather than a blank panel. */
+      /* ── THE PAPER'S INK IS ONLY THE PAPER'S ──────────────────────────
+         Every rule below that repaints the hero's type was written for the
+         cream sheet: dark ink, because that is what reads on cream. With the
+         sheet now taking the page's own ground, dark mode was painting dark
+         ink onto a dark hero and the headline disappeared -- "Product
+         designer, six years." at about 1.2:1 against its own background.
+
+         They are all scoped `:not(.wash-dark)` now, so the dark hero simply
+         keeps the ink the rest of the dark site uses and there is nothing to
+         restate. The two rules that place the canvases are NOT scoped: the
+         wash itself runs in both themes. */
       .hero.has-wash .hero-wash {
         opacity: 1;
       }
+      /* Down from 0.9. Sid: "reduce the amount of background, that painting
+         effect, and the amount of text it shows." This layer is literally
+         text -- shader source scattered across the sheet -- and at 0.9 it was
+         a second paragraph competing with the headline. At 0.34 it reads as
+         watermark, which is all it was ever meant to be. */
       .hero.has-wash .hero-wash-code {
-        opacity: 0.9;
+        opacity: 0.34;
+      }
+      /* Dark mode composites the sheet as light rather than as ink, so the
+         same strength is far louder. See groundRGB() in hero-wash.js. */
+      .hero.wash-dark .hero-wash {
+        opacity: 0.62;
+      }
+      .hero.wash-dark .hero-wash-code {
+        opacity: 0.22;
       }
       /* ── THE DISC GETS OUT OF THE SENTENCE'S WAY ON A PHONE ───────────
          The reel plate is absolutely positioned at top:50% right:5vw, which on
@@ -1295,36 +1319,92 @@
          The rest of the site stays dark, and the hero reads as a sheet of
          paper laid on top of it. Without this the white headline sits on cream
          and cannot be read at all, which is exactly what the first pass did. */
-      .hero.has-wash .hero__title,
-      .hero.has-wash .hero__base,
-      .hero.has-wash .hero__title .tw {
+      .hero.has-wash:not(.wash-dark) .hero__title,
+      .hero.has-wash:not(.wash-dark) .hero__base,
+      .hero.has-wash:not(.wash-dark) .hero__title .tw {
         color: #14171d;
       }
-      .hero.has-wash .hero__base {
+      .hero.has-wash:not(.wash-dark) .hero__base {
         color: rgba(20, 23, 29, 0.66);
       }
-      .hero.has-wash .hero__base .accent {
+      .hero.has-wash:not(.wash-dark) .hero__base .accent {
         color: #1d3f7a;
       }
-      .hero.has-wash .hero__say-name {
+      .hero.has-wash:not(.wash-dark) .hero__say-name {
         color: rgba(12, 16, 24, 0.9);
         border-bottom-color: rgba(12, 16, 24, 0.28);
       }
-      .hero.has-wash .hero__say-hint,
-      .hero.has-wash .hero__prev {
+      /* ── THE TWO LINKS ─────────────────────────────────────────────────
+         Set as quietly as the line they replaced: this is a hero, and two
+         outbound links shouting at the same volume as the headline would be
+         worse than the sentence that was here. They read as text with a rule
+         under it, and the rule is the only thing that moves. The arrow is a
+         pseudo-element so the word never carries a character that a screen
+         reader has to skip. */
+      .hero__out {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 18px;
+      }
+      .hero__out a {
+        position: relative;
+        display: inline-flex;
+        align-items: baseline;
+        gap: 5px;
+        font-family: var(--font-mono, ui-monospace, monospace);
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: inherit;
+        padding-bottom: 3px;
+      }
+      .hero__out a i {
+        width: 6px;
+        height: 6px;
+        border-top: 1px solid currentColor;
+        border-right: 1px solid currentColor;
+        transform: rotate(45deg) translateY(-1px);
+        opacity: 0.7;
+        transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .hero__out a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: currentColor;
+        opacity: 0.4;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .hero__out a:hover::after,
+      .hero__out a:focus-visible::after {
+        transform: scaleX(1);
+      }
+      .hero__out a:hover i,
+      .hero__out a:focus-visible i {
+        transform: rotate(45deg) translate(2px, -3px);
+      }
+
+      .hero.has-wash:not(.wash-dark) .hero__say-hint,
+      .hero.has-wash:not(.wash-dark) .hero__out {
         color: rgba(24, 38, 60, 0.6);
       }
-      .hero.has-wash .hero__prev b {
+      .hero.has-wash:not(.wash-dark) .hero__prev b {
         color: rgba(8, 12, 20, 0.88);
       }
-      .hero.has-wash .hero__say-wave i {
+      .hero.has-wash:not(.wash-dark) .hero__say-wave i {
         background: #3d6fb5;
       }
-      .hero.has-wash .scroll-cue .bar {
+      .hero.has-wash:not(.wash-dark) .scroll-cue .bar {
         background: rgba(20, 23, 29, 0.4);
       }
       /* the spine rule between the two headline columns */
-      .hero.has-wash .hero__spine {
+      .hero.has-wash:not(.wash-dark) .hero__spine {
         background: rgba(20, 23, 29, 0.18);
       }
 
@@ -1892,6 +1972,19 @@
         position: relative;
         isolation: isolate;
         overflow: hidden;
+        /* ── AND IT STARTS THE RIGHT COLOUR ─────────────────────────────
+           Sid: "even if we are in dark mode, sometimes it starts from white
+           mode, then goes into the dark mode, and it looks weird. It's just a
+           gray or black rectangle."
+
+           The hero had no ground of its own, so between first paint and the
+           wash's first frame there was whatever the browser had -- and the
+           wash then painted a hard-coded cream sheet regardless of theme. Two
+           different wrong colours in sequence, which is the flash and the
+           rectangle. It takes the page's own ground now, so the worst case is
+           that the wash arrives on a hero that already looks correct. */
+        background: var(--bg, #0a0c11);
+        transition: background 420ms ease;
         min-height: 100svh;
         display: flex;
         flex-direction: column;
@@ -13286,7 +13379,28 @@
                 <span class="hero__say-name">Siddharth</span>
                 <span class="hero__say-hint">four ways to say it</span>
               </button>
-              <span class="hero__prev">Previously <b>Deloitte Digital</b>, <b>Philips</b>, <b>EyeJack</b></span>
+              <!-- ── TWO WAYS OUT OF THE FIRST SCREEN ────────────────────
+                   Sid: "add the LinkedIn and resume links on the homepage.
+                   It's already there in the navbar, but I also want it on the
+                   first viewport area." And, in the same breath: "reduce ...
+                   the amount of text it shows. There's too much heavy load on
+                   that section."
+
+                   Those two pull against each other unless something leaves,
+                   so "Previously Deloitte Digital, Philips, EyeJack" does.
+                   It was the longest run of words in the hero and the least
+                   load-bearing: the same three names are in the footer of
+                   every page, on /about/, and on the resume the link beside
+                   it now opens. A hero that lists where somebody used to work
+                   is spending its most valuable line on the past.
+
+                   What replaces it is the thing a recruiter is actually
+                   looking for on a first screen, and it is two words instead
+                   of nine. -->
+              <span class="hero__out">
+                <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn<i aria-hidden="true"></i></a>
+                <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Résumé<i aria-hidden="true"></i></a>
+              </span>
             </p>
           </div>
 
