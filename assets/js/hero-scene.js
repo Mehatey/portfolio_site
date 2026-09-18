@@ -664,8 +664,6 @@
     };
     img.src = base + url;
   }
-  loadTex("/assets/models/figure-albedo.jpg", 1, detailTex);
-  loadTex("/assets/models/cube-guy-env.jpg", 2, envTex);
 
   /* Same 13-bytes-a-point file cube-guy.js reads: int16 positions, int8
      normals, uint16 uvs. Read once and handed straight to the GPU as
@@ -756,6 +754,11 @@
   });
 
   function loadFigure() {
+    /* His skin and his environment, which are his alone. These sat at boot
+       until the wash gate went in above, so a stood-down scene still pulled
+       196KB of texture for a figure it had already decided not to draw. */
+    loadTex("/assets/models/figure-albedo.jpg", 1, detailTex);
+    loadTex("/assets/models/cube-guy-env.jpg", 2, envTex);
     Promise.all([
       fetch(base + "/assets/models/figure.json").then(function (r) {
         if (!r.ok) throw 0;

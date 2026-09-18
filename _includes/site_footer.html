@@ -785,7 +785,19 @@ include film_grade.html %}
          photograph across the white card. */
       inset: var(--pad) var(--pad) var(--pad-b);
       pointer-events: none;
-      background-image: var(--src);
+      /* ── NOT UNTIL THE ROW IS NEARLY HERE ──────────────────────────
+         This paints the same file the <img> beside it already carries,
+         and a CSS background has no lazy loading -- so `loading="lazy"`
+         on the image was doing nothing at all. Measured on the built
+         homepage: every tile in this row fetched at first paint, 7,700px
+         before a reader reaches them, about 850KB of photographs nobody
+         had scrolled to yet.
+
+         The smear is unchanged; only its start is. The rule waits for
+         `is-near`, which lands as the row approaches, and by then the
+         <img> is fetching the identical URL -- so the background draws
+         from a warm cache and the effect appears exactly as before. */
+      background-image: none;
       background-size: cover;
       background-position: center;
       filter: url(#sid-motion);
@@ -793,6 +805,9 @@ include film_grade.html %}
       -webkit-mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
       mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
       transition: opacity 480ms ease;
+    }
+    .sid-strip.is-near .sid-tile::after {
+      background-image: var(--src);
     }
 
     /* The hover lift moved into the rail's frame loop. It writes an inline
@@ -6001,5 +6016,44 @@ wall and the Buddha all sit inside the one `
         a.classList.remove("is-hit");
       }, 900);
     });
+  })();
+</script>
+
+<script>
+  /* ── THE STRIP'S SMEAR WAITS FOR THE STRIP ──────────────────────────────
+     .sid-tile::after repaints each tile's own photograph as a blurred
+     underlay. A CSS background cannot be lazy, so that rule was pulling
+     every picture in the row at first paint while the <img loading="lazy">
+     beside it politely waited -- the lazy attribute was decorative.
+
+     The rule now needs `is-near` on the strip, which this adds a screen and
+     a half out. That is far enough that the smear is always painted before
+     the row is legible, and late enough that a reader who never scrolls that
+     far never pays for it.
+
+     No IntersectionObserver, no strip, no gate: the class goes on
+     immediately, because a missing capability must not cost the page a
+     visual effect that already works. */
+  (function () {
+    var strip = document.querySelector(".sid-strip");
+    if (!strip) return;
+    if (!("IntersectionObserver" in window)) {
+      strip.classList.add("is-near");
+      return;
+    }
+    var io = new IntersectionObserver(
+      function (entries) {
+        if (
+          !entries.some(function (e) {
+            return e.isIntersecting;
+          })
+        )
+          return;
+        strip.classList.add("is-near");
+        io.disconnect();
+      },
+      { rootMargin: "150% 0px 150% 0px" }
+    );
+    io.observe(strip);
   })();
 </script>
