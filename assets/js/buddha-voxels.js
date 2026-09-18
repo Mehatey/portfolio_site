@@ -128,9 +128,23 @@
     "  vec3 ax = normalize(vec3(h - 0.5, h2 - 0.5, hash(a_id + 5.1) - 0.5) + 1e-4);",
     "  mat3 R = rot(ax, te * (2.4 + h * 5.0) + u_spin * 0.15);",
 
-    /* Cubes shrink as they go, which is what keeps eleven thousand of them
-       from turning the far half of the screen into grey soup. */
-    "  float s = u_size * (1.0 - t * 0.45);",
+    /* ── THEY DO NOT SHRINK BACK ──────────────────────────────────────
+       Sid: "when i break the buddha into pixels the pixels are smaller and
+       dont animate properly, like they animate back into a smaller shape."
+
+       This line was both halves of that. Cubes were taken to 55% of their
+       size on the way out, so the scatter got progressively finer -- and
+       because the travel is closed form and reversible, running it backwards
+       reassembled a head visibly smaller than the one it broke from. The
+       figure did not return to itself, which is the whole point of a
+       breakdown that undoes.
+
+       The original reason was to stop eleven thousand cubes reading as grey
+       soup at the far end, which is real but is a DENSITY problem, not a
+       size one; the shading already falls off with distance. A token 12%
+       keeps a little air in the far field without the shape losing its
+       identity, and the head that comes back is the head that left. */
+    "  float s = u_size * (1.0 - t * 0.12);",
     "  vec3 corner = R * (a_corner * s);",
     "  v_n = normalize(R * a_face);",
     "  gl_Position = u_vp * vec4(p + corner, 1.0);",
@@ -434,7 +448,11 @@
        touching this left eleven thousand cubes at half their apparent size,
        and the breakdown read as dust rather than as masonry -- which is the
        one thing the brief rules out. */
-    gl.uniform1f(U.u_size, 0.066);
+    /* 0.066 read as grit rather than as masonry -- Sid: "the pixels are
+       smaller". The note at the top of this file argues the count was
+       chosen so the result is masonry and not dust; the size has to agree
+       with it. */
+    gl.uniform1f(U.u_size, 0.092);
     gl.uniform1f(U.u_spin, spin);
     gl.uniform1f(U.u_light, document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0);
     gl.drawElementsInstanced(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0, COUNT);
