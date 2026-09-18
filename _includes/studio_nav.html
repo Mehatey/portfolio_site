@@ -3013,12 +3013,30 @@
 
       var d = y - lastY;
       if (Math.abs(d) > THRESH) {
-        /* Held open near the top, because there is nothing to get out of the
-           way of yet, and at the very bottom, where a reader who has run out
-           of page is looking for somewhere to go next. */
-        var atTop = y < 120;
-        var atEnd = y + window.innerHeight > document.documentElement.scrollHeight - 80;
-        var wantAway = d > 0 && !atTop && !atEnd;
+        /* ── THE BAR STAYS ────────────────────────────────────────────
+           Sid: "when we have the nav bar move off screen then when i hover
+           on an image the color squares are just suspended in air without
+           the bg nav. so shud we always have nav bar visible?"
+
+           Yes. The hover swatches, the reading line and the lane controls
+           are all positioned against this bar, so retracting it leaves them
+           floating with nothing behind them -- which is the artefact he
+           photographed. And on a page whose whole job is to get a recruiter
+           into a project, there should always be a way out in view.
+
+           The same call was already made for the site's other nav, whose
+           `.nav--hidden` rule was neutralised with the note that the
+           reading line "never floats orphaned". This is the two navs
+           finally agreeing rather than each deciding on its own.
+
+           It was `d > 0 && !atTop && !atEnd` -- retract on any downward
+           scroll except near the ends. The machinery around it stays (the
+           reveal zone, the lift, the scrim) so this is one line to put back
+           if the immersive version is ever wanted again.
+
+           The idle rule is untouched: html[data-idle="on"] still takes the
+           bar away for the screensaver, which is a different question. */
+        var wantAway = false;
         /* Never retract out from under the keyboard. */
         if (nav && nav.contains(document.activeElement)) wantAway = false;
         if (document.body.classList.contains("nav-open")) wantAway = false;
