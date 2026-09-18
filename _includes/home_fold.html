@@ -536,6 +536,51 @@
       transform: none;
     }
   }
+  /* ══ THE SELECTED FACE, AND A READABLE SUB-LIST ═════════════════════════
+     Two of Sid's notes on this section, and they are the same note: the block
+     was not saying which of its parts belonged together, and the part that
+     explained it was the hardest thing on the page to read.
+
+     THE FACE. Unpicked faces stand down -- their word and number lose weight
+     and the plate loses its light. The picked one keeps both and gains a
+     hairline on its edge, which is the only new ink in the whole section. It
+     is a state, not an effect: nothing animates except the crossfade between
+     one face being picked and the next.
+
+     THE SUB-LIST. 11px mono, uppercase, at 0.58 alpha -- Sid: "for the AI
+     Interfaces, Real-Time Shaders, whatever you put below Generative, it's
+     hard to read." It was: four lines of tracked-out caps at the size this
+     site reserves for kickers, carrying the only concrete description of what
+     the section means. 13px at --ink-2 with the tracking pulled back, and
+     sentence case rather than caps, because caps are for labels and these are
+     four short phrases a reader is meant to actually read. */
+  .fold__face .fold__face-word,
+  .fold__face .fold__face-idx {
+    transition:
+      opacity 420ms ease,
+      color 420ms ease;
+  }
+  .fold__face:not(.is-picked) .fold__face-word,
+  .fold__face:not(.is-picked) .fold__face-idx {
+    opacity: 0.42;
+  }
+  .fold__face.is-picked {
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.34);
+  }
+  html[data-theme="light"] .fold__face.is-picked {
+    box-shadow: inset 0 0 0 1px rgba(20, 30, 50, 0.3);
+  }
+  .fold__face.is-picked .fold__face-word {
+    opacity: 1;
+  }
+
+  .fold__read-sub {
+    font-size: 13px !important;
+    letter-spacing: 0.01em !important;
+    text-transform: none !important;
+    color: var(--ink-2) !important;
+    gap: 7px !important;
+  }
 </style>
 
 <script>
@@ -597,6 +642,27 @@
       ticks.forEach(function (t, n) {
         t.classList.toggle("is-on", n === i);
       });
+      /* ── AND THE FACE ITSELF SAYS WHICH ONE IS SELECTED ─────────────────
+         Sid: "something more of a highlight on which side is selected,
+         because we have Product, and then you have the same product side on
+         the right and the product text on the left, so it's kind of
+         repeating."
+
+         The repetition is real and it is not solved by deleting one of the
+         two -- the column is the readable copy and the cube is the object
+         they belong to. What was missing is the LINK between them: nothing
+         on the cube said "this face is the one the column is describing", so
+         a reader met the same word twice with no relationship stated.
+
+         With the selected face at full strength and the others stood down,
+         the pair reads as one thing: the cube shows where you are and the
+         column says what it means. Marked in the DOM rather than inferred
+         from the rotation, because the rotation is eased and would make the
+         highlight lag the word it belongs to. */
+      faces.forEach(function (fc, n) {
+        fc.classList.toggle("is-picked", n === i);
+        fc.setAttribute("aria-current", n === i ? "true" : "false");
+      });
       if (aim) {
         tgtRX = AIM[i].rx;
         tgtRY = AIM[i].ry;
@@ -607,6 +673,7 @@
        Two angles, eased toward a target every frame. The target is set by the
        scroll while the box is folding, by a click on a face, or by a drag --
        one place for all three, so they cannot fight each other. */
+    var faces = [].slice.call(document.querySelectorAll(".fold__face"));
     var rx = 0,
       ry = 0,
       tgtRX = 0,
