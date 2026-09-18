@@ -3510,171 +3510,7 @@
       width: 100%;
       height: 100%;
     }
-  </style> <script src="/assets/js/site-field.js" defer></script> </body> <a class="skip-link" href="#main">Skip to About content</a> <canvas id="page-smoke-bg" aria-hidden="true"></canvas> <style>
-  /* Force body into its own stacking context so canvas at z-index -1 sits behind body's content
-     but in front of html bg. Critical: do NOT add position:relative to body's other children — that
-     breaks position:fixed elements (skip-link, theme toggle, cube-chat FAB) by yanking them into flow. */
-  body {
-    /* `clip`, not `hidden`. Same visual result — no horizontal bleed from
-       marquee tracks or oversized media — but `hidden` would turn body into a
-       scroll container, which silently kills `position: sticky` on every
-       descendant on every page this include ships with. See the long note in
-       sid_home.html. */
-    overflow-x: clip;
-  }
-  /* The stacking context above used to be made with `isolation: isolate`, and
-     that one line was silently switching off every piece of glass on the site.
-
-     `isolation: isolate` does not merely open a stacking context — per the
-     Filter Effects spec it also establishes a *Backdrop Root*, and
-     `backdrop-filter` can only sample what is painted behind the nearest
-     backdrop root. Behind this one there is nothing, so the nav capsule, the
-     mark, and every other frosted surface were blurring an empty image and
-     compositing their tint over sharp, unblurred page content. It looked like
-     a tinted sticker rather than glass, which is exactly the complaint: list
-     items read straight through the SID MEHTA mark, letter for letter.
-
-     `position: relative; z-index: 0` gives the identical stacking context —
-     the canvas at z-index -1 still sits behind body's content and in front of
-     the html background — without the backdrop root. And relative positioning
-     on body specifically is safe for the fixed children the note above worries
-     about: only transform, filter, perspective, will-change of those, and
-     contain create a containing block for `position: fixed`. Verified: the
-     skip link, theme toggle and nav all still measure as fixed. */
-  body {
-    position: relative;
-    z-index: 0;
-  }
-  #page-smoke-bg {
-    position: fixed;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    pointer-events: none;
-    opacity: 0;
-    animation: pageSmokeFadeIn 1.4s var(--ease-out) 0.2s forwards;
-  }
-  @keyframes pageSmokeFadeIn {
-    to {
-      opacity: 0.55;
-    }
-  }
-  /* Light mode used to switch this off entirely, and that one line was the
-     single biggest reason light mode felt thin next to dark. Dark got a
-     living nebula behind every page; light got flat cream. The atmosphere
-     was not the problem — the palette was. So the same field now renders on
-     paper: the base colour IS the page cream, so an unlit pixel composites
-     to exactly the background it replaces, and the noise only ever moves
-     away from it by a couple of percent. Maximum darkening measured under
-     the cursor is about 4%, which is nowhere near the cream contrast floor.
-
-     It reads as light falling unevenly across a sheet rather than as smoke,
-     which is the right translation: smoke on paper would be dirt. */
-  html[data-theme="light"] #page-smoke-bg {
-    animation-name: pageSmokeFadeInLight;
-  }
-  @keyframes pageSmokeFadeInLight {
-    to {
-      opacity: 0.85;
-    }
-  }
-</style> <script>
-  (function () {
-    var c = document.getElementById("page-smoke-bg");
-    if (!c) return;
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    // Skip on mobile/touch — fragment-shader fbm noise was hanging low-end Android & older iPhones.
-    // The page already has a fallback dark bg; nothing else depends on this canvas painting.
-    var isTouchSmall =
-      window.matchMedia && (window.matchMedia("(hover: none) and (pointer: coarse)").matches || window.matchMedia("(max-width: 700px)").matches);
-    if (isTouchSmall) {
-      c.style.display = "none";
-      return;
-    }
-    var gl = c.getContext("webgl", { alpha: true, premultipliedAlpha: false });
-    if (!gl) return;
-    function resize() {
-      c.width = window.innerWidth * 0.5;
-      c.height = window.innerHeight * 0.5;
-      gl.viewport(0, 0, c.width, c.height);
-    }
-    resize();
-    window.addEventListener("resize", resize, { passive: true });
-    var VS = "attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}";
-    var FS = [
-      "precision mediump float;",
-      "uniform float u_time;uniform vec2 u_res;uniform vec2 u_mouse;uniform float u_light;",
-      "vec3 mod289(vec3 x){return x-floor(x/289.0)*289.0;}",
-      "vec2 mod289(vec2 x){return x-floor(x/289.0)*289.0;}",
-      "vec3 permute(vec3 x){return mod289((x*34.0+1.0)*x);}",
-      "float snoise(vec2 v){const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);vec2 i=floor(v+dot(v,C.yy));vec2 x0=v-i+dot(i,C.xx);vec2 i1=x0.x>x0.y?vec2(1,0):vec2(0,1);vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod289(i);vec3 p=permute(permute(i.y+vec3(0,i1.y,1))+i.x+vec3(0,i1.x,1));vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);m=m*m;m=m*m;vec3 x=2.0*fract(p*C.www)-1.0;vec3 h=abs(x)-0.5;vec3 ox=floor(x+0.5);vec3 a0=x-ox;m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;return 130.0*dot(m,g);}",
-      "float fbm(vec2 p){float f=0.0;f+=0.5*snoise(p);p*=2.02;f+=0.25*snoise(p);p*=2.03;f+=0.125*snoise(p);p*=2.01;f+=0.0625*snoise(p);return f;}",
-      "void main(){vec2 uv=gl_FragCoord.xy/u_res;float t=u_time*0.15;vec2 mouse=u_mouse;vec2 d=uv-mouse;float dist=length(d);float curl=exp(-dist*3.0)*0.4;vec2 swirl=vec2(-d.y,d.x)*curl;float n1=fbm(uv*3.0+vec2(t*0.8,t*0.6)+swirl*2.0);float n2=fbm(uv*2.0+vec2(-t*0.5,t*0.7)+swirl*1.5+0.5);float n3=fbm(uv*4.5+vec2(t*0.3,-t*0.4)+swirl*3.0+1.0);float smoke=n1*0.5+n2*0.3+n3*0.2;smoke=smoke*0.5+0.5;smoke=smoothstep(0.25,0.75,smoke);vec3 deep=vec3(0.01,0.02,0.04);vec3 mid=vec3(0.04,0.12,0.18);vec3 light=vec3(0.15,0.30,0.35);vec3 highlight=vec3(0.35,0.50,0.48);vec3 col=mix(deep,mid,smoothstep(0.2,0.45,smoke));col=mix(col,light,smoothstep(0.45,0.65,smoke));col=mix(col,highlight,smoothstep(0.7,0.9,smoke)*0.3);float proximity=exp(-dist*12.0);float vig=1.0-dot((uv-0.5)*1.6,(uv-0.5)*1.6);float glow=exp(-dist*18.0)*0.25;if(u_light>0.5){vec3 paper=vec3(0.961,0.953,0.933);vec3 shade=vec3(0.795,0.805,0.828);vec3 half_=vec3(0.888,0.888,0.890);vec3 lift=vec3(0.995,0.992,0.975);vec3 pc=mix(shade,half_,smoothstep(0.2,0.55,smoke));pc=mix(pc,lift,smoothstep(0.62,0.92,smoke));float rev=clamp(proximity*2.2+0.30,0.0,1.0);col=mix(paper,pc,rev);col=mix(col,vec3(0.902,0.929,0.972),glow*1.1);col*=mix(0.962,1.0,vig);}else{col*=proximity*2.5+0.005;col+=vec3(0.30,0.50,0.55)*glow;col*=vig;}gl_FragColor=vec4(col,1.0);}",
-    ].join("\n");
-    function mkShader(t, s) {
-      var sh = gl.createShader(t);
-      gl.shaderSource(sh, s);
-      gl.compileShader(sh);
-      return sh;
-    }
-    var prog = gl.createProgram();
-    gl.attachShader(prog, mkShader(gl.VERTEX_SHADER, VS));
-    gl.attachShader(prog, mkShader(gl.FRAGMENT_SHADER, FS));
-    gl.linkProgram(prog);
-    gl.useProgram(prog);
-    var buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
-    var a = gl.getAttribLocation(prog, "a");
-    gl.enableVertexAttribArray(a);
-    gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
-    var uTime = gl.getUniformLocation(prog, "u_time");
-    var uRes = gl.getUniformLocation(prog, "u_res");
-    var uMouse = gl.getUniformLocation(prog, "u_mouse");
-    var uLight = gl.getUniformLocation(prog, "u_light");
-    var docEl = document.documentElement;
-    var mx = 0.5,
-      my = 0.5,
-      tmx = 0.5,
-      tmy = 0.5;
-    document.addEventListener(
-      "mousemove",
-      function (e) {
-        tmx = e.clientX / window.innerWidth;
-        tmy = 1.0 - e.clientY / window.innerHeight;
-      },
-      { passive: true }
-    );
-    var t0 = performance.now();
-    var hidden = false,
-      rafId = 0,
-      tOff = 0,
-      pauseAt = 0;
-    function tick() {
-      mx += (tmx - mx) * 0.05;
-      my += (tmy - my) * 0.05;
-      gl.uniform1f(uTime, (performance.now() - t0 - tOff) / 1000);
-      gl.uniform2f(uRes, c.width, c.height);
-      gl.uniform2f(uMouse, mx, my);
-      gl.uniform1f(uLight, docEl.getAttribute("data-theme") === "light" ? 1 : 0);
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-      if (!hidden) rafId = requestAnimationFrame(tick);
-    }
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) {
-        hidden = true;
-        pauseAt = performance.now();
-        if (rafId) cancelAnimationFrame(rafId);
-      } else if (hidden) {
-        hidden = false;
-        tOff += performance.now() - pauseAt;
-        tick();
-      }
-    });
-    tick();
-  })();
-</script> <div class="nav-scrim" aria-hidden="true"></div> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <span class="mark-fly"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-face cube-top" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <rect class="cube-face cube-right" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))"> <rect class="logo-eye" x="13.83" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> <rect class="logo-eye" x="20.88" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> </g> <rect class="logo-mouth" x="16.2" y="21.9" width="3.6" height="0.9" rx="0.45"></rect> <path class="logo-scan" d="M8.5 18 H27.5"></path> </svg> </span> <span class="studio-mark-label">Sid Mehta</span> </a> <div class="studio-right"> <nav class="studio-links" aria-label="Portfolio sections"> <span class="studio-out"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </span> <a class="studio-link" href="/works/" aria-label="Work"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> </svg> </i> </i> <span aria-hidden="true"><b>Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Play</b></span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Contact</b></span> </a> <a class="studio-link is-active" href="/about/" aria-label="About"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>About</b></span> </a> <a class="studio-link" href="/sid-ai/" target="_blank" rel="noopener" aria-label="Talk to Sid AI, opens in a new tab"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Sid AI</b></span> </a> </nav> </div> </header> <style>
+  </style> <script src="/assets/js/site-field.js" defer></script> </body> <a class="skip-link" href="#main">Skip to About content</a> <div class="nav-scrim" aria-hidden="true"></div> <header class="studio-nav" aria-label="Primary navigation"> <a class="studio-mark" href="/" aria-label="Sid Mehta, home"> <span class="mark-fly"> <svg class="logo-cube" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 36 36" aria-hidden="true" focusable="false"> <rect class="cube-face cube-top" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <rect class="cube-face cube-right" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <rect class="cube-front" x="7.5" y="7.5" width="21" height="21" rx="2.1"></rect> <g style="transform: translate(calc(var(--eye-x, 0) * 0.9px), calc(var(--eye-y, 0) * 0.7px))"> <rect class="logo-eye" x="13.83" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> <rect class="logo-eye" x="20.88" y="13.9" width="1.3" height="4.8" rx="0.65"></rect> </g> <rect class="logo-mouth" x="16.2" y="21.9" width="3.6" height="0.9" rx="0.45"></rect> <path class="logo-scan" d="M8.5 18 H27.5"></path> </svg> </span> <span class="studio-mark-label">Sid Mehta</span> </a> <div class="studio-right"> <nav class="studio-links" aria-label="Portfolio sections"> <span class="studio-out"> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn</a> </span> <a class="studio-link" href="/works/" aria-label="Work"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> </svg> </i> </i> <span aria-hidden="true"><b>Work</b></span> </a> <a class="studio-link" href="/play/" aria-label="Play"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Play</b></span> </a> <a class="studio-link" href="/contact/" aria-label="Contact"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Contact</b></span> </a> <a class="studio-link is-active" href="/about/" aria-label="About"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>About</b></span> </a> <a class="studio-link" href="/sid-ai/" target="_blank" rel="noopener" aria-label="Talk to Sid AI, opens in a new tab"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> </i> <span aria-hidden="true"><b>Sid AI</b></span> </a> </nav> </div> </header> <style>
   /* ── THE GLASS LAYER ──────────────────────────────────────────────────
      The canvas that draws the refracting capsules. Behind the nav's own
      content and above the scrim, spanning the whole bar so one surface can
@@ -18933,11 +18769,40 @@
   .logo-cube .cube-right {
     transform: translateX(-1.8px);
   }
+  /* ── THE MARK IS A STROKE, INCLUDING ITS FRONT FACE ────────────────────
+     Sid: "the logo icon changes from dark and light mode, it becomes a fill
+     square in some places. its always supposed to just be the crisp light
+     stroke logomark."
+
+     Measured across seven routes and both themes, and it was not the theme
+     switching: `.cube-front` carried a SOLID fill at opacity 1 everywhere --
+     #070b13 on dark, #172a4c on light -- while the two `.cube-face` rects
+     sat at fill-opacity 0 as a stroked mark should. So the drawing was a
+     filled plate with two stroked faces behind it, and on any ground close
+     to those two colours it reads as a plain filled square with eyes.
+
+     Transparent now, in both themes, so every part of the mark is the same
+     stroke. Its stroke-width comes down to match the faces too: it was 1.5
+     against their 0.45-0.6, which is why the body's outline looked heavier
+     than the cube edges it belongs to.
+
+     The eyes keep their fill, which is the point of the drawing -- they are
+     the only solid in it, and the light theme already flips them to ink so
+     they read on paper. */
   .logo-cube .cube-front {
-    fill: #070b13;
+    fill: currentColor;
+    fill-opacity: 0;
     stroke: currentColor;
-    stroke-width: 1.5;
+    stroke-width: 0.6;
     stroke-linejoin: round;
+  }
+  @media (min-resolution: 2dppx) {
+    .logo-cube .cube-front {
+      stroke-width: 0.45;
+    }
+    html[data-theme="light"] .logo-cube .cube-front {
+      stroke-width: 0.6;
+    }
   }
   .logo-cube .logo-eye {
     fill: #e7f1ff;
@@ -19354,7 +19219,8 @@
     color: color-mix(in srgb, var(--nature, rgb(40, 60, 100)) 42%, rgb(22, 36, 64)) !important;
   }
   html[data-theme="light"] .logo-cube .cube-front {
-    fill: #172a4c;
+    fill: currentColor;
+    fill-opacity: 0;
   }
   /* The light-theme hover colour used to be here, on `.nav > a:hover` — the
      same dead ancestor as the rest of the mark's choreography, and dead in
