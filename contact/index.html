@@ -2833,6 +2833,30 @@
           margin: -13px 0;
         }
       }
+
+      /* ══ THE LINK COLUMN NEEDED AIR ═════════════════════════════════════
+         Sid: "there's not enough spacing."
+
+         Measured: zero pixels between the five links. They read as one block
+         of text with rules through it rather than as five separate ways to
+         reach him, and with magnetism on top of that the whole column moved
+         as a unit. 14px of gap and a little more padding on each row gives
+         every one its own footprint -- which is also what makes a tap target
+         on a phone.
+
+         The underline stays as the row's own edge, so the spacing shows up
+         as space between the rules rather than as a looser list. */
+      /* .c-corner .contact-links, not .contact-links: the rule that sets
+         `gap: 0` on this column is two classes deep, so a one-class override
+         loses however late it sits. Measured after the first attempt -- gaps
+         still 0 with the padding applied, which is what pointed at
+         specificity rather than at the property. */
+      .c-corner .contact-links {
+        gap: 14px !important;
+      }
+      .c-corner .contact-links a {
+        padding: 7px 0;
+      }
     </style> </head> <body class="contact-page"> <div id="site-field" aria-hidden="true"></div> <style>
     /* ── OFF. IT WAS THE CIRCULAR ORB ──────────────────────────────────
      Sid: "i don't want the shader in center the circular orb looking thing."
@@ -6266,13 +6290,30 @@
     inset: 0;
     pointer-events: none;
   }
+  /* ── ONLY THE MARK YOU ARE IN ────────────────────────────────────────
+     Sid, pointing at the one beside his phone number: "that weird horizontal
+     section divider-type line next to my phone number? that's there in a lot
+     of other projects as well ... it feels a little out of place unless it's
+     an actual dynamic line which juts out in different sections."
+
+     It IS that line -- one tick per section on the left measure, marking
+     where you are. The problem is that all of them render all of the time,
+     so what a reader meets is six short dashes down the left edge, one of
+     which happens to sit level with his phone number. A static dash beside a
+     phone number is a stray rule; nothing says "section marker" until you
+     have scrolled far enough to see the set move.
+
+     Only the active one is drawn now. The spine still says where you are and
+     how the page divides -- by moving, which is the only way it was ever
+     going to read as dynamic -- and there is never a dash next to something
+     it has nothing to do with. */
   .lgrid__mark {
     position: absolute;
     left: -3px;
     width: 7px;
     height: 1px;
     background: currentColor;
-    opacity: 0.1;
+    opacity: 0;
     mix-blend-mode: overlay;
     transform: translateY(-0.5px);
     transition:
@@ -6327,8 +6368,10 @@
   html[data-theme="light"] .lgrid__path {
     opacity: 0.075;
   }
+  /* Light keeps the same rule: nothing but the mark you are in. The
+     inactive value would have re-shown all six. */
   html[data-theme="light"] .lgrid__mark {
-    opacity: 0.14;
+    opacity: 0;
   }
   html[data-theme="light"] .lgrid__mark.is-here {
     opacity: 0.5;
@@ -24618,20 +24661,50 @@
           raf = 0,
           melting = false;
 
+        /* ── THE RETURN IS TIMED, NOT SPRUNG ──────────────────────────────
+           Sid: "when i don't hover on my desk, when it returns to the voxels
+           and the pixels, it doesn't return smoothly. please animate that
+           such that it's a smooth return. even when the liquifying starts, i
+           want it to go back to the normal state much quicker. when i hover
+           off, it should be a little bit smoother."
+
+           Those two asks -- quicker AND smoother -- only fight each other if
+           the fall is an exponential, which is what it was: `cur += (want -
+           cur) * 0.09` every frame. That curve spends most of its time in the
+           last fifth of the distance, so the desk appeared to hang half
+           melted and then jump, because the loop gave up at `cur > 0.15` and
+           wrote 0 in one frame. Slow AND not smooth, from the same line.
+
+           A release is now a fixed 420ms along a cubic ease-out from
+           whatever value it was at: fast off the mark, gentle into rest, and
+           it arrives at exactly zero rather than being cut off near it.
+           Quicker overall and smoother at both ends, because the shape is
+           chosen rather than emergent. The RISE is untouched -- it is the
+           five-second dwell ramp Sid asked for and it is still driven by the
+           clock. */
+        var RETURN = 420;
+        var relFrom = 0,
+          relAt = 0;
+
         function step(now) {
-          var want = 0;
           if (melting) {
             var t = Math.min(1, (now - held) / FULL);
-            want = MAX * t * t * t;
+            var want = MAX * t * t * t;
+            cur += (want - cur) * 0.35;
+            disp.setAttribute("scale", cur.toFixed(2));
+            raf = requestAnimationFrame(step);
+            return;
           }
-          /* Rise is driven by the clock above and only smoothed a little;
-             the fall is a spring, so letting go reads as the surface
-             relaxing rather than as the effect being switched off. */
-          cur += (want - cur) * (melting ? 0.35 : 0.09);
+
+          var k = Math.min(1, (now - relAt) / RETURN);
+          /* 1 - (1-k)^3: leaves at speed, settles without a tail. */
+          var e = 1 - Math.pow(1 - k, 3);
+          cur = relFrom * (1 - e);
           disp.setAttribute("scale", cur.toFixed(2));
 
-          if (melting || cur > 0.15) raf = requestAnimationFrame(step);
-          else {
+          if (k < 1) {
+            raf = requestAnimationFrame(step);
+          } else {
             raf = 0;
             cur = 0;
             disp.setAttribute("scale", "0");
@@ -24650,7 +24723,13 @@
           kick();
         }
         function stop() {
+          if (!melting) return;
           melting = false;
+          /* The return is measured from where the melt actually got to, so
+             letting go early returns proportionally quickly instead of
+             always taking the full distance's worth of time. */
+          relFrom = cur;
+          relAt = performance.now();
           kick();
         }
 
