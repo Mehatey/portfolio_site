@@ -3076,32 +3076,26 @@
          control speaks the same way, which is the point: a mark that moves
          means a thing that plays. */
       .hero__reel-mark {
-        display: inline-flex;
-        align-items: flex-end;
-        gap: 2.5px;
-        height: 13px;
-      }
-      .hero__reel-mark i {
         display: block;
-        width: 2.5px;
-        height: 5px;
-        border-radius: 1px;
-        background: currentColor;
-        animation: heroReelBar 1.15s ease-in-out infinite;
+        width: 13px;
+        height: 13px;
+        flex: none;
       }
-      .hero__reel-mark i:nth-child(2) {
-        animation-delay: 0.18s;
+      .hero__reel-mark rect {
+        fill: currentColor;
       }
-      .hero__reel-mark i:nth-child(3) {
-        animation-delay: 0.36s;
+      /* The one bit of motion it keeps, and it is a response rather than a
+         loop: the triangle nudges toward where it is about to take you. */
+      .hero__reel .hero__reel-mark {
+        transition: transform 340ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-      @keyframes heroReelBar {
-        0%,
-        100% {
-          height: 4px;
-        }
-        50% {
-          height: 13px;
+      .hero__reel:hover .hero__reel-mark,
+      .hero__reel:focus-visible .hero__reel-mark {
+        transform: translateX(2px);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero__reel .hero__reel-mark {
+          transition: none;
         }
       }
       .hero__reel-n {
@@ -8720,13 +8714,37 @@
   <i class="nav-ico__ghost">
 <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
   <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-  <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect>
+  <!-- ── ONE SHAPE, NOT A SPIRAL PLUS A DOT ──────────────────────────────
+       Sid: "i don't want the dark blue dot in the center, or a blackish dot.
+       i want it to feel like one cohesive blue spiral shape."
+
+       There was a 3x3 rect sitting at the spiral's origin, taking a
+       different fill from the stroke -- so the mark read as two objects, and
+       at 20px the darker square in the middle reads as a blob rather than as
+       the centre of a coil.
+
+       It is not needed. The path already begins at 12,12 with
+       stroke-linecap: round, so the coil's own start IS a round cap at the
+       centre, in the same colour and the same weight as the rest of it. One
+       stroke, one colour, from the middle outward. -->
 </svg>
 </i>
   <i class="nav-ico__color" aria-hidden="true">
 <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
   <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
-  <rect class="nav-pixel__core" x="10.5" y="10.5" width="3" height="3" rx="1"></rect>
+  <!-- ── ONE SHAPE, NOT A SPIRAL PLUS A DOT ──────────────────────────────
+       Sid: "i don't want the dark blue dot in the center, or a blackish dot.
+       i want it to feel like one cohesive blue spiral shape."
+
+       There was a 3x3 rect sitting at the spiral's origin, taking a
+       different fill from the stroke -- so the mark read as two objects, and
+       at 20px the darker square in the middle reads as a blob rather than as
+       the centre of a coil.
+
+       It is not needed. The path already begins at 12,12 with
+       stroke-linecap: round, so the coil's own start IS a round cap at the
+       centre, in the same colour and the same weight as the rest of it. One
+       stroke, one colour, from the middle outward. -->
 </svg>
 </i>
 </i>
@@ -11714,6 +11732,61 @@
     margin-left: auto;
     pointer-events: none;
   }
+
+  /* ══ THE MARK IS CLEAN ══════════════════════════════════════════════════
+     Sid: "even now, in light mode at least, there's this weird smear or a
+     little drop shadow on my logo. can you check that we don't have any drop
+     shadow or blur in light mode or dark mode? i want it to be clean, crisp,
+     thinner, simple, and elegant."
+
+     There were FIVE filter declarations on it, accumulated over separate
+     rounds and never removed when the next one was added:
+
+       .studio-mark .logo-cube                      3 shadows, incl. a blue glow
+       .studio-mark .logo-cube                      1 more, added later
+       .studio-mark:focus-visible .logo-cube        3, incl. a 16px blue glow
+       light .studio-mark:focus-visible .logo-cube  2
+       .studio-link svg                             2
+
+     A drop-shadow on a 0.55px hairline is the smear. The shadow is drawn from
+     the stroke's alpha, so at sub-pixel width the shadow is nearly as strong
+     as the line itself and lands half a pixel off it -- which is exactly the
+     doubled, softened edge he is pointing at, and why it shows on cream
+     where a dark halo has nothing to hide in.
+
+     None of them. The mark is an outline in currentColor on a solid nav, and
+     an outline does not need to be lifted off anything. Same for the nav's
+     own link icons, which are the same family of chrome.
+
+     AND THINNER AGAIN. With the shadows gone the line reads crisply at a
+     weight that previously needed them to look present: 0.45 at 2dppx
+     against 0.55, and 0.6 at 1x against 0.75. That is about a third less ink
+     than this morning and the last of the "too much eye real estate". */
+  .studio-mark .logo-cube,
+  .studio-mark:hover .logo-cube,
+  .studio-mark:focus-visible .logo-cube,
+  html[data-theme="light"] .studio-mark .logo-cube,
+  html[data-theme="light"] .studio-mark:hover .logo-cube,
+  html[data-theme="light"] .studio-mark:focus-visible .logo-cube,
+  .site-logo .logo-cube,
+  .studio-mark,
+  .studio-link svg {
+    filter: none !important;
+  }
+  .studio-mark .logo-cube .cube-face,
+  .site-logo .logo-cube .cube-face {
+    stroke-width: 0.6;
+  }
+  @media (min-resolution: 2dppx) {
+    .studio-mark .logo-cube .cube-face,
+    .site-logo .logo-cube .cube-face {
+      stroke-width: 0.45;
+    }
+    html[data-theme="light"] .studio-mark .logo-cube .cube-face,
+    html[data-theme="light"] .site-logo .logo-cube .cube-face {
+      stroke-width: 0.6;
+    }
+  }
 </style>
 
 <script>
@@ -12132,7 +12205,15 @@
        starts at 56px from the nav's edge and the swatch row is 10 squares at
        13px, so the two only met when the row began at the mark's own edge.
        Starting it clear of the mark is enough. */
-    left: calc(var(--grid-left) + 56px);
+    /* 56px -> 22px. Sid: "the color squares that show up on the right of my
+       logo mark, can you make them a little bit closer to the line?"
+
+       The 56 was set to clear a project title in the bar, and the project
+       title is suppressed on the routes where these appear -- so the number
+       was clearing something that is not there, and the swatch row floated
+       in the middle of the gap between the measure line and the mark. 22px
+       sits it just off the line, which is where he is pointing. */
+    left: calc(var(--grid-left) + 22px);
     transform: translateY(4px);
     transform: translateY(4px);
     height: 48px;
@@ -13892,7 +13973,27 @@
             
           </div>
           <button type="button" id="hero-reel" class="hero__reel" aria-haspopup="dialog" aria-controls="reel-modal">
-            <span class="hero__reel-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+            <!-- ── A PLAY GLYPH, NOT A LEVEL METER ──────────────────────────
+                 Sid: "for the watch show reel icon, can we have a different
+                 icon instead of those wavy bars?"
+
+                 The bars were three animated <i> elements rising and falling
+                 on a stagger, which is an AUDIO meter -- it says "sound is
+                 playing", and what this button opens is a film. It also
+                 animated permanently, so the one moving thing in the corner
+                 of the hero was a decoration rather than a response.
+
+                 A play triangle, drawn on the same 4px grid as every other
+                 icon on this site: four columns of blocks stepping up and
+                 back down, which resolves as a triangle at 13px and stays a
+                 pixel drawing at any size. Static, because a play button
+                 that is already playing is a contradiction. -->
+            <svg class="hero__reel-mark" viewbox="0 0 12 12" aria-hidden="true" focusable="false">
+              <rect x="1" y="1" width="2" height="10"></rect>
+              <rect x="4" y="2.5" width="2" height="7"></rect>
+              <rect x="7" y="4" width="2" height="4"></rect>
+              <rect x="10" y="5.5" width="2" height="1"></rect>
+            </svg>
             <span class="hero__reel-t">Watch showreel</span>
             <span class="hero__reel-n" aria-hidden="true">90s</span>
           </button>
@@ -32053,9 +32154,6 @@
   .nav-pixel--work .nav-pixel__spark {
     fill: #9acfff;
   }
-  .nav-pixel--work .nav-pixel__core {
-    fill: #eef7ff;
-  }
   .nav-pixel--play .nav-pixel__stem {
     fill: #39834e;
   }
@@ -32323,9 +32421,6 @@
   }
   html[data-theme="light"] .nav-pixel--work .nav-pixel__spark {
     fill: #1f85dc;
-  }
-  html[data-theme="light"] .nav-pixel--work .nav-pixel__core {
-    fill: #092f5a;
   }
   html[data-theme="light"] .nav-pixel--contact .nav-pixel__ray {
     fill: #b34f26;
