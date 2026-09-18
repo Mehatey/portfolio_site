@@ -429,6 +429,13 @@
   patchWrap.style.cssText = "position:fixed;inset:0;z-index:6990;pointer-events:none;opacity:0;transition:opacity 900ms ease;contain:strict";
   document.body.appendChild(patchWrap);
 
+  /* Chrome and Firefox render an SVG filter through backdrop-filter; Safari
+     documents support for filter functions only. CSS.supports() answers yes
+     either way, so there is no honest feature query -- this is a UA check,
+     narrow, and documented above as the assumption it is rather than a
+     measurement. Safari and every iOS browser, which are all WebKit. */
+  var PX_OK = !/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
+
   var PATCHES = 8;
   var patches = [];
   for (var pi = 0; pi < PATCHES; pi++) {
@@ -459,9 +466,47 @@
       d.style.top = Math.round(py) + "px";
       d.style.width = Math.round(pw) + "px";
       d.style.height = Math.round(ph) + "px";
-      var f = pixel ? "url(#" + (coarse ? "idle-px-coarse" : "idle-px") + ")" : "blur(" + (5 + Math.random() * 9).toFixed(1) + "px)";
-      d.style.backdropFilter = f;
-      d.style.webkitBackdropFilter = f;
+      /* ── THE PREFIX, AND A FALLBACK I COULD NOT PHOTOGRAPH ─────────────
+         Two things, and they are known with different confidence. The
+         distinction matters, so it is written down.
+
+         VERIFIED: `d.style.webkitBackdropFilter` is not a CSSOM property
+         name -- the camelCase form is `WebkitBackdropFilter`, with a capital
+         W -- so that assignment silently did nothing and only the unprefixed
+         declaration ever reached the element. setProperty with the literal
+         CSS name cannot be got wrong in either direction, which is why both
+         lines use it now.
+
+         REASONED, NOT MEASURED: Safari supports filter FUNCTIONS in
+         backdrop-filter and not url() references to an SVG filter, so the
+         pixelate half of these patches would render nothing there. The
+         fallback gives them a heavier, coarser blur with a contrast lift --
+         a different KIND of degradation beside the soft ones, which is the
+         point of the effect -- so no patch is ever invisible.
+
+         I could not confirm that by looking. Playwright's headless WebKit
+         does not composite backdrop-filter AT ALL: an isolated test page
+         with three boxes -- one plain, one clip-path, one masked -- showed
+         no blur under any of them, including the plain one. So a headless
+         WebKit screenshot cannot distinguish "Safari does not support this"
+         from "this harness does not render it", and an earlier version of
+         this comment claimed a photograph that proved nothing. Worth
+         knowing before the next person tries to test glass in that harness.
+
+         The UA check below is therefore a documented assumption rather than
+         an observation. If it is wrong the cost is small and in the safe
+         direction: Safari gets eight blurs of two strengths instead of four
+         and four. */
+      var f;
+      if (pixel && PX_OK) {
+        f = "url(#" + (coarse ? "idle-px-coarse" : "idle-px") + ")";
+      } else if (pixel) {
+        f = "blur(" + (13 + Math.random() * 9).toFixed(1) + "px) contrast(1.22) saturate(1.15)";
+      } else {
+        f = "blur(" + (5 + Math.random() * 9).toFixed(1) + "px)";
+      }
+      d.style.setProperty("backdrop-filter", f);
+      d.style.setProperty("-webkit-backdrop-filter", f);
       var mx = (30 + Math.random() * 40).toFixed(0);
       var my = (30 + Math.random() * 40).toFixed(0);
       var mask =
