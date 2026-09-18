@@ -35,6 +35,14 @@
 (function () {
   "use strict";
 
+  /* Derived from this file's own <script src>, so it is correct under a
+     baseurl without the template having to pass one in. */
+  var BASE = (function () {
+    var sc = document.querySelector('script[src*="/assets/js/sound.js"]');
+    if (!sc) return "";
+    return (sc.getAttribute("src") || "").replace(/\/assets\/js\/sound\.js.*$/, "");
+  })();
+
   var KEY = "sid_sound";
   var store = null;
   try {
@@ -140,11 +148,66 @@
      a lowpass that opens as it sounds -- so it arrives soft and resolves,
      rather than clicking. That opening filter is most of what separates
      "spacecraft" from "notification". */
+  /* ── THE ONE SAMPLE ────────────────────────────────────────────────────
+     Sid supplied a specific click and asked for it on nav labels and
+     buttons, so this is the exception to the synthesised rule at the top of
+     this file. 19KB, 107ms, and it is fetched only once sound has actually
+     been switched on -- a visitor who never turns it on never downloads it,
+     which is the property that made synthesis attractive in the first place.
+
+     The oscillators below stay as the fallback. If the fetch or the decode
+     fails, or the file is missing, hovering still answers rather than going
+     silent -- a sound that sometimes does nothing reads as a broken page. */
+  var sample = null,
+    sampleTried = false;
+  function loadSample() {
+    if (sampleTried) return;
+    sampleTried = true;
+    var c = audio();
+    if (!c || !window.fetch) return;
+    fetch(BASE + "/assets/audio/ui/hover.wav")
+      .then(function (r) {
+        if (!r.ok) throw 0;
+        return r.arrayBuffer();
+      })
+      .then(function (ab) {
+        return c.decodeAudioData(ab);
+      })
+      .then(function (buf) {
+        sample = buf;
+      })
+      .catch(function () {
+        /* stays null; hover falls through to the oscillators */
+      });
+  }
+
   function hover() {
     if (!on) return;
     var now = Date.now();
-    if (now - lastHover < 700) return;
+    /* The synth breath needed 700ms between plays or a row of cards read as
+       a keyboard. The sample is a single short transient rather than a tone,
+       and the nav puts five targets within a few hundred pixels, so at 700
+       nearly every one of them would be swallowed. */
+    if (now - lastHover < 240) return;
     lastHover = now;
+    if (sample) {
+      var cs = audio();
+      if (cs) {
+        var src = cs.createBufferSource();
+        var sg = cs.createGain();
+        src.buffer = sample;
+        /* A few cents either side, so a fast run along the nav is texture
+           rather than the same tick four times. */
+        src.detune && (src.detune.value = ((detune + 7) % 24) - 12);
+        detune += 7;
+        sg.gain.value = 0.5;
+        src.connect(sg);
+        sg.connect(master || cs.destination);
+        src.start();
+        return;
+      }
+    }
+    loadSample();
     detune = ((detune + 5) % 20) - 10;
     var c = audio();
     if (!c) return;
@@ -369,7 +432,84 @@
      ═════════════════════════════════════════════════════════════════════ */
   var bed = null;
 
+  /* ── THE TRACK SID CHOSE ───────────────────────────────────────────────
+     Sid supplied a ten minute ambient track and asked for it "in low volume
+     on the website as a light ambient sound".
+
+     The long note above argues for synthesis because "a loop is the one
+     thing that kills the effect -- you notice the seam on the second pass".
+     That is still true of a naive loop, so this is not one: the file is a
+     60 second section whose opening four seconds are crossfaded from the
+     four seconds that follow its end, which means the join plays the music
+     that actually came next. Built with acrossfade rather than trimmed.
+
+     720KB, and it is requested only once sound has been switched on, so it
+     costs a visitor who leaves sound off exactly nothing.
+
+     The generative bed stays underneath as the fallback. If the file 404s
+     or the browser will not decode it, the page still has its atmosphere
+     instead of falling silent. */
+  var track = null;
+
+  function startTrackBed() {
+    if (track) {
+      track.play().catch(function () {});
+      return true;
+    }
+    if (!window.Audio) return false;
+    var a = new Audio();
+    a.src = BASE + "/assets/audio/ui/ambient.mp3";
+    a.loop = true;
+    a.preload = "auto";
+    /* Low, and reached on a fade so switching sound on is not a cut. The
+       ceiling is deliberately under a fifth: this sits beneath the hover
+       click, which is the same ordering the synthesised bed was tuned to. */
+    a.volume = 0;
+    var target = 0.17;
+    var p = a.play();
+    if (p && p.catch) {
+      p.catch(function () {
+        /* Autoplay refused, or the file is unusable. The caller has already
+           fallen through to the generative bed by then only if we returned
+           false, so make the failure visible to the next call instead. */
+        track = null;
+      });
+    }
+    track = a;
+    var step = 0;
+    var fade = setInterval(function () {
+      step++;
+      if (!track) return clearInterval(fade);
+      track.volume = Math.min(target, (step / 45) * target);
+      if (step >= 45) clearInterval(fade);
+    }, 100);
+    return true;
+  }
+
+  function stopTrackBed() {
+    if (!track) return;
+    var a = track;
+    track = null;
+    var v = a.volume;
+    var step = 0;
+    var fade = setInterval(function () {
+      step++;
+      a.volume = Math.max(0, v * (1 - step / 12));
+      if (step >= 12) {
+        clearInterval(fade);
+        try {
+          a.pause();
+        } catch (e) {}
+      }
+    }, 100);
+  }
+
   function startBed() {
+    if (startTrackBed()) return;
+    startGenerativeBed();
+  }
+
+  function startGenerativeBed() {
     var c = audio();
     if (!c || bed) return;
 
@@ -512,6 +652,7 @@
   }
 
   function stopBed() {
+    stopTrackBed();
     if (!bed) return;
     bed.stop();
     bed = null;
@@ -629,7 +770,15 @@
        not worth having on a copy button, a theme toggle, an inline link in a
        paragraph, or a tile in a drifting strip. Those still click; they just
        do not announce themselves as the pointer passes. */
-    var SEL = ".wk-card, .studio-link, .proto__open, .ftr__cta, .hero__resume, .contact-address a";
+    /* ── AND THE NAV ────────────────────────────────────────────────
+       Sid: "when i hover on nav labels or buttons let it play a short
+       futuristic high quality sound."
+
+       The nav was not in this list. The note above explains why the list
+       was narrowed -- every anchor on /works/ made the page noisy -- but
+       it narrowed past the one surface that is nothing BUT destinations.
+       A nav item is the most "is somewhere" thing on the site. */
+    var SEL = ".wk-card, .studio-link, .proto__open, .ftr__cta, .hero__resume, .contact-address a, .nav a, .nav button, .nav [role='button']";
     /* Click is broader than hover on purpose: pressing a thing should always
        answer, even when passing over it should not. */
     var CLICK_SEL = "a[href], button, [role='button']";
