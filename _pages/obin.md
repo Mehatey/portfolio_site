@@ -89,8 +89,8 @@ next_project:
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The whole run, sped up. It reads the data room, writes the memo, marks every figure it asserts as it lands, and then stops and names the four things it will not decide.</em></p>
 <div class="cs-bleed">
-  <video width="1600" height="910" autoplay muted loop playsinline preload="auto" aria-label="The Obin agent reading a data room, drafting a credit memo with each asserted figure marked, then halting and listing four decisions for a person">
-    <source src="{{ site.baseurl }}/16.obin/v1-agent.mp4" type="video/mp4" />
+  <video width="1600" height="910" autoplay muted loop playsinline preload="none" aria-label="The Obin agent reading a data room, drafting a credit memo with each asserted figure marked, then halting and listing four decisions for a person">
+    <source data-src="{{ site.baseurl }}/16.obin/v1-agent.mp4" type="video/mp4" />
   </video>
 </div>
 

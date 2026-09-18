@@ -98,8 +98,8 @@ next_project:
      ══════════════════════════════════════════════════════════════════════ -->
 
 <div class="cs-bleed">
-  <video width="1600" height="862" autoplay muted loop playsinline preload="auto" aria-label="The Ledger mark drawing itself, under the line: review the work, not the tabs">
-    <source src="{{ site.baseurl }}/17.ledger/v1-logo.mp4" type="video/mp4" />
+  <video width="1600" height="862" autoplay muted loop playsinline preload="none" aria-label="The Ledger mark drawing itself, under the line: review the work, not the tabs">
+    <source data-src="{{ site.baseurl }}/17.ledger/v1-logo.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -112,7 +112,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The legacy tool, running. Four links per candidate, a prototype that fails to load, and a review form that asks for a verdict on work the reviewer can no longer see.</em></p>
 <div class="cs-bleed">
   <video width="1600" height="924" autoplay muted loop playsinline preload="none" aria-label="A reviewer opening a candidate across four separate links, hitting a broken video, and being asked for a recommendation anyway">
-    <source src="{{ site.baseurl }}/17.ledger/v2-problem.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/17.ledger/v2-problem.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -125,21 +125,21 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>One surface. The repository, the live demo, the walkthrough and the README are tabs on the submission rather than tabs in the browser, and the prototype runs inside the page being scored.</em></p>
 <div class="cs-bleed">
   <video width="1600" height="910" autoplay muted loop playsinline preload="none" aria-label="The review surface: the submission queue, then a candidate opened with their prototype running inline beside the scorecard">
-    <source src="{{ site.baseurl }}/17.ledger/v3-review.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/17.ledger/v3-review.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Evidence, then a decision. What the repository actually contains sits beside what the candidate claimed, and the reviewer advances to the next submission without losing the thread.</em></p>
 <div class="cs-bleed">
   <video width="1600" height="910" autoplay muted loop playsinline preload="none" aria-label="Repository evidence, the assist panel, the decision, and the queue advancing to the next candidate">
-    <source src="{{ site.baseurl }}/17.ledger/v4-evidence.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/17.ledger/v4-evidence.mp4" type="video/mp4" />
   </video>
 </div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Calibration before anyone moves forward. Two reviewers disagreeing is surfaced as a thing to resolve, not averaged away, and the finalists leave as a packaged handoff.</em></p>
 <div class="cs-bleed">
   <video width="1600" height="910" autoplay muted loop playsinline preload="none" aria-label="Shortlist calibration comparing candidates side by side, resolving a reviewer disagreement, and packaging two finalists for the next round">
-    <source src="{{ site.baseurl }}/17.ledger/v5-handoff.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/17.ledger/v5-handoff.mp4" type="video/mp4" />
   </video>
 </div>
 
