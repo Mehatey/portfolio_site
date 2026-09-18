@@ -194,10 +194,35 @@
        edge approaches rather than by coarsening it. Two grid steps, an
        octave apart, so the dissolve has a big block and a small one
        instead of one uniform size. */
+    /* ── AND THE GRID IS WARPED, SO NOTHING IS AXIS-ALIGNED ────────────
+       Sid: "i dont want straight edges anywhere."
+
+       A quantisation grid is the one thing in this shader that produces
+       them: `floor(q / cs)` cuts on lines parallel to the canvas, so every
+       cell boundary in the dissolve is perfectly horizontal or vertical and
+       the edge of the picture ends in a staircase. It is the same reason the
+       treatment read as "pixels" at all, which was the intent -- but read as
+       a rectangular staircase around a person, it is exactly the straight
+       edge he is objecting to.
+
+       The coordinate is warped by a low-frequency noise BEFORE it is
+       quantised. The cells stay square where you look closely, and the lines
+       they sit on bend, so the boundary between photograph and dissolve
+       follows a curve instead of the canvas. Same cost: one fbm lookup that
+       was already being computed for the flow. */
     "  float cs = cellPx / max(res.x, 1.0);",
     "  float cs2 = cs * 2.0;",
-    "  vec2 cq = floor(q / cs) * cs + cs * 0.5;",
-    "  vec2 cq2 = floor(q / cs2) * cs2 + cs2 * 0.5;",
+    /* Two scales of warp, not one. A single frequency displaces the grid
+       but keeps its overall run, so a long edge still reads as broadly
+       straight with a wobble on it -- photographed on the right side of the
+       frame. The low band bends the whole boundary and the high band breaks
+       the individual steps, so there is no run of cells long enough to read
+       as a line. */
+    "  vec2 warpA = vec2(fbm(q * 1.1 + 11.0), fbm(q * 1.1 - 7.0)) - 0.5;",
+    "  vec2 warpB = vec2(fbm(q * 3.7 - 3.0), fbm(q * 3.7 + 5.0)) - 0.5;",
+    "  vec2 wq = q + warpA * cs * 5.2 + warpB * cs * 2.2;",
+    "  vec2 cq = floor(wq / cs) * cs + cs * 0.5;",
+    "  vec2 cq2 = floor(wq / cs2) * cs2 + cs2 * 0.5;",
     "  vec2 grid = mix(cq, cq2, smoothstep(0.45, 0.95, edge));",
     "  vec2 sq = mix(q, grid, smoothstep(0.12, 0.72, edge));",
     "  vec2 base = sq + flow * amp * 0.075;",
@@ -216,11 +241,32 @@
        the light lands on the edge rather than over the whole face. */
     "  col += vec3(0.12, 0.15, 0.22) * edge * edge * (0.35 + 0.5 * hov);",
 
-    /* THE DISSOLVE. Per-cell hash against the field, so the boundary breaks
-       into squares that thin out. The hash walks slowly, which is what
-       keeps the edge alive while the shape itself is barely moving. */
-    "  vec2 dq = floor(q / cs2);",
-    "  float grain = hash(dq + floor(vec2(t * 0.9, t * 0.55)));",
+    /* ── THE DISSOLVE BREATHES, IT DOES NOT STROBE ─────────────────────
+       Sid: "the motion and rotation of pixels is also super janky and not
+       smoothly animated."
+
+       This line was the jank, and it was not a tuning problem:
+
+           hash(dq + floor(vec2(t * 0.9, t * 0.55)))
+
+       `floor(t * 0.9)` increments about once every 1.1 seconds, and when it
+       does, every cell's hash jumps to an unrelated new value at once. So
+       the entire dissolve SNAPPED to a fresh random arrangement roughly once
+       a second. That is a strobe with a one-second period, not an animation,
+       and no amount of slowing it down would have helped -- it would only
+       have made the jumps further apart.
+
+       Two hashes now, one at each end of the current step, mixed by the
+       fractional part on a smoothstep. Every cell travels continuously from
+       its old value to its next one, so the edge breathes. Slower as well,
+       because a continuous change reads at a fraction of the speed a
+       discrete one needs. */
+    "  vec2 dq = floor(wq / cs2);",
+    "  float ts = t * 0.34;",
+    "  float k = smoothstep(0.0, 1.0, fract(ts));",
+    "  float g0 = hash(dq + floor(ts));",
+    "  float g1 = hash(dq + floor(ts) + 1.0);",
+    "  float grain = mix(g0, g1, k);",
     "  float a = inside - edge * 0.55 * grain;",
     "  a = clamp(a, 0.0, 1.0);",
     "  if (a < 0.01) discard;",
