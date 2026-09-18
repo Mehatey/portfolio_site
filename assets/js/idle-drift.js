@@ -377,15 +377,107 @@
   var holeSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   holeSvg.setAttribute("aria-hidden", "true");
   holeSvg.style.cssText = "position:fixed;width:0;height:0;overflow:hidden;pointer-events:none";
+  /* ── PATCHES, NOT A WARP ────────────────────────────────────────────
+     Sid: "on screensaver mode dont warp the bg viewport. instead make some
+     areas pixelate and some areas blur randomly split across the media and
+     stuff on the page, and all the other grass cube and stuff comes on top
+     of this."
+
+     The warp was a single turbulence displacement over <main> and <footer>,
+     so the whole page bent as one sheet -- and because the site's glass
+     pieces sample their backdrop, a bent page was exactly what they showed.
+     The note below records it already being halved once for that reason.
+
+     What replaces it treats the page as regions rather than as a sheet:
+     eight patches over random parts of the viewport, half of them
+     pixelating what is behind them and half blurring it, so the screen
+     breaks into areas that have lost resolution in different ways. It reads
+     as the image degrading rather than as the page being pulled, and it
+     leaves every letterform where it was -- nothing moves, so nothing can
+     drag a piece of glass with it.
+
+     Two filters. The blur is a plain backdrop-filter. The pixelate is the
+     feFlood/feTile/feComposite chain -- one sample per block, dilated back
+     up to fill it -- which is the only way to get a true pixelation out of
+     SVG, and backdrop-filter: url() is already proven in this codebase by
+     the cursor's lens. */
   holeSvg.innerHTML =
     "<defs>" +
-    '<filter id="idle-hole" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">' +
-    '<feTurbulence id="idle-hole-noise" type="fractalNoise" baseFrequency="0.0052 0.0094" numOctaves="2" seed="11" result="w"/>' +
-    '<feDisplacementMap id="idle-hole-disp" in="SourceGraphic" in2="w" scale="0" xChannelSelector="R" yChannelSelector="G"/>' +
+    '<filter id="idle-px" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">' +
+    '<feFlood x="0" y="0" width="1" height="1" flood-color="#fff" result="dot"/>' +
+    '<feComposite in="dot" width="11" height="11"/>' +
+    '<feTile result="grid"/>' +
+    '<feComposite in="SourceGraphic" in2="grid" operator="in" result="pick"/>' +
+    '<feMorphology in="pick" operator="dilate" radius="6"/>' +
+    "</filter>" +
+    '<filter id="idle-px-coarse" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">' +
+    '<feFlood x="0" y="0" width="1" height="1" flood-color="#fff" result="dot2"/>' +
+    '<feComposite in="dot2" width="22" height="22"/>' +
+    '<feTile result="grid2"/>' +
+    '<feComposite in="SourceGraphic" in2="grid2" operator="in" result="pick2"/>' +
+    '<feMorphology in="pick2" operator="dilate" radius="12"/>' +
     "</filter></defs>";
   document.body.appendChild(holeSvg);
-  var holeDisp = holeSvg.querySelector("#idle-hole-disp");
-  var holeNoise = holeSvg.querySelector("#idle-hole-noise");
+  /* The patches live in their own fixed layer UNDER the screensaver's own
+     overlay, so the grass, the cube and the weather all draw on top of them
+     -- which is the order Sid asked for. Pointer-events none throughout: the
+     screensaver is something you dismiss by moving, not something you click
+     through. */
+  var patchWrap = document.createElement("div");
+  patchWrap.className = "idle-patches";
+  patchWrap.setAttribute("aria-hidden", "true");
+  patchWrap.style.cssText = "position:fixed;inset:0;z-index:6990;pointer-events:none;opacity:0;transition:opacity 900ms ease;contain:strict";
+  document.body.appendChild(patchWrap);
+
+  var PATCHES = 8;
+  var patches = [];
+  for (var pi = 0; pi < PATCHES; pi++) {
+    var d = document.createElement("i");
+    d.style.cssText = "position:absolute;display:block;will-change:transform";
+    patchWrap.appendChild(d);
+    patches.push(d);
+  }
+
+  /* Each patch gets a place, a size and a treatment. Re-rolled whenever the
+     screensaver starts, so two visits are not the same picture.
+
+     THE EDGES ARE MASKED. A backdrop-filter on a bare rectangle is a hard
+     box, and Sid's standing note this week is that he does not want straight
+     edges -- so every patch fades out through a radial mask and reads as an
+     area that has gone soft rather than as a pane laid over the page. */
+  function rollPatches() {
+    var w = innerWidth,
+      h = innerHeight;
+    patches.forEach(function (d, i) {
+      var pw = (0.18 + Math.random() * 0.3) * w;
+      var ph = (0.14 + Math.random() * 0.26) * h;
+      var px = Math.random() * (w - pw * 0.4) - pw * 0.2;
+      var py = Math.random() * (h - ph * 0.4) - ph * 0.2;
+      var pixel = i % 2 === 0;
+      var coarse = pixel && Math.random() > 0.5;
+      d.style.left = Math.round(px) + "px";
+      d.style.top = Math.round(py) + "px";
+      d.style.width = Math.round(pw) + "px";
+      d.style.height = Math.round(ph) + "px";
+      var f = pixel ? "url(#" + (coarse ? "idle-px-coarse" : "idle-px") + ")" : "blur(" + (5 + Math.random() * 9).toFixed(1) + "px)";
+      d.style.backdropFilter = f;
+      d.style.webkitBackdropFilter = f;
+      var mx = (30 + Math.random() * 40).toFixed(0);
+      var my = (30 + Math.random() * 40).toFixed(0);
+      var mask =
+        "radial-gradient(" +
+        (58 + Math.random() * 26).toFixed(0) +
+        "% " +
+        (58 + Math.random() * 26).toFixed(0) +
+        "% at " +
+        mx +
+        "% " +
+        my +
+        "%, #000 38%, transparent 78%)";
+      d.style.webkitMaskImage = mask;
+      d.style.maskImage = mask;
+    });
+  }
 
   /* ── THERE IS NO VISIBLE SINGULARITY ──────────────────────────────────
      Sid: "ditch the black hole and just have the warping and displacement,
@@ -399,17 +491,10 @@
      a well -- the pull, the bend, the growth over time -- is in the
      displacement, and that stays. Nothing is drawn. */
 
-  /* What the warp is applied to. Not <body>, which would take the overlay and
-     the cursor with it. */
-  function warpTargets() {
-    var out = [];
-    ["main", "footer", "#smoke-bg", ".site-footer"].forEach(function (sel) {
-      var el = document.querySelector(sel);
-      if (el && out.indexOf(el) === -1) out.push(el);
-    });
-    return out;
-  }
-  var warped = [];
+  /* warpTargets() is gone with the warp. It collected <main>, <footer> and
+     the smoke canvas so a single displacement could be applied to all of
+     them; the patches need no targets because they sit in front of the page
+     rather than being applied to it. */
   var holeAmt = 0,
     holeWant = 0;
 
@@ -476,11 +561,10 @@
     layer.classList.remove("is-leaving");
     layer.classList.add("is-on");
     document.documentElement.setAttribute("data-idle", "on");
-    warped = warpTargets();
-    warped.forEach(function (el) {
-      el.style.filter = "url(#idle-hole)";
-      el.style.willChange = "filter";
-    });
+    /* No filter on the page. See the patches note above -- the page stays
+       exactly where it is and the degradation happens in front of it. */
+    rollPatches();
+    patchWrap.style.opacity = "1";
     if (!raf) {
       t0 = 0;
       raf = requestAnimationFrame(frame);
@@ -533,21 +617,22 @@
       holeWant = held * held * 22;
     }
     holeAmt += (holeWant - holeAmt) * (holeWant > holeAmt ? 0.02 : 0.045);
-    if (holeDisp) holeDisp.setAttribute("scale", holeAmt.toFixed(2));
-    if (holeNoise) {
-      /* The field itself turns, so the warp is turbulent rather than a fixed
-         lens the page happens to be behind. */
-      holeNoise.setAttribute("seed", (11 + clock * 0.35).toFixed(2));
+    /* The ramp now drifts the patches rather than scaling a displacement:
+       they breathe across the screen over the same ninety seconds, so
+       staying in the screensaver keeps changing which parts of the page have
+       gone soft. Transform only, so eight backdrop-filters are not being
+       re-laid-out sixty times a second. */
+    if (patchWrap.style.opacity === "1") {
+      var drift = holeAmt * 0.9;
+      patches.forEach(function (d, i) {
+        var ph = clock * (0.05 + i * 0.011) + i * 1.7;
+        d.style.transform = "translate(" + (Math.sin(ph) * drift).toFixed(1) + "px," + (Math.cos(ph * 0.83) * drift).toFixed(1) + "px)";
+      });
     }
 
-    if (!on && holeAmt < 0.25 && warped.length) {
-      warped.forEach(function (el) {
-        el.style.filter = "";
-        el.style.willChange = "";
-      });
-      warped = [];
+    if (!on && holeAmt < 0.25 && patchWrap.style.opacity !== "0") {
+      patchWrap.style.opacity = "0";
       holeAmt = 0;
-      if (holeDisp) holeDisp.setAttribute("scale", "0");
     }
 
     /* ── THE RAIN ─────────────────────────────────────────────────────── */
