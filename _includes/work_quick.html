@@ -35,10 +35,21 @@ top of a case study is intro and process. See the commit for how they were chose
         <button class="wq__nav" type="button" data-wq-step="1" aria-label="Next project">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
         </button>
-        <a class="wq__open" id="wq-open" href="#"
-          >Open case study
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-        </a>
+        <!-- ── NO "OPEN CASE STUDY" BUTTON ───────────────────────────────
+             Sid: "i told you i don't want a button; i want it to be
+             scroll-activated ... properly scroll-based where the quick look
+             expands into the whole project when i scroll."
+
+             The button was the escape hatch for a panel that did not know
+             how to end. It does now: the sheet grows to full height over the
+             first 160px of reading, and at the BOTTOM of its content a
+             handoff panel takes over -- keep scrolling and it opens the
+             project, stop and nothing happens, scroll back and it unwinds.
+             Same mechanism as the next-project handover at the foot of every
+             case study, which is the gesture this site already teaches.
+
+             What stays in the bar is the pair a reader wants at any moment:
+             which of sixteen they are looking at, and the way out. -->
         <button class="wq__x" type="button" data-wq-close aria-label="Close quick view">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
         </button>
@@ -56,6 +67,22 @@ top of a case study is intro and process. See the commit for how they were chose
       <a class="wq__tail" id="wq-tail" href="#"
         >Read the full story
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+      <!-- ── THE END OF THE SHEET IS THE WAY IN ─────────────────────────
+             A reader who has looked at every picture and kept scrolling has
+             already answered the only question this panel asks. So the last
+             thing in it is the door: a cover, the project's name, and a
+             meter that fills with the scroll past the end. It fires at 100%
+             rather than at a threshold, so the decision stays the reader's
+             the whole way and scrolling back cancels it -- the same contract
+             as the handover at the foot of a case study. -->
+      <a class="wq__handoff" id="wq-handoff" href="#" aria-label="Keep scrolling to open this project">
+        <span class="wq__handoff-meter" aria-hidden="true"><i></i></span>
+        <span class="wq__handoff-lead">
+          <span class="wq__handoff-kicker">Keep scrolling</span>
+          <span class="wq__handoff-name" id="wq-handoff-name"></span>
+        </span>
+        <span class="wq__handoff-go" aria-hidden="true">Open the case study &rarr;</span>
       </a>
     </div>
   </div>
@@ -462,6 +489,138 @@ top of a case study is intro and process. See the commit for how they were chose
   html.wq-locked body {
     overflow: hidden;
   }
+
+  /* ══ THE HANDOFF ════════════════════════════════════════════════════════
+     Driven by --go, which the scroll handler writes once the body is at its
+     end: 0 at the bottom of the reading, 1 when the reader has pushed a
+     further 420px into it. The meter is the only thing that reads it, so
+     there is one number to be right about -- same shape as the project
+     pages' own handover and the aperture's --hp. */
+  .wq__handoff {
+    --go: 0;
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    margin: clamp(30px, 3.6vw, 52px) 0 0;
+    padding: clamp(22px, 2.6vw, 34px) 0 clamp(26px, 3vw, 40px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-decoration: none;
+    color: inherit;
+  }
+  html[data-theme="light"] .wq__handoff {
+    border-top-color: rgba(30, 26, 18, 0.14);
+  }
+  /* The meter sits ON the rule, so what fills is the boundary between the
+     reading and the thing it opens rather than a widget under it. */
+  .wq__handoff-meter {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    overflow: hidden;
+  }
+  .wq__handoff-meter i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: currentColor;
+    transform: scaleX(var(--go, 0));
+    transform-origin: left center;
+    opacity: 0.55;
+  }
+  .wq__handoff-lead {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+  }
+  .wq__handoff-kicker {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .wq__handoff-name {
+    font-family: var(--font-head);
+    font-size: clamp(26px, 3vw, 44px);
+    font-weight: 300;
+    letter-spacing: -0.028em;
+    line-height: 1.02;
+    color: var(--ink);
+  }
+  .wq__handoff-go {
+    flex: none;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    /* It brightens with the scroll rather than on hover: the thing that is
+       about to happen is the thing being reported. */
+    color: var(--ink-3);
+    opacity: calc(0.5 + 0.5 * var(--go, 0));
+  }
+
+  /* ── AND THE LAST PICTURE STOPS AT AN EDGE ──────────────────────────────
+     Sid: "the quick look is pretty badly designed, where we have the image
+     being extended towards the bottom."
+
+     The media grid had a top margin and no bottom, so the final image ran to
+     the panel's own edge and was cut by it -- a picture with no end, which is
+     what "extended towards the bottom" describes. The handoff now occupies
+     that space, and the grid gets a floor of its own for the case where a
+     project has no next step. */
+  .wq__media {
+    margin-bottom: clamp(8px, 1vw, 16px);
+  }
+
+  /* ── THE BAR'S ITEMS SIT ON ONE LINE ────────────────────────────────────
+     Sid: "none of the top elements are aligning."
+
+     They were not: the title is 11px mono, the counter 11px mono, the arrows
+     24px SVGs in 30px buttons and the close another -- five things of four
+     heights on `align-items: center`, which centres boxes rather than
+     letterforms, so nothing shared a baseline and the row read as a jumble.
+
+     One height for every item in the bar, the glyphs centred inside it, and
+     the type optically aligned to the same line. A row of controls is a row
+     when they agree on a height. */
+  .wq__bar {
+    align-items: center;
+    min-height: 54px;
+  }
+  .wq__acts {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .wq__bar .wq__nav,
+  .wq__bar .wq__x {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .wq__bar .wq__nav svg,
+  .wq__bar .wq__x svg {
+    width: 15px;
+    height: 15px;
+    display: block;
+  }
+  .wq__count {
+    min-width: 54px;
+    text-align: center;
+    line-height: 32px;
+    margin: 0;
+  }
+  .wq__now {
+    line-height: 32px;
+  }
 </style>
 
 <script>
@@ -490,7 +649,8 @@ top of a case study is intro and process. See the commit for how they were chose
       elYear = document.getElementById("wq-year"),
       elProof = document.getElementById("wq-proof"),
       elTags = document.getElementById("wq-tags"),
-      elOpen = document.getElementById("wq-open"),
+      elOpen = document.getElementById("wq-handoff"),
+      elHandName = document.getElementById("wq-handoff-name"),
       elTail = document.getElementById("wq-tail"),
       elNow = document.getElementById("wq-now"),
       body = document.getElementById("wq-body"),
@@ -511,6 +671,51 @@ top of a case study is intro and process. See the commit for how they were chose
        inside a rAF so the write never lands in the scroll handler itself. */
     var rafLift = 0,
       lastLift = -1;
+    /* ── PAST THE END IS THE GESTURE ───────────────────────────────────
+       Sid: "i want it to be scroll-activated ... properly scroll-based where
+       the quick look expands into the whole project when i scroll."
+
+       Two phases on one axis, which is what makes it read as one movement.
+       The first 160px of inner scroll takes the sheet's inset back (--lift,
+       below). Then the reader reads. When the body is AT ITS END, further
+       scrolling has nowhere to go inside the panel, and that overflow is the
+       signal: 420px of it fills the handoff's meter and opens the project.
+
+       Wheel deltas rather than scrollTop, because at the end of a scroller
+       scrollTop stops changing -- the browser has nothing left to give -- so
+       the only place the intent exists is in the event. Negative deltas
+       unwind it, so scrolling back cancels, which is the contract the rest of
+       this site's handovers keep.
+
+       It fires at 1.0 rather than at a threshold, so the decision is the
+       reader's for the whole gesture. */
+    var GO_SPAN = 420;
+    var goPast = 0;
+
+    function atEnd() {
+      return body.scrollTop + body.clientHeight >= body.scrollHeight - 2;
+    }
+
+    function pushPast(dy) {
+      if (!open || !elOpen) return;
+      if (dy > 0 && !atEnd()) return;
+      goPast = Math.max(0, Math.min(GO_SPAN, goPast + dy));
+      elOpen.style.setProperty("--go", (goPast / GO_SPAN).toFixed(3));
+      if (goPast >= GO_SPAN) {
+        goPast = 0;
+        elOpen.style.setProperty("--go", "0");
+        var href = elOpen.getAttribute("href");
+        if (!href || href === "#") return;
+        if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          document.startViewTransition(function () {
+            location.href = href;
+          });
+        } else {
+          location.href = href;
+        }
+      }
+    }
+
     function readLift() {
       rafLift = 0;
       var v = 1 - Math.min(1, body.scrollTop / 160);
@@ -559,6 +764,11 @@ top of a case study is intro and process. See the commit for how they were chose
         elTags.appendChild(s);
       });
       elOpen.setAttribute("href", d.u);
+      if (elHandName) elHandName.textContent = d.t || "";
+      /* A fresh project resets the handoff: stepping to the next one must not
+         inherit the previous sheet's scroll-past-the-end progress. */
+      goPast = 0;
+      elOpen.style.setProperty("--go", "0");
       elTail.setAttribute("href", d.u);
       elNow.textContent = d.t + " · Quick look";
       elCount.textContent = i + 1 + " / " + DATA.length;
@@ -713,7 +923,34 @@ top of a case study is intro and process. See the commit for how they were chose
         location.href = href;
       });
     }
+    /* The handoff is still a real link, so a click, a keyboard activation
+       and a middle-click all work -- the scroll is the discoverable path, not
+       the only one. */
     elOpen.addEventListener("click", expand);
+    panel.addEventListener(
+      "wheel",
+      function (e) {
+        pushPast(e.deltaY);
+      },
+      { passive: true }
+    );
+    var ptY = 0;
+    panel.addEventListener(
+      "touchstart",
+      function (e) {
+        ptY = e.touches[0].clientY;
+      },
+      { passive: true }
+    );
+    panel.addEventListener(
+      "touchmove",
+      function (e) {
+        var y = e.touches[0].clientY;
+        pushPast((ptY - y) * 1.6);
+        ptY = y;
+      },
+      { passive: true }
+    );
     elTail.addEventListener("click", expand);
 
     document.addEventListener("keydown", function (e) {
