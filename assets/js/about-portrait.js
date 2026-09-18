@@ -96,25 +96,57 @@
        that reads as alive rather than as four shapes moving. */
     "float field(vec2 q){",
     "  float s = 0.0;",
-    "  vec2 c1 = vec2(0.46 + 0.075 * sin(t * 0.21), 0.40 + 0.060 * cos(t * 0.17));",
-    "  vec2 c2 = vec2(0.58 + 0.065 * cos(t * 0.13), 0.60 + 0.070 * sin(t * 0.11));",
-    "  vec2 c3 = vec2(0.50 + 0.090 * sin(t * 0.09 + 1.7), 0.74 + 0.050 * cos(t * 0.15 + 0.6));",
-    "  vec2 c4 = vec2(0.50 + 0.070 * cos(t * 0.19 + 2.4), 0.25 + 0.055 * sin(t * 0.23 + 1.1));",
+    /* ── A CALM FORM, NOT AN AMOEBA ────────────────────────────────────
+       Sid: "you need to do some other visual treatment for that image, it
+       looks terrible."
+
+       The aspect bug was most of it, and the shape was the rest. Four balls
+       on 0.05-0.09 orbits over a 500px card move the silhouette by up to
+       45px in every direction, and because the four periods are unrelated
+       the outline wanders rather than breathes -- a lumpy edge, shifting,
+       around a photograph of a person. He asked for "not a fixed shape like
+       a rect or a circle", and an amoeba is the overcorrection.
+
+       The centres are pulled into a vertical column and the orbits cut to
+       about a third -- 0.018 to 0.030, which is 9 to 15px. The field then
+       reads as one tall rounded form with a living edge, which is what a
+       portrait wants: the motion is in the boundary, not in the outline's
+       identity. The two lower balls carry slightly more weight so the form
+       is wider at the chest than at the crown, following the picture. */
+    "  vec2 c1 = vec2(0.50 + 0.022 * sin(t * 0.21), 0.30 + 0.018 * cos(t * 0.17));",
+    "  vec2 c2 = vec2(0.50 + 0.020 * cos(t * 0.13), 0.46 + 0.024 * sin(t * 0.11));",
+    "  vec2 c3 = vec2(0.50 + 0.030 * sin(t * 0.09 + 1.7), 0.64 + 0.020 * cos(t * 0.15 + 0.6));",
+    "  vec2 c4 = vec2(0.50 + 0.026 * cos(t * 0.19 + 2.4), 0.80 + 0.022 * sin(t * 0.23 + 1.1));",
     "  vec2 asp = vec2(1.0, res.y / max(res.x, 1.0));",
-    "  s += 0.075 / max(dot((q - c1) / asp, (q - c1) / asp), 1e-4);",
-    "  s += 0.066 / max(dot((q - c2) / asp, (q - c2) / asp), 1e-4);",
-    "  s += 0.060 / max(dot((q - c3) / asp, (q - c3) / asp), 1e-4);",
-    "  s += 0.052 / max(dot((q - c4) / asp, (q - c4) / asp), 1e-4);",
+    "  s += 0.052 / max(dot((q - c1) / asp, (q - c1) / asp), 1e-4);",
+    "  s += 0.062 / max(dot((q - c2) / asp, (q - c2) / asp), 1e-4);",
+    "  s += 0.070 / max(dot((q - c3) / asp, (q - c3) / asp), 1e-4);",
+    "  s += 0.066 / max(dot((q - c4) / asp, (q - c4) / asp), 1e-4);",
     "  return s;",
     "}",
 
-    /* Cover fit, so the photograph fills the quad at its own aspect
-       whatever the card's is -- the CSS equivalent of object-fit: cover,
-       which the card used to do and the canvas now has to. */
+    /* ── COVER FIT, AND IT WAS INVERTED ──────────────────────────────────
+       Sid: "why am i stretched horribly like this."
+
+       He was, and the maths says by how much. The canvas is 500x625 (0.800)
+       and the photograph is 933x1400 (0.666), so ar = 1.200. Under `cover`
+       the visible fraction of the picture's height should be 1/ar = 0.833 --
+       crop the top and bottom, keep the width. The shader MULTIPLIED by ar
+       instead, sampling 1.200 of the height: 1.44 times more of the
+       photograph than fits, squeezed into the same pixels. A picture
+       compressed vertically is a person stretched horizontally, which is
+       exactly what he is pointing at.
+
+       Both branches were the wrong way round. For a canvas that is
+       relatively wider you DIVIDE the y range; for one that is relatively
+       taller you MULTIPLY the x range. Derived rather than guessed:
+       scale = max(cw/iw, ch/ih), and the visible fractions are
+       cw/(iw*scale) and ch/(ih*scale), which reduce to 1 and 1/ar in the
+       first case and ar and 1 in the second. */
     "vec2 cover(vec2 q){",
     "  float ar = (res.x / max(res.y, 1.0)) / (img.x / max(img.y, 1.0));",
-    "  if (ar > 1.0) { q.y = (q.y - 0.5) * ar + 0.5; }",
-    "  else { q.x = (q.x - 0.5) / max(ar, 1e-4) + 0.5; }",
+    "  if (ar > 1.0) { q.y = (q.y - 0.5) / ar + 0.5; }",
+    "  else { q.x = (q.x - 0.5) * ar + 0.5; }",
     "  return q;",
     "}",
 
