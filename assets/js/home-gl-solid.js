@@ -11,7 +11,7 @@
 
    WHAT IT IS
 
-   "Product designer, six years." raymarched as a solid object: the letters
+   "Product designer, four years." raymarched as a solid object: the letters
    extruded into depth, rounded at the edges, and rendered as a thick piece of
    glass that turns slowly and refracts whatever is behind the page.
 
@@ -178,7 +178,7 @@ window.__solidType = (function () {
     var f = 'Figtree, "Helvetica Neue", Arial, sans-serif';
     x.font = "500 " + Math.round(SW * 0.085) + "px " + f;
     x.fillText("Product designer,", SW / 2, SH * 0.34);
-    x.fillText("six years.", SW / 2, SH * 0.7);
+    x.fillText("four years.", SW / 2, SH * 0.7);
     var px = x.getImageData(0, 0, SW, SH).data;
     var mask = new Uint8Array(SW * SH);
     for (var i = 0; i < SW * SH; i++) mask[i] = px[i * 4] > 128 ? 1 : 0;

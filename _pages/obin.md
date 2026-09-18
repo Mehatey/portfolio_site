@@ -75,6 +75,18 @@ next_project:
      Which is the page's whole thesis, shown instead of claimed: the machine
      is fast at the part that is arithmetic and silent about the part that is
      judgment, and the interface has to make the difference legible. -->
+<!-- ── SECTION LABELS, BECAUSE LEDGER HAS THEM ─────────────────────────────
+     Obin carried none, and the two pages are a pair -- same category, next to
+     each other in the footer handoff, written in the same week. One of them
+     reading as a structured case study and the other as a caption-and-image
+     gallery is a difference a reader notices without being able to name.
+
+     It also fixes something measurable: the left measure line's spine draws a
+     tick per landmark, and it finds them from .cs-section among other things.
+     Obin had three landmarks on a nine thousand pixel page against six on
+     every other case study, so its spine was almost blank. -->
+<div class="cs-section"><span class="cs-section-label">The run</span></div>
+
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The whole run, sped up. It reads the data room, writes the memo, marks every figure it asserts as it lands, and then stops and names the four things it will not decide.</em></p>
 <div class="cs-bleed">
   <video width="1600" height="910" autoplay muted loop playsinline preload="auto" aria-label="The Obin agent reading a data room, drafting a credit memo with each asserted figure marked, then halting and listing four decisions for a person">
@@ -91,6 +103,8 @@ next_project:
   <p><a class="cs-try__link" href="{{ site.baseurl }}/ai-prototypes/obin/"><span>Open the Obin prototype</span><i aria-hidden="true">&rarr;</i></a></p>
   <p class="cs-try__note">The verification workspace, running in this browser. Open any figure to see what it was proved against, or what it was not.</p>
 </div>
+
+<div class="cs-section"><span class="cs-section-label">How it reads</span></div>
 
 <!-- The signature move -->
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Serif for what a person wrote. Monospace for what the machine asserted. The underline carries the state, so it survives being printed in black and white.</em></p>
@@ -119,6 +133,8 @@ next_project:
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/16.obin/05-header.webp" alt="The header strip: time on the memo against a firm baseline, 38 figures, 28 proved without you, 12 to review" loading="lazy" decoding="async" />
 </div>
+
+<div class="cs-section"><span class="cs-section-label">What it will not claim</span></div>
 
 <div class="cs-intro">
   <p>Model confidence appears nowhere in the product. A score is 99 when a tool ran the arithmetic and the model never touched the number, and 77 when it read the figure off a slide someone wrote to persuade you. Both are backtested against two hundred and fourteen closed memos where the analyst's own number exists to compare against. Probability measures fluency, and a hallucinated figure often scores higher than a correct hedged one.</p>

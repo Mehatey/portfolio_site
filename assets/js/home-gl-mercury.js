@@ -263,7 +263,7 @@ window.__mercury = (function () {
        0.085 + w*0.5 is a wide neck: a droplet started bridging to a letter
        well before it touched one, so at rest the sentence was a field of
        bronze lumps rather than words. Walked through the homepage as a
-       recruiter would see it, "Product designer, six years." -- the one line
+       recruiter would see it, "Product designer, four years." -- the one line
        that says what he does -- was not readable at nine seconds, and it
        never resolved, because melt is already 0 at the top of the page and
        this was the thing deforming it.
