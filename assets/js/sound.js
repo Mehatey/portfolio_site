@@ -49,9 +49,22 @@
     store = window.localStorage;
   } catch (e) {}
 
-  var on = false;
+  /* ── ON UNLESS TURNED OFF ──────────────────────────────────────────────
+     Sid: "the sound should always be on from the first click."
+
+     This was off by default, and the note at the top of this file argues
+     for that: a portfolio that makes noise at a stranger is one they close.
+     That argument is about AUTOPLAY, and it still holds -- nothing here can
+     make a sound before a real gesture, because an AudioContext created
+     without one is born suspended and the wake handler at the foot of this
+     file is what resumes it. So the first click is still the gate; what
+     changes is what the first click turns on.
+
+     A stored "0" is respected forever: somebody who switched it off is
+     never asked again, which was the other half of the original promise. */
+  var on = true;
   try {
-    on = store && store.getItem(KEY) === "1";
+    if (store && store.getItem(KEY) === "0") on = false;
   } catch (e) {}
 
   var ctx = null;
@@ -729,11 +742,20 @@
   function paint() {
     btn.classList.toggle("is-on", on);
     btn.setAttribute("aria-pressed", on ? "true" : "false");
-    /* The label is the tooltip. Every other control in this corner names what
-       pressing it will DO ("Go to light mode"), and the sound button was the
-       one that named a state instead, so it was the one with no tip at all. */
-    var t = on ? "Turn sound off" : "Turn sound on";
-    btn.setAttribute("aria-label", t);
+    /* ── TWO WORDS, LIKE EVERY OTHER CONTROL ────────────────────────────
+       Sid: "all the text here can just be 2 words for consistency, like Ask
+       the AI can become Ask AI, or hand steer, or sound off / on."
+
+       The tips in this corner had grown four different shapes: an article
+       ("Ask the AI"), a sentence ("Steer with your hand"), a verb phrase
+       ("Turn sound off") and a bare noun ("Close"). Four labels on four
+       buttons eight pixels apart should read as one set.
+
+       Two words, verb first, naming what pressing it will do. The aria
+       label keeps the longer form, because a screen reader is not reading
+       a row of chips and "Sound off" alone is ambiguous out of context. */
+    var t = on ? "Sound off" : "Sound on";
+    btn.setAttribute("aria-label", on ? "Turn sound off" : "Turn sound on");
     btn.setAttribute("data-tip", t);
   }
 

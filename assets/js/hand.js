@@ -58,7 +58,7 @@
   btn.type = "button";
   btn.id = "hand-toggle";
   btn.className = "hand-toggle";
-  btn.setAttribute("data-tip", "Steer with your hand");
+  btn.setAttribute("data-tip", "Hand steer");
   btn.setAttribute("aria-label", "Steer with your hand. Uses your camera, on this device only.");
   /* ── IT WAS A PADLOCK ──────────────────────────────────────────────────
      Sid: "check if the icons are right for the hand steering, there was a
@@ -417,16 +417,16 @@
       on = true;
       document.documentElement.setAttribute("data-hand", "on");
       btn.classList.add("is-on");
-      btn.setAttribute("data-tip", "Stop hand steering");
+      btn.setAttribute("data-tip", "Steer off");
       raf = requestAnimationFrame(frame);
     } catch (e) {
       /* Refused permission, no camera, or the CDN is unreachable. Say so on
          the control rather than failing silently, and leave it usable. */
       btn.classList.add("is-failed");
-      btn.setAttribute("data-tip", "Hand steering unavailable");
+      btn.setAttribute("data-tip", "No camera");
       setTimeout(function () {
         btn.classList.remove("is-failed");
-        btn.setAttribute("data-tip", "Steer with your hand");
+        btn.setAttribute("data-tip", "Hand steer");
       }, 3200);
     }
     loading = false;
@@ -461,7 +461,7 @@
     }
     document.documentElement.removeAttribute("data-hand");
     btn.classList.remove("is-on");
-    btn.setAttribute("data-tip", "Steer with your hand");
+    btn.setAttribute("data-tip", "Hand steer");
     pinched = false;
     fx = new Euro(1.4, 0.02);
     fy = new Euro(1.4, 0.02);
