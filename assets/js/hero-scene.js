@@ -691,89 +691,155 @@
      and multiplying by inverse binds is a lot of code to get subtly wrong in a
      browser, and when it is wrong the failure is a character folded inside
      out. Done once in a script, the page indexes a flat array. */
-  Promise.all([
-    fetch(base + "/assets/models/figure.json").then(function (r) {
-      if (!r.ok) throw 0;
-      return r.json();
-    }),
-    fetch(base + "/assets/models/figure.bin").then(function (r) {
-      if (!r.ok) throw 0;
-      return r.arrayBuffer();
-    }),
-  ])
-    .then(function (res) {
-      FIG = res[0];
-      var ab = res[1],
-        n = FIG.points,
-        L = FIG.layout;
-      var pos = new Int16Array(ab.slice(L.pos, L.pos + n * 6));
-      var nor = new Int8Array(ab.slice(L.nrm, L.nrm + n * 3));
-      var uv = new Uint16Array(ab.slice(L.uv, L.uv + n * 4));
-      var ji = new Uint8Array(ab.slice(L.joints, L.joints + n * 4));
-      var jw = new Uint8Array(ab.slice(L.weights, L.weights + n * 4));
-      MATS = new Float32Array(ab.slice(L.mats));
-      count = n;
+  /* ── DO NOT PAY FOR A FIGURE NOBODY CAN SEE ────────────────────────────
+     `.hero.has-wash .hero-scene` sets this element to opacity 0 and the wash
+     is always on. Measured on the built page: own computed opacity 0, with
+     `is-live` true and `__heroScene().ready` true -- so the 1.4MB figure was
+     being fetched, skinned and drawn every frame into a fully transparent
+     box. That is the same waste the note above cube-guy.js's draw guard
+     exists to prevent, one level further up, and it was the largest single
+     asset on the homepage.
 
-      /* Interleaved: pos, nrm, uv, joint, weight = 16 floats a point. The
+     The verdict cannot be read at boot. hero-wash.js loads AFTER this file
+     and only adds `has-wash` if its engine comes up; when it does not it adds
+     `no-wash`, and then this scene is the fallback that has to be there. So
+     this waits for whichever class arrives and boots anyway if neither does.
+     An absent verdict must never be the reason the hero is empty -- that
+     failure has already cost this page two sessions.
+
+     Everything above is already built by the time this runs and costs nothing
+     while idle. What is skipped is the download and the draw. */
+  function onWashVerdict(cb) {
+    var hero = host.closest(".hero");
+    if (!hero) return cb(false);
+    var done = false,
+      obs = null,
+      timer = 0;
+    function settle(washed) {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      if (obs) obs.disconnect();
+      cb(washed);
+    }
+    function look() {
+      if (hero.classList.contains("has-wash")) {
+        settle(true);
+        return true;
+      }
+      if (hero.classList.contains("no-wash")) {
+        settle(false);
+        return true;
+      }
+      return false;
+    }
+    if (look()) return;
+    timer = setTimeout(function () {
+      settle(false);
+    }, 2500);
+    obs = new MutationObserver(look);
+    obs.observe(hero, { attributes: true, attributeFilter: ["class"] });
+  }
+
+  /* Removed rather than hidden. cube-guy.js reads this element to decide
+     whether to stand its own figure down, and an absent node is the one
+     answer it cannot misread. */
+  function standDown() {
+    if (raf) cancelAnimationFrame(raf);
+    raf = 0;
+    host.remove();
+  }
+
+  onWashVerdict(function (washed) {
+    if (washed) return standDown();
+    loadFigure();
+  });
+
+  function loadFigure() {
+    Promise.all([
+      fetch(base + "/assets/models/figure.json").then(function (r) {
+        if (!r.ok) throw 0;
+        return r.json();
+      }),
+      fetch(base + "/assets/models/figure.bin").then(function (r) {
+        if (!r.ok) throw 0;
+        return r.arrayBuffer();
+      }),
+    ])
+      .then(function (res) {
+        FIG = res[0];
+        var ab = res[1],
+          n = FIG.points,
+          L = FIG.layout;
+        var pos = new Int16Array(ab.slice(L.pos, L.pos + n * 6));
+        var nor = new Int8Array(ab.slice(L.nrm, L.nrm + n * 3));
+        var uv = new Uint16Array(ab.slice(L.uv, L.uv + n * 4));
+        var ji = new Uint8Array(ab.slice(L.joints, L.joints + n * 4));
+        var jw = new Uint8Array(ab.slice(L.weights, L.weights + n * 4));
+        MATS = new Float32Array(ab.slice(L.mats));
+        count = n;
+
+        /* Interleaved: pos, nrm, uv, joint, weight = 16 floats a point. The
          offset from the manifest stands him on the floor plane and centres
          him on the camera axis, so the scene does not have to guess. */
-      /* No offset here. The centring translation must be applied AFTER the
+        /* No offset here. The centring translation must be applied AFTER the
          skin, not before it: a joint matrix multiplies the point it is given,
          so shifting the point first shifts it through the rotation as well and
          every limb pivots about the wrong origin. Built that way first and he
          collapsed into a ball. It lives on u_model now, which is applied after
          the weighted sum. */
-      var f = new Float32Array(n * 16);
-      for (var i = 0; i < n; i++) {
-        f[i * 16 + 0] = pos[i * 3] / 32767;
-        f[i * 16 + 1] = pos[i * 3 + 1] / 32767;
-        f[i * 16 + 2] = pos[i * 3 + 2] / 32767;
-        f[i * 16 + 3] = nor[i * 3] / 127;
-        f[i * 16 + 4] = nor[i * 3 + 1] / 127;
-        f[i * 16 + 5] = nor[i * 3 + 2] / 127;
-        f[i * 16 + 6] = uv[i * 2] / 65535;
-        f[i * 16 + 7] = uv[i * 2 + 1] / 65535;
-        f[i * 16 + 8] = ji[i * 4];
-        f[i * 16 + 9] = ji[i * 4 + 1];
-        f[i * 16 + 10] = ji[i * 4 + 2];
-        f[i * 16 + 11] = ji[i * 4 + 3];
-        var wsum = jw[i * 4] + jw[i * 4 + 1] + jw[i * 4 + 2] + jw[i * 4 + 3] || 255;
-        f[i * 16 + 12] = jw[i * 4] / wsum;
-        f[i * 16 + 13] = jw[i * 4 + 1] / wsum;
-        f[i * 16 + 14] = jw[i * 4 + 2] / wsum;
-        f[i * 16 + 15] = jw[i * 4 + 3] / wsum;
-      }
-      gl.bindVertexArray(subjVAO);
-      gl.bindBuffer(gl.ARRAY_BUFFER, quadVB);
-      gl.enableVertexAttribArray(0);
-      gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ARRAY_BUFFER, subjVB);
-      gl.bufferData(gl.ARRAY_BUFFER, f, gl.STATIC_DRAW);
-      var S = 64;
-      [
-        [1, 3, 0],
-        [2, 3, 12],
-        [3, 2, 24],
-        [4, 4, 32],
-        [5, 4, 48],
-      ].forEach(function (a) {
-        gl.enableVertexAttribArray(a[0]);
-        gl.vertexAttribPointer(a[0], a[1], gl.FLOAT, false, S, a[2]);
-        gl.vertexAttribDivisor(a[0], 1);
-      });
-      gl.bindVertexArray(null);
-      ready = true;
-      host.classList.add("is-live");
-    })
-    .catch(function (err) {
-      /* Say why. This catch used to be silent, and a silent removal is the
+        var f = new Float32Array(n * 16);
+        for (var i = 0; i < n; i++) {
+          f[i * 16 + 0] = pos[i * 3] / 32767;
+          f[i * 16 + 1] = pos[i * 3 + 1] / 32767;
+          f[i * 16 + 2] = pos[i * 3 + 2] / 32767;
+          f[i * 16 + 3] = nor[i * 3] / 127;
+          f[i * 16 + 4] = nor[i * 3 + 1] / 127;
+          f[i * 16 + 5] = nor[i * 3 + 2] / 127;
+          f[i * 16 + 6] = uv[i * 2] / 65535;
+          f[i * 16 + 7] = uv[i * 2 + 1] / 65535;
+          f[i * 16 + 8] = ji[i * 4];
+          f[i * 16 + 9] = ji[i * 4 + 1];
+          f[i * 16 + 10] = ji[i * 4 + 2];
+          f[i * 16 + 11] = ji[i * 4 + 3];
+          var wsum = jw[i * 4] + jw[i * 4 + 1] + jw[i * 4 + 2] + jw[i * 4 + 3] || 255;
+          f[i * 16 + 12] = jw[i * 4] / wsum;
+          f[i * 16 + 13] = jw[i * 4 + 1] / wsum;
+          f[i * 16 + 14] = jw[i * 4 + 2] / wsum;
+          f[i * 16 + 15] = jw[i * 4 + 3] / wsum;
+        }
+        gl.bindVertexArray(subjVAO);
+        gl.bindBuffer(gl.ARRAY_BUFFER, quadVB);
+        gl.enableVertexAttribArray(0);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, subjVB);
+        gl.bufferData(gl.ARRAY_BUFFER, f, gl.STATIC_DRAW);
+        var S = 64;
+        [
+          [1, 3, 0],
+          [2, 3, 12],
+          [3, 2, 24],
+          [4, 4, 32],
+          [5, 4, 48],
+        ].forEach(function (a) {
+          gl.enableVertexAttribArray(a[0]);
+          gl.vertexAttribPointer(a[0], a[1], gl.FLOAT, false, S, a[2]);
+          gl.vertexAttribDivisor(a[0], 1);
+        });
+        gl.bindVertexArray(null);
+        ready = true;
+        host.classList.add("is-live");
+      })
+      .catch(function (err) {
+        /* Say why. This catch used to be silent, and a silent removal is the
          single most expensive kind of failure on this page: the element
          deletes itself, the older figure underneath takes over, and the hero
          looks plausible — so nobody goes looking, and a session gets spent
          tuning a figure that is not the one in the markup. */
-      if (window.console && console.warn) console.warn("[hero-scene] figure did not load:", err);
-      host.remove();
-    });
+        if (window.console && console.warn) console.warn("[hero-scene] figure did not load:", err);
+        host.remove();
+      });
+  }
 
   /* Which clip, and where in it. Arise once on arrival, then walk as the
      idle; the dance is held back for a click, so the page has something to
