@@ -26,12 +26,24 @@
   // and to gate cursor: none rules. Saved theme wins; otherwise honor OS preference.
   (function () {
     try {
-      // Default to dark — user must explicitly toggle to light. We deliberately do NOT honor
-      // prefers-color-scheme:light because the site's identity is dark (cinematic loader, deep palette).
+      // ── LIGHT IS THE DEFAULT NOW ────────────────────────────────────────
+      // Sid: "i think we should start in light mode always."
+      //
+      // It used to default to dark on the reasoning below, which was: the
+      // site's identity is dark, so honour neither the OS preference nor
+      // anything else until the visitor asks. The argument has changed
+      // because the audience has. This site's job is now to be read by a
+      // recruiter in a bright room on a borrowed laptop, and cream is the
+      // ground that survives that; the dark identity is still one toggle
+      // away and the loader is still its own black room whatever the page
+      // underneath is set to.
+      //
+      // A SAVED CHOICE STILL WINS. "Always" cannot mean overriding the
+      // toggle on every page load -- a visitor who picks dark and then
+      // navigates would be put back into light, which reads as the control
+      // being broken. Light is what you get when nothing is stored.
       var saved = localStorage.getItem("sid_theme");
-      if (saved === "light" || saved === "dark") {
-        document.documentElement.setAttribute("data-theme", saved);
-      }
+      document.documentElement.setAttribute("data-theme", saved === "dark" ? "dark" : "light");
     } catch (_) {}
     try {
       if (window.matchMedia && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
@@ -304,10 +316,29 @@
        The per-page names stay, because they carry meaning at their call
        sites. They just all resolve here now. */
     --ink-page: #f4f7fb;
-    --ink: rgba(255, 255, 255, 0.96);
+    /* ── THE INK RAMP, RE-SPACED SO THE BOTTOM RUNG IS LEGIBLE ─────────
+       Found by sweeping contrast on every route after light became the
+       default: twelve elements on /ai-prototypes/ at 3.13:1, all of them
+       `.ai-index__n` at 11.5px taking `var(--ink-4)`. It is not that page's
+       bug. --ink-4 is the token for text that is deliberately quiet, and on
+       BOTH themes it was quiet past the point of being readable -- 3.13:1 on
+       cream and 4.36:1 on black, against the 4.5:1 that small text needs.
+
+       The ramp was 0.96 / 0.82 / 0.64 / 0.44, which spends most of its range
+       in the top half and then drops off a cliff. Evenly spaced between the
+       primary and the AA floor instead -- 0.94 / 0.82 / 0.70 / 0.58 -- which
+       gives four rungs a reader can tell apart and none that fail:
+
+           light   15.4 : 10.7 : 7.0 : 4.6
+           dark    17.2 : 13.1 : 9.7 : 6.9
+
+       --ink-4 moves the most, by design: it is the only rung that was
+       actually broken. This is the one place it can be fixed, because
+       forty-three declarations in project.html alone read it. */
+    --ink: rgba(255, 255, 255, 0.94);
     --ink-2: rgba(255, 255, 255, 0.82);
-    --ink-3: rgba(255, 255, 255, 0.64);
-    --ink-4: rgba(255, 255, 255, 0.44);
+    --ink-3: rgba(255, 255, 255, 0.7);
+    --ink-4: rgba(255, 255, 255, 0.58);
     --line: rgba(255, 255, 255, 0.1);
     --line-2: rgba(255, 255, 255, 0.2);
 
@@ -329,9 +360,9 @@
 
   html[data-theme="light"] {
     --ink: rgba(12, 14, 20, 0.94);
-    --ink-2: rgba(12, 14, 20, 0.8);
-    --ink-3: rgba(12, 14, 20, 0.62);
-    --ink-4: rgba(12, 14, 20, 0.46);
+    --ink-2: rgba(12, 14, 20, 0.82);
+    --ink-3: rgba(12, 14, 20, 0.7);
+    --ink-4: rgba(12, 14, 20, 0.58);
     --line: rgba(12, 14, 20, 0.12);
     --line-2: rgba(12, 14, 20, 0.22);
     /* 6.4:1 on --bg #f5f3ee -- an accent that is still legibly blue and still
@@ -1120,7 +1151,7 @@
          cream sheet: dark ink, because that is what reads on cream. With the
          sheet now taking the page's own ground, dark mode was painting dark
          ink onto a dark hero and the headline disappeared -- "Product
-         designer, six years." at about 1.2:1 against its own background.
+         designer, four years." at about 1.2:1 against its own background.
 
          They are all scoped `:not(.wash-dark)` now, so the dark hero simply
          keeps the ink the rest of the dark site uses and there is nothing to
@@ -2309,7 +2340,7 @@
       }
       /* Narrow enough that the longest phrase takes two lines. Reserving both
          up front keeps the hero foot still while the tail rewrites itself —
-         otherwise the "06 YEARS" block hops a line every few seconds. */
+         otherwise the years block hops a line every few seconds. */
       @media (max-width: 560px) {
         .hero__rot {
           min-height: 2.68em;
@@ -2866,7 +2897,7 @@
            TYPE, left    the sentence as one column, top to bottom
            FILM, right   a circular plate playing the actual reel — the loud
                          element, the only real motion, and the one thing on
-                         the page that is unarguably six years of his work
+                         the page that is unarguably four years of his work
            HIM, between  small, on the floor line, a character in the picture
                          rather than the picture
 
@@ -13260,7 +13291,7 @@
 </script>
 
 
-        <section class="hero" id="hero" aria-labelledby="hero-title" data-cube="He has been doing this six years. I have been watching for three.">
+        <section class="hero" id="hero" aria-labelledby="hero-title" data-cube="He has been doing this four years. I have been watching for three.">
           <!-- ── THE HERO LEAVES BEHIND A LIGHT ──────────────────────────────
              Sid: "instead try another scroll transition without the cube guy
              involved."
@@ -13772,7 +13803,7 @@
                York, we don't need to say that again. We're repeating
                information." It said his name, his role and his city directly
                above a headline whose first three words are "Product designer,
-               six years", under a nav that carries his mark on every page, on a
+               four years", under a nav that carries his mark on every page, on a
                site with an About page and a Contact page that both say the rest
                at length. Four statements of the same fact inside one viewport.
                The pulsing dot went with it: an availability indicator attached
@@ -13831,10 +13862,10 @@
                at and the scale at which the point cloud reads as a character
                instead of as a scan. -->
             <h1 class="hero__title" id="hero-title">
-              <span class="sr-only">Product designer, six years. Research to shipped code, end to end.</span>
+              <span class="sr-only">Product designer, four years. Research to shipped code, end to end.</span>
               <span class="hero__cols" aria-hidden="true">
                 <span class="hero__col hero__col--l">
-                  <span class="tw" data-tw-seq="0" data-tw="Product designer,|six years."></span>
+                  <span class="tw" data-tw-seq="0" data-tw="Product designer,|four years."></span>
                 </span>
                 <span class="hero__spine" data-story="rule"></span>
                 <span class="hero__col hero__col--r">
@@ -21547,7 +21578,14 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     text-align: center;
-    color: rgba(38, 44, 56, 0.62);
+    /* 0.62 -> 0.82. The size was fixed once already, on the same audit's
+       say-so, and the ALPHA was left where it was -- so at 10px on the
+       tile's near-white ground it measured 4.01:1, which is under the 4.5
+       that small text needs and was the last low-contrast reading anywhere
+       on the site after light became the default. 0.82 is 6.5:1 and still
+       reads as a label rather than as copy, because what makes it a label
+       is the 10px monospace and the 0.14em tracking, not the fade. */
+    color: rgba(38, 44, 56, 0.82);
     pointer-events: none;
     transition: opacity 400ms ease;
   }
@@ -22079,7 +22117,14 @@
     letter-spacing: 0.14em;
     text-transform: uppercase;
     text-align: center;
-    color: rgba(38, 44, 56, 0.62);
+    /* 0.62 -> 0.82. The size was fixed once already, on the same audit's
+       say-so, and the ALPHA was left where it was -- so at 10px on the
+       tile's near-white ground it measured 4.01:1, which is under the 4.5
+       that small text needs and was the last low-contrast reading anywhere
+       on the site after light became the default. 0.82 is 6.5:1 and still
+       reads as a label rather than as copy, because what makes it a label
+       is the 10px monospace and the 0.14em tracking, not the fade. */
+    color: rgba(38, 44, 56, 0.82);
     pointer-events: none;
     transition: opacity 400ms ease;
   }
@@ -26822,7 +26867,7 @@
          Sid: "can u remove the typography thing whatever you ahve tried",
          and separately "the homepage is very laggy".
 
-         home-gl-solid.js raymarched "Product designer, six years." as an
+         home-gl-solid.js raymarched "Product designer, four years." as an
          extruded slab of glass: the sentence rendered to a canvas, converted
          to a real signed distance field with 8SSEDT, then marched and
          refracted every frame. It is the best-argued file in this repo and it
@@ -27399,7 +27444,7 @@
            per-character out of this token list, so the colouring is
            structural and never a regex over a moving string. */
         t("// brooklyn, ny\n", "c");
-        t("// six years of this\n", "c");
+        t("// four years of this\n", "c");
         t("\n");
 
         t("const ", "k");
