@@ -53,7 +53,21 @@
     ".hero__dir",
     ".studio-nav .nav a",
     ".gal-go",
-    ".contact-links a",
+    /* ── AND THE CONTACT LINKS ARE OUT FOR THE SAME REASON ──────────────
+       Sid: "the magnetism on the UI of the links on the contact page is way
+       too much. you see, there's not enough spacing."
+
+       Both halves of that are one fact. Measured, the five links in that
+       column have a gap of ZERO between them -- they are stacked -- so their
+       96px radii overlap almost entirely and approaching any one pulls all
+       five, each toward a slightly different point. That is precisely the
+       failure written up below for the corner cluster, on the page where the
+       outbound click actually matters: a recruiter aiming at LinkedIn and
+       having it slide as they arrive.
+
+       They get real spacing in the stylesheet, and they come off this list.
+       Magnetism works on targets with space around them; four of these are
+       the only route off this page. */
     ".ftr__cta",
     ".ftr__copy",
     ".nextscroll__pin",
