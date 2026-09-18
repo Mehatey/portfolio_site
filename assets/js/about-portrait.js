@@ -74,6 +74,7 @@
     "uniform sampler2D tex;",
     "uniform vec2 res;", // canvas size in px
     "uniform vec2 img;", // natural size of the photograph
+    "uniform float rev;", // 0 on arrival, 1 once the picture has resolved
     "uniform float t;",
     "uniform float hov;", // 0..1 approach
     "uniform float cellPx;",
@@ -210,8 +211,35 @@
        they sit on bend, so the boundary between photograph and dissolve
        follows a curve instead of the canvas. Same cost: one fbm lookup that
        was already being computed for the flow. */
+    /* ── IT RESOLVES, IT DOES NOT SIT DISSOLVED ────────────────────────
+       Sid: "wtf is wrong with the image here, it doesnt animate and the
+       image treatment u have done for me looks horrid, can u do something
+       else."
+
+       Both halves of that are the same decision. The dissolve was keyed to
+       `edge` -- distance from the blob's boundary -- which meant the
+       photograph was permanently chewed into grey blocks around its whole
+       outline, at rest, forever. Nothing about it could read as animation,
+       because the only motion was those blocks breathing in place; and a
+       portrait that is always half destroyed is not a treatment, it is
+       damage. Every previous pass tuned the damage.
+
+       So the quantisation is driven by `rev` instead: full at arrival,
+       gone once it lands. The picture ASSEMBLES out of the grid over a
+       second and a half and is then simply the photograph -- sharp, full
+       colour, undistorted. The gesture happens, it is legible, and it
+       ends. The soft metaball mask stays, so there is still no straight
+       edge anywhere; it just no longer eats the picture.
+
+       `front` staggers it. A single rev across the frame resolves every
+       cell at once, which reads as a crossfade; offsetting each area by a
+       low-frequency noise means patches of him arrive before others, which
+       is what makes it look like a picture coming into being. */
+    "  float front = fbm(q * 2.2 + 3.0);",
+    "  float d = clamp((1.0 - rev) * 1.5 - front * 0.5, 0.0, 1.0);",
+    "  d = smoothstep(0.0, 1.0, d);",
     "  float cs = cellPx / max(res.x, 1.0);",
-    "  float cs2 = cs * 2.0;",
+    "  float cs2 = cs * 2.2;",
     /* Two scales of warp, not one. A single frequency displaces the grid
        but keeps its overall run, so a long edge still reads as broadly
        straight with a wobble on it -- photographed on the right side of the
@@ -220,17 +248,18 @@
        as a line. */
     "  vec2 warpA = vec2(fbm(q * 1.1 + 11.0), fbm(q * 1.1 - 7.0)) - 0.5;",
     "  vec2 warpB = vec2(fbm(q * 3.7 - 3.0), fbm(q * 3.7 + 5.0)) - 0.5;",
-    "  vec2 wq = q + warpA * cs * 5.2 + warpB * cs * 2.2;",
+    "  vec2 wq = q + (warpA * cs * 5.2 + warpB * cs * 2.2) * d;",
     "  vec2 cq = floor(wq / cs) * cs + cs * 0.5;",
     "  vec2 cq2 = floor(wq / cs2) * cs2 + cs2 * 0.5;",
-    "  vec2 grid = mix(cq, cq2, smoothstep(0.45, 0.95, edge));",
-    "  vec2 sq = mix(q, grid, smoothstep(0.12, 0.72, edge));",
-    "  vec2 base = sq + flow * amp * 0.075;",
+    "  vec2 grid = mix(cq, cq2, smoothstep(0.35, 0.92, d));",
+    "  vec2 sq = mix(q, grid, d);",
+    "  vec2 base = sq + flow * amp * 0.075 * d;",
 
     /* THE ABERRATION. One sample per channel, offset along the flow. Three
        taps is the cheapest honest chromatic split and it is the detail that
        makes the edge read as optical rather than as a cutout. */
-    "  vec2 ab = flow * amp * 0.018 + vec2(amp * 0.006, 0.0);",
+    /* Optical split belongs to the arrival, not to the resting picture. */
+    "  vec2 ab = (flow * amp * 0.018 + vec2(amp * 0.006, 0.0)) * d;",
     "  float r = texture2D(tex, cover(base + ab)).r;",
     "  float g = texture2D(tex, cover(base)).g;",
     "  float b = texture2D(tex, cover(base - ab)).b;",
@@ -239,7 +268,7 @@
     /* A little lift in the band, so where the picture is coming apart it is
        also catching light -- the same reasoning as the old bloom, except
        the light lands on the edge rather than over the whole face. */
-    "  col += vec3(0.12, 0.15, 0.22) * edge * edge * (0.35 + 0.5 * hov);",
+    "  col += vec3(0.12, 0.15, 0.22) * d * (0.35 + 0.5 * hov);",
 
     /* ── THE DISSOLVE BREATHES, IT DOES NOT STROBE ─────────────────────
        Sid: "the motion and rotation of pixels is also super janky and not
@@ -267,7 +296,11 @@
     "  float g0 = hash(dq + floor(ts));",
     "  float g1 = hash(dq + floor(ts) + 1.0);",
     "  float grain = mix(g0, g1, k);",
-    "  float a = inside - edge * 0.55 * grain;",
+    /* The edge was permanently eaten by `edge * 0.55 * grain`, which is
+       what made the outline read as chunky rectangles. The mask is the
+       smoothstep on its own now -- soft, curved, no straight run anywhere --
+       and the grain only bites while the picture is still arriving. */
+    "  float a = inside - d * 0.4 * grain;",
     "  a = clamp(a, 0.0, 1.0);",
     "  if (a < 0.01) discard;",
     "  gl_FragColor = vec4(col * a, a);",
@@ -347,7 +380,7 @@
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
 
     var U = {};
-    ["tex", "res", "img", "t", "hov", "cellPx"].forEach(function (k) {
+    ["tex", "res", "img", "t", "hov", "cellPx", "rev"].forEach(function (k) {
       U[k] = gl.getUniformLocation(prog, k);
     });
 
@@ -359,6 +392,7 @@
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
     var loaded = false;
+    var revT0 = 0;
     function upload() {
       if (!img.naturalWidth) return;
       gl.bindTexture(gl.TEXTURE_2D, tex);
@@ -435,6 +469,16 @@
         hov += (want - hov) * 0.07;
         gl.uniform1f(U.t, (now - t0) / 1000);
         gl.uniform1f(U.hov, hov);
+        /* ── THE ARRIVAL ──────────────────────────────────────────────
+           The clock does not start at boot, it starts the first time the
+           card is actually on screen with its photograph decoded. The
+           portrait sits two thirds of the way down a 9,000px page: begun
+           at boot it would have finished resolving long before anybody
+           scrolled to it, which is how a one-and-a-half second animation
+           becomes a still picture nobody saw. */
+        if (!revT0 && loaded) revT0 = now;
+        var rv = revT0 ? Math.min(1, (now - revT0) / 1600) : 0;
+        gl.uniform1f(U.rev, rv * rv * (3 - 2 * rv));
         gl.uniform1i(U.tex, 0);
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, tex);
