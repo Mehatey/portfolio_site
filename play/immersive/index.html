@@ -1,24 +1,6 @@
 <!DOCTYPE html> <html lang="en"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> <meta charset="UTF-8"> <link rel="icon" type="image/svg+xml" href="/favicon.svg"> <link rel="icon" href="/favicon.ico" sizes="any"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <meta name="view-transition" content="same-origin"> <script src="/assets/js/motion-budget.js"></script> <script>
-  // Theme + cursor bootstrap — runs in <head> before any body paint to avoid flash of wrong theme
-  // and to gate cursor: none rules. Saved theme wins; otherwise honor OS preference.
   (function () {
     try {
-      // ── LIGHT IS THE DEFAULT NOW ────────────────────────────────────────
-      // Sid: "i think we should start in light mode always."
-      //
-      // It used to default to dark on the reasoning below, which was: the
-      // site's identity is dark, so honour neither the OS preference nor
-      // anything else until the visitor asks. The argument has changed
-      // because the audience has. This site's job is now to be read by a
-      // recruiter in a bright room on a borrowed laptop, and cream is the
-      // ground that survives that; the dark identity is still one toggle
-      // away and the loader is still its own black room whatever the page
-      // underneath is set to.
-      //
-      // A SAVED CHOICE STILL WINS. "Always" cannot mean overriding the
-      // toggle on every page load -- a visitor who picks dark and then
-      // navigates would be put back into light, which reads as the control
-      // being broken. Light is what you get when nothing is stored.
       var saved = localStorage.getItem("sid_theme");
       document.documentElement.setAttribute("data-theme", saved === "dark" ? "dark" : "light");
     } catch (_) {}
@@ -29,7 +11,6 @@
     } catch (_) {}
   })();
 </script> <meta name="theme-color" content="#08080c" media="(prefers-color-scheme: dark)"> <meta name="theme-color" content="#f5f3ee" media="(prefers-color-scheme: light)"> <meta name="apple-mobile-web-app-capable" content="yes"> <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"> <link rel="apple-touch-icon" sizes="180x180" href="/assets/img/apple-touch-icon.png"> <link rel="manifest" href="/site.webmanifest"> <script>
-  // Manual theme toggle should also update theme-color so the browser chrome flips immediately
   (function () {
     var META_DARK = "#08080c",
       META_LIGHT = "#f5f3ee";
@@ -98,10 +79,6 @@
 </script> <title>Play · Orbit · Sid Mehta</title> <meta name="description" content="An orbital constellation of Sid Mehta's work in 3D — product design, AI and creative technology, and spatial and visual systems arranged as three rings around a shared core."> <link rel="canonical" href="https://siddharthmehta.design/play/immersive/"> <meta property="og:title" content="Play · Orbit · Sid Mehta"> <meta property="og:type" content="website"> <meta property="og:url" content="https://siddharthmehta.design/play/immersive/"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap"> <script type="importmap">
       { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js" } }
     </script> <style>
-  /* ── DESIGN TOKENS ──────────────────────────────────────────────────────────
-     Single source of truth for all design tokens. Included in <head> of every
-     layout. Page-specific overrides live in each layout's own <style> block.
-     ──────────────────────────────────────────────────────────────────────── */
 
   *,
   *::before,
@@ -112,79 +89,31 @@
   }
 
   :root {
-    /* ── Background & Foreground ── */
     --bg: #07060c;
     --fg: #fff;
 
-    /* ── Muted palette ── */
-    /* Small labels still need to be comfortably legible. This value keeps the
-       hierarchy quiet without slipping below useful contrast on the dark canvas. */
     --muted: rgba(255, 255, 255, 0.48);
     --dim: rgba(255, 255, 255, 0.22);
     --border: rgba(255, 255, 255, 0.06);
 
-    /* ── Accent (blue) ── */
     --accent: rgba(160, 200, 255, 1);
     --accent-dim: rgba(160, 200, 255, 0.55);
 
-    /* ── Pillar colours ──
-       One colour language for Sid's three bodies of work, lifted straight from
-       the Orbit scene's three rings so the site reads as one system: cool blue
-       for product & systems, warm amber for AI & creative technology, violet for
-       culture, space & image. Stored as bare "r, g, b" triplets so any element
-       can dial its own alpha via rgb(var(--pillar-x) / <a>) or rgba(). */
     --pillar-product: 156, 208, 255;
     --pillar-ai: 255, 179, 122;
     --pillar-culture: 201, 162, 255;
 
-    /* ── Typography ── */
     --font-head: "Figtree", sans-serif;
     --font-mono: "DM Mono", monospace;
     --font-title: "Figtree", sans-serif;
 
-    /* ── Layout ── */
-    /* The distance from the window edge to the first vertical grid line, and
-       therefore to the left edge of every measured thing on the site. It is
-       the same expression layout_grid.html centres its box with, hoisted to a
-       token because three files now need to agree with it and two of them
-       were previously restating it by hand. */
     --grid-left: max(var(--gutter, max(24px, 4vw)), calc((100vw - 1560px) / 2));
     --nav-h: 64px;
     --gutter: max(24px, 4vw);
     --content-max: 1440px;
 
-    /* ── Motion ── */
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
-    /* ══ THE SYSTEM ═══════════════════════════════════════════════════════
-       Sid: "follows design fundamentals, doesn't stack a lot of text in
-       different styles above each other, and follows 4 point spacing and
-       colour and grid rules."
-
-       He was right, and the measurement was worse than the complaint. Audited
-       at 1512 across three pages -- works, home and a case study -- the site
-       was running 39, 44 and 51 DISTINCT spacing values, of which 58%, 58%
-       and 56% of all uses sat off any 4pt grid; 34, 42 and 45 distinct type
-       combinations of family x size x weight x tracking x case; and 18, 17
-       and 27 distinct text colours. The single most common spacing value was
-       10px, used 51 to 69 times per page, with 2px close behind.
-
-       None of that is a styling mistake in any one place. It is what happens
-       when hundreds of individual values are chosen one at a time over many
-       sessions -- a good number of them mine -- with nothing to choose them
-       from. Every fix then lands as "better, but still off", because a number
-       nudged inside a system that does not exist cannot resolve into rhythm.
-
-       So: the scales below are the vocabulary. Nothing here changes a single
-       pixel on its own -- these are additive definitions, and pages adopt them
-       as they are converted, starting with works and play. That matters: a
-       token layer that silently restyles twenty pages the moment it lands is
-       not a refactor, it is an outage.
-
-       ── SPACING. Strict 4pt, doubling with two half-steps where real layouts
-       need them. Nothing between --sp-1 and --sp-2 exists on purpose; 10px and
-       14px and 7px are exactly the values that made the pages feel unresolved,
-       so there is deliberately nowhere to write them. */
     --sp-0: 0;
     --sp-1: 4px;
     --sp-2: 8px;
@@ -197,29 +126,6 @@
     --sp-9: 96px;
     --sp-10: 128px;
 
-    /* ── TYPE. Eight roles, not forty-five. Each one is a complete decision --
-       size, weight, line-height and tracking together -- because the audit
-       showed the same nominal size appearing at four different weights and
-       three different trackings, which is precisely the "text in different
-       styles stacked above each other" he is describing. Sizes are on a 1.25
-       ratio rounded to whole pixels, and every one of them is 4pt-divisible in
-       line-height so text sits on the same grid as the boxes around it.
-
-       display  the one big statement per page
-       title    section headings
-       heading  sub-sections, card titles
-       body-lg  lead paragraphs
-       body     running prose
-       label    UI labels, item titles in lists
-       meta     captions, secondary detail
-       micro    the mono eyebrows -- the ONLY role that is uppercase-tracked */
-    /* 350, not 600. The token said 600 and the site never agreed with it:
-       the sixteen case studies set their display heading at 300, the homepage
-       at 350, /about/ at 400. The only file that actually used the token was
-       play/index.html, so the scale's heaviest role was describing one page
-       while every other page hand-rolled something lighter. Changed to match
-       the voice that exists rather than leaving a token nobody could adopt
-       without making their page the odd one out. */
     --type-display: 350 clamp(40px, 5vw, 72px) / 1.05 var(--font-title);
     --type-title: 500 clamp(28px, 3vw, 40px) / 1.15 var(--font-head);
     --type-heading: 500 24px / 1.33 var(--font-head);
@@ -233,58 +139,7 @@
     --track-tight: -0.012em;
     --track-micro: 0.16em;
 
-    /* ── COLOUR. Six text tokens per theme, replacing the seventeen-to-
-       twenty-seven in use. The ladder is deliberate and each step has a job,
-       so there is never a reason to invent an alpha between two of them:
-
-       ink      primary text, full strength
-       ink-2    secondary -- long prose, list items
-       ink-3    tertiary -- captions, meta
-       ink-4    quiet -- eyebrows, disabled, decorative
-       line     hairlines and dividers
-       line-2   stronger dividers, focus rings
-
-       Measured on --bg #07060c: ink-3 lands at 8.9:1 and ink-4 at 4.8:1, so
-       even the quietest step clears AA for small text. That is the point of
-       stopping the ladder at four -- every earlier attempt at "just a bit
-       fainter" is how 0.62, 0.66 and 0.68 all ended up on the same page. */
-    /* ── ONE PAGE INK ───────────────────────────────────────────────────
-       Audited across eight routes: the site was rendering FOUR different
-       opaque near-whites as its primary ink, one per page, each declared
-       locally and none of them aware of the others —
-
-         #f2f5f9  --home-ink and --wk-ink
-         #f4f7fb  --play-ink
-         #f5f7fa  --contact-ink
-         #f5f7fb  --nav-ink
-
-       Three units apart at the widest. Nobody can see the difference, which
-       is exactly why it went unnoticed for so long and exactly why it is
-       worth fixing: four tokens doing one job is four places to change when
-       the answer changes, and the reason the fourth page always drifts.
-
-       The per-page names stay, because they carry meaning at their call
-       sites. They just all resolve here now. */
     --ink-page: #f4f7fb;
-    /* ── THE INK RAMP, RE-SPACED SO THE BOTTOM RUNG IS LEGIBLE ─────────
-       Found by sweeping contrast on every route after light became the
-       default: twelve elements on /ai-prototypes/ at 3.13:1, all of them
-       `.ai-index__n` at 11.5px taking `var(--ink-4)`. It is not that page's
-       bug. --ink-4 is the token for text that is deliberately quiet, and on
-       BOTH themes it was quiet past the point of being readable -- 3.13:1 on
-       cream and 4.36:1 on black, against the 4.5:1 that small text needs.
-
-       The ramp was 0.96 / 0.82 / 0.64 / 0.44, which spends most of its range
-       in the top half and then drops off a cliff. Evenly spaced between the
-       primary and the AA floor instead -- 0.94 / 0.82 / 0.70 / 0.58 -- which
-       gives four rungs a reader can tell apart and none that fail:
-
-           light   15.4 : 10.7 : 7.0 : 4.6
-           dark    17.2 : 13.1 : 9.7 : 6.9
-
-       --ink-4 moves the most, by design: it is the only rung that was
-       actually broken. This is the one place it can be fixed, because
-       forty-three declarations in project.html alone read it. */
     --ink: rgba(255, 255, 255, 0.94);
     --ink-2: rgba(255, 255, 255, 0.82);
     --ink-3: rgba(255, 255, 255, 0.7);
@@ -292,15 +147,6 @@
     --line: rgba(255, 255, 255, 0.1);
     --line-2: rgba(255, 255, 255, 0.2);
 
-    /* ── GRID. One column system, so "the grid" means something specific:
-       12 columns, 4pt-derived gutters, a max measure for prose. */
-    /* --accent and --accent-dim are ONE blue, defined once, and they do not
-       flip with the theme -- they are built for a dark canvas. That is fine
-       for glows and borders and wrong for text, and it has now caused the same
-       bug three times: a light-mode rule sets colour to --accent, the name
-       reads as theme-aware, and a pale blue lands on cream at 1.27 to 1.42 to
-       one. --accent-ink is the text-safe accent and it DOES flip. Any
-       html[data-theme="light"] rule colouring type should use this. */
     --accent-ink: rgba(160, 200, 255, 0.92);
 
     --grid-cols: 12;
@@ -315,8 +161,6 @@
     --ink-4: rgba(12, 14, 20, 0.58);
     --line: rgba(12, 14, 20, 0.12);
     --line-2: rgba(12, 14, 20, 0.22);
-    /* 6.4:1 on --bg #f5f3ee -- an accent that is still legibly blue and still
-       legibly text. */
     --accent-ink: rgba(35, 80, 127, 0.92);
   }
 
@@ -326,13 +170,9 @@
     }
   }
 
-  /* Light mode token overrides */
   html[data-theme="light"] {
     --bg: #f5f3ee;
     --fg: #1a1a22;
-    /* Light mode needs a firmer muted ink than dark mode: the earlier value
-       looked elegant in isolation but was too faint for small navigation and
-       metadata text against the pale surface. */
     --muted: rgba(26, 26, 34, 0.64);
     --dim: rgba(26, 26, 34, 0.22);
     --border: rgba(26, 26, 34, 0.08);
@@ -345,25 +185,6 @@
     scroll-behavior: smooth;
   }
   body {
-    /* ── THE GROUND IS STATED ON BOTH ─────────────────────────────────────
-       Sid: "dark mode is not working."
-
-       `html` carried `background: var(--bg)` and `body` carried nothing, which
-       is valid -- the root's background propagates to the canvas, so the page
-       LOOKS right. What it is not is READABLE: measured,
-       `getComputedStyle(document.body).backgroundColor` returns
-       `rgba(0, 0, 0, 0)` in dark and `rgb(245, 243, 238)` in light, because
-       several light-mode layouts do set body explicitly and the dark path
-       never did.
-
-       Anything that asks the page what colour it is therefore gets a straight
-       answer in one theme and transparent in the other. The hero wash does
-       exactly that to decide whether to paint ink or light, so in dark mode it
-       read transparent, fell back to its cream default, and painted a sheet of
-       paper over a black page -- which is what "dark mode is not working"
-       looks like on the home page.
-
-       One line, stated on the element everything measures. */
     background: var(--bg);
     font-family: var(--font-head);
     -webkit-font-smoothing: antialiased;
@@ -372,28 +193,10 @@
     color: inherit;
     text-decoration: none;
   }
-  /* ── THE ONE PIECE OF TYPE THAT WAS NOT OURS ──────────────────────────
-     `<kbd>` carries `font-family: monospace` in every browser's own default
-     sheet, and nothing here overrode it. Audited across all 43 routes, the
-     brand faces account for every text element on the site except this one:
-     the `esc` key in the command palette came back as generic `monospace` on
-     all 22 main pages, and so did the palette footer's arrow keys and the
-     404 hint once they are open.
-
-     `#sid-help kbd` already reached for `var(--font-mono)`, which is what
-     makes this an omission rather than a decision -- the same control in a
-     different panel was already correct. Setting it on the element covers
-     the palette, the 404 and anything that uses a key glyph later, and the
-     panels that style their own kbd keep winning on specificity. */
   kbd {
     font-family: var(--font-mono, "DM Mono", monospace);
   }
 
-  /* ── Cross-page motion ───────────────────────────────────────────────────
-     A light, progressive enhancement for browsers that support cross-document
-     View Transitions. It makes navigation feel like a change of scene rather
-     than a hard cut; unsupported browsers retain the normal fast navigation.
-     ──────────────────────────────────────────────────────────────────────── */
   @view-transition {
     navigation: auto;
   }
@@ -437,18 +240,6 @@
     }
   }
 
-  /* ── THE THEME WIPE ──────────────────────────────────────────────────────
-     The page-scene keyframes above are for NAVIGATION. A theme change is a
-     same-document transition and wants the opposite treatment: the two
-     snapshots are the identical layout in two palettes, so fading or blurring
-     them against each other just produces mud in the middle of the sweep.
-
-     So during a theme change both roots hold still at full opacity and the
-     only thing that moves is the circular clip on the incoming one, animated
-     from the toggle's position by the script in cursor_fluid.html. The old
-     snapshot stays put underneath and is revealed away.
-
-     Scoped behind .is-theme-wipe so navigation keeps its own animation. */
   html.is-theme-wipe::view-transition-old(root),
   html.is-theme-wipe::view-transition-new(root) {
     animation: none;
@@ -460,40 +251,12 @@
   html.is-theme-wipe::view-transition-new(root) {
     z-index: 1;
   }
-  /* The nav and the cube carry their own transition names, which would make
-     them separate groups floating above the wipe and travelling on their own
-     while the palette changes underneath. For this one transition they belong
-     to the page. */
   html.is-theme-wipe .nav,
   html.is-theme-wipe .sid-cube,
   html.is-theme-wipe [style*="view-transition-name"] {
     view-transition-name: none !important;
   }
 
-  /* ── VIDEO CHROME ──────────────────────────────────────────────────────
-     Every frame on this site is composed. The covers are cropped, the media
-     blocks have a curved leading edge, the reels have their own counters and
-     captions — and then a video with `controls` paints a light grey capsule
-     with a blue-ish progress bar across the bottom of it, because that is
-     what the user agent ships. On /ai-prototypes/ there are twelve of them,
-     stacked down a page whose entire argument is that these are finished
-     pieces of work. The default panel is the single loudest thing on it.
-
-     Removing `controls` is not the answer for those twelve: they are films a
-     visitor is meant to start, pause and scrub. The answer is to dress the
-     panel instead of the video, which Chromium and Safari both allow through
-     the media-controls pseudo-elements. Two rules do nearly all of it.
-
-     The enclosure inherits the element's own radius so the bar stops
-     squaring off the bottom corners of a media block that is rounded
-     everywhere else. The panel's opaque capsule becomes a gradient scrim in
-     the page's own ink — transparent at the top, near-solid where the
-     buttons sit — so the controls read as sitting ON the footage rather than
-     as a tray bolted under it. The glyphs the UA draws are white either way,
-     and white on a 0.82 scrim is more legible than white on the default grey.
-
-     Firefox exposes none of this and keeps its own controls, which is the
-     behaviour today, so nothing regresses there. */
   video::-webkit-media-controls-enclosure {
     border-radius: inherit;
   }
@@ -502,21 +265,6 @@
     background-image: linear-gradient(180deg, rgba(4, 7, 13, 0) 0%, rgba(4, 7, 13, 0.4) 40%, rgba(4, 7, 13, 0.82) 100%);
   }
 
-  /* ── FOCUS ─────────────────────────────────────────────────────────────
-     Several pages set a proper ring on their own controls and several do
-     not, so a keyboard walk of the home page landed on the skip link, the
-     "Open to roles" chip, the "Selected work" link and the reel button with
-     nothing but the UA default — a 1px near-black outline, on a near-black
-     page. Invisible. This is the floor, defined once where every layout
-     already includes it; pages with a stronger ring still override it.
-
-     `video` was the gap. It is not a link, a button or a [tabindex] — it is
-     focusable purely because it carries `controls`, so it fell through every
-     selector in this list while still taking two tab stops apiece (the
-     element, then its shadow-DOM control bar). On /ai-prototypes/ that is
-     ten consecutive stops with no ring at all: a keyboard user tabbing the
-     page simply loses the caret for a third of it. `audio` and `iframe` are
-     here for the same reason, before they become the next version of it. */
   a:focus-visible,
   button:focus-visible,
   summary:focus-visible,
@@ -543,37 +291,10 @@
   html[data-theme="light"] iframe:focus-visible {
     outline-color: rgba(24, 68, 140, 0.7);
   }
-  /* Mouse users should never see it; a bare :focus rule would flash the ring
-     on every click on the custom-cursor pages. */
   :focus:not(:focus-visible) {
     outline: none;
   }
 
-  /* ── OUTBOUND ARROW ────────────────────────────────────────────────────
-     Every link on this site that leaves the page ends in a ↗, and until now
-     that arrow was a literal character sitting in the label — which means it
-     was the one part of the link that could not move. The links themselves
-     are careful: the contact row draws its rule in from the left, the about
-     actions lift. The arrow just sat there through all of it, and a mark that
-     stays put while everything around it responds reads as a typo rather than
-     as restraint.
-
-     So the glyph becomes a slot instead: a square the size of the text, with
-     the arrow inside it and a second copy of the arrow waiting one diagonal
-     step down and to the left, outside the clip. On hover the pair travels
-     along that diagonal together — the first arrow leaves through the top-
-     right corner exactly as the second arrives in its place. It is the same
-     move the arrow itself describes, performed by the arrow, and it costs two
-     pseudo-elements and no markup beyond an empty span.
-
-     The diagonal is 110% rather than 100% so both glyphs are fully outside
-     the box at the midpoint and the swap never shows two arrows at once. The
-     easing is the site's own 0.16/1/0.3/1, and it runs on :focus-visible as
-     well as :hover so a keyboard walk sees the same thing a cursor does.
-
-     Written here, in the one include every layout carries, because the same
-     arrow appears on contact, about, the project pages and the reels — this
-     is the class they can all reach for. */
   .xarrow {
     display: inline-block;
     position: relative;
@@ -598,12 +319,6 @@
   .xarrow::after {
     transform: translate(-110%, 110%);
   }
-  /* Keyed to the DIRECT parent rather than to `a` or `button`, because a third
-     of the arrows on this site hang off neither: the reels on /ai-prototypes/
-     open through `<span data-href>` handlers, and those were about to be the
-     only outbound marks that stayed still. `:hover >` is the honest expression
-     of the rule — the arrow answers to the thing it is inside, whatever that
-     thing happens to be — and it keeps ancestor hovers from firing it. */
   :hover > .xarrow::before,
   :focus-visible > .xarrow::before {
     transform: translate(110%, -110%);
@@ -612,16 +327,6 @@
   :focus-visible > .xarrow::after {
     transform: translate(0, 0);
   }
-  /* The same slot, turned on its side, for the arrows that mean "onward" rather
-     than "away": the works CTA, the 404 escape hatches, the home index row, the
-     loader's enter button. Those all point → instead of ↗, so the handoff runs
-     along the horizontal rather than the diagonal — the arrow still leaves in
-     exactly the direction it is pointing, which is the whole idea.
-
-     Wider than the diagonal slot because → is a wider glyph than ↗ and a 1em
-     box clips its tail. Declared after the base rules so the identical-
-     specificity overrides land; the travel is 120% so the outgoing mark is
-     fully clear of the box before the incoming one arrives. */
   .xarrow--right {
     width: 1.15em;
   }
@@ -648,34 +353,6 @@
     }
   }
 
-  /* ══ TOUCH TARGETS ═════════════════════════════════════════════════════
-     From the mobile audit at 390x844. Horizontal scroll was clean on every
-     page, but six controls measured under the 44px minimum a finger needs:
-
-       .contact-copybtn      44x23  -- the Copy buttons beside the address
-       .ai-featured-action  187x22  -- the prototype links. That element is
-                                       gone: the AI page is one entry shape
-                                       now and its single link is .proto__open,
-                                       which grows its own 44px hit area with a
-                                       transparent ::after in that layout. Done
-                                       there rather than here because it is a
-                                       grid item with justify-self, so adding
-                                       min-height would stretch the row instead
-                                       of the target -- and because (pointer:
-                                       coarse) is the real condition, where
-                                       max-width: 900px only approximates it.
-       .studio-mark          36x48  -- the logo, 8px narrow
-       .skip-link          163x30
-       .cc-close / toggles   39x39
-
-     None of these are visible faults, which is why they survived every
-     screenshot pass. They are the difference between a link that works on a
-     phone and one you have to aim at twice.
-
-     Height is added with padding rather than by growing the box, and the
-     inline controls get a centred flex so the label stays where it was --
-     these are all things sitting inside laid-out rows, and making them
-     taller must not move their neighbours. */
   @media (max-width: 900px) {
     .contact-copybtn,
     .skip-link {
@@ -688,32 +365,12 @@
       min-width: 44px;
       justify-content: center;
     }
-    /* Round buttons that are close but under: grown from the centre so the
-       icon inside does not shift. */
     .cc-close,
     .theme-toggle,
     .contact-copybtn {
       min-width: 44px;
     }
 
-    /* Second sweep, after the first fixed contact and ai-prototypes: the home
-       page still had three, and the nav had four I had not thought to check.
-
-       .studio-link measured 42x40 -- the nav itself, four times, and the most
-       tapped thing on any page. Two pixels short in each direction is the
-       worst kind of miss: it works most of the time, so it never gets
-       reported, it just quietly costs a tap now and then.
-
-       .obj-face--left is the exception that stays: a 23x232 sliver is one
-       face of the rotating cube gallery, and the whole point of its shape is
-       that it is a face seen edge-on. Making it 44 wide would deform the
-       object. Its front face is a full-size target for the same project, so
-       the destination is reachable -- this is decoration that happens to be
-       an anchor, not a control a thumb is meant to find. */
-    /* Written through .studio-links: the bare .studio-link min-height was
-       being out-specified by the nav's own mobile rule, so width reached 44
-       and height stayed at 40. Only measuring again after the "fix" showed
-       it -- the first pass reported success on half the property. */
     .studio-links .studio-link {
       min-height: 44px;
       min-width: 44px;
@@ -726,28 +383,6 @@
     }
   }
 
-  /* ══ PRESS ═════════════════════════════════════════════════════════════
-     The site had focus-visible everywhere and :active almost nowhere -- two
-     rules in the nav, one on works, none at all on the case studies. So
-     hovering told you a thing was live and clicking it told you nothing: the
-     press vanished into the navigation. On a portfolio that is a conspicuous
-     gap, because a press is the one interaction a visitor performs
-     deliberately.
-
-     FIRST ATTEMPT USED transform: scale(0.985) AND WAS A NO-OP. Measured it:
-     pressing a contact link returned matrix(1,0,0,1,0,-1.53) -- the link's
-     own hover lift, not the press. Nearly every interactive thing on this
-     site already animates transform on hover, and a component rule beats a
-     bare element selector, so the one property I reached for was the one
-     property that was already taken. It would have shipped looking like it
-     worked, because it does work on the handful of elements with no hover
-     transform.
-
-     So the press drives brightness instead, which nothing else on the site
-     animates and which composes with any transform rather than fighting it.
-     40ms down, because a press is not an animation to admire -- it has to
-     land inside the same moment as the finger -- and a slower release so the
-     control settles rather than snapping. */
   a,
   button,
   summary,
@@ -761,16 +396,12 @@
     filter: brightness(0.82);
     transition-duration: 40ms;
   }
-  /* Light mode inverts it: on cream, dimming a control reads as disabled,
-     while a touch of extra contrast reads as pressed. */
   html[data-theme="light"] a:active,
   html[data-theme="light"] button:active,
   html[data-theme="light"] summary:active,
   html[data-theme="light"] [role="button"]:active {
     filter: brightness(0.94) contrast(1.08);
   }
-  /* Media keeps its own treatment: dimming a photograph on press looks like
-     a loading state, not an acknowledgement. */
   .play-grid img:active,
   .sid-tile:active,
   .obj-face:active,
@@ -786,25 +417,6 @@
     }
   }
 
-  /* ══ A FLOOR FOR SMALL SCREENS ══════════════════════════════════════════
-     Swept every route at 390x844 -- the logical size of the phone a recruiter
-     opens a link on -- and found between 18 and 35 elements per page set
-     under 11px. They are all the same kind of thing: kickers, index
-     numerals, years, the footer ticker, the strip captions. Each was tuned
-     on a 1400px screen where 10px reads as a label, and on a phone held at
-     arm's length 10px is where a label stops being readable and becomes
-     texture.
-
-     A floor rather than a rewrite. These are the classes the sweep actually
-     named, lifted to 11px below 760px and nothing else touched -- the type
-     scale on the desktop is unchanged, and no layout that depends on a width
-     is being asked to reflow. 11 rather than 12 because several of these sit
-     in fixed-width furniture (the works card overlays, the globe tile) and a
-     two-pixel jump is where those start to wrap.
-
-     Deliberately NOT lifted: .scroll-hint-label at 9px, which is a one-word
-     hint that disappears on the first scroll, and the marquee separators,
-     which are punctuation rather than text. */
   @media (max-width: 760px) {
     .kts__item,
     .wk-num,
@@ -828,25 +440,11 @@
       font-size: 11px !important;
     }
 
-    /* ── AND A FLOOR FOR TAP TARGETS ──────────────────────────────────────
-       Swept the same way and found four links under the 32px that a finger
-       needs: the home hero's LinkedIn and Résumé at 18px tall, the "four
-       ways to say it" control at 30, and the contact page's email address at
-       30. All four are the most consequential links on their page -- two of
-       them are how a recruiter leaves for his profile and his CV.
-
-       Padding rather than font-size, so nothing reflows: the text stays
-       where the design put it and the target grows around it. Negative
-       margin on the vertical axis keeps the surrounding rhythm, since these
-       sit in lines of copy whose spacing was set without the padding. */
     .hero__out a,
     .hero__say,
     .contact-address a,
     a[href^="mailto:"],
     a[href^="tel:"] {
-      /* 9, not 8: eight brought the hero's two outbound links to 31px and
-         the floor being checked is 32. One pixel of padding is cheaper than
-         a recurring false alarm in the sweep. */
       padding-top: 9px !important;
       padding-bottom: 9px !important;
       margin-top: -9px;
@@ -1030,12 +628,6 @@
         letter-spacing: 0.07em;
         pointer-events: none;
       }
-      /* Visually hidden, but present for keyboard and screen-reader users. The
-         3D canvas is a single element to assistive tech — you cannot Tab to a
-         planet floating in a WebGL scene. This list mirrors every piece as a
-         real, focusable control that opens the same lightbox, so the gallery is
-         operable without a pointer or a GPU. The visible .imm-fallback only
-         appears when WebGL fails; this exists always. */
       .orbit-access {
         position: absolute;
         width: 1px;
@@ -1048,8 +640,6 @@
         white-space: nowrap;
         border: 0;
       }
-      /* When a keyboard user Tabs into the list, let the focused control surface
-         so a sighted keyboard user can see where they are. */
       .orbit-access:focus-within {
         z-index: 30;
         top: 12px;
@@ -1123,9 +713,6 @@
       .stage.has-fallback #orbit-canvas {
         display: none;
       }
-      /* When the scene is not coming, neither is anything these two describe.
-         "Drag to orbit, scroll to zoom" printed over an empty black field is
-         worse than silence: it tells you the page is working. */
       .stage.has-fallback .imm-hint,
       .stage.has-fallback .imm-caption,
       .stage.has-fallback .rings-legend,
@@ -1229,15 +816,6 @@
           right: 20px;
           gap: 6px;
         }
-        /* Was `padding: 5px 10px` with a 9px face, which measured 21px tall
-           on a 390px screen -- under the 24px WCAG 2.2 minimum, and these are
-           ring filters, not links inside a sentence, so the inline exception
-           does not cover them. The desktop rule already clears it at exactly
-           24 (10px face + 12px padding + 2px border); only the mobile
-           override dropped below. Padding rather than a min-height because
-           the button is `display: block` and right-aligned with an auto
-           margin -- changing the layout model to centre the text would put
-           that alignment at risk for two pixels of tidiness. */
         .rings-legend button {
           padding: 10px 14px;
           font-size: 9px;
@@ -1284,11 +862,6 @@
 
       const base = "/play/assets";
 
-      // ── Ring taxonomy ──────────────────────────────────────────────
-      // Mirrors the recruiter path from the site's own product principles:
-      // product design closest to the core, then AI / creative technology,
-      // then cultural, spatial and visual systems as the outer, more
-      // exploratory ring.
       const RING_META = [
         { name: "Product Design", radius: 7, tilt: 8, y: 0, speed: 0.024, color: 0x9cd0ff },
         { name: "AI + Creative Tech", radius: 13, tilt: -6, y: 0.6, speed: -0.016, color: 0xffb37a },
@@ -1350,9 +923,6 @@
       let renderer;
       try {
         renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-        /* Read by the watchdog in the classic script above. It has to be set
-           from in here, because the whole point of the watchdog is that it
-           cannot assume this module ever ran. */
         window.__orbitReady = true;
       } catch (err) {
         stage.classList.add("has-fallback");
@@ -1368,11 +938,6 @@
         const scene = new THREE.Scene();
         scene.fog = new THREE.FogExp2(0x020409, 0.018);
         const camera = new THREE.PerspectiveCamera(50, innerWidth / innerHeight, 0.05, 300);
-        // Portrait phones have a much narrower horizontal field of view at a fixed
-        // 50° vertical, so the outer ring (radius 19.5) was being cropped off both
-        // edges and the whole constellation felt cramped. Widen the vertical FOV as
-        // the viewport gets taller-than-wide so the rings stay framed; desktop keeps
-        // the original 50°. Called once here and again on every resize.
         function frameFov() {
           const a = innerWidth / innerHeight;
           camera.fov = a < 0.62 ? 74 : a < 0.85 ? 64 : a < 1 ? 56 : 50;
@@ -1388,7 +953,6 @@
         warm.position.set(10, -6, -6);
         scene.add(warm);
 
-        // ── Core ────────────────────────────────────────────────────
         const coreGroup = new THREE.Group();
         const coreMesh = new THREE.Mesh(
           new THREE.IcosahedronGeometry(1.1, 1),
@@ -1418,7 +982,6 @@
         coreGroup.add(glowSprite);
         scene.add(coreGroup);
 
-        // ── Starfield ───────────────────────────────────────────────
         const starCount = 900;
         const starPos = new Float32Array(starCount * 3);
         for (let i = 0; i < starCount; i += 1) {
@@ -1433,7 +996,6 @@
         starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
         scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xbadfff, size: 0.045, transparent: true, opacity: 0.5 })));
 
-        // ── Rings ───────────────────────────────────────────────────
         const loader = new THREE.TextureLoader();
         const ringGroups = [];
         const allCards = [];
@@ -1536,7 +1098,6 @@
           videoEl.play().catch(() => {});
         }
 
-        // ── Lightbox ────────────────────────────────────────────────
         const lightbox = document.getElementById("orbit-lightbox");
         const lightboxMedia = document.getElementById("orbit-lightbox-media");
         const lightboxTitle = document.getElementById("orbit-lightbox-title");
@@ -1579,10 +1140,6 @@
           if (e.target === lightbox) closeLightbox();
         });
 
-        // ── Accessible piece list ──────────────────────────────────
-        // Build one focusable button per card, in ring order, each opening the
-        // same lightbox. This is the keyboard/screen-reader path into a gallery
-        // that is otherwise a single opaque <canvas>.
         const accessList = document.getElementById("orbit-access-list");
         if (accessList) {
           allCards.forEach((card) => {
@@ -1601,11 +1158,8 @@
           });
         }
 
-        // ── Orbit camera controls ──────────────────────────────────
         let azimuth = 0.4,
           polar = 1.2,
-          // Start a touch further out on portrait so the first frame reads as a
-          // whole system rather than a wall of cards.
           dist = innerWidth / innerHeight < 0.62 ? 28 : 25;
         let targetAzimuth = azimuth,
           targetPolar = polar,

@@ -31,7 +31,6 @@
         height: 100%;
         display: block;
       }
-      /* Conversation layer */
       #stage {
         position: fixed;
         inset: 0;
@@ -132,7 +131,6 @@
         border-color: rgba(255, 255, 255, 0.6);
         color: #fff;
       }
-      /* Begin overlay */
       #begin {
         position: fixed;
         inset: 0;
@@ -248,7 +246,6 @@
 
       const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      // ───────────────────────── 3D : a glowing procedural bodhi tree ─────────────────────────
       const canvas = document.getElementById("scene");
       const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -277,7 +274,6 @@
       const tree = new THREE.Group();
       scene.add(tree);
 
-      // Recursively grow branch segments + scatter a canopy of glowing leaves at the tips.
       const branchPts = [];
       const leafPts = [];
       const leafCol = [];
@@ -305,8 +301,6 @@
           grow(end, nd, len * (0.74 + Math.random() * 0.08), depth - 1);
         }
       }
-      // A straight trunk up to a crown, then a balanced ring of limbs so the canopy
-      // reads as a full, roughly symmetric tree rather than a lopsided random sprawl.
       const crown = new THREE.Vector3(0, 7, 0);
       branchPts.push(0, 0, 0, 0, 3.6, 0, 0, 3.6, 0, crown.x, crown.y, crown.z);
       const LIMBS = 6;
@@ -321,7 +315,6 @@
       const branches = new THREE.LineSegments(branchGeo, new THREE.LineBasicMaterial({ color: 0xc4d8f2, transparent: true, opacity: 0.72 }));
       tree.add(branches);
 
-      // soft round sprite for leaves
       const tex = (() => {
         const c = document.createElement("canvas");
         c.width = c.height = 64;
@@ -350,8 +343,6 @@
       const leaves = new THREE.Points(leafGeo, leafMat);
       tree.add(leaves);
 
-      // Auto-frame: random growth leans, so center on the leaf CENTROID (the visible glowing
-      // mass) rather than the bounding box, then fit the camera distance to the bounds.
       {
         let cx = 0,
           cy = 0,
@@ -376,7 +367,6 @@
         controls.update();
       }
 
-      // faint ground glow
       const ground = new THREE.Mesh(
         new THREE.CircleGeometry(26, 48),
         new THREE.MeshBasicMaterial({ color: 0x0a1422, transparent: true, opacity: 0.6 })
@@ -415,9 +405,6 @@
       }
       frame();
 
-      // ───────────────────────── AI : real Claude + Rachel voice, via the proxy ─────────────────────────
-      // The system prompt + API keys live in the Cloudflare Worker (bloom-proxy), never here.
-      // Deploy the worker, then set its URL below (or pass ?proxy=https://... while testing).
       const PROXY = new URLSearchParams(location.search).get("proxy") || "https://bloom-proxy.REPLACE-ME.workers.dev";
 
       const sayEl = document.getElementById("say");
@@ -467,7 +454,6 @@
         if (on) setTimeout(() => ti.focus({ preventScroll: true }), 60);
       }
 
-      // Fetch Rachel's voice for a line and play it (gated behind the begin/submit gesture).
       async function playVoice(text) {
         try {
           if (curAudio) {
@@ -488,7 +474,6 @@
         } catch (_) {}
       }
 
-      // Stream a Claude reply from the proxy (Anthropic SSE), then speak + voice it.
       async function reply(userText) {
         busy = true;
         enableInput(false);
@@ -560,7 +545,6 @@
         }
         ready = true;
         beginEl.classList.add("hidden");
-        // seed the opener as the tree's first turn so Claude has the thread
         messages.push({ role: "assistant", content: OPENER });
         speak(OPENER, false);
         playVoice(OPENER); // the begin click is the gesture that lets audio play
