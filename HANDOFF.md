@@ -1134,3 +1134,22 @@ runway) never trigger under it. Dispatch `WheelEvent`s or use Playwright.
 Name in the nav, always-on nav labels, Sid AI in the nav, the footer desk on
 /contact/ ("have this common footer on every page"), "Bloom; who are you" (it
 is the installation's name). Open for Sid: the "Coming soon" badge on /sid-ai/.
+
+## The handover, measured in real Chrome (19 Sep, later)
+
+Quick look -> scroll past the end -> case study: `pagereveal` at 338ms with a
+live cross-document transition, `finished` at 889ms, landed by ~1s, the sheet's
+own picture morphing into the hero. No click anywhere in the path.
+
+**Two more harness traps, both cost time today.** Playwright's bundled
+Chromium never fires `pagereveal` for this site's cross-document transitions
+(the new page's rendering stays blocked and `page.screenshot` times out
+indefinitely), and even in real Chrome (`channel: 'chrome'`) `page.screenshot`
+with a short timeout fails on the WebGL-heavy case studies. Neither is the
+site. Measure the transition with `pagereveal`/`finished` timestamps, and
+screenshot with a 5s+ timeout, in `channel: 'chrome'`.
+
+Also landed: "Read the full story" is gone from the sheet (the scroll is the
+way in; the handoff row still carries a real link); every case study has a
+"<- Works" text link in the bar that returns to `/works/?p=<slug>`, i.e. the
+sheet reopened on the project you just left, next project one arrow away.
