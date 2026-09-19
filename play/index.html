@@ -524,6 +524,19 @@ title: Play · Sid Mehta
       .play-grid video {
         transform-origin: 50% 50%;
       }
+      /* ── THE BEND ────────────────────────────────────────────────────
+         Sid, pointing at paul-michel.framer.website: "the media bends a bit
+         at the bottom, that makes it feel fluid and alive."
+
+         Shared with /works/ through assets/js/media-bend.js: one clip path
+         in bounding-box units, rewritten once a frame for the whole page.
+         It composes with the scroll curve rather than fighting it -- that
+         writes transform and opacity, this clips, and neither reads the
+         other. */
+      .play-grid img.bend-media,
+      .play-grid video.bend-media {
+        clip-path: url(#media-bend);
+      }
       /* ── THE TILT IS GONE ─────────────────────────────────────────────
          Sid: "pls remove those horrible tilting image hover effect on play"
          and "let the hover be smoother and a lil faster."
@@ -1164,6 +1177,9 @@ title: Play · Sid Mehta
                the card is already playing the thing you would have clicked
                for. */
             image = document.createElement("video");
+            /* Opts into the shared bend. See the note beside the clip rule
+               above and assets/js/media-bend.js. */
+            image.className = "bend-media";
             image.muted = true;
             image.loop = true;
             image.playsInline = true;
@@ -1187,6 +1203,7 @@ title: Play · Sid Mehta
             return image;
           }
           image = document.createElement("img");
+          image.className = "bend-media";
           image.alt = item.name || item.title;
           image.decoding = "async";
           /* The moment a real size is available, the 3/4 placeholder that let
@@ -1195,6 +1212,18 @@ title: Play · Sid Mehta
             "load",
             function () {
               this.classList.add("is-sized");
+              /* ── TALL STRIPS DO NOT BEND ──────────────────────────────
+                 The shared clip is in objectBoundingBox units, so its depth
+                 is a fraction of the element's own height. That is what lets
+                 one path fit every card, and it is also why a very tall
+                 picture cannot use it: 4.2% of a 3,000px strip is 137px of
+                 photograph clipped away, which is not a bend, it is a bite.
+                 Past about 2.2:1 the curve stops reading as an edge catching
+                 up and starts reading as damage, so those keep a straight
+                 edge. */
+              if (this.naturalWidth && this.naturalHeight / this.naturalWidth > 2.2) {
+                this.classList.remove("bend-media");
+              }
             },
             { once: true }
           );
@@ -2141,6 +2170,7 @@ title: Play · Sid Mehta
          runs its own ambient auto-scroll and must not also have Lenis driving
          the same scrollTop. -->
     <script src="{{ site.baseurl }}/assets/js/scroll-velocity.js" defer></script>
+    <script src="{{ site.baseurl }}/assets/js/media-bend.js" defer></script>
 
     {% comment %} Play was also the one page left out of the "one footer" pass, for the same reason -- it is a standalone document rather than a
     layout, so it never picked the include up. Every other page on the site ends with the marquee, the pond, the coda and, critically, a way to get in
