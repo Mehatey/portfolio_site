@@ -9,8 +9,12 @@ tagline: >
 category: AR · Exhibition
 year: 2025
 hero_bg: "radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
-hero_image: "1.met/cover-webby.jpg"
+# The cover used to be cover-webby.jpg, with two Webby ribbons painted into
+# the photograph at about a fifth of its height. Sid: "webby award labels are
+# too big." The plain cover, and the layout's own 132px corner seal instead.
+hero_image: "1.met/0.jpg"
 hero_pos: "18% 50%"
+award_image: "assets/img/badge_webby.webp"
 og_image: "assets/img/og/encoded-webby.jpg"
 meta:
   - label: Year

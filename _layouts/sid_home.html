@@ -1664,6 +1664,10 @@
       /* Each character carries its own blur and lift. `filter` and
          `transform` are both compositor properties, so a five-word line
          animating every glyph costs one layer, not thirty. */
+      .rot-w {
+        display: inline-block;
+        white-space: nowrap;
+      }
       .rot-c {
         display: inline-block;
         transition:
@@ -6350,86 +6354,38 @@
            late would let the grid reflow the moment the gate opens. */
         whenOpen(function () {
           if (!LESS) {
-            inks.forEach(function (o) {
-              o.ink.style.visibility = "hidden";
-            });
-            var line = 0;
-            var pos = 0;
-            /* 22ms a character with a 300ms beat between lines. Down from
-             28/420: there are four lines to get through now rather than two,
-             and at the old rate the right-hand clause did not start until the
-             third second and did not land until the fifth. Both clauses are
-             home inside about two and a half seconds, which is the window a
-             hero gets before a visitor decides whether the page is loading.
+            /* ── BUILT, NOT TYPED ──────────────────────────────────────────
+               Sid: "instead of building text on homepage make it built and
+               let it move a little faster."
 
-             The gap between the two HOSTS is the same 300ms as between lines
-             within one, on purpose — a longer pause there would read as the
-             sentence having finished. */
-            var startAt = performance.now() + 460;
-            (function type(now) {
-              if (line >= inks.length) return;
-              if (now < startAt) {
-                requestAnimationFrame(type);
-                return;
-              }
-              var o = inks[line];
+               The typewriter is gone. Every line is already in the DOM at
+               full length; the door opens and the lines rise out of their
+               line boxes on a short stagger, which is the twRise animation
+               each ink has carried all along and the typing loop used to
+               pre-empt. The whole sentence is standing in under a second.
+
+               The story beats stay, because the spine, the plate and the
+               foot row key off them; they are just on a short clock now
+               rather than on the typing. The handoff to hero-type.js is
+               unchanged: the attribute and the event fire once, at the end. */
+            inks.forEach(function (o, i) {
+              o.ink.style.animation = "none";
+              void o.ink.offsetWidth;
+              o.ink.style.animation = "";
+              o.ink.style.animationDelay = 120 + i * 90 + "ms";
               o.ink.style.visibility = "visible";
-              pos += 1;
-              o.ink.textContent = o.txt.slice(0, pos);
-              if (pos >= o.txt.length) {
-                line += 1;
-                pos = 0;
-                startAt = now + 300;
-                /* ── THE STORY BEAT ─────────────────────────────────────────
-                 Sid: "can u animate the first sequence like a story see how
-                 to show which at what point."
-
-                 The hero used to arrive as one event: everything present on
-                 the first frame, typing over the top of it. So there was no
-                 order to read it in — the last line of the page was legible
-                 before the first one had been written.
-
-                 It has beats now, and the beats are the SENTENCE's, not a
-                 timer's. data-story counts completed lines on <html>, so
-                 every other element in the hero can wait for the clause it
-                 belongs after:
-
-                   1  the claim has landed      -> the spine draws
-                   2  the qualifier has landed  -> the film plate arrives
-                   3  the sentence is finished  -> the foot row and the mark
-
-                 Deliberately not setTimeout. The typing rate is 22ms a
-                 character and someone will change that copy; anything keyed
-                 to a wall clock silently desynchronises the moment they do.
-                 This cannot, because it IS the typing. */
-                document.documentElement.setAttribute("data-story", String(Math.min(3, line)));
-                /* ── THE HANDOFF ────────────────────────────────────────────
-                 assets/js/hero-type.js takes the finished line apart into
-                 per-letter spans. It cannot do that while this loop is still
-                 running, because writing textContent destroys children — and
-                 that is exactly what used to happen: _includes/live_type.html
-                 split the hero at about 1.5s and this loop wiped all 31 spans
-                 a beat later, so the per-character effect the whole site
-                 shares had never once run on the page it was written for.
-
-                 Fired when the LAST line lands, not each one. */
-                if (line >= inks.length) {
-                  /* The attribute is the durable half of the handoff. The event
-                   is a moment and anything not listening at that moment misses
-                   it; hero-type.js needs to be able to ASK whether typing has
-                   finished, because its own fallback path runs on a timer and
-                   cannot rely on having been present. It must not try to infer
-                   this from the DOM: every line is given its full text up
-                   front and then hidden and typed over, so the ink already
-                   reads complete on the first frame. */
-                  document.documentElement.setAttribute("data-hero-typed", "1");
-                  window.dispatchEvent(new CustomEvent("sid:herotyped"));
-                }
+            });
+            var beat = 0;
+            (function next() {
+              beat += 1;
+              document.documentElement.setAttribute("data-story", String(Math.min(3, beat)));
+              if (beat < 3) {
+                setTimeout(next, 180);
               } else {
-                startAt = now + 22;
+                document.documentElement.setAttribute("data-hero-typed", "1");
+                window.dispatchEvent(new CustomEvent("sid:herotyped"));
               }
-              requestAnimationFrame(type);
-            })(performance.now());
+            })();
           } else {
             /* Reduced motion skips the typing entirely, so the line is already
              complete and the splitter can be told immediately. */
@@ -6539,15 +6495,34 @@
           el.textContent = "";
           var chars = text.split("");
           var mid = (chars.length - 1) / 2;
+          /* ── LETTERS IN WORDS, WORDS IN A LINE ─────────────────────────
+             Every letter is an inline-block so it can carry its own lift and
+             blur, and every space was a non-breaking one -- so the line
+             could never break at a space, only between letters, and on a
+             phone it read "100,000 download / s". Each word is wrapped in a
+             nowrap span and the spaces between them are real, so the line
+             wraps where a line should. The delays are unchanged: they run
+             on the character's index in the whole line. */
+          var word = null;
           for (var c = 0; c < chars.length; c++) {
+            if (chars[c] === " ") {
+              el.appendChild(document.createTextNode(" "));
+              word = null;
+              continue;
+            }
+            if (!word) {
+              word = document.createElement("span");
+              word.className = "rot-w";
+              el.appendChild(word);
+            }
             var sp = document.createElement("span");
             sp.className = "rot-c";
-            sp.textContent = chars[c] === " " ? "\u00a0" : chars[c];
+            sp.textContent = chars[c];
             /* Distance from the centre, so both ends move first and the
                middle lands last. */
             var d = Math.abs(c - mid) / Math.max(1, mid);
             sp.style.transitionDelay = Math.round((dir > 0 ? 1 - d : d) * 260) + "ms";
-            el.appendChild(sp);
+            word.appendChild(sp);
           }
           return el.querySelectorAll(".rot-c");
         }
