@@ -10439,12 +10439,30 @@
 
       var d = y - lastY;
       if (Math.abs(d) > THRESH) {
-        /* Held open near the top, because there is nothing to get out of the
-           way of yet, and at the very bottom, where a reader who has run out
-           of page is looking for somewhere to go next. */
-        var atTop = y < 120;
-        var atEnd = y + window.innerHeight > document.documentElement.scrollHeight - 80;
-        var wantAway = d > 0 && !atTop && !atEnd;
+        /* ── THE BAR STAYS ────────────────────────────────────────────
+           Sid: "when we have the nav bar move off screen then when i hover
+           on an image the color squares are just suspended in air without
+           the bg nav. so shud we always have nav bar visible?"
+
+           Yes. The hover swatches, the reading line and the lane controls
+           are all positioned against this bar, so retracting it leaves them
+           floating with nothing behind them -- which is the artefact he
+           photographed. And on a page whose whole job is to get a recruiter
+           into a project, there should always be a way out in view.
+
+           The same call was already made for the site's other nav, whose
+           `.nav--hidden` rule was neutralised with the note that the
+           reading line "never floats orphaned". This is the two navs
+           finally agreeing rather than each deciding on its own.
+
+           It was `d > 0 && !atTop && !atEnd` -- retract on any downward
+           scroll except near the ends. The machinery around it stays (the
+           reveal zone, the lift, the scrim) so this is one line to put back
+           if the immersive version is ever wanted again.
+
+           The idle rule is untouched: html[data-idle="on"] still takes the
+           bar away for the screensaver, which is a different question. */
+        var wantAway = false;
         /* Never retract out from under the keyboard. */
         if (nav && nav.contains(document.activeElement)) wantAway = false;
         if (document.body.classList.contains("nav-open")) wantAway = false;
@@ -15108,7 +15126,19 @@
          photograph across the white card. */
       inset: var(--pad) var(--pad) var(--pad-b);
       pointer-events: none;
-      background-image: var(--src);
+      /* ── NOT UNTIL THE ROW IS NEARLY HERE ──────────────────────────
+         This paints the same file the <img> beside it already carries,
+         and a CSS background has no lazy loading -- so `loading="lazy"`
+         on the image was doing nothing at all. Measured on the built
+         homepage: every tile in this row fetched at first paint, 7,700px
+         before a reader reaches them, about 850KB of photographs nobody
+         had scrolled to yet.
+
+         The smear is unchanged; only its start is. The rule waits for
+         `is-near`, which lands as the row approaches, and by then the
+         <img> is fetching the identical URL -- so the background draws
+         from a warm cache and the effect appears exactly as before. */
+      background-image: none;
       background-size: cover;
       background-position: center;
       filter: url(#sid-motion);
@@ -15116,6 +15146,9 @@
       -webkit-mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
       mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
       transition: opacity 480ms ease;
+    }
+    .sid-strip.is-near .sid-tile::after {
+      background-image: var(--src);
     }
 
     /* The hover lift moved into the rail's frame loop. It writes an inline
@@ -19190,6 +19223,43 @@
       }, 900);
     });
   })();
+</script> <script>
+  /* ── THE STRIP'S SMEAR WAITS FOR THE STRIP ──────────────────────────────
+     .sid-tile::after repaints each tile's own photograph as a blurred
+     underlay. A CSS background cannot be lazy, so that rule was pulling
+     every picture in the row at first paint while the <img loading="lazy">
+     beside it politely waited -- the lazy attribute was decorative.
+
+     The rule now needs `is-near` on the strip, which this adds a screen and
+     a half out. That is far enough that the smear is always painted before
+     the row is legible, and late enough that a reader who never scrolls that
+     far never pays for it.
+
+     No IntersectionObserver, no strip, no gate: the class goes on
+     immediately, because a missing capability must not cost the page a
+     visual effect that already works. */
+  (function () {
+    var strip = document.querySelector(".sid-strip");
+    if (!strip) return;
+    if (!("IntersectionObserver" in window)) {
+      strip.classList.add("is-near");
+      return;
+    }
+    var io = new IntersectionObserver(
+      function (entries) {
+        if (
+          !entries.some(function (e) {
+            return e.isIntersecting;
+          })
+        )
+          return;
+        strip.classList.add("is-near");
+        io.disconnect();
+      },
+      { rootMargin: "150% 0px 150% 0px" }
+    );
+    io.observe(strip);
+  })();
 </script> <script src="/assets/js/scroll-film.js" defer></script> <script>
       /* The way back scrolls rather than jumps, and does it itself rather
          than relying on `href="#top"` resolving -- these pages run a smooth
@@ -22257,14 +22327,8 @@
   #cube-chat-fab .fab-ai rect {
     fill: currentColor;
   }
-  #cube-chat-fab .fab-ai__b {
-    opacity: 0.72;
-  }
-  /* The small spark leads very slightly, so the pair reads as one thing
-     catching light rather than two marks blinking together. */
-  #cube-chat-fab:hover .fab-ai__b {
-    opacity: 1;
-  }
+  /* The two rules that dimmed the small cluster went with it. The four
+     squares are one set now, so nothing in the mark is subordinate. */
 
   #theme-toggle {
     display: flex;
@@ -22317,6 +22381,21 @@
   #theme-toggle svg {
     width: 16px;
     height: 16px;
+    /* ── THE ICON WAS BLACK IN BOTH THEMES ──────────────────────────────
+       Sid: "light mode icon not visible."
+
+       These glyphs carry `nav-pixel`, but the rule that inks that class is
+       scoped `.nav .nav-pixel` and this button is not in the nav -- so the
+       rects had no fill at all and took SVG's own default, which is black.
+       Measured: computed fill rgb(0,0,0) on the svg AND its rects in dark
+       and light alike. On the dark disc that is black on black, which is
+       why the control read as an empty circle.
+
+       currentColor rather than a literal, because the button already sets
+       its ink per theme a few rules up (0.92 white on the dark disc,
+       near-black on the light one) and the glyph should be whatever the
+       control's ink is. */
+    fill: currentColor;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   #theme-toggle .theme-sun {
@@ -25425,7 +25504,7 @@
       el.classList.add("motion-press");
     });
   })();
-</script> <button type="button" id="cube-chat-fab" aria-label="Ask Sid's AI" data-tip="Ask the AI"> <span class="fab-pulse" aria-hidden="true"></span> <svg class="nav-pixel fab-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect x="9" y="9" width="4" height="4" rx="1.2"></rect> <rect x="9" y="4" width="4" height="4" rx="1.2"></rect> <rect x="9" y="14" width="4" height="4" rx="1.2"></rect> <rect x="4" y="9" width="4" height="4" rx="1.2"></rect> <rect x="14" y="9" width="4" height="4" rx="1.2"></rect> <rect class="fab-ai__b" x="17" y="16" width="2.6" height="2.6" rx="0.9"></rect> <rect class="fab-ai__b" x="17" y="19.4" width="2.6" height="2.6" rx="0.9"></rect> <rect class="fab-ai__b" x="14.6" y="18.2" width="2.6" height="2.6" rx="0.9"></rect> <rect class="fab-ai__b" x="19.4" y="18.2" width="2.6" height="2.6" rx="0.9"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close" data-tip-anchor>✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
+</script> <button type="button" id="cube-chat-fab" aria-label="Ask Sid's AI" data-tip="Ask AI"> <span class="fab-pulse" aria-hidden="true"></span> <svg class="nav-pixel fab-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect x="4.5" y="4.5" width="6.2" height="6.2" rx="1.6"></rect> <rect x="13.3" y="4.5" width="6.2" height="6.2" rx="1.6"></rect> <rect x="4.5" y="13.3" width="6.2" height="6.2" rx="1.6"></rect> <rect x="13.3" y="13.3" width="6.2" height="6.2" rx="1.6"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close chat" data-tip-anchor>✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
   // ── CUBE CHAT ── canned conversational agent (Sid's cube as host)
   (function () {
     var fab = document.getElementById("cube-chat-fab");

@@ -1352,8 +1352,34 @@
          -1..1 from the centre of each card. */
       .wk-card:hover .wk-cover img,
       .wk-card:focus-visible .wk-cover img {
-        transform: scale(1.055) translate3d(calc(var(--mx, 0) * 10px), calc(var(--my, 0) * 10px), 0);
-        filter: saturate(1) brightness(1);
+        /* Sid: "u can add a light zoom or a depth map 3d feel to each cover
+           pic on hover."
+
+           A little more zoom than before, and the parallax pushed from 10px
+           to 16px, which is what actually reads as depth: the picture
+           tracking the cursor at a different rate from the frame around it
+           is parallax, and parallax is the only honest depth cue available
+           to a flat photograph. NOT a tilt -- rotating the card was tried on
+           the play page and cut ("pls remove those horrible tilting image
+           hover effect"), because a photograph turned in perspective is a
+           photograph you are now seeing at the wrong shape. */
+        transform: scale(1.075) translate3d(calc(var(--mx, 0) * 16px), calc(var(--my, 0) * 16px), 0);
+        filter: saturate(1.04) brightness(1.03);
+      }
+      /* The frame darkens at its edges as the picture lifts out of it, which
+         is the other half of the depth: something in front has to cast into
+         what it sits in. Inset, so it never touches the type outside. */
+      .wk-cover {
+        box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
+        transition: box-shadow 460ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .wk-card:hover .wk-cover,
+      .wk-card:focus-visible .wk-cover {
+        box-shadow: inset 0 0 44px 8px rgba(0, 0, 0, 0.34);
+      }
+      html[data-theme="light"] .wk-card:hover .wk-cover,
+      html[data-theme="light"] .wk-card:focus-visible .wk-cover {
+        box-shadow: inset 0 0 40px 6px rgba(22, 34, 52, 0.18);
       }
 
       /* ── THE LIGHT ─────────────────────────────────────────────────────
@@ -1603,11 +1629,26 @@
          both jobs -- a two finger swipe or a trackpad scroll moves the strip,
          a click still opens the project. Dragging is not bound to anything,
          which is what keeps a click from ever being read as a swipe. */
+      /* ── THE COVER IS A COVER ─────────────────────────────────────────
+         Sid: "when i hover on works like mool it adds this rect of blue on
+         the right, i dont want that."
+
+         It was not hover. This was a horizontally scrollable strip holding
+         the cover plus two frames from inside the work, and a trackpad's
+         horizontal drift while scrolling the page down is enough to slide
+         it: Mool's second frame carries a pale panel on its right edge, so
+         the card appeared to grow a rectangle whenever the pointer crossed
+         it. Measured: scrollLeft never changes on hover itself, which is
+         why this looked like a hover bug and was not one -- it was an
+         interaction nobody asked for, captured by accident.
+
+         A gesture you trigger without meaning to is worse than no gesture.
+         The extra frames are not lost: they are on the project's own page,
+         which is where somebody who wants more than a cover is going. */
       .wk-strip {
         display: flex;
         height: 100%;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
+        overflow: hidden;
         scrollbar-width: none;
         overscroll-behavior-x: contain;
       }
@@ -1624,7 +1665,12 @@
       /* Two or three dots, and only on the card that has a strip. Without
          them the extra frames are a secret: nothing on a static cover says
          it can move sideways. */
+      /* The dots existed to advertise the sideways gesture. With the
+         gesture gone they would be pointing at nothing. */
       .wk-frames {
+        display: none;
+      }
+      .wk-frames--unused {
         position: absolute;
         left: 12px;
         bottom: 11px;
@@ -1840,27 +1886,11 @@
         }
       }
 
-      /* ── the tail ──────────────────────────────────────────────────────── */
-      .wk-end {
-        margin: clamp(52px, 8vh, 96px) 0 0;
-        padding-top: 22px;
-        border-top: 1px solid var(--wk-hair);
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px 28px;
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.12em;
-        color: var(--wk-faint);
-      }
-      .wk-end a {
-        color: var(--wk-ink);
-        text-decoration: none;
-        border-bottom: 1px solid var(--wk-hair);
-      }
-      .wk-end a:hover {
-        border-bottom-color: var(--wk-ink);
-      }
+      /* The tail is gone. It was a hairline rule and a project tally, and
+         both went with the header's count -- the rail below says the same
+         thing better. The rule is removed rather than left empty because a
+         border with nothing under it is just a line across the bottom of a
+         page. */
 
       @media (max-width: 1100px) {
         .wk-lane-head {
@@ -4813,12 +4843,30 @@
 
       var d = y - lastY;
       if (Math.abs(d) > THRESH) {
-        /* Held open near the top, because there is nothing to get out of the
-           way of yet, and at the very bottom, where a reader who has run out
-           of page is looking for somewhere to go next. */
-        var atTop = y < 120;
-        var atEnd = y + window.innerHeight > document.documentElement.scrollHeight - 80;
-        var wantAway = d > 0 && !atTop && !atEnd;
+        /* ── THE BAR STAYS ────────────────────────────────────────────
+           Sid: "when we have the nav bar move off screen then when i hover
+           on an image the color squares are just suspended in air without
+           the bg nav. so shud we always have nav bar visible?"
+
+           Yes. The hover swatches, the reading line and the lane controls
+           are all positioned against this bar, so retracting it leaves them
+           floating with nothing behind them -- which is the artefact he
+           photographed. And on a page whose whole job is to get a recruiter
+           into a project, there should always be a way out in view.
+
+           The same call was already made for the site's other nav, whose
+           `.nav--hidden` rule was neutralised with the note that the
+           reading line "never floats orphaned". This is the two navs
+           finally agreeing rather than each deciding on its own.
+
+           It was `d > 0 && !atTop && !atEnd` -- retract on any downward
+           scroll except near the ends. The machinery around it stays (the
+           reveal zone, the lift, the scrim) so this is one line to put back
+           if the immersive version is ever wanted again.
+
+           The idle rule is untouched: html[data-idle="on"] still takes the
+           bar away for the screensaver, which is a different question. */
+        var wantAway = false;
         /* Never retract out from under the keyboard. */
         if (nav && nav.contains(document.activeElement)) wantAway = false;
         if (document.body.classList.contains("nav-open")) wantAway = false;
@@ -5893,7 +5941,7 @@
       { passive: true }
     );
   })();
-</script> <main id="main"> <h1 class="sr-only">Selected work by Siddharth Mehta</h1> <div class="wk"> <div class="wk-head"> <h2 data-livetype data-livetype-zone=".wk-head" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="120"> Selected work </h2> <p>16 projects</p> </div> <nav class="wk-filters" aria-label="Filter work by kind"> <button type="button" class="wk-pill is-on" data-filter="all">All<span>16</span></button> <button type="button" class="wk-pill" data-filter="product">Product design<span>3</span></button> <button type="button" class="wk-pill" data-filter="ai">AI and creative tech<span>7</span></button> <button type="button" class="wk-pill" data-filter="culture">Culture, brand and image<span>6</span></button> </nav> <section class="wk-featured" aria-label="Selected work, strongest three first"> <ul class="wk-grid"> <li data-lane="product"> <a class="wk-card" href="/mool/" data-cube="Most banks speak only to those who already have."> <div class="wk-cover"> <div class="wk-strip" aria-label="Mool, 3 images"> <img src="/assets/img/work-previews/mool/cover-900.webp" srcset="/assets/img/work-previews/mool/cover-480.webp 480w, /assets/img/work-previews/mool/cover-900.webp 900w, /assets/img/work-previews/mool/cover.webp 1800w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)" alt="Mool" loading="eager" decoding="async" width="1200" height="900"> <img src="/assets/img/work-previews/mool/02.webp" alt="" loading="lazy" decoding="async"> <img src="/assets/img/work-previews/mool/03.webp" alt="" loading="lazy" decoding="async"> </div> <span class="wk-frames" aria-hidden="true"><i></i><i></i><i></i></span> <span class="wk-award">Kyoorius · 2021</span> </div> <div class="wk-body"> <h3 class="wk-name">Mool<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>UI</span><span>Fintech</span></p> <p class="wk-desc"><span>100k+ downloads · Kyoorius winner</span></p> </div> </a> </li> <li data-lane="culture"> <a class="wk-card" href="/encoded/" data-cube="The paintings stayed perfectly still. Everything else did not."> <div class="wk-cover"> <div class="wk-strip" aria-label="Encoded, 3 images"> <img src="/1.met/0-900.webp" srcset="/1.met/0-480.webp 480w, /1.met/0-900.webp 900w, /1.met/0.webp 1600w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)" alt="Encoded" loading="eager" decoding="async" width="1200" height="900"> <img src="/1.met/4.webp" alt="" loading="lazy" decoding="async"> <img src="/1.met/8.webp" alt="" loading="lazy" decoding="async"> </div> <span class="wk-frames" aria-hidden="true"><i></i><i></i><i></i></span> <span class="wk-award">Webby × 2 · 2026</span> </div> <div class="wk-body"> <h3 class="wk-name">Encoded<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>AR</span><span>Exhibition</span></p> <p class="wk-desc"><span>25 artworks · 2,000+ activations</span></p> </div> </a> </li> <li data-lane="product"> <a class="wk-card" href="/m-health-fairview/" data-cube="Care is mostly waiting. Someone had to design the waiting."> <div class="wk-cover"> <div class="wk-strip" aria-label="M Health Fairview, 3 images"> <img src="/assets/img/fairview/cover-900.webp" srcset="/assets/img/fairview/cover-480.webp 480w, /assets/img/fairview/cover-900.webp 900w, /assets/img/fairview/cover.webp 1536w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)" alt="M Health Fairview" loading="eager" decoding="async" width="1200" height="900"> <img src="/assets/img/fairview/06-beforeafter.webp" alt="" loading="lazy" decoding="async"> <img src="/assets/img/fairview/08-getcare.webp" alt="" loading="lazy" decoding="async"> </div> <span class="wk-frames" aria-hidden="true"><i></i><i></i><i></i></span> </div> <div class="wk-body"> <h3 class="wk-name">M Health Fairview<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Healthcare</span><span>Enterprise UX</span></p> <p class="wk-desc"><span>$13.6M+ scheduling revenue · 32% more new patients</span></p> </div> </a> </li> </ul> </section> <section class="wk-lane" data-lane="product" aria-labelledby="lane-product"> <div class="wk-lane-head"> <h3 id="lane-product">Product design</h3> <b class="wk-lane-n" aria-hidden="true">1</b> <p>Shipped products with numbers attached.</p> </div> <ul class="wk-grid"> <li> <a class="wk-card" href="/marriott/" data-cube="Some of this work I am not permitted to remember."> <div class="wk-cover"> <img src="/assets/img/marriott/cover-900.webp" srcset="/assets/img/marriott/cover-480.webp 480w, /assets/img/marriott/cover-900.webp 900w, /assets/img/marriott/cover.webp 1536w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Marriott" loading="eager" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">01</b> <b class="wk-year">2023</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Marriott<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Enterprise UX</span><span>Hospitality</span></p> <p class="wk-desc"><span>SPOG, an end to end employee operations app across 9,000+ Marriott Bonvoy properties, built with Deloitte Digital.</span></p> </div> </a> </li> </ul> </section> <section class="wk-lane" data-lane="ai" aria-labelledby="lane-ai"> <div class="wk-lane-head"> <h3 id="lane-ai">AI and creative technology</h3> <b class="wk-lane-n" aria-hidden="true">7</b> <p>Where the model or the sensor is the material.</p> </div> <ul class="wk-grid"> <li> <a class="wk-card" href="/ai-prototypes/" data-cube="None of them phone home. That is rather the point."> <div class="wk-cover"> <img src="/assets/img/ai-proto-cover-900.webp" srcset="/assets/img/ai-proto-cover-480.webp 480w, /assets/img/ai-proto-cover-900.webp 900w, /assets/img/ai-proto-cover.jpg 1920w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="2026 AI Experiments" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">01</b> <b class="wk-year">2025</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">2026 AI Experiments<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>WebGPU</span><span>In-browser AI</span></p> <p class="wk-desc"><span>Prototyping how local AI can feel understandable, controllable, and useful in an interface.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/mandalas/" data-cube="It will answer you. It will not flatter you."> <div class="wk-cover"> <img src="/4.mandala/cover-900.webp" srcset="/4.mandala/cover-480.webp 480w, /4.mandala/cover-900.webp 900w, /4.mandala/cover.jpg 1672w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Bloom; who are you" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">02</b> <b class="wk-year">2025</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Bloom; who are you<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Installation</span><span>TouchDesigner</span></p> <p class="wk-desc"><span>Generative mandalas, layered audio, and a darkened room designed for stillness.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/mind-your-feelings/" data-cube="Feelings seldom fit the form field provided."> <div class="wk-cover"> <img src="/6.mindu/cover2-900.webp" srcset="/6.mindu/cover2-480.webp 480w, /6.mindu/cover2-900.webp 900w, /6.mindu/cover2.webp 1800w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Mind Your Feelings" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">03</b> <b class="wk-year">2026</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Mind Your Feelings<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Installation</span><span>Creative Tech</span></p> <p class="wk-desc"><span>Touchscreen LED brain installation at Johnson Public Library with 800+ participants externalizing emotion.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/ai-self/" data-cube="He built himself a mirror. Mirrors are rarely kind."> <div class="wk-cover"> <img src="/2.ai-self/cover-900.webp" srcset="/2.ai-self/cover-480.webp 480w, /2.ai-self/cover-900.webp 900w, /2.ai-self/cover.jpg 1800w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="AI Self" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">04</b> <b class="wk-year">2024-25</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">AI Self<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>AI</span><span>VR</span><span>AR</span></p> <p class="wk-desc"><span>Three ways of asking what AI understands about us: machine perception, AR companion, and VR.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/bloom/" data-cube="Stillness, delivered by headset. The irony is noted."> <div class="wk-cover"> <img src="/15.bloom-vp/cover-900.webp" srcset="/15.bloom-vp/cover-480.webp 480w, /15.bloom-vp/cover-900.webp 900w, /15.bloom-vp/cover.jpg 1672w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Bodhi" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">05</b> <b class="wk-year">2025-26</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Bodhi<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>visionOS</span><span>Spatial AI</span></p> <p class="wk-desc"><span>A Vision Pro app placing an AI-inhabited bodhi tree in your room, asking who you are.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/obin/" data-cube="It cannot stop a bad number. It can stop one from looking good."> <div class="wk-cover"> <img src="/16.obin/00-full-900.webp" srcset="/16.obin/00-full-480.webp 480w, /16.obin/00-full-900.webp 900w, /16.obin/00-full.webp 2000w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Obin" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">06</b> <b class="wk-year">2026</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Obin<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Agentic AI</span><span>Fintech</span></p> <p class="wk-desc"><span>A verification workspace for AI-written venture debt memos, where every figure carries its own provenance.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/ledger/" data-cube="Read the work, not the tabs."> <div class="wk-cover"> <img src="/17.ledger/00-landing-900.webp" srcset="/17.ledger/00-landing-480.webp 480w, /17.ledger/00-landing-900.webp 900w, /17.ledger/00-landing.webp 2000w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Ledger" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">07</b> <b class="wk-year">2026</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Ledger<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Agentic AI</span><span>Design Systems</span></p> <p class="wk-desc"><span>A submission review layer that puts the repo, the demo and the walkthrough on one surface.</span></p> </div> </a> </li> </ul> </section> <section class="wk-lane" data-lane="culture" aria-labelledby="lane-culture"> <div class="wk-lane-head"> <h3 id="lane-culture">Culture, brand and image</h3> <b class="wk-lane-n" aria-hidden="true">5</b> <p>Identity, exhibitions, and the drawing underneath.</p> </div> <ul class="wk-grid"> <li> <a class="wk-card" href="/aananda/" data-cube="Someone has to design the part where nothing happens."> <div class="wk-cover"> <img src="/9.aananda/cover-900.webp" srcset="/9.aananda/cover-480.webp 480w, /9.aananda/cover-900.webp 900w, /9.aananda/cover.webp 1536w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Aananda" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">01</b> <b class="wk-year">2020</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Aananda<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Branding</span><span>App Design</span></p> <p class="wk-desc"><span>Jain philosophy for younger audiences across a mobile app, temple-inspired book, and QR installations.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/naavo/" data-cube="A map is a promise about a place you have not been yet."> <div class="wk-cover"> <img src="/7.naavo/cover-900.webp" srcset="/7.naavo/cover-480.webp 480w, /7.naavo/cover-900.webp 900w, /7.naavo/cover.webp 2048w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Naavo" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">02</b> <b class="wk-year">2020</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Naavo<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Branding</span><span>Packaging</span></p> <p class="wk-desc"><span>Ayurveda for a modern audience: rooted but fresh, not clinical, not traditional.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/b-plus-b/" data-cube="Broken things keep better records than whole ones."> <div class="wk-cover"> <img src="/5.bb/cover-900.webp" srcset="/5.bb/cover-480.webp 480w, /5.bb/cover-900.webp 900w, /5.bb/cover.webp 1600w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Broken and Beautiful" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">03</b> <b class="wk-year">2024</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Broken and Beautiful<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Research</span><span>Public Art</span></p> <p class="wk-desc"><span>Public interaction across NYC asking what feels broken and what feels beautiful, with 285+ responses.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/cube-guy/" data-cube="You are hovering over me now. Do be careful."> <div class="wk-cover"> <img src="/2.cube/cover-900.webp" srcset="/2.cube/cover-480.webp 480w, /2.cube/cover-900.webp 900w, /2.cube/cover.jpg 1800w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Cube of Creations" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">04</b> <b class="wk-year">2018-25</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Cube of Creations<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Game</span><span>Film</span><span>Character</span></p> <p class="wk-desc"><span>A seven-year character study across sketchbook, film, game, music, and tattoo.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/illustrations/" data-cube="Drawn by hand, long before any of this ran on a GPU."> <div class="wk-cover"> <img src="/11.illu/12.1-900.webp" srcset="/11.illu/12.1-480.webp 480w, /11.illu/12.1-900.webp 900w, /11.illu/12.1.webp 1600w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Illustrations" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">05</b> <b class="wk-year">2018-25</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Illustrations<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Illustration</span><span>Visual Diary</span></p> <p class="wk-desc"><span>Eight years of personal illustrations spanning visual diaries, abstract compositions, and cultural graphics.</span></p> </div> </a> </li> </ul> </section> <p class="wk-end"> <span>16 projects · 2018-2026</span> </p> </div> <script>
+</script> <main id="main"> <h1 class="sr-only">Selected work by Siddharth Mehta</h1> <div class="wk"> <div class="wk-head"> <h2 data-livetype data-livetype-zone=".wk-head" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="120"> Selected work </h2> </div> <nav class="wk-filters" aria-label="Filter work by kind"> <button type="button" class="wk-pill is-on" data-filter="all">All<span>16</span></button> <button type="button" class="wk-pill" data-filter="product">Product design<span>3</span></button> <button type="button" class="wk-pill" data-filter="ai">AI and creative tech<span>7</span></button> <button type="button" class="wk-pill" data-filter="culture">Culture, brand and image<span>6</span></button> </nav> <section class="wk-featured" aria-label="Selected work, strongest three first"> <ul class="wk-grid"> <li data-lane="product"> <a class="wk-card" href="/mool/" data-cube="Most banks speak only to those who already have."> <div class="wk-cover"> <div class="wk-strip" aria-label="Mool, 3 images"> <img src="/assets/img/work-previews/mool/cover-900.webp" srcset="/assets/img/work-previews/mool/cover-480.webp 480w, /assets/img/work-previews/mool/cover-900.webp 900w, /assets/img/work-previews/mool/cover.webp 1800w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)" alt="Mool" loading="eager" decoding="async" width="1200" height="900"> <img src="/assets/img/work-previews/mool/02.webp" alt="" loading="lazy" decoding="async"> <img src="/assets/img/work-previews/mool/03.webp" alt="" loading="lazy" decoding="async"> </div> <span class="wk-frames" aria-hidden="true"><i></i><i></i><i></i></span> <span class="wk-award">Kyoorius · 2021</span> </div> <div class="wk-body"> <h3 class="wk-name">Mool<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>UI</span><span>Fintech</span></p> <p class="wk-desc"><span>100k+ downloads · Kyoorius winner</span></p> </div> </a> </li> <li data-lane="culture"> <a class="wk-card" href="/encoded/" data-cube="The paintings stayed perfectly still. Everything else did not."> <div class="wk-cover"> <div class="wk-strip" aria-label="Encoded, 3 images"> <img src="/1.met/0-900.webp" srcset="/1.met/0-480.webp 480w, /1.met/0-900.webp 900w, /1.met/0.webp 1600w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)" alt="Encoded" loading="eager" decoding="async" width="1200" height="900"> <img src="/1.met/4.webp" alt="" loading="lazy" decoding="async"> <img src="/1.met/8.webp" alt="" loading="lazy" decoding="async"> </div> <span class="wk-frames" aria-hidden="true"><i></i><i></i><i></i></span> <span class="wk-award">Webby × 2 · 2026</span> </div> <div class="wk-body"> <h3 class="wk-name">Encoded<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>AR</span><span>Exhibition</span></p> <p class="wk-desc"><span>25 artworks · 2,000+ activations</span></p> </div> </a> </li> <li data-lane="product"> <a class="wk-card" href="/m-health-fairview/" data-cube="Care is mostly waiting. Someone had to design the waiting."> <div class="wk-cover"> <div class="wk-strip" aria-label="M Health Fairview, 3 images"> <img src="/assets/img/fairview/cover-900.webp" srcset="/assets/img/fairview/cover-480.webp 480w, /assets/img/fairview/cover-900.webp 900w, /assets/img/fairview/cover.webp 1536w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)" alt="M Health Fairview" loading="eager" decoding="async" width="1200" height="900"> <img src="/assets/img/fairview/06-beforeafter.webp" alt="" loading="lazy" decoding="async"> <img src="/assets/img/fairview/08-getcare.webp" alt="" loading="lazy" decoding="async"> </div> <span class="wk-frames" aria-hidden="true"><i></i><i></i><i></i></span> </div> <div class="wk-body"> <h3 class="wk-name">M Health Fairview<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Healthcare</span><span>Enterprise UX</span></p> <p class="wk-desc"><span>$13.6M+ scheduling revenue · 32% more new patients</span></p> </div> </a> </li> </ul> </section> <section class="wk-lane" data-lane="product" aria-labelledby="lane-product"> <div class="wk-lane-head"> <h3 id="lane-product">Product design</h3> <b class="wk-lane-n" aria-hidden="true">1</b> <p>Shipped products with numbers attached.</p> </div> <ul class="wk-grid"> <li> <a class="wk-card" href="/marriott/" data-cube="Some of this work I am not permitted to remember."> <div class="wk-cover"> <img src="/assets/img/marriott/cover-900.webp" srcset="/assets/img/marriott/cover-480.webp 480w, /assets/img/marriott/cover-900.webp 900w, /assets/img/marriott/cover.webp 1536w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Marriott" loading="eager" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">01</b> <b class="wk-year">2023</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Marriott<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Enterprise UX</span><span>Hospitality</span></p> <p class="wk-desc"><span>SPOG, an end to end employee operations app across 9,000+ Marriott Bonvoy properties, built with Deloitte Digital.</span></p> </div> </a> </li> </ul> </section> <section class="wk-lane" data-lane="ai" aria-labelledby="lane-ai"> <div class="wk-lane-head"> <h3 id="lane-ai">AI and creative technology</h3> <b class="wk-lane-n" aria-hidden="true">7</b> <p>Where the model or the sensor is the material.</p> </div> <ul class="wk-grid"> <li> <a class="wk-card" href="/ai-prototypes/" data-cube="None of them phone home. That is rather the point."> <div class="wk-cover"> <img src="/assets/img/ai-proto-cover-900.webp" srcset="/assets/img/ai-proto-cover-480.webp 480w, /assets/img/ai-proto-cover-900.webp 900w, /assets/img/ai-proto-cover.jpg 1920w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="2026 AI Experiments" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">01</b> <b class="wk-year">2025</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">2026 AI Experiments<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>WebGPU</span><span>In-browser AI</span></p> <p class="wk-desc"><span>Prototyping how local AI can feel understandable, controllable, and useful in an interface.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/mandalas/" data-cube="It will answer you. It will not flatter you."> <div class="wk-cover"> <img src="/4.mandala/cover-900.webp" srcset="/4.mandala/cover-480.webp 480w, /4.mandala/cover-900.webp 900w, /4.mandala/cover.jpg 1672w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Bloom; who are you" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">02</b> <b class="wk-year">2025</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Bloom; who are you<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Installation</span><span>TouchDesigner</span></p> <p class="wk-desc"><span>Generative mandalas, layered audio, and a darkened room designed for stillness.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/mind-your-feelings/" data-cube="Feelings seldom fit the form field provided."> <div class="wk-cover"> <img src="/6.mindu/cover2-900.webp" srcset="/6.mindu/cover2-480.webp 480w, /6.mindu/cover2-900.webp 900w, /6.mindu/cover2.webp 1800w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Mind Your Feelings" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">03</b> <b class="wk-year">2026</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Mind Your Feelings<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Installation</span><span>Creative Tech</span></p> <p class="wk-desc"><span>Touchscreen LED brain installation at Johnson Public Library with 800+ participants externalizing emotion.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/ai-self/" data-cube="He built himself a mirror. Mirrors are rarely kind."> <div class="wk-cover"> <img src="/2.ai-self/cover-900.webp" srcset="/2.ai-self/cover-480.webp 480w, /2.ai-self/cover-900.webp 900w, /2.ai-self/cover.jpg 1800w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="AI Self" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">04</b> <b class="wk-year">2024-25</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">AI Self<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>AI</span><span>VR</span><span>AR</span></p> <p class="wk-desc"><span>Three ways of asking what AI understands about us: machine perception, AR companion, and VR.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/bloom/" data-cube="Stillness, delivered by headset. The irony is noted."> <div class="wk-cover"> <img src="/15.bloom-vp/cover-900.webp" srcset="/15.bloom-vp/cover-480.webp 480w, /15.bloom-vp/cover-900.webp 900w, /15.bloom-vp/cover.jpg 1672w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Bodhi" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">05</b> <b class="wk-year">2025-26</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Bodhi<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>visionOS</span><span>Spatial AI</span></p> <p class="wk-desc"><span>A Vision Pro app placing an AI-inhabited bodhi tree in your room, asking who you are.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/obin/" data-cube="It cannot stop a bad number. It can stop one from looking good."> <div class="wk-cover"> <img src="/16.obin/00-full-900.webp" srcset="/16.obin/00-full-480.webp 480w, /16.obin/00-full-900.webp 900w, /16.obin/00-full.webp 2000w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Obin" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">06</b> <b class="wk-year">2026</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Obin<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Agentic AI</span><span>Fintech</span></p> <p class="wk-desc"><span>A verification workspace for AI-written venture debt memos, where every figure carries its own provenance.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/ledger/" data-cube="Read the work, not the tabs."> <div class="wk-cover"> <img src="/17.ledger/00-landing-900.webp" srcset="/17.ledger/00-landing-480.webp 480w, /17.ledger/00-landing-900.webp 900w, /17.ledger/00-landing.webp 2000w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Ledger" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">07</b> <b class="wk-year">2026</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Ledger<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Agentic AI</span><span>Design Systems</span></p> <p class="wk-desc"><span>A submission review layer that puts the repo, the demo and the walkthrough on one surface.</span></p> </div> </a> </li> </ul> </section> <section class="wk-lane" data-lane="culture" aria-labelledby="lane-culture"> <div class="wk-lane-head"> <h3 id="lane-culture">Culture, brand and image</h3> <b class="wk-lane-n" aria-hidden="true">5</b> <p>Identity, exhibitions, and the drawing underneath.</p> </div> <ul class="wk-grid"> <li> <a class="wk-card" href="/aananda/" data-cube="Someone has to design the part where nothing happens."> <div class="wk-cover"> <img src="/9.aananda/cover-900.webp" srcset="/9.aananda/cover-480.webp 480w, /9.aananda/cover-900.webp 900w, /9.aananda/cover.webp 1536w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Aananda" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">01</b> <b class="wk-year">2020</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Aananda<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Branding</span><span>App Design</span></p> <p class="wk-desc"><span>Jain philosophy for younger audiences across a mobile app, temple-inspired book, and QR installations.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/naavo/" data-cube="A map is a promise about a place you have not been yet."> <div class="wk-cover"> <img src="/7.naavo/cover-900.webp" srcset="/7.naavo/cover-480.webp 480w, /7.naavo/cover-900.webp 900w, /7.naavo/cover.webp 2048w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Naavo" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">02</b> <b class="wk-year">2020</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Naavo<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Branding</span><span>Packaging</span></p> <p class="wk-desc"><span>Ayurveda for a modern audience: rooted but fresh, not clinical, not traditional.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/b-plus-b/" data-cube="Broken things keep better records than whole ones."> <div class="wk-cover"> <img src="/5.bb/cover-900.webp" srcset="/5.bb/cover-480.webp 480w, /5.bb/cover-900.webp 900w, /5.bb/cover.webp 1600w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Broken and Beautiful" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">03</b> <b class="wk-year">2024</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Broken and Beautiful<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Research</span><span>Public Art</span></p> <p class="wk-desc"><span>Public interaction across NYC asking what feels broken and what feels beautiful, with 285+ responses.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/cube-guy/" data-cube="You are hovering over me now. Do be careful."> <div class="wk-cover"> <img src="/2.cube/cover-900.webp" srcset="/2.cube/cover-480.webp 480w, /2.cube/cover-900.webp 900w, /2.cube/cover.jpg 1800w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Cube of Creations" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">04</b> <b class="wk-year">2018-25</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Cube of Creations<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Game</span><span>Film</span><span>Character</span></p> <p class="wk-desc"><span>A seven-year character study across sketchbook, film, game, music, and tattoo.</span></p> </div> </a> </li> <li> <a class="wk-card" href="/illustrations/" data-cube="Drawn by hand, long before any of this ran on a GPU."> <div class="wk-cover"> <img src="/11.illu/12.1-900.webp" srcset="/11.illu/12.1-480.webp 480w, /11.illu/12.1-900.webp 900w, /11.illu/12.1.webp 1600w" sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)" alt="Illustrations" loading="lazy" decoding="async" width="1200" height="900"> <span class="wk-mark"> <b class="wk-num">05</b> <b class="wk-year">2018-25</b> </span> </div> <div class="wk-body"> <h3 class="wk-name">Illustrations<i aria-hidden="true">→</i> </h3> <p class="wk-tags"><span>Illustration</span><span>Visual Diary</span></p> <p class="wk-desc"><span>Eight years of personal illustrations spanning visual diaries, abstract compositions, and cultural graphics.</span></p> </div> </a> </li> </ul> </section> </div> <script>
         /* ── THE FILTER ────────────────────────────────────────────────────
            Whole lanes in and out, not individual cards: hiding cards would
            leave a lane heading standing over nothing, and the headings are
@@ -9848,7 +9896,19 @@
          photograph across the white card. */
       inset: var(--pad) var(--pad) var(--pad-b);
       pointer-events: none;
-      background-image: var(--src);
+      /* ── NOT UNTIL THE ROW IS NEARLY HERE ──────────────────────────
+         This paints the same file the <img> beside it already carries,
+         and a CSS background has no lazy loading -- so `loading="lazy"`
+         on the image was doing nothing at all. Measured on the built
+         homepage: every tile in this row fetched at first paint, 7,700px
+         before a reader reaches them, about 850KB of photographs nobody
+         had scrolled to yet.
+
+         The smear is unchanged; only its start is. The rule waits for
+         `is-near`, which lands as the row approaches, and by then the
+         <img> is fetching the identical URL -- so the background draws
+         from a warm cache and the effect appears exactly as before. */
+      background-image: none;
       background-size: cover;
       background-position: center;
       filter: url(#sid-motion);
@@ -9856,6 +9916,9 @@
       -webkit-mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
       mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
       transition: opacity 480ms ease;
+    }
+    .sid-strip.is-near .sid-tile::after {
+      background-image: var(--src);
     }
 
     /* The hover lift moved into the rail's frame loop. It writes an inline
@@ -15092,10 +15155,24 @@
        site rather than like a fortune cookie. Cool ink over the water rather
        than gold, because gold on that surface was the loudest thing in the
        footer. */
+    /* ── AND IT WAS TOO QUIET ───────────────────────────────────────
+       Sid: "the type quote that comes up is too light and small."
+
+       The note above argues for small and wide-tracked so the line does
+       not read as an inspirational poster, and that reasoning holds -- it
+       is why this is still the mono, still upper case, still not gold.
+       What it got wrong is the degree: 11-14px at 0.2em over a glowing
+       surface is not quiet, it is hard to read, and a line the figure
+       exists to deliver has to be legible first.
+
+       Up to 14-19px, with the tracking eased back a touch because 0.2em
+       at 19px sprawls the line wider than the figure above it, and the ink
+       taken closer to full. It is still the smallest voice on the section;
+       it is no longer a whisper. */
     font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: clamp(11px, 1.05vw, 14px);
-    line-height: 1.5;
-    letter-spacing: 0.2em;
+    font-size: clamp(14px, 1.5vw, 19px);
+    line-height: 1.55;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     text-align: center;
   }
@@ -15106,8 +15183,10 @@
     transform: translateY(38px) translateZ(-140px) rotateX(72deg);
     /* Warm gold picked off the glaze on the figure itself, so the words look
        like they came from it rather than from the page. */
-    color: rgba(214, 232, 248, 0.9);
-    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
+    color: rgba(226, 240, 252, 0.97);
+    text-shadow:
+      0 2px 18px rgba(0, 0, 0, 0.85),
+      0 0 30px rgba(0, 0, 0, 0.5);
     will-change: transform, opacity;
   }
   .lastfig__say.is-in i {
@@ -15178,6 +15257,47 @@
   .lastfig__stage > .lastfig__mount,
   .lastfig__mount {
     z-index: 1;
+  }
+
+  /* ── THE HANDOFF OUT OF THE ROOM ──────────────────────────────────────
+     Sid: "can u remove black space between buddha blue bg and the vid of
+     me working."
+
+     The pond is the bottom 34% of this stage and nothing was painting the
+     other 66%, so the page's own near-black showed through. Measured on the
+     built homepage: the wall's film ends at 11477 and the water does not
+     begin until 11904 -- 427px of flat black between the room and the pond,
+     which is the gap he is looking at.
+
+     A void is not a transition. This fills it with the air above the water
+     rather than with a colour of its own: the stops are the water shader's
+     own palette read upward -- its air is vec3(0.035, 0.055, 0.080) and its
+     deep is vec3(0.078, 0.120, 0.152) -- so the room dissolves into the
+     atmosphere the pond already sits in, and the two read as one place.
+
+     Transparent at the top so the wall above hands over rather than butting
+     against an edge, which would just move the seam instead of removing it.
+
+     Behind everything, on the sticky stage rather than the section, so it
+     stays pinned with the figure instead of drifting up past it. */
+  .lastfig__stage::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(9, 14, 20, 0) 0%,
+      rgba(10, 20, 28, 0.5) 28%,
+      rgba(13, 32, 42, 0.78) 54%,
+      rgba(17, 46, 58, 0.92) 76%,
+      rgba(20, 56, 68, 0.98) 100%
+    );
+    z-index: -1;
+    pointer-events: none;
   }
 
   /* ── THE BREAKDOWN ────────────────────────────────────────────────────
@@ -17123,6 +17243,43 @@
         a.classList.remove("is-hit");
       }, 900);
     });
+  })();
+</script> <script>
+  /* ── THE STRIP'S SMEAR WAITS FOR THE STRIP ──────────────────────────────
+     .sid-tile::after repaints each tile's own photograph as a blurred
+     underlay. A CSS background cannot be lazy, so that rule was pulling
+     every picture in the row at first paint while the <img loading="lazy">
+     beside it politely waited -- the lazy attribute was decorative.
+
+     The rule now needs `is-near` on the strip, which this adds a screen and
+     a half out. That is far enough that the smear is always painted before
+     the row is legible, and late enough that a reader who never scrolls that
+     far never pays for it.
+
+     No IntersectionObserver, no strip, no gate: the class goes on
+     immediately, because a missing capability must not cost the page a
+     visual effect that already works. */
+  (function () {
+    var strip = document.querySelector(".sid-strip");
+    if (!strip) return;
+    if (!("IntersectionObserver" in window)) {
+      strip.classList.add("is-near");
+      return;
+    }
+    var io = new IntersectionObserver(
+      function (entries) {
+        if (
+          !entries.some(function (e) {
+            return e.isIntersecting;
+          })
+        )
+          return;
+        strip.classList.add("is-near");
+        io.disconnect();
+      },
+      { rootMargin: "150% 0px 150% 0px" }
+    );
+    io.observe(strip);
   })();
 </script> <style>
   /* ── TOOLTIPS ARE OURS, NOT THE OPERATING SYSTEM'S ─────────────────────
@@ -19848,14 +20005,8 @@
   #cube-chat-fab .fab-ai rect {
     fill: currentColor;
   }
-  #cube-chat-fab .fab-ai__b {
-    opacity: 0.72;
-  }
-  /* The small spark leads very slightly, so the pair reads as one thing
-     catching light rather than two marks blinking together. */
-  #cube-chat-fab:hover .fab-ai__b {
-    opacity: 1;
-  }
+  /* The two rules that dimmed the small cluster went with it. The four
+     squares are one set now, so nothing in the mark is subordinate. */
 
   #theme-toggle {
     display: flex;
@@ -19908,6 +20059,21 @@
   #theme-toggle svg {
     width: 16px;
     height: 16px;
+    /* ── THE ICON WAS BLACK IN BOTH THEMES ──────────────────────────────
+       Sid: "light mode icon not visible."
+
+       These glyphs carry `nav-pixel`, but the rule that inks that class is
+       scoped `.nav .nav-pixel` and this button is not in the nav -- so the
+       rects had no fill at all and took SVG's own default, which is black.
+       Measured: computed fill rgb(0,0,0) on the svg AND its rects in dark
+       and light alike. On the dark disc that is black on black, which is
+       why the control read as an empty circle.
+
+       currentColor rather than a literal, because the button already sets
+       its ink per theme a few rules up (0.92 white on the dark disc,
+       near-black on the light one) and the glyph should be whatever the
+       control's ink is. */
+    fill: currentColor;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   #theme-toggle .theme-sun {
@@ -23016,7 +23182,7 @@
       el.classList.add("motion-press");
     });
   })();
-</script> <button type="button" id="cube-chat-fab" aria-label="Ask Sid's AI" data-tip="Ask the AI"> <span class="fab-pulse" aria-hidden="true"></span> <svg class="nav-pixel fab-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect x="9" y="9" width="4" height="4" rx="1.2"></rect> <rect x="9" y="4" width="4" height="4" rx="1.2"></rect> <rect x="9" y="14" width="4" height="4" rx="1.2"></rect> <rect x="4" y="9" width="4" height="4" rx="1.2"></rect> <rect x="14" y="9" width="4" height="4" rx="1.2"></rect> <rect class="fab-ai__b" x="17" y="16" width="2.6" height="2.6" rx="0.9"></rect> <rect class="fab-ai__b" x="17" y="19.4" width="2.6" height="2.6" rx="0.9"></rect> <rect class="fab-ai__b" x="14.6" y="18.2" width="2.6" height="2.6" rx="0.9"></rect> <rect class="fab-ai__b" x="19.4" y="18.2" width="2.6" height="2.6" rx="0.9"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close" data-tip-anchor>✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
+</script> <button type="button" id="cube-chat-fab" aria-label="Ask Sid's AI" data-tip="Ask AI"> <span class="fab-pulse" aria-hidden="true"></span> <svg class="nav-pixel fab-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect x="4.5" y="4.5" width="6.2" height="6.2" rx="1.6"></rect> <rect x="13.3" y="4.5" width="6.2" height="6.2" rx="1.6"></rect> <rect x="4.5" y="13.3" width="6.2" height="6.2" rx="1.6"></rect> <rect x="13.3" y="13.3" width="6.2" height="6.2" rx="1.6"></rect> </svg> </button> <div id="cube-chat" role="dialog" aria-label="Chat with Sid's cube" aria-hidden="true"> <div class="cc-header"> <div class="cc-avatar"> <svg viewbox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" aria-hidden="true"> <path d="M5 9 L9 5 L23 5 L19 9 Z"></path> <path d="M19 9 L23 5 L23 19 L19 23 Z"></path> <rect x="5" y="9" width="14" height="14" fill="rgba(0,0,0,0.6)"></rect> <rect x="8.7" y="13" width="1" height="5" fill="currentColor"></rect> <rect x="14.3" y="13" width="1" height="5" fill="currentColor"></rect> </svg> </div> <div class="cc-title"> <span class="cc-name">Sid's Cube</span> <span class="cc-status">Online · Ask anything</span> </div> <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close chat" data-tip-anchor>✕</button> </div> <div class="cc-body" id="cc-body" aria-live="polite"></div> <div class="cc-suggestions" id="cc-suggestions"></div> </div> <script>
   // ── CUBE CHAT ── canned conversational agent (Sid's cube as host)
   (function () {
     var fab = document.getElementById("cube-chat-fab");

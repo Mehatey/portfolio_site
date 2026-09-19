@@ -323,18 +323,91 @@
         opacity: 0;
         pointer-events: none;
       }
-      .loader:after {
-        content: "";
-        width: 28px;
-        height: 28px;
-        border: 1px solid rgba(180, 225, 247, 0.18);
-        border-top-color: #8edcff;
-        border-radius: 50%;
-        animation: spin 0.9s linear infinite;
+      /* ── THE WAIT IS PART OF THE CHARACTER ──────────────────────────
+         Sid: "in the loading sign for talk to sid ai, instead of a basic
+         loader u can have a cube forming side by side and animated icon
+         with text like claude's creative marinating or custom text, it can
+         be like sid is having his morning coffee, he is waking up, pluggin
+         wires or whatever."
+
+         A spinner says "a computer is busy". This page is about to hand you
+         a person to talk to, so the wait should be that person getting
+         ready. Two parts: the mark assembles itself, and a line underneath
+         says what he is doing, in his voice.
+
+         The cube is the site's logomark, drawn rather than filled -- the
+         crisp light stroke it is supposed to be everywhere. Its edges draw
+         in on a dash offset, back to front, so it builds instead of
+         appearing, and then it turns slowly on its own axis. Nothing here
+         is a progress bar: it cannot honestly report progress on a model
+         download, so it does not pretend to. */
+      .loader__wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 26px;
       }
-      @keyframes spin {
+      .loader__cube {
+        width: 84px;
+        height: 84px;
+        overflow: visible;
+        animation: cubeTurn 7.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+      }
+      .loader__cube path,
+      .loader__cube line {
+        fill: none;
+        stroke: #8edcff;
+        stroke-width: 1.15;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: var(--len, 120);
+        stroke-dashoffset: var(--len, 120);
+        animation: cubeDraw 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        animation-delay: var(--d, 0ms);
+        opacity: 0.94;
+      }
+      /* The three hidden edges are quieter, which is what gives a wireframe
+         its front and back without shading anything. */
+      .loader__cube .is-back {
+        stroke: rgba(142, 220, 255, 0.34);
+      }
+      @keyframes cubeDraw {
         to {
-          transform: rotate(1turn);
+          stroke-dashoffset: 0;
+        }
+      }
+      @keyframes cubeTurn {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .loader__say {
+        font-family: var(--mono, ui-monospace, monospace);
+        font-size: 12.5px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: rgba(198, 226, 244, 0.78);
+        min-height: 1.4em;
+        text-align: center;
+        transition: opacity 420ms ease;
+      }
+      .loader__say.is-out {
+        opacity: 0;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .loader__cube {
+          animation: none;
+        }
+        .loader__cube path,
+        .loader__cube line {
+          animation: none;
+          stroke-dashoffset: 0;
+        }
+        .loader__say {
+          transition: none;
         }
       }
       @keyframes voice {
@@ -624,10 +697,66 @@
       </aside>
       <div class="captions" id="captions" role="status" aria-live="polite" aria-atomic="true"></div>
     </main>
-    <div class="loader" id="loader" aria-label="Loading character"></div>
+    <div class="loader" id="loader" aria-label="Loading character">
+      <div class="loader__wrap">
+        <svg class="loader__cube" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+          <!-- back verticals and the hidden corner, drawn first so the box
+               builds from behind -->
+          <line class="is-back" x1="32" y1="26" x2="32" y2="46" style="--len: 20; --d: 0ms" />
+          <line class="is-back" x1="32" y1="26" x2="10" y2="14" style="--len: 25; --d: 90ms" />
+          <line class="is-back" x1="32" y1="26" x2="54" y2="14" style="--len: 25; --d: 180ms" />
+          <!-- the top face -->
+          <path d="M32 6 L54 14 L32 26 L10 14 Z" style="--len: 100; --d: 260ms" />
+          <!-- the two visible side faces -->
+          <path d="M10 14 L10 38 L32 50 L32 26" style="--len: 92; --d: 520ms" />
+          <path d="M54 14 L54 38 L32 50 L32 26" style="--len: 92; --d: 700ms" />
+        </svg>
+        <p class="loader__say" id="loader-say">Sid is having his morning coffee</p>
+      </div>
+    </div>
     <script src="./watercolour.js?v=7"></script>
     <script src="./watercolour-init.js?v=7"></script>
     <script type="module" src="./tv-head-viewer.js?v=112"></script>
     <script src="./vinyl.js?v=5" defer></script>
+
+    <script>
+      /* ── WHAT HE IS DOING WHILE YOU WAIT ──────────────────────────────
+         The lines are the loader's only honest signal: there is no real
+         progress to report on a model download, so instead of a fake bar
+         this says what the character is up to, in his register. They cycle
+         on a fixed beat rather than mapping to load stages, because a line
+         that claims "almost ready" and then sits there for nine seconds is
+         worse than one that never claimed anything.
+
+         Written to be read once each. No dashes anywhere in them, which is
+         the house rule for copy on this site. */
+      (function () {
+        var el = document.getElementById("loader-say");
+        if (!el) return;
+        var LINES = [
+          "Sid is having his morning coffee",
+          "Waking up the model",
+          "Plugging in the wires",
+          "Looking for his words",
+          "Warming up his voice",
+          "Remembering what he built",
+          "Almost ready to talk",
+        ];
+        var i = 0;
+        var timer = setInterval(function () {
+          var loader = document.getElementById("loader");
+          if (!loader || loader.classList.contains("done")) {
+            clearInterval(timer);
+            return;
+          }
+          el.classList.add("is-out");
+          setTimeout(function () {
+            i = (i + 1) % LINES.length;
+            el.textContent = LINES[i];
+            el.classList.remove("is-out");
+          }, 420);
+        }, 2600);
+      })();
+    </script>
   </body>
 </html>

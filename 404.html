@@ -4737,12 +4737,30 @@
 
       var d = y - lastY;
       if (Math.abs(d) > THRESH) {
-        /* Held open near the top, because there is nothing to get out of the
-           way of yet, and at the very bottom, where a reader who has run out
-           of page is looking for somewhere to go next. */
-        var atTop = y < 120;
-        var atEnd = y + window.innerHeight > document.documentElement.scrollHeight - 80;
-        var wantAway = d > 0 && !atTop && !atEnd;
+        /* ── THE BAR STAYS ────────────────────────────────────────────
+           Sid: "when we have the nav bar move off screen then when i hover
+           on an image the color squares are just suspended in air without
+           the bg nav. so shud we always have nav bar visible?"
+
+           Yes. The hover swatches, the reading line and the lane controls
+           are all positioned against this bar, so retracting it leaves them
+           floating with nothing behind them -- which is the artefact he
+           photographed. And on a page whose whole job is to get a recruiter
+           into a project, there should always be a way out in view.
+
+           The same call was already made for the site's other nav, whose
+           `.nav--hidden` rule was neutralised with the note that the
+           reading line "never floats orphaned". This is the two navs
+           finally agreeing rather than each deciding on its own.
+
+           It was `d > 0 && !atTop && !atEnd` -- retract on any downward
+           scroll except near the ends. The machinery around it stays (the
+           reveal zone, the lift, the scrim) so this is one line to put back
+           if the immersive version is ever wanted again.
+
+           The idle rule is untouched: html[data-idle="on"] still takes the
+           bar away for the screensaver, which is a different question. */
+        var wantAway = false;
         /* Never retract out from under the keyboard. */
         if (nav && nav.contains(document.activeElement)) wantAway = false;
         if (document.body.classList.contains("nav-open")) wantAway = false;
@@ -7899,7 +7917,19 @@
          photograph across the white card. */
       inset: var(--pad) var(--pad) var(--pad-b);
       pointer-events: none;
-      background-image: var(--src);
+      /* ── NOT UNTIL THE ROW IS NEARLY HERE ──────────────────────────
+         This paints the same file the <img> beside it already carries,
+         and a CSS background has no lazy loading -- so `loading="lazy"`
+         on the image was doing nothing at all. Measured on the built
+         homepage: every tile in this row fetched at first paint, 7,700px
+         before a reader reaches them, about 850KB of photographs nobody
+         had scrolled to yet.
+
+         The smear is unchanged; only its start is. The rule waits for
+         `is-near`, which lands as the row approaches, and by then the
+         <img> is fetching the identical URL -- so the background draws
+         from a warm cache and the effect appears exactly as before. */
+      background-image: none;
       background-size: cover;
       background-position: center;
       filter: url(#sid-motion);
@@ -7907,6 +7937,9 @@
       -webkit-mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
       mask-image: linear-gradient(to bottom, transparent 58%, #000 100%);
       transition: opacity 480ms ease;
+    }
+    .sid-strip.is-near .sid-tile::after {
+      background-image: var(--src);
     }
 
     /* The hover lift moved into the rail's frame loop. It writes an inline
@@ -13833,10 +13866,24 @@
        site rather than like a fortune cookie. Cool ink over the water rather
        than gold, because gold on that surface was the loudest thing in the
        footer. */
+    /* ── AND IT WAS TOO QUIET ───────────────────────────────────────
+       Sid: "the type quote that comes up is too light and small."
+
+       The note above argues for small and wide-tracked so the line does
+       not read as an inspirational poster, and that reasoning holds -- it
+       is why this is still the mono, still upper case, still not gold.
+       What it got wrong is the degree: 11-14px at 0.2em over a glowing
+       surface is not quiet, it is hard to read, and a line the figure
+       exists to deliver has to be legible first.
+
+       Up to 14-19px, with the tracking eased back a touch because 0.2em
+       at 19px sprawls the line wider than the figure above it, and the ink
+       taken closer to full. It is still the smallest voice on the section;
+       it is no longer a whisper. */
     font-family: var(--font-mono, ui-monospace, monospace);
-    font-size: clamp(11px, 1.05vw, 14px);
-    line-height: 1.5;
-    letter-spacing: 0.2em;
+    font-size: clamp(14px, 1.5vw, 19px);
+    line-height: 1.55;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     text-align: center;
   }
@@ -13847,8 +13894,10 @@
     transform: translateY(38px) translateZ(-140px) rotateX(72deg);
     /* Warm gold picked off the glaze on the figure itself, so the words look
        like they came from it rather than from the page. */
-    color: rgba(214, 232, 248, 0.9);
-    text-shadow: 0 2px 18px rgba(0, 0, 0, 0.8);
+    color: rgba(226, 240, 252, 0.97);
+    text-shadow:
+      0 2px 18px rgba(0, 0, 0, 0.85),
+      0 0 30px rgba(0, 0, 0, 0.5);
     will-change: transform, opacity;
   }
   .lastfig__say.is-in i {
@@ -13919,6 +13968,47 @@
   .lastfig__stage > .lastfig__mount,
   .lastfig__mount {
     z-index: 1;
+  }
+
+  /* ── THE HANDOFF OUT OF THE ROOM ──────────────────────────────────────
+     Sid: "can u remove black space between buddha blue bg and the vid of
+     me working."
+
+     The pond is the bottom 34% of this stage and nothing was painting the
+     other 66%, so the page's own near-black showed through. Measured on the
+     built homepage: the wall's film ends at 11477 and the water does not
+     begin until 11904 -- 427px of flat black between the room and the pond,
+     which is the gap he is looking at.
+
+     A void is not a transition. This fills it with the air above the water
+     rather than with a colour of its own: the stops are the water shader's
+     own palette read upward -- its air is vec3(0.035, 0.055, 0.080) and its
+     deep is vec3(0.078, 0.120, 0.152) -- so the room dissolves into the
+     atmosphere the pond already sits in, and the two read as one place.
+
+     Transparent at the top so the wall above hands over rather than butting
+     against an edge, which would just move the seam instead of removing it.
+
+     Behind everything, on the sticky stage rather than the section, so it
+     stays pinned with the figure instead of drifting up past it. */
+  .lastfig__stage::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    width: 100vw;
+    transform: translateX(-50%);
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(9, 14, 20, 0) 0%,
+      rgba(10, 20, 28, 0.5) 28%,
+      rgba(13, 32, 42, 0.78) 54%,
+      rgba(17, 46, 58, 0.92) 76%,
+      rgba(20, 56, 68, 0.98) 100%
+    );
+    z-index: -1;
+    pointer-events: none;
   }
 
   /* ── THE BREAKDOWN ────────────────────────────────────────────────────
@@ -16067,6 +16157,45 @@
         a.classList.remove("is-hit");
       }, 900);
     });
+  })();
+</script>
+
+<script>
+  /* ── THE STRIP'S SMEAR WAITS FOR THE STRIP ──────────────────────────────
+     .sid-tile::after repaints each tile's own photograph as a blurred
+     underlay. A CSS background cannot be lazy, so that rule was pulling
+     every picture in the row at first paint while the <img loading="lazy">
+     beside it politely waited -- the lazy attribute was decorative.
+
+     The rule now needs `is-near` on the strip, which this adds a screen and
+     a half out. That is far enough that the smear is always painted before
+     the row is legible, and late enough that a reader who never scrolls that
+     far never pays for it.
+
+     No IntersectionObserver, no strip, no gate: the class goes on
+     immediately, because a missing capability must not cost the page a
+     visual effect that already works. */
+  (function () {
+    var strip = document.querySelector(".sid-strip");
+    if (!strip) return;
+    if (!("IntersectionObserver" in window)) {
+      strip.classList.add("is-near");
+      return;
+    }
+    var io = new IntersectionObserver(
+      function (entries) {
+        if (
+          !entries.some(function (e) {
+            return e.isIntersecting;
+          })
+        )
+          return;
+        strip.classList.add("is-near");
+        io.disconnect();
+      },
+      { rootMargin: "150% 0px 150% 0px" }
+    );
+    io.observe(strip);
   })();
 </script>
  <style>
@@ -18795,14 +18924,8 @@
   #cube-chat-fab .fab-ai rect {
     fill: currentColor;
   }
-  #cube-chat-fab .fab-ai__b {
-    opacity: 0.72;
-  }
-  /* The small spark leads very slightly, so the pair reads as one thing
-     catching light rather than two marks blinking together. */
-  #cube-chat-fab:hover .fab-ai__b {
-    opacity: 1;
-  }
+  /* The two rules that dimmed the small cluster went with it. The four
+     squares are one set now, so nothing in the mark is subordinate. */
 
   #theme-toggle {
     display: flex;
@@ -18855,6 +18978,21 @@
   #theme-toggle svg {
     width: 16px;
     height: 16px;
+    /* ── THE ICON WAS BLACK IN BOTH THEMES ──────────────────────────────
+       Sid: "light mode icon not visible."
+
+       These glyphs carry `nav-pixel`, but the rule that inks that class is
+       scoped `.nav .nav-pixel` and this button is not in the nav -- so the
+       rects had no fill at all and took SVG's own default, which is black.
+       Measured: computed fill rgb(0,0,0) on the svg AND its rects in dark
+       and light alike. On the dark disc that is black on black, which is
+       why the control read as an empty circle.
+
+       currentColor rather than a literal, because the button already sets
+       its ink per theme a few rules up (0.92 white on the dark disc,
+       near-black on the light one) and the glyph should be whatever the
+       control's ink is. */
+    fill: currentColor;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   #theme-toggle .theme-sun {
@@ -22097,21 +22235,33 @@
      way of drawing things. A big spark with a small one beside it is the
      shape that reads as "generated" at 20 pixels; on this grid it also
      reads as belonging to the same set as the work spiral and the flower. -->
-<button type="button" id="cube-chat-fab" aria-label="Ask Sid's AI" data-tip="Ask the AI">
+<button type="button" id="cube-chat-fab" aria-label="Ask Sid's AI" data-tip="Ask AI">
   <span class="fab-pulse" aria-hidden="true"></span>
+  <!-- ── IT HAS TO SAY "MORE IN HERE" ─────────────────────────────────────
+       Sid: "the icon which should open the others looks like a weird flower
+       and it also changes icon to cube chat, so maybe it should be a
+       different icon which packages all the others. the current one with the
+       pixel flower and some weird dot on the bottom right isnt working to
+       tell me that okay there are more icons here."
+
+       It was a five square spark with a second four square cluster tucked off
+       its shoulder -- the flower and the dot. The spark was drawn to mean
+       "AI", and the small cluster was decoration; between them they said
+       nothing about the three controls stacked above it.
+
+       Four equal squares in a grid is the one glyph everybody already reads
+       as "more of these", and it is the site's own material: the nav icons,
+       the loader, the screensaver and the strip are all pixel squares. So
+       this is the house language saying the ordinary thing, rather than a
+       bespoke mark saying something only its author knows.
+
+       Equal weights and equal gaps on purpose. The moment one square differs
+       it reads as a shape again instead of as a set. -->
   <svg class="nav-pixel fab-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
-    <!-- the large spark: a centre and four arms -->
-    <rect x="9" y="9" width="4" height="4" rx="1.2"></rect>
-    <rect x="9" y="4" width="4" height="4" rx="1.2"></rect>
-    <rect x="9" y="14" width="4" height="4" rx="1.2"></rect>
-    <rect x="4" y="9" width="4" height="4" rx="1.2"></rect>
-    <rect x="14" y="9" width="4" height="4" rx="1.2"></rect>
-    <!-- the small one, off the shoulder, which is what makes it read as a
-         spark rather than as a plus sign -->
-    <rect class="fab-ai__b" x="17" y="16" width="2.6" height="2.6" rx="0.9"></rect>
-    <rect class="fab-ai__b" x="17" y="19.4" width="2.6" height="2.6" rx="0.9"></rect>
-    <rect class="fab-ai__b" x="14.6" y="18.2" width="2.6" height="2.6" rx="0.9"></rect>
-    <rect class="fab-ai__b" x="19.4" y="18.2" width="2.6" height="2.6" rx="0.9"></rect>
+    <rect x="4.5" y="4.5" width="6.2" height="6.2" rx="1.6"></rect>
+    <rect x="13.3" y="4.5" width="6.2" height="6.2" rx="1.6"></rect>
+    <rect x="4.5" y="13.3" width="6.2" height="6.2" rx="1.6"></rect>
+    <rect x="13.3" y="13.3" width="6.2" height="6.2" rx="1.6"></rect>
   </svg>
 </button>
 
@@ -22130,7 +22280,7 @@
       <span class="cc-name">Sid's Cube</span>
       <span class="cc-status">Online · Ask anything</span>
     </div>
-    <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close" data-tip-anchor>✕</button>
+    <button type="button" class="cc-close" aria-label="Close chat" data-tip="Close chat" data-tip-anchor>✕</button>
   </div>
   <div class="cc-body" id="cc-body" aria-live="polite"></div>
   <div class="cc-suggestions" id="cc-suggestions"></div>
