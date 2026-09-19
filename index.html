@@ -1422,6 +1422,10 @@
         }
       }
       .tw__line.is-typing::after,
+      .rot-w {
+        display: inline-block;
+        white-space: nowrap;
+      }
       .rot-c {
         display: inline-block;
         transition:
@@ -5443,8 +5447,9 @@
       loadingVideo.preload = "auto";
       hydrateVideo(loadingVideo);
 
-      var rate = 1,
-        want = 1,
+      var BASE = 1.3;
+      var rate = BASE,
+        want = BASE,
         sraf = 0;
 
       function takeover(d) {
@@ -5456,10 +5461,10 @@
       function tick() {
         sraf = 0;
         if (loadingEnded) return;
-        want += (1 - want) * 0.035;
+        want += (BASE - want) * 0.035;
         rate += (want - rate) * 0.18;
         try {
-          loadingVideo.playbackRate = Math.max(1, Math.min(8, rate));
+          loadingVideo.playbackRate = Math.max(BASE, Math.min(8, rate));
         } catch (e) {}
         var squareLive = false;
         if (square) {
@@ -5712,7 +5717,7 @@
         loadingEnded = true;
         loader.classList.remove("is-running");
         loadingVideo.pause();
-        var hold = quick ? 0 : 1200;
+        var hold = quick ? 0 : 900;
         var fade = quick ? 260 : 800;
         var flown = false;
 
@@ -8827,7 +8832,7 @@
     position: relative;
   }
   .wcube__runway {
-    height: 420svh;
+    height: 320svh;
   }
   .wcube__stage {
     position: sticky;
@@ -9253,7 +9258,7 @@
     background: none;
   }
   .fold__runway {
-    height: 215svh;
+    height: 170svh;
   }
   .fold__stage {
     position: sticky;
@@ -17252,36 +17257,24 @@
 
         whenOpen(function () {
           if (!LESS) {
-            inks.forEach(function (o) {
-              o.ink.style.visibility = "hidden";
-            });
-            var line = 0;
-            var pos = 0;
-            var startAt = performance.now() + 460;
-            (function type(now) {
-              if (line >= inks.length) return;
-              if (now < startAt) {
-                requestAnimationFrame(type);
-                return;
-              }
-              var o = inks[line];
+            inks.forEach(function (o, i) {
+              o.ink.style.animation = "none";
+              void o.ink.offsetWidth;
+              o.ink.style.animation = "";
+              o.ink.style.animationDelay = 120 + i * 90 + "ms";
               o.ink.style.visibility = "visible";
-              pos += 1;
-              o.ink.textContent = o.txt.slice(0, pos);
-              if (pos >= o.txt.length) {
-                line += 1;
-                pos = 0;
-                startAt = now + 300;
-                document.documentElement.setAttribute("data-story", String(Math.min(3, line)));
-                if (line >= inks.length) {
-                  document.documentElement.setAttribute("data-hero-typed", "1");
-                  window.dispatchEvent(new CustomEvent("sid:herotyped"));
-                }
+            });
+            var beat = 0;
+            (function next() {
+              beat += 1;
+              document.documentElement.setAttribute("data-story", String(Math.min(3, beat)));
+              if (beat < 3) {
+                setTimeout(next, 180);
               } else {
-                startAt = now + 22;
+                document.documentElement.setAttribute("data-hero-typed", "1");
+                window.dispatchEvent(new CustomEvent("sid:herotyped"));
               }
-              requestAnimationFrame(type);
-            })(performance.now());
+            })();
           } else {
             inks.forEach(function (o) {
               o.ink.style.visibility = "visible";
@@ -17344,13 +17337,24 @@
           el.textContent = "";
           var chars = text.split("");
           var mid = (chars.length - 1) / 2;
+          var word = null;
           for (var c = 0; c < chars.length; c++) {
+            if (chars[c] === " ") {
+              el.appendChild(document.createTextNode(" "));
+              word = null;
+              continue;
+            }
+            if (!word) {
+              word = document.createElement("span");
+              word.className = "rot-w";
+              el.appendChild(word);
+            }
             var sp = document.createElement("span");
             sp.className = "rot-c";
-            sp.textContent = chars[c] === " " ? "\u00a0" : chars[c];
+            sp.textContent = chars[c];
             var d = Math.abs(c - mid) / Math.max(1, mid);
             sp.style.transitionDelay = Math.round((dir > 0 ? 1 - d : d) * 260) + "ms";
-            el.appendChild(sp);
+            word.appendChild(sp);
           }
           return el.querySelectorAll(".rot-c");
         }
