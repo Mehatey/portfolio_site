@@ -2765,6 +2765,27 @@ include film_grade.html %}
   .ftr__right .ftr__made {
     margin-top: 26px;
   }
+  /* ── THE HEAD IS NOT PART OF THE COLUMN ───────────────────────────────
+     Sid: "the buddha model is moving the links up and is not being aligned
+     to bottom with lets build text."
+
+     It was the last item inside the right column, which is why: a 104px
+     ornament stacked under the links makes the column that much taller, and
+     because the row bottom-aligns, everything above it got pushed up off
+     the baseline the CTA sits on. The links stopped agreeing with the one
+     line they are supposed to sit level with.
+
+     The two notes above this describe two earlier ABSOLUTE placements that
+     both landed on the colophon text, so the answer is not to take it back
+     out of the flow. It becomes its own item in the footer row instead --
+     beside the column rather than under it, bottom-aligned like everything
+     else. It cannot overlap anything, because it is a flex sibling, and it
+     cannot push the links, because it is no longer above them. */
+  .ftr__body > .ftr__buddha {
+    align-self: flex-end;
+    margin: 0;
+    flex: 0 0 auto;
+  }
 
   /* ── THE LINE, PLAIN ────────────────────────────────────────────────────
      Sid: "I don't like the effect you gave 'Let's build something', don't add
@@ -2776,14 +2797,96 @@ include film_grade.html %}
      should read as a plain statement, and a moving highlight on type is the
      single most common way a portfolio looks like a template. Ink, at size,
      and nothing else. */
+  /* ── ONE LINE ─────────────────────────────────────────────────────────
+     Sid: "make lets build text in one line and smaller."
+
+     `max-width: 14ch` was what broke it: the sentence is 21 characters, so
+     it was being forced to wrap at every width, and at 68px a two line
+     headline is most of the footer's height. One line, and the size comes
+     down to match -- a closing line should be the largest thing down here
+     without being the only thing down here. nowrap rather than a wider
+     max-width, so no window can find a width that splits it again. */
+  /* The line and its mark sit on one baseline, and the row is allowed to
+     wrap so a narrow window drops the mark under the sentence rather than
+     shrinking either of them. */
+  .ftr__cta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: clamp(14px, 1.6vw, 24px);
+  }
+  .ftr__morph {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.62;
+    transition:
+      opacity 260ms ease,
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ftr__morph:hover,
+  .ftr__morph:focus-visible {
+    opacity: 1;
+  }
+  .ftr__morph:active {
+    transform: scale(0.94);
+  }
+  /* Every glyph occupies the same cell, so the outgoing and incoming marks
+     are in the same place and the change happens in the squares rather than
+     across a gap. */
+  .ftr__morph-slot {
+    grid-area: 1 / 1;
+    display: block;
+    width: 26px;
+    height: 26px;
+    opacity: 0;
+    transform: scale(0.72) rotate(-18deg);
+    transition:
+      opacity 340ms ease,
+      transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .ftr__morph-slot[data-on] {
+    opacity: 1;
+    transform: none;
+  }
+  .ftr__morph-slot svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* The nav's own fill rule is scoped `.nav .nav-pixel` and does not reach
+       the footer, which is the same trap the theme toggle fell into. */
+    fill: currentColor;
+  }
+  .ftr__made-sep {
+    margin: 0 8px;
+    opacity: 0.5;
+  }
+  .ftr__updated {
+    opacity: 0.78;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__morph-slot {
+      transition: opacity 140ms linear;
+      transform: none;
+    }
+  }
+
   .ftr__cta {
     display: inline-block;
     text-decoration: none;
-    max-width: 14ch;
   }
   .ftr__cta-line {
     display: block;
-    font-size: clamp(34px, 5vw, 68px);
+    white-space: nowrap;
+    font-size: clamp(26px, 3.4vw, 46px);
     line-height: 1.02;
     letter-spacing: -0.025em;
     font-weight: 500;
@@ -4391,9 +4494,36 @@ wall and the Buddha all sit inside the one `
           pixels, which at that size is a piece of UI furniture in the middle of a sentence. What replaces it is in the type itself: a band of light
           travelling across the words, cut to the glyphs with background-clip. It is the same specular language as the screensaver cubes, which is the
           point -- the site should have one idea about what light does. {% endcomment %}
-          <a class="ftr__cta" id="ftr-cta" href="{{ site.baseurl }}/contact/">
-            <span class="ftr__cta-line">Let’s build something</span>
-          </a>
+          <div class="ftr__cta-row">
+            <a class="ftr__cta" id="ftr-cta" href="{{ site.baseurl }}/contact/">
+              <span class="ftr__cta-line">Let’s build something</span>
+            </a>
+            <!-- ── ONE ICON, AND IT TURNS INTO THE NEXT ──────────────────
+                 Sid: "at the end of it have my pixel icons, when u click
+                 only one at a time and then they animate between each other
+                 morphing but only one."
+
+                 So: not a row of five. One glyph in one box, and pressing it
+                 hands over to the next -- the outgoing icon falls away as
+                 the incoming one arrives into the same cells, which at this
+                 size reads as the squares rearranging themselves rather than
+                 as a swap. They are the real nav glyphs from nav_icon.html,
+                 not redrawn ones, so the footer is speaking the same
+                 alphabet as the bar at the top.
+
+                 A button, outside the anchor. Inside it, every press would
+                 also be a press on "Let's build something" and would leave
+                 for the contact page mid morph. It goes nowhere on purpose:
+                 this is the footer's one piece of play, and the destinations
+                 are already in the nav on the same screen. -->
+            <button type="button" class="ftr__morph" id="ftr-morph" aria-label="Cycle the pixel marks">
+              <span class="ftr__morph-slot" data-on="1">{% include nav_icon.html icon='work' %}</span>
+              <span class="ftr__morph-slot">{% include nav_icon.html icon='play' %}</span>
+              <span class="ftr__morph-slot">{% include nav_icon.html icon='about' %}</span>
+              <span class="ftr__morph-slot">{% include nav_icon.html icon='contact' %}</span>
+              <span class="ftr__morph-slot">{% include nav_icon.html icon='sid-ai' %}</span>
+            </button>
+          </div>
         </div>
 
         <div class="ftr__right">
@@ -4420,7 +4550,23 @@ wall and the Buddha all sit inside the one `
             <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>
           </nav>
 
-          <p class="ftr__made">Built with lots of love and coffee</p>
+          <!-- ── AND WHEN IT LAST MOVED ──────────────────────────────────
+               Sid: "on footer can we have when site was last updated date,
+               also if we dont have it already." We did not.
+
+               site.time is the moment Jekyll built the page, so it is right
+               by construction and nobody has to remember to change it -- the
+               failure mode of a hand written date is that it quietly becomes
+               a lie, which is worse than no date at all on a site whose
+               argument is that it is actively worked on.
+
+               It sits on the colophon line rather than on its own, because
+               it is the same kind of statement: a note about the making of
+               the thing, not part of the address block above it. -->
+          <p class="ftr__made">
+            Built with lots of love and coffee<span class="ftr__made-sep" aria-hidden="true">·</span
+            ><span class="ftr__updated">Updated {{ site.time | date: "%-d %b %Y" }}</span>
+          </p>
           <!-- ══ THE BUDDHA IN THE CORNER ══════════════════════════════════
                Sid: "in small i want u to add the buddha head to footer and make
                it rotate slowly somewhere either on the bottom left or the bottom
@@ -4438,8 +4584,9 @@ wall and the Buddha all sit inside the one `
                It is decoration rather than a control, so it is aria-hidden and
                takes no pointer events: a rotating object that cannot be clicked
                should not be reachable by a keyboard either. -->
-          <div class="ftr__buddha" id="ftr-buddha" aria-hidden="true"></div>
         </div>
+
+        <div class="ftr__buddha" id="ftr-buddha" aria-hidden="true"></div>
 
         {% comment %} The shelf is gone. Sid: "why am I seeing the icons again, that too stretched", after having already asked for the pixel icons
         off the footer once. It was still in the DOM and only hidden until a visitor had collected something, so it came back the moment anybody
@@ -4460,6 +4607,22 @@ wall and the Buddha all sit inside the one `
     /* The closing line assembles itself the first time the footer is reached.
        Once, and then the observer lets go: a headline that re-forms every
        time you scroll back past it is a tic, not an arrival. */
+    /* One press, one step. The index only ever advances, wrapping, so the
+       order is the same every time and pressing it repeatedly walks the set
+       rather than shuffling it. */
+    (function () {
+      var host = document.getElementById("ftr-morph");
+      if (host) {
+        var slots = [].slice.call(host.querySelectorAll(".ftr__morph-slot"));
+        var at = 0;
+        host.addEventListener("click", function () {
+          slots[at].removeAttribute("data-on");
+          at = (at + 1) % slots.length;
+          slots[at].setAttribute("data-on", "1");
+        });
+      }
+    })();
+
     (function () {
       var cta = document.getElementById("ftr-cta");
       var line = cta && cta.querySelector(".ftr__cta-line");
