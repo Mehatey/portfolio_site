@@ -7125,24 +7125,11 @@
       <!-- REFLECTION -->
       {% if page.reflection %}
       <section class="proj-reflection" id="reflection-section">
-        {% if page.refl_bg %} {% if page.refl_bg contains '.mp4' %}
-        <video class="refl-bg-img" id="refl-bg-img" autoplay muted loop playsinline preload="none" style="opacity: 0.4" aria-hidden="true"></video>
-        <script>
-          (function () {
-            const v = document.getElementById("refl-bg-img");
-            const src = document.createElement("source");
-            src.src = "{{ site.baseurl }}/{{ page.refl_bg }}";
-            src.type = "video/mp4";
-            v.appendChild(src);
-            v.load();
-            v.play().catch(() => {});
-          })();
-        </script>
-        {% else %}
-        <img class="refl-bg-img" id="refl-bg-img" src="{{ site.baseurl }}/{{ page.refl_bg }}" alt="" loading="lazy" />
-        {% endif %}
-        <canvas class="refl-reveal-canvas" id="refl-reveal" aria-hidden="true"></canvas>
-        {% endif %}
+        <!-- The reflection sits on water and nothing else. Sid: "i had told u
+             to remove all the hover on image paint on in reflection i told
+             you i wanted a light water surface and no painting in on any
+             reflections." The refl_bg picture and the cursor reveal canvas
+             are not rendered; the water canvas below is the whole ground. -->
         <canvas class="refl-water-canvas" id="refl-water" aria-hidden="true"></canvas>
         <div class="refl-inner">
           {% if page.refl_source %}
@@ -8389,110 +8376,8 @@
       // Process chapter — same params as Final Outcome for consistency
       initWater("chapter-water", ".cs-chapter", 1.0, 0.003, 120);
 
-      // ── REFLECTION PAINT REVEAL — cursor unveils background image ──
-      (function () {
-        const section = document.getElementById("reflection-section");
-        const img = document.getElementById("refl-bg-img");
-        const canvas = document.getElementById("refl-reveal");
-        if (!section || !img || !canvas) return;
+      // The reflection paint reveal is gone; see the markup note in the REFLECTION section.
 
-        const ctx = canvas.getContext("2d");
-        let dpr = 1;
-        const brushRadius = 80;
-
-        // Image starts hidden — the canvas is a mask over it, and painting
-        // clears the mask to reveal the photograph underneath.
-        //
-        // The mask used to be #000 unconditionally, which is the same mistake
-        // as painting a scrim in one theme's colour: on the dark page a black
-        // fill is invisible and the section reads as page, which is the whole
-        // point. On cream it is a solid black rectangle covering the full
-        // width of the section -- and the light-mode ink inside it is
-        // rgba(7,9,15,0.74), so the quote sat at dark-on-black. Sampled the
-        // painted pixels across the quote's own box: luminance 0 to 7, a
-        // maximum possible contrast of 1.04:1. Sid's writing about the
-        // project, on all fifteen project pages, simply could not be read in
-        // light mode until you scrubbed the mask off with the cursor.
-        //
-        // The contrast auditor could not see it either, and that is worth
-        // recording: it walks ancestors looking for a background *colour*, and
-        // this backdrop is a canvas. It found the page's cream, composited
-        // dark ink against it, and reported a healthy ratio. The stylesheet
-        // was never wrong. The paint was.
-        //
-        // A mask is supposed to be the surface it is hiding something behind,
-        // so it takes the page's own --bg. Cream on cream, black on black,
-        // and the photograph is genuinely hidden in both.
-        img.style.opacity = "0.4";
-
-        function maskColor() {
-          var v = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
-          return v || "#000";
-        }
-
-        function resize() {
-          dpr = window.devicePixelRatio || 1;
-          const rect = section.getBoundingClientRect();
-          canvas.width = rect.width * dpr;
-          canvas.height = rect.height * dpr;
-          canvas.style.width = rect.width + "px";
-          canvas.style.height = rect.height + "px";
-          ctx.setTransform(1, 0, 0, 1, 0, 0);
-          ctx.scale(dpr, dpr);
-          // Fill with the page's own background, which is what hides the
-          // image in whichever theme is on.
-          ctx.globalCompositeOperation = "source-over";
-          ctx.fillStyle = maskColor();
-          ctx.fillRect(0, 0, rect.width, rect.height);
-        }
-
-        img.addEventListener("load", resize);
-        if (img.complete) resize();
-        window.addEventListener("resize", resize, { passive: true });
-
-        /* Switching theme repaints the mask. It also discards whatever the
-           visitor had already scrubbed away, which is the right trade: a
-           half-erased mask in the wrong colour is worse than starting over,
-           and someone who has just changed theme is looking at the page, not
-           mid-gesture. */
-        new MutationObserver(resize).observe(document.documentElement, {
-          attributes: true,
-          attributeFilter: ["data-theme"],
-        });
-
-        function paint(x, y) {
-          const rect = section.getBoundingClientRect();
-          const px = x - rect.left;
-          const py = y - rect.top;
-          // Erase black to reveal image
-          ctx.globalCompositeOperation = "destination-out";
-          const grad = ctx.createRadialGradient(px, py, 0, px, py, brushRadius);
-          grad.addColorStop(0, "rgba(0,0,0,1)");
-          grad.addColorStop(0.6, "rgba(0,0,0,0.6)");
-          grad.addColorStop(1, "rgba(0,0,0,0)");
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.arc(px, py, brushRadius, 0, Math.PI * 2);
-          ctx.fill();
-        }
-
-        section.addEventListener(
-          "mousemove",
-          function (e) {
-            paint(e.clientX, e.clientY);
-          },
-          { passive: true }
-        );
-
-        section.addEventListener(
-          "touchmove",
-          function (e) {
-            const t = e.touches[0];
-            if (t) paint(t.clientX, t.clientY);
-          },
-          { passive: true }
-        );
-      })();
 
       // ── AMBIENT PARTICLES — subtle motes biased to right side ──
       (function () {

@@ -154,6 +154,15 @@
     "void main(){",
     "  vec2 q = uv;",
     "  float f = field(q);",
+    /* ── IT ENDS BEFORE THE CANVAS DOES ──────────────────────────────────
+       Sid: "i hate those two line rect type cropping on the top and bottom
+       of image." The field was still above threshold at the canvas's top
+       and bottom rows, so the canvas edge cut the form flat: a soft blob
+       with two ruler-straight sides. A window pulls the field to zero
+       inside the last 12% of the height and 7% of the width, so the form
+       always fades out on its own terms, and the blob's own drift has
+       somewhere to move into. */
+    "  f *= smoothstep(0.0, 0.12, q.y) * smoothstep(1.0, 0.88, q.y) * smoothstep(0.0, 0.07, q.x) * smoothstep(1.0, 0.93, q.x);",
     /* 1.0 is the threshold. `edge` is 0 in the core and 1 at the boundary,
        and everything soft is scaled by it -- so the face, which sits deep
        inside the field, is sampled with no distortion at all. */
@@ -411,6 +420,34 @@
     }
     if (img.complete) upload();
     img.addEventListener("load", upload);
+
+    /* ── CLICK, AND IT IS THE OTHER PICTURE ─────────────────────────────
+       Sid: "on click i want it to change to the other pic." The card
+       carries two photographs; the shader only ever drew the first. A
+       click (or Enter/Space, since the card is a button) swaps which one
+       is the texture and restarts the resolve, so the second portrait
+       arrives the way the first did, out of the cells. */
+    var photos = [].slice.call(card.querySelectorAll(".about-photo"));
+    function swap() {
+      if (photos.length < 2) return;
+      var i = photos.indexOf(img);
+      var next = photos[(i + 1) % photos.length];
+      photos.forEach(function (ph) {
+        ph.classList.toggle("active", ph === next);
+      });
+      img = next;
+      loaded = false;
+      revT0 = 0;
+      if (img.complete && img.naturalWidth) upload();
+      else img.addEventListener("load", upload, { once: true });
+    }
+    card.addEventListener("click", swap);
+    card.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        swap();
+      }
+    });
 
     /* Blending is straight rather than premultiplied-by-source, because the
        shader writes colour ALREADY multiplied by alpha -- which is what
