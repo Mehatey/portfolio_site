@@ -735,14 +735,34 @@ top of a case study is intro and process. See the commit for how they were chose
         elOpen.style.setProperty("--go", "0");
         var href = elOpen.getAttribute("href");
         if (!href || href === "#") return;
-        if (document.startViewTransition && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          document.startViewTransition(function () {
-            location.href = href;
-          });
-        } else {
-          location.href = href;
-        }
+        carry();
+        location.href = href;
       }
+    }
+
+    /* ── THE SHEET'S PICTURE IS THE ONE THAT TRAVELS ───────────────────
+       hero_morph.html gives the clicked card's cover the `project-hero`
+       name, in the capture phase, before this panel intercepts the click. So
+       at handoff the element carrying the name was the card behind the
+       scrim, and the hero morphed out of something the reader could not see.
+       The name must be unique, so it is taken off whatever holds it and put
+       on the lead image of the sheet, which is the last thing on screen
+       before the case study and the thing its hero should grow out of.
+
+       No startViewTransition wrapper. The site already runs cross-document
+       transitions (`@view-transition { navigation: auto }`); a same-document
+       one started around a navigation is aborted by that navigation and only
+       logs "Transition was skipped". Mark, then go. */
+    function carry() {
+      var marked = document.querySelectorAll("[data-vt-marked]");
+      for (var k = 0; k < marked.length; k++) {
+        marked[k].style.viewTransitionName = "";
+        marked[k].removeAttribute("data-vt-marked");
+      }
+      var lead = media.firstElementChild;
+      if (!lead) return;
+      lead.style.viewTransitionName = "project-hero";
+      lead.setAttribute("data-vt-marked", "");
     }
 
     function readLift() {
@@ -940,17 +960,12 @@ top of a case study is intro and process. See the commit for how they were chose
 
     /* ── EXPANDING IS A NAVIGATION, NOT A NESTED PAGE ──────────────────
        The panel morphs into the real case study: real URL, working Back
-       button, no second document held open on top of an 11.9MB page. Same
-       startViewTransition the hero morph and the lightbox already use. */
+       button, no second document held open on top of an 11.9MB page. The
+       cross-document transition does the morph; carry() tells it which
+       picture to morph from. */
     function expand(e) {
-      var href = this.getAttribute("href");
-      if (!href) return;
-      var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (!document.startViewTransition || reduce) return; /* Plain navigation. */
-      e.preventDefault();
-      document.startViewTransition(function () {
-        location.href = href;
-      });
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+      carry(); /* The anchor navigates on its own; the name just has to be in place first. */
     }
     /* The handoff is still a real link, so a click, a keyboard activation
        and a middle-click all work -- the scroll is the discoverable path, not
