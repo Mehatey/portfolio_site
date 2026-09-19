@@ -406,7 +406,26 @@
            so a cell keeps its INDEX and only changes its colour -- the field
            recolours rather than reshuffling, which is what makes it read as
            the same wall under different light. */
-        var idx = (h * 1000) | 0;
+        /* ── AND THE WALL IS NEVER FINISHED ───────────────────────────
+           Sid: "let the pixel colors squares have motion and not just be
+           static."
+
+           They were static, and deterministically so: the chip a cell wears
+           came from cellHash(i, j) alone, which never changes. Once the
+           palette front below had finished crossing, every square on the
+           wall was frozen until the focused tile changed -- so the only
+           motion left was the alpha breath further down, which moves the
+           brightness and not the colour, and reads as a still image.
+
+           Each cell now advances through the palette on its own slow clock:
+           one chip about every six seconds, offset by the cell's own hash so
+           no two turn together. A cell takes over a minute to walk twelve
+           chips, which is far too slow to watch and exactly fast enough that
+           the wall is visibly alive whenever you look back at it.
+
+           It costs nothing: the same one subtraction and one modulo the
+           field already did, with a floor added. No per-cell state. */
+        var idx = ((h * 1000) | 0) + ((t * 0.16 + h * 11) | 0);
 
         /* Not every cell is filled. A field at full density is a solid
            rectangle, so the gaps are what make it read as pixels scattered on
@@ -449,7 +468,7 @@
            they carry no detail to compete with, and at the same alpha they
            simply were not there. This is the level at which the wall is
            visibly the colour of the picture and still obviously behind it. */
-        var a = 0.2 + v * 0.07 + flare * 0.55;
+        var a = 0.2 + v * 0.09 + flare * 0.55;
 
         /* ── THE POINTER LIFTS THE WALL ─────────────────────────────────
            Sid: "when i hover on pixels in bg of this let it be more of a
