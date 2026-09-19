@@ -1091,3 +1091,46 @@ that are not projects have one line each.
    further means re-encoding Sid's own artwork, which is his call.
 5. **The voiceover.** Thirteen scripts written, no audio recorded, no player
    built.
+
+---
+
+# STATE AS OF 19 SEP 2026 — the recruiter walk
+
+## A testing trap that produced three false findings in one session
+
+**The Claude-in-Chrome extension's tab sits in a background window, and Chrome
+runs no `requestAnimationFrame` in a hidden tab** (`document.visibilityState`
+was `hidden`, 0 frames/sec measured). Each screenshot forces exactly one frame.
+So anything rAF-driven advances one step per screenshot: the hero typewriter
+read "Product des" after 25 seconds, the work cube sat one project behind its
+caption, and scroll-reveal left "blank viewports". All three were reported as
+site defects and none of them exist. Measured in a visible window (headed
+Playwright with `--disable-backgrounding-occluded-windows
+--disable-renderer-backgrounding`), the opener is 7.5s, the headline types in
+2.5s, the cube is in sync and there are no blank screens at a natural pace.
+Before reporting any timing or animation finding from the extension, check
+`document.visibilityState` first.
+
+Also: the extension's scroll action calls `scrollBy` and fires no wheel
+events, so wheel-driven handovers (the quick look, the case-study next-project
+runway) never trigger under it. Dispatch `WheelEvent`s or use Playwright.
+
+## What landed
+
+- Case-study handover: "Next project", the name and the one-liner were `#fff`
+  with no light-mode rule and the site opens light. Ink tokens now.
+- `_plugins/strip-comments.rb`: production builds drop HTML comments,
+  line-leading `/* */` blocks and whole-line `//` comments from every page.
+  Home HTML 1550KB -> 705KB, and the 382 quoted messages no longer ship.
+  Comment-only; no minification, so the `calc(var())` trap does not apply.
+- Quick look excludes hidden works; the home cube's "All N projects" is derived.
+- Opener: post-film hold 2100 -> 1200ms, and a click fast-forwards like a wheel.
+- Stat counters start at 75% of target. Project details open by default.
+- Home order: hero, awards strip, work cube, then the capabilities fold.
+- Obin and Ledger were missing their -480/-900 cover variants (404s on /works/).
+
+## Deliberately not changed, on Sid's own earlier calls
+
+Name in the nav, always-on nav labels, Sid AI in the nav, the footer desk on
+/contact/ ("have this common footer on every page"), "Bloom; who are you" (it
+is the installation's name). Open for Sid: the "Coming soon" badge on /sid-ai/.
