@@ -291,6 +291,34 @@
 
      Each piece is on its own slow clock, because a sky where several things
      move on the same period reads as one animation rather than as weather. */
+  /* Teal, gold, violet and bone -- the thesis palette, which is where the
+     mandala comes from. Held as bare channel triples so the alpha can be
+     decided per cell without building a string twice. */
+  /* TWO PALETTES, AND THE REASON IS THE BLEND MODE. `.idle-rain` carries
+     mix-blend-mode: multiply on the light theme, so a pale cell multiplied
+     onto a cream page is no change at all -- photographed, the whole figure
+     vanished into the paper. Multiply needs dark ink. The dark theme
+     composites normally and wants the opposite. Same figure, inverted
+     material, chosen per frame from the theme attribute. */
+  var MANDALA_PAL = ["142, 220, 255", "232, 198, 122", "186, 160, 240", "226, 240, 252", "120, 196, 190"];
+  var MANDALA_PAL_LIGHT = ["26, 74, 104", "120, 84, 18", "78, 52, 130", "32, 44, 62", "22, 84, 78"];
+  var MANDALA_GLYPHS = "01·+*×≡/\\|—◦";
+
+  /* Cryptic stars: glyphs rather than points, out where the figure is not. */
+  var CRYPTIC = [];
+  for (var cg = 0; cg < 34; cg++) {
+    var cang = Math.random() * 6.283185;
+    var crad = 0.34 + Math.random() * 0.2;
+    CRYPTIC.push({
+      x: 0.5 + Math.cos(cang) * crad,
+      y: 0.46 + Math.sin(cang) * crad * 1.1,
+      g: MANDALA_GLYPHS.charAt((Math.random() * MANDALA_GLYPHS.length) | 0),
+      r: 0.4 + Math.random() * 1.6,
+      ph: Math.random() * 6.28,
+      s: Math.random(),
+    });
+  }
+
   var stars = [];
   for (var st = 0; st < 90; st++) {
     stars.push({
@@ -791,6 +819,146 @@
           rctx.quadraticCurveTo(bxp, byp + bp.s * 0.18, bxp + bp.s, byp - lift);
           rctx.stroke();
         }
+
+        /* ── THE MANDALA ANCHORS IT ──────────────────────────────────
+           Sid: "in the screensaver bg along with the other effects can we
+           have a changing pixel mandala in center with some cryptic stars
+           and playing with pixel ascii and color tiles in the center,
+           almost like hypnotising mandala visuals to anchor the whole
+           screensaver mode, cause now it feels a little weird we have to
+           wait for the cube and cloud to drift in and then we see some
+           pixel sorting and such."
+
+           The diagnosis in that sentence is the design brief. Everything
+           this scene had was PERIPHERAL -- weather at the edges, a cube
+           drifting through, patches resolving somewhere off to one side --
+           so there was nothing to rest on while you waited for the next
+           thing to wander past. A screensaver needs a centre, and this
+           site's centre has been a mandala since the thesis.
+
+           Drawn on the rain canvas, before the weather and after the sky,
+           for the same reason everything else here is: one canvas is one
+           paint, and the rain should fall in front of it.
+
+           WHAT MAKES IT HYPNOTIC, rather than just symmetrical:
+
+           Rings turn at different rates and alternate direction, so the
+           figure never repeats a pose -- two rings on the same clock would
+           lock into a wheel and a wheel is a loading spinner. The symmetry
+           ORDER drifts too, six-fold through twelve and back on a ninety
+           second breath, so the pattern reorganises itself rather than
+           spinning in place.
+
+           And the cells are the site's own pixels: squares, mostly, with
+           about one in six drawn as a character instead. That is the
+           "pixel ascii" half -- a glyph at this size is a square with
+           something cryptic happening inside it, which is exactly the
+           register wanted, and it costs one fillText. */
+        var mR = Math.min(RW, RH) * 0.31;
+        var mCx = RW / 2,
+          mCy = RH * 0.46;
+        /* ── IT NEEDS A GROUND ──────────────────────────────────────
+           First pass drew the cells straight onto the scene and the figure
+           did not read: photographed on the light theme it was confetti,
+           because pale teal and bone at a third of an alpha over a cream
+           page is nothing, and because a mandala without a field around it
+           has no centre to be the centre OF.
+
+           A soft dark well under it does both jobs -- it lifts every cell's
+           contrast without touching their colours, and it is itself the
+           thing that says "look here". No edge on it: the stop at 0.62 is
+           where it has already faded out, so the scene dissolves into it
+           rather than sitting inside a disc. */
+        var wellG = rctx.createRadialGradient(mCx, mCy, 0, mCx, mCy, mR * 1.7);
+        wellG.addColorStop(0, "rgba(6, 10, 18," + (0.72 * fade).toFixed(3) + ")");
+        wellG.addColorStop(0.42, "rgba(6, 10, 18," + (0.46 * fade).toFixed(3) + ")");
+        wellG.addColorStop(0.62, "rgba(6, 10, 18," + (0.18 * fade).toFixed(3) + ")");
+        wellG.addColorStop(1, "rgba(6, 10, 18, 0)");
+        rctx.fillStyle = wellG;
+        rctx.fillRect(0, 0, RW, RH);
+        /* Six through twelve and back, on a ninety second period. Rounded,
+           so the reorganisation happens as a step and you notice it. */
+        var kf = 6 + Math.round(3 + 3 * Math.sin(clock * 0.07));
+        var mCell = Math.max(7, Math.min(15, mR / 15));
+        rctx.textAlign = "center";
+        rctx.textBaseline = "middle";
+        rctx.font = mCell * 1.5 + "px ui-monospace, SFMono-Regular, Menlo, monospace";
+        for (var mr = 0; mr < 9; mr++) {
+          var rad = ((mr + 1.15) / 9.7) * mR;
+          /* More cells further out, so the density stays even instead of
+             crowding the middle and thinning at the rim. */
+          var seg = kf * (1 + Math.floor(mr * 0.62));
+          /* Alternating direction, and a rate that is not a multiple of any
+             other ring's. */
+          var spin = clock * (0.055 + 0.021 * (mr % 4)) * (mr % 2 ? -1 : 1);
+          /* ── THE WEDGE IS THE UNIT, NOT THE CELL ──────────────────
+             The first pass hashed each cell by its own index, so two cells
+             at symmetric positions got different colours, different glyphs
+             and different on/off states -- which means the figure had no
+             symmetry at all. Photographed, it read as confetti, and that is
+             exactly what it was: a circular scatter.
+
+             A mandala repeats a wedge. seg is always kf * n, so ms modulo
+             the wedge width gives every one of the kf sectors the identical
+             pattern, and the k-fold symmetry appears. This one line is the
+             difference between a mandala and noise. */
+          var wedge = seg / kf;
+          for (var ms = 0; ms < seg; ms++) {
+            var msym = ms % wedge;
+            var mh = ((mr * 73856093) ^ (msym * 19349663)) >>> 0;
+            mh = (mh % 1000) / 1000;
+            /* Cells come and go on their own slow sine, so the figure
+               breathes instead of rotating as a rigid object. */
+            var liv = Math.sin(clock * 0.33 + mr * 0.9 + mh * 6.28);
+            /* Was -0.15, which took out enough of every ring that the
+               radial order stopped reading. A mandala has to be a figure
+               first and a texture second. */
+            if (liv < -0.55) continue;
+            var ang = spin + (ms / seg) * 6.283185;
+            var mx = mCx + Math.cos(ang) * rad;
+            var my = mCy + Math.sin(ang) * rad * 0.94;
+            /* By RING and slow time, not per cell. Keying it to mh as well
+               gave every cell in a ring a different colour, which is the
+               other half of why the rings did not read as rings. */
+            var palSet = document.documentElement.getAttribute("data-theme") === "light" ? MANDALA_PAL_LIGHT : MANDALA_PAL;
+            var pal = palSet[(mr + ((clock * 0.09) | 0)) % palSet.length];
+            /* Raised with the well behind it. The falloff to the rim is
+               gentler too -- at 1 - mr/13 the outer ring was a third of the
+               inner one and the figure tapered away instead of holding a
+               circle. */
+            var ma = (0.3 + 0.62 * Math.min(1, liv + 0.6)) * (1 - mr / 20) * fade;
+            rctx.fillStyle = "rgba(" + pal + "," + ma.toFixed(3) + ")";
+            if (mh < 0.17) {
+              rctx.fillText(MANDALA_GLYPHS.charAt(((mh * 1000 + mr) | 0) % MANDALA_GLYPHS.length), mx, my);
+            } else {
+              rctx.fillRect(mx - mCell / 2, my - mCell / 2, mCell, mCell);
+            }
+          }
+        }
+        /* The eye. One cell at the centre, on the slowest clock in the
+           figure, so there is a still point to rest on. */
+        var eyeA = (0.4 + 0.3 * Math.sin(clock * 0.5)) * fade;
+        rctx.fillStyle =
+          (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(24, 38, 56," : "rgba(226, 240, 252,") + eyeA.toFixed(3) + ")";
+        rctx.fillRect(mCx - mCell * 0.7, mCy - mCell * 0.7, mCell * 1.4, mCell * 1.4);
+
+        /* ── THE CRYPTIC STARS ───────────────────────────────────────
+           Sid asked for stars that are cryptic rather than decorative, so
+           these are glyphs rather than points, scattered on the ring the
+           mandala does not occupy, each on its own flicker. They read as
+           something being transmitted rather than as a sky. */
+        for (var cs = 0; cs < CRYPTIC.length; cs++) {
+          var cq = CRYPTIC[cs];
+          var flick = Math.sin(clock * cq.r + cq.ph);
+          if (flick < 0.1) continue;
+          var ca = (flick - 0.1) * 0.55 * fade;
+          rctx.fillStyle =
+            (document.documentElement.getAttribute("data-theme") === "light" ? "rgba(40, 62, 88," : "rgba(196, 226, 255,") + ca.toFixed(3) + ")";
+          rctx.font = (8 + cq.s * 5).toFixed(0) + "px ui-monospace, SFMono-Regular, Menlo, monospace";
+          rctx.fillText(cq.g, cq.x * RW, cq.y * RH);
+        }
+        rctx.textAlign = "start";
+        rctx.textBaseline = "alphabetic";
 
         rctx.lineCap = "round";
         var wind = Math.sin(clock * 0.09) * 90;
