@@ -17210,6 +17210,27 @@
   .ftr__right .ftr__made {
     margin-top: 26px;
   }
+  /* ── THE HEAD IS NOT PART OF THE COLUMN ───────────────────────────────
+     Sid: "the buddha model is moving the links up and is not being aligned
+     to bottom with lets build text."
+
+     It was the last item inside the right column, which is why: a 104px
+     ornament stacked under the links makes the column that much taller, and
+     because the row bottom-aligns, everything above it got pushed up off
+     the baseline the CTA sits on. The links stopped agreeing with the one
+     line they are supposed to sit level with.
+
+     The two notes above this describe two earlier ABSOLUTE placements that
+     both landed on the colophon text, so the answer is not to take it back
+     out of the flow. It becomes its own item in the footer row instead --
+     beside the column rather than under it, bottom-aligned like everything
+     else. It cannot overlap anything, because it is a flex sibling, and it
+     cannot push the links, because it is no longer above them. */
+  .ftr__body > .ftr__buddha {
+    align-self: flex-end;
+    margin: 0;
+    flex: 0 0 auto;
+  }
 
   /* ── THE LINE, PLAIN ────────────────────────────────────────────────────
      Sid: "I don't like the effect you gave 'Let's build something', don't add
@@ -17221,14 +17242,96 @@
      should read as a plain statement, and a moving highlight on type is the
      single most common way a portfolio looks like a template. Ink, at size,
      and nothing else. */
+  /* ── ONE LINE ─────────────────────────────────────────────────────────
+     Sid: "make lets build text in one line and smaller."
+
+     `max-width: 14ch` was what broke it: the sentence is 21 characters, so
+     it was being forced to wrap at every width, and at 68px a two line
+     headline is most of the footer's height. One line, and the size comes
+     down to match -- a closing line should be the largest thing down here
+     without being the only thing down here. nowrap rather than a wider
+     max-width, so no window can find a width that splits it again. */
+  /* The line and its mark sit on one baseline, and the row is allowed to
+     wrap so a narrow window drops the mark under the sentence rather than
+     shrinking either of them. */
+  .ftr__cta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: clamp(14px, 1.6vw, 24px);
+  }
+  .ftr__morph {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.62;
+    transition:
+      opacity 260ms ease,
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ftr__morph:hover,
+  .ftr__morph:focus-visible {
+    opacity: 1;
+  }
+  .ftr__morph:active {
+    transform: scale(0.94);
+  }
+  /* Every glyph occupies the same cell, so the outgoing and incoming marks
+     are in the same place and the change happens in the squares rather than
+     across a gap. */
+  .ftr__morph-slot {
+    grid-area: 1 / 1;
+    display: block;
+    width: 26px;
+    height: 26px;
+    opacity: 0;
+    transform: scale(0.72) rotate(-18deg);
+    transition:
+      opacity 340ms ease,
+      transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .ftr__morph-slot[data-on] {
+    opacity: 1;
+    transform: none;
+  }
+  .ftr__morph-slot svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* The nav's own fill rule is scoped `.nav .nav-pixel` and does not reach
+       the footer, which is the same trap the theme toggle fell into. */
+    fill: currentColor;
+  }
+  .ftr__made-sep {
+    margin: 0 8px;
+    opacity: 0.5;
+  }
+  .ftr__updated {
+    opacity: 0.78;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__morph-slot {
+      transition: opacity 140ms linear;
+      transform: none;
+    }
+  }
+
   .ftr__cta {
     display: inline-block;
     text-decoration: none;
-    max-width: 14ch;
   }
   .ftr__cta-line {
     display: block;
-    font-size: clamp(34px, 5vw, 68px);
+    white-space: nowrap;
+    font-size: clamp(26px, 3.4vw, 46px);
     line-height: 1.02;
     letter-spacing: -0.025em;
     font-weight: 500;
@@ -17431,7 +17534,11 @@
        slightly desaturated, so the row still reads as photographs. */
     .sid-strip__rows .sid-tile img,
     .sid-strip__rows .sid-tile video {
-      filter: blur(3.4px) saturate(0.86) contrast(1.02);
+      /* The blur went with the rail's depth of field -- see the pixelate
+         filters in the defs at the foot of this file. The per-frame loop
+         writes the grade AND the pixel level onto these elements, so the
+         only thing left here is the transition that carries a level change. */
+      filter: saturate(0.86) contrast(1.02);
       opacity: 1;
       transition:
         filter 700ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -17441,7 +17548,7 @@
     .sid-strip__rows .sid-tile.is-source video,
     .sid-strip__rows .sid-tile:hover img,
     .sid-strip__rows .sid-tile:hover video {
-      filter: blur(0) saturate(1.04) contrast(1.02);
+      filter: saturate(1.04) contrast(1.02);
     }
     /* And the one being read is lifted, so focus is carried by two cues
        rather than one -- a blur difference alone is easy to miss on a small
@@ -17827,6 +17934,22 @@
     /* The closing line assembles itself the first time the footer is reached.
        Once, and then the observer lets go: a headline that re-forms every
        time you scroll back past it is a tic, not an arrival. */
+    /* One press, one step. The index only ever advances, wrapping, so the
+       order is the same every time and pressing it repeatedly walks the set
+       rather than shuffling it. */
+    (function () {
+      var host = document.getElementById("ftr-morph");
+      if (host) {
+        var slots = [].slice.call(host.querySelectorAll(".ftr__morph-slot"));
+        var at = 0;
+        host.addEventListener("click", function () {
+          slots[at].removeAttribute("data-on");
+          at = (at + 1) % slots.length;
+          slots[at].setAttribute("data-on", "1");
+        });
+      }
+    })();
+
     (function () {
       var cta = document.getElementById("ftr-cta");
       var line = cta && cta.querySelector(".ftr__cta-line");

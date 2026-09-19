@@ -19170,6 +19170,27 @@
   .ftr__right .ftr__made {
     margin-top: 26px;
   }
+  /* ── THE HEAD IS NOT PART OF THE COLUMN ───────────────────────────────
+     Sid: "the buddha model is moving the links up and is not being aligned
+     to bottom with lets build text."
+
+     It was the last item inside the right column, which is why: a 104px
+     ornament stacked under the links makes the column that much taller, and
+     because the row bottom-aligns, everything above it got pushed up off
+     the baseline the CTA sits on. The links stopped agreeing with the one
+     line they are supposed to sit level with.
+
+     The two notes above this describe two earlier ABSOLUTE placements that
+     both landed on the colophon text, so the answer is not to take it back
+     out of the flow. It becomes its own item in the footer row instead --
+     beside the column rather than under it, bottom-aligned like everything
+     else. It cannot overlap anything, because it is a flex sibling, and it
+     cannot push the links, because it is no longer above them. */
+  .ftr__body > .ftr__buddha {
+    align-self: flex-end;
+    margin: 0;
+    flex: 0 0 auto;
+  }
 
   /* ── THE LINE, PLAIN ────────────────────────────────────────────────────
      Sid: "I don't like the effect you gave 'Let's build something', don't add
@@ -19181,14 +19202,96 @@
      should read as a plain statement, and a moving highlight on type is the
      single most common way a portfolio looks like a template. Ink, at size,
      and nothing else. */
+  /* ── ONE LINE ─────────────────────────────────────────────────────────
+     Sid: "make lets build text in one line and smaller."
+
+     `max-width: 14ch` was what broke it: the sentence is 21 characters, so
+     it was being forced to wrap at every width, and at 68px a two line
+     headline is most of the footer's height. One line, and the size comes
+     down to match -- a closing line should be the largest thing down here
+     without being the only thing down here. nowrap rather than a wider
+     max-width, so no window can find a width that splits it again. */
+  /* The line and its mark sit on one baseline, and the row is allowed to
+     wrap so a narrow window drops the mark under the sentence rather than
+     shrinking either of them. */
+  .ftr__cta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: clamp(14px, 1.6vw, 24px);
+  }
+  .ftr__morph {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.62;
+    transition:
+      opacity 260ms ease,
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ftr__morph:hover,
+  .ftr__morph:focus-visible {
+    opacity: 1;
+  }
+  .ftr__morph:active {
+    transform: scale(0.94);
+  }
+  /* Every glyph occupies the same cell, so the outgoing and incoming marks
+     are in the same place and the change happens in the squares rather than
+     across a gap. */
+  .ftr__morph-slot {
+    grid-area: 1 / 1;
+    display: block;
+    width: 26px;
+    height: 26px;
+    opacity: 0;
+    transform: scale(0.72) rotate(-18deg);
+    transition:
+      opacity 340ms ease,
+      transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .ftr__morph-slot[data-on] {
+    opacity: 1;
+    transform: none;
+  }
+  .ftr__morph-slot svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* The nav's own fill rule is scoped `.nav .nav-pixel` and does not reach
+       the footer, which is the same trap the theme toggle fell into. */
+    fill: currentColor;
+  }
+  .ftr__made-sep {
+    margin: 0 8px;
+    opacity: 0.5;
+  }
+  .ftr__updated {
+    opacity: 0.78;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__morph-slot {
+      transition: opacity 140ms linear;
+      transform: none;
+    }
+  }
+
   .ftr__cta {
     display: inline-block;
     text-decoration: none;
-    max-width: 14ch;
   }
   .ftr__cta-line {
     display: block;
-    font-size: clamp(34px, 5vw, 68px);
+    white-space: nowrap;
+    font-size: clamp(26px, 3.4vw, 46px);
     line-height: 1.02;
     letter-spacing: -0.025em;
     font-weight: 500;
@@ -19391,7 +19494,11 @@
        slightly desaturated, so the row still reads as photographs. */
     .sid-strip__rows .sid-tile img,
     .sid-strip__rows .sid-tile video {
-      filter: blur(3.4px) saturate(0.86) contrast(1.02);
+      /* The blur went with the rail's depth of field -- see the pixelate
+         filters in the defs at the foot of this file. The per-frame loop
+         writes the grade AND the pixel level onto these elements, so the
+         only thing left here is the transition that carries a level change. */
+      filter: saturate(0.86) contrast(1.02);
       opacity: 1;
       transition:
         filter 700ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -19401,7 +19508,7 @@
     .sid-strip__rows .sid-tile.is-source video,
     .sid-strip__rows .sid-tile:hover img,
     .sid-strip__rows .sid-tile:hover video {
-      filter: blur(0) saturate(1.04) contrast(1.02);
+      filter: saturate(1.04) contrast(1.02);
     }
     /* And the one being read is lifted, so focus is carried by two cues
        rather than one -- a blur difference alone is easy to miss on a small
@@ -19777,7 +19884,7 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", startFooterBuddha);
   else startFooterBuddha();
-</script> <footer class="site-footer" aria-label="Site footer" data-biome="pond"> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Still more in the studio than on the site. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile sid-tile--clip" style="--s: 1.06; --ar: 0.56; --src: url(/assets/img/sid-strip/street-brooklyn-poster.webp)"> <video src="/assets/video/sid-strip/street-brooklyn.mp4" poster="/assets/img/sid-strip/street-brooklyn-poster.webp" muted loop playsinline preload="none" aria-label="A street in summer, walking in a patterned shirt"></video> <figcaption><em>Off the clock</em><b>A street, a good shirt</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.95; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="Requiem for a Dream, a film he keeps going back to" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 1.77; --src: url(/assets/img/sid-strip/big-lez-poster.webp)"> <video src="/assets/video/sid-strip/big-lez.mp4" poster="/assets/img/sid-strip/big-lez-poster.webp" muted loop playsinline preload="none" aria-label="Sassy the Sasquatch from The Big Lez Show, playing guitar under a rainbow"></video> <figcaption><em>Comfort watch</em><b>The Big Lez Show</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid-strip/black-mirror.webp)"> <img src="/assets/img/sid-strip/black-mirror.webp" alt="The Black Mirror title card, cracked glass over black" loading="lazy" decoding="async"> <figcaption><em>Keeps him up</em><b>Black Mirror</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.05; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="Two cats under a duvet, refusing to move" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/assets/img/sid-strip/kids-drawings.webp)"> <img src="/assets/img/sid-strip/kids-drawings.webp" alt="A room of children holding up drawings they have made" loading="lazy" decoding="async"> <figcaption><em>Best crit</em><b>Everyone shows their work</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.05; --ar: 0.56; --src: url(/assets/img/sid-strip/gold-room-poster.webp)"> <video src="/assets/video/sid-strip/gold-room.mp4" poster="/assets/img/sid-strip/gold-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a gold room in a saffron kurta"></video> <figcaption><em>Dressed up</em><b>A room made of gold</b></figcaption> </figure> <figure class="sid-tile sid-tile--plate" style="--s: 1.06; --ar: 1; --src: url(/assets/img/sid-strip/golden-record.webp)"> <img src="/assets/img/sid-strip/golden-record.webp" alt="The Voyager Golden Record, its gold cover engraved with instructions for playing it" loading="lazy" decoding="async"> <figcaption><em>Inspired by</em><b>The Golden Record</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.02; --ar: 1.33; --src: url(/assets/img/sid-strip/strangers-project.webp)"> <img src="/assets/img/sid-strip/strangers-project.webp" alt="A wall of handwritten pages pegged on strings, a woman reading them" loading="lazy" decoding="async"> <figcaption><em>Best wall</em><b>The Strangers Project</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.03; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="A still from a favourite music video, arms out against the sky" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I by Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.00; --ar: 1.49; --src: url(/assets/img/sid-strip/football-field.webp)"> <img src="/assets/img/sid-strip/football-field.webp" alt="A kid mid-kick after a football in a field at low sun" loading="lazy" decoding="async"> <figcaption><em>Viewfinder</em><b>Last light, one more goal</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.02; --ar: 0.56; --src: url(/assets/img/sid-strip/cats-living-room-poster.webp)"> <video src="/assets/video/sid-strip/cats-living-room.mp4" poster="/assets/img/sid-strip/cats-living-room-poster.webp" muted loop playsinline preload="none" aria-label="Two cats moving around a living room"></video> <figcaption><em>Supervisors</em><b>Both unimpressed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.06; --src: url(/assets/img/sid-strip/sound-desk.webp)"> <img src="/assets/img/sid-strip/sound-desk.webp" alt="At a live sound and lighting desk, a lit stage behind" loading="lazy" decoding="async"> <figcaption><em>Other console</em><b>A live show, from the back</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="Bone, issue one, by Jeff Smith" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE by Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 0.56; --src: url(/assets/img/sid-strip/projection-room-poster.webp)"> <video src="/assets/video/sid-strip/projection-room.mp4" poster="/assets/img/sid-strip/projection-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a dark room with projected light falling across"></video> <figcaption><em>Dark room</em><b>Wearing the projection</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.94; --ar: 1.45; --src: url(/assets/img/sid-strip/kids-crowd.webp)"> <img src="/assets/img/sid-strip/kids-crowd.webp" alt="A crowd of school children packed into frame, all grinning" loading="lazy" decoding="async"> <figcaption><em>Toughest audience</em><b>A classroom</b></figcaption> </figure> <figure class="sid-tile sid-tile--type sid-tile--cap" style="--s: 0.95; --ar: 1"> <div class="cap__mount" aria-hidden="true"></div> <figcaption><em>Never not wearing</em><b>The sunburst cap</b></figcaption> </figure> <style>
+</script> <footer class="site-footer" aria-label="Site footer" data-biome="pond"> <section class="kts" aria-label="More about Sid"> <p class="sr-only"> Brooklyn, New York. Eastern Time. MFA Design and Technology at Parsons. Two Webby Awards for Encoded. Kyoorius Design Award for Mool. MIT Reality Hack 2026. Previously Deloitte Digital, EyeJack and Philips. Designs in Figma, builds in Unity. Writes his own JavaScript. Draws mandalas by hand. Still more in the studio than on the site. Best ideas arrive on walks. Holds strong opinions loosely. Open to remote, hybrid, or relocating. </p> <div class="kts__mask"> <div class="kts__track" aria-hidden="true"> <span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span><span class="kts__item">Brooklyn, New York</span><span class="kts__sep">◆</span><span class="kts__item">Eastern Time</span><span class="kts__sep">◆</span><span class="kts__item">MFA Design &amp; Technology at Parsons</span><span class="kts__sep">◆</span><span class="kts__item">Two Webby Awards for Encoded</span><span class="kts__sep">◆</span><span class="kts__item">Kyoorius Design Award for Mool</span><span class="kts__sep">◆</span><span class="kts__item">MIT Reality Hack 2026</span><span class="kts__sep">◆</span><span class="kts__item">Previously Deloitte Digital, EyeJack, Philips</span><span class="kts__sep">◆</span><span class="kts__item">Designs in Figma, builds in Unity</span><span class="kts__sep">◆</span><span class="kts__item">Writes his own JavaScript</span><span class="kts__sep">◆</span><span class="kts__item">Draws mandalas by hand</span><span class="kts__sep">◆</span><span class="kts__item">Still more in the studio than on the site</span><span class="kts__sep">◆</span><span class="kts__item">Best ideas arrive on walks</span><span class="kts__sep">◆</span><span class="kts__item">Holds strong opinions loosely</span><span class="kts__sep">◆</span><span class="kts__item">Open to remote, hybrid, or relocating</span><span class="kts__sep">◆</span> </div> </div> </section> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true" focusable="false"> <defs> <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB"> <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur> </filter> <filter id="sid-px-1" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB"> <feflood x="0" y="0" width="1" height="1" flood-color="#fff" result="d1"></feflood> <fecomposite in="d1" width="5" height="5"></fecomposite> <fetile result="g1"></fetile> <fecomposite in="SourceGraphic" in2="g1" operator="in" result="p1"></fecomposite> <femorphology in="p1" operator="dilate" radius="2"></femorphology> </filter> <filter id="sid-px-2" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB"> <feflood x="0" y="0" width="1" height="1" flood-color="#fff" result="d2"></feflood> <fecomposite in="d2" width="9" height="9"></fecomposite> <fetile result="g2"></fetile> <fecomposite in="SourceGraphic" in2="g2" operator="in" result="p2"></fecomposite> <femorphology in="p2" operator="dilate" radius="4"></femorphology> </filter> <filter id="sid-px-3" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB"> <feflood x="0" y="0" width="1" height="1" flood-color="#fff" result="d3"></feflood> <fecomposite in="d3" width="15" height="15"></fecomposite> <fetile result="g3"></fetile> <fecomposite in="SourceGraphic" in2="g3" operator="in" result="p3"></fecomposite> <femorphology in="p3" operator="dilate" radius="7"></femorphology> </filter> <filter id="sid-px-4" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB"> <feflood x="0" y="0" width="1" height="1" flood-color="#fff" result="d4"></feflood> <fecomposite in="d4" width="23" height="23"></fecomposite> <fetile result="g4"></fetile> <fecomposite in="SourceGraphic" in2="g4" operator="in" result="p4"></fecomposite> <femorphology in="p4" operator="dilate" radius="11"></femorphology> </filter> </defs> </svg> <section class="sid-strip" aria-label="Get to know Sid"> <div class="sid-strip__rows"> <div class="sid-row"> <figure class="sid-tile sid-tile--clip" style="--s: 1.06; --ar: 0.56; --src: url(/assets/img/sid-strip/street-brooklyn-poster.webp)"> <video src="/assets/video/sid-strip/street-brooklyn.mp4" poster="/assets/img/sid-strip/street-brooklyn-poster.webp" muted loop playsinline preload="none" aria-label="A street in summer, walking in a patterned shirt"></video> <figcaption><em>Off the clock</em><b>A street, a good shirt</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.95; --ar: 0.75; --src: url(/assets/img/sid-strip/film-requiem.webp)"> <img src="/assets/img/sid-strip/film-requiem.webp" alt="Requiem for a Dream, a film he keeps going back to" loading="lazy" decoding="async"> <figcaption><em>Last film</em><b>Requiem for a Dream</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 1.77; --src: url(/assets/img/sid-strip/big-lez-poster.webp)"> <video src="/assets/video/sid-strip/big-lez.mp4" poster="/assets/img/sid-strip/big-lez-poster.webp" muted loop playsinline preload="none" aria-label="Sassy the Sasquatch from The Big Lez Show, playing guitar under a rainbow"></video> <figcaption><em>Comfort watch</em><b>The Big Lez Show</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 0.67; --src: url(/assets/img/sid-strip/black-mirror.webp)"> <img src="/assets/img/sid-strip/black-mirror.webp" alt="The Black Mirror title card, cracked glass over black" loading="lazy" decoding="async"> <figcaption><em>Keeps him up</em><b>Black Mirror</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.05; --ar: 0.75; --src: url(/assets/img/sid-strip/cats.webp)"> <img src="/assets/img/sid-strip/cats.webp" alt="Two cats under a duvet, refusing to move" loading="lazy" decoding="async"> <figcaption><em>Roommates</em><b>Two cats, zero deadlines</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.04; --ar: 1.33; --src: url(/assets/img/sid-strip/kids-drawings.webp)"> <img src="/assets/img/sid-strip/kids-drawings.webp" alt="A room of children holding up drawings they have made" loading="lazy" decoding="async"> <figcaption><em>Best crit</em><b>Everyone shows their work</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.05; --ar: 0.56; --src: url(/assets/img/sid-strip/gold-room-poster.webp)"> <video src="/assets/video/sid-strip/gold-room.mp4" poster="/assets/img/sid-strip/gold-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a gold room in a saffron kurta"></video> <figcaption><em>Dressed up</em><b>A room made of gold</b></figcaption> </figure> <figure class="sid-tile sid-tile--plate" style="--s: 1.06; --ar: 1; --src: url(/assets/img/sid-strip/golden-record.webp)"> <img src="/assets/img/sid-strip/golden-record.webp" alt="The Voyager Golden Record, its gold cover engraved with instructions for playing it" loading="lazy" decoding="async"> <figcaption><em>Inspired by</em><b>The Golden Record</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.02; --ar: 1.33; --src: url(/assets/img/sid-strip/strangers-project.webp)"> <img src="/assets/img/sid-strip/strangers-project.webp" alt="A wall of handwritten pages pegged on strings, a woman reading them" loading="lazy" decoding="async"> <figcaption><em>Best wall</em><b>The Strangers Project</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.03; --ar: 0.98; --src: url(/assets/img/sid-strip/song-sky-i.webp)"> <img src="/assets/img/sid-strip/song-sky-i.webp" alt="A still from a favourite music video, arms out against the sky" loading="lazy" decoding="async"> <figcaption><em>On repeat</em><b>Sky I by Bby Eco</b></figcaption> </figure> <figure class="sid-tile" style="--s: 1.00; --ar: 1.49; --src: url(/assets/img/sid-strip/football-field.webp)"> <img src="/assets/img/sid-strip/football-field.webp" alt="A kid mid-kick after a football in a field at low sun" loading="lazy" decoding="async"> <figcaption><em>Viewfinder</em><b>Last light, one more goal</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 1.02; --ar: 0.56; --src: url(/assets/img/sid-strip/cats-living-room-poster.webp)"> <video src="/assets/video/sid-strip/cats-living-room.mp4" poster="/assets/img/sid-strip/cats-living-room-poster.webp" muted loop playsinline preload="none" aria-label="Two cats moving around a living room"></video> <figcaption><em>Supervisors</em><b>Both unimpressed</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.96; --ar: 1.06; --src: url(/assets/img/sid-strip/sound-desk.webp)"> <img src="/assets/img/sid-strip/sound-desk.webp" alt="At a live sound and lighting desk, a lit stage behind" loading="lazy" decoding="async"> <figcaption><em>Other console</em><b>A live show, from the back</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.92; --ar: 0.66; --src: url(/assets/img/sid-strip/comic-bone.webp)"> <img src="/assets/img/sid-strip/comic-bone.webp" alt="Bone, issue one, by Jeff Smith" loading="lazy" decoding="async"> <figcaption><em>Comfort read</em><b>BONE by Jeff Smith</b></figcaption> </figure> <figure class="sid-tile sid-tile--clip" style="--s: 0.98; --ar: 0.56; --src: url(/assets/img/sid-strip/projection-room-poster.webp)"> <video src="/assets/video/sid-strip/projection-room.mp4" poster="/assets/img/sid-strip/projection-room-poster.webp" muted loop playsinline preload="none" aria-label="Standing in a dark room with projected light falling across"></video> <figcaption><em>Dark room</em><b>Wearing the projection</b></figcaption> </figure> <figure class="sid-tile" style="--s: 0.94; --ar: 1.45; --src: url(/assets/img/sid-strip/kids-crowd.webp)"> <img src="/assets/img/sid-strip/kids-crowd.webp" alt="A crowd of school children packed into frame, all grinning" loading="lazy" decoding="async"> <figcaption><em>Toughest audience</em><b>A classroom</b></figcaption> </figure> <figure class="sid-tile sid-tile--type sid-tile--cap" style="--s: 0.95; --ar: 1"> <div class="cap__mount" aria-hidden="true"></div> <figcaption><em>Never not wearing</em><b>The sunburst cap</b></figcaption> </figure> <style>
   .sid-tile--cap {
     position: relative;
     overflow: hidden;
@@ -21097,10 +21204,18 @@
                writes; at full drift it is a handful. Nothing about how it
                looks changes, because a hundredth of a stop of brightness was
                never visible in the first place. */
-              var fq = Math.round(sat * 50) + ":" + Math.round(bri * 50);
+              /* ── AND HOW COARSE IT IS ───────────────────────────────
+               Sid asked for the rail to pixelate toward its edges instead
+               of blurring. `c` is centre-ness, so the level is its inverse,
+               quantised to five states and cleared entirely for the tile
+               being read and the one under the pointer. Folded into the
+               same quantised write as the grade, so a level change costs
+               one filter write rather than a second one. */
+              var lvl = hv > 0.05 ? 0 : Math.min(4, Math.max(0, 5 - Math.round(c * 5 + 1)));
+              var fq = Math.round(sat * 50) + ":" + Math.round(bri * 50) + ":" + lvl;
               if (fq !== lastF[i]) {
                 lastF[i] = fq;
-                st.filter = "saturate(" + sat.toFixed(2) + ") brightness(" + bri.toFixed(2) + ")";
+                st.filter = (lvl ? "url(#sid-px-" + lvl + ") " : "") + "saturate(" + sat.toFixed(2) + ") brightness(" + bri.toFixed(2) + ")";
               }
               var op = Math.round((0.1 + 0.9 * k) * (1 - 0.3 * rowFocus * others) * 100);
               if (op !== lastO[i]) {
@@ -23028,7 +23143,7 @@
       }, 150);
     });
   })();
-</script> <script src="/assets/js/footer-water.js" defer></script> <section class="ftr" aria-labelledby="ftr-cta"> <div class="ftr__film" id="ftr-film" aria-hidden="true" data-cube="That is the real desk. Nobody tidied it for the photograph."> <video class="ftr__film-pixel" muted loop playsinline preload="none" data-src="/assets/video/sid_sitting_pixel.mp4"></video> <video class="ftr__film-real" muted loop playsinline preload="none" data-src="/assets/video/sid_sitting.mp4"></video> </div> <div class="ftr__body"> <div class="ftr__left"> <a class="ftr__cta" id="ftr-cta" href="/contact/"> <span class="ftr__cta-line">Let’s build something</span> </a> </div> <div class="ftr__right"> <p class="ftr__status"> <span class="ftr__pulse" aria-hidden="true"></span> <span>Available to work</span> <span class="ftr__clock" id="ftr-clock">—</span> </p> <nav class="ftr__nav ftr__nav--out" aria-label="Elsewhere"> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn</a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram</a> <a href="https://www.behance.net/siddharthmehta" target="_blank" rel="noopener noreferrer">Behance</a> <a href="https://github.com/Mehatey" target="_blank" rel="noopener noreferrer">GitHub</a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a> </nav> <p class="ftr__made">Built with lots of love and coffee</p> <div class="ftr__buddha" id="ftr-buddha" aria-hidden="true"></div> </div> </div> </section> </footer> <script>
+</script> <script src="/assets/js/footer-water.js" defer></script> <section class="ftr" aria-labelledby="ftr-cta"> <div class="ftr__film" id="ftr-film" aria-hidden="true" data-cube="That is the real desk. Nobody tidied it for the photograph."> <video class="ftr__film-pixel" muted loop playsinline preload="none" data-src="/assets/video/sid_sitting_pixel.mp4"></video> <video class="ftr__film-real" muted loop playsinline preload="none" data-src="/assets/video/sid_sitting.mp4"></video> </div> <div class="ftr__body"> <div class="ftr__left"> <div class="ftr__cta-row"> <a class="ftr__cta" id="ftr-cta" href="/contact/"> <span class="ftr__cta-line">Let’s build something</span> </a> <button type="button" class="ftr__morph" id="ftr-morph" aria-label="Cycle the pixel marks"> <span class="ftr__morph-slot" data-on="1"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path> </svg> </i> </i> </span> <span class="ftr__morph-slot"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect> <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect> </svg> </i> </i> </span> <span class="ftr__morph-slot"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect> <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect> <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect> <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect> <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect> </svg> </i> </i> </span> <span class="ftr__morph-slot"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect> <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect> <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect> <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect> <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect> </svg> </i> </i> </span> <span class="ftr__morph-slot"> <i class="nav-ico"> <i class="nav-ico__ghost"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> <i class="nav-ico__color" aria-hidden="true"> <svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false"> <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect> <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect> <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect> <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect> </svg> </i> </i> </span> </button> </div> </div> <div class="ftr__right"> <p class="ftr__status"> <span class="ftr__pulse" aria-hidden="true"></span> <span>Available to work</span> <span class="ftr__clock" id="ftr-clock">—</span> </p> <nav class="ftr__nav ftr__nav--out" aria-label="Elsewhere"> <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer">LinkedIn</a> <a href="https://www.instagram.com/mehatey/" target="_blank" rel="noopener noreferrer">Instagram</a> <a href="https://www.behance.net/siddharthmehta" target="_blank" rel="noopener noreferrer">Behance</a> <a href="https://github.com/Mehatey" target="_blank" rel="noopener noreferrer">GitHub</a> <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a> </nav> <p class="ftr__made"> Built with lots of love and coffee<span class="ftr__made-sep" aria-hidden="true">·</span><span class="ftr__updated">Updated 19 Sep 2026</span> </p> </div> <div class="ftr__buddha" id="ftr-buddha" aria-hidden="true"></div> </div> </section> </footer> <script>
     /* ── THE CLOSE: the lens, the videos and the copy button ────────────────
      The two takes are the same shot at two resolutions, so neither is
      requested until the footer is actually approaching the viewport. This
@@ -23038,6 +23153,22 @@
     /* The closing line assembles itself the first time the footer is reached.
        Once, and then the observer lets go: a headline that re-forms every
        time you scroll back past it is a tic, not an arrival. */
+    /* One press, one step. The index only ever advances, wrapping, so the
+       order is the same every time and pressing it repeatedly walks the set
+       rather than shuffling it. */
+    (function () {
+      var host = document.getElementById("ftr-morph");
+      if (host) {
+        var slots = [].slice.call(host.querySelectorAll(".ftr__morph-slot"));
+        var at = 0;
+        host.addEventListener("click", function () {
+          slots[at].removeAttribute("data-on");
+          at = (at + 1) % slots.length;
+          slots[at].setAttribute("data-on", "1");
+        });
+      }
+    })();
+
     (function () {
       var cta = document.getElementById("ftr-cta");
       var line = cta && cta.querySelector(".ftr__cta-line");

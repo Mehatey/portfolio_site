@@ -21194,6 +21194,27 @@
   .ftr__right .ftr__made {
     margin-top: 26px;
   }
+  /* ── THE HEAD IS NOT PART OF THE COLUMN ───────────────────────────────
+     Sid: "the buddha model is moving the links up and is not being aligned
+     to bottom with lets build text."
+
+     It was the last item inside the right column, which is why: a 104px
+     ornament stacked under the links makes the column that much taller, and
+     because the row bottom-aligns, everything above it got pushed up off
+     the baseline the CTA sits on. The links stopped agreeing with the one
+     line they are supposed to sit level with.
+
+     The two notes above this describe two earlier ABSOLUTE placements that
+     both landed on the colophon text, so the answer is not to take it back
+     out of the flow. It becomes its own item in the footer row instead --
+     beside the column rather than under it, bottom-aligned like everything
+     else. It cannot overlap anything, because it is a flex sibling, and it
+     cannot push the links, because it is no longer above them. */
+  .ftr__body > .ftr__buddha {
+    align-self: flex-end;
+    margin: 0;
+    flex: 0 0 auto;
+  }
 
   /* ── THE LINE, PLAIN ────────────────────────────────────────────────────
      Sid: "I don't like the effect you gave 'Let's build something', don't add
@@ -21205,14 +21226,96 @@
      should read as a plain statement, and a moving highlight on type is the
      single most common way a portfolio looks like a template. Ink, at size,
      and nothing else. */
+  /* ── ONE LINE ─────────────────────────────────────────────────────────
+     Sid: "make lets build text in one line and smaller."
+
+     `max-width: 14ch` was what broke it: the sentence is 21 characters, so
+     it was being forced to wrap at every width, and at 68px a two line
+     headline is most of the footer's height. One line, and the size comes
+     down to match -- a closing line should be the largest thing down here
+     without being the only thing down here. nowrap rather than a wider
+     max-width, so no window can find a width that splits it again. */
+  /* The line and its mark sit on one baseline, and the row is allowed to
+     wrap so a narrow window drops the mark under the sentence rather than
+     shrinking either of them. */
+  .ftr__cta-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: clamp(14px, 1.6vw, 24px);
+  }
+  .ftr__morph {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.62;
+    transition:
+      opacity 260ms ease,
+      transform 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ftr__morph:hover,
+  .ftr__morph:focus-visible {
+    opacity: 1;
+  }
+  .ftr__morph:active {
+    transform: scale(0.94);
+  }
+  /* Every glyph occupies the same cell, so the outgoing and incoming marks
+     are in the same place and the change happens in the squares rather than
+     across a gap. */
+  .ftr__morph-slot {
+    grid-area: 1 / 1;
+    display: block;
+    width: 26px;
+    height: 26px;
+    opacity: 0;
+    transform: scale(0.72) rotate(-18deg);
+    transition:
+      opacity 340ms ease,
+      transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+  }
+  .ftr__morph-slot[data-on] {
+    opacity: 1;
+    transform: none;
+  }
+  .ftr__morph-slot svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    /* The nav's own fill rule is scoped `.nav .nav-pixel` and does not reach
+       the footer, which is the same trap the theme toggle fell into. */
+    fill: currentColor;
+  }
+  .ftr__made-sep {
+    margin: 0 8px;
+    opacity: 0.5;
+  }
+  .ftr__updated {
+    opacity: 0.78;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__morph-slot {
+      transition: opacity 140ms linear;
+      transform: none;
+    }
+  }
+
   .ftr__cta {
     display: inline-block;
     text-decoration: none;
-    max-width: 14ch;
   }
   .ftr__cta-line {
     display: block;
-    font-size: clamp(34px, 5vw, 68px);
+    white-space: nowrap;
+    font-size: clamp(26px, 3.4vw, 46px);
     line-height: 1.02;
     letter-spacing: -0.025em;
     font-weight: 500;
@@ -21415,7 +21518,11 @@
        slightly desaturated, so the row still reads as photographs. */
     .sid-strip__rows .sid-tile img,
     .sid-strip__rows .sid-tile video {
-      filter: blur(3.4px) saturate(0.86) contrast(1.02);
+      /* The blur went with the rail's depth of field -- see the pixelate
+         filters in the defs at the foot of this file. The per-frame loop
+         writes the grade AND the pixel level onto these elements, so the
+         only thing left here is the transition that carries a level change. */
+      filter: saturate(0.86) contrast(1.02);
       opacity: 1;
       transition:
         filter 700ms cubic-bezier(0.16, 1, 0.3, 1),
@@ -21425,7 +21532,7 @@
     .sid-strip__rows .sid-tile.is-source video,
     .sid-strip__rows .sid-tile:hover img,
     .sid-strip__rows .sid-tile:hover video {
-      filter: blur(0) saturate(1.04) contrast(1.02);
+      filter: saturate(1.04) contrast(1.02);
     }
     /* And the one being read is lifted, so focus is carried by two cues
        rather than one -- a blur difference alone is easy to miss on a small
@@ -21910,6 +22017,60 @@
       <defs>
         <filter id="sid-motion" x="-15%" y="-5%" width="130%" height="110%" color-interpolation-filters="sRGB">
           <fegaussianblur in="SourceGraphic" stddeviation="9 0"></fegaussianblur>
+        </filter>
+
+        <!-- ── THE RAIL PIXELATES INSTEAD OF BLURRING ────────────────────
+             Sid: "in get to know sid rail, instead of blurring the images as
+             they go left and right can u smoothly animate them to be a live
+             pixel which reduces towards center and increases on sides to
+             make it feel like a futuristic design tech."
+
+             Four strengths rather than a continuous one, because an SVG
+             filter cannot read a CSS variable: the pixel size is baked into
+             feComposite's width and height. So the rail quantises its centre
+             factor to five states -- sharp, then four increasingly coarse
+             grids -- and swaps the filter only when the state changes. That
+             is the same trick the grade above already uses for saturate and
+             brightness, and for the same reason: transform is composited and
+             free to write per frame, filter re-rasterises the tile.
+
+             Five steps is enough. The tiles are moving, so a step lands
+             while a picture is travelling and reads as the image resolving
+             rather than as a switch, which is the "smoothly animate" half of
+             the ask.
+
+             The chain is the one proven in assets/js/idle-drift.js: flood a
+             single pixel, tile it into a grid, keep only the source under
+             each grid dot, then dilate that sample back up to fill its cell.
+             One sample per block is what makes it a true pixelation rather
+             than a mosaic-looking blur. -->
+        <filter id="sid-px-1" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feflood x="0" y="0" width="1" height="1" flood-color="#fff" result="d1"></feflood>
+          <fecomposite in="d1" width="5" height="5"></fecomposite>
+          <fetile result="g1"></fetile>
+          <fecomposite in="SourceGraphic" in2="g1" operator="in" result="p1"></fecomposite>
+          <femorphology in="p1" operator="dilate" radius="2"></femorphology>
+        </filter>
+        <filter id="sid-px-2" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feflood x="0" y="0" width="1" height="1" flood-color="#fff" result="d2"></feflood>
+          <fecomposite in="d2" width="9" height="9"></fecomposite>
+          <fetile result="g2"></fetile>
+          <fecomposite in="SourceGraphic" in2="g2" operator="in" result="p2"></fecomposite>
+          <femorphology in="p2" operator="dilate" radius="4"></femorphology>
+        </filter>
+        <filter id="sid-px-3" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feflood x="0" y="0" width="1" height="1" flood-color="#fff" result="d3"></feflood>
+          <fecomposite in="d3" width="15" height="15"></fecomposite>
+          <fetile result="g3"></fetile>
+          <fecomposite in="SourceGraphic" in2="g3" operator="in" result="p3"></fecomposite>
+          <femorphology in="p3" operator="dilate" radius="7"></femorphology>
+        </filter>
+        <filter id="sid-px-4" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feflood x="0" y="0" width="1" height="1" flood-color="#fff" result="d4"></feflood>
+          <fecomposite in="d4" width="23" height="23"></fecomposite>
+          <fetile result="g4"></fetile>
+          <fecomposite in="SourceGraphic" in2="g4" operator="in" result="p4"></fecomposite>
+          <femorphology in="p4" operator="dilate" radius="11"></femorphology>
         </filter>
       </defs>
     </svg>
@@ -23577,10 +23738,18 @@
                writes; at full drift it is a handful. Nothing about how it
                looks changes, because a hundredth of a stop of brightness was
                never visible in the first place. */
-              var fq = Math.round(sat * 50) + ":" + Math.round(bri * 50);
+              /* ── AND HOW COARSE IT IS ───────────────────────────────
+               Sid asked for the rail to pixelate toward its edges instead
+               of blurring. `c` is centre-ness, so the level is its inverse,
+               quantised to five states and cleared entirely for the tile
+               being read and the one under the pointer. Folded into the
+               same quantised write as the grade, so a level change costs
+               one filter write rather than a second one. */
+              var lvl = hv > 0.05 ? 0 : Math.min(4, Math.max(0, 5 - Math.round(c * 5 + 1)));
+              var fq = Math.round(sat * 50) + ":" + Math.round(bri * 50) + ":" + lvl;
               if (fq !== lastF[i]) {
                 lastF[i] = fq;
-                st.filter = "saturate(" + sat.toFixed(2) + ") brightness(" + bri.toFixed(2) + ")";
+                st.filter = (lvl ? "url(#sid-px-" + lvl + ") " : "") + "saturate(" + sat.toFixed(2) + ") brightness(" + bri.toFixed(2) + ")";
               }
               var op = Math.round((0.1 + 0.9 * k) * (1 - 0.3 * rowFocus * others) * 100);
               if (op !== lastO[i]) {
@@ -25844,9 +26013,246 @@
       <div class="ftr__body">
         <div class="ftr__left">
           
-          <a class="ftr__cta" id="ftr-cta" href="/contact/">
-            <span class="ftr__cta-line">Let’s build something</span>
-          </a>
+          <div class="ftr__cta-row">
+            <a class="ftr__cta" id="ftr-cta" href="/contact/">
+              <span class="ftr__cta-line">Let’s build something</span>
+            </a>
+            <!-- ── ONE ICON, AND IT TURNS INTO THE NEXT ──────────────────
+                 Sid: "at the end of it have my pixel icons, when u click
+                 only one at a time and then they animate between each other
+                 morphing but only one."
+
+                 So: not a row of five. One glyph in one box, and pressing it
+                 hands over to the next -- the outgoing icon falls away as
+                 the incoming one arrives into the same cells, which at this
+                 size reads as the squares rearranging themselves rather than
+                 as a swap. They are the real nav glyphs from nav_icon.html,
+                 not redrawn ones, so the footer is speaking the same
+                 alphabet as the bar at the top.
+
+                 A button, outside the anchor. Inside it, every press would
+                 also be a press on "Let's build something" and would leave
+                 for the contact page mid morph. It goes nowhere on purpose:
+                 this is the footer's one piece of play, and the destinations
+                 are already in the nav on the same screen. -->
+            <button type="button" class="ftr__morph" id="ftr-morph" aria-label="Cycle the pixel marks">
+              <span class="ftr__morph-slot" data-on="1"> 
+
+<!-- <i> rather than <span>, and deliberately. portfolio-qa reads each nav
+     link's FIRST <span> as its visible label and compares it to the
+     aria-label; wrapping the icon in spans made that first span the icon,
+     whose textContent is empty, and six mobile routes started failing "nav
+     visible labels and accessible names agree". The check is right and the
+     markup was wrong: the first span in a nav link should be the word. -->
+<i class="nav-ico">
+  <i class="nav-ico__ghost">
+<svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+  <!-- ── ONE SHAPE, NOT A SPIRAL PLUS A DOT ──────────────────────────────
+       Sid: "i don't want the dark blue dot in the center, or a blackish dot.
+       i want it to feel like one cohesive blue spiral shape."
+
+       There was a 3x3 rect sitting at the spiral's origin, taking a
+       different fill from the stroke -- so the mark read as two objects, and
+       at 20px the darker square in the middle reads as a blob rather than as
+       the centre of a coil.
+
+       It is not needed. The path already begins at 12,12 with
+       stroke-linecap: round, so the coil's own start IS a round cap at the
+       centre, in the same colour and the same weight as the rest of it. One
+       stroke, one colour, from the middle outward. -->
+</svg>
+</i>
+  <i class="nav-ico__color" aria-hidden="true">
+<svg class="nav-pixel nav-pixel--work" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M12 12c0-2.1 3.8-2.3 4.2.5.5 3.8-5.1 6.3-8.7 3.1C3.3 11.9 6.2 4.7 12.2 4c6.8-.8 10.4 6.9 6.7 12.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+  <!-- ── ONE SHAPE, NOT A SPIRAL PLUS A DOT ──────────────────────────────
+       Sid: "i don't want the dark blue dot in the center, or a blackish dot.
+       i want it to feel like one cohesive blue spiral shape."
+
+       There was a 3x3 rect sitting at the spiral's origin, taking a
+       different fill from the stroke -- so the mark read as two objects, and
+       at 20px the darker square in the middle reads as a blob rather than as
+       the centre of a coil.
+
+       It is not needed. The path already begins at 12,12 with
+       stroke-linecap: round, so the coil's own start IS a round cap at the
+       centre, in the same colour and the same weight as the rest of it. One
+       stroke, one colour, from the middle outward. -->
+</svg>
+</i>
+</i>
+</span>
+              <span class="ftr__morph-slot"> 
+
+<!-- <i> rather than <span>, and deliberately. portfolio-qa reads each nav
+     link's FIRST <span> as its visible label and compares it to the
+     aria-label; wrapping the icon in spans made that first span the icon,
+     whose textContent is empty, and six mobile routes started failing "nav
+     visible labels and accessible names agree". The check is right and the
+     markup was wrong: the first span in a nav link should be the word. -->
+<i class="nav-ico">
+  <i class="nav-ico__ghost">
+<svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect>
+  <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect>
+  <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect>
+  <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect>
+</svg>
+</i>
+  <i class="nav-ico__color" aria-hidden="true">
+<svg class="nav-pixel nav-pixel--play" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect class="nav-pixel__stem" x="11" y="12" width="2" height="8" rx="1"></rect>
+  <rect class="nav-pixel__leaf" x="7" y="16" width="4" height="2" rx="1"></rect>
+  <rect class="nav-pixel__leaf" x="13" y="15" width="4" height="2" rx="1"></rect>
+  <rect class="nav-pixel__petal" x="10" y="3" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__petal" x="6" y="7" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__petal" x="14" y="7" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__petal" x="10" y="9" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__core" x="11" y="8" width="2" height="2" rx="1"></rect>
+</svg>
+</i>
+</i>
+</span>
+              <span class="ftr__morph-slot"> 
+
+<!-- <i> rather than <span>, and deliberately. portfolio-qa reads each nav
+     link's FIRST <span> as its visible label and compares it to the
+     aria-label; wrapping the icon in spans made that first span the icon,
+     whose textContent is empty, and six mobile routes started failing "nav
+     visible labels and accessible names agree". The check is right and the
+     markup was wrong: the first span in a nav link should be the word. -->
+<i class="nav-ico">
+  <i class="nav-ico__ghost">
+<svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect>
+  <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect>
+  <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect>
+  <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect>
+  <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect>
+</svg>
+</i>
+  <i class="nav-ico__color" aria-hidden="true">
+<svg class="nav-pixel nav-pixel--about" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect class="nav-pixel__tile" x="4" y="8" width="16" height="8" rx="1"></rect>
+  <rect class="nav-pixel__tile" x="8" y="4" width="8" height="16" rx="1"></rect>
+  <rect class="nav-pixel__eye" x="8" y="9" width="2" height="4"></rect>
+  <rect class="nav-pixel__eye" x="14" y="9" width="2" height="4"></rect>
+  <rect class="nav-pixel__mouth" x="10" y="14" width="4" height="1"></rect>
+</svg>
+</i>
+</i>
+</span>
+              <span class="ftr__morph-slot"> 
+
+<!-- <i> rather than <span>, and deliberately. portfolio-qa reads each nav
+     link's FIRST <span> as its visible label and compares it to the
+     aria-label; wrapping the icon in spans made that first span the icon,
+     whose textContent is empty, and six mobile routes started failing "nav
+     visible labels and accessible names agree". The check is right and the
+     markup was wrong: the first span in a nav link should be the word. -->
+<i class="nav-ico">
+  <i class="nav-ico__ghost">
+<!-- Third attempt, and the two failures are the argument for this one.
+
+     The ripple was thin strokes around a hole -- a shape from nowhere. The
+     envelope was a shape from everywhere, the glyph every product ships. Then
+     the transmission mark: a block with three pixels leaving it. Sid: "can u
+     make it more dense like one thing like we have a flower this trail is
+     taking attention and not turipoise an that is same as about."
+
+     Three separate faults in one sentence, all correct. The trail was three
+     small objects strung diagonally, so the mark had no centre and the eye
+     went to the sparse end rather than the mass. The flower works because it
+     is ONE thing, dense, symmetrical about its own middle. And the teal was a
+     straight duplicate of the About mark two slots along, so the row read
+     blue / pink / teal / teal.
+
+     So: a bird, dense, one object, amber. It carries a message, which is the
+     oldest way of saying contact and not an icon anybody ships. Amber gives
+     the row four distinct temperatures -- blue, pink, amber, teal -- and it is
+     the warm note Sid asked for elsewhere on the page. Built on the same 1px
+     grid as the About face so it holds at 24px. -->
+<svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect>
+  <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect>
+  <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect>
+  <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect>
+  <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect>
+</svg>
+</i>
+  <i class="nav-ico__color" aria-hidden="true">
+<!-- Third attempt, and the two failures are the argument for this one.
+
+     The ripple was thin strokes around a hole -- a shape from nowhere. The
+     envelope was a shape from everywhere, the glyph every product ships. Then
+     the transmission mark: a block with three pixels leaving it. Sid: "can u
+     make it more dense like one thing like we have a flower this trail is
+     taking attention and not turipoise an that is same as about."
+
+     Three separate faults in one sentence, all correct. The trail was three
+     small objects strung diagonally, so the mark had no centre and the eye
+     went to the sparse end rather than the mass. The flower works because it
+     is ONE thing, dense, symmetrical about its own middle. And the teal was a
+     straight duplicate of the About mark two slots along, so the row read
+     blue / pink / teal / teal.
+
+     So: a bird, dense, one object, amber. It carries a message, which is the
+     oldest way of saying contact and not an icon anybody ships. Amber gives
+     the row four distinct temperatures -- blue, pink, amber, teal -- and it is
+     the warm note Sid asked for elsewhere on the page. Built on the same 1px
+     grid as the About face so it holds at 24px. -->
+<svg class="nav-pixel nav-pixel--contact" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect class="nav-pixel__ray" x="5" y="10" width="11" height="7" rx="1.6"></rect>
+  <rect class="nav-pixel__ray" x="13" y="6" width="6" height="6" rx="1.4"></rect>
+  <rect class="nav-pixel__ray" x="18" y="8" width="3" height="2" rx="0.5"></rect>
+  <rect class="nav-pixel__ray" x="3" y="11" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__core" x="7" y="11" width="6" height="4" rx="1.2"></rect>
+  <rect class="nav-pixel__eye" x="16" y="8" width="1.6" height="1.6" rx="0.8"></rect>
+</svg>
+</i>
+</i>
+</span>
+              <span class="ftr__morph-slot"> 
+
+<!-- <i> rather than <span>, and deliberately. portfolio-qa reads each nav
+     link's FIRST <span> as its visible label and compares it to the
+     aria-label; wrapping the icon in spans made that first span the icon,
+     whose textContent is empty, and six mobile routes started failing "nav
+     visible labels and accessible names agree". The check is right and the
+     markup was wrong: the first span in a nav link should be the word. -->
+<i class="nav-ico">
+  <i class="nav-ico__ghost">
+<svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect>
+  <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect>
+  <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect>
+</svg>
+</i>
+  <i class="nav-ico__color" aria-hidden="true">
+<svg class="nav-pixel nav-pixel--sid-ai" viewbox="0 0 24 24" aria-hidden="true" focusable="false">
+  <rect class="nav-pixel__corner" x="3" y="3" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__corner" x="17" y="3" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__corner" x="3" y="17" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__corner" x="17" y="17" width="4" height="4" rx="1"></rect>
+  <rect class="nav-pixel__wave" x="8" y="9" width="2" height="6" rx="1"></rect>
+  <rect class="nav-pixel__wave" x="11" y="6" width="2" height="12" rx="1"></rect>
+  <rect class="nav-pixel__wave" x="14" y="8" width="2" height="8" rx="1"></rect>
+</svg>
+</i>
+</i>
+</span>
+            </button>
+          </div>
         </div>
 
         <div class="ftr__right">
@@ -25870,7 +26276,22 @@
             <a href="/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>
           </nav>
 
-          <p class="ftr__made">Built with lots of love and coffee</p>
+          <!-- ── AND WHEN IT LAST MOVED ──────────────────────────────────
+               Sid: "on footer can we have when site was last updated date,
+               also if we dont have it already." We did not.
+
+               site.time is the moment Jekyll built the page, so it is right
+               by construction and nobody has to remember to change it -- the
+               failure mode of a hand written date is that it quietly becomes
+               a lie, which is worse than no date at all on a site whose
+               argument is that it is actively worked on.
+
+               It sits on the colophon line rather than on its own, because
+               it is the same kind of statement: a note about the making of
+               the thing, not part of the address block above it. -->
+          <p class="ftr__made">
+            Built with lots of love and coffee<span class="ftr__made-sep" aria-hidden="true">·</span><span class="ftr__updated">Updated 19 Sep 2026</span>
+          </p>
           <!-- ══ THE BUDDHA IN THE CORNER ══════════════════════════════════
                Sid: "in small i want u to add the buddha head to footer and make
                it rotate slowly somewhere either on the bottom left or the bottom
@@ -25888,8 +26309,9 @@
                It is decoration rather than a control, so it is aria-hidden and
                takes no pointer events: a rotating object that cannot be clicked
                should not be reachable by a keyboard either. -->
-          <div class="ftr__buddha" id="ftr-buddha" aria-hidden="true"></div>
         </div>
+
+        <div class="ftr__buddha" id="ftr-buddha" aria-hidden="true"></div>
 
         
       </div>
@@ -25907,6 +26329,22 @@
     /* The closing line assembles itself the first time the footer is reached.
        Once, and then the observer lets go: a headline that re-forms every
        time you scroll back past it is a tic, not an arrival. */
+    /* One press, one step. The index only ever advances, wrapping, so the
+       order is the same every time and pressing it repeatedly walks the set
+       rather than shuffling it. */
+    (function () {
+      var host = document.getElementById("ftr-morph");
+      if (host) {
+        var slots = [].slice.call(host.querySelectorAll(".ftr__morph-slot"));
+        var at = 0;
+        host.addEventListener("click", function () {
+          slots[at].removeAttribute("data-on");
+          at = (at + 1) % slots.length;
+          slots[at].setAttribute("data-on", "1");
+        });
+      }
+    })();
+
     (function () {
       var cta = document.getElementById("ftr-cta");
       var line = cta && cta.querySelector(".ftr__cta-line");
