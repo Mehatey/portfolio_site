@@ -56,7 +56,28 @@ top of a case study is intro and process. See the commit for how they were chose
       </div>
     </header>
 
-    <div class="wq__body" id="wq-body">
+    <!-- ── data-lenis-prevent ────────────────────────────────────────────
+         Sid: "the quick look scroll doesnt work, it has a scroll bar and
+         opens popup but it doesnt scroll and doesnt transition to the work."
+
+         All three symptoms, one cause, and it is not in this file. The site
+         runs Lenis for smooth scrolling, and Lenis calls preventDefault on
+         every wheel event so it can drive the page itself. So this panel
+         never received a native scroll: the bar appeared because the content
+         genuinely overflows, and nothing moved because the gesture was being
+         eaten a layer up and applied to the page behind the scrim.
+
+         And the handoff below depends on reaching the END of this body --
+         scroll past the bottom and the meter fills -- so with the body
+         frozen at scrollTop 0 the gesture could never arm, which is why it
+         still looked like it wanted a button press. Measured with the panel
+         open: scrollHeight 2842, clientHeight 790, scrollTop 0 after twelve
+         wheel events, --go 0.
+
+         data-lenis-prevent is Lenis's own opt-out: it walks the composed
+         path of the event and bails if any element carries it. One attribute
+         hands this subtree back to the browser. -->
+    <div class="wq__body" id="wq-body" data-lenis-prevent>
       <div class="wq__head">
         <p class="wq__eyebrow"><span id="wq-year"></span><span id="wq-proof"></span></p>
         <h2 class="wq__title" id="wq-title"></h2>
@@ -237,9 +258,17 @@ top of a case study is intro and process. See the commit for how they were chose
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
+    /* Sid: "it has a scroll bar". It does, and it should keep scrolling --
+       it just should not draw a system bar down the side of a sheet whose
+       own meter already says how far through it you are. */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
     padding: clamp(24px, 3.4vw, 46px) clamp(16px, 2.6vw, 40px) clamp(40px, 5vw, 72px);
+  }
+  .wq__body::-webkit-scrollbar {
+    display: none;
   }
   .wq__head {
     max-width: 640px;
