@@ -60,13 +60,33 @@
   svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden";
 
   var defs = document.createElementNS(NS, "defs");
-  var clip = document.createElementNS(NS, "clipPath");
-  clip.setAttribute("id", "media-bend");
-  clip.setAttribute("clipPathUnits", "objectBoundingBox");
-  var path = document.createElementNS(NS, "path");
-  path.setAttribute("d", "M0,0 H1 V1 H0 Z");
-  clip.appendChild(path);
-  defs.appendChild(clip);
+
+  function mkClip(id) {
+    var c = document.createElementNS(NS, "clipPath");
+    c.setAttribute("id", id);
+    c.setAttribute("clipPathUnits", "objectBoundingBox");
+    var pa = document.createElementNS(NS, "path");
+    pa.setAttribute("d", "M0,0 H1 V1 H0 Z");
+    c.appendChild(pa);
+    defs.appendChild(c);
+    return pa;
+  }
+
+  /* ── TWO BENDS ─────────────────────────────────────────────────────────
+     Sid: "try a different bend for the play page, something diff and more
+     fun."
+
+     Works gets the arc: one calm curve, which is right for a page of case
+     studies where the pictures are the argument and the motion should stay
+     out of the way.
+
+     Play gets a ripple. Two scallops instead of one, and they SLIDE
+     sideways with the direction of travel, so the edge behaves like the
+     surface of something liquid being carried rather than a sheet being
+     dragged. It is the sillier of the two on purpose: /play/ is 225
+     experiments and a page that is allowed to be having fun. */
+  var path = mkClip("media-bend");
+  var pathWave = mkClip("media-bend-wave");
   svg.appendChild(defs);
   document.body.appendChild(svg);
 
@@ -116,6 +136,24 @@
         d = "M0,0 H1 V1 Q0.5," + (1 - 2 * a).toFixed(4) + " 0,1 Z";
       }
       path.setAttribute("d", d);
+
+      /* The ripple. Amplitude from the same velocity, and the scallops
+         drift with the sign so the wave leans into the direction you are
+         going. Twice the depth of the arc, because a scallop is read from
+         its own crest to its own trough rather than from a flat edge. */
+      var wd;
+      if (q === 0) {
+        wd = "M0,0 H1 V1 H0 Z";
+      } else {
+        var w = a * 2;
+        /* The crests slide up to a tenth of the width either way. */
+        var sh = (b > 0 ? 1 : -1) * Math.min(0.1, a * 2.4);
+        var c1 = (0.75 + sh).toFixed(4);
+        var c2 = (0.25 + sh).toFixed(4);
+        wd =
+          "M0,0 H1 V1 Q" + c1 + "," + (1 - w).toFixed(4) + " 0.5,1 Q" + c2 + "," + (1 - w).toFixed(4) + " 0,1 Z";
+      }
+      pathWave.setAttribute("d", wd);
     }
     requestAnimationFrame(frame);
   }
