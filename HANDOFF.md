@@ -1153,3 +1153,43 @@ Also landed: "Read the full story" is gone from the sheet (the scroll is the
 way in; the handoff row still carries a real link); every case study has a
 "<- Works" text link in the bar that returns to `/works/?p=<slug>`, i.e. the
 sheet reopened on the project you just left, next project one arrow away.
+
+## 19-20 Sep, the long session: what changed and what Sid decided
+
+Hero: "Product designer who / builds what he designs." at 62px, one proof
+line, status line (Available to work · New York), showreel as a glass pill
+with a turning gradient hairline. Sid rejected: 124px four-row headline,
+rainbow-filled button. Headline is BUILT, not typed (twRise stagger).
+
+Nav: Resume/LinkedIn are outlined chips. Sid does NOT want his name in the
+nav, does NOT want always-on labels (hover-only is deliberate), keeps
+"Coming soon" on Sid AI (signals evolution). Moon is a filled crescent;
+the more-button glyph is on the 3px cell grid.
+
+About: experience from the Sept 2026 resume (Compete 2025-26, EyeJack
+2025, Deloitte 2022-24, Philips, Leaf); five years everywhere. Portrait
+canvas: edge windowed, breathes, click swaps photo. Reading column starts
+level with the card. Award pins have no plate. Capabilities: 27 tags, in
+the sans (DM Mono at reading size reads as a serif to Sid).
+
+Works: single cover per card (the strip is gone); breathe at rest;
+hover = pixel mosaic resolving (assets/js/cover-pixels.js).
+
+Case studies: proof row under the title, details as a plain row, one left
+edge (x=58). Reflection = water only, no image, no paint-reveal. Encoded
+cover is the plain photo + corner Webby seal. Arriving from the quick look
+lands on the title (sessionStorage wq_handoff), direct visits at the cover.
+
+Contact: desk 72vw, 1.4s eased crossfade, rain + pixel birds
+(assets/js/contact-weather.js). The mark's colour chips skip .contact-desk.
+
+Play: all pieces shown, no Show-all; band warp/fade removed; bend deeper.
+
+Opener: cream grounds in light mode. Rest rate 1.3x, hold 900ms.
+
+Testing rule from Sid, absolute: never a headed browser on his machine.
+Headless only. `channel:'chrome'` headless is needed for cross-document
+view transitions; bundled Chromium never fires pagereveal.
+
+Open, Sid's call: the LinkedIn/Résumé foot pair duplicates the nav chips
+on the first screen; the About hover effect on the portrait.
