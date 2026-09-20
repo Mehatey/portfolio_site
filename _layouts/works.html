@@ -596,21 +596,61 @@
 
          --mx and --my come from the script at the foot of this file and are
          -1..1 from the centre of each card. */
+      /* ── IT BREATHES, AND ON HOVER IT COMES APART INTO CELLS ─────────
+         Sid: "give a little breathing animation to all project covers and
+         when i hover let it convert to a bunch of interesting animated
+         pixels with a great ease in ease out. the zoom thing on hover ...
+         is way too basic."
+
+         At rest every cover drifts a percent and a half on a slow clock,
+         each card on its own phase (the nth-child delays below) so the grid
+         never breathes in unison. On hover the zoom is gone. A canvas over
+         the picture redraws it as coarse cells that shrink back into the
+         photograph over 700ms, eased both ways; on leave the cells return.
+         Drawn by the script at the foot of this file; without JS, hover is
+         simply the colour lift. */
+      @keyframes wkBreathe {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.018);
+        }
+      }
+      .wk-cover img.is-in {
+        animation: wkBreathe 11s ease-in-out infinite;
+      }
+      .wk-grid > li:nth-child(3n + 2) .wk-cover img.is-in {
+        animation-delay: -3.7s;
+      }
+      .wk-grid > li:nth-child(3n) .wk-cover img.is-in {
+        animation-delay: -7.4s;
+      }
       .wk-card:hover .wk-cover img,
       .wk-card:focus-visible .wk-cover img {
-        /* Sid: "u can add a light zoom or a depth map 3d feel to each cover
-           pic on hover."
-
-           A little more zoom than before, and the parallax pushed from 10px
-           to 16px, which is what actually reads as depth: the picture
-           tracking the cursor at a different rate from the frame around it
-           is parallax, and parallax is the only honest depth cue available
-           to a flat photograph. NOT a tilt -- rotating the card was tried on
-           the play page and cut ("pls remove those horrible tilting image
-           hover effect"), because a photograph turned in perspective is a
-           photograph you are now seeing at the wrong shape. */
-        transform: scale(1.075) translate3d(calc(var(--mx, 0) * 16px), calc(var(--my, 0) * 16px), 0);
         filter: saturate(1.04) brightness(1.03);
+      }
+      .wk-pixels {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 180ms ease;
+      }
+      .wk-pixels.is-on {
+        opacity: 1;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .wk-cover img.is-in {
+          animation: none;
+        }
+        .wk-pixels {
+          display: none;
+        }
       }
       /* The frame darkens at its edges as the picture lifts out of it, which
          is the other half of the depth: something in front has to cast into
@@ -656,10 +696,6 @@
       @media (hover: none), (prefers-reduced-motion: reduce) {
         .wk-cover::before {
           display: none;
-        }
-        .wk-card:hover .wk-cover img,
-        .wk-card:focus-visible .wk-cover img {
-          transform: scale(1.03);
         }
       }
 
@@ -1255,38 +1291,23 @@
             <li data-lane="{{ w.lane }}">
               <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}" {% if w.cube %} data-cube="{{ w.cube }}" {% endif %}>
                 <div class="wk-cover bend-media">
-                  {% comment %} The cover is the first frame of a strip when the entry declares extras, and a plain cover when it does not -- so a
-                  project with nothing more to show is never given an empty scroller with one slide in it. {% endcomment %}{% if w.extra %}
-                  <div class="wk-strip" aria-label="{{ w.title }}, {{ w.extra | size | plus: 1 }} images">
-                    <img
-                      src="{{ site.baseurl }}{{ img_base }}-900.webp"
-                      srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} {{ w.imgw }}w"
-                      sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)"
-                      alt="{{ w.title }}"
-                      loading="eager"
-                      decoding="async"
-                      width="1200"
-                      height="900"
-                    />
-                    {% for x in w.extra %}
-                    <img src="{{ site.baseurl }}{{ x }}" alt="" loading="lazy" decoding="async" />
-                    {% endfor %}
-                  </div>
-                  <span class="wk-frames" aria-hidden="true">{% for n in (0..w.extra.size) %}<i></i>{% endfor %}</span>
-                  {% else %}
+                  {% comment %} One cover, always. The strip of extra frames used to sit behind it in a flex row, and the hover parallax slid the
+                  first frame far enough to expose a sliver of the second down the right edge. Sid: "a thin column of the cover image which is cropped
+                  and placed on top of it which shows up when u hover which i want to remove." The extras still live in works.yml for the quick look.
+                  {% endcomment %}
                   <img
                     src="{{ site.baseurl }}{{ img_base }}-900.webp"
                     srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} {{ w.imgw }}w"
-                    sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(500px, 33vw)"
+                    sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)"
                     alt="{{ w.title }}"
                     loading="eager"
                     decoding="async"
                     width="1200"
                     height="900"
                   />
-                  {% endif %} {% comment %} No mark on the top shelf. The lanes number from 01 within themselves, so a second numbered sequence on the
-                  same page would read as a rank the page never explains, and Sid's standing note on this grid is no year dates. The award ribbon is
-                  the only mark these three need. {% endcomment %} {% if w.award %}<span class="wk-award">{{ w.award }}</span>{% endif %}
+                  {% comment %} No mark on the top shelf. The lanes number from 01 within themselves, so a second numbered sequence on the same page
+                  would read as a rank the page never explains, and Sid's standing note on this grid is no year dates. The award ribbon is the only
+                  mark these three need. {% endcomment %} {% if w.award %}<span class="wk-award">{{ w.award }}</span>{% endif %}
                 </div>
                 <div class="wk-body">
                   <h3 class="wk-name">{{ w.title }}<i aria-hidden="true">&rarr;</i></h3>
@@ -1664,6 +1685,7 @@
          have sat permanently flat. -->
     <script src="{{ site.baseurl }}/assets/js/scroll-velocity.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/media-bend.js" defer></script>
+    <script src="{{ site.baseurl }}/assets/js/cover-pixels.js" defer></script>
     {% include motion_stack.html %}
   </body>
 </html>

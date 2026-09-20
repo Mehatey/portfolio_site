@@ -103,7 +103,9 @@
      element -- fine from a 315px card to a 545px cover, absurd on one of
      /play/'s 3,000px strips, where 4.2% is 137px of picture cut away. Those
      opt out on load; see the guard in play/index.html. */
-  var MAX = 0.042;
+  /* 0.042 -> 0.075. Sid: "the play page is doing none of that" -- at four
+     percent the arc was under the eye's threshold at grid sizes. */
+  var MAX = 0.075;
 
   var shown = -999;
 
@@ -150,8 +152,7 @@
         var sh = (b > 0 ? 1 : -1) * Math.min(0.1, a * 2.4);
         var c1 = (0.75 + sh).toFixed(4);
         var c2 = (0.25 + sh).toFixed(4);
-        wd =
-          "M0,0 H1 V1 Q" + c1 + "," + (1 - w).toFixed(4) + " 0.5,1 Q" + c2 + "," + (1 - w).toFixed(4) + " 0,1 Z";
+        wd = "M0,0 H1 V1 Q" + c1 + "," + (1 - w).toFixed(4) + " 0.5,1 Q" + c2 + "," + (1 - w).toFixed(4) + " 0,1 Z";
       }
       pathWave.setAttribute("d", wd);
     }

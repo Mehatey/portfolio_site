@@ -1290,7 +1290,11 @@ title: Play · Sid Mehta
            `built` and `sources` in step -- unbuilding the tail would put every
            one of those out of alignment for a saving the browser already
            makes by not laying out a `display: none` subtree. */
-        var HOLD_FROM = 72;
+        /* Sid: "why do we have a button which says show all pieces on bottom
+           i want play page to start with all pieces visible." The hold is off:
+           every piece stands from the start. Lazy loading still keeps the
+           first paint light; the tail's pictures arrive as it is scrolled to. */
+        var HOLD_FROM = Infinity;
         if (built.length > HOLD_FROM + 12) {
           for (var hi = HOLD_FROM; hi < built.length; hi++) built[hi].classList.add("is-held");
           var more = document.createElement("button");
@@ -1746,63 +1750,16 @@ title: Play · Sid Mehta
                 return;
               }
 
-              if (r.top < TOP) {
-                /* ── A CURVE, NOT A ROLL ────────────────────────────────
-                   Sid: "when i scroll on play the images on top fade and
-                   stretch weirdly, i wanted a nice motion curve on the top
-                   area like modern portfolios do."
-
-                   The stretch was scaleY(1 - e * 0.62): a NON-UNIFORM
-                   squash that pressed each photograph to 38% of its height
-                   on the way out. Every other term here was compensation
-                   for that gesture -- a perspective, a rotateX, a rotateZ
-                   and a sideways slide -- and the notes below this block
-                   are two rounds of reining in a roll that kept diverging,
-                   because a projection can always blow up while a picture
-                   is being rotated through the camera.
-
-                   What a modern portfolio actually does at the top edge is
-                   much plainer: the card rises a little, scales down a
-                   little, and fades. Uniform scale, so the photograph keeps
-                   its shape -- a picture distorted on its way out is still
-                   a distorted picture. Nothing here can diverge, because
-                   nothing is projected: a translate and a multiply.
-
-                   The band widens from 6% to 18% for the same reason. The
-                   strip had to be thin to keep the roll from touching cards
-                   people were reading; with no distortion left, the gesture
-                   can have room to breathe, which is what makes it read as
-                   a curve rather than a snap at the edge. */
-                var t = Math.min(1, (TOP - r.top) / (TOP + r.height * 0.55));
-                /* smoothstep: eased at both ends, so it neither jumps at the
-                   band's edge nor stalls as it finishes. */
-                var e = t * t * (3 - 2 * t);
-                el.style.transformOrigin = "50% 0%";
-                /* The exit keeps its curve and gains the stretch Sid asked
-                   for: the card draws out vertically as it leaves rather
-                   than only shrinking, which is what makes it read as being
-                   pulled off the top instead of fading. Scale Y above 1 and
-                   X below it, so the area stays roughly honest and the
-                   picture elongates rather than swelling. */
-                el.style.transform =
-                  "translate3d(0," + (e * -40 + drift).toFixed(1) + "px,0) scale(" + (1 - e * 0.12 - e * 0.05).toFixed(4) + "," + (1 - e * 0.12 + e * 0.16).toFixed(4) + ")";
-                el.style.opacity = (1 - e * 0.85).toFixed(3);
-                el.__curled = 1;
-              } else if (r.top + r.height > BOT) {
-                /* Arriving. Much gentler: a card coming up from the bottom is
-                   about to be read, so it may lean but it must not distort. */
-                /* The same language, arriving. It used to lean on a
-                   rotateX of its own, which tilted a picture somebody was
-                   about to read; a card coming up should settle, not pivot. */
-                var u = Math.min(1, (r.top + r.height - BOT) / (h * 0.28));
-                var eu = u * u * (3 - 2 * u);
-                el.style.transformOrigin = "50% 100%";
-                /* Arriving stretches too, the other way round: compressed
-                   as it rises into frame and settling to true. */
-                el.style.transform =
-                  "translate3d(0," + (eu * 26 + drift).toFixed(1) + "px,0) scale(" + (1 - eu * 0.06 + eu * 0.05).toFixed(4) + "," + (1 - eu * 0.06 - eu * 0.09).toFixed(4) + ")";
-                el.style.opacity = (1 - eu * 0.32).toFixed(3);
-                el.__curled = 1;
+              /* ── NO BAND TREATMENT ─────────────────────────────────────
+                 Sid: "play page is still doing some weird warping and low
+                 opacity for some media when i scroll." The top and bottom
+                 bands used to stretch each card non-uniformly and fade it
+                 to 15%. Both are gone. The bend the media carries
+                 (media-bend.js, the inspo's own gesture) is the only edge
+                 treatment now: pictures stay their own shape and their own
+                 brightness, and only their edges arc with the scroll. The
+                 column counter-drift below is kept. */
+              if (false) {
               } else if (drift) {
                 /* The reading zone is flat, but it still slides: the columns
                    pulling against each other is the whole gesture, and it
