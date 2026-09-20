@@ -1303,6 +1303,47 @@
       }
 
       /* ── hero ───────────────────────────────────────────────────── */
+      .lake-stage {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+      .lake-stage .lake-canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+      .hero.is-lake .lake-stage {
+        pointer-events: auto;
+      }
+      /* The DOM headline keeps its box (the layout below depends on it) but
+         gives up its ink to the letters on the shore; the model-viewer
+         figure yields to the one in the scene. */
+      .hero.is-lake .hero__cols,
+      .hero.is-lake .hero-wash-code,
+      .hero.is-lake .cg-stage {
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+      .hero.is-lake .hero__status {
+        position: relative;
+        z-index: 2;
+      }
+      /* With the headline on the shore, the DOM column below it would float
+         mid-water. The two foot rows pin to the bottom of the hero instead,
+         on the page's own left edge. */
+      .hero.is-lake .hero__foot-row {
+        position: absolute;
+        left: var(--grid-left, 5vw);
+        right: auto;
+        bottom: 40px;
+        z-index: 2;
+        margin: 0;
+      }
+      .hero.is-lake .hero__reel {
+        z-index: 6;
+      }
       .hero {
         position: relative;
         isolation: isolate;
@@ -5260,6 +5301,17 @@
         }
       }
     </style>
+    <!-- The lake (assets/js/hero-lake.js) is an ES module importing three
+         and its addons by bare specifier; this map resolves them to the
+         vendored r180 build the AI room already ships. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "{{ site.baseurl }}/sid-ai/vendor/three/build/three.module.js",
+          "three/addons/": "{{ site.baseurl }}/sid-ai/vendor/three/addons/"
+        }
+      }
+    </script>
   </head>
 
   <body class="home-page">
@@ -5319,6 +5371,14 @@
         too little animation, it was that everything arrived at once, so nothing was first. {% endcomment %} {% include home_welcome.html %}
 
         <section class="hero" id="hero" aria-labelledby="hero-title" data-cube="He has been doing this five years. I have been watching for three.">
+          <!-- ── THE LAKE ──────────────────────────────────────────────────
+               A WebGL scene over the hero's ground: shore, reflective water,
+               the figure on a stone, the headline as physics letters, one
+               light on the cursor. See assets/js/hero-lake.js. When it runs,
+               .hero.is-lake hides the DOM headline's ink and the model-viewer
+               figure; when it cannot (phone, reduced motion, budget, no GL)
+               nothing below changes. -->
+          <div class="lake-stage" id="lake-stage" data-base="{{ site.baseurl }}" aria-hidden="true"></div>
           <!-- ── THE HERO LEAVES BEHIND A LIGHT ──────────────────────────────
              Sid: "instead try another scroll transition without the cube guy
              involved."
@@ -6202,6 +6262,7 @@
          actually belongs. -->
     <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
     <script src="{{ site.baseurl }}/assets/js/hero-motes.js" defer></script>
+    <script type="module" src="{{ site.baseurl }}/assets/js/hero-lake.js"></script>
     <script>
       /* ── HE STANDS, AND HE REACTS ────────────────────────────────────────
          Idle runs from load. A click swaps to ClickReact once and hands back
