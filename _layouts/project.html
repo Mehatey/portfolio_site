@@ -7031,6 +7031,71 @@
         {% endfor %}
       </section>
       {% endif %}
+      <script>
+        /* Arriving from the quick look: land on the title, not the cover.
+           Runs here, right after the title and proof exist in the DOM and
+           before the rest of the page parses, so the first frame is already
+           in place. Lenis, when it boots, reads the live scrollY and starts
+           from there. scrollRestoration is set to manual for this one load
+           so the browser does not fight it with a restored 0. */
+        (function () {
+          var want = null;
+          try {
+            want = sessionStorage.getItem("wq_handoff");
+            if (want) sessionStorage.removeItem("wq_handoff");
+          } catch (e) {}
+          if (!want || want.replace(/\/+$/, "") !== location.pathname.replace(/\/+$/, "")) return;
+          var t = document.querySelector(".proj-hero + .hero-inner");
+          if (!t) return;
+          try {
+            history.scrollRestoration = "manual";
+          } catch (e) {}
+          var setY = 0,
+            released = false;
+          function place() {
+            /* The hero's height is settled later by the cover-ratio script,
+               so the title moves after the first placement. Re-place on
+               load and once more after it, but only while the reader has
+               not scrolled on their own. */
+            if (released) return;
+            var bar = document.querySelector(".studio-nav");
+            var nav = bar ? bar.getBoundingClientRect().height : 72;
+            var y = Math.max(0, Math.round(t.getBoundingClientRect().top + (window.scrollY || 0) - nav - 40));
+            setY = y;
+            if (window.__lenis && window.__lenis.scrollTo) window.__lenis.scrollTo(y, { immediate: true, force: true });
+            window.scrollTo(0, y);
+          }
+          place();
+          window.addEventListener("pagereveal", place, { once: true });
+          /* Hold the title in place while the page above it is still
+             settling (cover ratio, fonts, lazy media), and let go the moment
+             the reader moves, or after five seconds. */
+          var ro = "ResizeObserver" in window ? new ResizeObserver(place) : null;
+          if (ro) ro.observe(document.body);
+          function release() {
+            released = true;
+            if (ro) ro.disconnect();
+            ro = null;
+          }
+          /* Lenis boots after this script and starts its own clock at 0. Once
+             it exists, hand it the target directly so it does not animate the
+             page back up from the top. */
+          var tries = 0;
+          (function waitLenis() {
+            if (released) return;
+            if (window.__lenis) {
+              place();
+              return;
+            }
+            if (tries++ < 80) setTimeout(waitLenis, 50);
+          })();
+          ["wheel", "touchstart", "keydown", "pointerdown"].forEach(function (ev) {
+            window.addEventListener(ev, release, { once: true, passive: true });
+          });
+          setTimeout(release, 5000);
+          document.documentElement.classList.add("from-sheet");
+        })();
+      </script>
       <!-- SECONDARY DETAILS -->
       {% if page.meta %}
       <!-- Open by default. Year, client and tools are the first three
