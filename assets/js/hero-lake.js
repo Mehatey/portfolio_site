@@ -59,7 +59,7 @@ try {
 } catch (e) {
   throw new Error("no webgl");
 }
-renderer.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.05;
@@ -83,11 +83,16 @@ const palette = () =>
 /* ── LIGHT ────────────────────────────────────────────────────────────── */
 const hemi = new THREE.HemisphereLight(0x8fa8c8, 0x141a24, 0.55);
 scene.add(hemi);
-const key = new THREE.PointLight(0xffc98a, 30, 30, 1.6);
+/* A spot, not a point: a point light's shadow renders the scene six
+   times a frame, a spot's once. It follows the hand the same way and its
+   cone is wide enough to read as a lamp over the whole shore. */
+const key = new THREE.SpotLight(0xffc98a, 60, 40, Math.PI / 2.6, 0.6, 1.4);
 key.position.set(-2, 3.2, 3);
+key.target.position.set(0, 0, 2.5);
+scene.add(key.target);
 key.castShadow = true;
 key.shadow.mapSize.set(1024, 1024);
-key.shadow.bias = -0.002;
+key.shadow.bias = -0.0015;
 scene.add(key);
 const rim = new THREE.DirectionalLight(0x9fc2ff, 0.7);
 rim.position.set(4, 6, -6);
@@ -114,8 +119,8 @@ const waterNormals = new THREE.TextureLoader().load(BASE + "/assets/textures/wat
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
 });
 const water = new Water(new THREE.PlaneGeometry(200, 120), {
-  textureWidth: 1024,
-  textureHeight: 1024,
+  textureWidth: 512,
+  textureHeight: 512,
   waterNormals,
   sunDirection: new THREE.Vector3(-0.4, 0.6, 0.5).normalize(),
   sunColor: 0xffd9a8,
@@ -202,7 +207,7 @@ async function buildLetters(font) {
     /* The nearer row is projected wider, so it starts a little further
        right to keep the two left edges reading as one. */
     let x = startX + li * 0.3;
-    const z = 2.0 + li * 1.0;
+    const z = 1.9 + li * 0.95;
     for (const ch of line) {
       if (ch === " ") {
         x += SPACE;
@@ -246,13 +251,26 @@ async function buildLetters(font) {
     }
   });
   hero.classList.add("is-lake");
+  retire();
 }
 new FontLoader().load(BASE + "/assets/fonts/helvetiker_bold.typeface.json", (font) => {
   buildLetters(font).catch(() => {
     /* No physics: the letters simply stand. */
     hero.classList.add("is-lake");
+    retire();
   });
 });
+
+/* ── WHAT THE LAKE REPLACES, IT STOPS ─────────────────────────────────
+   Sid: "why is my landing page so laggy." Measured: twelve animation loops
+   ran every frame on the hero. With the scene up, the model-viewer figure
+   (its own WebGL context and loop), the wash, its code layer and the
+   watercolour are all underneath an opaque lake. They stop. */
+function retire() {
+  window.__lakeActive = true;
+  const mv = document.getElementById("cg-model");
+  if (mv && mv.parentNode) mv.parentNode.removeChild(mv);
+}
 
 /* ── POINTER ──────────────────────────────────────────────────────────── */
 const ray = new THREE.Raycaster();
@@ -371,6 +389,7 @@ function frame() {
     keyTarget.set(Math.sin(t * 0.18) * 3 - 1, 3.2, 2 + Math.cos(t * 0.13) * 1.5);
   }
   key.position.lerp(keyTarget, 0.08);
+  key.target.position.set(key.position.x * 0.5, 0, 2.5);
   tmpV
     .copy(key.position)
     .sub(new THREE.Vector3(0, 0, -6))

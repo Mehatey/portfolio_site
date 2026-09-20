@@ -392,7 +392,7 @@
     raf = requestAnimationFrame(tick);
     var dt = Math.min(0.05, (now - last) / 1000 || 0);
     last = now;
-    if (!onScreen || document.hidden) return;
+    if (!onScreen || document.hidden || window.__lakeActive) return;
 
     /* Sample ten times a second. The glyphs are a slow read of a fast
        surface; sampling every frame costs more and looks busier. */

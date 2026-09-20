@@ -410,6 +410,8 @@ void main(){ vec2 q=vU; vec3 d=texture(uPig,q).rgb;
     function frame(now) {
       if (!alive) return;
       raf = requestAnimationFrame(frame);
+      /* The lake covers this layer entirely; drawing under it is waste. */
+      if (window.__lakeActive) return;
       const dt = Math.max(0.001, Math.min(0.05, (now - t0) / 1000));
       t0 = now;
       T = now * 0.001;
