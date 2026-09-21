@@ -50,7 +50,7 @@ highlights:
   - value: "0"
     label: external tabs to reach a verdict
   - value: "5"
-    label: material checks, scored apart from quality
+    label: material checks, scored apart
   - value: "0"
     label: contrast failures, light and dark
 reflection: >

@@ -5,7 +5,7 @@ project_title: Collectio
 proj_num: "17"
 tagline: A municipal waste system for Panaji, Goa, designed around where its classifier fails rather than where it works. The truck delivers a weight. The belt says what was in it. The ward sees both. Each part only claims what it can actually know.
 quick_read: >
-  Six years after a student app for Goa's waste collectors, the same three roles rebuilt as one measured system: a driver's route on real Panaji streets, a sorting camera running a network I trained from scratch, and a ward queue that holds what the model cannot vouch for. 72% in the lab, 29% on a real belt, and a product built around that gap.
+  Six years after a student app for Goa's waste collectors, the same three roles rebuilt as one measured system: a driver's route, a sorting camera running a network I trained from scratch, and a ward queue that holds what the model cannot vouch for. 72% in the lab, 29% on the belt, and a product built around that gap.
 category: AI · Civic systems
 year: "2019 · 2026"
 hero_bg: "radial-gradient(ellipse at 40% 45%, #121a14 0%, #0b100c 55%, #06080a 100%)"
@@ -13,23 +13,23 @@ hero_image: "assets/img/collectio/detect-final.webp"
 hero_pos: "50% 50%"
 hero_mode: artifact
 meta:
-  - label: Year
-    value: "2019, rebuilt 2026"
-  - label: Client
-    value: Goa Waste Management · concept
   - label: Role
-    value: Research · Design · Model · Prototype
+    value: Designer and engineer
+  - label: Client
+    value: Goa Waste Management
+  - label: Scope
+    value: Route, belt camera, ward queue
   - label: Tools
-    value: PyTorch · JavaScript · OpenStreetMap
-  - label: Model
-    value: 95,006 parameters, trained from scratch
+    value: PyTorch, JavaScript
+  - label: Year
+    value: "2019 to 2026"
 highlights:
   - value: "72.1%"
-    label: on 383 photographs it had never seen
+    label: in the lab, on unseen photographs
   - value: "29%"
     label: on a raw crop off a real belt
   - value: "0"
-    label: wrong dispatches, with 42% held for a person
+    label: wrong dispatches after abstention
 reflection: >
   72% is not a good number. That is why the product is built around abstention. A softmax always answers; the product should not. So before anything is sent the belt asks two more questions, have you seen this before and how sure are you, and fails either one to a person. The cost of that rule is somebody's afternoon, and the ward page shows the inspector hours it took, because pretending it is free is how a model loses trust.
 

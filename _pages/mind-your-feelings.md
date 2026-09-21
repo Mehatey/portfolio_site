@@ -14,16 +14,14 @@ og_image: "assets/img/og/mind-your-feelings.jpg"
 meta:
   - label: Role
     value: Developer
-  - label: Duration
-    value: 1 month
-  - label: Year
-    value: 2026
-  - label: Tools
-    value: JavaScript · Python · Arduino · WLED
-  - label: Team
-    value: Juanli Carrión, Rodolfo Kusulas, Siddharth Mehta
   - label: Client
-    value: Northern NJ Community Foundation · ArtsBergen
+    value: NNJCF, ArtsBergen
+  - label: Team
+    value: With Juanli Carrión and Rodolfo Kusulas
+  - label: Tools
+    value: JavaScript, Arduino, WLED
+  - label: Year
+    value: "2026"
 highlights:
   - value: "800+"
     label: community participants

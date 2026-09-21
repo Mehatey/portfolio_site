@@ -12,18 +12,16 @@ hero_bg: "radial-gradient(ellipse at 50% 45%, #0c1622 0%, #060b12 55%, #02050a 1
 hero_image: "15.bloom-vp/cover.jpg"
 og_image: "assets/img/og/bloom.jpg"
 meta:
-  - label: Year
-    value: "2025-2026"
-  - label: Client
-    value: Self Initiated · MFA Thesis, Parsons D+T
+  - label: Role
+    value: Designer and developer
+  - label: Context
+    value: MFA thesis, Parsons
   - label: Timeline
     value: 5 months
-  - label: Team
-    value: Solo
-  - label: Role
-    value: Designer · Developer · Researcher
   - label: Tools
-    value: visionOS · SwiftUI · RealityKit · ARKit · ElevenLabs
+    value: visionOS, RealityKit, ElevenLabs
+  - label: Year
+    value: "2025 to 2026"
 highlights:
   - value: 5 months
     label: research, design & build
