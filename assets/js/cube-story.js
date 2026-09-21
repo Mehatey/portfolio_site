@@ -179,18 +179,21 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
     grain.setColorAt(planted, COL.set(planted % 4 === 0 ? 0x89964e : planted % 3 === 0 ? 0xb69545 : 0xc7a856));
     planted++;
   }
-  for (let i = 0; i < 1100; i++) {
+  let blades = 0;
+  for (let a = 0; a < 3000 && blades < 1100; a++) {
     const x = (Math.random() - 0.5) * 30,
       z = (Math.random() - 0.5) * 36;
-    if (z > 1.5 && Math.abs(x) < 3) continue;
+    /* nothing on the camera's path into the cube, so no blade crosses the lens */
+    if ((z > 1.5 && Math.abs(x) < 3) || (z > -1.2 && Math.abs(x) < 1.6)) continue;
     Q.setFromEuler(new THREE.Euler(0, Math.random() * Math.PI, (Math.random() - 0.5) * 0.14));
     M4.compose(
       V3.set(x, fh(x, z) - 0.55, z),
       Q,
       new THREE.Vector3(0.8 + Math.random() * 0.55, 0.6 + Math.random() * 1.15, 0.8 + Math.random() * 0.55)
     );
-    grass.setMatrixAt(i, M4);
+    grass.setMatrixAt(blades++, M4);
   }
+  grass.count = blades;
   grain.instanceMatrix.needsUpdate = grass.instanceMatrix.needsUpdate = true;
   if (grain.instanceColor) grain.instanceColor.needsUpdate = true;
   grain.frustumCulled = grass.frustumCulled = false;
@@ -795,7 +798,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
     skyMat.uniforms.t.value = time;
 
     /* worlds */
-    field.visible = p < 0.48;
+    field.visible = p < 0.48 && !(p > 0.372 && p < 0.41);
     field.position.y = -1.6 * sm(0.43, 0.48, p);
     river.visible = waterW > 0.01;
     riverMat.uniforms.t.value = time;
@@ -805,7 +808,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 
     /* the cube */
     setFold(1 - unfold * (1 - fold));
-    const cubeOn = (1 - sm(0.37, 0.39, p) * (1 - sm(0.41, 0.42, p))) * (1 - body);
+    const cubeOn = (1 - sm(0.366, 0.374, p) * (1 - sm(0.41, 0.42, p))) * (1 - body);
     cube.visible = cubeOn > 0.01;
     cube.scale.setScalar(Math.max(0.001, 1 - body));
     const breathe = Math.sin(time * 0.9) * 0.02 * grassW;
@@ -821,7 +824,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
       drawFace(k < 1 ? Math.sin(k * Math.PI) : 0, sm(0.02, 0.1, p));
       if (k > 1) blinkAt = time + 2.4 + Math.random() * 3.2;
     }
-    faceMesh.material.opacity = 1 - sm(0.36, 0.4, p);
+    faceMesh.material.opacity = 1 - sm(0.345, 0.365, p);
     const credA = unfold * (1 - fold);
     eye.material.opacity = credA;
     brain.material.opacity = credA * sm(0.2, 0.26, p);
@@ -922,7 +925,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
       cz = lerp(lerp(4.6, 5.8, unfold), 0, enter);
       cz = lerp(cz, -5.8, exit);
       /* out the back, then turn to look at the cube from behind */
-      const turn = sm(0.45, 1, exit);
+      const turn = sm(0.0, 0.45, exit);
       cy = lerp(lerp(0.35, 0.05, unfold), 0.55, turn);
       rx = lerp(lerp(-0.06, 0, unfold), 0.1, turn);
       ry = Math.PI * turn;
