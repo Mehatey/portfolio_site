@@ -55,6 +55,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/5.mool/7.webp" alt="Mool, goals as questions" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/img/marriott/06-enroll-poster.jpg"><source src="{{ B }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/assets/img/fairview/13-impact.webp" alt="Fairview impact" loading="lazy" decoding="async" style="--pos: 50% 0" /></div>
+    <div class="reel-plate reel-plate--8"><img src="{{ B }}/assets/img/fairview/cover.webp" alt="M Health Fairview, in use" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><img src="{{ B }}/5.mool/13.jpg" alt="Mool out of home" loading="lazy" decoding="async" /></div>
   </div>
 </section>
@@ -97,9 +98,10 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/6.mindu/7.1.webp" alt="Mind Your Feelings kiosk" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/poster.jpg"><source src="{{ B }}/15.bloom-vp/lotus.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/6.mindu/cover2.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--third"><img src="{{ B }}/4.mandala/2.webp" alt="Bloom" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata"><source src="{{ B }}/4.mandala/final-walking.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/4.mandala/cover.jpg" alt="Bloom, EEG installation" loading="lazy" decoding="async" style="--pos: 70% 50%" /></div>
+    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata"><source src="{{ B }}/4.mandala/final-walking.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--third"><img src="{{ B }}/4.mandala/2.webp" alt="Bloom" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--third"><img src="{{ B }}/4.mandala/9.2.webp" alt="Bloom, the table" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><video autoplay muted loop playsinline preload="metadata"><source src="{{ B }}/1.met/9.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
@@ -118,6 +120,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/19-poster.jpg"><source src="{{ B }}/2.ai-self/19.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/26-poster.jpg"><source src="{{ B }}/2.ai-self/26.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/2.ai-self/12.webp" alt="AI Self, choose an AI" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--8"><img src="{{ B }}/2.ai-self/cover.jpg" alt="AI Self, the dream" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/17.ledger/v3-review-poster.jpg"><source src="{{ B }}/17.ledger/v3-review.mp4" type="video/mp4" /></video></div>
   </div>
   <div class="reel-strip" aria-label="AI experiments">
@@ -154,6 +157,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p66.webp" alt="Avengers, watercolour" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p40.webp" alt="Horses, oil" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p71.webp" alt="Buddha, oil" loading="lazy" decoding="async" style="--pos: 50% 30%" /></div>
+    <div class="reel-plate reel-plate--third"><img src="{{ B }}/11.illu/18.webp" alt="Dashavatara icon set" loading="lazy" decoding="async" /></div>
   </div>
 </section>
 
@@ -172,11 +176,11 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p104.webp" alt="Goats on the hill" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p176.webp" alt="Jaipur" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p119.webp" alt="A cat in an alley" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p179.webp" alt="Jaipur" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--8"><img src="{{ B }}/play/assets/hi/p197.webp" alt="A dog, mid-air" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/play/assets/hi/p181.webp" alt="Rain on the window" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p1.webp" alt="A bead ball" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p160.webp" alt="Chefs" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p179.webp" alt="Jaipur" loading="lazy" decoding="async" /></div>
   </div>
 </section>
 
