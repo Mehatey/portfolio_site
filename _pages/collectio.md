@@ -33,6 +33,7 @@ highlights:
 reflection: >
   72% is not a good number. That is why the product is built around abstention. A softmax always answers; the product should not. So before anything is sent the belt asks two more questions, have you seen this before and how sure are you, and fails either one to a person. The cost of that rule is somebody's afternoon, and the ward page shows the inspector hours it took, because pretending it is free is how a model loses trust.
 
+
   What is still wrong is named openly. The belt footage is generated reference footage; the tracking and every classification on it are real, but a real camera will bring dirt, glare and overlap the training set never saw. Six classes is not a municipality's waste stream. And 57.6% after reframing is the honest ceiling of a 494 KB network trained on studio photographs. The next version starts with the belt, not the lab.
 refl_bg: "assets/img/collectio/flow-fail.webp"
 next_project:
