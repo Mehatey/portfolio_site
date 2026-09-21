@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="{{ '/assets/js/gl-budget.js' | relative_url }}"></script>
+    <title>{{ page.title }} · Sid Mehta</title>
+    <meta name="description" content="{{ page.description }}" />
+    <link rel="icon" type="image/svg+xml" href="{{ site.baseurl }}/favicon.svg" />
+    <link rel="icon" href="{{ site.baseurl }}/favicon.ico" sizes="any" />
+    {% include head_bootstrap.html %}
+    <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.url }}" />
+    <meta property="og:title" content="{{ page.title }} · Sid Mehta" />
+    <meta property="og:description" content="{{ page.description }}" />
+    <meta property="og:image" content="{{ site.url }}{{ site.baseurl }}/assets/img/og-card-v2.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
+    />
+    {% include design_tokens.html %}
+    <style>
+      /* ══════════════════════════════════════════════════════════════════
+         THE REEL
+
+         Sid: "one page where it's just Siddharth Mehta as a work project
+         ... across all my work projects based on the final outcome photo
+         ... it shouldn't have way too much text. more top level, more
+         visual ... the more scroll interactions and transitions you can do,
+         the better. divide it by headers."
+
+         One long scroll, six chapters, each a capability with the best
+         finished outcome from the projects that prove it. Almost no words:
+         a chapter number, a title, one line, and then the work. Every
+         picture is the thing in use, not a screen in a frame.
+
+         MOTION. All of it is CSS scroll-driven animation (animation-timeline:
+         view()), so it costs nothing per frame and needs no script: media
+         rises and unblurs as it enters, chapter titles slide across the
+         viewport as you pass them, the big number behind each chapter
+         counts up in scale, and alternate rows drift against each other.
+         Browsers without scroll-driven animations get the page still,
+         which is fine: it is a page of pictures.
+         ══════════════════════════════════════════════════════════════════ */
+      :root {
+        --reel-ink: var(--ink, #f2efe8);
+        --reel-dim: var(--ink-3, rgba(255, 255, 255, 0.6));
+        --reel-line: var(--line-2, rgba(255, 255, 255, 0.14));
+        --reel-gutter: clamp(20px, 5vw, 80px);
+      }
+      body.reel-page {
+        overflow-x: clip;
+      }
+      .reel {
+        position: relative;
+        z-index: 1;
+        padding-top: calc(var(--nav-h, 72px) + 8vh);
+      }
+
+      /* ── HERO ─────────────────────────────────────────────────────────── */
+      .reel-hero {
+        min-height: calc(100svh - var(--nav-h, 72px));
+        display: grid;
+        align-content: center;
+        padding: 0 var(--reel-gutter) 12vh;
+      }
+      .reel-hero__kicker {
+        font: 500 11px/1 var(--font-mono);
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--reel-dim);
+        margin: 0 0 22px;
+      }
+      .reel-hero__name {
+        margin: 0;
+        font-family: var(--font-head);
+        font-weight: 300;
+        font-size: clamp(56px, 11vw, 168px);
+        line-height: 0.92;
+        letter-spacing: -0.045em;
+        color: var(--reel-ink);
+      }
+      .reel-hero__name b {
+        font-weight: 600;
+      }
+      .reel-hero__line {
+        margin: 28px 0 0;
+        max-width: 42ch;
+        font-family: var(--font-head);
+        font-size: clamp(16px, 1.4vw, 21px);
+        line-height: 1.45;
+        color: var(--reel-dim);
+      }
+      .reel-hero__tags {
+        margin: 36px 0 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 10px;
+        padding: 0;
+        list-style: none;
+      }
+      .reel-hero__tags li {
+        font: 500 11px/1 var(--font-mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--reel-ink);
+        border: 1px solid var(--reel-line);
+        border-radius: 999px;
+        padding: 9px 13px;
+      }
+      .reel-hero__hint {
+        margin: 9vh 0 0;
+        font: 400 11px/1 var(--font-mono);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--reel-dim);
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .reel-hero__hint i {
+        display: inline-block;
+        width: 1px;
+        height: 34px;
+        background: var(--reel-dim);
+        animation: reelHint 1.8s ease-in-out infinite;
+        transform-origin: top;
+      }
+      @keyframes reelHint {
+        0% {
+          transform: scaleY(0);
+          transform-origin: top;
+        }
+        50% {
+          transform: scaleY(1);
+          transform-origin: top;
+        }
+        51% {
+          transform-origin: bottom;
+        }
+        100% {
+          transform: scaleY(0);
+          transform-origin: bottom;
+        }
+      }
+
+      /* ── CHAPTER ──────────────────────────────────────────────────────── */
+      .reel-ch {
+        position: relative;
+        padding: 14vh var(--reel-gutter) 6vh;
+        border-top: 1px solid var(--reel-line);
+      }
+      /* The chapter's number, enormous and faint, behind the title. It
+         grows as the chapter arrives and shrinks as it leaves, so the
+         scroll reads as a camera passing over a set of plates. */
+      .reel-ch__num {
+        position: absolute;
+        right: var(--reel-gutter);
+        top: 4vh;
+        z-index: 0;
+        font-family: var(--font-head);
+        font-weight: 600;
+        font-size: clamp(120px, 24vw, 360px);
+        line-height: 1;
+        letter-spacing: -0.06em;
+        color: transparent;
+        -webkit-text-stroke: 1px var(--reel-line);
+        pointer-events: none;
+        user-select: none;
+      }
+      .reel-ch__head {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
+        gap: 24px 48px;
+        align-items: end;
+        margin-bottom: clamp(36px, 6vh, 72px);
+      }
+      .reel-ch__title {
+        margin: 0;
+        font-family: var(--font-head);
+        font-weight: 300;
+        font-size: clamp(40px, 6.4vw, 96px);
+        line-height: 0.98;
+        letter-spacing: -0.04em;
+        color: var(--reel-ink);
+      }
+      .reel-ch__title b {
+        font-weight: 600;
+      }
+      .reel-ch__line {
+        margin: 0 0 10px;
+        font-family: var(--font-head);
+        font-size: clamp(15px, 1.25vw, 19px);
+        line-height: 1.5;
+        color: var(--reel-dim);
+        max-width: 40ch;
+      }
+      .reel-ch__from {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px 14px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font: 500 11px/1 var(--font-mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--reel-dim);
+      }
+      .reel-ch__from a {
+        color: inherit;
+        text-decoration: none;
+        border-bottom: 1px solid transparent;
+        transition:
+          color 200ms ease,
+          border-color 200ms ease;
+      }
+      .reel-ch__from a:hover {
+        color: var(--reel-ink);
+        border-bottom-color: var(--reel-ink);
+      }
+
+      /* ── PLATES ───────────────────────────────────────────────────────── */
+      .reel-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: clamp(12px, 1.6vw, 24px);
+      }
+      .reel-plate {
+        position: relative;
+        overflow: hidden;
+        border-radius: 6px;
+        background: rgba(127, 127, 127, 0.08);
+        grid-column: span 6;
+      }
+      .reel-plate--wide {
+        grid-column: span 12;
+      }
+      .reel-plate--third {
+        grid-column: span 4;
+      }
+      .reel-plate--tall {
+        grid-column: span 4;
+        grid-row: span 2;
+      }
+      .reel-plate--8 {
+        grid-column: span 8;
+      }
+      .reel-plate img,
+      .reel-plate video {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        aspect-ratio: var(--ar, 16 / 10);
+      }
+      .reel-plate--tall img,
+      .reel-plate--tall video {
+        aspect-ratio: var(--ar, 3 / 4);
+      }
+      .reel-plate--wide img,
+      .reel-plate--wide video {
+        aspect-ratio: var(--ar, 21 / 9);
+      }
+
+      /* ── SCROLL-DRIVEN MOTION ─────────────────────────────────────────── */
+      @supports (animation-timeline: view()) {
+        @media (prefers-reduced-motion: no-preference) {
+          .reel-plate {
+            animation: reelIn linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 55%;
+          }
+          .reel-plate:nth-child(3n + 2) {
+            animation-name: reelInLeft;
+          }
+          .reel-plate:nth-child(3n) {
+            animation-name: reelInRight;
+          }
+          .reel-plate img,
+          .reel-plate video {
+            animation: reelZoom linear both;
+            animation-timeline: view();
+            animation-range: entry 0% exit 100%;
+          }
+          .reel-ch__num {
+            animation: reelNum linear both;
+            animation-timeline: view();
+            animation-range: entry 0% exit 100%;
+          }
+          .reel-ch__title {
+            animation: reelTitle linear both;
+            animation-timeline: view();
+            animation-range: entry 0% entry 60%;
+          }
+          .reel-ch__line,
+          .reel-ch__from {
+            animation: reelFade linear both;
+            animation-timeline: view();
+            animation-range: entry 10% entry 70%;
+          }
+          .reel-hero__name {
+            animation: reelHeroOut linear both;
+            animation-timeline: view();
+            animation-range: exit 0% exit 100%;
+          }
+        }
+      }
+      @keyframes reelIn {
+        from {
+          opacity: 0;
+          transform: translateY(64px) scale(0.96);
+          filter: blur(10px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+          filter: blur(0);
+        }
+      }
+      @keyframes reelInLeft {
+        from {
+          opacity: 0;
+          transform: translate(-40px, 48px) rotate(-1.2deg);
+          filter: blur(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+          filter: blur(0);
+        }
+      }
+      @keyframes reelInRight {
+        from {
+          opacity: 0;
+          transform: translate(40px, 48px) rotate(1.2deg);
+          filter: blur(8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+          filter: blur(0);
+        }
+      }
+      /* The picture inside the plate travels slower than the plate, which
+         is parallax at the depth of a print sitting in a mount. */
+      @keyframes reelZoom {
+        from {
+          transform: scale(1.12) translateY(-4%);
+        }
+        to {
+          transform: scale(1) translateY(4%);
+        }
+      }
+      @keyframes reelNum {
+        from {
+          transform: translateY(18vh) scale(0.7);
+          opacity: 0;
+        }
+        40% {
+          opacity: 1;
+        }
+        to {
+          transform: translateY(-30vh) scale(1.15);
+          opacity: 0;
+        }
+      }
+      @keyframes reelTitle {
+        from {
+          opacity: 0;
+          transform: translateX(-6vw);
+          letter-spacing: 0.02em;
+        }
+        to {
+          opacity: 1;
+          transform: none;
+          letter-spacing: -0.04em;
+        }
+      }
+      @keyframes reelFade {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @keyframes reelHeroOut {
+        to {
+          transform: translateY(-14vh) scale(0.94);
+          opacity: 0;
+          filter: blur(6px);
+        }
+      }
+
+      /* ── MARQUEE BETWEEN CHAPTERS ─────────────────────────────────────── */
+      .reel-marq {
+        overflow: hidden;
+        border-top: 1px solid var(--reel-line);
+        border-bottom: 1px solid var(--reel-line);
+        padding: 14px 0;
+        -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+      }
+      .reel-marq__track {
+        display: flex;
+        gap: 48px;
+        width: max-content;
+        animation: reelMarq 40s linear infinite;
+        font-family: var(--font-head);
+        font-weight: 300;
+        font-size: clamp(22px, 3vw, 44px);
+        letter-spacing: -0.02em;
+        color: var(--reel-dim);
+        white-space: nowrap;
+      }
+      .reel-marq__track span::after {
+        content: "·";
+        margin-left: 48px;
+        color: var(--reel-line);
+      }
+      @keyframes reelMarq {
+        to {
+          transform: translateX(-50%);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .reel-marq__track,
+        .reel-hero__hint i {
+          animation: none;
+        }
+      }
+
+      /* ── RECOGNITION ──────────────────────────────────────────────────── */
+      .reel-awards {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 18px;
+      }
+      .reel-award {
+        border: 1px solid var(--reel-line);
+        border-radius: 8px;
+        padding: 22px 22px 20px;
+        display: grid;
+        gap: 12px;
+      }
+      .reel-award img {
+        width: 84px;
+        height: auto;
+        border-radius: 3px;
+      }
+      .reel-award b {
+        font-family: var(--font-head);
+        font-weight: 500;
+        font-size: 16px;
+        color: var(--reel-ink);
+      }
+      .reel-award span {
+        font: 400 11px/1.4 var(--font-mono);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--reel-dim);
+      }
+
+      /* ── CLOSE ────────────────────────────────────────────────────────── */
+      .reel-close {
+        padding: 18vh var(--reel-gutter) 16vh;
+        border-top: 1px solid var(--reel-line);
+        display: grid;
+        gap: 22px;
+      }
+      .reel-close h2 {
+        margin: 0;
+        font-family: var(--font-head);
+        font-weight: 300;
+        font-size: clamp(40px, 7vw, 108px);
+        line-height: 0.95;
+        letter-spacing: -0.045em;
+        color: var(--reel-ink);
+        max-width: 14ch;
+      }
+      .reel-close h2 b {
+        font-weight: 600;
+      }
+      .reel-close__row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      .reel-close__row a {
+        font: 500 12px/1 var(--font-mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        text-decoration: none;
+        color: var(--reel-ink);
+        border: 1px solid var(--reel-ink);
+        border-radius: 999px;
+        padding: 14px 20px;
+        transition:
+          background-color 200ms ease,
+          color 200ms ease;
+      }
+      .reel-close__row a:hover {
+        background: var(--reel-ink);
+        color: var(--bg, #0b0e14);
+      }
+      .reel-close__row a.is-primary {
+        background: var(--reel-ink);
+        color: var(--bg, #0b0e14);
+      }
+      .reel-close__row a.is-primary:hover {
+        background: #3fbf7f;
+        color: #0b0e14;
+        border-color: #3fbf7f;
+      }
+
+      /* ── HOVER ────────────────────────────────────────────────────────── */
+      .reel-plate {
+        transition: transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reel-plate:hover {
+        transform: translateY(-4px);
+      }
+      .reel-plate img,
+      .reel-plate video {
+        transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .reel-plate:hover img,
+      .reel-plate:hover video {
+        transform: scale(1.03);
+      }
+
+      /* ── ABOUT ────────────────────────────────────────────────────────── */
+      .reel-about {
+        display: grid;
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        gap: clamp(20px, 3vw, 48px);
+        align-items: end;
+        padding: 0 var(--reel-gutter) 12vh;
+      }
+      .reel-about__pic {
+        overflow: hidden;
+        border-radius: 6px;
+        aspect-ratio: 4 / 5;
+      }
+      .reel-about__pic img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+      .reel-about__facts {
+        display: grid;
+        gap: 0;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .reel-about__facts li {
+        display: grid;
+        grid-template-columns: 9ch minmax(0, 1fr);
+        gap: 20px;
+        padding: 16px 0;
+        border-top: 1px solid var(--reel-line);
+        font-family: var(--font-head);
+        font-size: clamp(15px, 1.25vw, 19px);
+        line-height: 1.4;
+        color: var(--reel-ink);
+      }
+      .reel-about__facts li:last-child {
+        border-bottom: 1px solid var(--reel-line);
+      }
+      .reel-about__facts li span {
+        font: 500 11px/1.9 var(--font-mono);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--reel-dim);
+      }
+
+      /* ── FILM STRIP ───────────────────────────────────────────────────── */
+      /* A row of plates that slides sideways as the page scrolls down:
+         the AI experiments, all twelve, as a strip of film pulled past. */
+      .reel-strip {
+        position: relative;
+        z-index: 1;
+        margin: clamp(24px, 4vh, 48px) calc(-1 * var(--reel-gutter)) 0;
+        overflow: hidden;
+        padding: 2vh 0 10vh;
+      }
+      .reel-strip__track {
+        display: flex;
+        gap: clamp(12px, 1.6vw, 24px);
+        width: max-content;
+        padding: 0 var(--reel-gutter);
+      }
+      .reel-strip__track .reel-plate {
+        flex: 0 0 auto;
+        width: clamp(300px, 32vw, 520px);
+      }
+      .reel-strip__track .reel-plate img,
+      .reel-strip__track .reel-plate video {
+        aspect-ratio: 16 / 10;
+      }
+      @supports (animation-timeline: view()) {
+        @media (prefers-reduced-motion: no-preference) {
+          .reel-strip__track {
+            animation: reelStrip linear both;
+            animation-timeline: view();
+            animation-range: entry 0% exit 100%;
+          }
+          .reel-strip__track .reel-plate {
+            animation: none;
+          }
+        }
+      }
+      @keyframes reelStrip {
+        from {
+          transform: translateX(8vw);
+        }
+        to {
+          transform: translateX(calc(-100% + 100vw - 8vw));
+        }
+      }
+      @media (max-width: 860px) {
+        .reel-about {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 860px) {
+        .reel-ch__head {
+          grid-template-columns: 1fr;
+        }
+        .reel-plate,
+        .reel-plate--third,
+        .reel-plate--8 {
+          grid-column: span 12;
+        }
+        .reel-plate--tall {
+          grid-column: span 12;
+          grid-row: auto;
+        }
+        .reel-plate--tall img,
+        .reel-plate--tall video {
+          aspect-ratio: 4 / 5;
+        }
+        .reel-ch__num {
+          font-size: 34vw;
+          top: 2vh;
+        }
+      }
+    </style>
+  </head>
+  <body class="reel-page">
+    {% include site_field.html %} {% include studio_nav.html active="work" %}
+    <main class="reel" id="main">{{ content }}</main>
+    {% include site_footer.html bare=true %} {% include cursor_fluid.html %} {% include motion_stack.html %}
+  </body>
+</html>
