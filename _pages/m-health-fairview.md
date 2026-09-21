@@ -63,106 +63,77 @@ next_project:
 <style>
   @keyframes fvBreathe { 0%,100%{transform:scale(1) translateY(0);} 50%{transform:scale(1.006) translateY(-2px);} }
 </style>
+<style>
+  /* ── THE BAND ────────────────────────────────────────────────────────
+     Sid: "this one can be a zoomed in and since its a wide image can
+     continuously have motion and keep going in one direction like a
+     divider visual band." Five chapter cards from the original deck, run
+     as one strip that never stops: the image twice in a row, translated
+     by half its width on a loop, so the seam is invisible. It marks each
+     chapter of the page. */
+  .fv-band { overflow: hidden; margin: clamp(40px, 6vw, 88px) 0; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+  .fv-band__track { display: flex; width: max-content; animation: fvBand 48s linear infinite; }
+  .fv-band__track img { display: block; height: clamp(120px, 16vw, 220px); width: auto; }
+  @keyframes fvBand { to { transform: translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce) { .fv-band__track { animation: none; } }
+</style>
 
-<!-- ── THE ORDER, AND WHY ────────────────────────────────────────────────
-     Sid: "in the fairview page there is one metric screen you can bring that
-     before and an ai chat which takes too much space add it to a grid. also
-     keep the icons which are animated and the movie version and remove the
-     other version which is jsut a png. also a lot of pages have too much of a
-     scroll with too many full length images which dont deserve to be there or
-     the order of the work details needs to be better to tell the story
-     better."
+<!-- ── THE STORY, IN ORDER ─────────────────────────────────────────────
+     Sid: "its too long of a scroll and in the beginning i have no idea what
+     the story is." Rebuilt as five chapters, each opened by the band from
+     the original deck: what Fairview is, what was broken, what we did,
+     what shipped, what it did. Eleven media blocks, down from fourteen. -->
 
-     All four of those were the same page. It ran as fourteen full-bleed
-     blocks in a single column, every one of them the same size and therefore
-     the same importance, and the numbers that justify the whole project were
-     the fourteenth thing you reached.
-
-     THE IMPACT MOVES UP. It now follows the before-and-after, because that
-     pairing is the argument: here is what changed, here is what it did.
-     Everything after it is the detail of how, which is the right thing to
-     read second and the wrong thing to read for six screens before you have
-     been told whether it worked.
-
-     FOUR PAIRS BECOME GRIDS. Business needs and the heuristic audit are one
-     analysis and were two scrolls. Constraints and research likewise. The
-     assistant is a 796x1126 phone recording that was being served at the same
-     width as a 1600px desktop board, which is where "takes too much space"
-     comes from — it is beside the prepare-for-your-visit screen now, at the
-     size a phone actually is.
-
-     THE STATIC ICONS COME OUT. 09-compare.webp was one tall screenshot
-     carrying the specialty icon grid AND the care-type comparison table, and
-     the icon grid in it is the same set that specialty-icons.mp4 animates two
-     blocks later. The still is cropped down to the comparison table, so the
-     icons appear once, moving.
-
-     Fourteen bleeds to eight bleeds and three grids. -->
+<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/00-journey.webp" alt="Our journey: the M Health Fairview project" loading="lazy" decoding="async" /></div>
 
 <div class="cs-section">
-  <h2 class="cs-section-label">The brief</h2>
+  <h2 class="cs-section-label">01 · About the project</h2>
 </div>
+<p class="cube-cap cube-cap--above">One of Minnesota's largest health systems: 100+ hospitals and 60 clinics, one promise to patients.</p>
+<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/00-about.webp" alt="M Health Fairview: care you can trust, on your terms" loading="lazy" decoding="async" /></div>
 
-<!-- ── ONE CAPTION PER GROUP, NOT PER PICTURE ──────────────────────────
-     Sid: "see that we're not using captions for every single divider page,
-     because that increases more vertical spacing and we have a longer scroll
-     in general." And: "we don't need a dash which says Loyalty Enrollment and
-     then another number which says Loyalty Enrollment below it."
+<div class="fv-band" aria-hidden="true"><div class="fv-band__track"><img src="{{ site.baseurl }}/assets/img/fairview/band.webp" alt="" loading="lazy" decoding="async" /><img src="{{ site.baseurl }}/assets/img/fairview/band.webp" alt="" loading="lazy" decoding="async" /></div></div>
 
-     Counted, this page captioned every image it had. Consecutive runs then
-     said the same thing three ways -- the dashboard, then the dashboard
-     specified, then the dashboard's occupancy, then the dashboard's
-     reservations -- and each caption costs a 24px margin plus its own line
-     before the picture it introduces.
-
-     What survives is the caption that carries a DESIGN point: what the screen
-     is for, or what was decided. What goes is the caption that names what a
-     reader can already see. The pictures still read in sequence because they
-     are in sequence; they did not each need announcing. -->
-<p class="cube-cap cube-cap--above">The requirement, broken down with Deloitte Digital.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/01-requirements.webp" alt="Client requirements and problems to solve" loading="lazy" decoding="async" /></div>
-
-<p class="cube-cap cube-cap--above">The audit: a broken booking flow, and a misleading Emergency Care button.</p>
-<div class="cs-grid cs-grid--fit">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/02-needs.webp" alt="Business needs, user needs and heuristic analysis" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/03-audit.webp" alt="Annotated heuristic audit of the existing site" loading="lazy" decoding="async" /></div>
+<div class="cs-section">
+  <h2 class="cs-section-label">02 · The problem</h2>
 </div>
-
-<p class="cube-cap cube-cap--above">The constraints: a third party API, two sprints, no access to patients.</p>
+<p class="cube-cap cube-cap--above">Four problems for patients, five needs for the business. The brief was to solve both on one page.</p>
+<div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/01-requirements.webp" alt="Problems to solve and business needs" loading="lazy" decoding="async" /></div>
+<p class="cube-cap cube-cap--above">The audit: a booking flow that broke, an Emergency Care button that misled, and no patient access to test against.</p>
 <div class="cs-grid cs-grid--fit">
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/04-constraints.webp" alt="Project constraints" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/05-research.webp" alt="Secondary research, ideation and initial concepts" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/03-audit.webp" alt="Annotated heuristic audit of the existing site" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/04-constraints.webp" alt="Project constraints: third party API, two sprints, no patient access" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-section">
-  <h2 class="cs-section-label">What changed</h2>
+  <h2 class="cs-section-label">03 · The process</h2>
+</div>
+<p class="cube-cap cube-cap--above">Six stages, two sprints. Discover and define with the functional team, design against a feasibility check, deliver hi-fi with dev notes, then QA every build.</p>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/14-process.webp" alt="The six-stage process: discover, define, design, deliver, develop, deploy" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/05-research.webp" alt="Secondary research, ideation and initial concepts" loading="lazy" decoding="async" /></div>
 </div>
 
-<p class="cube-cap cube-cap--above">Before and after. Every action in the first fold, sorted by urgency.</p>
+<div class="cs-section">
+  <h2 class="cs-section-label">04 · What shipped</h2>
+</div>
+<p class="cube-cap cube-cap--above">Before and after. Every action in the first fold, sorted by how soon you need care.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
-
-<p class="cube-cap cube-cap--above">$13.6M in scheduling revenue, and 32% more new patients booking themselves.</p>
-<!-- The "OUR IMPACT" title panel and the 3D climber above it are cropped off. Sid: "there's this whole image which says Our Impact, like it's a long image. We can cut that Our Impact 3D model section and just have this latter part of the image." A stock 3D character holding a flag is stage dressing in front of the only numbers on the page, and on a 2,545px tall image it is the first thousand pixels a reader has to scroll past to reach them. The crop starts at y=900, just above "With each update we elevate our customer's experience", which is where the content actually begins. -->
-<div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/fairview/13-impact-crop.webp" alt="Impact metrics: $13.6M revenue through scheduling, 22% more e-visits, 32% more new patients scheduling" loading="lazy" decoding="async" /></div>
-
-<div class="cs-section">
-  <h2 class="cs-section-label">The system</h2>
-</div>
-
-<p class="cube-cap cube-cap--above">The new entry point. One clear place to start.</p>
+<p class="cube-cap cube-cap--above">The new entry point, in motion.</p>
 <div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
-
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/08-getcare.webp" alt="Get Care Today and Schedule Your Care" loading="lazy" decoding="async" /></div>
-
-<p class="cube-cap cube-cap--above">Care types compared by cost, wait and what they treat.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/09-comparison.webp" alt="Side by side comparison of every care type by cost, wait and what it treats" loading="lazy" decoding="async" /></div>
-
-<div class="cs-bleed"><video width="1600" height="908" src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
-
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/10-caretypes.gif" alt="Care type selection in motion" loading="lazy" decoding="async" /></div>
-
-<p class="cube-cap cube-cap--above">A helper for patients who would rather be led than browse.</p>
+<p class="cube-cap cube-cap--above">Care types compared by cost, wait and what they treat, and the specialty set that carries them.</p>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/09-comparison.webp" alt="Side by side comparison of every care type by cost, wait and what it treats" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><video width="1600" height="908" src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
+</div>
+<p class="cube-cap cube-cap--above">A helper for patients who would rather be led than browse, and a checklist for the visit itself.</p>
 <div class="cs-grid cs-grid--fit">
   <div class="cs-grid-item"><video width="796" height="1126" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="{{ site.baseurl }}/assets/img/fairview/11-assistant.mp4" type="video/mp4" /></video></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async" /></div>
 </div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">05 · Impact</h2>
+</div>
+<p class="cube-cap cube-cap--above">$13.6M through scheduling, 32% more new patients booking themselves, 22% more e-visits, and the top-rated care app against every direct competitor.</p>
+<div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/fairview/13-impact.webp" alt="Impact: 22% more e-visits, 32% more new patients scheduling, $13.6M revenue through scheduling, 4.4 rated app" loading="lazy" decoding="async" style="max-width:1100px;width:100%;" /></div>

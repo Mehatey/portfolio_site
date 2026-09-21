@@ -59,6 +59,21 @@
     align-items: center;
     gap: 16px;
   }
+  /* Tall boards scroll rather than shrink. A 1400x1786 spec fitted to
+     the window's height rendered 600px wide, which is the size it was
+     unreadable at on the page. The viewer takes the picture at the full
+     width available and lets the reader scroll down it. */
+  .cslb.is-tall {
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+  .cslb.is-tall .cslb__fig {
+    max-height: none;
+  }
+  .cslb.is-tall .cslb__img {
+    max-height: none;
+    width: min(100%, 1400px);
+  }
   .cslb__img {
     max-width: 100%;
     /* Room for the caption under it without either being cropped. */
@@ -112,6 +127,37 @@
      only honest way to say they now open is to say it on approach. */
   .proj-body img.cslb-able {
     cursor: zoom-in;
+  }
+  /* ── DENSE BOARDS SAY SO ────────────────────────────────────────────
+     Sid: "a lot of the analysis that I do on the ui is too small to be
+     seen." The annotated spec boards are 1400px wide with 11px callouts;
+     at grid width the callouts are texture. The cursor already says
+     zoom-in, but this site draws its own cursor, so nobody sees it. Any
+     media block marked data-zoom carries a pill that says it opens, and
+     the viewer shows the picture at the full height of the window. */
+  .proj-body [data-zoom] {
+    position: relative;
+  }
+  .proj-body [data-zoom]::after {
+    content: "Open larger";
+    position: absolute;
+    right: 14px;
+    bottom: 14px;
+    z-index: 2;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font: 500 11px/1 var(--font-mono, ui-monospace, monospace);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #0b0e14;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    pointer-events: none;
+    opacity: 0.9;
+    transition: opacity 200ms ease;
+  }
+  .proj-body [data-zoom]:hover::after {
+    opacity: 1;
   }
   @media (prefers-reduced-motion: reduce) {
     .cslb__close {
@@ -172,6 +218,12 @@
       if (!el) return;
       index = i;
       img.src = el.currentSrc || el.src;
+      /* Taller than wide, and taller than the window at full width: let
+         the viewer scroll it instead of fitting it. */
+      var nw = el.naturalWidth || 1,
+        nh = el.naturalHeight || 1;
+      box.classList.toggle("is-tall", nh / nw > 1.05 && (Math.min(window.innerWidth, 1400) * nh) / nw > window.innerHeight);
+      box.scrollTop = 0;
       img.alt = el.alt || "";
       var t = captionFor(el);
       cap.textContent = t;
