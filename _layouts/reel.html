@@ -53,6 +53,16 @@
       body.reel-page {
         overflow-x: clip;
       }
+      /* ── THE PAGE BENDS ─────────────────────────────────────────────────
+         Sid: "attach some curve on the media or bend like we wanted when we
+         scroll on the top of the page as a whole not individual pics." One
+         clip path on the whole page, its top and bottom edges arcing with
+         scroll velocity: scroll down and the top of the page bows, stop and
+         it flattens. Written by the script at the foot of this file from
+         --sv, the site's shared damped scroll velocity. */
+      .reel {
+        clip-path: url(#reel-bend);
+      }
       .reel {
         position: relative;
         z-index: 1;
@@ -73,24 +83,20 @@
         color: var(--reel-dim);
         margin: 0 0 22px;
       }
+      /* One weight, the site's display token, and a size a title should be.
+         Sid: "i dont like how u have multiple weights in title text and its
+         too big." */
       .reel-hero__name {
         margin: 0;
-        font-family: var(--font-head);
-        font-weight: 300;
-        font-size: clamp(56px, 11vw, 168px);
-        line-height: 0.92;
-        letter-spacing: -0.045em;
+        font: var(--type-display);
+        font-size: clamp(44px, 6.4vw, 92px);
+        letter-spacing: -0.035em;
         color: var(--reel-ink);
       }
-      .reel-hero__name b {
-        font-weight: 600;
-      }
       .reel-hero__line {
-        margin: 28px 0 0;
-        max-width: 42ch;
-        font-family: var(--font-head);
-        font-size: clamp(16px, 1.4vw, 21px);
-        line-height: 1.45;
+        margin: 24px 0 0;
+        max-width: 44ch;
+        font: var(--type-body-lg);
         color: var(--reel-dim);
       }
       .reel-hero__tags {
@@ -162,34 +168,33 @@
         z-index: 0;
         font-family: var(--font-head);
         font-weight: 600;
-        font-size: clamp(120px, 24vw, 360px);
+        font-size: clamp(96px, 16vw, 240px);
         line-height: 1;
         letter-spacing: -0.06em;
         color: transparent;
         -webkit-text-stroke: 1px var(--reel-line);
+        opacity: 0.7;
         pointer-events: none;
         user-select: none;
       }
+      /* Title, then the projects it draws from, on one left edge with a
+         hairline between: a heading and its meta, not two things floating.
+         Sid: "dont like how project text labels just sit there pls do
+         proper typography spacing and hierarchy." */
       .reel-ch__head {
         position: relative;
         z-index: 1;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr);
-        gap: 24px 48px;
-        align-items: end;
-        margin-bottom: clamp(36px, 6vh, 72px);
+        gap: 18px;
+        max-width: 64ch;
+        margin-bottom: clamp(32px, 5vh, 56px);
       }
       .reel-ch__title {
         margin: 0;
-        font-family: var(--font-head);
-        font-weight: 300;
-        font-size: clamp(40px, 6.4vw, 96px);
-        line-height: 0.98;
-        letter-spacing: -0.04em;
+        font: var(--type-display);
+        font-size: clamp(36px, 4.6vw, 64px);
+        letter-spacing: -0.03em;
         color: var(--reel-ink);
-      }
-      .reel-ch__title b {
-        font-weight: 600;
       }
       .reel-ch__line {
         margin: 0 0 10px;
@@ -202,11 +207,12 @@
       .reel-ch__from {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px 14px;
+        gap: 8px 22px;
         margin: 0;
-        padding: 0;
+        padding: 14px 0 0;
+        border-top: 1px solid var(--reel-line);
         list-style: none;
-        font: 500 11px/1 var(--font-mono);
+        font: var(--type-micro);
         letter-spacing: 0.1em;
         text-transform: uppercase;
         color: var(--reel-dim);
@@ -258,7 +264,14 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+        object-position: var(--pos, 50% 50%);
         aspect-ratio: var(--ar, 16 / 10);
+      }
+      /* A mockup with its own ground is shown whole, never cropped. */
+      .reel-plate--fit img,
+      .reel-plate--fit video {
+        object-fit: contain;
+        background: var(--plate-bg, rgba(127, 127, 127, 0.08));
       }
       .reel-plate--tall img,
       .reel-plate--tall video {
@@ -481,16 +494,11 @@
       }
       .reel-close h2 {
         margin: 0;
-        font-family: var(--font-head);
-        font-weight: 300;
-        font-size: clamp(40px, 7vw, 108px);
-        line-height: 0.95;
-        letter-spacing: -0.045em;
+        font: var(--type-display);
+        font-size: clamp(40px, 5.6vw, 80px);
+        letter-spacing: -0.035em;
         color: var(--reel-ink);
-        max-width: 14ch;
-      }
-      .reel-close h2 b {
-        font-weight: 600;
+        max-width: 16ch;
       }
       .reel-close__row {
         display: flex;
@@ -617,19 +625,22 @@
           .reel-strip__track {
             animation: reelStrip linear both;
             animation-timeline: view();
-            animation-range: entry 0% exit 100%;
+            animation-range: entry 30% exit 70%;
           }
           .reel-strip__track .reel-plate {
             animation: none;
           }
         }
       }
+      /* Starts with the first card at the left gutter and ends with the
+         last card at the right gutter; between, the strip is pulled past
+         at the page's own scroll speed. */
       @keyframes reelStrip {
         from {
-          transform: translateX(8vw);
+          transform: translateX(0);
         }
         to {
-          transform: translateX(calc(-100% + 100vw - 8vw));
+          transform: translateX(calc(-100% + 100vw));
         }
       }
       @media (max-width: 860px) {
@@ -666,5 +677,57 @@
     {% include site_field.html %} {% include studio_nav.html active="work" %}
     <main class="reel" id="main">{{ content }}</main>
     {% include site_footer.html bare=true %} {% include cursor_fluid.html %} {% include motion_stack.html %}
+    <script src="{{ site.baseurl }}/assets/js/scroll-velocity.js" defer></script>
+    <svg width="0" height="0" style="position: absolute" aria-hidden="true">
+      <clipPath id="reel-bend" clipPathUnits="objectBoundingBox">
+        <path id="reel-bend-path" d="M0,0 L1,0 L1,1 L0,1 Z" />
+      </clipPath>
+    </svg>
+    <script>
+      /* The page's own edges arc with the scroll. One path in bounding-box
+         units on the whole <main>; the top edge sags in the middle when the
+         page is being pulled down, the bottom edge bows the other way on the
+         way up, and both flatten as the wheel stops. --sv comes from
+         scroll-velocity.js. The amount is small on purpose: this is the
+         sheet flexing, not the sheet folding. */
+      (function () {
+        if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        var path = document.getElementById("reel-bend-path");
+        var main = document.querySelector(".reel");
+        if (!path || !main) return;
+        var html = document.documentElement;
+        var cur = 0,
+          raf = 0,
+          last = "";
+        function frame() {
+          raf = 0;
+          var sv = parseFloat(getComputedStyle(html).getPropertyValue("--sv")) || 0;
+          cur += (sv - cur) * 0.12;
+          /* In box units the page is ~16000px tall, so a visible bend at the
+             viewport needs to be scaled to the page height. */
+          var H = main.offsetHeight || 1;
+          var px = Math.abs(cur) * 90; /* up to 90px of sag */
+          var a = px / H;
+          var d;
+          if (cur > 0.005) {
+            d = "M0,0 Q0.5," + (2 * a).toFixed(5) + " 1,0 L1,1 L0,1 Z";
+          } else if (cur < -0.005) {
+            d = "M0,0 L1,0 L1,1 Q0.5," + (1 - 2 * a).toFixed(5) + " 0,1 Z";
+          } else {
+            d = "M0,0 L1,0 L1,1 L0,1 Z";
+          }
+          if (d !== last) {
+            path.setAttribute("d", d);
+            last = d;
+          }
+          if (Math.abs(sv - cur) > 0.002 || Math.abs(cur) > 0.005) raf = requestAnimationFrame(frame);
+        }
+        function kick() {
+          if (!raf) raf = requestAnimationFrame(frame);
+        }
+        window.addEventListener("scroll", kick, { passive: true });
+        window.addEventListener("wheel", kick, { passive: true });
+      })();
+    </script>
   </body>
 </html>
