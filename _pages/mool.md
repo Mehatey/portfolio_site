@@ -110,6 +110,10 @@ next_project:
     grid-template-rows: 1fr;
   }
   .cs-grid-item { height: 100% !important; min-height: 0; overflow: hidden !important; }
+  .cs-grid--one { grid-template-columns: 1fr !important; height: auto !important; }
+  .cs-grid--one + .cs-grid--one { margin-top: 16px !important; }
+  .cs-grid--one .cs-grid-item { height: auto !important; }
+  .cs-grid--one .cs-grid-item img { height: auto !important; object-fit: contain !important; display: block; }
   .cs-grid-item img {
     width: 100%; height: 100%;
     object-fit: cover !important;
@@ -155,13 +159,14 @@ next_project:
   <h2 class="cs-section-label">The brand</h2>
 </div>
 
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/1.jpg" alt="The Mool wordmark" loading="lazy" decoding="async" />
-</div>
-
 <p class="cube-cap cube-cap--above"><em>Mool is the Sanskrit and Hindi word for the point at which something begins. Four colours, each named for what it signals rather than what it is.</em></p>
-<div class="cs-grid">
+<!-- Sid: "remove the big blue logo one and instead have the two below it
+     get their own full length image, till the grids." Each board takes the
+     grid's whole width at its own ratio. -->
+<div class="cs-grid cs-grid--one">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.1.webp" alt="The Mool name set beside its meaning" loading="lazy" decoding="async" /></div>
+</div>
+<div class="cs-grid cs-grid--one">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="The four brand colours: Freedom Blue, Auspicious Red, Growth Green, Stability Blue" loading="lazy" decoding="async" /></div>
 </div>
 

@@ -8,21 +8,31 @@
    designer text should be 3d and i should be able to move and break and
    kinda glide those title letters around the landing page."
 
-   One scene, four things in it:
+   Then: "i dont like the brown block below the water can we extend the
+   water throughout and maybe have some lotus leaves or some well designed
+   slabs or like mud islands to make the text legible. the 3d text is nice
+   but on hover it should move around the page and i shud be able to throw
+   it into the water."
 
-     the shore      a dark ground plane in the foreground, where the letters
-                    stand;
+   One scene, five things in it:
+
      the water      three's Water (a planar reflection with a normal map
-                    driving distortion and specular), from the shoreline to
-                    the horizon, so his reflection lies between him and you;
-     the figure     the rigged cube-guy GLB on a stone in the water, Idle
-                    looping, Look on hover, ClickReact on click;
-     the letters    the headline as extruded glyphs, each a Rapier rigid body
-                    resting on the shore. Drag one and it follows the hand;
-                    let go and it keeps its velocity, slides, tumbles, knocks
-                    the others.
+                    driving distortion and specular), under everything, from
+                    behind the camera to the horizon;
+     the island     one low slab of dark stone where the headline stands.
+                    Its edge is the rule: on it a letter rests, off it a
+                    letter sinks;
+     the leaves     lotus pads on the water, bobbing, nothing else;
+     the figure     the rigged cube-guy GLB on his own stone, Idle looping,
+                    Look on hover, ClickReact on click;
+     the letters    the headline as extruded glyphs, each a Rapier rigid
+                    body. Brush one and it slides away from the hand. Drag
+                    one and it follows; let go and it keeps its speed. Throw
+                    it off the island and it goes under, slowly, a ring
+                    spreading where it went in, and a moment later it is
+                    back in its place.
 
-   One warm point light follows the cursor across a plane above the shore.
+   One warm spot light follows the cursor across a plane above the island.
    It lights the letters, the figure and the water's glints; the water's sun
    direction is the same vector, so the reflection highlights move with the
    hand as well.
@@ -32,7 +42,9 @@
    any failure to create the context. In every one of those the DOM hero is
    simply left as it is. The DOM headline stays in the document for screen
    readers and search in every case; only its ink is hidden when the scene
-   is up.
+   is up. The layout adds .is-lake before first paint under the same tests,
+   so the old figure never shows for a beat; this file removes the class
+   again if it has to give up.
    ═══════════════════════════════════════════════════════════════════════ */
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
@@ -46,11 +58,15 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const hero = document.getElementById("hero");
   const host = document.getElementById("lake-stage");
   if (!hero || !host) return;
+  const giveUp = () => {
+    hero.classList.remove("is-lake");
+    window.__lakeActive = false;
+  };
 
   const prefersLess = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const coarse = matchMedia("(hover: none)").matches || innerWidth < 900;
   const budget = !window.SidGL || window.SidGL.claim("hero-lake");
-  if (prefersLess || coarse || !budget) return;
+  if (prefersLess || coarse || !budget) return giveUp();
 
   const BASE = host.getAttribute("data-base") || "";
   const LINES = ["Product designer who", "builds what he designs."];
@@ -60,7 +76,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
   } catch (e) {
-    return;
+    return giveUp();
   }
   renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -71,6 +87,15 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   renderer.domElement.className = "lake-canvas";
   host.appendChild(renderer.domElement);
 
+  /* The context is up: the scene owns the hero from here. What it replaces,
+     it stops. Sid: "why is my landing page so laggy." Twelve loops ran on
+     the hero; the model-viewer figure (its own context) and the washes are
+     under an opaque lake now, so they go. */
+  hero.classList.add("is-lake");
+  window.__lakeActive = true;
+  const mv = document.getElementById("cg-model");
+  if (mv && mv.parentNode) mv.parentNode.removeChild(mv);
+
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
   camera.position.set(0, 3.1, 9.4);
@@ -80,15 +105,34 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const isLight = () => document.documentElement.getAttribute("data-theme") === "light";
   const palette = () =>
     isLight()
-      ? { ground: 0xd9d4c8, water: 0x8fb0c4, fog: 0xf0ede6, sun: 0xfff1d6, key: 0xffe6c2, sky: 0xffffff, floor: 0xc9c3b6 }
-      : { ground: 0x101319, water: 0x0b1a2b, fog: 0x07060c, sun: 0xffd9a8, key: 0xffc98a, sky: 0x3a4a66, floor: 0x1a1e27 };
+      ? {
+          water: 0x8fb0c4,
+          fog: 0xf0ede6,
+          sun: 0xfff1d6,
+          key: 0xffe6c2,
+          sky: 0xffffff,
+          stone: 0xc9c3b6,
+          island: 0xbdb6a8,
+          leaf: 0x6f9a72,
+          ink: 0x14161c,
+        }
+      : {
+          water: 0x0b1a2b,
+          fog: 0x07060c,
+          sun: 0xffd9a8,
+          key: 0xffc98a,
+          sky: 0x3a4a66,
+          stone: 0x1a1e27,
+          island: 0x171a20,
+          leaf: 0x2c4a3c,
+          ink: 0xf2efe8,
+        };
 
   /* ── LIGHT ────────────────────────────────────────────────────────────── */
   const hemi = new THREE.HemisphereLight(0x8fa8c8, 0x141a24, 0.55);
   scene.add(hemi);
   /* A spot, not a point: a point light's shadow renders the scene six
-   times a frame, a spot's once. It follows the hand the same way and its
-   cone is wide enough to read as a lamp over the whole shore. */
+     times a frame, a spot's once. */
   const key = new THREE.SpotLight(0xffc98a, 60, 40, Math.PI / 2.6, 0.6, 1.4);
   key.position.set(-2, 3.2, 3);
   key.target.position.set(0, 0, 2.5);
@@ -101,27 +145,11 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   rim.position.set(4, 6, -6);
   scene.add(rim);
 
-  /* ── SHORE ────────────────────────────────────────────────────────────── */
-  const SHORE_Z = 1.5; /* water begins here and runs away from the camera */
-  const groundMat = new THREE.MeshStandardMaterial({ color: 0x0e1117, roughness: 0.97, metalness: 0.0 });
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 14), groundMat);
-  ground.rotation.x = -Math.PI / 2;
-  ground.position.set(0, 0, SHORE_Z + 7);
-  ground.receiveShadow = true;
-  scene.add(ground);
-
-  /* A soft lip where the shore meets the water, so the two do not meet at a
-   mathematically straight line. */
-  const lipMat = new THREE.MeshStandardMaterial({ color: 0x0c0f14, roughness: 1 });
-  const lip = new THREE.Mesh(new THREE.BoxGeometry(60, 0.08, 0.5), lipMat);
-  lip.position.set(0, -0.02, SHORE_Z);
-  scene.add(lip);
-
-  /* ── WATER ────────────────────────────────────────────────────────────── */
+  /* ── WATER, UNDER EVERYTHING ──────────────────────────────────────────── */
   const waterNormals = new THREE.TextureLoader().load(BASE + "/assets/textures/waternormals.jpg", (t) => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
   });
-  const water = new Water(new THREE.PlaneGeometry(200, 120), {
+  const water = new Water(new THREE.PlaneGeometry(240, 240), {
     textureWidth: 512,
     textureHeight: 512,
     waterNormals,
@@ -132,8 +160,142 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     fog: true,
   });
   water.rotation.x = -Math.PI / 2;
-  water.position.set(0, -0.005, SHORE_Z - 60);
+  water.position.set(0, -0.005, -30);
   scene.add(water);
+
+  /* ── THE ISLAND ───────────────────────────────────────────────────────
+     One slab, its outline drawn by hand rather than a rectangle, so its
+     edge reads as stone and not as a stage. It is exactly as wide as the
+     two lines of the headline plus a margin, and it is the only ground a
+     letter can rest on. */
+  const ISLAND = { x0: -4.35, x1: 3.35, z0: 1.3, z1: 3.45, top: 0.02, thick: 0.22 };
+  const islandMat = new THREE.MeshStandardMaterial({ color: 0x171a20, roughness: 0.96, metalness: 0.02 });
+  const island = (() => {
+    const cx = (ISLAND.x0 + ISLAND.x1) / 2,
+      cz = (ISLAND.z0 + ISLAND.z1) / 2,
+      rx = (ISLAND.x1 - ISLAND.x0) / 2,
+      rz = (ISLAND.z1 - ISLAND.z0) / 2;
+    const pts = [];
+    const N = 28;
+    for (let i = 0; i < N; i++) {
+      const a = (i / N) * Math.PI * 2;
+      /* a superellipse, so the corners are soft but the sides stay straight
+         enough to hold a line of type, with a little hand wobble */
+      const c = Math.cos(a),
+        s = Math.sin(a);
+      const k = 1 / Math.pow(Math.pow(Math.abs(c), 3.2) + Math.pow(Math.abs(s), 3.2), 1 / 3.2);
+      const wob = 1 + 0.035 * Math.sin(a * 3.1 + 0.7) + 0.02 * Math.sin(a * 7.3 + 2.1);
+      pts.push(new THREE.Vector2(cx + c * k * rx * wob, cz + s * k * rz * wob));
+    }
+    const shape = new THREE.Shape(pts);
+    const geo = new THREE.ExtrudeGeometry(shape, {
+      depth: ISLAND.thick,
+      bevelEnabled: true,
+      bevelThickness: 0.03,
+      bevelSize: 0.05,
+      bevelSegments: 3,
+      curveSegments: 4,
+    });
+    /* extruded along +z in shape space: lay it flat with its top at y = top */
+    geo.rotateX(Math.PI / 2);
+    geo.translate(0, ISLAND.top, 0);
+    const m = new THREE.Mesh(geo, islandMat);
+    m.receiveShadow = true;
+    m.castShadow = true;
+    scene.add(m);
+    return { mesh: m, pts };
+  })();
+
+  /* ── THE LEAVES ───────────────────────────────────────────────────────── */
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x2c4a3c, roughness: 0.85, side: THREE.DoubleSide });
+  const leaves = [];
+  [
+    [-5.6, -0.6, 0.62],
+    [-4.1, -2.4, 0.46],
+    [-2.2, -1.5, 0.34],
+    [0.9, -3.2, 0.5],
+    [4.9, 0.6, 0.58],
+    [5.9, -2.2, 0.42],
+    [4.4, 3.9, 0.72],
+    [-6.1, 3.2, 0.5],
+    [-5.0, 5.4, 0.66],
+    [1.2, 5.6, 0.4],
+  ].forEach(([x, z, r], i) => {
+    const sh = new THREE.Shape();
+    sh.moveTo(0, 0);
+    sh.absarc(0, 0, r, 0.42, Math.PI * 2 - 0.42, false);
+    sh.lineTo(0, 0);
+    const g = new THREE.ShapeGeometry(sh, 24);
+    g.rotateX(-Math.PI / 2);
+    const m = new THREE.Mesh(g, leafMat);
+    m.position.set(x, 0.012, z);
+    m.rotation.y = (i * 1.7) % (Math.PI * 2);
+    m.receiveShadow = true;
+    scene.add(m);
+    leaves.push({ mesh: m, phase: i * 1.3, tilt: 0.02 + (i % 3) * 0.01 });
+  });
+
+  /* ── WHAT FLOATS ON THE WATER ─────────────────────────────────────────
+     Sid: "get the award labels and previous companies onto the homepage
+     maybe floating on the water, with light text of awards and previously."
+     Each is a small upright plane standing on the surface, so the water
+     carries its reflection, drifting a hand's width on its own slow clock.
+     The awards sit nearer; the places he has worked sit further out,
+     under one word that says what they are. */
+  const FLOATS = [
+    ["2× WEBBY AWARD", -4.9, -2.3, 1.0],
+    ["KYOORIUS DESIGN AWARD", -1.7, -3.6, 1.0],
+    ["MIT REALITY HACK", 5.3, -3.2, 1.0],
+    ["PREVIOUSLY", -6.9, -0.6, 0.55],
+    ["DELOITTE DIGITAL", -6.3, -4.6, 0.8],
+    ["MARRIOTT", -3.9, -0.9, 0.8],
+    ["M HEALTH FAIRVIEW", 0.6, -5.2, 0.8],
+    ["PHILIPS", 6.9, -1.0, 0.8],
+    ["EYEJACK", 3.6, -6.4, 0.8],
+    ["LEAF", -3.2, -6.6, 0.8],
+    ["GOOGLE", 7.2, -5.6, 0.8],
+  ];
+  const floats = [];
+  const floatMat = [];
+  function makeFloats() {
+    const H = 0.3; /* world height of a label */
+    FLOATS.forEach(([text, x, z, tone], i) => {
+      const c = document.createElement("canvas");
+      const g = c.getContext("2d");
+      const font = '500 44px "DM Mono", ui-monospace, Menlo, monospace';
+      g.font = font;
+      const tw = Math.ceil(g.measureText(text).width) + 6 * text.length;
+      c.width = tw + 24;
+      c.height = 64;
+      g.font = font;
+      g.fillStyle = "#ffffff";
+      g.textBaseline = "middle";
+      let cx = 12;
+      for (const ch of text) {
+        g.fillText(ch, cx, 34);
+        cx += g.measureText(ch).width + 6;
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.anisotropy = 4;
+      const m = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 0.9 * tone,
+        depthWrite: false,
+        toneMapped: false,
+        side: THREE.DoubleSide,
+      });
+      const w = (c.width / c.height) * H;
+      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, H), m);
+      mesh.position.set(x, H / 2 + 0.02, z);
+      scene.add(mesh);
+      floatMat.push(m);
+      floats.push({ mesh, x, z, phase: i * 1.9 });
+    });
+  }
+  const ready = document.fonts && document.fonts.load ? document.fonts.load('500 44px "DM Mono"') : Promise.resolve();
+  ready.then(makeFloats, makeFloats);
 
   /* ── THE STONE, AND THE FIGURE ON IT ───────────────────────────────────── */
   const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.15, 0.22, 40), new THREE.MeshStandardMaterial({ color: 0x1a1e27, roughness: 0.9 }));
@@ -179,43 +341,77 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
   /* ── THE LETTERS ──────────────────────────────────────────────────────── */
   const letterMat = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.42, metalness: 0.08 });
-  const letters = []; /* { mesh, body, w, h, d } */
+  const letters = []; /* { mesh, body, w, h, d, home, line, wet, nudged } */
   let RAPIER = null,
     world = null;
+  const SIZE = 0.3,
+    DEPTH = 0.09,
+    GAP = 0.045,
+    SPACE = 0.18;
+  const LINE_Z = [1.9, 2.85];
 
-  async function buildLetters(font) {
-    const mod = await import("https://cdn.skypack.dev/@dimforge/rapier3d-compat@0.17.3");
-    RAPIER = mod.default || mod;
-    await RAPIER.init();
-    world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
-    /* the shore, as a collider */
-    world.createCollider(
-      RAPIER.ColliderDesc.cuboid(40, 0.5, 20)
-        .setTranslation(0, -0.5, SHORE_Z + 10)
-        .setFriction(0.9)
-    );
-    /* a low wall at the water's edge so a thrown letter stops at the shore
-     rather than drowning; and one at the camera so nothing leaves the frame */
-    world.createCollider(RAPIER.ColliderDesc.cuboid(40, 3, 0.2).setTranslation(0, 2.5, SHORE_Z - 0.1));
-    world.createCollider(RAPIER.ColliderDesc.cuboid(40, 1, 0.2).setTranslation(0, 0.5, 7.4));
-    world.createCollider(RAPIER.ColliderDesc.cuboid(0.2, 1, 20).setTranslation(-6.2, 0.5, 5));
-    world.createCollider(RAPIER.ColliderDesc.cuboid(0.2, 1, 20).setTranslation(6.2, 0.5, 5));
-
-    const SIZE = 0.3,
-      DEPTH = 0.09,
-      GAP = 0.045,
-      SPACE = 0.18;
-    const startX = -3.7;
+  /* ── ONE LEFT EDGE ────────────────────────────────────────────────────
+     Sid: "align the type properly, a lot of on the left side is just
+     floating." The headline's left edge is the page's left edge: the same
+     x, in pixels, as the proof line and the foot row under it. Each row is
+     at a different depth, so each gets its own world x for that pixel. */
+  const proj = new THREE.Vector3();
+  function pageLeftPx() {
+    const foot = hero.querySelector(".hero__foot-row");
+    const hr = hero.getBoundingClientRect();
+    if (foot) return foot.getBoundingClientRect().left - hr.left;
+    return hr.width * 0.05;
+  }
+  function worldXAtPixel(px, y, z) {
+    const w = host.getBoundingClientRect().width || 1;
+    const ndcX = (px / w) * 2 - 1;
+    const a = proj.set(0, y, z).project(camera).x;
+    const b = proj.set(1, y, z).project(camera).x;
+    return (ndcX - a) / (b - a);
+  }
+  function screenYOf(x, y, z) {
+    const h = host.getBoundingClientRect().height || 1;
+    proj.set(x, y, z).project(camera);
+    return ((1 - proj.y) / 2) * h;
+  }
+  /* The DOM lines above and below the headline take their place from the
+     letters, so the column reads status, headline, proof, foot on one edge
+     at every viewport. */
+  function placeDom() {
+    if (!letters.length) return;
+    const top = screenYOf(0, SIZE + 0.02, LINE_Z[0]);
+    const bottom = screenYOf(0, 0, LINE_Z[1] + DEPTH);
+    hero.style.setProperty("--lake-title-top", Math.round(top) + "px");
+    hero.style.setProperty("--lake-title-bottom", Math.round(bottom) + "px");
+  }
+  function layoutHomes() {
+    const left = pageLeftPx();
     LINES.forEach((line, li) => {
-      /* The nearer row is projected wider, so it starts a little further
-       right to keep the two left edges reading as one. */
-      let x = startX + li * 0.3;
-      const z = 1.9 + li * 0.95;
+      const z = LINE_Z[li];
+      let x = worldXAtPixel(left, SIZE / 2, z);
       for (const ch of line) {
         if (ch === " ") {
           x += SPACE;
           continue;
         }
+        const l = letters.find((q) => q.line === li && q.ch === ch && !q.placed);
+        if (!l) continue;
+        l.placed = true;
+        l.home = { x: x + l.w / 2, y: l.h / 2 + ISLAND.top, z };
+        x += l.w + GAP;
+      }
+    });
+    letters.forEach((l) => (l.placed = false));
+    placeDom();
+  }
+
+  /* The glyphs stand as soon as the font is here; the physics arrives after
+     and picks them up where they are. Nothing waits on the network for the
+     headline to exist. */
+  function buildMeshes(font) {
+    LINES.forEach((line, li) => {
+      for (const ch of line) {
+        if (ch === " ") continue;
         const geo = new TextGeometry(ch, {
           font,
           size: SIZE,
@@ -232,55 +428,80 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
           h = bb.max.y - bb.min.y,
           d = bb.max.z - bb.min.z;
         geo.translate(-(bb.min.x + w / 2), -(bb.min.y + h / 2), -(bb.min.z + d / 2));
-        const mesh = new THREE.Mesh(geo, letterMat);
+        const mesh = new THREE.Mesh(geo, letterMat.clone());
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         scene.add(mesh);
-        const body = world.createRigidBody(
-          RAPIER.RigidBodyDesc.dynamic()
-            .setTranslation(x + w / 2, h / 2 + 0.02, z)
-            .setLinearDamping(1.4)
-            .setAngularDamping(1.8)
-        );
-        world.createCollider(
-          RAPIER.ColliderDesc.cuboid(w / 2, h / 2, d / 2)
-            .setDensity(1)
-            .setFriction(0.8)
-            .setRestitution(0.1),
-          body
-        );
-        letters.push({ mesh, body, w, h, d, home: { x: x + w / 2, y: h / 2 + 0.02, z } });
-        x += w + GAP;
+        letters.push({ mesh, body: null, w, h, d, home: null, line: li, ch, wet: 0, nudged: 0 });
       }
     });
-    hero.classList.add("is-lake");
-    retire();
+    resize();
+    layoutHomes();
+    letters.forEach((l) => l.mesh.position.set(l.home.x, l.home.y, l.home.z));
   }
-  new FontLoader().load(BASE + "/assets/fonts/helvetiker_bold.typeface.json", (font) => {
-    buildLetters(font).catch(() => {
-      /* No physics: the letters simply stand. */
-      hero.classList.add("is-lake");
-      retire();
-    });
-  });
 
-  /* ── WHAT THE LAKE REPLACES, IT STOPS ─────────────────────────────────
-   Sid: "why is my landing page so laggy." Measured: twelve animation loops
-   ran every frame on the hero. With the scene up, the model-viewer figure
-   (its own WebGL context and loop), the wash, its code layer and the
-   watercolour are all underneath an opaque lake. They stop. */
-  function retire() {
-    window.__lakeActive = true;
-    const mv = document.getElementById("cg-model");
-    if (mv && mv.parentNode) mv.parentNode.removeChild(mv);
+  async function buildPhysics() {
+    const mod = await import("https://cdn.skypack.dev/@dimforge/rapier3d-compat@0.17.3");
+    RAPIER = mod.default || mod;
+    await RAPIER.init();
+    world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+    /* The island is the only floor. Its collider is the hull of the slab,
+       so a letter pushed past the drawn edge really does go over. */
+    const hull = [];
+    for (const p of island.pts) {
+      hull.push(p.x, ISLAND.top, p.y);
+      hull.push(p.x, ISLAND.top - ISLAND.thick, p.y);
+    }
+    const islandCol = RAPIER.ColliderDesc.convexHull(new Float32Array(hull));
+    if (islandCol) world.createCollider(islandCol.setFriction(0.9));
+    /* his stone, so a letter thrown at him lands on it */
+    world.createCollider(RAPIER.ColliderDesc.cylinder(0.11, 1.0).setTranslation(stone.position.x, 0.06, stone.position.z));
+
+    for (const l of letters) {
+      const body = world.createRigidBody(
+        RAPIER.RigidBodyDesc.dynamic().setTranslation(l.home.x, l.home.y, l.home.z).setLinearDamping(0.9).setAngularDamping(1.6)
+      );
+      world.createCollider(
+        RAPIER.ColliderDesc.cuboid(l.w / 2, l.h / 2, l.d / 2)
+          .setDensity(1)
+          .setFriction(0.8)
+          .setRestitution(0.1),
+        body
+      );
+      l.body = body;
+    }
+  }
+  new FontLoader().load(
+    BASE + "/assets/fonts/helvetiker_bold.typeface.json",
+    (font) => {
+      buildMeshes(font);
+      buildPhysics().catch(() => {
+        /* No physics: the letters simply stand. */
+      });
+    },
+    undefined,
+    giveUp
+  );
+
+  /* ── RINGS, WHERE A LETTER WENT IN ────────────────────────────────────── */
+  const ringGeo = new THREE.RingGeometry(0.9, 1, 48);
+  ringGeo.rotateX(-Math.PI / 2);
+  const rings = [];
+  function splash(x, z, size) {
+    const m = new THREE.Mesh(ringGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, depthWrite: false }));
+    m.position.set(x, 0.015, z);
+    m.scale.setScalar(size * 0.3);
+    scene.add(m);
+    rings.push({ mesh: m, t: 0, size });
   }
 
   /* ── POINTER ──────────────────────────────────────────────────────────── */
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2(0, 0);
   const lightPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -2.6); /* y = 2.6 */
-  const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.16); /* y = 0.25 */
+  const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.16); /* y = 0.16 */
   const hit = new THREE.Vector3();
+  const lastHand = new THREE.Vector3();
   let hasPointer = false,
     dragging = null,
     dragTarget = new THREE.Vector3(),
@@ -305,6 +526,27 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       const objs = letters.map((l) => l.mesh);
       const hits = ray.intersectObjects(objs, false);
       hovered = hits.length ? letters.find((l) => l.mesh === hits[0].object) : null;
+      /* ── BRUSHED, IT MOVES ─────────────────────────────────────────────
+         Sid: "on hover it should move around the page." A letter under the
+         hand slides away from it, in the direction the hand is travelling,
+         a little off the ground so it skips rather than scrapes. Once per
+         pass: a hand resting on a letter does not keep kicking it. */
+      if (hovered && hovered.body && !hovered.wet && performance.now() - hovered.nudged > 260 && ray.ray.intersectPlane(dragPlane, hit)) {
+        const b = hovered.body;
+        const p = b.translation();
+        let dx = p.x - hit.x,
+          dz = p.z - hit.z;
+        const mx = hit.x - lastHand.x,
+          mz = hit.z - lastHand.z;
+        dx += mx * 3;
+        dz += mz * 3;
+        const n = Math.hypot(dx, dz) || 1;
+        const m = b.mass();
+        b.applyImpulse({ x: (dx / n) * m * 0.75, y: m * 0.28, z: (dz / n) * m * 0.75 }, true);
+        b.applyTorqueImpulse({ x: 0, y: (Math.random() - 0.5) * m * 0.03, z: 0 }, true);
+        hovered.nudged = performance.now();
+      }
+      if (ray.ray.intersectPlane(dragPlane, hit)) lastHand.copy(hit);
       let of = false;
       if (figure) of = ray.intersectObject(figure, true).length > 0;
       if (of && !overFigure && !busy) play("Look", 1, () => play("Idle"));
@@ -327,6 +569,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     );
     if (hits.length) {
       dragging = letters.find((l) => l.mesh === hits[0].object);
+      if (dragging.wet) {
+        dragging = null;
+        return;
+      }
       if (ray.ray.intersectPlane(dragPlane, hit)) dragTarget.copy(hit);
       host.style.cursor = "grabbing";
       e.preventDefault();
@@ -354,25 +600,39 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     const r = host.getBoundingClientRect();
     const w = Math.max(1, Math.round(r.width)),
       h = Math.max(1, Math.round(r.height));
-    if (renderer.domElement.width !== w * renderer.getPixelRatio()) {
+    if (renderer.domElement.width !== w * renderer.getPixelRatio() || renderer.domElement.height !== h * renderer.getPixelRatio()) {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
+      if (letters.length) {
+        layoutHomes();
+        /* a resting letter follows the new edge; a moving one is left alone */
+        for (const l of letters) {
+          if (!l.body || dragging === l || l.wet) continue;
+          const v = l.body.linvel();
+          if (Math.hypot(v.x, v.y, v.z) < 0.05) {
+            l.body.setTranslation(l.home, true);
+            l.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+          }
+        }
+      }
     }
   }
   function applyTheme() {
     const p = palette();
     /* The water runs into the page colour at the horizon rather than
-     stopping at a line. */
+       stopping at a line. */
     scene.fog = new THREE.Fog(p.fog, 9, 42);
-    groundMat.color.set(p.ground);
-    stone.material.color.set(p.floor);
-    lipMat.color.set(p.floor);
+    stone.material.color.set(p.stone);
+    islandMat.color.set(p.island);
+    leafMat.color.set(p.leaf);
     water.material.uniforms.waterColor.value.set(p.water);
     water.material.uniforms.sunColor.value.set(p.sun);
     key.color.set(p.key);
     hemi.color.set(p.sky);
-    letterMat.color.set(isLight() ? 0x14161c : 0xf2efe8);
+    letterMat.color.set(p.ink);
+    letters.forEach((l) => l.mesh.material.color.set(p.ink));
+    floatMat.forEach((m) => m.color.set(p.ink));
   }
   applyTheme();
   new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -381,6 +641,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     if (!live) return;
     requestAnimationFrame(frame);
     const dt = Math.min(0.05, clock.getDelta());
+    const t = clock.elapsedTime;
     resize();
 
     /* the light follows the hand */
@@ -388,7 +649,6 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       ray.setFromCamera(ndc, camera);
       if (ray.ray.intersectPlane(lightPlane, hit)) keyTarget.set(THREE.MathUtils.clamp(hit.x, -7, 7), 2.6, THREE.MathUtils.clamp(hit.z, -6, 8));
     } else {
-      const t = clock.elapsedTime;
       keyTarget.set(Math.sin(t * 0.18) * 3 - 1, 3.2, 2 + Math.cos(t * 0.13) * 1.5);
     }
     key.position.lerp(keyTarget, 0.08);
@@ -399,6 +659,30 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       .normalize();
     water.material.uniforms.sunDirection.value.copy(tmpV);
     water.material.uniforms.time.value += dt * 0.55;
+
+    for (const f of floats) {
+      f.mesh.position.x = f.x + Math.sin(t * 0.11 + f.phase) * 0.18;
+      f.mesh.position.z = f.z + Math.cos(t * 0.09 + f.phase * 0.7) * 0.12;
+      f.mesh.position.y = 0.17 + Math.sin(t * 0.6 + f.phase) * 0.008;
+      f.mesh.rotation.y = Math.sin(t * 0.13 + f.phase) * 0.12;
+    }
+    for (const lf of leaves) {
+      lf.mesh.position.y = 0.012 + Math.sin(t * 0.7 + lf.phase) * 0.006;
+      lf.mesh.rotation.x = Math.sin(t * 0.5 + lf.phase) * lf.tilt;
+      lf.mesh.rotation.z = Math.cos(t * 0.4 + lf.phase * 1.3) * lf.tilt;
+    }
+    for (let i = rings.length - 1; i >= 0; i--) {
+      const r = rings[i];
+      r.t += dt;
+      const k = r.t / 1.1;
+      r.mesh.scale.setScalar(r.size * (0.3 + k * 2.2));
+      r.mesh.material.opacity = 0.55 * (1 - k) * (1 - k);
+      if (k >= 1) {
+        scene.remove(r.mesh);
+        r.mesh.material.dispose();
+        rings.splice(i, 1);
+      }
+    }
 
     if (mixer) mixer.update(dt);
 
@@ -416,16 +700,32 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       world.timestep = dt;
       world.step();
       for (const l of letters) {
-        const p = l.body.translation(),
-          q = l.body.rotation();
-        /* A letter that leaves the shore anyway (over the wall, off the
-         side) comes back to where it started, upright, quietly. */
-        if (p.y < -1 || p.z < SHORE_Z - 0.6 || Math.abs(p.x) > 7 || p.z > 9) {
-          l.body.setTranslation({ x: l.home.x, y: l.home.y, z: l.home.z }, true);
-          l.body.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
-          l.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
-          l.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        const b = l.body;
+        const p = b.translation(),
+          q = b.rotation();
+        /* ── INTO THE WATER ──────────────────────────────────────────────
+           Off the island a letter meets the surface: a ring spreads where
+           it went in, it slows to a sink, and once it is under it comes
+           back to its place from a little above, so the drop reads. */
+        if (!l.wet && p.y < -0.05) {
+          l.wet = t;
+          splash(p.x, p.z, Math.max(l.w, l.h) * 1.4);
+          b.setGravityScale(0.08, true);
+          b.setLinearDamping(3.5);
+          b.setAngularDamping(2.5);
+          b.setLinvel({ x: b.linvel().x * 0.3, y: Math.min(b.linvel().y, -0.2), z: b.linvel().z * 0.3 }, true);
           if (dragging === l) dragging = null;
+        }
+        const lost = Math.abs(p.x) > 9 || p.z > 10 || p.z < -8;
+        if ((l.wet && p.y < -1.4) || lost || (l.wet && t - l.wet > 4)) {
+          l.wet = 0;
+          b.setGravityScale(1, true);
+          b.setLinearDamping(0.9);
+          b.setAngularDamping(1.6);
+          b.setTranslation({ x: l.home.x, y: l.home.y + 0.9, z: l.home.z }, true);
+          b.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
+          b.setLinvel({ x: 0, y: 0, z: 0 }, true);
+          b.setAngvel({ x: 0, y: 0, z: 0 }, true);
         }
         l.mesh.position.set(p.x, p.y, p.z);
         l.mesh.quaternion.set(q.x, q.y, q.z, q.w);
@@ -434,13 +734,11 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     /* hover lift on the material via emissive, one letter at a time */
     for (const l of letters) {
       const want = l === hovered || l === dragging ? 0.35 : 0;
-      if (!l.mesh.material.__own) {
-        l.mesh.material = letterMat.clone();
-        l.mesh.material.__own = true;
-      }
       const m = l.mesh.material;
       m.emissive.set(0xffc98a);
       m.emissiveIntensity += (want - m.emissiveIntensity) * 0.2;
+      /* under water it dims, so it reads as gone rather than glowing */
+      m.opacity = 1;
     }
 
     renderer.render(scene, camera);

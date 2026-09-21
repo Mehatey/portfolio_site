@@ -70,7 +70,9 @@
        the only route off this page. */
     ".ftr__cta",
     ".ftr__copy",
-    ".nextscroll__pin",
+    /* Sid: "the next project viewport, when i hover on it i am able to move
+       it around ... i want it to be fixed and not move and extend beyond my
+       grids." A full-width panel is not a target; it comes off the list. */
     /* ── THE CORNER CLUSTER IS DELIBERATELY NOT IN THIS LIST ────────────
        Sid: "I feel like the magnetic thing is happening like crazy. It's way
        too much because the bottom-right theme, audio, and cube icons are so

@@ -78,6 +78,12 @@
       ctx.drawImage(off, 0, 0, cw, ch, 0, 0, w, h);
     }
 
+    /* p is how far into the mosaic we are: 0 the photograph, 1 fully
+       cells. It climbs on enter and falls on leave, eased. Sid: "i want the
+       image to keep pixelating as long as i am hovering on it." So at 1 the
+       cell size does not settle: it swings on a slow clock between coarse
+       and coarser, and the loop keeps running until the pointer leaves. */
+    var hovering = false;
     function frame(now) {
       raf = 0;
       var dt = last ? now - last : 16;
@@ -89,27 +95,24 @@
         return;
       }
       if (p >= 1) p = 1;
-      /* p runs 0 -> 1 on enter. Cells are largest at the START of the
-         entry (the picture breaks up as you arrive) and gone at 1. */
       var e = ease(p);
-      var cell = 1 + (MAX - 1) * (1 - e);
+      var live = hovering ? 0.62 + 0.38 * (0.5 + 0.5 * Math.sin(now / 760)) : 1;
+      var cell = 1 + (MAX - 1) * e * live;
       if (cell <= 1.5) {
         canvas.classList.remove("is-on");
-        if (dir > 0) return;
       } else {
         canvas.classList.add("is-on");
         draw(cell);
       }
-      if ((dir > 0 && p < 1) || (dir < 0 && p > 0)) raf = requestAnimationFrame(frame);
+      if (hovering || (dir < 0 && p > 0)) raf = requestAnimationFrame(frame);
     }
 
     function go(d) {
       if (!ensure()) return;
       dir = d;
+      hovering = d > 0;
       last = 0;
-      if (d > 0 && p === 0) {
-        p = 0.001;
-      }
+      if (d > 0 && p === 0) p = 0.001;
       if (d < 0 && p >= 1) p = 0.999;
       if (!raf) raf = requestAnimationFrame(frame);
     }
