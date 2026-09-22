@@ -115,6 +115,8 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <!-- Vision Pro passthrough: a tree in the station, a garden on the street. -->
     <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/vp-subway-tree-poster.jpg"><source src="{{ B }}/15.bloom-vp/vp-subway-tree.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/vp-street-garden-poster.jpg"><source src="{{ B }}/15.bloom-vp/vp-street-garden.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-ar-mandalas-poster.jpg"><source src="{{ B }}/4.mandala/ct-ar-mandalas.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-pixel-poster.jpg"><source src="{{ B }}/4.mandala/ct-pixel.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
 
