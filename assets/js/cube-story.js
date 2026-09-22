@@ -460,13 +460,14 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
   const shore = new THREE.Group();
   shore.visible = false;
   scene.add(shore);
-  const sand = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), new THREE.MeshStandardMaterial({ color: 0xc9bea6, roughness: 1 }));
+  const sandMat = new THREE.MeshStandardMaterial({ color: 0xc9bea6, roughness: 1, transparent: true, opacity: 0 });
+  const sand = new THREE.Mesh(new THREE.PlaneGeometry(60, 30), sandMat);
   sand.rotation.x = -Math.PI / 2;
   sand.position.set(0, -0.6, 8);
   shore.add(sand);
   const leafGeo = new THREE.IcosahedronGeometry(0.16, 0);
-  const leafMat = new THREE.MeshStandardMaterial({ color: 0x8a9a6a, roughness: 0.9 });
-  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5a4a3a, roughness: 1 });
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x8a9a6a, roughness: 0.9, transparent: true, opacity: 0 });
+  const trunkMat = new THREE.MeshStandardMaterial({ color: 0x5a4a3a, roughness: 1, transparent: true, opacity: 0 });
   const treeDefs = [
     [-7, 4, 2.6],
     [-3.5, 7, 3.2],
@@ -744,6 +745,12 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
     skyMat.uniforms.sunCol.value.set(P.sunC);
     hemi.intensity = P.hemi;
     sun.intensity = P.sun;
+    /* On the way out the camera is behind the cube, so a sun that lights
+       its front leaves a flat grey box facing you. It swings round to the
+       camera's side for the exit and the water, and comes back for the
+       shore. */
+    const behind = sm(0.4, 0.46, p) * (1 - sm(0.6, 0.66, p));
+    sun.position.set(-4, 6, lerp(5, -7, behind));
   }
 
   /* ── THE LOOP ───────────────────────────────────────────────────────── */
@@ -803,7 +810,20 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
     river.visible = waterW > 0.01;
     riverMat.uniforms.t.value = time;
     riverMat.uniforms.op.value = waterW;
+    /* ── THE SHORE ARRIVES, IT DOES NOT APPEAR ────────────────────────
+       The ground used to swap: water gone, sand and a wood of trees at
+       full strength on the next frame. They come up on their own ramp
+       now, across the range the water leaves on, rising the last of their
+       height as they do, so the two worlds cross rather than cut. */
     shore.visible = shoreW > 0.01 && p < 0.9;
+    if (shore.visible) {
+      const arrive = sm(0.6, 0.69, p) * (1 - sm(0.86, 0.9, p));
+      sandMat.opacity = arrive;
+      trunkMat.opacity = arrive;
+      leafMat.opacity = arrive * 0.96;
+      shore.scale.setScalar(lerp(0.94, 1, arrive));
+      shore.position.y = lerp(-0.4, 0, arrive);
+    }
     boards.visible = screenW > 0.01;
 
     /* the cube */
@@ -906,7 +926,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 
     /* the screen and the stroke cube */
     boardMeshes.forEach((g, i) => {
-      const k = sm(0.9 + i * 0.006, 0.93 + i * 0.006, p);
+      const k = sm(0.886 + i * 0.004, 0.912 + i * 0.004, p);
       g.scale.setScalar(Math.max(0.001, k * (1 - dock)));
       g.visible = k > 0.01 && dock < 0.99;
     });
@@ -954,7 +974,11 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
     stroke.position.set(lerp(0, -viewW * 0.42, dock), lerp(0, viewH * 0.3, dock), camRig.position.z - 6.5);
     stroke.scale.setScalar(lerp(1.2, 0.55, dock));
 
-    renderer.toneMappingExposure = 1.05 * (1 - sm(0.885, 0.9, p) * (1 - sm(0.9, 0.93, p)));
+    /* The camera cuts at 0.9. The dip that covers the cut is shallower
+       and shorter than it was, and the boards are already scaling up
+       inside it, so the join reads as a blink rather than as a page that
+       went black and came back. */
+    renderer.toneMappingExposure = 1.05 * (1 - 0.55 * sm(0.889, 0.899, p) * (1 - sm(0.9, 0.912, p)));
     renderer.render(scene, camera);
   }
 
