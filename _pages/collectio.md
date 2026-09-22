@@ -93,3 +93,5 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c23-2-kiosk.webp" alt="A man feeding a bottle into a Collectio recycling kiosk" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c23-3-truck.webp" alt="A Collectio branded collection truck" loading="lazy" decoding="async" /></div>
 </div>
+
+<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c24-feedback.webp" alt="Collectio feedback: pull quotes from Clinton Vaz of vRecycle and Nicholas of GWMC, and twelve raw notes from both" loading="lazy" decoding="async" /></div>

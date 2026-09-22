@@ -624,17 +624,23 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       l.body.sleep();
     }
   }
+  /* Sid: "the letters still glitch, just fix the glitching." The extruded
+     3D headline rendered with jagged, doubled strokes under real use. The
+     DOM headline carries the title instead (see the CSS in sid_home.html
+     that no longer hides .hero__title's ink in lake mode); this call is
+     what used to build the mesh and its physics, left here disabled so
+     the letter code above it stays intact if it is ever debugged and
+     brought back.
   new FontLoader().load(
     BASE + "/assets/fonts/helvetiker_bold.typeface.json",
     (font) => {
       buildMeshes(font);
-      buildPhysics().catch(() => {
-        /* No physics: the letters simply stand. */
-      });
+      buildPhysics().catch(() => {});
     },
     undefined,
     giveUp
   );
+  */
 
   /* ── RINGS, WHERE A LETTER WENT IN ────────────────────────────────────── */
   const ringGeo = new THREE.RingGeometry(0.9, 1, 48);

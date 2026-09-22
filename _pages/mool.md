@@ -148,11 +148,50 @@ next_project:
     margin-right: auto !important;
     text-align: center;
   }
+
+  /* Auto horizontal scroll strip, above the shrunk 3-phone board */
+  .mool-scroll {
+    margin: 40px 0 16px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+    mask-image: linear-gradient(to right, transparent, #000 4%, #000 96%, transparent);
+  }
+  .mool-scroll__track {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+    animation: mool-scroll-x 32s linear infinite;
+  }
+  .mool-scroll:hover .mool-scroll__track {
+    animation-play-state: paused;
+  }
+  .mool-scroll img {
+    height: clamp(220px, 30vw, 380px);
+    width: auto;
+    display: block;
+    border-radius: 14px;
+  }
+  @keyframes mool-scroll-x {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
 </style>
 
-<!-- HERO -->
-<div class="mool-hero">
-  <img src="{{ site.baseurl }}/5.mool/0.webp" alt="Mool 100k+ downloads" loading="eager" decoding="async" />
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/5.mool/store-listing.webp" alt="The Mool app store listing, and the logo construction grid" loading="eager" decoding="async" />
+</div>
+
+<div class="cs-section">
+  <h2 class="cs-section-label">Research</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Customer segmentation to understand the diverse needs of users across the income spectrum.</em></p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/5.mool/segmentation.webp" alt="Customer segmentation: Survivor, Provider, Follower, Seekers, Independent, Influencers, mapped from low to high openness to digital tools" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-section">
@@ -175,12 +214,39 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/3.webp" alt="The tone of voice page from the brand guidelines" loading="lazy" decoding="async" />
 </div>
 
+<p class="cube-cap cube-cap--above"><em>Little design decisions along the way: the performance chart, the splash quote, a goal timeline card, the icon set, the debit card.</em></p>
+<div class="mool-scroll" aria-hidden="true">
+  <div class="mool-scroll__track">
+    <img src="{{ site.baseurl }}/5.mool/snip-1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-3.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-4.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-5.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-3.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-4.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/snip-5.webp" alt="" loading="lazy" decoding="async" />
+  </div>
+</div>
+
+<!-- HERO, moved after the brand section -->
+<div class="mool-hero">
+  <img src="{{ site.baseurl }}/5.mool/0.webp" alt="Mool 100k+ downloads" loading="lazy" decoding="async" />
+</div>
+
 <div class="cs-section">
   <h2 class="cs-section-label">The product</h2>
 </div>
 
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/4.jpg" alt="Monthly income and expenses, drawn as a ring and a bar chart" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/4.2.webp" alt="The Mool dashboard on a phone, bank balance and investment balance" loading="lazy" decoding="async" /></div>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Easy management and consciousness of money: keep track of everyday spending, bills and expenses.</em></p>
 <div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.mool/4.jpg" alt="Monthly income and expenses, drawn as a ring and a bar chart" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/5.mool/money-mgmt.webp" alt="Bank account trends: expenses, incoming and monthly balance drawn as donut and bar charts" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-bleed">
@@ -196,7 +262,27 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/7.webp" alt="A savings goal screen phrased as a question" loading="lazy" decoding="async" />
 </div>
 
-<div class="cs-bleed">
+<div class="mool-scroll" aria-hidden="true">
+  <div class="mool-scroll__track">
+    <img src="{{ site.baseurl }}/5.mool/scroll-1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-3.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-4.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-5.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-6.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-1.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-2.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-3.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-4.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-5.webp" alt="" loading="lazy" decoding="async" />
+    <img src="{{ site.baseurl }}/5.mool/scroll-6.webp" alt="" loading="lazy" decoding="async" />
+  </div>
+</div>
+
+<!-- Sid: "make this ui much smaller, like 50 percent." Three phone screens
+     composited into one board; at full bleed width each phone was
+     oversized against the surrounding single screenshots. -->
+<div class="cs-bleed" style="max-width: 50%; margin-left: auto; margin-right: auto;">
   <img src="{{ site.baseurl }}/5.mool/8.webp" alt="Bank account, balance and investments, and goals and plans" loading="lazy" decoding="async" />
 </div>
 
@@ -215,4 +301,8 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>Out of home, the brand argues for three words rather than a product: Empathy, Equality, Freedom.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Out-of-home posters at a bus shelter" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/5.mool/closing-banking.webp" alt="One India unified by better banking: the Mool marketing site footer" loading="lazy" decoding="async" />
 </div>
