@@ -242,15 +242,53 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
      carries its reflection, drifting a hand's width on its own slow clock.
      The awards sit nearer; the places he has worked sit further out,
      under one word that says what they are. */
-  const FLOATS = [
-    ["PREVIOUSLY", -5.2, -3.7, 0.5],
-    ["DELOITTE DIGITAL", -5.2, -2.4, 0.9],
-    ["MARRIOTT", -2.4, -2.4, 0.9],
-    ["M HEALTH FAIRVIEW", -0.1, -2.4, 0.9],
-    ["PHILIPS", 4.6, -2.4, 0.9],
-    ["EYEJACK", 6.3, -2.4, 0.9],
-    ["LEAF", 8.0, -2.4, 0.9],
+  /* ── WHERE HE HAS WORKED, AS THEIR OWN MARKS ─────────────────────────
+     Sid: "can we use company logos here. also i never worked at marriott,
+     look at my resume." Marriott and M Health Fairview are brands he
+     worked ON, through Deloitte; they are not employers and they came
+     out. What is left is the four places that employed him, set as their
+     own logos rather than as typed names, on one row behind the island. */
+  const FLOATS = [["PREVIOUSLY", -6.2, -4.4, 0.5]];
+  /* One row behind the stone so the figure never stands in front of a
+     mark, each logo sized by WIDTH so a long wordmark and a square one
+     carry the same weight. */
+  const LOGO_W = 1.15;
+  const LOGO_H = 0.3;
+  const LOGO_Z = -4.4;
+  const LOGOS = [
+    ["deloitte", -3.4],
+    ["eyejack", -1.3],
+    ["philips", 0.5],
+    ["leaf", 1.9],
   ];
+  const logos = [];
+  const logoMat = [];
+  function makeLogos() {
+    LOGOS.forEach(([name, x], i) => {
+      new THREE.TextureLoader().load(BASE + "/assets/img/companies/mono/" + name + ".png", (tex) => {
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.anisotropy = 4;
+        /* width for a wordmark, capped height for a square mark, so a
+           roundel does not tower over a logotype */
+        const ar = tex.image.width / tex.image.height;
+        const h = Math.min(LOGO_W / ar, LOGO_H);
+        const m = new THREE.MeshBasicMaterial({
+          map: tex,
+          transparent: true,
+          opacity: 0.8,
+          depthWrite: false,
+          toneMapped: false,
+          side: THREE.DoubleSide,
+        });
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(h * ar, h), m);
+        mesh.position.set(x, h / 2 + 0.02, LOGO_Z);
+        scene.add(mesh);
+        logoMat.push(m);
+        logos.push({ mesh, x, h, phase: i * 1.7 });
+      });
+    });
+  }
+
   /* ── AVAILABLE, AROUND THE ISLAND ────────────────────────────────────
      Sid: "Available to work in New York, kind of mapped in a curved way
      around my island." One arc of small caps on the water, hugging the
@@ -338,6 +376,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const build = () => {
     makeFloats();
     makeArc();
+    makeLogos();
   };
   ready.then(build, build);
 
@@ -514,7 +553,23 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         scene.add(mesh);
-        letters.push({ mesh, body: null, w, h, d, home: null, line: li, ch, wet: 0, nudged: 0 });
+        letters.push({
+          mesh,
+          body: null,
+          w,
+          h,
+          d,
+          home: null,
+          line: li,
+          ch,
+          wet: 0,
+          nudged: 0,
+          tick: 0,
+          markAt: 0,
+          mark: null,
+          homing: false,
+          touched: 0,
+        });
       }
     });
     resize();
@@ -552,11 +607,21 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       world.createCollider(
         RAPIER.ColliderDesc.cuboid(l.w / 2, l.h / 2, l.d / 2)
           .setDensity(1)
-          .setFriction(0.8)
-          .setRestitution(0.1),
+          .setFriction(0.9)
+          .setRestitution(0),
         body
       );
       l.body = body;
+    }
+    /* ── THEY START AS TYPE, NOT AS A PILE ─────────────────────────────
+       Left to the solver the headline took seven to ten seconds to stop
+       jostling after it was built, which is the whole of a first look.
+       Every letter is already exactly where it belongs, so it is slept
+       there and the simulation only takes over when a hand arrives. */
+    for (const l of letters) {
+      l.body.setTranslation(l.home, false);
+      l.body.setLinvel({ x: 0, y: 0, z: 0 }, false);
+      l.body.sleep();
     }
   }
   new FontLoader().load(
@@ -631,6 +696,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         const n = Math.hypot(dx, dz) || 1;
         const m = b.mass();
         b.wakeUp();
+        hovered.mark = null;
+        hovered.markAt = hovered.tick;
+        hovered.homing = false;
+        hovered.touched = performance.now();
         b.applyImpulse({ x: (dx / n) * m * 0.75, y: m * 0.22, z: (dz / n) * m * 0.75 }, true);
         b.applyTorqueImpulse({ x: 0, y: (Math.random() - 0.5) * m * 0.03, z: 0 }, true);
         hovered.nudged = performance.now();
@@ -662,6 +731,11 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         dragging = null;
         return;
       }
+      dragging.body.wakeUp();
+      dragging.mark = null;
+      dragging.markAt = dragging.tick;
+      dragging.homing = false;
+      dragging.touched = performance.now();
       if (ray.ray.intersectPlane(dragPlane, hit)) dragTarget.copy(hit);
       host.style.cursor = "grabbing";
       e.preventDefault();
@@ -685,6 +759,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const STEP = 1 / 90;
   let acc = 0;
   const tmpV = new THREE.Vector3();
+  const tmpQ = new THREE.Quaternion();
+  const IDENT = new THREE.Quaternion();
   const keyTarget = new THREE.Vector3(-2, 3.2, 3);
   let live = true;
   function resize() {
@@ -724,6 +800,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     letterMat.color.set(p.ink);
     letters.forEach((l) => l.mesh.material.color.set(p.ink));
     floatMat.forEach((m) => m.color.set(p.ink));
+    logoMat.forEach((m) => m.color.set(p.ink));
   }
   applyTheme();
   new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -757,6 +834,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       f.mesh.position.z = f.z + Math.cos(t * 0.09 + f.phase * 0.7) * 0.05;
       f.mesh.position.y = 0.17 + Math.sin(t * 0.6 + f.phase) * 0.008;
       f.mesh.rotation.y = 0;
+    }
+    for (const g of logos) {
+      g.mesh.position.z = LOGO_Z + Math.cos(t * 0.09 + g.phase * 0.7) * 0.05;
+      g.mesh.position.y = g.h / 2 + 0.02 + Math.sin(t * 0.6 + g.phase) * 0.008;
     }
     for (const a of awards) {
       const k = (((t * a.speed + a.ph) % 1) + 1) % 1;
@@ -792,6 +873,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
           dz = dragTarget.z - p.z,
           dy = dragTarget.y + dragging.h / 2 - p.y;
         /* a spring toward the hand, so it glides rather than teleports */
+        dragging.touched = performance.now();
         b.setLinvel({ x: dx * 14, y: dy * 10, z: dz * 14 }, true);
         b.setAngvel({ x: 0, y: b.angvel().y * 0.9, z: 0 }, true);
       }
@@ -832,6 +914,84 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
           b.setRotation({ x: 0, y: 0, z: 0, w: 1 }, true);
           b.setLinvel({ x: 0, y: 0, z: 0 }, true);
           b.setAngvel({ x: 0, y: 0, z: 0 }, true);
+        }
+        /* ── A LETTER THAT HAS STOPPED IS TYPE AGAIN ────────────────────
+           Sid: "the 3D text is glitching a lot, it doesn't move smoothly,
+           once it goes to the ground it starts to sink in weirdly, like
+           flashing." Measured with a hook: all thirty eight bodies carried
+           0.03 to 0.29 of velocity for ever and not one of them ever
+           slept. A body resting on a collider takes a step of gravity
+           every step and gives it back through the contact, so it never
+           settles, and at this scale that is the whole headline
+           vibrating.
+           So the simulation stops owning a letter once it has stopped. One
+           at rest near where it belongs is put back exactly there and
+           slept; one that came to rest somewhere else is slept where it
+           lies. The hand wakes them again. */
+        if (!l.wet && dragging !== l && !b.isSleeping()) {
+          const near = Math.hypot(p.x - l.home.x, p.y - l.home.y, p.z - l.home.z) < 0.05;
+          /* Stillness is drift across a third of a second, not velocity
+             and not a single frame. A body resting on a collider reports
+             a quarter of a metre a second for ever, and shakes four
+             millimetres each way, while ending every window exactly where
+             it started. A letter the hand has actually moved travels. */
+          l.tick++;
+          const drift = l.mark ? Math.hypot(p.x - l.mark.x, p.y - l.mark.y, p.z - l.mark.z) : 1;
+          let park = false;
+          if (l.tick - l.markAt >= 30) {
+            if (drift < 0.02) park = true;
+            else {
+              l.mark = { x: p.x, y: p.y, z: p.z };
+              l.markAt = l.tick;
+            }
+          }
+          if (near && park) {
+            b.setTranslation(l.home, false);
+            b.setRotation({ x: 0, y: 0, z: 0, w: 1 }, false);
+            b.setLinvel({ x: 0, y: 0, z: 0 }, false);
+            b.setAngvel({ x: 0, y: 0, z: 0 }, false);
+            b.sleep();
+          } else if (park) {
+            /* ── AND THE SENTENCE PUTS ITSELF BACK ─────────────────────
+               A letter knocked out of the line used to stay out of it, so
+               one pass of a cursor left the headline reading "Produc
+               designer" for the rest of the visit. Once a letter has come
+               to rest away from home and nothing has touched it for a
+               couple of seconds, it walks back and lies down. The play is
+               the same; the sentence heals. */
+            b.setLinvel({ x: 0, y: 0, z: 0 }, false);
+            b.setAngvel({ x: 0, y: 0, z: 0 }, false);
+            b.sleep();
+          }
+        }
+        /* Outside the awake guard on purpose: a letter that has been put
+           to sleep out of place still has to find its way back. */
+        /* No flag and no conditions about how it came to rest: if the
+           hand has left a letter alone for a couple of seconds and it is
+           not where it belongs, it goes back. A letter leaning on its
+           neighbour never settles enough to ask politely. */
+        if (performance.now() - l.touched > 2200 && dragging !== l && !l.wet) {
+          const c = b.translation(),
+            r = b.rotation(),
+            t = 0.055;
+          const nx = THREE.MathUtils.lerp(c.x, l.home.x, t),
+            ny = THREE.MathUtils.lerp(c.y, l.home.y, t),
+            nz = THREE.MathUtils.lerp(c.z, l.home.z, t);
+          b.setTranslation({ x: nx, y: ny, z: nz }, false);
+          tmpQ.set(r.x, r.y, r.z, r.w).slerp(IDENT, t);
+          b.setRotation({ x: tmpQ.x, y: tmpQ.y, z: tmpQ.z, w: tmpQ.w }, false);
+          if (Math.hypot(nx - l.home.x, ny - l.home.y, nz - l.home.z) < 0.004 && Math.abs(tmpQ.w) > 0.9999) {
+            b.setTranslation(l.home, false);
+            b.setRotation({ x: 0, y: 0, z: 0, w: 1 }, false);
+            b.setLinvel({ x: 0, y: 0, z: 0 }, false);
+            b.setAngvel({ x: 0, y: 0, z: 0 }, false);
+            b.sleep();
+          }
+          const f = b.translation(),
+            g = b.rotation();
+          l.mesh.position.set(f.x, f.y, f.z);
+          l.mesh.quaternion.set(g.x, g.y, g.z, g.w);
+          continue;
         }
         l.mesh.position.set(p.x, p.y, p.z);
         l.mesh.quaternion.set(q.x, q.y, q.z, q.w);
