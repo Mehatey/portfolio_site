@@ -508,6 +508,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
   scene.add(figureGroup);
   let figure = null,
     figScale = 1,
+    figMinY = 0,
     mixer = null,
     headBone = null,
     figureLoaded = false;
@@ -578,6 +579,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
       figure = g.scene;
       const box = new THREE.Box3().setFromObject(figure);
       figScale = 1.7 / (box.max.y - box.min.y || 1);
+      figMinY = box.min.y * figScale;
       figure.scale.setScalar(figScale);
       figure.position.y = -0.55;
       figure.traverse((o) => {
@@ -789,7 +791,21 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
     const waterW = sm(0.43, 0.48, p) * (1 - sm(0.6, 0.64, p));
     const walk = sm(0.48, 0.6, p);
     const shoreW = sm(0.6, 0.64, p) * (1 - sm(0.86, 0.9, p));
-    const body = sm(0.62, 0.7, p);
+    /* ── THE BODY COMES OUT OF THE CUBE ──────────────────────────────
+       Sid: "we can slow this and animate it well." It was one crossfade
+       over 0.08 of the scroll, about a third of a screen: the cube scaled
+       to nothing while the figure scaled up from nothing, both on the same
+       clock, so nothing appeared to come out of anything.
+       Two beats now, overlapping, across nearly twice the distance. First
+       the body rises inside the cube, feet planted on the sand. Then the
+       cube lets go: it lifts, opens out and thins away, like a shell
+       coming off something that has finished growing. */
+    /* The shell starts letting go BEFORE the body starts growing, so the
+       cube is already glass by the time a head would pass through its
+       lid. The other way round the figure clipped through a solid face. */
+    const shell = sm(0.625, 0.75, p);
+    const rise = sm(0.655, 0.745, p);
+    const body = rise;
     const closeShot = sm(0.75, 0.8, p);
     const intoResin = sm(0.84, 0.9, p);
     const screenW = sm(0.9, 0.94, p);
@@ -828,9 +844,11 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
 
     /* the cube */
     setFold(1 - unfold * (1 - fold));
-    const cubeOn = (1 - sm(0.366, 0.374, p) * (1 - sm(0.41, 0.42, p))) * (1 - body);
+    const cubeOn = (1 - sm(0.366, 0.374, p) * (1 - sm(0.41, 0.42, p))) * (1 - shell);
     cube.visible = cubeOn > 0.01;
-    cube.scale.setScalar(Math.max(0.001, 1 - body));
+    /* it holds its size and opens out as it goes, rather than shrinking
+       to a point */
+    cube.scale.setScalar(Math.max(0.001, lerp(1, 1.26, shell)));
     const breathe = Math.sin(time * 0.9) * 0.02 * grassW;
     cube.rotation.set(
       Math.sin(time * 0.5) * 0.02 * grassW + breathe,
@@ -838,7 +856,7 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
       0
     );
     cube.position.x = lerp(0, -0.4, walk) * waterW;
-    cube.position.y = lerp(0, -0.2, waterW) + Math.sin(time * 1.3) * 0.04 * waterW;
+    cube.position.y = lerp(0, -0.2, waterW) + Math.sin(time * 1.3) * 0.04 * waterW + lerp(0, 0.62, shell);
     if (time > blinkAt) {
       const k = (time - blinkAt) / 0.22;
       drawFace(k < 1 ? Math.sin(k * Math.PI) : 0, sm(0.02, 0.1, p));
@@ -874,6 +892,12 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
         m.transparent = true;
         m.opacity = 1 - lerp(a[4], b[4], k) * 0.55;
       });
+    } else if (shell > 0.001) {
+      faces.forEach((f) => {
+        const m = f.plate.material;
+        m.transparent = true;
+        m.opacity = Math.max(0, 1 - shell * 1.08);
+      });
     } else if (p < 0.44) {
       tmpC.set(WHITE).lerp(tmpC2.set(KRAFT), unfold);
       faces.forEach((f) => {
@@ -902,19 +926,21 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
     wallLight.intensity = 6 * inside;
 
     /* the body */
-    if (p > 0.56) loadFigure();
-    figureGroup.visible = body > 0.01 && p < 0.9;
+    if (p > 0.5) loadFigure();
+    figureGroup.visible = rise > 0.001 && p < 0.9;
     if (figure) {
-      figure.scale.setScalar(figScale * lerp(0.001, 1, body));
-      figure.position.set(cube.position.x, -0.55, 0);
+      const k = lerp(0.08, 1, rise);
+      figure.scale.setScalar(figScale * k);
+      /* planted: whatever the scale, the feet stay on the sand */
+      figure.position.set(cube.position.x, -0.55 - figMinY * k, 0);
       figure.rotation.y = Math.PI + lerp(-0.2, 0.15, closeShot);
       if (mixer) mixer.update(dt);
-      resin.visible = body > 0.7;
+      resin.visible = p > 0.755;
       if (headBone) {
         headBone.getWorldPosition(tmp);
         resin.position.copy(tmp);
       } else resin.position.set(cube.position.x, 1.0, 0);
-      resin.scale.setScalar(lerp(0.001, 1, sm(0.7, 0.76, p)) * lerp(1, 2.4, intoResin));
+      resin.scale.setScalar(lerp(0.001, 1, sm(0.755, 0.81, p)) * lerp(1, 2.4, intoResin));
       let want = "";
       for (const [at, w, c] of LED) if (p >= at) want = w + "|" + c;
       if (want && want !== ledShown) {
