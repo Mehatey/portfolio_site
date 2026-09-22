@@ -61,8 +61,35 @@ next_project:
 
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c8-ia.webp" alt="The information architecture: how GWMC, collectors, segregators and the waste stream connect" loading="lazy" decoding="async" /></div>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c9-solution.webp" alt="Solution: Collectio, a clearer world" loading="lazy" decoding="async" /></div>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c10-different.webp" alt="How Collectio is different from the limited waste only apps already out there" loading="lazy" decoding="async" /></div>
+<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c10-different.webp" alt="How Collectio is different: current apps are limited to waste collection, Collectio adds the collectors, segregators and the government" loading="lazy" decoding="async" /></div>
 
-<p class="cube-cap cube-cap--above"><em>Live on the belt: every box tracked, every class a forward pass on the playing video.</em></p>
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/live-analyser-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/live-analyser.mp4" type="video/mp4" /></video></div>
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/onboarding-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/onboarding.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c11-splash-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c11-splash.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c12-onboarding-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c12-onboarding.mp4" type="video/mp4" /></video></div>
+
+<p class="cube-cap cube-cap--above"><em>The collector's day: confirm a pickup, report an issue, weigh the load, sign off. Nothing typed twice.</em></p>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c13-collector-flow-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c13-collector-flow.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c14-ward-signin-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c14-ward-signin.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c15-ward-assign-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c15-ward-assign.mp4" type="video/mp4" /></video></div>
+
+<p class="cube-cap cube-cap--above"><em>A six category classifier, 95,006 parameters, trained from scratch in PyTorch on TrashNet.</em></p>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c16-live-belt-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c16-live-belt.mp4" type="video/mp4" /></video></div>
+
+<p class="cube-cap cube-cap--above"><em>Same model, real conveyor footage. Studio photographs are not what a truck sees.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c17-1-belt-scan-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c17-1-belt-scan.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c17-2-network-learned-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c17-2-network-learned.mp4" type="video/mp4" /></video></div>
+</div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c18-dataset-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c18-dataset.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c19-one-photo-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c19-one-photo.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c20-matrix-panel.webp" alt="The confusion matrix, the drop from lab to belt, what the model was never taught, and what shipping it costs" loading="lazy" decoding="async" /></div>
+
+<p class="cube-cap cube-cap--above"><em>Below 55% confidence it stops guessing and asks a person.</em></p>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="metadata" poster="{{ site.baseurl }}/assets/img/collectio/video/c21-live-held-poster.jpg"><source src="{{ site.baseurl }}/assets/img/collectio/video/c21-live-held.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c22-collector-flow.webp" alt="A closer pass at the collector's flow: the job, the report, the weight ticket, the driver profile" loading="lazy" decoding="async" /></div>
+
+<p class="cube-cap cube-cap--above"><em>The brand, on the street: bins, a kiosk, a truck.</em></p>
+<div class="cs-grid-3">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c23-1-bins.webp" alt="Four Collectio bins, red glass yellow blue for plastic glass cans and paper" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c23-2-kiosk.webp" alt="A man feeding a bottle into a Collectio recycling kiosk" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/collectio/deck/c23-3-truck.webp" alt="A Collectio branded collection truck" loading="lazy" decoding="async" /></div>
+</div>
