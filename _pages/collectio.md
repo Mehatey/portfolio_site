@@ -9,9 +9,8 @@ quick_read: >
 category: AI · Civic systems
 year: "2019 · 2026"
 hero_bg: "radial-gradient(ellipse at 40% 45%, #121a14 0%, #0b100c 55%, #06080a 100%)"
-hero_image: "assets/img/collectio/detect-final.webp"
-hero_pos: "50% 50%"
-hero_mode: artifact
+hero_image: "assets/img/collectio/deck/cover-app.webp"
+hero_pos: "62% 45%"
 meta:
   - label: Role
     value: Designer and engineer
