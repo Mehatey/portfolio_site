@@ -46,17 +46,22 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
   <span class="reel-ch__num" aria-hidden="true">01</span>
   <div class="reel-ch__head">
     <h2 class="reel-ch__title">Product that shipped.</h2>
-    <ul class="reel-ch__from"><li><a href="{{ B }}/m-health-fairview/">M Health Fairview</a></li><li><a href="{{ B }}/marriott/">Marriott</a></li><li><a href="{{ B }}/mool/">Mool</a></li></ul>
+    <ul class="reel-ch__from"><li><a href="{{ B }}/m-health-fairview/">M Health Fairview</a></li><li><a href="{{ B }}/marriott/">Marriott</a></li><li><a href="{{ B }}/mool/">Mool</a></li><li><a href="{{ B }}/alpha-stockathon/">Alpha Stockathon</a></li></ul>
   </div>
+  <!-- Sid: "try not to have too much mool fairview marriott in the scroll,
+       ui ux, cause i will be presenting those." Down from eight plates to
+       three; the KFC, Pizza Hut and Arby's pricing analyzer and Alpha
+       Stockathon carry the rest of the chapter now. -->
   <div class="reel-grid">
-    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/img/fairview/07-choose-poster.jpg"><source src="{{ B }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/img/marriott/04-overview-poster.jpg"><source src="{{ B }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><img src="{{ B }}/10.alpha/17.1.webp" alt="Alpha Stockathon, the pixel art overworld map" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--8"><img src="{{ B }}/assets/img/pricing-analyzer/kfc-dashboard.webp" alt="KFC pricing recommendations dashboard" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/5.mool/0.webp" alt="Mool" loading="lazy" decoding="async" style="--pos: 50% 50%" /></div>
-    <div class="reel-plate reel-plate--third"><img src="{{ B }}/5.mool/7.webp" alt="Mool, goals as questions" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--third"><img src="{{ B }}/10.alpha/12.1.webp" alt="Alpha Stockathon, a module chapter screen" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--third"><img src="{{ B }}/assets/img/pricing-analyzer/pizzahut-portal.webp" alt="Pizza Hut pricing portal dashboard" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--third"><img src="{{ B }}/assets/img/pricing-analyzer/arbys-onboarding.webp" alt="Arby's pricing analyzer onboarding" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/img/marriott/06-enroll-poster.jpg"><source src="{{ B }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/assets/img/fairview/13-impact.webp" alt="Fairview impact" loading="lazy" decoding="async" style="--pos: 50% 0" /></div>
-    <div class="reel-plate reel-plate--8"><img src="{{ B }}/assets/img/fairview/cover.webp" alt="M Health Fairview, in use" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><img src="{{ B }}/5.mool/13.jpg" alt="Mool out of home" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 2000/550"><img src="{{ B }}/assets/img/pricing-analyzer/pizzahut-illustrations.webp" alt="Pizza Hut brand illustrations: pizza, delivery, the kitchen, the storefront" loading="lazy" decoding="async" /></div>
   </div>
 </section>
 
