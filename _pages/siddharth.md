@@ -188,6 +188,8 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p40.webp" alt="Horses, oil" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p71.webp" alt="Buddha, oil" loading="lazy" decoding="async" style="--pos: 50% 30%" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/11.illu/18.webp" alt="Dashavatara icon set" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/3d/10.1-web-poster.jpg"><source src="{{ B }}/2.cube/3d/10.1-web.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/3d/10.2-web-poster.jpg"><source src="{{ B }}/2.cube/3d/10.2-web.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
 
