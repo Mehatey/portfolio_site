@@ -18,7 +18,7 @@ meta:
   - label: Client
     value: Goa Waste Management
   - label: Scope
-    value: Route, belt camera, ward queue
+    value: Route, belt, ward
   - label: Tools
     value: PyTorch, JavaScript
   - label: Year
@@ -29,7 +29,7 @@ highlights:
   - value: "29%"
     label: on a raw crop off a real belt
   - value: "0"
-    label: wrong dispatches, with 8 of 23 held for a person
+    label: wrong dispatches, 8 of 23 held
 reflection: >
   72% is not a good number. That is why the product is built around abstention. A softmax always answers. The product should not. So before anything is sent the belt asks two more questions, have you seen this before and how sure are you, and fails either one to a person. The cost of that rule is 1.6 hours of somebody's afternoon, and the ward page shows it, because pretending it is free is how a model loses trust.
 
