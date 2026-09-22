@@ -103,6 +103,11 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate"><img src="{{ B }}/1.met/12.webp" alt="Visitors activating Encoded" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/cover.jpg"><source src="{{ B }}/15.bloom-vp/visitor-1.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/6.mindu/7.1.webp" alt="Mind Your Feelings kiosk" loading="lazy" decoding="async" /></div>
+    <!-- Sid: "add both of these together in the creative tech section."
+         The Neural Landscape: the lit brain sculpture's build (Grasshopper
+         script, 3D print) and the kiosk in the wild at a library. -->
+    <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><img src="{{ B }}/6.mindu/neural-landscape-process.webp" alt="The Neural Landscape: Grasshopper script, 3D print test, the lit brain sculpture" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate"><img src="{{ B }}/6.mindu/neural-landscape-kiosk.webp" alt="The Neural Landscape kiosk in a public library" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/poster.jpg"><source src="{{ B }}/15.bloom-vp/lotus.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/6.mindu/cover2.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/4.mandala/cover.jpg" alt="Bloom, EEG installation" loading="lazy" decoding="async" style="--pos: 70% 50%" /></div>
