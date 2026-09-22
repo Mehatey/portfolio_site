@@ -302,6 +302,23 @@ next_project:
     padding: 0;
     list-style: none;
   }
+  /* The page's own list ink is near black, which on this table is an
+     empty column. Stated here, where the table sets its own ground. */
+  .col-roles-table li,
+  .col-roles-table td,
+  .col-roles-table p {
+    color: rgba(242, 239, 232, 0.82) !important;
+    list-style: none;
+  }
+  .col-roles-table td b {
+    color: #f2efe8 !important;
+  }
+  .col-roles-table td span {
+    color: rgba(242, 239, 232, 0.5) !important;
+  }
+  .col-roles-table th {
+    color: rgba(242, 239, 232, 0.55) !important;
+  }
   .col-roles-table li + li {
     margin-top: 6px;
   }
