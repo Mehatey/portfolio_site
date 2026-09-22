@@ -76,6 +76,18 @@ next_project:
   .fv-band__track img { display: block; height: clamp(120px, 16vw, 220px); width: auto; }
   @keyframes fvBand { to { transform: translateX(-50%); } }
   @media (prefers-reduced-motion: reduce) { .fv-band__track { animation: none; } }
+
+  /* Wireframes: a manual horizontal scroll, not an auto-playing band, since
+     these are meant to be read one at a time rather than glanced at in motion. */
+  .fv-wire-scroll { display: flex; gap: 16px; overflow-x: auto; margin: clamp(24px, 4vw, 40px) 0; padding-bottom: 8px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+  .fv-wire-scroll img { flex: 0 0 auto; height: clamp(260px, 38vw, 460px); width: auto; border-radius: 10px; scroll-snap-align: start; box-shadow: 0 1px 0 rgba(0,0,0,0.06); }
+
+  /* Sid: "small text wireframe, almost full width, not the usual 2 grid
+     where they both fit on the page cause it wont be visible." Each
+     plate takes ~78% of the row so the next one visibly peeks in on the
+     right, making the horizontal scroll obvious instead of a static pair. */
+  .fv-flow-scroll { display: flex; gap: 16px; overflow-x: auto; margin: clamp(24px, 4vw, 40px) 0; padding-bottom: 8px; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; }
+  .fv-flow-scroll img { flex: 0 0 78%; width: 78%; border-radius: 10px; display: block; scroll-snap-align: start; box-shadow: 0 1px 0 rgba(0,0,0,0.06); }
 </style>
 
 <!-- ── THE STORY, IN ORDER ─────────────────────────────────────────────
@@ -115,6 +127,30 @@ next_project:
 <div class="cs-grid cs-grid--fit">
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/ia-sitemap.webp" alt="M Health Fairview sitemap: footer, COVID-19 resources, utility navigation, primary navigation" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/ia-flows.webp" alt="The get care flow branching from the landing frame through primary and secondary care" loading="lazy" decoding="async" /></div>
+</div>
+
+<p class="cube-cap cube-cap--above">Wireframing, before any of the visual system landed.</p>
+<div class="fv-wire-scroll" aria-label="Wireframes, scroll horizontally">
+  <img src="{{ site.baseurl }}/assets/img/fairview/wire-urgent-care.webp" alt="Wireframe: Urgent Care and Emergency Care, with online and in-person options" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/assets/img/fairview/wire-how-would-you.webp" alt="Wireframe: How would you like to get care, online or in person" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/assets/img/fairview/wire-hi-there.webp" alt="Wireframe: what would you like to do today, get care urgently, find the right care, book other services" loading="lazy" decoding="async" />
+</div>
+
+<div class="fv-flow-scroll" aria-label="Get Care flow diagrams, scroll horizontally">
+  <img src="{{ site.baseurl }}/assets/img/fairview/flow-get-care-1.webp" alt="Get Care Flow 1: care type's medium, online or in-person, up front" loading="lazy" decoding="async" />
+  <img src="{{ site.baseurl }}/assets/img/fairview/flow-get-care-2.webp" alt="Get Care Flow 2: sort care through symptoms, conditions and speciality" loading="lazy" decoding="async" />
+</div>
+
+<p class="cube-cap cube-cap--above">A discussion with the client about the designs.</p>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/client-opening-slide.webp" alt="Get Care flows, client review slide, February 13th 2023" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/client-mom-notes.webp" alt="Minutes of meeting: discussion points and action items from the JO review" loading="lazy" decoding="async" /></div>
+</div>
+
+<p class="cube-cap cube-cap--above">UI ideation: the specialty icon grid, and where it sits in the site's own navigation.</p>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/ideation-icon-grid.webp" alt="Specialty icon set ideation: Routine Preventive Visit, Primary Care, Specialty Care" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/ideation-left-nav.webp" alt="Website left nav states" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-section">
