@@ -103,6 +103,12 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/4.mandala/2.webp" alt="Bloom" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/4.mandala/9.2.webp" alt="Bloom, the table" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><video autoplay muted loop playsinline preload="metadata"><source src="{{ B }}/1.met/9.mp4" type="video/mp4" /></video></div>
+    <!-- Sid: "add these to the scroll, they are creative tech." The live
+         visuals, the headset piece and the generative mandala, in the
+         chapter about rooms people stood in. -->
+    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-projection-poster.jpg"><source src="{{ B }}/4.mandala/ct-projection.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-headset-poster.jpg"><source src="{{ B }}/4.mandala/ct-headset.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-ripple-poster.jpg"><source src="{{ B }}/4.mandala/ct-ripple.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
 
