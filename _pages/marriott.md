@@ -83,6 +83,12 @@ next_project:
 <p class="cube-cap cube-cap--above">An employee app for Marriott staff, across every Bonvoy property.</p>
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/01-what.webp" alt="What we did, Marriott Bonvoy employee app" loading="lazy" decoding="async" /></div>
 
+<p class="cube-cap cube-cap--above">UX: the annotation system used across every spec, and how the dashboard scales from tablet to desktop.</p>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/11-annotation-legend.webp" alt="Annotation examples: functional requirement, functionality, interaction, micro-interaction, transition, animation" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/12-responsive.webp" alt="The dashboard's responsive states, tablet through desktop, with the notifications panel open" loading="lazy" decoding="async" /></div>
+</div>
+
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/00-spog.webp" alt="Marriott Bonvoy SPOG: a whole shift in one place, read the day, watch what needs attention, help the guest" loading="lazy" decoding="async" /></div>
 
 <div class="cs-section">
@@ -92,10 +98,15 @@ next_project:
 <p class="cube-cap cube-cap--above">The specification. Every element mapped to a requirement.</p>
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/03-spec.webp" alt="Annotated dashboard specification" loading="lazy" decoding="async" /></div>
 
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/09-dashboard-rec-poster.jpg" aria-label="The dashboard, screen recorded"><source src="{{ site.baseurl }}/assets/img/marriott/09-dashboard-rec.mp4" type="video/mp4" /></video></div>
+
 <div class="cs-grid cs-grid--fit">
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source src="{{ site.baseurl }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
   <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
 </div>
+
+<p class="cube-cap cube-cap--above">Notifications, broken down: the banner, the bell, and every state in the panel.</p>
+<div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/10-notifspec.webp" alt="Annotated notifications specification: banner, bell icon, panel states, key functionality and user interaction" loading="lazy" decoding="async" /></div>
 
 <div class="cs-section">
   <h2 class="cs-section-label">Loyalty enrolment</h2>
