@@ -112,6 +112,9 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
          make small media too small on scroll." The generative mandala runs
          the whole column. -->
     <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-ripple-poster.jpg"><source src="{{ B }}/4.mandala/ct-ripple.mp4" type="video/mp4" /></video></div>
+    <!-- Vision Pro passthrough: a tree in the station, a garden on the street. -->
+    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/vp-subway-tree-poster.jpg"><source src="{{ B }}/15.bloom-vp/vp-subway-tree.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/vp-street-garden-poster.jpg"><source src="{{ B }}/15.bloom-vp/vp-street-garden.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
 
