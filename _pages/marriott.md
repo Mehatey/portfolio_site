@@ -83,27 +83,28 @@ next_project:
 <p class="cube-cap cube-cap--above">An employee app for Marriott staff, across every Bonvoy property.</p>
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/01-what.webp" alt="What we did, Marriott Bonvoy employee app" loading="lazy" decoding="async" /></div>
 
+<div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/00-spog.webp" alt="Marriott Bonvoy SPOG: a whole shift in one place, read the day, watch what needs attention, help the guest" loading="lazy" decoding="async" /></div>
+
 <div class="cs-section">
   <h2 class="cs-section-label">The dashboard</h2>
 </div>
 
-<p class="cube-cap cube-cap--above">The dashboard. The whole shift on one pane.</p>
-<div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/marriott/02-dashboard.gif" alt="SPOG dashboard overview in motion" loading="lazy" decoding="async" /></div>
-
 <p class="cube-cap cube-cap--above">The specification. Every element mapped to a requirement.</p>
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/03-spec.webp" alt="Annotated dashboard specification" loading="lazy" decoding="async" /></div>
 
-<div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source src="{{ site.baseurl }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
-
-<div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source src="{{ site.baseurl }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
+</div>
 
 <div class="cs-section">
   <h2 class="cs-section-label">Loyalty enrolment</h2>
 </div>
 
 <p class="cube-cap cube-cap--above">Loyalty enrolment, without leaving the desk.</p>
-<div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source src="{{ site.baseurl }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
+<div class="cs-grid cs-grid--fit">
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source src="{{ site.baseurl }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>
+</div>
 
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/07-enrollspec.webp" alt="Loyalty enrolment key functionality" loading="lazy" decoding="async" /></div>
-
-<div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>

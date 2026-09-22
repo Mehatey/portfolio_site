@@ -64,6 +64,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/img/marriott/06-enroll-poster.jpg"><source src="{{ B }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/assets/img/fairview/13-impact.webp" alt="Fairview impact" loading="lazy" decoding="async" style="--pos: 50% 0" /></div>
     <div class="reel-plate reel-plate--wide" style="--ar: 2000/550"><img src="{{ B }}/assets/img/pricing-analyzer/pizzahut-illustrations.webp" alt="Pizza Hut brand illustrations: pizza, delivery, the kitchen, the storefront" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><img src="{{ B }}/assets/img/pricing-analyzer/error-states.webp" alt="Error state illustrations for the Yum! Brands pricing portals: Pizza Hut, Taco Bell, KFC, Arby's" loading="lazy" decoding="async" /></div>
   </div>
 </section>
 
