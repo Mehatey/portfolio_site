@@ -128,7 +128,11 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <ul class="reel-ch__from"><li><a href="{{ B }}/obin/">Obin</a></li><li><a href="{{ B }}/ledger/">Ledger</a></li><li><a href="{{ B }}/ai-self/">AI Self</a></li><li><a href="{{ B }}/ai-prototypes/">12 experiments</a></li></ul>
   </div>
   <div class="reel-grid">
-    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/16.obin/v1-agent-poster.jpg"><source src="{{ B }}/16.obin/v1-agent.mp4" type="video/mp4" /></video></div>
+    <!-- Sid: "on the obin ai section you are too zoomed in, dont zoom, keep
+         original ratio." 16/9 was cropping a screen recording shot at
+         1600x910; the box now matches the file's own ratio, so cover has
+         nothing left to crop. -->
+    <div class="reel-plate reel-plate--wide" style="--ar: 1600/910"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/16.obin/v1-agent-poster.jpg"><source src="{{ B }}/16.obin/v1-agent.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/25.1-poster.jpg"><source src="{{ B }}/2.ai-self/25.1.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/23-poster.jpg"><source src="{{ B }}/2.ai-self/23.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/19-poster.jpg"><source src="{{ B }}/2.ai-self/19.mp4" type="video/mp4" /></video></div>
@@ -147,6 +151,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
           <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/mimic/mimic-ring-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/mimic/mimic-ring.mp4" type="video/mp4" /></video></div>
           <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/mimic/mimic-specimens-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/mimic/mimic-specimens.mp4" type="video/mp4" /></video></div>
           <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/vantage/transition-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/vantage/opening.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/vantage/vantage-desk-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/vantage/vantage-desk.mp4" type="video/mp4" /></video></div>
           <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/guise/GUISE-transforms-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/guise/GUISE-transforms.mp4" type="video/mp4" /></video></div>
           <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/feral/FERAL-walkthrough-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/feral/FERAL-walkthrough.mp4" type="video/mp4" /></video></div>
           <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/forecast/FORECAST-assembly-transition-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/forecast/FORECAST-assembly-transition.mp4" type="video/mp4" /></video></div>
