@@ -59,20 +59,21 @@
         canvas.height = h;
       }
       /* object-fit: cover, done by hand so the mosaic lines up with the
-         photograph it is standing on. */
+         photograph it is standing on. Sized by ratio and drawn by destination
+         rectangle: an img with a srcset reports a density corrected
+         naturalWidth, so a source crop in those units reads the top left
+         corner of the real file. Mool's hover was a blue rectangle. */
       var iw = img.naturalWidth,
         ih = img.naturalHeight;
-      var s = Math.max(w / iw, h / ih);
-      var sw = w / s,
-        sh = h / s,
-        sx = (iw - sw) / 2,
-        sy = (ih - sh) / 2;
       var cw = Math.max(1, Math.round(w / (cell * dpr))),
         ch = Math.max(1, Math.round(h / (cell * dpr)));
       off.width = cw;
       off.height = ch;
+      var s = Math.max(cw / iw, ch / ih);
+      var dw = iw * s,
+        dh = ih * s;
       octx.imageSmoothingEnabled = true;
-      octx.drawImage(img, sx, sy, sw, sh, 0, 0, cw, ch);
+      octx.drawImage(img, (cw - dw) / 2, (ch - dh) / 2, dw, dh);
       ctx.imageSmoothingEnabled = false;
       ctx.clearRect(0, 0, w, h);
       ctx.drawImage(off, 0, 0, cw, ch, 0, 0, w, h);

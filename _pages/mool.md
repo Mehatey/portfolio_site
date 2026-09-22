@@ -204,7 +204,7 @@ next_project:
   <img src="{{ site.baseurl }}/5.mool/9.webp" alt="A home-ownership goal written as a question: can I buy a home in this city" loading="lazy" decoding="async" />
 </div>
 
-<div class="cs-bleed cs-bleed--narrow">
+<div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/10.webp" alt="Payments and transfers, debit card controls, and the card itself" loading="lazy" decoding="async" />
 </div>
 

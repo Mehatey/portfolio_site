@@ -121,15 +121,14 @@ next_project:
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
 <p class="cube-cap cube-cap--above">The new entry point, in motion.</p>
 <div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
-<p class="cube-cap cube-cap--above">Care types compared by cost, wait and what they treat, and the specialty set that carries them.</p>
-<div class="cs-grid cs-grid--fit">
+<p class="cube-cap cube-cap--above">The specialty set that carries every care type.</p>
+<div class="cs-bleed"><video width="1600" height="908" src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
+<p class="cube-cap cube-cap--above">Care types compared by cost, wait and what they treat. A helper for patients who would rather be led, and a checklist for the visit itself.</p>
+<div class="cs-grid-3 cs-grid--fit">
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/09-comparison.webp" alt="Side by side comparison of every care type by cost, wait and what it treats" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item"><video width="1600" height="908" src="{{ site.baseurl }}/assets/img/fairview/specialty-icons.mp4" poster="{{ site.baseurl }}/assets/img/fairview/specialty-icons-poster.webp" autoplay muted loop playsinline preload="metadata" aria-label="The M Health Fairview specialty care icons animating in a grid"></video></div>
-</div>
-<p class="cube-cap cube-cap--above">A helper for patients who would rather be led than browse, and a checklist for the visit itself.</p>
-<div class="cs-grid cs-grid--fit">
   <div class="cs-grid-item"><video width="796" height="1126" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="{{ site.baseurl }}/assets/img/fairview/11-assistant.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><img src="{{ site.baseurl }}/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async" /></div>
+</div>
 </div>
 
 <div class="cs-section">

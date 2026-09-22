@@ -169,7 +169,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
      two lines of the headline plus a margin, and it is the only ground a
      letter can rest on. */
   const ISLAND = { x0: -4.35, x1: 3.35, z0: 1.3, z1: 3.45, top: 0.02, thick: 0.22 };
-  const islandMat = new THREE.MeshStandardMaterial({ color: 0x171a20, roughness: 0.96, metalness: 0.02 });
+  const islandMat = new THREE.MeshStandardMaterial({ color: 0x171a20, roughness: 0.96, metalness: 0.02, envMapIntensity: 0.1 });
   const island = (() => {
     const cx = (ISLAND.x0 + ISLAND.x1) / 2,
       cz = (ISLAND.z0 + ISLAND.z1) / 2,
@@ -207,7 +207,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   })();
 
   /* ── THE LEAVES ───────────────────────────────────────────────────────── */
-  const leafMat = new THREE.MeshStandardMaterial({ color: 0x2c4a3c, roughness: 0.85, side: THREE.DoubleSide });
+  const leafMat = new THREE.MeshStandardMaterial({ color: 0x2c4a3c, roughness: 0.85, side: THREE.DoubleSide, envMapIntensity: 0.1 });
   const leaves = [];
   [
     [-5.6, -0.6, 0.62],
@@ -243,18 +243,58 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
      The awards sit nearer; the places he has worked sit further out,
      under one word that says what they are. */
   const FLOATS = [
-    ["2× WEBBY AWARD", -4.9, -2.3, 1.0],
-    ["KYOORIUS DESIGN AWARD", -1.7, -3.6, 1.0],
-    ["MIT REALITY HACK", 5.3, -3.2, 1.0],
-    ["PREVIOUSLY", -6.9, -0.6, 0.55],
-    ["DELOITTE DIGITAL", -6.3, -4.6, 0.8],
-    ["MARRIOTT", -3.9, -0.9, 0.8],
-    ["M HEALTH FAIRVIEW", 0.6, -5.2, 0.8],
-    ["PHILIPS", 6.9, -1.0, 0.8],
-    ["EYEJACK", 3.6, -6.4, 0.8],
-    ["LEAF", -3.2, -6.6, 0.8],
-    ["GOOGLE", 7.2, -5.6, 0.8],
+    ["PREVIOUSLY", -5.2, -3.7, 0.5],
+    ["DELOITTE DIGITAL", -5.2, -2.4, 0.9],
+    ["MARRIOTT", -2.4, -2.4, 0.9],
+    ["M HEALTH FAIRVIEW", -0.1, -2.4, 0.9],
+    ["PHILIPS", 4.6, -2.4, 0.9],
+    ["EYEJACK", 6.3, -2.4, 0.9],
+    ["LEAF", 8.0, -2.4, 0.9],
   ];
+  /* ── AVAILABLE, AROUND THE ISLAND ────────────────────────────────────
+     Sid: "Available to work in New York, kind of mapped in a curved way
+     around my island." One arc of small caps on the water, hugging the
+     slab's near edge, read from the camera. */
+  function makeArc() {
+    const text = "AVAILABLE TO WORK  ·  NEW YORK";
+    const cx = (ISLAND.x0 + ISLAND.x1) / 2,
+      cz = (ISLAND.z0 + ISLAND.z1) / 2;
+    const rx = (ISLAND.x1 - ISLAND.x0) / 2 + 0.6,
+      rz = (ISLAND.z1 - ISLAND.z0) / 2 + 0.55;
+    const g = new THREE.Group();
+    const font = '500 44px "DM Mono", ui-monospace, Menlo, monospace';
+    const H = 0.17;
+    const n = text.length;
+    const span = 0.62; /* radians of arc the line covers */
+    for (let i = 0; i < n; i++) {
+      const ch = text[i];
+      if (ch === " ") continue;
+      const c = document.createElement("canvas");
+      const q = c.getContext("2d");
+      q.font = font;
+      const cw = Math.ceil(q.measureText(ch).width);
+      c.width = cw + 8;
+      c.height = 64;
+      q.font = font;
+      q.fillStyle = "#fff";
+      q.textBaseline = "middle";
+      q.fillText(ch, 4, 34);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      const m = new THREE.Mesh(
+        new THREE.PlaneGeometry((c.width / c.height) * H, H),
+        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })
+      );
+      const u = i / (n - 1);
+      const ang = Math.PI / 2 + (u - 0.5) * span; /* pi/2 is the near edge */
+      m.position.set(cx + Math.cos(ang) * rx * -1, H / 2 + 0.02, cz + Math.sin(ang) * rz);
+      m.rotation.y = (u - 0.5) * span * 0.6;
+      floatMat.push(m.material);
+      g.add(m);
+    }
+    scene.add(g);
+    return g;
+  }
   const floats = [];
   const floatMat = [];
   function makeFloats() {
@@ -295,7 +335,49 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     });
   }
   const ready = document.fonts && document.fonts.load ? document.fonts.load('500 44px "DM Mono"') : Promise.resolve();
-  ready.then(makeFloats, makeFloats);
+  const build = () => {
+    makeFloats();
+    makeArc();
+  };
+  ready.then(build, build);
+
+  /* ── THE AWARDS, AS THINGS ON THE WATER ─────────────────────────────
+     Sid: "instead of them being text, little 3D shiny items which are kind
+     of moving down ... just keep floating on and off down the river."
+     Two Webby discs, one Kyoorius bar, one Reality Hack ring, in
+     polished metal, each riding the current from right to left at its own
+     pace and coming round again. */
+  const awardMat = (c) =>
+    new THREE.MeshPhysicalMaterial({ color: c, metalness: 1, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 1.4 });
+  const awards = [];
+  const awardDefs = [
+    [new THREE.CylinderGeometry(0.26, 0.26, 0.06, 40), 0xd9dde6, 0.0, -1.1, 0.055],
+    [new THREE.CylinderGeometry(0.26, 0.26, 0.06, 40), 0xd9dde6, 0.42, -0.5, 0.05],
+    [new THREE.BoxGeometry(0.62, 0.05, 0.22), 0xe6c45a, 0.8, -3.1, 0.042],
+    [new THREE.TorusGeometry(0.22, 0.05, 16, 40), 0xb7c9d9, 0.25, -1.9, 0.06],
+  ];
+  awardDefs.forEach(([geo, col, ph, z, speed], i) => {
+    const m = new THREE.Mesh(geo, awardMat(col));
+    if (geo.type === "TorusGeometry") m.rotation.x = Math.PI / 2;
+    m.castShadow = true;
+    scene.add(m);
+    awards.push({ mesh: m, ph, z, speed, y: 0.03 + i * 0.004 });
+  });
+  /* a mirror needs something to mirror: a soft graded dome, warm at the
+     horizon and pale above, baked once */
+  const envScene = new THREE.Scene();
+  const domeGeo = new THREE.SphereGeometry(20, 24, 16);
+  const domeMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide,
+    uniforms: {},
+    vertexShader: "varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+    fragmentShader:
+      "varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 top = vec3(0.86,0.9,0.98); vec3 hor = vec3(1.0,0.86,0.66); vec3 low = vec3(0.05,0.07,0.1); vec3 c = h > 0.0 ? mix(hor, top, smoothstep(0.0,0.7,h)) : mix(hor, low, smoothstep(0.0,0.5,-h)); gl_FragColor = vec4(c,1.0); }",
+  });
+  envScene.add(new THREE.Mesh(domeGeo, domeMat));
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  scene.environment = pmrem.fromScene(envScene, 0.02).texture;
+  pmrem.dispose();
 
   /* ── THE STONE, AND THE FIGURE ON IT ───────────────────────────────────── */
   const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.15, 0.22, 40), new THREE.MeshStandardMaterial({ color: 0x1a1e27, roughness: 0.9 }));
@@ -340,7 +422,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   }
 
   /* ── THE LETTERS ──────────────────────────────────────────────────────── */
-  const letterMat = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.42, metalness: 0.08 });
+  const letterMat = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.42, metalness: 0.08, envMapIntensity: 0.35 });
   const letters = []; /* { mesh, body, w, h, d, home, line, wet, nudged } */
   let RAPIER = null,
     world = null;
@@ -445,6 +527,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     RAPIER = mod.default || mod;
     await RAPIER.init();
     world = new RAPIER.World({ x: 0, y: -9.81, z: 0 });
+    world.timestep = STEP;
     /* The island is the only floor. Its collider is the hull of the slab,
        so a letter pushed past the drawn edge really does go over. */
     const hull = [];
@@ -459,7 +542,12 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
     for (const l of letters) {
       const body = world.createRigidBody(
-        RAPIER.RigidBodyDesc.dynamic().setTranslation(l.home.x, l.home.y, l.home.z).setLinearDamping(0.9).setAngularDamping(1.6)
+        RAPIER.RigidBodyDesc.dynamic()
+          .setTranslation(l.home.x, l.home.y, l.home.z)
+          .setLinearDamping(0.9)
+          .setAngularDamping(1.6)
+          .setCanSleep(true)
+          .setCcdEnabled(true)
       );
       world.createCollider(
         RAPIER.ColliderDesc.cuboid(l.w / 2, l.h / 2, l.d / 2)
@@ -542,7 +630,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         dz += mz * 3;
         const n = Math.hypot(dx, dz) || 1;
         const m = b.mass();
-        b.applyImpulse({ x: (dx / n) * m * 0.75, y: m * 0.28, z: (dz / n) * m * 0.75 }, true);
+        b.wakeUp();
+        b.applyImpulse({ x: (dx / n) * m * 0.75, y: m * 0.22, z: (dz / n) * m * 0.75 }, true);
         b.applyTorqueImpulse({ x: 0, y: (Math.random() - 0.5) * m * 0.03, z: 0 }, true);
         hovered.nudged = performance.now();
       }
@@ -593,6 +682,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
   /* ── LOOP ─────────────────────────────────────────────────────────────── */
   const clock = new THREE.Clock();
+  const STEP = 1 / 90;
+  let acc = 0;
   const tmpV = new THREE.Vector3();
   const keyTarget = new THREE.Vector3(-2, 3.2, 3);
   let live = true;
@@ -661,10 +752,17 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     water.material.uniforms.time.value += dt * 0.55;
 
     for (const f of floats) {
-      f.mesh.position.x = f.x + Math.sin(t * 0.11 + f.phase) * 0.18;
-      f.mesh.position.z = f.z + Math.cos(t * 0.09 + f.phase * 0.7) * 0.12;
+      /* one row, so it reads as a line of type on the water; it only bobs */
+      f.mesh.position.x = f.x;
+      f.mesh.position.z = f.z + Math.cos(t * 0.09 + f.phase * 0.7) * 0.05;
       f.mesh.position.y = 0.17 + Math.sin(t * 0.6 + f.phase) * 0.008;
-      f.mesh.rotation.y = Math.sin(t * 0.13 + f.phase) * 0.12;
+      f.mesh.rotation.y = 0;
+    }
+    for (const a of awards) {
+      const k = (((t * a.speed + a.ph) % 1) + 1) % 1;
+      a.mesh.position.set(9.5 - k * 19, a.y + Math.sin(t * 0.9 + a.ph * 7) * 0.012, a.z + Math.sin(k * Math.PI * 2) * 0.3);
+      a.mesh.rotation.y = t * 0.25 + a.ph;
+      a.mesh.rotation.z = Math.sin(t * 0.7 + a.ph) * 0.06;
     }
     for (const lf of leaves) {
       lf.mesh.position.y = 0.012 + Math.sin(t * 0.7 + lf.phase) * 0.006;
@@ -697,8 +795,16 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         b.setLinvel({ x: dx * 14, y: dy * 10, z: dz * 14 }, true);
         b.setAngvel({ x: 0, y: b.angvel().y * 0.9, z: 0 }, true);
       }
-      world.timestep = dt;
-      world.step();
+      /* A fixed step. Stepping by the frame's own dt made a resting letter
+         resolve its contact differently every frame, which read as a
+         twitch, and let a body sink a hair and pop back, which read as a
+         flash. Sid: "once it goes to the ground it starts to sink in
+         weirdly, like flashing." */
+      acc = Math.min(acc + dt, 0.1);
+      while (acc >= STEP) {
+        world.step();
+        acc -= STEP;
+      }
       for (const l of letters) {
         const b = l.body;
         const p = b.translation(),

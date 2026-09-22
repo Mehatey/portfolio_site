@@ -107,10 +107,3 @@ next_project:
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/07-enrollspec.webp" alt="Loyalty enrolment key functionality" loading="lazy" decoding="async" /></div>
 
 <div class="cs-bleed"><video width="1100" height="618" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>
-
-<div class="cs-section">
-  <h2 class="cs-section-label">Where it runs</h2>
-</div>
-
-<p class="cube-cap cube-cap--above">One system, on a tablet at the desk and a browser in the back office.</p>
-<div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/marriott/09-desktop.webp" alt="SPOG on desktop browser" loading="lazy" style="animation:mkBreathe 6s ease-in-out infinite;" decoding="async" /></div>

@@ -2802,8 +2802,11 @@
       }
       .reveal {
         opacity: 1 !important;
-        transform: translateY(0) !important;
-        filter: blur(0) !important;
+        /* none, not 0: blur(0) and a translate keep the block on a
+           resampled compositor layer after the reveal, which is the
+           "little blurry" Sid saw on his boards. */
+        transform: none !important;
+        filter: none !important;
       }
       @media (prefers-reduced-motion: reduce) {
         .cs-row, .cs-bleed, .cs-bleed-full, .cs-wide, .cs-grid, .cs-grid-3, .cs-stats, .cs-idea, .cs-artists, .cs-links, .cs-meta-below, .cs-split, .cs-pair, .proj-reflection, .proj-intro, .cs-chapter, .proj-next-row, .cube-cap {
@@ -6928,7 +6931,9 @@
         font-family: var(--font-head) !important;
         font-size: 12px !important;
         line-height: 1.5 !important;
-        max-width: 60ch !important;
+        /* Sid: "can u not make the caption in 2 lines, why, its short." A
+           caption wraps at the column, not at a measure. */
+        max-width: none !important;
         padding: 0 !important;
         text-indent: 0 !important;
         color: var(--ink-3) !important;
@@ -7054,6 +7059,106 @@
       .case-story .cube-cap {
         margin-left: 0 !important;
         margin-right: 0 !important;
+      }
+
+      /* ══ THE GRAIN AND VIGNETTE STAY OFF THE WORK ═════════════════════
+         Sid: "check if we have noise or some filter on top of my work
+         media, make sure all effects are only applied to bg." Both were
+         fixed layers over the whole page. On a case study they sit under
+         the content now: the ground keeps its texture, the boards are the
+         files as exported. */
+      body.proj-page #global-grain,
+      body.proj-page #global-vignette,
+      html:has(.case-study-layout) #global-grain,
+      html:has(.case-study-layout) #global-vignette {
+        z-index: 0 !important;
+      }
+      html:has(.case-study-layout) .case-study-layout,
+      html:has(.case-study-layout) main {
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ══ THE SECOND SCREEN, REORDERED ═════════════════════════════════
+         Sid: "project details below the title, more spacing between role,
+         partner and client, vertical lines dividing them. Stats below
+         that, numbers a little bigger." So: title on the cover, then the
+         details row with rules between the fields, then the overview,
+         then the proof strip. */
+      .case-study-layout > .project-details,
+      main > .project-details {
+        order: 1;
+      }
+      .proj-highlights.proj-highlights--top {
+        order: 3;
+        margin-top: clamp(40px, 5vw, 64px) !important;
+        padding-top: clamp(28px, 3vw, 40px) !important;
+        border-top: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+      }
+      .proj-highlight-value {
+        font-size: clamp(40px, 4vw, 60px) !important;
+      }
+      .project-details summary {
+        display: none !important;
+      }
+      .project-details {
+        margin-top: clamp(32px, 4vw, 52px) !important;
+      }
+      .project-details > .meta-row {
+        border-top: 0 !important;
+        border-bottom: 0 !important;
+        padding-bottom: 0 !important;
+      }
+      .project-details .meta-row .meta-item {
+        padding: 4px clamp(28px, 3.2vw, 56px) 4px 0 !important;
+        margin-right: clamp(28px, 3.2vw, 56px);
+        border-right: 1px solid rgba(128, 128, 128, 0.32) !important;
+      }
+      .project-details .meta-row .meta-item:last-child {
+        border-right: 0 !important;
+        margin-right: 0;
+      }
+      .meta-k {
+        margin-bottom: 10px !important;
+      }
+      @media (max-width: 700px) {
+        .project-details .meta-row .meta-item {
+          border-right: 0 !important;
+          border-bottom: 1px solid var(--border) !important;
+          padding: 14px 0 !important;
+          margin-right: 0;
+        }
+      }
+
+      /* ══ OFF THE GRID LINE ════════════════════════════════════════════
+         Sid: "everything is aligned exactly to the left grid line ... it
+         doesn't need to touch it so much, 16 points." The column starts a
+         step in from the measure on both sides. */
+      .case-study-layout,
+      .proj-body,
+      .case-story .proj-body,
+      main > .hero-inner,
+      .proj-highlights.proj-highlights--top,
+      .project-details,
+      .proj-intro,
+      .proj-reflection .refl-inner {
+        --grid-inset: 16px;
+      }
+      main > .hero-inner .proj-title {
+        margin-left: 16px;
+      }
+      .proj-highlights.proj-highlights--top {
+        margin-left: calc(var(--grid-left, 5vw) + 16px) !important;
+        margin-right: calc(var(--grid-left, 5vw) + 16px) !important;
+      }
+      .project-details > .meta-row,
+      .proj-intro .intro-inner {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+      }
+      .case-story .proj-body {
+        padding-left: 16px !important;
+        padding-right: 16px !important;
       }
     </style>
   </head>
@@ -7228,6 +7333,26 @@
           window.addEventListener("load", set);
         })();
       </script>
+      {% if page.meta %}
+      <!-- Open by default. Year, client and tools are the first three
+           things a recruiter looks for and they were behind a click; the
+           disclosure stays so the row can still be folded away. -->
+      <details class="project-details" open>
+        <summary>Project details</summary>
+        <div class="meta-row">
+          {% for item in page.meta %}
+          <div class="meta-item" {% if item.priority %} data-priority="{{ item.priority }}" {% endif %}>
+            <p class="meta-k">{{ item.label }}</p>
+            <p class="meta-v">
+              {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer"
+                >{{ item.value }}<span class="xarrow" aria-hidden="true"></span></a
+              >{% else %}{{ item.value }}{% endif %}
+            </p>
+          </div>
+          {% endfor %}
+        </div>
+      </details>
+      {% endif %}
       <!-- ── THE PROOF IS ON THE FIRST SCREEN ─────────────────────────────
            Walked as a recruiter: the three numbers were the best thing on the
            page and they sat on screen three, under a full-height cover, the
@@ -7313,26 +7438,6 @@
         })();
       </script>
       <!-- SECONDARY DETAILS -->
-      {% if page.meta %}
-      <!-- Open by default. Year, client and tools are the first three
-           things a recruiter looks for and they were behind a click; the
-           disclosure stays so the row can still be folded away. -->
-      <details class="project-details" open>
-        <summary>Project details</summary>
-        <div class="meta-row">
-          {% for item in page.meta %}
-          <div class="meta-item" {% if item.priority %} data-priority="{{ item.priority }}" {% endif %}>
-            <p class="meta-k">{{ item.label }}</p>
-            <p class="meta-v">
-              {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer"
-                >{{ item.value }}<span class="xarrow" aria-hidden="true"></span></a
-              >{% else %}{{ item.value }}{% endif %}
-            </p>
-          </div>
-          {% endfor %}
-        </div>
-      </details>
-      {% endif %}
 
       <!-- INTRO -->
       {% unless page.hide_overview %}
