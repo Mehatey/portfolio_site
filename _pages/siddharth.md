@@ -106,9 +106,12 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <!-- Sid: "add these to the scroll, they are creative tech." The live
          visuals, the headset piece and the generative mandala, in the
          chapter about rooms people stood in. -->
-    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-projection-poster.jpg"><source src="{{ B }}/4.mandala/ct-projection.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-headset-poster.jpg"><source src="{{ B }}/4.mandala/ct-headset.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-ripple-poster.jpg"><source src="{{ B }}/4.mandala/ct-ripple.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-projection-poster.jpg"><source src="{{ B }}/4.mandala/ct-projection.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-headset-poster.jpg"><source src="{{ B }}/4.mandala/ct-headset.mp4" type="video/mp4" /></video></div>
+    <!-- Sid: "one of them needs to be bigger so u can see the concept, dont
+         make small media too small on scroll." The generative mandala runs
+         the whole column. -->
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-ripple-poster.jpg"><source src="{{ B }}/4.mandala/ct-ripple.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
 
@@ -187,7 +190,13 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/play/assets/hi/p181.webp" alt="Rain on the window" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p1.webp" alt="A bead ball" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p160.webp" alt="Chefs" loading="lazy" decoding="async" /></div>
-  </div>
+      <!-- Sid: "u can use these in photo section of scroll." Shot on iPhone,
+         the campaign slides, with the concept legible. -->
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><img src="{{ B }}/assets/img/soi/family.webp" alt="Shot on iPhone, by Family: children doing homework by torchlight" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><img src="{{ B }}/assets/img/soi/escapism.webp" alt="Shot on iPhone, by Escapism: red light and motion streaks" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><img src="{{ B }}/assets/img/soi/happiness.webp" alt="Shot on iPhone, by Happiness: two women laughing in the hills" loading="lazy" decoding="async" /></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><img src="{{ B }}/assets/img/soi/human-condition.webp" alt="Shot on iPhone, by the Human Condition: rain caught on a rail" loading="lazy" decoding="async" /></div>
+</div>
 </section>
 
 <!-- 07 -->
