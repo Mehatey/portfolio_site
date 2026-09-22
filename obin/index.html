@@ -5161,9 +5161,35 @@
 
       body.proj-page #global-grain,
       body.proj-page #global-vignette,
+      body.proj-page .film,
       html:has(.case-study-layout) #global-grain,
-      html:has(.case-study-layout) #global-vignette {
+      html:has(.case-study-layout) #global-vignette,
+      html:has(.case-study-layout) .film {
         z-index: 0 !important;
+      }
+      .proj-body img,
+      .proj-body video,
+      .cs-rail-item img,
+      .cs-rail-item video,
+      .proj-body .breathe img,
+      .proj-body .breathe video {
+        filter: none !important;
+        will-change: auto !important;
+        backface-visibility: visible !important;
+        animation: none !important;
+        transform: none !important;
+      }
+      .reveal,
+      .proj-body .cs-bleed,
+      .proj-body .cs-grid-item,
+      .proj-body .cs-rail-item {
+        will-change: auto !important;
+      }
+      .proj-body [data-curve],
+      .cs-rail-item[data-curve] {
+        transform: none !important;
+        filter: none !important;
+        will-change: auto !important;
       }
       html:has(.case-study-layout) .case-study-layout,
       html:has(.case-study-layout) main {
@@ -7319,8 +7345,10 @@
       });
     }
 
-    var PIC_SEL =
-      ".wk-card, .sid-tile, .cs-grid-item, .cs-bleed, .cs-bleed-full, .gal-item, .wcube__face, .proj-cover, figure.cs-fig, .kts__item, .proto__media";
+    var ON_PROJECT = !!document.querySelector(".case-study-layout");
+    var PIC_SEL = ON_PROJECT
+      ? ".wk-card, .sid-tile, .wcube__face"
+      : ".wk-card, .sid-tile, .cs-grid-item, .cs-bleed, .cs-bleed-full, .gal-item, .wcube__face, .proj-cover, figure.cs-fig, .kts__item, .proto__media";
     var PIC_SKIP = ".m-logo, .studio-mark, .logo-cube, .sfilm, .idle-drift, .contact-desk";
 
     document.addEventListener(
@@ -19685,116 +19713,6 @@
       })();
 
     </script> <svg style="position: absolute; width: 0; height: 0; overflow: hidden" aria-hidden="true"> <defs> <filter id="glass-refract" x="-5%" y="-30%" width="110%" height="160%" color-interpolation-filters="sRGB"> <feturbulence type="fractalNoise" basefrequency="0.007 0.048" numoctaves="1" seed="9" result="noise"></feturbulence> <fedisplacementmap in="SourceGraphic" in2="noise" scale="9" xchannelselector="R" ychannelselector="G"></fedisplacementmap> </filter> </defs> </svg> <style>
-  [data-curve] {
-    transform: perspective(1400px) rotateX(calc(var(--cv, 0) * 1deg)) translateZ(calc(var(--cz, 0) * 1px)) scale(var(--cs, 1));
-    transform-origin: center center;
-    filter: blur(calc(var(--cb, 0) * 1px));
-    opacity: var(--co, 1);
-    will-change: transform, filter;
-    backface-visibility: hidden;
-  }
-  [data-curve] > * {
-    backface-visibility: hidden;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    [data-curve] {
-      transform: none;
-      filter: none;
-      opacity: 1;
-    }
-  }
-</style> <script>
-  (function () {
-    var SEL = ".cs-bleed img, .cs-bleed video, .cs-bleed-full img, .cs-bleed-full video, .cs-grid-item img, .cs-grid-item\n    video, .cs-rail-item img, .cs-rail-item video, .cs-pair img, .cs-pair video";
-    if (!SEL) return;
-    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-    var items = [];
-    function collect() {
-      var found = [].slice.call(document.querySelectorAll(SEL));
-      if (found.length === items.length) return false;
-      items = found;
-      for (var i = 0; i < items.length; i++) {
-        if (!items[i].hasAttribute("data-curve")) items[i].setAttribute("data-curve", "");
-      }
-      return true;
-    }
-    collect();
-
-    if ("MutationObserver" in window) {
-      var mo = new MutationObserver(function () {
-        if (collect()) kick();
-      });
-      mo.observe(document.body, { childList: true, subtree: true });
-      setTimeout(function () {
-        mo.disconnect();
-      }, 12000);
-    }
-
-    var MAX_DEG = 3;
-    var MAX_BLUR = 0;
-    var MAX_Z = 18;
-    var BLUR_START = 0.72;
-    var vel = 0,
-      lastY = window.scrollY,
-      raf = 0,
-      idle = 0;
-
-    function frame() {
-      var y = window.scrollY;
-      var dy = y - lastY;
-      lastY = y;
-      vel = vel * 0.9 + Math.min(1, Math.abs(dy) / 90) * 0.1;
-
-      var vh = window.innerHeight || 1;
-      var mid = vh * 0.5;
-      var moved = false;
-
-      for (var i = 0; i < items.length; i++) {
-        var el = items[i];
-        var r = el.getBoundingClientRect();
-        if (r.bottom < -vh * 0.4 || r.top > vh * 1.4) {
-          if (el.__on) {
-            el.style.setProperty("--cv", 0);
-            el.style.setProperty("--cb", 0);
-            el.style.setProperty("--co", 1);
-            el.style.setProperty("--cz", 0);
-            el.style.setProperty("--cs", 1);
-            el.__on = 0;
-          }
-          continue;
-        }
-        el.__on = 1;
-        moved = true;
-
-        var t = ((r.top + r.height * 0.5 - mid) / mid) * -1;
-        var a = Math.abs(t);
-
-        var deg = t * MAX_DEG * (1 + vel * 0.3);
-        var edge = Math.max(0, (a - BLUR_START) / (1 - BLUR_START));
-        var blur = edge * edge * MAX_BLUR * (1 + vel * 0.25);
-        var dim = 1;
-        var z = -a * MAX_Z;
-
-        el.style.setProperty("--cv", deg.toFixed(2));
-        el.style.setProperty("--cb", blur.toFixed(2));
-        el.style.setProperty("--co", dim.toFixed(3));
-        el.style.setProperty("--cz", z.toFixed(1));
-        el.style.setProperty("--cs", (1 + a * 0.012).toFixed(4));
-      }
-
-      idle = vel > 0.004 || moved ? 0 : idle + 1;
-      raf = idle > 6 ? 0 : requestAnimationFrame(frame);
-    }
-
-    function kick() {
-      if (!raf) raf = requestAnimationFrame(frame);
-    }
-    window.addEventListener("scroll", kick, { passive: true });
-    window.addEventListener("resize", kick, { passive: true });
-    kick();
-  })();
-</script> <style>
   html.lenis,
   html.lenis body {
     height: auto;
