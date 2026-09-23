@@ -373,9 +373,11 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     });
   }
   const ready = document.fonts && document.fonts.load ? document.fonts.load('500 44px "DM Mono"') : Promise.resolve();
+  /* Sid: "remove available to work and nyxc text." makeArc() built the
+     "AVAILABLE TO WORK · NEW YORK" curved text over the island; left
+     defined above but never called. */
   const build = () => {
     makeFloats();
-    makeArc();
     makeLogos();
   };
   ready.then(build, build);

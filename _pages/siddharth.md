@@ -14,21 +14,19 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
   <p class="reel-hero__hint"><i></i>Scroll</p>
 </section>
 
-<!-- ── THE CUBE STORY IS OFF, FOR NOW ────────────────────────────────
-     Sid: "remove the 3d scenes from the scroll for now, i dont want it
-     to show when i present today." Markup and script both commented,
-     not deleted. .cube-story is display:none until JS adds .is-live, so
-     with the script unloaded the section never claims its 640vh and the
-     static .reel-about block below (already the no-GL fallback) shows
-     on its own. Re-enable: uncomment this block and the <script> tag
-     near the foot of the file that loads assets/js/cube-story.js.
+<!-- ── THE CUBE STORY ──────────────────────────────────────────────────
+     A pinned WebGL section (assets/js/cube-story.js): the cube wakes,
+     unfolds into who he is, folds into where he has worked, opens into
+     how he works, walks through five materials, becomes a person, and
+     breaks into voxels that gather into a small stroke cube. When it
+     cannot run (phone, reduced motion, no GL), the about block below it
+     is what shows; when it can, .is-live hides the block. -->
 <section class="cube-story" id="cube-story" data-base="{{ B }}" aria-label="About Sid, through the cube">
   <div class="cs-pin">
     <div class="cs-stage"></div>
     <p class="cs-caption" aria-live="polite"></p>
   </div>
 </section>
--->
 
 <section class="reel-about" id="about-static">
   <div class="reel-about__pic"><img src="{{ B }}/assets/img/sid_about.jpg" alt="Siddharth Mehta" loading="eager" decoding="async" /></div>

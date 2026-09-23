@@ -820,6 +820,15 @@ import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.j
     applyPal(P);
     skyMat.uniforms.t.value = time;
 
+    /* Sid: "a little transition from the 3D world to the normal world
+       scroll." The screen palette is near-black and the page it hands
+       off to is the site's own cream paper; releasing the sticky pin
+       straight from one to the other was a hard cut. The canvas itself
+       dissolves in the last beat, after the stroke cube has fully
+       docked, so the cream .cs-pin background underneath is what is
+       left when the scroll carries past it. */
+    renderer.domElement.style.opacity = String(1 - sm(0.975, 1, p));
+
     /* worlds */
     field.visible = p < 0.48 && !(p > 0.372 && p < 0.41);
     field.position.y = -1.6 * sm(0.43, 0.48, p);
