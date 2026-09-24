@@ -188,7 +188,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/2.cube/conception/6.1.webp" alt="Sketchbook" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/11.illu/13.webp" alt="Illustration" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/2d/4-poster.jpg"><source src="{{ B }}/2.cube/2d/4.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/cover.jpg"><source src="{{ B }}/2.cube/end of cube .mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/end-of-cube-poster.jpg"><source src="{{ B }}/2.cube/end-of-cube.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/3d/13-poster.jpg"><source src="{{ B }}/2.cube/3d/13.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p66.webp" alt="Avengers, watercolour" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p40.webp" alt="Horses, oil" loading="lazy" decoding="async" /></div>
