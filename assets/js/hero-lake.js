@@ -100,6 +100,17 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
   camera.position.set(0, 3.1, 9.4);
   camera.lookAt(0, 0.5, 0.4);
+  /* Sid: "the 3d text doesn't work" -- diagnosed by disabling the physics
+     sim entirely and finding the exact same artifact, which meant it was
+     never the geometry: it was the water's own reflection of the text.
+     Water.js renders the whole scene a second time into its reflection
+     texture from a mirrored camera with no filtering, and text this close
+     to the waterline, seen at this camera's shallow angle, reflects back
+     close enough to the direct view to read as a doubled, jittery second
+     copy rather than a legible reflection. Layer 1 is invisible to that
+     mirror camera (a plain PerspectiveCamera with only the default layer
+     enabled) but visible to this one, so anything on it renders once. */
+  camera.layers.enable(1);
 
   /* ── THEME ────────────────────────────────────────────────────────────── */
   const isLight = () => document.documentElement.getAttribute("data-theme") === "light";
@@ -140,6 +151,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
   key.shadow.bias = -0.0015;
+  key.shadow.normalBias = 0.03;
   scene.add(key);
   const rim = new THREE.DirectionalLight(0x9fc2ff, 0.7);
   rim.position.set(4, 6, -6);
@@ -263,6 +275,14 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   ];
   const logos = [];
   const logoMat = [];
+  /* Sid: "the company names [need to be 3d too]." A flat transparent PNG on
+     a plane is the right way to keep a wordmark crisp, but with nothing
+     behind it, it reads as a sticker floating in the scene rather than an
+     object in it. Each logo now sits on a thin card of its own -- real
+     geometry that catches the same light and casts the same shadow as the
+     letters -- with the unlit texture plane held just off its front face. */
+  const CARD_DEPTH = 0.03;
+  const cardMat = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.55, metalness: 0.04 });
   function makeLogos() {
     LOGOS.forEach(([name, x], i) => {
       new THREE.TextureLoader().load(BASE + "/assets/img/companies/mono/" + name + ".png", (tex) => {
@@ -272,19 +292,29 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
            roundel does not tower over a logotype */
         const ar = tex.image.width / tex.image.height;
         const h = Math.min(LOGO_W / ar, LOGO_H);
+        const w = h * ar;
+        const group = new THREE.Group();
+        const card = new THREE.Mesh(new THREE.BoxGeometry(w + 0.05, h + 0.05, CARD_DEPTH), cardMat);
+        card.castShadow = true;
+        card.receiveShadow = true;
+        group.add(card);
         const m = new THREE.MeshBasicMaterial({
           map: tex,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.92,
           depthWrite: false,
           toneMapped: false,
-          side: THREE.DoubleSide,
+          side: THREE.FrontSide,
         });
-        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(h * ar, h), m);
-        mesh.position.set(x, h / 2 + 0.02, LOGO_Z);
-        scene.add(mesh);
+        const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
+        plane.position.z = CARD_DEPTH / 2 + 0.003;
+        group.add(plane);
+        card.layers.set(1);
+        plane.layers.set(1);
+        group.position.set(x, h / 2 + 0.02, LOGO_Z);
+        scene.add(group);
         logoMat.push(m);
-        logos.push({ mesh, x, h, phase: i * 1.7 });
+        logos.push({ mesh: group, x, h, phase: i * 1.7 });
       });
     });
   }
@@ -377,7 +407,6 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
      "AVAILABLE TO WORK · NEW YORK" curved text over the island; left
      defined above but never called. */
   const build = () => {
-    makeFloats();
     makeLogos();
   };
   ready.then(build, build);
@@ -528,6 +557,59 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     placeDom();
   }
 
+  /* ── A STRAIGHT LINE OF REAL 3D LETTERS ───────────────────────────────
+     Sid: "the company names, and open to roles and nyc, in a 3d way not
+     curving text that looks horrible." The old "PREVIOUSLY" label and the
+     removed availability arc were both a canvas 2D string baked onto one
+     flat plane -- readable, but a sticker next to letters that actually
+     have depth once buildMeshes() is real. Same font, same extrusion, laid
+     out left to right and centred on x rather than bent around the island;
+     no physics, these just float in place. */
+  function buildText3D(text, font, o) {
+    const size = o.size,
+      depth = o.depth != null ? o.depth : DEPTH * 0.55,
+      gap = o.gap != null ? o.gap : size * 0.09,
+      spaceW = size * 0.55;
+    const mat = o.material || letterMat.clone();
+    const parts = [];
+    let totalW = 0;
+    for (const ch of text) {
+      if (ch === " ") {
+        parts.push({ space: true, w: spaceW });
+        totalW += spaceW + gap;
+        continue;
+      }
+      const geo = new TextGeometry(ch, { font, size, depth, curveSegments: 10, bevelEnabled: false });
+      geo.computeBoundingBox();
+      const bb = geo.boundingBox;
+      const w = bb.max.x - bb.min.x;
+      parts.push({ geo, bb, w });
+      totalW += w + gap;
+    }
+    const group = new THREE.Group();
+    let cursor = -totalW / 2;
+    for (const part of parts) {
+      if (part.space) {
+        cursor += part.w + gap;
+        continue;
+      }
+      const { geo, bb, w } = part;
+      const h = bb.max.y - bb.min.y,
+        d = bb.max.z - bb.min.z;
+      geo.translate(-bb.min.x, -(bb.min.y + h / 2), -(bb.min.z + d / 2));
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = true;
+      mesh.position.x = cursor;
+      mesh.layers.set(1);
+      group.add(mesh);
+      cursor += w + gap;
+    }
+    group.position.set(o.x || 0, o.y || 0, o.z || 0);
+    if (o.rotationY) group.rotation.y = o.rotationY;
+    scene.add(group);
+    return group;
+  }
+
   /* The glyphs stand as soon as the font is here; the physics arrives after
      and picks them up where they are. Nothing waits on the network for the
      headline to exist. */
@@ -539,11 +621,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
           font,
           size: SIZE,
           depth: DEPTH,
-          curveSegments: 6,
-          bevelEnabled: true,
-          bevelThickness: 0.012,
-          bevelSize: 0.008,
-          bevelSegments: 2,
+          curveSegments: 14,
+          bevelEnabled: false,
         });
         geo.computeBoundingBox();
         const bb = geo.boundingBox;
@@ -554,6 +633,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         const mesh = new THREE.Mesh(geo, letterMat.clone());
         mesh.castShadow = true;
         mesh.receiveShadow = true;
+        mesh.layers.set(1);
         scene.add(mesh);
         letters.push({
           mesh,
@@ -626,23 +706,32 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       l.body.sleep();
     }
   }
-  /* Sid: "the letters still glitch, just fix the glitching." The extruded
-     3D headline rendered with jagged, doubled strokes under real use. The
-     DOM headline carries the title instead (see the CSS in sid_home.html
-     that no longer hides .hero__title's ink in lake mode); this call is
-     what used to build the mesh and its physics, left here disabled so
-     the letter code above it stays intact if it is ever debugged and
-     brought back.
+  /* Sid: "the letters still glitch / the 3d text doesn't work." Turned out
+     to be the water, not the geometry: disabling buildPhysics() entirely
+     reproduced the exact same jagged/doubled look, which ruled out the
+     Rapier sync loop, and the letters sit close enough to the waterline
+     that Water.js's own reflection pass (a second full-scene render from a
+     mirrored camera, see camera.layers.enable(1) above) put a second,
+     near-coincident copy of the text right behind the first. The bevel
+     was also simplified (off, curveSegments raised) while chasing this,
+     which is a real improvement on its own but was not the cause. */
   new FontLoader().load(
     BASE + "/assets/fonts/helvetiker_bold.typeface.json",
     (font) => {
       buildMeshes(font);
       buildPhysics().catch(() => {});
+      const prevMat = letterMat.clone();
+      prevMat.transparent = true;
+      prevMat.opacity = 0.55;
+      buildText3D("PREVIOUSLY", font, { size: 0.15, x: -6.2, y: 0.09, z: -4.4, material: prevMat });
+      const rolesMat = letterMat.clone();
+      rolesMat.transparent = true;
+      rolesMat.opacity = 0.85;
+      buildText3D("OPEN TO ROLES · NYC", font, { size: 0.16, x: -0.5, y: 0.1, z: 4.0, material: rolesMat });
     },
     undefined,
     giveUp
   );
-  */
 
   /* ── RINGS, WHERE A LETTER WENT IN ────────────────────────────────────── */
   const ringGeo = new THREE.RingGeometry(0.9, 1, 48);
