@@ -141,21 +141,20 @@
     on = false,
     loading = false;
   var coach = null,
-    coachDone = null,
-    coachHideAt = 0;
+    coachDone = null;
 
-  /* A step is marked done the first time the visitor actually does it, and
-     the panel retires once all three are. Sixteen seconds is the backstop for
-     somebody who gets it immediately and does not need the list sitting
-     there. */
+  /* Sid: "we show the instructions, but once the camera mode is on, it
+     goes away." It did: three of four steps done fully hid the panel,
+     which fired before "pinch and pull to scroll" had ever actually been
+     pulled off, since that was the gesture that did not work. A step
+     still dims once learned, so the list shows progress, but the panel
+     itself no longer disappears -- it is the one thing on screen that
+     remembers the gestures once the visitor has looked away. */
   function step(name) {
     if (!coach || !coachDone || coachDone[name]) return;
     coachDone[name] = true;
     var el = coach.querySelector('[data-step="' + name + '"]');
     if (el) el.classList.add("is-done");
-    if (coachDone.see && coachDone.point && coachDone.pinch) {
-      coachHideAt = performance.now() + 1400;
-    }
   }
 
   /* ── THE FILTER ────────────────────────────────────────────────────────
@@ -187,7 +186,8 @@
     return this.x;
   };
   var fx = new Euro(1.4, 0.02),
-    fy = new Euro(1.4, 0.02);
+    fy = new Euro(1.4, 0.02),
+    fScroll = new Euro(1.4, 0.02);
 
   /* Separate make and break distances. One threshold puts a stream of
      accidental clicks at exactly the gap people naturally hold a pinch. */
@@ -200,6 +200,27 @@
   var pinched = false;
   var lastX = 0,
     lastY = 0;
+
+  /* ── SCROLL MOVED OFF THE PINCH ───────────────────────────────────────
+     Sid: "the pinch and pull-to-scroll is not working... very janky.
+     Can we have a simple one where you keep your hand up and it scrolls."
+
+     Scrolling used to live inside a held pinch: fingers together, then drag.
+     That asks a hand to do two precise things at once -- hold an exact gap
+     AND move -- and natural tremor crosses the release threshold mid-drag,
+     which reads as the scroll stuttering or stopping outright.
+
+     An open hand is a pose, not a distance. It does not need to be held to
+     a tolerance the way a pinch does, so it survives the same tremor a
+     pinch does not. Four fingers counted rather than the thumb, whose axis
+     runs a different way and makes a poor open/closed signal on its own. */
+  var scrolling = false;
+  var scrollLastY = 0;
+  function fingerOut(tip, mcp, wrist) {
+    var dTip = Math.hypot(tip.x - wrist.x, tip.y - wrist.y);
+    var dMcp = Math.hypot(mcp.x - wrist.x, mcp.y - wrist.y);
+    return dTip > dMcp * 1.35;
+  }
 
   function ui() {
     if (wrap) return;
@@ -239,7 +260,7 @@
       '<span class="hand-coach__step" data-step="see"><b></b>show your hand</span>' +
       '<span class="hand-coach__step" data-step="point"><b></b>point to move</span>' +
       '<span class="hand-coach__step" data-step="pinch"><b></b>pinch to click</span>' +
-      '<span class="hand-coach__step" data-step="pull"><b></b>pinch and pull to scroll</span>' +
+      '<span class="hand-coach__step" data-step="pull"><b></b>open hand to scroll</span>' +
       "</div>" +
       '<span class="hand-hud__tag">camera on · nothing leaves this device</span>' +
       "</div>";
@@ -309,13 +330,16 @@
     }
     wrap.classList.add("is-tracking");
     step("see");
-    if (coachHideAt && now > coachHideAt && coach) {
-      coach.classList.add("is-gone");
-      coachHideAt = 0;
-    }
     var lm = hands[0];
     var tip = lm[8]; // index fingertip
     var thumb = lm[4];
+    var wrist = lm[0];
+    var openCount = 0;
+    if (fingerOut(lm[8], lm[5], wrist)) openCount++;
+    if (fingerOut(lm[12], lm[9], wrist)) openCount++;
+    if (fingerOut(lm[16], lm[13], wrist)) openCount++;
+    if (fingerOut(lm[20], lm[17], wrist)) openCount++;
+    var handOpen = openCount >= 3;
 
     /* Mirrored to match the preview, and the usable range is squeezed: a
        hand cannot comfortably reach the edges of its own camera frame, so
@@ -339,25 +363,35 @@
     lastX = x;
     lastY = y;
 
-    /* ── PINCH, AND PINCH AND PULL ────────────────────────────────────
-       Sid: "i am not able to scroll at all when i am in hand tracking mode."
+    /* ── OPEN HAND SCROLLS ─────────────────────────────────────────────
+       See the note above fingerOut(): scrolling is a held pose now, not a
+       held pinch. Raise an open hand and move it vertically; put the
+       fingers back down (or pinch, to click instead) and it stops. Gated
+       on !pinched so a click in progress cannot also drag the page. */
+    if (handOpen && !pinched) {
+      var wny = Math.min(1, Math.max(0, (wrist.y - 0.15) / 0.7));
+      var wy = fScroll.filter(wny * innerHeight, now);
+      if (scrolling) {
+        var sdy = wy - scrollLastY;
+        if (Math.abs(sdy) > 0.4) {
+          window.scrollBy(0, -sdy * SCROLL_GAIN);
+          step("pull");
+        }
+      }
+      scrollLastY = wy;
+      scrolling = true;
+      wrap.classList.add("is-scroll");
+    } else {
+      scrolling = false;
+      wrap.classList.remove("is-scroll");
+    }
 
-       He could not, because there was no way to: the gesture set was point
-       and click, and a page you can click but not move is a page you cannot
-       read. Pinching used to fire a click on the frame the fingers met,
-       which also meant there was no gesture left over to mean anything else.
-
-       So the pinch is now held rather than instantaneous. While it is held,
-       vertical travel scrolls the window -- inverted, because the hand is
-       holding the page rather than pushing a scrollbar, so pulling down
-       brings what is below into view the way dragging paper does. On release,
-       if the hand barely moved it was a click and the thing under it is
-       activated; if it travelled, it was a drag and nothing is clicked.
-
-       That last rule is the one that makes both gestures usable at once. A
-       click that fires at the start of a drag means every attempt to scroll
-       also navigates somewhere, which is worse than not being able to scroll
-       at all. */
+    /* ── PINCH TO CLICK ────────────────────────────────────────────────
+       Held rather than instantaneous, so a hand that drifts slightly while
+       closing does not fire a click on the frame the fingers happen to
+       meet. If it barely moved between pinch and release, the thing under
+       it is activated; if it travelled, nothing is (that is what a
+       deliberate drag away from a pinch means, not a click). */
     var d = Math.hypot(tip.x - thumb.x, tip.y - thumb.y);
     if (!pinched && d < PINCH_ON) {
       pinched = true;
@@ -368,21 +402,13 @@
       pinchTravel = 0;
       emit("pointerdown", x, y, { buttons: 1 });
     } else if (pinched) {
-      var dy = y - pinchY;
-      pinchTravel += Math.abs(x - pinchX) + Math.abs(dy);
-      if (Math.abs(dy) > 0.6) {
-        window.scrollBy(0, -dy * SCROLL_GAIN);
-        if (pinchTravel > 90) step("pull");
-      }
+      pinchTravel += Math.abs(x - pinchX) + Math.abs(y - pinchY);
       pinchX = x;
       pinchY = y;
       if (d > PINCH_OFF) {
         pinched = false;
         wrap.classList.remove("is-pinch");
         var el = emit("pointerup", x, y);
-        /* A pinch that stayed put is a click, and it has to actually activate
-           what it is over: dispatching the pointer pair alone does not
-           navigate. One that travelled was a scroll and activates nothing. */
         if (pinchTravel < 26) {
           try {
             if (el && el.closest) {
@@ -457,14 +483,15 @@
       pctx = null;
       coach = null;
       coachDone = null;
-      coachHideAt = 0;
     }
     document.documentElement.removeAttribute("data-hand");
     btn.classList.remove("is-on");
     btn.setAttribute("data-tip", "Hand steer");
     pinched = false;
+    scrolling = false;
     fx = new Euro(1.4, 0.02);
     fy = new Euro(1.4, 0.02);
+    fScroll = new Euro(1.4, 0.02);
   }
 
   btn.addEventListener("click", function () {
