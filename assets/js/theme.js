@@ -25,6 +25,11 @@ let setThemeSetting = (themeSetting) => {
 let applyTheme = () => {
   let theme = determineComputedTheme();
 
+  // Keep the head bootstrap and the legacy visual layers on the same theme.
+  // Without this, a visitor could choose dark, navigate, then see a light
+  // first paint before theme.js caught up.
+  localStorage.setItem("sid_theme", theme);
+
   transTheme();
   setHighlight(theme);
   setGiscusTheme(theme);
@@ -266,11 +271,11 @@ let transTheme = () => {
 };
 
 // Determine the expected state of the theme toggle, which can be "dark", "light", or
-// "system". Default is "system".
+// "system". Dark is the default because the home scene is art-directed for it.
 let determineThemeSetting = () => {
   let themeSetting = localStorage.getItem("theme");
   if (themeSetting != "dark" && themeSetting != "light" && themeSetting != "system") {
-    themeSetting = "system";
+    themeSetting = "dark";
   }
   return themeSetting;
 };

@@ -78,7 +78,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   } catch (e) {
     return giveUp();
   }
-  renderer.setPixelRatio(Math.min(1.5, devicePixelRatio || 1));
+  renderer.setPixelRatio(Math.min(1.25, devicePixelRatio || 1));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -118,10 +118,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     isLight()
       ? {
           water: 0x8fb0c4,
-          fog: 0xf0ede6,
+          fog: 0xc6d4da,
           sun: 0xfff1d6,
-          key: 0xffe6c2,
-          sky: 0xffffff,
+          key: 0xffddb0,
+          sky: 0xb6cad4,
           stone: 0xc9c3b6,
           island: 0xbdb6a8,
           leaf: 0x6f9a72,
@@ -144,18 +144,20 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   scene.add(hemi);
   /* A spot, not a point: a point light's shadow renders the scene six
      times a frame, a spot's once. */
-  const key = new THREE.SpotLight(0xffc98a, 60, 40, Math.PI / 2.6, 0.6, 1.4);
+  const key = new THREE.SpotLight(0xffc98a, 72, 42, Math.PI / 3.15, 0.72, 1.35);
   key.position.set(-2, 3.2, 3);
   key.target.position.set(0, 0, 2.5);
   scene.add(key.target);
   key.castShadow = true;
-  key.shadow.mapSize.set(1024, 1024);
+  key.shadow.mapSize.set(512, 512);
   key.shadow.bias = -0.0015;
   key.shadow.normalBias = 0.03;
   scene.add(key);
   const rim = new THREE.DirectionalLight(0x9fc2ff, 0.7);
   rim.position.set(4, 6, -6);
   scene.add(rim);
+  const cursorLight = new THREE.PointLight(0xffc98a, 0, 7.5, 2);
+  scene.add(cursorLight);
 
   /* ── WATER, UNDER EVERYTHING ──────────────────────────────────────────── */
   const waterNormals = new THREE.TextureLoader().load(BASE + "/assets/textures/waternormals.jpg", (t) => {
@@ -168,12 +170,30 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     sunDirection: new THREE.Vector3(-0.4, 0.6, 0.5).normalize(),
     sunColor: 0xffd9a8,
     waterColor: 0x0b1a2b,
-    distortionScale: 2.2,
+    distortionScale: 1.55,
     fog: true,
   });
   water.rotation.x = -Math.PI / 2;
   water.position.set(0, -0.005, -30);
   scene.add(water);
+
+  /* Visible water footprint for the cursor light. */
+  const hoverGlow = new THREE.Mesh(
+    new THREE.CircleGeometry(1, 64),
+    new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      uniforms: { uColor: { value: new THREE.Color(0xffc98a) }, uOpacity: { value: 0 } },
+      vertexShader: "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
+      fragmentShader:
+        "varying vec2 vUv;uniform vec3 uColor;uniform float uOpacity;void main(){float d=distance(vUv,vec2(.5));float core=smoothstep(.5,0.,d);float halo=pow(core,2.4);gl_FragColor=vec4(uColor*(.28+halo),uOpacity*core*.38);}",
+    })
+  );
+  hoverGlow.rotation.x = -Math.PI / 2;
+  hoverGlow.position.set(0, 0.018, 0);
+  hoverGlow.scale.setScalar(1.8);
+  scene.add(hoverGlow);
 
   /* ── THE ISLAND ───────────────────────────────────────────────────────
      One slab, its outline drawn by hand rather than a rectangle, so its
@@ -214,7 +234,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     const m = new THREE.Mesh(geo, islandMat);
     m.receiveShadow = true;
     m.castShadow = true;
-    scene.add(m);
+    /* Kept as an invisible layout reference only. The visible slab made the
+       headline occupy half the frame and read as a black blob. */
     return { mesh: m, pts };
   })();
 
@@ -222,16 +243,12 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const leafMat = new THREE.MeshStandardMaterial({ color: 0x2c4a3c, roughness: 0.85, side: THREE.DoubleSide, envMapIntensity: 0.1 });
   const leaves = [];
   [
-    [-5.6, -0.6, 0.62],
-    [-4.1, -2.4, 0.46],
-    [-2.2, -1.5, 0.34],
-    [0.9, -3.2, 0.5],
-    [4.9, 0.6, 0.58],
-    [5.9, -2.2, 0.42],
-    [4.4, 3.9, 0.72],
-    [-6.1, 3.2, 0.5],
-    [-5.0, 5.4, 0.66],
-    [1.2, 5.6, 0.4],
+    [-4.25, -0.25, 0.34],
+    [-2.15, -1.95, 0.24],
+    [0.3, -2.65, 0.27],
+    [4.35, -0.05, 0.31],
+    [4.1, 2.45, 0.36],
+    [-4.7, 3.35, 0.29],
   ].forEach(([x, z, r], i) => {
     const sh = new THREE.Shape();
     sh.moveTo(0, 0);
@@ -247,192 +264,96 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     leaves.push({ mesh: m, phase: i * 1.3, tilt: 0.02 + (i % 3) * 0.01 });
   });
 
-  /* ── WHAT FLOATS ON THE WATER ─────────────────────────────────────────
-     Sid: "get the award labels and previous companies onto the homepage
-     maybe floating on the water, with light text of awards and previously."
-     Each is a small upright plane standing on the surface, so the water
-     carries its reflection, drifting a hand's width on its own slow clock.
-     The awards sit nearer; the places he has worked sit further out,
-     under one word that says what they are. */
-  /* ── WHERE HE HAS WORKED, AS THEIR OWN MARKS ─────────────────────────
-     Sid: "can we use company logos here. also i never worked at marriott,
-     look at my resume." Marriott and M Health Fairview are brands he
-     worked ON, through Deloitte; they are not employers and they came
-     out. What is left is the four places that employed him, set as their
-     own logos rather than as typed names, on one row behind the island. */
-  const FLOATS = [["PREVIOUSLY", -6.2, -4.4, 0.5]];
-  /* One row behind the stone so the figure never stands in front of a
-     mark, each logo sized by WIDTH so a long wordmark and a square one
-     carry the same weight. */
-  const LOGO_W = 1.15;
-  const LOGO_H = 0.3;
-  const LOGO_Z = -4.4;
-  const LOGOS = [
-    ["deloitte", -3.4],
-    ["eyejack", -1.3],
-    ["philips", 0.5],
-    ["leaf", 1.9],
-  ];
-  const logos = [];
-  const logoMat = [];
-  /* Sid: "the company names [need to be 3d too]." A flat transparent PNG on
-     a plane is the right way to keep a wordmark crisp, but with nothing
-     behind it, it reads as a sticker floating in the scene rather than an
-     object in it. Each logo now sits on a thin card of its own -- real
-     geometry that catches the same light and casts the same shadow as the
-     letters -- with the unlit texture plane held just off its front face. */
-  const CARD_DEPTH = 0.03;
-  const cardMat = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.55, metalness: 0.04 });
-  function makeLogos() {
-    LOGOS.forEach(([name, x], i) => {
-      new THREE.TextureLoader().load(BASE + "/assets/img/companies/mono/" + name + ".png", (tex) => {
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.anisotropy = 4;
-        /* width for a wordmark, capped height for a square mark, so a
-           roundel does not tower over a logotype */
-        const ar = tex.image.width / tex.image.height;
-        const h = Math.min(LOGO_W / ar, LOGO_H);
-        const w = h * ar;
-        const group = new THREE.Group();
-        const card = new THREE.Mesh(new THREE.BoxGeometry(w + 0.05, h + 0.05, CARD_DEPTH), cardMat);
-        card.castShadow = true;
-        card.receiveShadow = true;
-        group.add(card);
-        const m = new THREE.MeshBasicMaterial({
-          map: tex,
-          transparent: true,
-          opacity: 0.92,
-          depthWrite: false,
-          toneMapped: false,
-          side: THREE.FrontSide,
-        });
-        const plane = new THREE.Mesh(new THREE.PlaneGeometry(w, h), m);
-        plane.position.z = CARD_DEPTH / 2 + 0.003;
-        group.add(plane);
-        card.layers.set(1);
-        plane.layers.set(1);
-        group.position.set(x, h / 2 + 0.02, LOGO_Z);
-        scene.add(group);
-        logoMat.push(m);
-        logos.push({ mesh: group, x, h, phase: i * 1.7 });
-      });
-    });
-  }
-
-  /* ── AVAILABLE, AROUND THE ISLAND ────────────────────────────────────
-     Sid: "Available to work in New York, kind of mapped in a curved way
-     around my island." One arc of small caps on the water, hugging the
-     slab's near edge, read from the camera. */
-  function makeArc() {
-    const text = "AVAILABLE TO WORK  ·  NEW YORK";
-    const cx = (ISLAND.x0 + ISLAND.x1) / 2,
-      cz = (ISLAND.z0 + ISLAND.z1) / 2;
-    const rx = (ISLAND.x1 - ISLAND.x0) / 2 + 0.6,
-      rz = (ISLAND.z1 - ISLAND.z0) / 2 + 0.55;
-    const g = new THREE.Group();
-    const font = '500 44px "DM Mono", ui-monospace, Menlo, monospace';
-    const H = 0.17;
-    const n = text.length;
-    const span = 0.62; /* radians of arc the line covers */
-    for (let i = 0; i < n; i++) {
-      const ch = text[i];
-      if (ch === " ") continue;
-      const c = document.createElement("canvas");
-      const q = c.getContext("2d");
-      q.font = font;
-      const cw = Math.ceil(q.measureText(ch).width);
-      c.width = cw + 8;
-      c.height = 64;
-      q.font = font;
-      q.fillStyle = "#fff";
-      q.textBaseline = "middle";
-      q.fillText(ch, 4, 34);
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      const m = new THREE.Mesh(
-        new THREE.PlaneGeometry((c.width / c.height) * H, H),
-        new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false, side: THREE.DoubleSide })
-      );
-      const u = i / (n - 1);
-      const ang = Math.PI / 2 + (u - 0.5) * span; /* pi/2 is the near edge */
-      m.position.set(cx + Math.cos(ang) * rx * -1, H / 2 + 0.02, cz + Math.sin(ang) * rz);
-      m.rotation.y = (u - 0.5) * span * 0.6;
-      floatMat.push(m.material);
-      g.add(m);
+  const flowerPetalGeo = new THREE.SphereGeometry(0.085, 10, 6);
+  const flowerPetalMat = new THREE.MeshStandardMaterial({ color: 0xffd5de, roughness: 0.75 });
+  const flowerCoreMat = new THREE.MeshStandardMaterial({ color: 0xffc85d, roughness: 0.65 });
+  const flowers = [];
+  function addFlower(x, z, scale, phase) {
+    const group = new THREE.Group();
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * Math.PI * 2;
+      const petal = new THREE.Mesh(flowerPetalGeo, flowerPetalMat);
+      petal.scale.set(1.45, 0.34, 0.72);
+      petal.position.set(Math.cos(a) * 0.105, 0.035, Math.sin(a) * 0.105);
+      petal.rotation.y = -a;
+      group.add(petal);
     }
-    scene.add(g);
-    return g;
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.065, 10, 6), flowerCoreMat);
+    core.scale.y = 0.65;
+    core.position.y = 0.075;
+    group.add(core);
+    group.position.set(x, 0.035, z);
+    group.scale.setScalar(scale);
+    scene.add(group);
+    flowers.push({ group, phase });
   }
-  const floats = [];
-  const floatMat = [];
-  function makeFloats() {
-    const H = 0.3; /* world height of a label */
-    FLOATS.forEach(([text, x, z, tone], i) => {
-      const c = document.createElement("canvas");
-      const g = c.getContext("2d");
-      const font = '500 44px "DM Mono", ui-monospace, Menlo, monospace';
-      g.font = font;
-      const tw = Math.ceil(g.measureText(text).width) + 6 * text.length;
-      c.width = tw + 24;
-      c.height = 64;
-      g.font = font;
-      g.fillStyle = "#ffffff";
-      g.textBaseline = "middle";
-      let cx = 12;
-      for (const ch of text) {
-        g.fillText(ch, cx, 34);
-        cx += g.measureText(ch).width + 6;
-      }
-      const tex = new THREE.CanvasTexture(c);
-      tex.colorSpace = THREE.SRGBColorSpace;
-      tex.anisotropy = 4;
-      const m = new THREE.MeshBasicMaterial({
-        map: tex,
-        transparent: true,
-        opacity: 0.9 * tone,
-        depthWrite: false,
-        toneMapped: false,
-        side: THREE.DoubleSide,
-      });
-      const w = (c.width / c.height) * H;
-      const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, H), m);
-      mesh.position.set(x, H / 2 + 0.02, z);
-      scene.add(mesh);
-      floatMat.push(m);
-      floats.push({ mesh, x, z, phase: i * 1.9 });
-    });
-  }
-  const ready = document.fonts && document.fonts.load ? document.fonts.load('500 44px "DM Mono"') : Promise.resolve();
-  /* Sid: "remove available to work and nyxc text." makeArc() built the
-     "AVAILABLE TO WORK · NEW YORK" curved text over the island; left
-     defined above but never called. */
-  const build = () => {
-    makeLogos();
-  };
-  ready.then(build, build);
+  addFlower(-4.25, -0.25, 0.85, 0.4);
+  addFlower(4.1, 2.45, 0.72, 2.2);
 
-  /* ── THE AWARDS, AS THINGS ON THE WATER ─────────────────────────────
-     Sid: "instead of them being text, little 3D shiny items which are kind
-     of moving down ... just keep floating on and off down the river."
-     Two Webby discs, one Kyoorius bar, one Reality Hack ring, in
-     polished metal, each riding the current from right to left at its own
-     pace and coming round again. */
-  const awardMat = (c) =>
-    new THREE.MeshPhysicalMaterial({ color: c, metalness: 1, roughness: 0.18, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 1.4 });
+  const reedMat = new THREE.MeshStandardMaterial({ color: 0x57715a, roughness: 0.9 });
+  const reedGeo = new THREE.CylinderGeometry(0.012, 0.018, 0.62, 6);
+  const reeds = [];
+  function addReeds(x, z, count, phase) {
+    const group = new THREE.Group();
+    for (let i = 0; i < count; i++) {
+      const stem = new THREE.Mesh(reedGeo, reedMat);
+      stem.position.set((i - count / 2) * 0.075, 0.25 + (i % 3) * 0.045, Math.sin(i * 2.1) * 0.06);
+      stem.scale.y = 0.72 + (i % 3) * 0.14;
+      stem.rotation.z = (i - count / 2) * 0.025;
+      group.add(stem);
+    }
+    group.position.set(x, 0, z);
+    scene.add(group);
+    reeds.push({ group, phase });
+  }
+  addReeds(-5.05, 1.05, 7, 0.2);
+  addReeds(4.85, 1.6, 6, 1.8);
+
+  /* ── LIGHTWEIGHT SCENE LABELS ─────────────────────────────────────────
+     Employers and availability are supporting context, not objects for the
+     viewer to inspect. They stay as quiet 3D type, so the scene has one
+     material language: water, figure, headline, then a small factual line.
+     No image marks, backing cards, or curved type. */
+  /* ── THE AWARDS, AS ENAMEL FLOATS ON THE WATER ───────────────────── */
   const awards = [];
-  const awardDefs = [
-    [new THREE.CylinderGeometry(0.26, 0.26, 0.06, 40), 0xd9dde6, 0.0, -1.1, 0.055],
-    [new THREE.CylinderGeometry(0.26, 0.26, 0.06, 40), 0xd9dde6, 0.42, -0.5, 0.05],
-    [new THREE.BoxGeometry(0.62, 0.05, 0.22), 0xe6c45a, 0.8, -3.1, 0.042],
-    [new THREE.TorusGeometry(0.22, 0.05, 16, 40), 0xb7c9d9, 0.25, -1.9, 0.06],
-  ];
-  awardDefs.forEach(([geo, col, ph, z, speed], i) => {
-    const m = new THREE.Mesh(geo, awardMat(col));
-    if (geo.type === "TorusGeometry") m.rotation.x = Math.PI / 2;
-    m.castShadow = true;
-    scene.add(m);
-    awards.push({ mesh: m, ph, z, speed, y: 0.03 + i * 0.004 });
-  });
+  const badgeLoader = new THREE.TextureLoader();
+  function addAwardFloat(url, x, z, accent, phase) {
+    const group = new THREE.Group();
+    const base = new THREE.Mesh(
+      new THREE.BoxGeometry(0.94, 0.055, 0.54, 2, 1, 2),
+      new THREE.MeshPhysicalMaterial({
+        color: 0x080a10,
+        metalness: 0.75,
+        roughness: 0.16,
+        clearcoat: 1,
+        clearcoatRoughness: 0.05,
+        envMapIntensity: 1.8,
+      })
+    );
+    base.castShadow = true;
+    base.receiveShadow = true;
+    const faceMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });
+    badgeLoader.load(url, (texture) => {
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      faceMat.map = texture;
+      faceMat.needsUpdate = true;
+    });
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(0.86, 0.485), faceMat);
+    face.rotation.x = -Math.PI / 2;
+    face.position.y = 0.0305;
+    const trim = new THREE.LineSegments(
+      new THREE.EdgesGeometry(base.geometry),
+      new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.74 })
+    );
+    group.add(base, face, trim);
+    group.position.set(x, 0.055, z);
+    group.rotation.y = phase * 0.36;
+    scene.add(group);
+    awards.push({ group, x, z, phase });
+  }
+  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -2.55, -0.62, 0xd7ecff, 0.4);
+  addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.45, -2.25, 0x806cff, 2.1);
   /* a mirror needs something to mirror: a soft graded dome, warm at the
      horizon and pale above, baked once */
   const envScene = new THREE.Scene();
@@ -455,6 +376,65 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   stone.castShadow = true;
   stone.receiveShadow = true;
   scene.add(stone);
+
+  /* A small low-poly cat drinks at the opposite bank. It stays below the
+     headline hierarchy and only moves enough to feel present. */
+  const catRock = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.62, 0.76, 0.13, 18),
+    new THREE.MeshStandardMaterial({ color: 0x252832, roughness: 0.94 })
+  );
+  catRock.position.set(-3.55, 0.035, -1.3);
+  catRock.scale.z = 0.72;
+  catRock.castShadow = true;
+  catRock.receiveShadow = true;
+  scene.add(catRock);
+
+  const cat = new THREE.Group();
+  const catMat = new THREE.MeshStandardMaterial({ color: 0xb88760, roughness: 0.88 });
+  const catDarkMat = new THREE.MeshStandardMaterial({ color: 0x372c2a, roughness: 0.9 });
+  const catBody = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 8), catMat);
+  catBody.scale.set(0.82, 1, 1.35);
+  catBody.position.set(0, 0.42, -0.08);
+  catBody.rotation.x = 0.2;
+  const catHeadPivot = new THREE.Group();
+  catHeadPivot.position.set(0, 0.4, 0.28);
+  catHeadPivot.rotation.x = 0.7;
+  const catHead = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 8), catMat);
+  catHead.scale.set(0.9, 0.86, 0.92);
+  catHead.position.z = 0.14;
+  const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 7), catDarkMat);
+  muzzle.scale.set(0.9, 0.58, 0.7);
+  muzzle.position.set(0, -0.035, 0.29);
+  catHeadPivot.add(catHead, muzzle);
+  const earGeo = new THREE.ConeGeometry(0.085, 0.18, 4);
+  for (const side of [-1, 1]) {
+    const ear = new THREE.Mesh(earGeo, catMat);
+    ear.position.set(side * 0.105, 0.14, 0.13);
+    ear.rotation.z = side * -0.16;
+    catHeadPivot.add(ear);
+  }
+  for (const side of [-1, 1]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.055, 0.34, 7), catMat);
+    leg.position.set(side * 0.13, 0.22, 0.23);
+    leg.rotation.x = -0.18;
+    cat.add(leg);
+  }
+  const tailCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(0.16, 0.46, -0.29),
+    new THREE.Vector3(0.4, 0.55, -0.42),
+    new THREE.Vector3(0.43, 0.7, -0.62),
+    new THREE.Vector3(0.24, 0.78, -0.72),
+  ]);
+  const catTail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 18, 0.035, 6, false), catMat);
+  catTail.name = "cat-tail";
+  cat.add(catBody, catHeadPivot, catTail);
+  cat.position.set(catRock.position.x, 0.095, catRock.position.z);
+  cat.rotation.y = -0.08;
+  cat.traverse((o) => {
+    if (o.isMesh) o.castShadow = true;
+  });
+  scene.add(cat);
+  let lastCatSip = -10;
 
   let figure = null,
     mixer = null,
@@ -494,13 +474,14 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   /* ── THE LETTERS ──────────────────────────────────────────────────────── */
   const letterMat = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.42, metalness: 0.08, envMapIntensity: 0.35 });
   const letters = []; /* { mesh, body, w, h, d, home, line, wet, nudged } */
+  const sceneTypeMats = [];
   let RAPIER = null,
     world = null;
-  const SIZE = 0.3,
-    DEPTH = 0.09,
-    GAP = 0.045,
-    SPACE = 0.18;
-  const LINE_Z = [1.9, 2.85];
+  const SIZE = 0.22,
+    DEPTH = 0.075,
+    GAP = 0.035,
+    SPACE = 0.135;
+  const LINE_Z = [1.65, 2.35];
 
   /* ── ONE LEFT EDGE ────────────────────────────────────────────────────
      Sid: "align the type properly, a lot of on the left side is just
@@ -557,20 +538,16 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     placeDom();
   }
 
-  /* ── A STRAIGHT LINE OF REAL 3D LETTERS ───────────────────────────────
-     Sid: "the company names, and open to roles and nyc, in a 3d way not
-     curving text that looks horrible." The old "PREVIOUSLY" label and the
-     removed availability arc were both a canvas 2D string baked onto one
-     flat plane -- readable, but a sticker next to letters that actually
-     have depth once buildMeshes() is real. Same font, same extrusion, laid
-     out left to right and centred on x rather than bent around the island;
-     no physics, these just float in place. */
+  /* ── QUIET 3D CONTEXT ─────────────────────────────────────────────────
+     Supporting facts use the headline's material without its scale or
+     physics. They are readable in the water world, not a row of objects. */
   function buildText3D(text, font, o) {
     const size = o.size,
       depth = o.depth != null ? o.depth : DEPTH * 0.55,
       gap = o.gap != null ? o.gap : size * 0.09,
       spaceW = size * 0.55;
     const mat = o.material || letterMat.clone();
+    sceneTypeMats.push(mat);
     const parts = [];
     let totalW = 0;
     for (const ch of text) {
@@ -651,6 +628,9 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
           mark: null,
           homing: false,
           touched: 0,
+          toppled: false,
+          toppleTimer: 0,
+          tween: null,
         });
       }
     });
@@ -719,15 +699,6 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     BASE + "/assets/fonts/helvetiker_bold.typeface.json",
     (font) => {
       buildMeshes(font);
-      buildPhysics().catch(() => {});
-      const prevMat = letterMat.clone();
-      prevMat.transparent = true;
-      prevMat.opacity = 0.55;
-      buildText3D("PREVIOUSLY", font, { size: 0.15, x: -6.2, y: 0.09, z: -4.4, material: prevMat });
-      const rolesMat = letterMat.clone();
-      rolesMat.transparent = true;
-      rolesMat.opacity = 0.85;
-      buildText3D("OPEN TO ROLES · NYC", font, { size: 0.16, x: -0.5, y: 0.1, z: 4.0, material: rolesMat });
     },
     undefined,
     giveUp
@@ -748,7 +719,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   /* ── POINTER ──────────────────────────────────────────────────────────── */
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2(0, 0);
-  const lightPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -2.6); /* y = 2.6 */
+  const lightPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.03); /* water surface */
   const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.16); /* y = 0.16 */
   const hit = new THREE.Vector3();
   const lastHand = new THREE.Vector3();
@@ -806,7 +777,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       if (figure) of = ray.intersectObject(figure, true).length > 0;
       if (of && !overFigure && !busy) play("Look", 1, () => play("Idle"));
       overFigure = of;
-      host.style.cursor = hovered || of ? "grab" : "";
+      host.style.cursor = hovered || of ? "pointer" : "";
     },
     { passive: true }
   );
@@ -815,7 +786,6 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     hovered = null;
   });
   hero.addEventListener("pointerdown", (e) => {
-    if (!world) return;
     toNdc(e);
     ray.setFromCamera(ndc, camera);
     const hits = ray.intersectObjects(
@@ -824,6 +794,38 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     );
     if (hits.length) {
       dragging = letters.find((l) => l.mesh === hits[0].object);
+      /* Lightweight interaction: a clicked glyph falls flat onto the water
+         and rights itself. This preserves the tactile 3D idea without
+         loading and stepping a physics engine for every letter. */
+      if (!dragging.body) {
+        const l = dragging;
+        dragging = null;
+        clearTimeout(l.toppleTimer);
+        l.toppled = !l.toppled;
+        l.tween = {
+          fromX: l.mesh.rotation.x,
+          toX: l.toppled ? -Math.PI / 2 : 0,
+          fromY: l.mesh.position.y,
+          toY: l.toppled ? DEPTH / 2 + 0.012 : l.home.y,
+          start: performance.now(),
+          duration: 520,
+        };
+        if (l.toppled) {
+          l.toppleTimer = setTimeout(() => {
+            l.toppled = false;
+            l.tween = {
+              fromX: l.mesh.rotation.x,
+              toX: 0,
+              fromY: l.mesh.position.y,
+              toY: l.home.y,
+              start: performance.now(),
+              duration: 620,
+            };
+          }, 1700);
+        }
+        e.preventDefault();
+        return;
+      }
       if (dragging.wet) {
         dragging = null;
         return;
@@ -858,7 +860,9 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const tmpV = new THREE.Vector3();
   const tmpQ = new THREE.Quaternion();
   const IDENT = new THREE.Quaternion();
-  const keyTarget = new THREE.Vector3(-2, 3.2, 3);
+  const keyTarget = new THREE.Vector3(-2, 4.4, 3);
+  const lightAim = new THREE.Vector3(0, 0, 1);
+  const lightAimTarget = new THREE.Vector3(0, 0, 1);
   let live = true;
   function resize() {
     const r = host.getBoundingClientRect();
@@ -872,7 +876,11 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         layoutHomes();
         /* a resting letter follows the new edge; a moving one is left alone */
         for (const l of letters) {
-          if (!l.body || dragging === l || l.wet) continue;
+          if (!l.body) {
+            if (!l.toppled && !l.tween) l.mesh.position.set(l.home.x, l.home.y, l.home.z);
+            continue;
+          }
+          if (dragging === l || l.wet) continue;
           const v = l.body.linvel();
           if (Math.hypot(v.x, v.y, v.z) < 0.05) {
             l.body.setTranslation(l.home, true);
@@ -886,18 +894,25 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     const p = palette();
     /* The water runs into the page colour at the horizon rather than
        stopping at a line. */
+    scene.background = new THREE.Color(p.fog);
     scene.fog = new THREE.Fog(p.fog, 9, 42);
     stone.material.color.set(p.stone);
     islandMat.color.set(p.island);
     leafMat.color.set(p.leaf);
+    reedMat.color.set(isLight() ? 0x68846d : 0x57715a);
+    catRock.material.color.set(p.stone);
     water.material.uniforms.waterColor.value.set(p.water);
     water.material.uniforms.sunColor.value.set(p.sun);
     key.color.set(p.key);
+    cursorLight.color.set(p.key);
+    hoverGlow.material.uniforms.uColor.value.set(p.key);
     hemi.color.set(p.sky);
+    hemi.intensity = isLight() ? 0.42 : 0.55;
+    rim.intensity = isLight() ? 0.42 : 0.7;
+    renderer.toneMappingExposure = isLight() ? 0.82 : 1.05;
     letterMat.color.set(p.ink);
     letters.forEach((l) => l.mesh.material.color.set(p.ink));
-    floatMat.forEach((m) => m.color.set(p.ink));
-    logoMat.forEach((m) => m.color.set(p.ink));
+    sceneTypeMats.forEach((m) => m.color.set(p.ink));
   }
   applyTheme();
   new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
@@ -909,43 +924,60 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     const t = clock.elapsedTime;
     resize();
 
-    /* the light follows the hand */
+    /* Light source, target, water glint and visible bloom all meet under
+       the hand. Previously the lamp moved but continued aiming elsewhere. */
     if (hasPointer) {
       ray.setFromCamera(ndc, camera);
-      if (ray.ray.intersectPlane(lightPlane, hit)) keyTarget.set(THREE.MathUtils.clamp(hit.x, -7, 7), 2.6, THREE.MathUtils.clamp(hit.z, -6, 8));
+      if (ray.ray.intersectPlane(lightPlane, hit)) {
+        lightAimTarget.set(THREE.MathUtils.clamp(hit.x, -7, 7), 0.02, THREE.MathUtils.clamp(hit.z, -6, 8));
+      }
     } else {
-      keyTarget.set(Math.sin(t * 0.18) * 3 - 1, 3.2, 2 + Math.cos(t * 0.13) * 1.5);
+      lightAimTarget.set(Math.sin(t * 0.18) * 2.8 - 0.7, 0.02, 1.5 + Math.cos(t * 0.13) * 1.3);
     }
+    lightAim.lerp(lightAimTarget, hasPointer ? 0.14 : 0.025);
+    keyTarget.set(lightAim.x, 4.4, lightAim.z + 2.25);
     key.position.lerp(keyTarget, 0.08);
-    key.target.position.set(key.position.x * 0.5, 0, 2.5);
-    tmpV
-      .copy(key.position)
-      .sub(new THREE.Vector3(0, 0, -6))
-      .normalize();
+    key.target.position.set(lightAim.x, 0, lightAim.z);
+    const daylight = isLight();
+    const keyLevel = daylight ? (hasPointer ? 38 : 28) : hasPointer ? 96 : 68;
+    const cursorLevel = daylight ? (hasPointer ? 8 : 1.5) : hasPointer ? 24 : 4;
+    key.intensity += (keyLevel - key.intensity) * 0.09;
+    cursorLight.position.set(lightAim.x, 0.95, lightAim.z);
+    cursorLight.intensity += (cursorLevel - cursorLight.intensity) * 0.1;
+    hoverGlow.position.x = lightAim.x;
+    hoverGlow.position.z = lightAim.z;
+    const glowLevel = daylight ? (hasPointer ? 0.5 : 0.1) : hasPointer ? 1 : 0.22;
+    hoverGlow.material.uniforms.uOpacity.value += (glowLevel - hoverGlow.material.uniforms.uOpacity.value) * 0.09;
+    hoverGlow.scale.setScalar(1.65 + Math.sin(t * 1.15) * 0.06);
+    tmpV.copy(key.position).sub(key.target.position).normalize();
     water.material.uniforms.sunDirection.value.copy(tmpV);
-    water.material.uniforms.time.value += dt * 0.55;
+    water.material.uniforms.time.value += dt * 0.38;
 
-    for (const f of floats) {
-      /* one row, so it reads as a line of type on the water; it only bobs */
-      f.mesh.position.x = f.x;
-      f.mesh.position.z = f.z + Math.cos(t * 0.09 + f.phase * 0.7) * 0.05;
-      f.mesh.position.y = 0.17 + Math.sin(t * 0.6 + f.phase) * 0.008;
-      f.mesh.rotation.y = 0;
-    }
-    for (const g of logos) {
-      g.mesh.position.z = LOGO_Z + Math.cos(t * 0.09 + g.phase * 0.7) * 0.05;
-      g.mesh.position.y = g.h / 2 + 0.02 + Math.sin(t * 0.6 + g.phase) * 0.008;
-    }
     for (const a of awards) {
-      const k = (((t * a.speed + a.ph) % 1) + 1) % 1;
-      a.mesh.position.set(9.5 - k * 19, a.y + Math.sin(t * 0.9 + a.ph * 7) * 0.012, a.z + Math.sin(k * Math.PI * 2) * 0.3);
-      a.mesh.rotation.y = t * 0.25 + a.ph;
-      a.mesh.rotation.z = Math.sin(t * 0.7 + a.ph) * 0.06;
+      a.group.position.x = a.x + Math.sin(t * 0.16 + a.phase) * 0.11;
+      a.group.position.y = 0.055 + Math.sin(t * 0.72 + a.phase) * 0.012;
+      a.group.position.z = a.z + Math.cos(t * 0.14 + a.phase) * 0.07;
+      a.group.rotation.x = Math.sin(t * 0.54 + a.phase) * 0.026;
+      a.group.rotation.z = Math.cos(t * 0.48 + a.phase) * 0.034;
     }
     for (const lf of leaves) {
       lf.mesh.position.y = 0.012 + Math.sin(t * 0.7 + lf.phase) * 0.006;
       lf.mesh.rotation.x = Math.sin(t * 0.5 + lf.phase) * lf.tilt;
       lf.mesh.rotation.z = Math.cos(t * 0.4 + lf.phase * 1.3) * lf.tilt;
+    }
+    for (const f of flowers) {
+      f.group.position.y = 0.035 + Math.sin(t * 0.7 + f.phase) * 0.007;
+      f.group.rotation.z = Math.sin(t * 0.36 + f.phase) * 0.025;
+    }
+    for (const r of reeds) r.group.rotation.z = Math.sin(t * 0.42 + r.phase) * 0.025;
+
+    const drink = Math.pow(Math.max(0, Math.sin(t * 0.62)), 5);
+    catHeadPivot.rotation.x = 0.7 + drink * 0.18;
+    catBody.scale.y = 1 + Math.sin(t * 1.4) * 0.012;
+    catTail.rotation.y = Math.sin(t * 0.48) * 0.16;
+    if (drink > 0.965 && t - lastCatSip > 4.5) {
+      splash(cat.position.x, cat.position.z + 0.62, 0.18);
+      lastCatSip = t;
     }
     for (let i = rings.length - 1; i >= 0; i--) {
       const r = rings[i];
@@ -961,6 +993,17 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     }
 
     if (mixer) mixer.update(dt);
+
+    /* Only clicked letters animate. No always-on simulation, no network
+       physics module, and no contact solver fighting the water plane. */
+    for (const l of letters) {
+      if (!l.tween) continue;
+      const k = Math.min(1, (performance.now() - l.tween.start) / l.tween.duration);
+      const e = 1 - Math.pow(1 - k, 3);
+      l.mesh.rotation.x = THREE.MathUtils.lerp(l.tween.fromX, l.tween.toX, e);
+      l.mesh.position.y = THREE.MathUtils.lerp(l.tween.fromY, l.tween.toY, e);
+      if (k === 1) l.tween = null;
+    }
 
     if (world) {
       if (dragging) {

@@ -8,12 +8,11 @@
    — every frame it is reconstructed out of ~50,000 points that carry
    one pixel of colour each.
 
-   Three states:
-     idle   the points sit scattered in a slow-drifting cloud
-     hover  they converge onto their true coordinates — the image
-     click  they detonate and re-form under a different drawing law
+   The portrait begins resolved, then moves through its drawing laws on
+   its own. Each change loosens the current image, swaps the rule, and
+   gradually reforms it. No hover or click is required.
 
-   Four laws (click cycles them). The rule that earns them their place
+   Seven laws. The rule that earns them their place
    is that each has to be recognisable in a still frame — four labels
    over one effect is decoration, not a mechanism:
 
@@ -539,14 +538,11 @@
     resize();
     window.addEventListener("resize", resize, { passive: true });
 
-    /* the point buffer is live — hand the slot over to GL. Only now
-       does the slot become an interactive control: without the cloud
-       there is nothing to operate, and a focusable div that does
-       nothing is worse than no control at all. */
+    /* The point buffer is live. Hand the slot over to GL only after the
+       first resolved frame can be drawn, so the photograph remains the
+       loading and no-WebGL fallback. This is an animated portrait, not a
+       control: it does not need button semantics or keyboard focus. */
     host.classList.add("has-cloud");
-    host.setAttribute("tabindex", "0");
-    host.setAttribute("role", "button");
-    host.setAttribute("aria-label", "Portrait of Sid Mehta drawn as a point cloud. Activate to change how it is drawn.");
 
     /* ── state ─────────────────────────────────────────────────── */
     var light = document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0;
@@ -554,13 +550,17 @@
       light = document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0;
     }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-    var reveal = 0,
-      want = 0,
-      mode = 0,
+    var reveal = 1,
+      want = 1,
+      /* Start with the coloured pixel treatment: it preserves the face and
+         reads as a finished illustration before the slower cycle begins. */
+      mode = 6,
       burst = 0,
       t0 = performance.now(),
       visible = true,
-      raf = 0;
+      raf = 0,
+      cyclePhase = 0,
+      cycleAt = t0 + 7200;
 
     /* ── NO MODE LABEL ─────────────────────────────────────────────────
        Sid: "u dont need to mention the type of mode on the particles pic of
@@ -571,11 +571,13 @@
        Right, and the history is exactly that: it named DUST, HALFTONE, WEAVE,
        TOPO, SHARDS and RAIN so I could tell which shader was running while
        building the thing. It is a debug readout that survived into the page.
-       The modes still cycle on click; they just stop announcing themselves. */
+       The modes cycle automatically; they just stop announcing themselves. */
 
     function setMode(next) {
       mode = next % MODES.length;
-      burst = 1;
+      /* A small pulse keeps the new construction visible without the old
+         click-triggered detonation interrupting the portrait. */
+      burst = 0.1;
     }
 
     /* Where the pointer is on the plate, in the same 0..1 space the shader
@@ -612,54 +614,22 @@
       { passive: true }
     );
 
-    host.addEventListener("pointerenter", function () {
-      want = 1;
-    });
     host.addEventListener("pointerleave", function () {
-      /* ── IT STAYS RESOLVED ───────────────────────────────────────────
-         Sid: "once i enable the particles even when i move out of frame let
-         the shape be enabled not go back to particles."
-
-         It used to set `want = 0` here, so the portrait fell back to dust the
-         instant the pointer left -- which means the only way to look at the
-         photograph was to keep the cursor on it, and you cannot read the
-         column of text beside it at the same time. Now the reveal is a latch:
-         once you have brought him out of the particles he stays out.
-
-         The LENS still lets go, because that one is a pointer effect and a
-         magnifier with no pointer under it is a smudge. */
-      lensTo = 0;
-    });
-    host.addEventListener("pointerdown", function () {
-      want = 1;
-      setMode(mode + 1);
-    });
-    /* keyboard parity — the slot is focusable */
-    host.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        want = 1;
-        setMode(mode + 1);
-      }
-    });
-    host.addEventListener("focus", function () {
-      want = 1;
-      /* No pointer to follow, so the lens sits in the middle of the plate.
-         Better than leaving a keyboard user with a resolved-but-inert
-         picture that a mouse user sees moving. */
-      pxTo = px = 0.5;
-      pyTo = py = 0.5;
-      lensTo = 1;
-    });
-    host.addEventListener("blur", function () {
-      want = 0;
       lensTo = 0;
     });
 
     if (window.IntersectionObserver) {
       new IntersectionObserver(
         function (es) {
+          var entering = es[0].isIntersecting && !visible;
           visible = es[0].isIntersecting;
+          /* Start with a complete portrait whenever the section arrives.
+             Time spent above the fold must not consume the first hold. */
+          if (entering) {
+            want = 1;
+            cyclePhase = 0;
+            cycleAt = performance.now() + 7200;
+          }
           if (visible && !raf) raf = requestAnimationFrame(frame);
         },
         { threshold: 0.02 }
@@ -676,7 +646,22 @@
       var t = (now - t0) / 1000;
       var dt = Math.min(0.25, (now - last) / 1000);
       last = now;
-      reveal += (want - reveal) * (1 - Math.exp(-dt / 0.19));
+      /* Hold each treatment long enough to read. Then loosen the portrait,
+         change the drawing law near the middle, and let it settle again.
+         The image never disappears and never waits for the pointer. */
+      if (now >= cycleAt) {
+        if (cyclePhase === 0) {
+          want = 0.62;
+          cyclePhase = 1;
+          cycleAt = now + 1250;
+        } else {
+          setMode(mode + 1);
+          want = 1;
+          cyclePhase = 0;
+          cycleAt = now + 7200;
+        }
+      }
+      reveal += (want - reveal) * (1 - Math.exp(-dt / 0.62));
       /* The lens chases faster than the reveal — it is tracking a hand, not
          a state change — but not instantly, which is what gives the bulge
          its slight weight behind the cursor. */
