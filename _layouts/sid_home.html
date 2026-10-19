@@ -1357,6 +1357,14 @@
       }
       .hero.is-lake .lake-stage {
         pointer-events: auto;
+        /* The lake does not disappear at the section boundary. It recedes
+           through the final part of the sticky runway, leaving a faint live
+           surface for the awards gradient to absorb. Transform and opacity
+           stay on the compositor; no extra scroll listener or canvas pass. */
+        opacity: calc(1 - clamp(0, calc((var(--hero-p, 0) - 0.46) / 0.54), 1) * 0.84);
+        transform: translate3d(0, calc(var(--hero-p, 0) * -18px), 0) scale(calc(1 + var(--hero-p, 0) * 0.012));
+        transform-origin: 50% 62%;
+        will-change: opacity, transform;
       }
       /* The DOM headline keeps its box (the layout below depends on it) but
          gives up its ink to the letters on the shore; the model-viewer
@@ -2904,11 +2912,9 @@
          row lands under the browser chrome. */
       .hero-runway {
         position: relative;
-        /* 110, down from 200. Two full screens of runway to pin a one-screen
-           composition meant the opening beat was over long before the pin
-           released, so the second screen was the same frame held still. 110
-           keeps the pin and deletes the hold. */
-        height: 110svh;
+        /* 124 is enough distance for the lake to recede and the proof band
+           to rise into it, without returning to the old two-screen hold. */
+        height: 124svh;
       }
       .hero-runway > .hero {
         position: sticky;
@@ -5239,19 +5245,44 @@
          awards and eight logos appearing together is a table; appearing in
          order is a claim being made. */
       .proof-strip {
+        position: relative;
+        z-index: 3;
+        isolation: isolate;
         padding: clamp(46px, 5vw, 76px) 0 clamp(46px, 5vw, 70px);
         display: grid;
         gap: clamp(26px, 3vw, 38px);
         justify-items: center;
         text-align: center;
       }
+      /* A tall atmospheric bridge rises before the content itself. This is
+         the handoff from reflective lake to page, not a new background: it
+         uses the same lake blue and resolves into the existing page colour. */
+      .proof-strip::before {
+        content: "";
+        position: absolute;
+        z-index: 0;
+        left: 50%;
+        top: -42vh;
+        width: 100vw;
+        height: calc(42vh + 100%);
+        transform: translateX(-50%);
+        background: linear-gradient(180deg, rgba(7, 12, 20, 0) 0%, rgba(7, 12, 20, 0.7) 32%, var(--home-bg) 58%);
+        pointer-events: none;
+      }
+      .proof-strip > * {
+        position: relative;
+        z-index: 1;
+      }
+      html[data-theme="light"] .proof-strip::before {
+        background: linear-gradient(180deg, rgba(198, 212, 218, 0) 0%, rgba(216, 225, 227, 0.78) 32%, var(--home-bg) 58%);
+      }
       .proof-strip__awards,
       .proof-strip__logos {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(24px) scale(0.975);
         transition:
-          opacity 760ms cubic-bezier(0.16, 1, 0.3, 1),
-          transform 760ms cubic-bezier(0.16, 1, 0.3, 1);
+          opacity 900ms cubic-bezier(0.16, 1, 0.3, 1),
+          transform 900ms cubic-bezier(0.16, 1, 0.3, 1);
       }
       .proof-strip.is-in .proof-strip__awards,
       .proof-strip.is-in .proof-strip__logos {
@@ -5259,7 +5290,7 @@
         transform: none;
       }
       .proof-strip.is-in .proof-strip__logos {
-        transition-delay: 180ms;
+        transition-delay: 140ms;
       }
       .proof-strip__awards {
         margin: 0;

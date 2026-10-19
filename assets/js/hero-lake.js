@@ -863,6 +863,11 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const keyTarget = new THREE.Vector3(-2, 4.4, 3);
   const lightAim = new THREE.Vector3(0, 0, 1);
   const lightAimTarget = new THREE.Vector3(0, 0, 1);
+  /* The display may refresh at 120Hz, but the lake contains a reflection
+     render, so drawing it 120 times a second spends a second full scene pass
+     on frames the eye does not need. Cap only this canvas near 60fps; Lenis,
+     DOM transforms and pointer input remain native-rate. */
+  let lastRenderMs = 0;
   let live = true;
   function resize() {
     const r = host.getBoundingClientRect();
@@ -917,9 +922,21 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   applyTheme();
   new MutationObserver(applyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  function frame() {
+  function frame(now) {
     if (!live) return;
     requestAnimationFrame(frame);
+    const stamp = typeof now === "number" ? now : performance.now();
+    const scrollState = window.__sv ? window.__sv() : null;
+    const pageMoving = !!scrollState && scrollState.a > 0.035;
+    /* During a scroll the whole canvas is already translating and fading.
+       A ~42fps water update is visually continuous there and leaves the main
+       thread room for Lenis and layout. At rest it returns to ~60fps. */
+    if (stamp - lastRenderMs < (pageMoving ? 22 : 15)) return;
+    lastRenderMs = stamp;
+    /* The cursor is not changing the composition while a wheel gesture owns
+       it. Reuse the last soft shadow instead of rebuilding the shadow map on
+       every scrolling water frame; auto-update resumes as soon as it rests. */
+    renderer.shadowMap.autoUpdate = !pageMoving;
     const dt = Math.min(0.05, clock.getDelta());
     const t = clock.elapsedTime;
     resize();
@@ -1159,6 +1176,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       if (on && !live) {
         live = true;
         clock.getDelta();
+        lastRenderMs = 0;
         frame();
       } else if (!on) live = false;
     },
@@ -1169,6 +1187,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     else if (!live) {
       live = true;
       clock.getDelta();
+      lastRenderMs = 0;
       frame();
     }
   });
