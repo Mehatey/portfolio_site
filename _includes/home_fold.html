@@ -38,7 +38,14 @@
 <section class="fold" id="fold" aria-labelledby="fold-h" data-cube="Six sides, and he insists they are all one job.">
   <div class="fold__runway" id="fold-runway">
     <div class="fold__stage">
-      <h2 class="sr-only" id="fold-h">What I work across</h2>
+      <div class="fold__intro">
+        <p class="fold__kicker">Product designer + creative technologist</p>
+        <h2 class="fold__title" id="fold-h">From ambiguity to a working product.</h2>
+        <p class="fold__lede">
+          I frame the problem, design the system and interaction, prototype in Figma or code, and stay close through QA and launch.
+        </p>
+        <p class="fold__scope">Product systems · Spatial &amp; XR · Generative AI · Research · Interface &amp; motion · Creative code</p>
+      </div>
 
       <!-- The readout. Whichever face is forward names itself here at a size
            the cube cannot carry, with the work under it. This is the half of
@@ -150,7 +157,7 @@
     /* 215 -> 170. The fold reads the same at either length; the difference
        is how long the wheel is captured for. Shorter, on the same ask that
        shortened the work cube. */
-    height: 170svh;
+    height: 260svh;
   }
   .fold__stage {
     position: sticky;
@@ -165,11 +172,54 @@
   .fold__read {
     position: absolute;
     left: clamp(22px, 5vw, 96px);
-    top: 50%;
+    top: 69%;
     transform: translateY(-50%);
     z-index: 2;
-    max-width: 22ch;
+    width: min(36vw, 500px);
     pointer-events: none;
+  }
+  .fold__intro {
+    position: absolute;
+    left: clamp(22px, 5vw, 96px);
+    top: clamp(86px, 12vh, 132px);
+    z-index: 2;
+    width: min(42vw, 620px);
+  }
+  .fold__kicker {
+    margin: 0 0 14px;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: #a98be8;
+  }
+  .fold__title {
+    max-width: 13ch;
+    margin: 0;
+    color: var(--ink, #f2f6fb);
+    font-size: clamp(38px, 5vw, 72px);
+    font-weight: 500;
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+    text-wrap: balance;
+  }
+  .fold__lede {
+    max-width: 56ch;
+    margin: 22px 0 0;
+    color: var(--ink-2, rgba(226, 238, 250, 0.78));
+    font-size: clamp(15px, 1.25vw, 19px);
+    line-height: 1.52;
+    text-wrap: pretty;
+  }
+  .fold__scope {
+    max-width: 62ch;
+    margin: 18px 0 0;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    color: var(--ink-3, rgba(226, 238, 250, 0.58));
+    font-size: 11px;
+    line-height: 1.7;
+    letter-spacing: 0.025em;
   }
   .fold__read-idx {
     display: block;
@@ -431,6 +481,7 @@
     transition-delay: calc(var(--in, 0) * 105ms + 240ms);
   }
   .fold__read,
+  .fold__intro,
   .fold__ticks {
     opacity: 0;
     transform: translateY(14px);
@@ -445,6 +496,11 @@
     opacity: 1;
     transform: translateY(-50%);
     transition-delay: 460ms;
+  }
+  .fold.is-arrived .fold__intro {
+    opacity: 1;
+    transform: none;
+    transition-delay: 240ms;
   }
   .fold.is-arrived .fold__ticks {
     opacity: 1;
@@ -468,6 +524,7 @@
     .fold__space,
     .fold__face,
     .fold__read,
+    .fold__intro,
     .fold__ticks {
       opacity: 1;
       filter: none;
@@ -502,6 +559,22 @@
   }
 
   @media (max-width: 860px) {
+    .fold__intro {
+      top: 72px;
+      left: clamp(18px, 6vw, 40px);
+      width: calc(100vw - 72px);
+    }
+    .fold__title {
+      max-width: 15ch;
+      font-size: clamp(32px, 9vw, 48px);
+    }
+    .fold__lede {
+      margin-top: 14px;
+      font-size: 14px;
+    }
+    .fold__scope {
+      display: none;
+    }
     .fold__space {
       transform: none;
     }
@@ -515,6 +588,7 @@
       left: clamp(18px, 6vw, 40px);
       transform: none;
       max-width: calc(100vw - 96px);
+      width: auto;
     }
     .fold__read-word {
       font-size: clamp(26px, 8vw, 40px);
@@ -624,6 +698,17 @@
       { rx: -104, ry: -26 },
       { rx: 76, ry: -26 },
     ];
+    /* Equivalent face angles unwrapped into one continuous route. Keeping
+       each Y angle below the previous one prevents a backwards snap when
+       the active face crosses the rear edge of the cube. */
+    var SCROLL_AIM = [
+      { rx: -14, ry: -26 },
+      { rx: -14, ry: -116 },
+      { rx: -14, ry: -206 },
+      { rx: -14, ry: -296 },
+      { rx: -104, ry: -386 },
+      { rx: 76, ry: -386 },
+    ];
 
     var cur = -1;
     function select(i, aim) {
@@ -686,7 +771,7 @@
 
     function frame() {
       raf = 0;
-      var k = 0.11;
+      var k = 0.065;
       rx += (tgtRX - rx) * k;
       ry += (tgtRY - ry) * k;
       box.style.setProperty("--rx", rx.toFixed(2));
@@ -710,7 +795,7 @@
       var travel = Math.max(1, runway.offsetHeight - (window.innerHeight || 1));
       var p = Math.max(0, Math.min(1, -r.top / travel));
 
-      var FOLD_END = 0.62;
+      var FOLD_END = 0.42;
       var nf = Math.min(1, p / FOLD_END);
       /* Eased, so the last few degrees of each hinge slow into place. A linear
          fold looks like a mechanism; this looks like it is being done. */
@@ -730,8 +815,14 @@
           select(0, false);
         } else {
           var q = (p - FOLD_END) / (1 - FOLD_END);
-          var i = Math.min(FACES.length - 1, Math.floor(q * FACES.length));
-          select(i, true);
+          var turn = q * (FACES.length - 1);
+          var lo = Math.floor(turn);
+          var hi = Math.min(FACES.length - 1, lo + 1);
+          var mix = turn - lo;
+          var ease = mix * mix * (3 - 2 * mix);
+          tgtRX = SCROLL_AIM[lo].rx + (SCROLL_AIM[hi].rx - SCROLL_AIM[lo].rx) * ease;
+          tgtRY = SCROLL_AIM[lo].ry + (SCROLL_AIM[hi].ry - SCROLL_AIM[lo].ry) * ease;
+          select(Math.min(FACES.length - 1, Math.round(turn)), false);
         }
         kick();
       }
