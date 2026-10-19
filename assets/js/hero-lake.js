@@ -320,7 +320,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   function addAwardFloat(url, x, z, accent, phase) {
     const group = new THREE.Group();
     const base = new THREE.Mesh(
-      new THREE.BoxGeometry(0.94, 0.055, 0.54, 2, 1, 2),
+      new THREE.BoxGeometry(1.34, 0.06, 0.76, 2, 1, 2),
       new THREE.MeshPhysicalMaterial({
         color: 0x080a10,
         metalness: 0.75,
@@ -339,7 +339,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       faceMat.map = texture;
       faceMat.needsUpdate = true;
     });
-    const face = new THREE.Mesh(new THREE.PlaneGeometry(0.86, 0.485), faceMat);
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.68), faceMat);
     face.rotation.x = -Math.PI / 2;
     face.position.y = 0.0305;
     const trim = new THREE.LineSegments(
@@ -352,8 +352,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     scene.add(group);
     awards.push({ group, x, z, phase });
   }
-  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -2.55, -0.62, 0xd7ecff, 0.4);
-  addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.45, -2.25, 0x806cff, 2.1);
+  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.85, -0.48, 0xd7ecff, 0.4);
+  addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.05, -0.82, 0x806cff, 2.1);
   /* a mirror needs something to mirror: a soft graded dome, warm at the
      horizon and pale above, baked once */
   const envScene = new THREE.Scene();
@@ -406,6 +406,14 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   muzzle.scale.set(0.9, 0.58, 0.7);
   muzzle.position.set(0, -0.035, 0.29);
   catHeadPivot.add(catHead, muzzle);
+  const tongue = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.026, 0.075, 3, 6),
+    new THREE.MeshStandardMaterial({ color: 0xe89aa0, roughness: 0.72 })
+  );
+  tongue.rotation.x = Math.PI / 2;
+  tongue.position.set(0, -0.09, 0.34);
+  tongue.scale.setScalar(0.001);
+  catHeadPivot.add(tongue);
   const earGeo = new THREE.ConeGeometry(0.085, 0.18, 4);
   for (const side of [-1, 1]) {
     const ear = new THREE.Mesh(earGeo, catMat);
@@ -435,6 +443,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   });
   scene.add(cat);
   let lastCatSip = -10;
+  let catHover = 0;
 
   let figure = null,
     mixer = null,
@@ -530,7 +539,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         const l = letters.find((q) => q.line === li && q.ch === ch && !q.placed);
         if (!l) continue;
         l.placed = true;
-        l.home = { x: x + l.w / 2, y: l.h / 2 + ISLAND.top, z };
+        l.home = { x: x + l.w / 2, y: DEPTH / 2 + ISLAND.top + 0.012, z };
         x += l.w + GAP;
       }
     });
@@ -583,6 +592,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     }
     group.position.set(o.x || 0, o.y || 0, o.z || 0);
     if (o.rotationY) group.rotation.y = o.rotationY;
+    if (o.rotationX) group.rotation.x = o.rotationX;
     scene.add(group);
     return group;
   }
@@ -608,6 +618,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
           d = bb.max.z - bb.min.z;
         geo.translate(-(bb.min.x + w / 2), -(bb.min.y + h / 2), -(bb.min.z + d / 2));
         const mesh = new THREE.Mesh(geo, letterMat.clone());
+        /* Face-up type belongs to the lake. Its extrusion becomes buoyant
+           thickness and the camera supplies the perspective, rather than a
+           standing headline hovering in front of the scene. */
+        mesh.rotation.x = -Math.PI / 2;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         mesh.layers.set(1);
@@ -637,6 +651,34 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     resize();
     layoutHomes();
     letters.forEach((l) => l.mesh.position.set(l.home.x, l.home.y, l.home.z));
+
+    const awardLabelMat = new THREE.MeshStandardMaterial({
+      color: 0xf5f1e8,
+      emissive: 0x322715,
+      emissiveIntensity: 0.34,
+      roughness: 0.38,
+      metalness: 0.16,
+    });
+    buildText3D("2X WEBBY AWARD", font, {
+      x: -1.85,
+      y: 0.045,
+      z: 0.48,
+      size: 0.115,
+      depth: 0.028,
+      gap: 0.014,
+      rotationX: -Math.PI / 2,
+      material: awardLabelMat,
+    });
+    buildText3D("KYOORIUS AWARD", font, {
+      x: 0.05,
+      y: 0.045,
+      z: 0.16,
+      size: 0.115,
+      depth: 0.028,
+      gap: 0.014,
+      rotationX: -Math.PI / 2,
+      material: awardLabelMat.clone(),
+    });
   }
 
   async function buildPhysics() {
@@ -727,7 +769,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     dragging = null,
     dragTarget = new THREE.Vector3(),
     hovered = null,
-    overFigure = false;
+    overFigure = false,
+    overCat = false;
 
   function toNdc(e) {
     const r = renderer.domElement.getBoundingClientRect();
@@ -775,15 +818,18 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       if (ray.ray.intersectPlane(dragPlane, hit)) lastHand.copy(hit);
       let of = false;
       if (figure) of = ray.intersectObject(figure, true).length > 0;
+      const oc = ray.intersectObject(cat, true).length > 0;
       if (of && !overFigure && !busy) play("Look", 1, () => play("Idle"));
       overFigure = of;
-      host.style.cursor = hovered || of ? "pointer" : "";
+      overCat = oc;
+      host.style.cursor = hovered || of || oc ? "pointer" : "";
     },
     { passive: true }
   );
   hero.addEventListener("pointerleave", () => {
     hasPointer = false;
     hovered = null;
+    overCat = false;
   });
   hero.addEventListener("pointerdown", (e) => {
     toNdc(e);
@@ -801,28 +847,31 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
         const l = dragging;
         dragging = null;
         clearTimeout(l.toppleTimer);
-        l.toppled = !l.toppled;
+        l.toppled = true;
         l.tween = {
           fromX: l.mesh.rotation.x,
-          toX: l.toppled ? -Math.PI / 2 : 0,
+          toX: -Math.PI / 2,
+          fromZ: l.mesh.rotation.z,
+          toZ: (Math.random() > 0.5 ? 1 : -1) * 0.2,
           fromY: l.mesh.position.y,
-          toY: l.toppled ? DEPTH / 2 + 0.012 : l.home.y,
+          toY: 0.012,
           start: performance.now(),
-          duration: 520,
+          duration: 360,
         };
-        if (l.toppled) {
-          l.toppleTimer = setTimeout(() => {
-            l.toppled = false;
-            l.tween = {
-              fromX: l.mesh.rotation.x,
-              toX: 0,
-              fromY: l.mesh.position.y,
-              toY: l.home.y,
-              start: performance.now(),
-              duration: 620,
-            };
-          }, 1700);
-        }
+        splash(l.mesh.position.x, l.mesh.position.z, Math.max(l.w, l.h) * 1.3);
+        l.toppleTimer = setTimeout(() => {
+          l.toppled = false;
+          l.tween = {
+            fromX: l.mesh.rotation.x,
+            toX: -Math.PI / 2,
+            fromZ: l.mesh.rotation.z,
+            toZ: 0,
+            fromY: l.mesh.position.y,
+            toY: l.home.y,
+            start: performance.now(),
+            duration: 620,
+          };
+        }, 620);
         e.preventDefault();
         return;
       }
@@ -988,11 +1037,18 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     }
     for (const r of reeds) r.group.rotation.z = Math.sin(t * 0.42 + r.phase) * 0.025;
 
-    const drink = Math.pow(Math.max(0, Math.sin(t * 0.62)), 5);
-    catHeadPivot.rotation.x = 0.7 + drink * 0.18;
-    catBody.scale.y = 1 + Math.sin(t * 1.4) * 0.012;
-    catTail.rotation.y = Math.sin(t * 0.48) * 0.16;
-    if (drink > 0.965 && t - lastCatSip > 4.5) {
+    catHover += ((overCat ? 1 : 0) - catHover) * 0.12;
+    const idleSip = Math.pow(Math.max(0, Math.sin(t * 0.62)), 7) * (1 - catHover);
+    const hoverSip = catHover * (0.72 + Math.sin(t * 7.2) * 0.12);
+    const drink = Math.max(idleSip, hoverSip);
+    catHeadPivot.rotation.x = 0.7 + drink * 0.62;
+    catHeadPivot.position.y = 0.4 - catHover * 0.105;
+    catHeadPivot.position.z = 0.28 + catHover * 0.09;
+    catBody.rotation.x = 0.2 + catHover * 0.12;
+    catBody.scale.y = 1 + Math.sin(t * 1.4) * 0.012 - catHover * 0.05;
+    catTail.rotation.y = Math.sin(t * (overCat ? 2.2 : 0.48)) * (0.16 + catHover * 0.2);
+    tongue.scale.setScalar(catHover * (0.78 + Math.sin(t * 7.2) * 0.2));
+    if (drink > 0.78 && t - lastCatSip > (overCat ? 0.82 : 4.5)) {
       splash(cat.position.x, cat.position.z + 0.62, 0.18);
       lastCatSip = t;
     }
@@ -1018,6 +1074,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       const k = Math.min(1, (performance.now() - l.tween.start) / l.tween.duration);
       const e = 1 - Math.pow(1 - k, 3);
       l.mesh.rotation.x = THREE.MathUtils.lerp(l.tween.fromX, l.tween.toX, e);
+      l.mesh.rotation.z = THREE.MathUtils.lerp(l.tween.fromZ || 0, l.tween.toZ || 0, e);
       l.mesh.position.y = THREE.MathUtils.lerp(l.tween.fromY, l.tween.toY, e);
       if (k === 1) l.tween = null;
     }
@@ -1156,10 +1213,15 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     }
     /* hover lift on the material via emissive, one letter at a time */
     for (const l of letters) {
-      const want = l === hovered || l === dragging ? 0.35 : 0;
+      const active = l === hovered || l === dragging;
+      const want = active ? 0.35 : 0;
       const m = l.mesh.material;
       m.emissive.set(0xffc98a);
       m.emissiveIntensity += (want - m.emissiveIntensity) * 0.2;
+      if (!l.body && !l.tween) {
+        const targetY = l.home.y + (active ? 0.035 : Math.sin(t * 0.72 + l.home.x * 0.8) * 0.006);
+        l.mesh.position.y += (targetY - l.mesh.position.y) * 0.16;
+      }
       /* under water it dims, so it reads as gone rather than glowing */
       m.opacity = 1;
     }
