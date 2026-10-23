@@ -120,22 +120,24 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const palette = () =>
     isLight()
       ? {
-          water: 0x8fb0c4,
-          fog: 0xc6d4da,
-          sun: 0xfff1d6,
-          key: 0xffddb0,
-          sky: 0xb6cad4,
-          stone: 0xc9c3b6,
-          island: 0xbdb6a8,
+          water: 0x6f96ad,
+          fog: 0xb7c8cf,
+          sun: 0xd9e8ed,
+          key: 0xffc77f,
+          sky: 0x9eb8c5,
+          ground: 0x596c72,
+          stone: 0xb9b09f,
+          island: 0xaaa394,
           leaf: 0x6f9a72,
           ink: 0x14161c,
         }
       : {
           water: 0x0b1a2b,
           fog: 0x07060c,
-          sun: 0xffd9a8,
+          sun: 0x91b5cc,
           key: 0xffc98a,
           sky: 0x3a4a66,
+          ground: 0x141a24,
           stone: 0x1a1e27,
           island: 0x171a20,
           leaf: 0x2c4a3c,
@@ -147,7 +149,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   scene.add(hemi);
   /* A spot, not a point: a point light's shadow renders the scene six
      times a frame, a spot's once. */
-  const key = new THREE.SpotLight(0xffc98a, 72, 42, Math.PI / 3.15, 0.72, 1.35);
+  const key = new THREE.SpotLight(0xffc98a, 72, 42, Math.PI / 2.85, 0.9, 1.5);
   key.position.set(-2, 3.2, 3);
   key.target.position.set(0, 0, 2.5);
   scene.add(key.target);
@@ -155,16 +157,22 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   key.shadow.mapSize.set(512, 512);
   key.shadow.bias = -0.0015;
   key.shadow.normalBias = 0.03;
+  key.shadow.radius = 3;
   scene.add(key);
   const rim = new THREE.DirectionalLight(0x9fc2ff, 0.7);
   rim.position.set(4, 6, -6);
   scene.add(rim);
+  const fill = new THREE.DirectionalLight(0xb9d8e8, 0.32);
+  fill.position.set(-5, 3.5, 2);
+  scene.add(fill);
   const cursorLight = new THREE.PointLight(0xffc98a, 0, 7.5, 2);
   scene.add(cursorLight);
 
   /* ── WATER, UNDER EVERYTHING ──────────────────────────────────────────── */
   const waterNormals = new THREE.TextureLoader().load(BASE + "/assets/textures/waternormals.jpg", (t) => {
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(6, 6);
+    t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
   });
   const water = new Water(new THREE.PlaneGeometry(240, 240), {
     textureWidth: 512,
@@ -190,12 +198,12 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       uniforms: { uColor: { value: new THREE.Color(0xffc98a) }, uOpacity: { value: 0 } },
       vertexShader: "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
       fragmentShader:
-        "varying vec2 vUv;uniform vec3 uColor;uniform float uOpacity;void main(){float d=distance(vUv,vec2(.5));float core=smoothstep(.5,0.,d);float halo=pow(core,2.4);gl_FragColor=vec4(uColor*(.28+halo),uOpacity*core*.38);}",
+        "varying vec2 vUv;uniform vec3 uColor;uniform float uOpacity;void main(){vec2 p=(vUv-.5)*vec2(1.,1.45);float d=length(p);float core=pow(smoothstep(.5,0.,d),2.2);float ripple=pow(max(0.,sin(d*58.)*.5+.5),5.)*smoothstep(.48,.12,d);float a=uOpacity*(core*.18+ripple*.035);gl_FragColor=vec4(uColor*(.22+core),a);}",
     })
   );
   hoverGlow.rotation.x = -Math.PI / 2;
   hoverGlow.position.set(0, 0.018, 0);
-  hoverGlow.scale.setScalar(1.8);
+  hoverGlow.scale.set(2.15, 1.3, 1);
   scene.add(hoverGlow);
 
   /* ── THE ISLAND ───────────────────────────────────────────────────────
@@ -359,8 +367,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   }
   addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.85, -0.48, 0xd7ecff, 0.4);
   addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.05, -0.82, 0x806cff, 2.1);
-  /* a mirror needs something to mirror: a soft graded dome, warm at the
-     horizon and pale above, baked once */
+  /* A cool daylight dome gives the water depth. The previous orange horizon
+     contaminated the whole reflection and made the lake read brown. */
   const envScene = new THREE.Scene();
   const domeGeo = new THREE.SphereGeometry(20, 24, 16);
   const domeMat = new THREE.ShaderMaterial({
@@ -368,7 +376,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     uniforms: {},
     vertexShader: "varying vec3 vP; void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
     fragmentShader:
-      "varying vec3 vP; void main(){ float h = normalize(vP).y; vec3 top = vec3(0.86,0.9,0.98); vec3 hor = vec3(1.0,0.86,0.66); vec3 low = vec3(0.05,0.07,0.1); vec3 c = h > 0.0 ? mix(hor, top, smoothstep(0.0,0.7,h)) : mix(hor, low, smoothstep(0.0,0.5,-h)); gl_FragColor = vec4(c,1.0); }",
+      "varying vec3 vP; void main(){ float h=normalize(vP).y;vec3 top=vec3(.58,.72,.82);vec3 hor=vec3(.84,.85,.80);vec3 low=vec3(.055,.09,.13);vec3 c=h>0.?mix(hor,top,smoothstep(0.,.72,h)):mix(hor,low,smoothstep(0.,.55,-h));gl_FragColor=vec4(c,1.);}",
   });
   envScene.add(new THREE.Mesh(domeGeo, domeMat));
   const pmrem = new THREE.PMREMGenerator(renderer);
@@ -376,41 +384,46 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   pmrem.dispose();
 
   /* ── THE STONE, AND THE FIGURE ON IT ───────────────────────────────────── */
-  const stone = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.15, 0.22, 40), new THREE.MeshStandardMaterial({ color: 0x1a1e27, roughness: 0.9 }));
-  stone.position.set(2.6, 0.06, -1.4);
+  const stone = new THREE.Mesh(
+    new THREE.CylinderGeometry(1.42, 1.62, 0.24, 48),
+    new THREE.MeshStandardMaterial({ color: 0x1a1e27, roughness: 0.82, metalness: 0.015, envMapIntensity: 0.28 })
+  );
+  stone.position.set(2.55, 0.06, -1.4);
+  stone.scale.z = 0.78;
   stone.castShadow = true;
   stone.receiveShadow = true;
   scene.add(stone);
 
-  /* A small low-poly cat drinks at the opposite bank. It stays below the
-     headline hierarchy and only moves enough to feel present. */
-  const catRock = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.62, 0.76, 0.13, 18),
-    new THREE.MeshStandardMaterial({ color: 0x252832, roughness: 0.94 })
-  );
-  catRock.position.set(-3.55, 0.035, -1.3);
-  catRock.scale.z = 0.72;
-  catRock.castShadow = true;
-  catRock.receiveShadow = true;
-  scene.add(catRock);
-
+  /* One little scene, not two disconnected props: the cat shares the stone
+     with Sid and leans past its front edge to drink. */
   const cat = new THREE.Group();
-  const catMat = new THREE.MeshStandardMaterial({ color: 0xb88760, roughness: 0.88 });
+  const catMat = new THREE.MeshStandardMaterial({ color: 0xc58c5c, roughness: 0.82 });
+  const catCreamMat = new THREE.MeshStandardMaterial({ color: 0xe8c9a2, roughness: 0.86 });
   const catDarkMat = new THREE.MeshStandardMaterial({ color: 0x372c2a, roughness: 0.9 });
-  const catBody = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 8), catMat);
+  const catBody = new THREE.Mesh(new THREE.SphereGeometry(0.28, 18, 12), catMat);
   catBody.scale.set(0.82, 1, 1.35);
   catBody.position.set(0, 0.42, -0.08);
   catBody.rotation.x = 0.2;
   const catHeadPivot = new THREE.Group();
   catHeadPivot.position.set(0, 0.4, 0.28);
   catHeadPivot.rotation.x = 0.7;
-  const catHead = new THREE.Mesh(new THREE.SphereGeometry(0.18, 12, 8), catMat);
+  const catHead = new THREE.Mesh(new THREE.SphereGeometry(0.18, 18, 12), catMat);
   catHead.scale.set(0.9, 0.86, 0.92);
   catHead.position.z = 0.14;
-  const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 7), catDarkMat);
-  muzzle.scale.set(0.9, 0.58, 0.7);
+  const muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.085, 12, 8), catCreamMat);
+  muzzle.scale.set(1.05, 0.58, 0.72);
   muzzle.position.set(0, -0.035, 0.29);
   catHeadPivot.add(catHead, muzzle);
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.026, 8, 6), catDarkMat);
+  nose.scale.set(1.15, 0.72, 0.65);
+  nose.position.set(0, -0.015, 0.35);
+  catHeadPivot.add(nose);
+  for (const side of [-1, 1]) {
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.018, 8, 6), catDarkMat);
+    eye.scale.y = 0.72;
+    eye.position.set(side * 0.065, 0.045, 0.285);
+    catHeadPivot.add(eye);
+  }
   const tongue = new THREE.Mesh(new THREE.CapsuleGeometry(0.026, 0.075, 3, 6), new THREE.MeshStandardMaterial({ color: 0xe89aa0, roughness: 0.72 }));
   tongue.rotation.x = Math.PI / 2;
   tongue.position.set(0, -0.09, 0.34);
@@ -428,7 +441,21 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     leg.position.set(side * 0.13, 0.22, 0.23);
     leg.rotation.x = -0.18;
     cat.add(leg);
+    const paw = new THREE.Mesh(new THREE.SphereGeometry(0.062, 10, 7), catCreamMat);
+    paw.scale.set(1, 0.48, 1.3);
+    paw.position.set(side * 0.13, 0.055, 0.275);
+    cat.add(paw);
   }
+  for (const side of [-1, 1]) {
+    const haunch = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 9), catMat);
+    haunch.scale.set(0.78, 1, 1.05);
+    haunch.position.set(side * 0.145, 0.27, -0.23);
+    cat.add(haunch);
+  }
+  const chest = new THREE.Mesh(new THREE.SphereGeometry(0.13, 14, 9), catCreamMat);
+  chest.scale.set(0.82, 1.2, 0.62);
+  chest.position.set(0, 0.34, 0.18);
+  cat.add(chest);
   const tailCurve = new THREE.CatmullRomCurve3([
     new THREE.Vector3(0.16, 0.46, -0.29),
     new THREE.Vector3(0.4, 0.55, -0.42),
@@ -438,8 +465,9 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const catTail = new THREE.Mesh(new THREE.TubeGeometry(tailCurve, 18, 0.035, 6, false), catMat);
   catTail.name = "cat-tail";
   cat.add(catBody, catHeadPivot, catTail);
-  cat.position.set(catRock.position.x, 0.095, catRock.position.z);
-  cat.rotation.y = -0.08;
+  cat.position.set(1.35, 0.17, -0.82);
+  cat.rotation.y = -0.04;
+  cat.scale.setScalar(1.12);
   cat.traverse((o) => {
     if (o.isMesh) o.castShadow = true;
   });
@@ -455,9 +483,9 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     figure = gltf.scene;
     const box = new THREE.Box3().setFromObject(figure);
     const h = box.max.y - box.min.y || 1;
-    const s = 1.85 / h;
+    const s = 2.08 / h;
     figure.scale.setScalar(s);
-    figure.position.set(stone.position.x, 0.17, stone.position.z);
+    figure.position.set(2.92, 0.18, -1.55);
     figure.rotation.y = -0.35;
     figure.traverse((o) => {
       if (o.isMesh) {
@@ -702,7 +730,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     const islandCol = RAPIER.ColliderDesc.convexHull(new Float32Array(hull));
     if (islandCol) world.createCollider(islandCol.setFriction(0.9));
     /* his stone, so a letter thrown at him lands on it */
-    world.createCollider(RAPIER.ColliderDesc.cylinder(0.11, 1.0).setTranslation(stone.position.x, 0.06, stone.position.z));
+    world.createCollider(RAPIER.ColliderDesc.cylinder(0.12, 1.48).setTranslation(stone.position.x, 0.06, stone.position.z));
 
     for (const l of letters) {
       const body = world.createRigidBody(
@@ -949,26 +977,52 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       }
     }
   }
+  let skyTexture = null;
+  function makeSkyTexture(light) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 8;
+    canvas.height = 256;
+    const ctx = canvas.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    if (light) {
+      gradient.addColorStop(0, "#8faebd");
+      gradient.addColorStop(0.48, "#b8cbd1");
+      gradient.addColorStop(1, "#d1d5cf");
+    } else {
+      gradient.addColorStop(0, "#04060c");
+      gradient.addColorStop(0.55, "#111827");
+      gradient.addColorStop(1, "#22252a");
+    }
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
   function applyTheme() {
     const p = palette();
-    /* The water runs into the page colour at the horizon rather than
-       stopping at a line. */
-    scene.background = new THREE.Color(p.fog);
+    /* A vertical sky gradient preserves a horizon without creating a hard
+       seam where the reflective plane meets a single flat background. */
+    if (skyTexture) skyTexture.dispose();
+    skyTexture = makeSkyTexture(isLight());
+    scene.background = skyTexture;
     scene.fog = new THREE.Fog(p.fog, 9, 42);
     stone.material.color.set(p.stone);
     islandMat.color.set(p.island);
     leafMat.color.set(p.leaf);
     reedMat.color.set(isLight() ? 0x68846d : 0x57715a);
-    catRock.material.color.set(p.stone);
     water.material.uniforms.waterColor.value.set(p.water);
     water.material.uniforms.sunColor.value.set(p.sun);
+    if (water.material.uniforms.distortionScale) water.material.uniforms.distortionScale.value = isLight() ? 1.25 : 1.55;
     key.color.set(p.key);
     cursorLight.color.set(p.key);
     hoverGlow.material.uniforms.uColor.value.set(p.key);
     hemi.color.set(p.sky);
-    hemi.intensity = isLight() ? 0.42 : 0.55;
-    rim.intensity = isLight() ? 0.42 : 0.7;
-    renderer.toneMappingExposure = isLight() ? 0.82 : 1.05;
+    hemi.groundColor.set(p.ground);
+    hemi.intensity = isLight() ? 0.68 : 0.55;
+    fill.intensity = isLight() ? 0.5 : 0.26;
+    rim.intensity = isLight() ? 0.58 : 0.7;
+    renderer.toneMappingExposure = isLight() ? 0.9 : 1.05;
     letterMat.color.set(p.ink);
     letterMat.emissive.set(isLight() ? 0x000000 : 0x17130f);
     letters.forEach((l) => {
@@ -1014,16 +1068,17 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     key.position.lerp(keyTarget, 0.08);
     key.target.position.set(lightAim.x, 0, lightAim.z);
     const daylight = isLight();
-    const keyLevel = daylight ? (hasPointer ? 38 : 28) : hasPointer ? 96 : 68;
-    const cursorLevel = daylight ? (hasPointer ? 8 : 1.5) : hasPointer ? 24 : 4;
+    const keyLevel = daylight ? (hasPointer ? 48 : 34) : hasPointer ? 96 : 68;
+    const cursorLevel = daylight ? (hasPointer ? 6 : 1) : hasPointer ? 24 : 4;
     key.intensity += (keyLevel - key.intensity) * 0.09;
     cursorLight.position.set(lightAim.x, 0.95, lightAim.z);
     cursorLight.intensity += (cursorLevel - cursorLight.intensity) * 0.1;
     hoverGlow.position.x = lightAim.x;
     hoverGlow.position.z = lightAim.z;
-    const glowLevel = daylight ? (hasPointer ? 0.5 : 0.1) : hasPointer ? 1 : 0.22;
+    const glowLevel = daylight ? (hasPointer ? 0.38 : 0.06) : hasPointer ? 0.82 : 0.14;
     hoverGlow.material.uniforms.uOpacity.value += (glowLevel - hoverGlow.material.uniforms.uOpacity.value) * 0.09;
-    hoverGlow.scale.setScalar(1.65 + Math.sin(t * 1.15) * 0.06);
+    const glowPulse = 1 + Math.sin(t * 1.15) * 0.025;
+    hoverGlow.scale.set(2.15 * glowPulse, 1.3 * glowPulse, 1);
     tmpV.copy(key.position).sub(key.target.position).normalize();
     water.material.uniforms.sunDirection.value.copy(tmpV);
     water.material.uniforms.time.value += dt * 0.38;
