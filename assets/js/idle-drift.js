@@ -54,7 +54,9 @@
   /* Sid: "also let it show maybe after 20 sec." Fifteen caught people who
      were still reading. */
   /* Sid, later: "increase the screen saver time to 25 to 30 seconds." */
-  var IDLE_MS = 56000;
+  /* Two minutes: long enough for someone to read or inspect a project without
+     the page mistaking attention for absence. */
+  var IDLE_MS = 120000;
 
   /* ── AND NOW IT IS GLASS AGAIN, WITH THE MARK IN IT ──────────────────
      Sid: "those clouds ... look so bad. They look so kiddish, and the trees

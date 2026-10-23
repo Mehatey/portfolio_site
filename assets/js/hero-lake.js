@@ -98,8 +98,11 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
-  camera.position.set(0, 3.1, 9.4);
-  camera.lookAt(0, 0.5, 0.4);
+  /* A slightly higher camera keeps objects grounded in the lake while making
+     face-up type readable. The old grazing angle heavily foreshortened both
+     the headline and award captions. */
+  camera.position.set(0, 4.05, 9.2);
+  camera.lookAt(0, 0.28, 0.4);
   /* Sid: "the 3d text doesn't work" -- diagnosed by disabling the physics
      sim entirely and finding the exact same artifact, which meant it was
      never the geometry: it was the water's own reflection of the text.
@@ -348,7 +351,9 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     );
     group.add(base, face, trim);
     group.position.set(x, 0.055, z);
-    group.rotation.y = phase * 0.36;
+    /* Keep the award face aligned to the reader. Bobbing supplies life; a
+       forty-degree yaw only made the identity and its caption harder to read. */
+    group.rotation.y = 0;
     scene.add(group);
     awards.push({ group, x, z, phase });
   }
@@ -406,10 +411,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   muzzle.scale.set(0.9, 0.58, 0.7);
   muzzle.position.set(0, -0.035, 0.29);
   catHeadPivot.add(catHead, muzzle);
-  const tongue = new THREE.Mesh(
-    new THREE.CapsuleGeometry(0.026, 0.075, 3, 6),
-    new THREE.MeshStandardMaterial({ color: 0xe89aa0, roughness: 0.72 })
-  );
+  const tongue = new THREE.Mesh(new THREE.CapsuleGeometry(0.026, 0.075, 3, 6), new THREE.MeshStandardMaterial({ color: 0xe89aa0, roughness: 0.72 }));
   tongue.rotation.x = Math.PI / 2;
   tongue.position.set(0, -0.09, 0.34);
   tongue.scale.setScalar(0.001);
@@ -481,7 +483,14 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   }
 
   /* ── THE LETTERS ──────────────────────────────────────────────────────── */
-  const letterMat = new THREE.MeshStandardMaterial({ color: 0xf2efe8, roughness: 0.42, metalness: 0.08, envMapIntensity: 0.35 });
+  const letterMat = new THREE.MeshStandardMaterial({
+    color: 0xf2efe8,
+    emissive: 0x17130f,
+    emissiveIntensity: 0.16,
+    roughness: 0.6,
+    metalness: 0.03,
+    envMapIntensity: 0.18,
+  });
   const letters = []; /* { mesh, body, w, h, d, home, line, wet, nudged } */
   const sceneTypeMats = [];
   let RAPIER = null,
@@ -652,20 +661,16 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     layoutHomes();
     letters.forEach((l) => l.mesh.position.set(l.home.x, l.home.y, l.home.z));
 
-    const awardLabelMat = new THREE.MeshStandardMaterial({
-      color: 0xf5f1e8,
-      emissive: 0x322715,
-      emissiveIntensity: 0.34,
-      roughness: 0.38,
-      metalness: 0.16,
-    });
+    /* Labels are facts, not more jewellery. Unlit material keeps their strokes
+       stable while the plaques and water continue to catch the moving light. */
+    const awardLabelMat = new THREE.MeshBasicMaterial({ color: 0xf5f1e8, toneMapped: false });
     buildText3D("2X WEBBY AWARD", font, {
       x: -1.85,
       y: 0.045,
       z: 0.48,
-      size: 0.115,
-      depth: 0.028,
-      gap: 0.014,
+      size: 0.13,
+      depth: 0.014,
+      gap: 0.012,
       rotationX: -Math.PI / 2,
       material: awardLabelMat,
     });
@@ -673,9 +678,9 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       x: 0.05,
       y: 0.045,
       z: 0.16,
-      size: 0.115,
-      depth: 0.028,
-      gap: 0.014,
+      size: 0.13,
+      depth: 0.014,
+      gap: 0.012,
       rotationX: -Math.PI / 2,
       material: awardLabelMat.clone(),
     });
@@ -965,7 +970,11 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     rim.intensity = isLight() ? 0.42 : 0.7;
     renderer.toneMappingExposure = isLight() ? 0.82 : 1.05;
     letterMat.color.set(p.ink);
-    letters.forEach((l) => l.mesh.material.color.set(p.ink));
+    letterMat.emissive.set(isLight() ? 0x000000 : 0x17130f);
+    letters.forEach((l) => {
+      l.mesh.material.color.set(p.ink);
+      l.mesh.material.emissive.set(isLight() ? 0x000000 : 0x17130f);
+    });
     sceneTypeMats.forEach((m) => m.color.set(p.ink));
   }
   applyTheme();
