@@ -324,7 +324,7 @@
   }
 
   var stars = [];
-  for (var st = 0; st < 90; st++) {
+  for (var st = 0; st < 32; st++) {
     stars.push({
       x: Math.random(),
       y: Math.random() * 0.72,
@@ -340,14 +340,14 @@
      logarithmic, with the particle density falling off toward the rim the way
      it does in a real one. It turns about once every eight minutes. */
   var SPIRAL = [];
-  for (var sp = 0; sp < 260; sp++) {
+  for (var sp = 0; sp < 64; sp++) {
     var arm = sp % 2;
-    var t = 0.12 + (sp / 260) * 2.5;
+    var t = 0.12 + (sp / 64) * 2.5;
     SPIRAL.push({
       t: t,
       arm: arm,
       jitter: (Math.random() - 0.5) * 0.16,
-      a: (0.5 - (sp / 260) * 0.36) * (0.5 + Math.random() * 0.5),
+      a: (0.5 - (sp / 64) * 0.36) * (0.5 + Math.random() * 0.5),
       r: 0.3 + Math.random() * 0.9,
     });
   }
@@ -370,14 +370,19 @@
   var RW = 0,
     RH = 0;
   function sizeRain() {
-    var dpr = Math.min(2, window.devicePixelRatio || 1);
+    /* The layer is soft weather, not text. Rendering it at Retina 2x meant
+       clearing and repainting four times as many pixels every frame while a
+       WebGL lake was also alive underneath. One canvas pixel per CSS pixel
+       keeps the soft edges clean enough without making this the heaviest
+       renderer on the page. */
+    var dpr = 1;
     RW = innerWidth;
     RH = innerHeight;
     rainCv.width = Math.round(RW * dpr);
     rainCv.height = Math.round(RH * dpr);
     if (rctx) rctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     if (!drops.length) {
-      for (var d = 0; d < 210; d++) {
+      for (var d = 0; d < 64; d++) {
         drops.push({
           x: Math.random() * RW,
           y: Math.random() * RH,
@@ -468,7 +473,12 @@
      measurement. Safari and every iOS browser, which are all WebKit. */
   var PX_OK = !/^((?!chrome|android|crios|fxios).)*safari/i.test(navigator.userAgent);
 
-  var PATCHES = 8;
+  /* A moving backdrop-filter patch forces Chrome to resample a large piece
+     of the page every frame. The lake, weather and glass pieces already make
+     the idle state visibly different, so those random patches cost far more
+     than they contribute. Keep the plumbing for an easy future experiment,
+     but create none in production. */
+  var PATCHES = 0;
   var patches = [];
   for (var pi = 0; pi < PATCHES; pi++) {
     var d = document.createElement("i");
@@ -613,6 +623,7 @@
          own stylesheet can answer it without either file importing the
          other. */
       document.documentElement.removeAttribute("data-idle");
+      dispatchEvent(new CustomEvent("sid:idle", { detail: { active: false } }));
       /* ── IT LETS GO, IT DOES NOT SWITCH OFF ─────────────────────────
          Sid: "when someone presses a key or scrolls again let it have some
          soft animation where all the stuff returns to normal rather than
@@ -638,6 +649,7 @@
     layer.classList.remove("is-leaving");
     layer.classList.add("is-on");
     document.documentElement.setAttribute("data-idle", "on");
+    dispatchEvent(new CustomEvent("sid:idle", { detail: { active: true } }));
     /* No filter on the page. See the patches note above -- the page stays
        exactly where it is and the degradation happens in front of it. */
     rollPatches();
@@ -660,12 +672,16 @@
   /* ── the drift ────────────────────────────────────────────────────────── */
   var raf = 0,
     t0 = 0,
+    lastDomPaint = 0,
     offAt = -1e9,
     clock = 0;
 
   function frame(now) {
+    /* Everything here moves over minutes, not seconds. Four frames per second
+       keeps the idle tableau alive without letting a decorative state consume
+       the interaction budget of the actual portfolio beneath it. */
     if (!t0) t0 = now;
-    var dt = Math.min(0.05, (now - t0) / 1000);
+    var dt = Math.min(0.3, (now - t0) / 1000);
     t0 = now;
     /* The clock only advances while the layer is up, so an object that was
        three quarters of the way down when somebody scrolled is three quarters
@@ -997,45 +1013,51 @@
       }
     }
 
-    for (var i = 0; i < pieces.length; i++) {
-      var p = pieces[i];
-      var u = (((clock / p.dur + p.phase) % 1) + 1) % 1;
+    /* DOM style invalidation is much more expensive here than drawing the
+       weather canvas. These objects cross the viewport over several minutes,
+       so updating their position twice a second remains visually smooth
+       while avoiding a full style pass on nearly every canvas frame. */
+    if (now - lastDomPaint >= 500) {
+      lastDomPaint = now;
+      for (var i = 0; i < pieces.length; i++) {
+        var p = pieces[i];
+        var u = (((clock / p.dur + p.phase) % 1) + 1) % 1;
 
-      /* ── ARRIVAL ─────────────────────────────────────────────────────
+        /* ── ARRIVAL ─────────────────────────────────────────────────────
          Each piece fades up over four seconds once the clock passes its own
          `at`. Before that it is not drawn at all, which is what makes sitting
          still for a minute a different experience from sitting still for
          fifteen seconds. */
-      var age = clock - p.at;
-      if (age < 0) {
-        p.el.style.opacity = "0";
-        continue;
-      }
-      p.el.style.opacity = Math.min(1, age / 4).toFixed(3);
+        var age = clock - p.at;
+        if (age < 0) {
+          p.el.style.opacity = "0";
+          continue;
+        }
+        var nextOpacity = Math.min(1, age / 4).toFixed(3);
+        if (p.el.style.opacity !== nextOpacity) p.el.style.opacity = nextOpacity;
 
-      if (p.kind === "grass") {
-        /* Rooted. The blades lean on a shared breeze and the whole horizon
+        if (p.kind === "grass") {
+          /* Rooted. The blades lean on a shared breeze and the whole horizon
            sways a degree or so about its BASE -- about the centre it would
            hover, and a hovering lawn is a rug in a draught. */
-        var sway = Math.sin(clock * 0.11 + p.phase) * 1.1;
-        p.el.style.setProperty("--breeze", (Math.sin(clock * 0.23) * 0.5 + 0.5).toFixed(3));
-        p.el.style.transform = "rotate(" + sway.toFixed(2) + "deg)";
-        continue;
-      }
+          var sway = Math.sin(clock * 0.11 + p.phase) * 1.1;
+          p.el.style.transform = "rotate(" + sway.toFixed(2) + "deg)";
+          continue;
+        }
 
-      if (p.kind === "cloud") {
-        /* Clouds drift like the cubes but much slower and they BREATHE --
+        if (p.kind === "cloud") {
+          /* Clouds drift like the cubes but much slower and they BREATHE --
            the mask scale is written per frame, so the silhouette is never the
            same shape twice. A cloud that holds a fixed outline is a blob. */
-        var cu = -0.35 * W + u * (W * 1.7);
-        var puff = 1 + Math.sin(clock * 0.07 + p.phase * 6.28) * 0.09;
-        var lift = Math.sin(clock * 0.05 + p.phase * 3.1) * 14;
-        p.el.style.transform = "translate3d(" + cu.toFixed(1) + "px," + lift.toFixed(1) + "px,0) scale(" + puff.toFixed(3) + ")";
-        continue;
-      }
+          var cu = -0.35 * W + u * (W * 1.7);
+          var puff = 1 + Math.sin(clock * 0.07 + p.phase * 6.28) * 0.09;
+          var lift = Math.sin(clock * 0.05 + p.phase * 3.1) * 14;
+          p.el.style.transform = "translate3d(" + cu.toFixed(1) + "px," + lift.toFixed(1) + "px,0) scale(" + puff.toFixed(3) + ")";
+          continue;
+        }
 
-      if (p.kind === "river") {
-        /* It does not cross, it EXTENDS. Anchored at the mark's corner and
+        if (p.kind === "river") {
+          /* It does not cross, it EXTENDS. Anchored at the mark's corner and
            growing along its own axis, so what you see is a band reaching out
            of the logo and across the scene rather than a rectangle sliding
            in from off-screen. Scale rather than translate for exactly that
@@ -1045,21 +1067,19 @@
            It keeps growing for two and a half minutes and then holds, which
            is longer than almost anybody will sit -- the point is that it is
            never seen to finish. */
-        var grow = Math.min(1, age / 150);
-        var ease = 1 - Math.pow(1 - grow, 3);
-        var sag = Math.sin(clock * 0.05) * 10;
-        /* The two surface highlights, on periods that do not divide into one
+          var grow = Math.min(1, age / 150);
+          var ease = 1 - Math.pow(1 - grow, 3);
+          var sag = Math.sin(clock * 0.05) * 10;
+          /* The two surface highlights, on periods that do not divide into one
            another (23s and 31s). The parallax between them is what reads as a
            current; in step they would read as one reflection sliding across
            glass. Without these the band was a blurred stripe: photographed at
            thirty seconds it was invisible over a dark page. */
-        p.el.style.setProperty("--a", ((clock / 23) % 1).toFixed(4));
-        p.el.style.setProperty("--b", ((clock / 31 + 0.4) % 1).toFixed(4));
-        p.el.style.transform = "translate3d(0," + sag.toFixed(1) + "px,0) rotate(-9deg) scaleX(" + (0.04 + ease * 0.96).toFixed(4) + ")";
-        continue;
-      }
+          p.el.style.transform = "translate3d(0," + sag.toFixed(1) + "px,0) rotate(-9deg) scaleX(" + (0.04 + ease * 0.96).toFixed(4) + ")";
+          continue;
+        }
 
-      /* One motion for both of the other kinds, because they are both
+        /* One motion for both of the other kinds, because they are both
          objects adrift in the same medium -- what separates them is shape and
          rate, not behaviour. Across the window and off the far side, entering
          and leaving well clear of both edges so nothing appears or vanishes
@@ -1072,11 +1092,11 @@
 
          The rotation is per-object and signed, so some turn one way and some
          the other. A group all rotating together is a carousel. */
-      var cx = -0.3 * W + u * (W * 1.6);
-      var bob = Math.sin(clock * 0.13 + p.phase * 6.28) * (p.kind === "lens" ? 9 : 6);
-      var turn = Math.sin(clock * 0.055 + p.phase * 6.28) * (p.spin * 7);
-      if (p.kind === "cube") {
-        /* ── A CUBE HAS TO BE SEEN FROM SOMEWHERE ────────────────────
+        var cx = -0.3 * W + u * (W * 1.6);
+        var bob = Math.sin(clock * 0.13 + p.phase * 6.28) * (p.kind === "lens" ? 9 : 6);
+        var turn = Math.sin(clock * 0.055 + p.phase * 6.28) * (p.spin * 7);
+        if (p.kind === "cube") {
+          /* ── A CUBE HAS TO BE SEEN FROM SOMEWHERE ────────────────────
            Straight on, a cube is a square: the two extra faces are exactly
            edge-on and paint nothing. These are small, slow angles -- the
            object is drifting past, not tumbling -- and they are enough to
@@ -1085,31 +1105,35 @@
 
            The Z rotation stays as well, so it still turns in the plane the
            way the flat ones did. */
-        var yaw = -13 + Math.sin(clock * 0.041 + p.phase * 6.28) * 9;
-        var pitch = 7 + Math.cos(clock * 0.033 + p.phase * 4.1) * 5;
-        /* perspective() inside the transform rather than the perspective
+          var yaw = -13 + Math.sin(clock * 0.041 + p.phase * 6.28) * 9;
+          var pitch = 7 + Math.cos(clock * 0.033 + p.phase * 4.1) * 5;
+          /* perspective() inside the transform rather than the perspective
            PROPERTY: the property sets up the 3D space a child is rendered in,
            and what has to be foreshortened here is this element's own
            rotation. Scaled to the object so a small cube does not get a
            wide-angle lens. */
-        var per = Math.round((p.el.offsetWidth || 260) * 3.1);
-        p.el.style.transform =
-          "translate3d(" +
-          cx.toFixed(1) +
-          "px," +
-          bob.toFixed(1) +
-          "px,0) rotate(" +
-          turn.toFixed(2) +
-          "deg) " +
-          "perspective(" +
-          per +
-          "px) rotateY(" +
-          yaw.toFixed(2) +
-          "deg) rotateX(" +
-          pitch.toFixed(2) +
-          "deg)";
-      } else {
-        p.el.style.transform = "translate3d(" + cx.toFixed(1) + "px," + bob.toFixed(1) + "px,0) rotate(" + turn.toFixed(2) + "deg)";
+          /* Width is already known from the scene table. Reading offsetWidth
+           here forced layout every frame, exactly while backdrop filters and
+           the canvas were trying to composite. */
+          var per = Math.round(Math.max(180, p.w * W) * 3.1);
+          p.el.style.transform =
+            "translate3d(" +
+            cx.toFixed(1) +
+            "px," +
+            bob.toFixed(1) +
+            "px,0) rotate(" +
+            turn.toFixed(2) +
+            "deg) " +
+            "perspective(" +
+            per +
+            "px) rotateY(" +
+            yaw.toFixed(2) +
+            "deg) rotateX(" +
+            pitch.toFixed(2) +
+            "deg)";
+        } else {
+          p.el.style.transform = "translate3d(" + cx.toFixed(1) + "px," + bob.toFixed(1) + "px,0) rotate(" + turn.toFixed(2) + "deg)";
+        }
       }
     }
 
@@ -1121,7 +1145,12 @@
        spin are what you see finish. */
     /* Also kept alive while the warp is unwinding, or the page would be
        left liquified with nothing running to relax it. */
-    if (on || now - offAt < 700 || holeAmt > 0.25) raf = requestAnimationFrame(frame);
-    else raf = 0;
+    if (on || now - offAt < 700 || holeAmt > 0.25) {
+      /* Do not wake JavaScript on every display refresh merely to decide it
+         is too early to paint. Sleep between the four actual frames. */
+      raf = setTimeout(function () {
+        raf = requestAnimationFrame(frame);
+      }, 250);
+    } else raf = 0;
   }
 })();

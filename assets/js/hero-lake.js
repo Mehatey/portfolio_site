@@ -950,7 +950,16 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
      on frames the eye does not need. Cap only this canvas near 60fps; Lenis,
      DOM transforms and pointer input remain native-rate. */
   let lastRenderMs = 0;
-  let live = true;
+  let idlePaused = document.documentElement.hasAttribute("data-idle");
+  let live = !idlePaused;
+  let heroInView = true;
+  function resumeIfAllowed() {
+    if (!heroInView || document.hidden || idlePaused || live) return;
+    live = true;
+    clock.getDelta();
+    lastRenderMs = 0;
+    frame();
+  }
   function resize() {
     const r = host.getBoundingClientRect();
     const w = Math.max(1, Math.round(r.width)),
@@ -1293,28 +1302,29 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     renderer.render(scene, camera);
   }
   resize();
-  frame();
+  if (!idlePaused) frame();
+
+  /* The idle scene is another full-screen animated renderer. It is designed
+     to replace the page temporarily, so the reflective lake must actually
+     stop, not continue drawing invisibly under canvas weather and backdrop
+     filters. */
+  window.addEventListener("sid:idle", (event) => {
+    idlePaused = !!event.detail?.active;
+    if (idlePaused) live = false;
+    else resumeIfAllowed();
+  });
 
   /* Stop when the hero is off screen; the site has enough running below. */
   new IntersectionObserver(
     (es) => {
-      const on = es[0].isIntersecting;
-      if (on && !live) {
-        live = true;
-        clock.getDelta();
-        lastRenderMs = 0;
-        frame();
-      } else if (!on) live = false;
+      heroInView = es[0].isIntersecting;
+      if (heroInView) resumeIfAllowed();
+      else live = false;
     },
     { threshold: 0.02 }
   ).observe(hero);
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) live = false;
-    else if (!live) {
-      live = true;
-      clock.getDelta();
-      lastRenderMs = 0;
-      frame();
-    }
+    else resumeIfAllowed();
   });
 })();
