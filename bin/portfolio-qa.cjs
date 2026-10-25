@@ -256,6 +256,7 @@ async function checkProject(results, viewport, route, page) {
   const projectHealth = await page.evaluate(() => {
     const text = document.body.innerText;
     const details = document.querySelector(".project-details");
+    const hero = document.querySelector(".proj-hero");
     const map = document.querySelector(".case-map, .case-map-nav, [aria-label*='Case map' i]");
     const mediaCount = document.querySelectorAll("img, video, model-viewer").length;
     const paragraphs = Array.from(document.querySelectorAll("p"))
@@ -266,6 +267,7 @@ async function checkProject(results, viewport, route, page) {
     const next = /next project/i.test(text);
     return {
       hasDetails: Boolean(details) || projectDetails,
+      heroHeight: hero ? Math.round(hero.getBoundingClientRect().height) : 0,
       hasCaseMap: Boolean(map) || /case map/i.test(text),
       mediaCount,
       overview,
@@ -278,6 +280,7 @@ async function checkProject(results, viewport, route, page) {
 
   record(results, viewport, route, projectHealth.overview, "project has narrative copy", `${projectHealth.paragraphs} long paragraphs`);
   record(results, viewport, route, projectHealth.hasDetails, "project details are discoverable");
+  record(results, viewport, route, projectHealth.heroHeight >= 420, "project cover has visible height", `${projectHealth.heroHeight}px`);
   record(
     results,
     viewport,

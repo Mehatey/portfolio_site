@@ -69,7 +69,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   if (prefersLess || coarse || !budget) return giveUp();
 
   const BASE = host.getAttribute("data-base") || "";
-  const LINES = ["Product designer who", "builds what he designs."];
+  /* The headline is now crisp DOM type on the page grid. Keep the text
+     geometry system available for the award captions, but do not build a
+     second, perspective-skewed version of the main claim in the scene. */
+  const LINES = [];
 
   /* ── RENDERER ─────────────────────────────────────────────────────────── */
   let renderer;
@@ -101,8 +104,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   /* A slightly higher camera keeps objects grounded in the lake while making
      face-up type readable. The old grazing angle heavily foreshortened both
      the headline and award captions. */
-  camera.position.set(0, 4.05, 9.2);
-  camera.lookAt(0, 0.28, 0.4);
+  camera.position.set(0, 5.35, 9.35);
+  camera.lookAt(0, 0.18, 0.55);
   /* Sid: "the 3d text doesn't work" -- diagnosed by disabling the physics
      sim entirely and finding the exact same artifact, which meant it was
      never the geometry: it was the water's own reflection of the text.
@@ -120,12 +123,12 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const palette = () =>
     isLight()
       ? {
-          water: 0x6f96ad,
-          fog: 0xb7c8cf,
-          sun: 0xd9e8ed,
+          water: 0x4f7f9b,
+          fog: 0x9fb5bf,
+          sun: 0xc9dfe8,
           key: 0xffc77f,
-          sky: 0x9eb8c5,
-          ground: 0x596c72,
+          sky: 0x86a7b7,
+          ground: 0x445c68,
           stone: 0xb9b09f,
           island: 0xaaa394,
           leaf: 0x6f9a72,
@@ -523,10 +526,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   const sceneTypeMats = [];
   let RAPIER = null,
     world = null;
-  const SIZE = 0.22,
+  const SIZE = 0.26,
     DEPTH = 0.075,
-    GAP = 0.035,
-    SPACE = 0.135;
+    GAP = 0.032,
+    SPACE = 0.15;
   const LINE_Z = [1.65, 2.35];
 
   /* ── ONE LEFT EDGE ────────────────────────────────────────────────────
@@ -646,7 +649,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
           size: SIZE,
           depth: DEPTH,
           curveSegments: 14,
-          bevelEnabled: false,
+          bevelEnabled: true,
+          bevelThickness: 0.008,
+          bevelSize: 0.005,
+          bevelSegments: 2,
         });
         geo.computeBoundingBox();
         const bb = geo.boundingBox;
@@ -659,8 +665,12 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
            thickness and the camera supplies the perspective, rather than a
            standing headline hovering in front of the scene. */
         mesh.rotation.x = -Math.PI / 2;
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
+        /* The water already supplies movement and reflection. A second dark
+           silhouette under every glyph made the sentence look doubled at
+           laptop resolution, so the headline receives light without casting
+           another copy of itself onto the surface. */
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
         mesh.layers.set(1);
         scene.add(mesh);
         letters.push({
@@ -696,7 +706,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       x: -1.85,
       y: 0.045,
       z: 0.48,
-      size: 0.13,
+      size: 0.155,
       depth: 0.014,
       gap: 0.012,
       rotationX: -Math.PI / 2,
@@ -706,7 +716,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       x: 0.05,
       y: 0.045,
       z: 0.16,
-      size: 0.13,
+      size: 0.155,
       depth: 0.014,
       gap: 0.012,
       rotationX: -Math.PI / 2,
@@ -994,9 +1004,9 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     const ctx = canvas.getContext("2d");
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     if (light) {
-      gradient.addColorStop(0, "#8faebd");
-      gradient.addColorStop(0.48, "#b8cbd1");
-      gradient.addColorStop(1, "#d1d5cf");
+      gradient.addColorStop(0, "#6f96aa");
+      gradient.addColorStop(0.48, "#9fb8c2");
+      gradient.addColorStop(1, "#c0c8c6");
     } else {
       gradient.addColorStop(0, "#04060c");
       gradient.addColorStop(0.55, "#111827");
@@ -1015,7 +1025,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     if (skyTexture) skyTexture.dispose();
     skyTexture = makeSkyTexture(isLight());
     scene.background = skyTexture;
-    scene.fog = new THREE.Fog(p.fog, 9, 42);
+    scene.fog = new THREE.Fog(p.fog, isLight() ? 12 : 9, isLight() ? 52 : 42);
     stone.material.color.set(p.stone);
     islandMat.color.set(p.island);
     leafMat.color.set(p.leaf);
@@ -1031,7 +1041,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     hemi.intensity = isLight() ? 0.68 : 0.55;
     fill.intensity = isLight() ? 0.5 : 0.26;
     rim.intensity = isLight() ? 0.58 : 0.7;
-    renderer.toneMappingExposure = isLight() ? 0.9 : 1.05;
+    renderer.toneMappingExposure = isLight() ? 0.82 : 1.05;
     letterMat.color.set(p.ink);
     letterMat.emissive.set(isLight() ? 0x000000 : 0x17130f);
     letters.forEach((l) => {
