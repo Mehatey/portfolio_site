@@ -81,7 +81,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   } catch (e) {
     return giveUp();
   }
-  renderer.setPixelRatio(Math.min(1.25, devicePixelRatio || 1));
+  /* The reflected water renders the scene twice. Above 1.1 DPR the extra
+     pixels were expensive on laptop Retina screens and visually lost under
+     the normal map, grain and soft fog. */
+  renderer.setPixelRatio(Math.min(1.1, devicePixelRatio || 1));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -178,8 +181,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     t.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
   });
   const water = new Water(new THREE.PlaneGeometry(240, 240), {
-    textureWidth: 512,
-    textureHeight: 512,
+    textureWidth: 256,
+    textureHeight: 256,
     waterNormals,
     sunDirection: new THREE.Vector3(-0.4, 0.6, 0.5).normalize(),
     sunColor: 0xffd9a8,
@@ -1059,10 +1062,10 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     const stamp = typeof now === "number" ? now : performance.now();
     const scrollState = window.__sv ? window.__sv() : null;
     const pageMoving = !!scrollState && scrollState.a > 0.035;
-    /* During a scroll the whole canvas is already translating and fading.
-       A ~42fps water update is visually continuous there and leaves the main
-       thread room for Lenis and layout. At rest it returns to ~60fps. */
-    if (stamp - lastRenderMs < (pageMoving ? 22 : 15)) return;
+    /* The water is a slow surface, not a game camera. A stable 36fps during
+       scroll and 48fps at rest looks continuous while leaving the main thread
+       room for input, layout and the fold handoff. */
+    if (stamp - lastRenderMs < (pageMoving ? 28 : 21)) return;
     lastRenderMs = stamp;
     /* The cursor is not changing the composition while a wheel gesture owns
        it. Reuse the last soft shadow instead of rebuilding the shadow map on

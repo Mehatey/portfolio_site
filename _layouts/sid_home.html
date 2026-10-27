@@ -1422,13 +1422,14 @@
         text-shadow: 0 1px 12px rgba(235, 244, 247, 0.42);
       }
       .hero.is-lake .hero__col--r {
-        position: absolute !important;
-        left: var(--grid-left, 5vw);
-        top: calc(var(--lake-title-bottom, 66vh) + 28px);
-        bottom: auto;
+        position: static !important;
+        margin-top: clamp(14px, 2vh, 20px);
         z-index: 2;
-        max-width: 60ch;
-        opacity: 0.86 !important;
+        max-width: 56ch;
+        font-size: clamp(0.95rem, 1.15vw, 1.08rem);
+        line-height: 1.46;
+        letter-spacing: -0.01em;
+        opacity: 0.78 !important;
         pointer-events: auto;
       }
       .hero.is-lake .hero__col--r,
@@ -1482,10 +1483,9 @@
         margin-left: 0 !important;
         padding-left: 0 !important;
       }
-      /* Sid: "we can remove the sentence 'Design to shipped code'." And
-         "Available to work in New York" lives in the scene, curved round
-         the island, so the DOM line goes too. */
-      .hero.is-lake .hero__col--r,
+      /* Availability lives in the navigation. Keep the supporting sentence
+         attached to the claim so recruiters get role, tenure and scope in
+         one scan instead of having to infer them from the scene. */
       .hero.is-lake .hero__status {
         display: none !important;
       }
@@ -2958,9 +2958,11 @@
          row lands under the browser chrome. */
       .hero-runway {
         position: relative;
-        /* 124 is enough distance for the lake to recede and the proof band
-           to rise into it, without returning to the old two-screen hold. */
-        height: 124svh;
+        /* A short handoff, not a second screen. The previous 124svh runway
+           left a visibly empty beat between the lake and the fold on common
+           laptop viewports. Twelve extra viewport points still let the lake
+           recede before the next section takes over. */
+        height: 112svh;
       }
       .hero-runway > .hero {
         position: sticky;
@@ -5706,8 +5708,14 @@
          atmosphere fighting the first — and a generic one, which is the worse
          crime on a page whose argument is that everything on it was made.
          It is still included on /works/, /about/ and /ai-prototypes/. -->
-    {% include loader.html %} {% include studio_nav.html home=true %} {% include cube_says.html line="He built all of this. I merely watch the door."
-    %}
+    {% comment %}The cinematic first-visit loader was costing recruiters a video, a second 3D model, two shaders and several seconds before any work
+    was visible. Home now opens directly into its actual hero. The loader file stays available for archival/reference purposes, but is intentionally
+    not mounted here.{% endcomment %}
+    <script>
+      window.__loaderInstantDone = true;
+      document.documentElement.classList.add("home-instant");
+    </script>
+    {% include studio_nav.html home=true %} {% include cube_says.html line="He built all of this. I merely watch the door." %}
 
     <div class="hg-base" aria-hidden="true"></div>
     <canvas id="gl-stage" aria-hidden="true"></canvas>
@@ -5736,7 +5744,10 @@
            and releases by itself at the bottom of the wrapper. -->
       <div class="hero-runway">
         {% comment %} The cube introduces the site before the site does. See the note at the top of home_welcome.html: the page's problem was never
-        too little animation, it was that everything arrived at once, so nothing was first. {% endcomment %} {% include home_welcome.html %}
+        too little animation, it was that everything arrived at once, so nothing was first. {% endcomment %}
+        <!-- Recruiters land directly in the portfolio. The former first-visit
+             control tour delayed the work, highlighted sound/camera controls,
+             and could remain over the hero after a theme change. -->
 
         <section class="hero" id="hero" aria-labelledby="hero-title" data-cube="He has been doing this five years. I have been watching for three.">
           <!-- ── THE LAKE ──────────────────────────────────────────────────
@@ -5933,8 +5944,9 @@
             ></model-viewer>
           </div>
 
-          {% comment %} Sits in the same box as the figure and hands off to him when its ten seconds are up. See _includes/hero_opener.html. {%
-          endcomment %} {% include hero_opener.html %}
+          {% comment %}The ten-second sitting-film opener is intentionally not mounted. It placed a pixelated rectangular film over the lake before
+          the actual hero became readable, loaded two more videos, and delayed the recruiter context. The lake and character are now the opening state
+          rather than the payoff after another intro.{% endcomment %}
 
           <div class="hero__inner">
             <!-- The eyebrow is gone. Sid: "Sid Mehta the product designer in New
@@ -6007,16 +6019,16 @@
             </p>
             <h1 class="hero__title" id="hero-title">
               <span class="sr-only"
-                >Product designer who builds what he designs. Design to shipped code. Two Webby Awards. Products used by 100,000+ people. Building for
-                fintech, hospitality, healthcare, museums and spatial computing.</span
+                >Product designer and design engineer. Six years shipping zero-to-one products, agentic systems and spatial experiences. Two Webby
+                Awards. Products used by 100,000+ people.</span
               >
               <span class="hero__cols" aria-hidden="true">
                 <span class="hero__col hero__col--l">
-                  <span class="tw" data-tw-seq="0" data-tw="Product designer who|builds what he designs."></span>
+                  <span class="tw" data-tw-seq="0" data-tw="Product designer and|design engineer."></span>
                 </span>
                 <span class="hero__spine" data-story="rule"></span>
                 <span class="hero__col hero__col--r">
-                  <span class="tw" data-tw-seq="1" data-tw="Design to shipped code. Two Webby Awards. Products used by 100,000+ people."></span>
+                  <span class="tw" data-tw-seq="1" data-tw="Six years shipping zero-to-one products, agentic systems and spatial experiences."></span>
                 </span>
               </span>
             </h1>
@@ -6628,14 +6640,60 @@
       }
     </style>
 
-    <script src="{{ site.baseurl }}/assets/js/home-gl.js" defer></script>
+    <script>
+      /* The gallery renderer is useful once somebody leaves the hero, but it
+         used to compile during first paint beside the lake, model and wash.
+         Load it on demonstrated scroll intent instead. The DOM gallery is the
+         complete fallback until then. */
+      (function () {
+        var loaded = false;
+        function loadHomeGL() {
+          if (loaded) return;
+          loaded = true;
+          var script = document.createElement("script");
+          script.src = "{{ site.baseurl }}/assets/js/home-gl.js";
+          script.defer = true;
+          document.body.appendChild(script);
+          window.removeEventListener("scroll", onScroll);
+        }
+        function onScroll() {
+          if ((window.scrollY || 0) > window.innerHeight * 0.55) loadHomeGL();
+        }
+        window.addEventListener("scroll", onScroll, { passive: true });
+      })();
+    </script>
     <!-- cube-guy.js is no longer loaded on this page. It owns the point
          cloud, and the rigged model has replaced it; running both would put
          two figures in one box and pay for 55,843 points nobody sees. The
          file stays in the repo because /cube-guy/ still uses it further down
          that page for the depth-map section, which is where the effect
          actually belongs. -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
+    <script>
+      /* Desktop lake renders Cube Guy in the same Three scene, so parsing a
+         second Three runtime through model-viewer at startup did no visible
+         work. Touch/reduced-motion uses the DOM fallback and still gets it;
+         desktop also gets a delayed fallback if the lake cannot start. */
+      (function () {
+        var loaded = false;
+        function loadModelViewer() {
+          if (loaded || (window.customElements && customElements.get("model-viewer"))) return;
+          loaded = true;
+          var script = document.createElement("script");
+          script.type = "module";
+          script.src = "https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js";
+          script.crossOrigin = "anonymous";
+          document.head.appendChild(script);
+        }
+        var fallbackFirst =
+          window.innerWidth < 900 ||
+          (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
+        if (fallbackFirst) loadModelViewer();
+        else
+          window.setTimeout(function () {
+            if (!window.__lakeActive) loadModelViewer();
+          }, 1800);
+      })();
+    </script>
     <script src="{{ site.baseurl }}/assets/js/hero-motes.js" defer></script>
     <script type="module" src="{{ site.baseurl }}/assets/js/hero-lake.js"></script>
     <script>
@@ -6710,12 +6768,10 @@
          --sva on <html> and window.__sv() for the WebGL layers. Loaded before
          anything that consumes it. -->
     <script src="{{ site.baseurl }}/assets/js/scroll-velocity.js" defer></script>
-    <script src="{{ site.baseurl }}/assets/js/hero-scene.js" defer></script>
-    <!-- The five directions. defer, and after the scene, so that switching
-         away from 01 tears down a renderer that has already finished setting
-         itself up rather than racing it. -->
-    <!-- One renderer per direction, each a different technique. Loaded
-         before the shuffle, which is what starts and stops them. -->
+    <!-- The lake is the hero renderer. The former room, fluid wash and
+         90,000-point monolith were still compiling and animating behind its
+         opaque canvas. Removing those hidden renderers fixes input lag
+         without changing the visible design. -->
     <!-- ── THE SOLID IS NOT LOADED ────────────────────────────────────────
          Sid: "can u remove the typography thing whatever you ahve tried",
          and separately "the homepage is very laggy".
@@ -6750,11 +6806,6 @@
          SDF march with fourteen smooth minima in its inner loop. All three
          files stay in the repo.
          assets/js/home-gl-ink.js · home-gl-mercury.js · home-gl-solid.js -->
-    <script src="{{ site.baseurl }}/assets/js/watercolour.js" defer></script>
-    <script src="{{ site.baseurl }}/assets/js/hero-wash.js" defer></script>
-    <!-- The scroll sequence. Reads the property its own section publishes;
-         it never listens to scroll itself. -->
-    <script src="{{ site.baseurl }}/assets/js/monolith.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/hero-motion.js" defer></script>
     <!-- ── THE CONDUCTOR IS GONE ────────────────────────────────────────────
          home-hero.js ran a seventeen-second beat: the figure holds, then
