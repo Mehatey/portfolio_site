@@ -118,7 +118,11 @@
     <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap">
+    
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&amp;family=Figtree:ital,wght@0,300..900;1,300..900&amp;display=swap">
+    </noscript>
     <style>
 
   *,
@@ -5467,23 +5471,16 @@
 
   html[data-idle="on"] .studio-nav,
   body.nav-away .studio-nav {
-    transform: translateY(calc(-100% - 46px));
-    opacity: 0;
-    pointer-events: none;
+    transform: none;
+    opacity: 1;
   }
   html[data-idle="on"] .nav-scrim,
   body.nav-away .nav-scrim {
-    transform: translateY(-100%);
-    opacity: 0;
+    transform: none;
+    opacity: 1;
   }
   .nav-reveal-zone {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 14px;
-    z-index: 8999;
-    pointer-events: auto;
+    display: none;
   }
   body:not(.nav-away) .nav-reveal-zone {
     pointer-events: none;
@@ -6243,7 +6240,7 @@
 
       var d = y - lastY;
       if (Math.abs(d) > THRESH) {
-        var wantAway = document.body.classList.contains("home-page") && d > 0 && y > 80;
+        var wantAway = false;
         if (nav && nav.contains(document.activeElement)) wantAway = false;
         if (document.body.classList.contains("nav-open")) wantAway = false;
         if (wantAway !== away) {
@@ -7967,8 +7964,33 @@
           </div>
           <figcaption class="ide__cap" hidden>Hover to resolve him · click to redraw</figcaption>
         </figure>
-        <script defer src="/assets/js/how-scenery.js"></script>
-        <script defer src="/assets/js/how-portrait.js"></script>
+        <script>
+          (function () {
+            var how = document.getElementById("how");
+            if (!how) return;
+            var loaded = false;
+            function loadHow() {
+              if (loaded) return;
+              loaded = true;
+              ["how-scenery.js", "how-portrait.js"].forEach(function (file) {
+                var script = document.createElement("script");
+                script.src = "/assets/js/" + file;
+                script.defer = true;
+                document.body.appendChild(script);
+              });
+            }
+            if (!("IntersectionObserver" in window)) return loadHow();
+            var observer = new IntersectionObserver(
+              function (entries) {
+                if (!entries[0].isIntersecting) return;
+                observer.disconnect();
+                loadHow();
+              },
+              { rootMargin: "500px 0px" }
+            );
+            observer.observe(how);
+          })();
+        </script>
       </section>
       
       
@@ -14800,12 +14822,13 @@
         body.classList.add("controls-near");
         return;
       }
-      var NEAR_X = 190;
-      var NEAR_Y = 300;
+      var NEAR_X = 160;
+      var NEAR_Y = 285;
       var near = false,
         raf = 0,
         mx = -1,
         my = -1;
+      var peekTimer = 0;
 
       var FIRSTKEY = "sid.controls.seen";
       var seen = false;
@@ -14816,9 +14839,9 @@
         setTimeout(function () {
           if (near) return; /* They already found it on their own. */
           body.classList.add("controls-peek");
-          setTimeout(function () {
+          peekTimer = setTimeout(function () {
             body.classList.remove("controls-peek");
-          }, 5000);
+          }, 3200);
         }, 1800);
         try {
           localStorage.setItem(FIRSTKEY, "1");
@@ -14832,6 +14855,10 @@
         if (now !== near) {
           near = now;
           body.classList.toggle("controls-near", near);
+        }
+        if (!near && body.classList.contains("controls-peek") && mx >= 0) {
+          clearTimeout(peekTimer);
+          body.classList.remove("controls-peek");
         }
       }
       window.addEventListener(
@@ -15014,13 +15041,14 @@
           script.crossOrigin = "anonymous";
           document.head.appendChild(script);
         }
+        window.__loadHeroFallback = loadModelViewer;
         var fallbackFirst =
           window.innerWidth < 900 ||
           (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
         if (fallbackFirst) loadModelViewer();
         else
           window.setTimeout(function () {
-            if (!window.__lakeActive) loadModelViewer();
+            if (!window.__lakeActive && !window.__lakeRequested) loadModelViewer();
           }, 1800);
       })();
     </script>
@@ -15031,9 +15059,14 @@
           window.innerWidth < 900 ||
           (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
         if (skipLake) return;
+        window.__lakeRequested = true;
         var script = document.createElement("script");
         script.type = "module";
         script.src = "/assets/js/hero-lake.js";
+        script.addEventListener("error", function () {
+          window.__lakeRequested = false;
+          if (window.__loadHeroFallback) window.__loadHeroFallback();
+        });
         document.head.appendChild(script);
       })();
     </script>
@@ -17644,13 +17677,23 @@
     opacity: 0;
     pointer-events: none;
   }
+  html:not(.no-js) .hand-toggle {
+    transform: translate(2px, 192px) scale(0.5) rotate(-4deg);
+    opacity: 0;
+    pointer-events: none;
+  }
   body.controls-near #theme-toggle,
   body.controls-peek #theme-toggle,
   body.controls-near .sound-toggle,
   body.controls-peek .sound-toggle,
+  body.controls-near .hand-toggle,
+  body.controls-peek .hand-toggle,
   #cube-chat-fab:hover ~ #theme-toggle,
+  #cube-chat-fab:hover ~ .sound-toggle,
+  #cube-chat-fab:hover ~ .hand-toggle,
   #theme-toggle:focus-visible,
   .sound-toggle:focus-visible,
+  .hand-toggle:focus-visible,
   #cube-chat-fab.is-open ~ #theme-toggle {
     transform: translate(0, 0) scale(1) rotate(0deg);
     opacity: 1;
@@ -17665,6 +17708,8 @@
     transition-delay: 70ms;
     transition-timing-function: cubic-bezier(0.2, 1.18, 0.34, 1);
   }
+  body.controls-near .hand-toggle,
+  body.controls-peek .hand-toggle,
   #cube-chat-fab.is-open ~ .hand-toggle {
     transition-delay: 140ms;
     transition-timing-function: cubic-bezier(0.2, 1.12, 0.34, 1);
@@ -17675,7 +17720,8 @@
   }
   @media (prefers-reduced-motion: reduce) {
     #theme-toggle,
-    .sound-toggle {
+    .sound-toggle,
+    .hand-toggle {
       transition: opacity 0.2s ease;
       transform: none !important;
     }
