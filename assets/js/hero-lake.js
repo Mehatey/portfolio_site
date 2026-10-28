@@ -361,10 +361,11 @@ import { Water } from "three/addons/objects/Water.js";
        forty-degree yaw only made the identity and its caption harder to read. */
     group.rotation.y = 0;
     scene.add(group);
-    awards.push({ group, x, z, phase });
+    awards.push({ group, x, z, phase, hover: 0, tap: 0 });
   }
   addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.85, -0.48, 0xd7ecff, 0.4);
   addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.05, -0.82, 0x806cff, 2.1);
+  const awardTargets = awards.map((award) => award.group);
   /* A cool daylight dome gives the water depth. The previous orange horizon
      contaminated the whole reflection and made the lake read brown. */
   const envScene = new THREE.Scene();
@@ -476,12 +477,15 @@ import { Water } from "three/addons/objects/Water.js";
   let figure = null,
     mixer = null,
     clips = {},
-    busy = false;
+    busy = false,
+    figureScale = 1,
+    figureHover = 0;
   new GLTFLoader().load(BASE + "/assets/models/cube-guy-rigged.glb", (gltf) => {
     figure = gltf.scene;
     const box = new THREE.Box3().setFromObject(figure);
     const h = box.max.y - box.min.y || 1;
     const s = 2.08 / h;
+    figureScale = s;
     figure.scale.setScalar(s);
     figure.position.set(2.92, 0.18, -1.55);
     figure.rotation.y = -0.35;
@@ -799,7 +803,16 @@ import { Water } from "three/addons/objects/Water.js";
     dragTarget = new THREE.Vector3(),
     hovered = null,
     overFigure = false,
-    overCat = false;
+    overCat = false,
+    hoveredAward = null;
+
+  function awardFor(object) {
+    for (let node = object; node; node = node.parent) {
+      const award = awards.find((item) => item.group === node);
+      if (award) return award;
+    }
+    return null;
+  }
 
   function toNdc(e) {
     const r = renderer.domElement.getBoundingClientRect();
@@ -848,10 +861,12 @@ import { Water } from "three/addons/objects/Water.js";
       let of = false;
       if (figure) of = ray.intersectObject(figure, true).length > 0;
       const oc = ray.intersectObject(cat, true).length > 0;
+      const awardHits = ray.intersectObjects(awardTargets, true);
+      hoveredAward = awardHits.length ? awardFor(awardHits[0].object) : null;
       if (of && !overFigure && !busy) play("Look", 1, () => play("Idle"));
       overFigure = of;
       overCat = oc;
-      host.style.cursor = hovered || of || oc ? "pointer" : "";
+      host.style.cursor = hovered || of || oc || hoveredAward ? "pointer" : "";
     },
     { passive: true }
   );
@@ -859,8 +874,11 @@ import { Water } from "three/addons/objects/Water.js";
     hasPointer = false;
     hovered = null;
     overCat = false;
+    hoveredAward = null;
+    host.style.cursor = "";
   });
   hero.addEventListener("pointerdown", (e) => {
+    if (e.target instanceof Element && e.target.closest("a, button")) return;
     toNdc(e);
     ray.setFromCamera(ndc, camera);
     const hits = ray.intersectObjects(
@@ -918,13 +936,27 @@ import { Water } from "three/addons/objects/Water.js";
       e.preventDefault();
       return;
     }
+    const awardHits = ray.intersectObjects(awardTargets, true);
+    if (awardHits.length) {
+      const award = awardFor(awardHits[0].object);
+      if (award) {
+        award.tap = 1;
+        splash(award.group.position.x, award.group.position.z, 0.34);
+        e.preventDefault();
+        return;
+      }
+    }
     if (figure && ray.intersectObject(figure, true).length && !busy) {
       busy = true;
       play("ClickReact", 1, () => {
         play("Idle");
         busy = false;
       });
+      return;
     }
+    /* The water itself is responsive. One ring is cheaper and clearer than
+       another decorative object or a second post-processing pass. */
+    if (ray.ray.intersectPlane(lightPlane, hit)) splash(hit.x, hit.z, 0.24);
   });
   window.addEventListener("pointerup", () => {
     if (dragging) host.style.cursor = "";
@@ -946,6 +978,7 @@ import { Water } from "three/addons/objects/Water.js";
      on frames the eye does not need. Cap only this canvas near 60fps; Lenis,
      DOM transforms and pointer input remain native-rate. */
   let lastRenderMs = 0;
+  let renderTick = 0;
   let idlePaused = document.documentElement.hasAttribute("data-idle");
   let live = !idlePaused;
   let heroInView = true;
@@ -1045,15 +1078,18 @@ import { Water } from "three/addons/objects/Water.js";
     const stamp = typeof now === "number" ? now : performance.now();
     const scrollState = window.__sv ? window.__sv() : null;
     const pageMoving = !!scrollState && scrollState.a > 0.035;
-    /* The water is a slow surface, not a game camera. A stable 36fps during
-       scroll and 48fps at rest looks continuous while leaving the main thread
-       room for input, layout and the fold handoff. */
-    if (stamp - lastRenderMs < (pageMoving ? 28 : 21)) return;
+    /* The water is a slow surface, not a game camera. It runs at 30fps while
+       scrolling, 36fps while unattended, and 48fps under the pointer. Input
+       and the DOM transition keep their native cadence. */
+    const frameGap = pageMoving ? 33 : hasPointer ? 21 : 28;
+    if (stamp - lastRenderMs < frameGap) return;
     lastRenderMs = stamp;
     /* The cursor is not changing the composition while a wheel gesture owns
        it. Reuse the last soft shadow instead of rebuilding the shadow map on
        every scrolling water frame; auto-update resumes as soon as it rests. */
-    renderer.shadowMap.autoUpdate = !pageMoving;
+    renderTick++;
+    renderer.shadowMap.autoUpdate = !pageMoving && hasPointer;
+    if (!pageMoving && !hasPointer && renderTick % 12 === 0) renderer.shadowMap.needsUpdate = true;
     const dt = Math.min(0.05, clock.getDelta());
     const t = clock.elapsedTime;
     resize();
@@ -1089,11 +1125,14 @@ import { Water } from "three/addons/objects/Water.js";
     water.material.uniforms.time.value += dt * 0.38;
 
     for (const a of awards) {
+      a.hover += ((a === hoveredAward ? 1 : 0) - a.hover) * 0.14;
+      a.tap += (0 - a.tap) * 0.1;
       a.group.position.x = a.x + Math.sin(t * 0.16 + a.phase) * 0.11;
-      a.group.position.y = 0.055 + Math.sin(t * 0.72 + a.phase) * 0.012;
+      a.group.position.y = 0.055 + Math.sin(t * 0.72 + a.phase) * 0.012 + a.hover * 0.045 + Math.sin(t * 9 + a.phase) * a.tap * 0.018;
       a.group.position.z = a.z + Math.cos(t * 0.14 + a.phase) * 0.07;
-      a.group.rotation.x = Math.sin(t * 0.54 + a.phase) * 0.026;
-      a.group.rotation.z = Math.cos(t * 0.48 + a.phase) * 0.034;
+      a.group.rotation.x = Math.sin(t * 0.54 + a.phase) * 0.026 + a.hover * 0.035;
+      a.group.rotation.z = Math.cos(t * 0.48 + a.phase) * 0.034 + Math.sin(a.phase) * a.hover * 0.028 + Math.sin(t * 8) * a.tap * 0.045;
+      a.group.scale.setScalar(1 + a.hover * 0.025);
     }
     for (const lf of leaves) {
       lf.mesh.position.y = 0.012 + Math.sin(t * 0.7 + lf.phase) * 0.006;
@@ -1107,6 +1146,12 @@ import { Water } from "three/addons/objects/Water.js";
     for (const r of reeds) r.group.rotation.z = Math.sin(t * 0.42 + r.phase) * 0.025;
 
     catHover += ((overCat ? 1 : 0) - catHover) * 0.12;
+    figureHover += ((overFigure ? 1 : 0) - figureHover) * 0.12;
+    if (figure) {
+      figure.scale.setScalar(figureScale * (1 + figureHover * 0.035));
+      figure.rotation.y = -0.35 + figureHover * ndc.x * 0.07;
+      figure.position.y = 0.18 + figureHover * 0.025;
+    }
     const idleSip = Math.pow(Math.max(0, Math.sin(t * 0.62)), 7) * (1 - catHover);
     const hoverSip = catHover * (0.72 + Math.sin(t * 7.2) * 0.12);
     const drink = Math.max(idleSip, hoverSip);

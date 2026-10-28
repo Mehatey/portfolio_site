@@ -38,10 +38,21 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Fonts should not hold the entire first frame behind a third-party
+         stylesheet. System sans/mono are deliberate fallbacks for the brief
+         interval before these arrive. -->
     <link
-      rel="stylesheet"
+      rel="preload"
+      as="style"
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
+      onload="this.onload=null;this.rel='stylesheet'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
+      />
+    </noscript>
     {% include design_tokens.html %}
 
     <style>
@@ -6468,8 +6479,38 @@
           </div>
           <figcaption class="ide__cap" hidden>Hover to resolve him &middot; click to redraw</figcaption>
         </figure>
-        <script defer src="{{ site.baseurl }}/assets/js/how-scenery.js"></script>
-        <script defer src="{{ site.baseurl }}/assets/js/how-portrait.js"></script>
+        <script>
+          /* This section starts several thousand pixels below the fold. Its
+             canvas and WebGL renderers used to parse during the hero's first
+             paint, competing with the lake even though neither was visible.
+             Fetch them when the section is close instead; the photograph is
+             the complete fallback until then. */
+          (function () {
+            var how = document.getElementById("how");
+            if (!how) return;
+            var loaded = false;
+            function loadHow() {
+              if (loaded) return;
+              loaded = true;
+              ["how-scenery.js", "how-portrait.js"].forEach(function (file) {
+                var script = document.createElement("script");
+                script.src = "{{ site.baseurl }}/assets/js/" + file;
+                script.defer = true;
+                document.body.appendChild(script);
+              });
+            }
+            if (!("IntersectionObserver" in window)) return loadHow();
+            var observer = new IntersectionObserver(
+              function (entries) {
+                if (!entries[0].isIntersecting) return;
+                observer.disconnect();
+                loadHow();
+              },
+              { rootMargin: "500px 0px" }
+            );
+            observer.observe(how);
+          })();
+        </script>
       </section>
       <!-- ───────────────── 04 the range ─────────────────
            Sid: "this looks abysmal. we can not use this much text. i told you
@@ -6697,13 +6738,19 @@
           script.crossOrigin = "anonymous";
           document.head.appendChild(script);
         }
+        window.__loadHeroFallback = loadModelViewer;
         var fallbackFirst =
           window.innerWidth < 900 ||
           (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
         if (fallbackFirst) loadModelViewer();
         else
           window.setTimeout(function () {
-            if (!window.__lakeActive) loadModelViewer();
+            /* A slow network can still be fetching Three's dependencies at
+               this point. Loading model-viewer too created a second glTF
+               parser and renderer for a figure the lake removes moments
+               later. `requested` means the lake owns this attempt; its
+               script error handler below restores the fallback if it fails. */
+            if (!window.__lakeActive && !window.__lakeRequested) loadModelViewer();
           }, 1800);
       })();
     </script>
@@ -6717,9 +6764,14 @@
           window.innerWidth < 900 ||
           (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
         if (skipLake) return;
+        window.__lakeRequested = true;
         var script = document.createElement("script");
         script.type = "module";
         script.src = "{{ site.baseurl }}/assets/js/hero-lake.js";
+        script.addEventListener("error", function () {
+          window.__lakeRequested = false;
+          if (window.__loadHeroFallback) window.__loadHeroFallback();
+        });
         document.head.appendChild(script);
       })();
     </script>
