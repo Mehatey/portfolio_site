@@ -49,8 +49,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Water } from "three/addons/objects/Water.js";
-import { FontLoader } from "three/addons/loaders/FontLoader.js";
-import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
 /* Wrapped so the guards can return instead of throwing: a skipped lake
    is a decision, not an error in the console. */
@@ -69,9 +67,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   if (prefersLess || coarse || !budget) return giveUp();
 
   const BASE = host.getAttribute("data-base") || "";
-  /* The headline is now crisp DOM type on the page grid. Keep the text
-     geometry system available for the award captions, but do not build a
-     second, perspective-skewed version of the main claim in the scene. */
+  /* The headline and award names are crisp DOM or badge artwork now. No
+     perspective-skewed text geometry competes with the water. */
   const LINES = [];
 
   /* ── RENDERER ─────────────────────────────────────────────────────────── */
@@ -155,8 +152,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   scene.add(hemi);
   /* A spot, not a point: a point light's shadow renders the scene six
      times a frame, a spot's once. */
-  const key = new THREE.SpotLight(0xffc98a, 72, 42, Math.PI / 2.85, 0.9, 1.5);
-  key.position.set(-2, 3.2, 3);
+  const key = new THREE.SpotLight(0xffc98a, 72, 42, Math.PI / 3.6, 0.76, 1.5);
+  key.position.set(-2, 4.6, 3);
   key.target.position.set(0, 0, 2.5);
   scene.add(key.target);
   key.castShadow = true;
@@ -204,7 +201,7 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
       uniforms: { uColor: { value: new THREE.Color(0xffc98a) }, uOpacity: { value: 0 } },
       vertexShader: "varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}",
       fragmentShader:
-        "varying vec2 vUv;uniform vec3 uColor;uniform float uOpacity;void main(){vec2 p=(vUv-.5)*vec2(1.,1.45);float d=length(p);float core=pow(smoothstep(.5,0.,d),2.2);float ripple=pow(max(0.,sin(d*58.)*.5+.5),5.)*smoothstep(.48,.12,d);float a=uOpacity*(core*.18+ripple*.035);gl_FragColor=vec4(uColor*(.22+core),a);}",
+        "varying vec2 vUv;uniform vec3 uColor;uniform float uOpacity;void main(){vec2 p=(vUv-.5)*vec2(1.,1.45);float d=length(p);float core=pow(smoothstep(.52,0.,d),2.0);float ripple=pow(max(0.,sin(d*58.)*.5+.5),5.)*smoothstep(.5,.12,d);float a=uOpacity*(core*.3+ripple*.05);gl_FragColor=vec4(uColor*(.28+core),a);}",
     })
   );
   hoverGlow.rotation.x = -Math.PI / 2;
@@ -326,11 +323,6 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
   addReeds(-5.05, 1.05, 7, 0.2);
   addReeds(4.85, 1.6, 6, 1.8);
 
-  /* ── LIGHTWEIGHT SCENE LABELS ─────────────────────────────────────────
-     Employers and availability are supporting context, not objects for the
-     viewer to inspect. They stay as quiet 3D type, so the scene has one
-     material language: water, figure, headline, then a small factual line.
-     No image marks, backing cards, or curved type. */
   /* ── THE AWARDS, AS ENAMEL FLOATS ON THE WATER ───────────────────── */
   const awards = [];
   const badgeLoader = new THREE.TextureLoader();
@@ -783,15 +775,6 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
      near-coincident copy of the text right behind the first. The bevel
      was also simplified (off, curveSegments raised) while chasing this,
      which is a real improvement on its own but was not the cause. */
-  new FontLoader().load(
-    BASE + "/assets/fonts/helvetiker_bold.typeface.json",
-    (font) => {
-      buildMeshes(font);
-    },
-    undefined,
-    giveUp
-  );
-
   /* ── RINGS, WHERE A LETTER WENT IN ────────────────────────────────────── */
   const ringGeo = new THREE.RingGeometry(0.9, 1, 48);
   ringGeo.rotateX(-Math.PI / 2);
@@ -1041,8 +1024,8 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     hoverGlow.material.uniforms.uColor.value.set(p.key);
     hemi.color.set(p.sky);
     hemi.groundColor.set(p.ground);
-    hemi.intensity = isLight() ? 0.68 : 0.55;
-    fill.intensity = isLight() ? 0.5 : 0.26;
+    hemi.intensity = isLight() ? 0.6 : 0.48;
+    fill.intensity = isLight() ? 0.38 : 0.22;
     rim.intensity = isLight() ? 0.58 : 0.7;
     renderer.toneMappingExposure = isLight() ? 0.82 : 1.05;
     letterMat.color.set(p.ink);
@@ -1090,14 +1073,14 @@ import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
     key.position.lerp(keyTarget, 0.08);
     key.target.position.set(lightAim.x, 0, lightAim.z);
     const daylight = isLight();
-    const keyLevel = daylight ? (hasPointer ? 48 : 34) : hasPointer ? 96 : 68;
-    const cursorLevel = daylight ? (hasPointer ? 6 : 1) : hasPointer ? 24 : 4;
+    const keyLevel = daylight ? (hasPointer ? 54 : 38) : hasPointer ? 104 : 72;
+    const cursorLevel = daylight ? (hasPointer ? 8 : 1.5) : hasPointer ? 28 : 5;
     key.intensity += (keyLevel - key.intensity) * 0.09;
     cursorLight.position.set(lightAim.x, 0.95, lightAim.z);
     cursorLight.intensity += (cursorLevel - cursorLight.intensity) * 0.1;
     hoverGlow.position.x = lightAim.x;
     hoverGlow.position.z = lightAim.z;
-    const glowLevel = daylight ? (hasPointer ? 0.38 : 0.06) : hasPointer ? 0.82 : 0.14;
+    const glowLevel = daylight ? (hasPointer ? 0.46 : 0.07) : hasPointer ? 0.88 : 0.15;
     hoverGlow.material.uniforms.uOpacity.value += (glowLevel - hoverGlow.material.uniforms.uOpacity.value) * 0.09;
     const glowPulse = 1 + Math.sin(t * 1.15) * 0.025;
     hoverGlow.scale.set(2.15 * glowPulse, 1.3 * glowPulse, 1);
