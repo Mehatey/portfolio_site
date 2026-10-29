@@ -1333,6 +1333,57 @@
         display: block;
         width: 100%;
         height: 100%;
+        opacity: 0;
+        clip-path: circle(0% at 73% 53%);
+      }
+      /* One opening, in reading order. The HTML claim paints immediately.
+         Once the rigged figure is ready, the live scene opens around him:
+         first a small field at his position, then the lake and horizon. This
+         avoids the old fallback flash, black gap, and whole-scene pop. */
+      .lake-stage.is-ready .lake-canvas {
+        animation: lakeSceneIn 1500ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+      @keyframes lakeSceneIn {
+        0% {
+          opacity: 0;
+          clip-path: circle(0% at 73% 53%);
+        }
+        30% {
+          opacity: 1;
+          clip-path: circle(18% at 73% 53%);
+        }
+        100% {
+          opacity: 1;
+          clip-path: circle(145% at 73% 53%);
+        }
+      }
+      .hero.is-lake .hero__title {
+        animation: heroClaimIn 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      }
+      .hero.is-lake .hero__scene-meta {
+        animation: heroClaimIn 620ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+      }
+      @keyframes heroClaimIn {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .lake-stage .lake-canvas,
+        .lake-stage.is-ready .lake-canvas {
+          opacity: 1;
+          clip-path: none;
+          animation: none;
+        }
+        .hero.is-lake .hero__title,
+        .hero.is-lake .hero__scene-meta {
+          animation: none;
+        }
       }
       .hero__scene-meta {
         display: none;
@@ -1387,10 +1438,18 @@
          headline out of WebGL makes it crisp, aligned to the page grid, and
          readable in both themes while the water can remain atmospheric. */
       .hero.is-lake .hero__spine,
+      .hero.is-lake .hero-room,
+      .hero.is-lake .hero-wash,
       .hero.is-lake .hero-wash-code,
+      .hero.is-lake .hero-veil,
+      .hero.is-lake .hero-scene,
       .hero.is-lake .cg-stage {
         opacity: 0 !important;
         pointer-events: none !important;
+      }
+      .hero.is-lake .hero-room {
+        background-image: none !important;
+        animation: none !important;
       }
       /* The proof line stays as type: pinned above the foot row, on the
          same left edge, over the shore. */
@@ -5976,7 +6035,7 @@
               disable-pan
               disable-tap
               interaction-prompt="none"
-              loading="eager"
+              loading="lazy"
             ></model-viewer>
           </div>
 
@@ -6409,14 +6468,9 @@
       {% endif %}
 
       <!-- ───────────────── 01 range ───────────────── -->
-      {% include home_fold.html %}
-
-      <!-- ───────────────── 02 work ───────────────── -->
-      {% comment %} ── THE FOUR CARDS BECAME A CUBE ───────────────────────────────────────────────────────────────────────────────────── Sid: "we
-      still have remnants of the rotating cube with 3 sides of work which is scroll interactive but theres no cube anymore ... instead why dont u add
-      it insteas of the 4 project works instead replace with an interactive cube of the projects." The row of four covers is now four faces of one
-      object that turns with the scroll and can be taken hold of. Every project is still a real anchor with a real name in it, so nothing about the
-      work exists only as a transform. {% endcomment %} {% include home_work_cube.html %}
+      {% include home_fold.html %} {% comment %} The separate rotating project cube was removed. The range cube above now carries project imagery in
+      its background, while the complete, curated project browser stays on /works/. Keeping both made Home repeat the same decision twice and added
+      another 320svh of pinned scrolling before a recruiter could reach the footer. {% endcomment %}
 
       <!-- The reel CTA was here. Sid, on halving the home page: "you can
            remove the play CTA." Removed rather than hidden, so the object
@@ -6495,7 +6549,11 @@
             function loadHow() {
               if (loaded) return;
               loaded = true;
-              ["how-scenery.js", "how-portrait.js"].forEach(function (file) {
+              /* One animated system is enough here. The portrait already
+                 cycles through seven drawing laws; the separate full-frame
+                 ASCII weather loop doubled the work without adding useful
+                 recruiter context. */
+              ["how-portrait.js"].forEach(function (file) {
                 var script = document.createElement("script");
                 script.src = "{{ site.baseurl }}/assets/js/" + file;
                 script.defer = true;
@@ -6706,6 +6764,12 @@
         var loaded = false;
         function loadHomeGL() {
           if (loaded) return;
+          /* The former project gallery supplied [data-gl-media] planes. It
+             has moved to Works, so starting an empty full-screen WebGL loop
+             here only clears a transparent canvas every frame. Keep the
+             renderer available if media planes return; otherwise the static
+             CSS ground is the complete, much cheaper result. */
+          if (!document.querySelector("[data-gl-media]")) return;
           loaded = true;
           var script = document.createElement("script");
           script.src = "{{ site.baseurl }}/assets/js/home-gl.js";
@@ -6767,15 +6831,24 @@
           window.innerWidth < 900 ||
           (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
         if (skipLake) return;
-        window.__lakeRequested = true;
-        var script = document.createElement("script");
-        script.type = "module";
-        script.src = "{{ site.baseurl }}/assets/js/hero-lake.js";
-        script.addEventListener("error", function () {
-          window.__lakeRequested = false;
-          if (window.__loadHeroFallback) window.__loadHeroFallback();
-        });
-        document.head.appendChild(script);
+        function startLake() {
+          window.__lakeRequested = true;
+          var script = document.createElement("script");
+          script.type = "module";
+          script.src = "{{ site.baseurl }}/assets/js/hero-lake.js";
+          script.addEventListener("error", function () {
+            window.__lakeRequested = false;
+            if (window.__loadHeroFallback) window.__loadHeroFallback();
+          });
+          document.head.appendChild(script);
+        }
+        /* Let the claim paint and become readable before compiling Three and
+           parsing the 2.4MB rig. The delay is part of the arrival sequence,
+           not a loader: the page is complete HTML during it. */
+        window.setTimeout(function () {
+          if ("requestIdleCallback" in window) requestIdleCallback(startLake, { timeout: 500 });
+          else startLake();
+        }, 360);
       })();
     </script>
     <script>
@@ -7772,7 +7845,10 @@
         read();
       })();
     </script>
-    {% include motion_stack.html %}
+    {% comment %} Native scrolling is intentional on home. The page's lake, range cube, coda and footer already own their small, viewport-scoped
+    effects. Lenis plus one ScrollTrigger per section added a second scroll clock without driving any visible home-only state, which made trackpad
+    input feel delayed and lowered the continuous-scroll stress test. Other layouts keep motion_stack where its section progress is actually consumed.
+    {% endcomment %}
     <script>
       /* The proof strip arrives rather than being there. One observer, one
          class, no per-element bookkeeping: the CSS above owns the stagger,

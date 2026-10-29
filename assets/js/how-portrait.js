@@ -49,8 +49,11 @@
   if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
   var MODES = ["DUST", "HALFTONE", "WEAVE", "TOPO", "SHARDS", "RAIN", "PIXEL"];
-  var GRID_W = 200; // columns sampled across the frame
-  var GRID_H = 250; // rows — the source is 4:5, so this is square sampling
+  /* 120 × 150 remains denser than the displayed plate on phones and keeps
+     the portrait legible on desktop, while cutting point work by almost
+     two thirds. The old 50,000-point field was the slowest home-page viewport. */
+  var GRID_W = 120; // columns sampled across the frame
+  var GRID_H = 150; // rows — the source is 4:5, so this is square sampling
 
   /* ── shaders ───────────────────────────────────────────────────── */
 
@@ -80,8 +83,8 @@
     "  float rev = u_reveal;",
     "  float m = u_mode;",
     "  vec2 pos = uv;",
-    "  float ix = floor(uv.x * 200.0);",
-    "  float iy = floor(uv.y * 250.0);",
+    "  float ix = floor(uv.x * 120.0);",
+    "  float iy = floor(uv.y * 150.0);",
     "  float drop = 0.0;", // 1 = this point is not part of this law
     "  float s = 1.15;",
     "  vec3 col = a_rgb;",
@@ -106,7 +109,7 @@
        are dropped by grid parity rather than left to pile up — four
        overlapping dots would blow every cell out to solid ink. */
     "  else if (m < 1.5) {",
-    "    vec2 cell = vec2(1.0 / 100.0, 1.0 / 125.0);",
+    "    vec2 cell = vec2(1.0 / 60.0, 1.0 / 75.0);",
     "    pos = (floor(uv / cell) + 0.5) * cell;",
     "    if (mod(ix, 2.0) > 0.5 || mod(iy, 2.0) > 0.5) drop = 1.0;",
     "    s = tone * 2.05 * mix(0.6, 1.0, rev);",
@@ -257,7 +260,7 @@
     "    float w = 0.5 + 0.5 * sin(u_time * 0.24);",
     "    float bl = floor(mix(8.0, 3.0, w) + 0.5);",
     "    if (mod(ix, bl) > 0.5 || mod(iy, bl) > 0.5) drop = 1.0;",
-    "    vec2 cs = vec2(bl / 200.0, bl / 250.0);",
+    "    vec2 cs = vec2(bl / 120.0, bl / 150.0);",
     "    pos = (floor(uv / cs) + 0.5) * cs;",
     "    float lv = mix(4.0, 9.0, w);",
     "    col = floor(a_rgb * lv + 0.5) / lv;",
@@ -640,9 +643,17 @@
        changes speed with the refresh rate — on a 120Hz display the
        reveal snaps, on a throttled tab it crawls. */
     var last = t0;
+    var lastPaint = 0;
     function frame(now) {
       raf = 0;
       if (!visible) return;
+      /* The automatic style changes are slow by design; 24fps preserves
+         their motion while leaving headroom for scrolling and the terminal. */
+      if (lastPaint && now - lastPaint < 40) {
+        raf = requestAnimationFrame(frame);
+        return;
+      }
+      lastPaint = now;
       var t = (now - t0) / 1000;
       var dt = Math.min(0.25, (now - last) / 1000);
       last = now;

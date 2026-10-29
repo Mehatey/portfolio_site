@@ -97,7 +97,6 @@ import { Water } from "three/addons/objects/Water.js";
   hero.classList.add("is-lake");
   window.__lakeActive = true;
   const mv = document.getElementById("cg-model");
-  if (mv && mv.parentNode) mv.parentNode.removeChild(mv);
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 200);
@@ -480,26 +479,41 @@ import { Water } from "three/addons/objects/Water.js";
     busy = false,
     figureScale = 1,
     figureHover = 0;
-  new GLTFLoader().load(BASE + "/assets/models/cube-guy-rigged.glb", (gltf) => {
-    figure = gltf.scene;
-    const box = new THREE.Box3().setFromObject(figure);
-    const h = box.max.y - box.min.y || 1;
-    const s = 2.08 / h;
-    figureScale = s;
-    figure.scale.setScalar(s);
-    figure.position.set(2.92, 0.18, -1.55);
-    figure.rotation.y = -0.35;
-    figure.traverse((o) => {
-      if (o.isMesh) {
-        o.castShadow = true;
-        o.receiveShadow = false;
-      }
-    });
-    scene.add(figure);
-    mixer = new THREE.AnimationMixer(figure);
-    gltf.animations.forEach((c) => (clips[c.name] = c));
-    play("Wave", 1, () => play("Idle"));
-  });
+  new GLTFLoader().load(
+    BASE + "/assets/models/cube-guy-rigged.glb",
+    (gltf) => {
+      figure = gltf.scene;
+      const box = new THREE.Box3().setFromObject(figure);
+      const h = box.max.y - box.min.y || 1;
+      const s = 2.08 / h;
+      figureScale = s;
+      figure.scale.setScalar(s);
+      figure.position.set(2.92, 0.18, -1.55);
+      figure.rotation.y = -0.35;
+      figure.traverse((o) => {
+        if (o.isMesh) {
+          o.castShadow = true;
+          o.receiveShadow = false;
+        }
+      });
+      scene.add(figure);
+      mixer = new THREE.AnimationMixer(figure);
+      gltf.animations.forEach((c) => (clips[c.name] = c));
+      play("Wave", 1, () => play("Idle"));
+      /* Do not reveal a lake with its subject missing. The first frame opens
+         from Cube Guy's position, then expands into the environment. */
+      requestAnimationFrame(() => {
+        host.classList.add("is-ready");
+        if (mv && mv.parentNode) mv.parentNode.removeChild(mv);
+      });
+    },
+    undefined,
+    () => {
+      giveUp();
+      window.__lakeRequested = false;
+      if (window.__loadHeroFallback) window.__loadHeroFallback();
+    }
+  );
   function play(name, reps, then) {
     const c = clips[name] || clips.Idle;
     if (!mixer || !c) return;

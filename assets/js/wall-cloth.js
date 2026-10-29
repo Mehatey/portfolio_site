@@ -57,8 +57,11 @@
 
   var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  var COLS = 96,
-    ROWS = 64;
+  /* The wall is a soft photographic surface, not a wireframe close-up.
+     Half-resolution geometry keeps the same bow and pointer dent with one
+     quarter of the vertices. */
+  var COLS = 48,
+    ROWS = 32;
 
   var canvas = document.createElement("canvas");
   canvas.setAttribute("aria-hidden", "true");
@@ -264,6 +267,7 @@
     { passive: true }
   );
 
+  var lastPaint = 0;
   function frame(now) {
     raf = 0;
     if (!live) return;
@@ -271,6 +275,11 @@
       raf = requestAnimationFrame(frame);
       return;
     }
+    if (lastPaint && now - lastPaint < 32) {
+      raf = requestAnimationFrame(frame);
+      return;
+    }
+    lastPaint = now;
     /* Eased in and out, so the dent appears and heals rather than switching.
        Slower on release than on press: cloth recovers more slowly than it
        gives. */
@@ -279,7 +288,7 @@
     cur.x += (ptr.x - cur.x) * 0.12;
     cur.y += (ptr.y - cur.y) * 0.12;
 
-    var dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.25);
     var w = Math.max(1, Math.round(host.clientWidth * dpr));
     var h = Math.max(1, Math.round(host.clientHeight * dpr));
     if (canvas.width !== w || canvas.height !== h) {

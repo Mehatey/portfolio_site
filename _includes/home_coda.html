@@ -551,10 +551,12 @@
     var BASE = "{{ site.baseurl }}/assets/img/coda/";
     var ctx = cv.getContext("2d", { alpha: false });
     var frames = new Array(COUNT);
+    var requested = new Array(COUNT);
     var ready = 0;
     var drawn = -1;
     var wanted = 0;
     var raf = 0;
+    var active = false;
 
     /* Paint whatever is nearest to the frame we want. Early in the load the
        later frames do not exist yet, so walking backwards to the last decoded
@@ -603,11 +605,16 @@
           : vh + box.height > 0
             ? Math.min(1, Math.max(0, (vh - box.top) / (vh + box.height)))
             : 0;
-      wanted = Math.min(COUNT - 1, Math.floor(t * COUNT));
+      /* Fifteen perceptually distinct frames are enough across this slow
+         scroll scrub. The prior version fetched and decoded all thirty the
+         moment the section approached, causing a visible multi-second hitch
+         on the home page. */
+      wanted = Math.min(COUNT - 1, Math.round(t * ((COUNT - 1) / 2)) * 2);
       /* The same crossing the scrubber uses, published for the device's own
          rise and turn. One measurement, two consumers -- the frame the panel
          shows and the angle it shows it at cannot disagree. */
       sec.style.setProperty("--cp", t.toFixed(3));
+      if (active) ensureFrame(wanted);
       draw(wanted);
     }
 
@@ -615,30 +622,27 @@
       if (!raf) raf = requestAnimationFrame(frame);
     }
 
+    function ensureFrame(i) {
+      i = Math.max(0, Math.min(COUNT - 1, i));
+      if (requested[i]) return;
+      requested[i] = true;
+      var im = new Image();
+      im.decoding = "async";
+      im.fetchPriority = "low";
+      im.onload = function () {
+        frames[i] = im;
+        ready++;
+        if (ready === 1 || i === wanted) {
+          drawn = -1;
+          draw(wanted);
+        }
+      };
+      im.src = BASE + "g" + (i + 1 < 10 ? "0" : "") + (i + 1) + ".jpg";
+    }
+
     function load() {
-      for (var i = 0; i < COUNT; i++) {
-        (function (i) {
-          var im = new Image();
-          im.decoding = "async";
-          /* Eager, but explicitly at the bottom of the queue: by the time this
-             runs the visitor is already near the section, so lazy would stall
-             the first frames behind the observer a second time — and nothing
-             above this on the page is still waiting for bandwidth. */
-          im.fetchPriority = "low";
-          im.onload = function () {
-            frames[i] = im;
-            ready++;
-            /* The first arrival paints immediately so the panel is never a
-               blank rectangle; after that only repaint if this frame is the
-               one the playhead is actually sitting on. */
-            if (ready === 1 || i === wanted) {
-              drawn = -1;
-              draw(wanted);
-            }
-          };
-          im.src = BASE + "g" + (i + 1 < 10 ? "0" : "") + (i + 1) + ".jpg";
-        })(i);
-      }
+      active = true;
+      ensureFrame(wanted);
     }
 
     var io = new IntersectionObserver(

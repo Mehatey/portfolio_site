@@ -216,6 +216,7 @@
   var t0 = performance.now();
   var visible = true;
   var onScreen = true;
+  var lastPaint = 0;
 
   if (window.IntersectionObserver) {
     new IntersectionObserver(
@@ -237,6 +238,10 @@
     }
     requestAnimationFrame(frame);
     if (!visible || !onScreen || COLS < 2) return;
+    /* ASCII weather changes over seconds, not frames. Drawing it at 24fps
+       avoids rebuilding several thousand glyph cells sixty times a second. */
+    if (lastPaint && now - lastPaint < 40) return;
+    lastPaint = now;
 
     var t = (now - t0) / 1000;
 

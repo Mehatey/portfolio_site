@@ -156,18 +156,11 @@ async function checkBase(results, viewport, route, page, pageErrors, consoleErro
 
 async function checkWorkIndex(results, viewport, route, page) {
   const workHealth = await page.evaluate(() => {
-    const links = Array.from(document.querySelectorAll('a[href^="/"], a[href^="./"], a[href^="../"], a[href*="/"]'));
-    const projectLinks = links
-      .map((link) => ({
-        href: link.getAttribute("href") || "",
-        text: link.textContent.trim().replace(/\s+/g, " "),
-        visible: !!(link.offsetWidth || link.offsetHeight || link.getClientRects().length),
-      }))
-      .filter((link) =>
-        ["/mool/", "/ai-prototypes/", "/encoded/", "/bloom/", "/mind-your-feelings/", "/cube-guy/", "/mandalas/", "/ai-self/"].some((slug) =>
-          link.href.includes(slug)
-        )
-      );
+    const projectLinks = Array.from(document.querySelectorAll("a.wk-card")).map((link) => ({
+      href: link.getAttribute("href") || "",
+      text: link.textContent.trim().replace(/\s+/g, " "),
+      visible: !!(link.offsetWidth || link.offsetHeight || link.getClientRects().length),
+    }));
 
     /* This used to grep every link and button for "view project" / "quick
        case" / "start here" / "product". That copy is nowhere on the page and

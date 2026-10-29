@@ -36,6 +36,7 @@ const ALL_ROUTES = [
   "/mool/",
   "/marriott/",
   "/m-health-fairview/",
+  "/collectio/",
   "/encoded/",
   "/bloom/",
   "/naavo/",

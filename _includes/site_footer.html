@@ -4763,15 +4763,19 @@ wall and the Buddha all sit inside the one `
       var vids = film.querySelectorAll("video");
       var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+      function hydrateOne(v) {
+        if (!v || v.getAttribute("src") || !v.dataset.src) return;
+        v.src = v.dataset.src;
+        v.removeAttribute("data-src");
+        v.load();
+        v.play().catch(function () {});
+      }
+
       function hydrate() {
-        for (var i = 0; i < vids.length; i++) {
-          var v = vids[i];
-          if (v.getAttribute("src") || !v.dataset.src) continue;
-          v.src = v.dataset.src;
-          v.removeAttribute("data-src");
-          v.load();
-          v.play().catch(function () {});
-        }
+        /* The pixel film is the resting picture. The real take exists only
+           under the pointer lens, so paying for its second decoder before a
+           pointer ever arrives added 1.4MB and work with no visible result. */
+        hydrateOne(vids[0]);
       }
 
       if ("IntersectionObserver" in window) {
@@ -4790,6 +4794,16 @@ wall and the Buddha all sit inside the one `
         io.observe(film);
       } else {
         hydrate();
+      }
+
+      if (!reduce) {
+        film.addEventListener(
+          "pointerenter",
+          function () {
+            hydrateOne(vids[1]);
+          },
+          { once: true, passive: true }
+        );
       }
 
       /* The lens. Written as two custom properties on the plate so the mask is

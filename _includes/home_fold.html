@@ -40,6 +40,19 @@
     <div class="fold__stage">
       <h2 class="sr-only" id="fold-h">What I work across</h2>
 
+      <!-- Project evidence, not another project browser. Each active
+           discipline brings one relevant piece into the atmosphere behind
+           the cube. The images stay soft and partial so the readable DOM
+           labels remain the subject; the full cases live on Works. -->
+      <div class="fold__project-visuals" aria-hidden="true">
+        <img class="is-on" src="{{ site.baseurl }}/assets/img/work-previews/mool/cover-900.webp" alt="" loading="lazy" decoding="async" />
+        <img src="{{ site.baseurl }}/1.met/0-900.webp" alt="" loading="lazy" decoding="async" />
+        <img src="{{ site.baseurl }}/assets/img/ai-proto-cover-900.webp" alt="" loading="lazy" decoding="async" />
+        <img src="{{ site.baseurl }}/assets/img/fairview/cover-900.webp" alt="" loading="lazy" decoding="async" />
+        <img src="{{ site.baseurl }}/assets/img/marriott/cover-900.webp" alt="" loading="lazy" decoding="async" />
+        <img src="{{ site.baseurl }}/assets/img/collectio/deck/cover-app.webp" alt="" loading="lazy" decoding="async" />
+      </div>
+
       <!-- The readout. Whichever face is forward names itself here at a size
            the cube cannot carry, with the work under it. This is the half of
            the section that has to survive being glanced at. -->
@@ -63,7 +76,7 @@
             <span class="fold__face-word">Product</span>
           </button>
 
-          <button class="fold__face fold__face--right" type="button" data-face="1" style="--h: 268; --in: 1">
+          <button class="fold__face fold__face--right" type="button" data-face="1" style="--h: 218; --in: 1">
             <span class="fold__face-idx" aria-hidden="true">02</span>
             <span class="fold__face-word">Spatial</span>
           </button>
@@ -160,6 +173,46 @@
     display: grid;
     place-items: center;
   }
+  .fold__project-visuals {
+    position: absolute;
+    inset: 9% -3% 9% 36%;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: clamp(20px, 3vw, 44px);
+  }
+  .fold__project-visuals::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 58% 50%, transparent 18%, var(--page-bg, #05070b) 82%);
+  }
+  .fold__project-visuals img {
+    position: absolute;
+    inset: -4%;
+    width: 108%;
+    height: 108%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0;
+    transform: scale(1.05);
+    transition:
+      opacity 760ms ease,
+      transform 1400ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .fold__project-visuals img.is-on {
+    opacity: 0.48;
+    transform: scale(1);
+  }
+  html[data-theme="light"] .fold__project-visuals img {
+    opacity: 0;
+  }
+  html[data-theme="light"] .fold__project-visuals img.is-on {
+    opacity: 0.2;
+  }
+  html[data-theme="light"] .fold__project-visuals::after {
+    background: radial-gradient(ellipse at 58% 50%, transparent 18%, var(--page-bg, #f7f5ef) 82%);
+  }
 
   /* ── THE READOUT ──────────────────────────────────────────────────────── */
   .fold__read {
@@ -223,6 +276,8 @@
     /* Pushed right of centre so the readout has the left third to itself and
        the two never overlap at any width that keeps both. */
     transform: translateX(min(15vw, 150px));
+    position: relative;
+    z-index: 2;
   }
   .fold__box {
     --s: min(31vw, 280px);
@@ -455,6 +510,12 @@
     transform: translateY(-50%) translateY(14px);
   }
   @media (max-width: 860px) {
+    .fold__project-visuals {
+      inset: 6% -32% 36% 20%;
+    }
+    .fold__project-visuals img.is-on {
+      opacity: 0.2;
+    }
     .fold__space,
     .fold.is-arrived .fold__space {
       transform: none;
@@ -599,6 +660,7 @@
     var wordEl = document.getElementById("fold-word");
     var subEl = document.getElementById("fold-sub");
     var idxEl = sec.querySelector(".fold__read-idx");
+    var visuals = [].slice.call(sec.querySelectorAll(".fold__project-visuals img"));
     var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     /* The copy that was in the three pillars, plus the three beats the
@@ -607,7 +669,7 @@
        would be five of them read out to a screen reader for nothing. */
     var FACES = [
       { word: "Product", hue: 196, sub: ["Interfaces", "Design systems", "Prototypes", "Research"] },
-      { word: "Spatial", hue: 268, sub: ["visionOS apps", "Augmented reality", "Installations", "Exhibitions"] },
+      { word: "Spatial", hue: 218, sub: ["visionOS apps", "Augmented reality", "Installations", "Exhibitions"] },
       { word: "Generative", hue: 22, sub: ["AI interfaces", "Real-time shaders", "Generative systems", "Creative tooling"] },
       { word: "Research", hue: 146, sub: ["User interviews", "Usability testing", "Synthesis", "Journey mapping"] },
       { word: "Interface", hue: 44, sub: ["Design systems", "Motion", "Accessibility", "Design QA"] },
@@ -656,6 +718,9 @@
       });
       ticks.forEach(function (t, n) {
         t.classList.toggle("is-on", n === i);
+      });
+      visuals.forEach(function (visual, n) {
+        visual.classList.toggle("is-on", n === i);
       });
       /* ── AND THE FACE ITSELF SAYS WHICH ONE IS SELECTED ─────────────────
          Sid: "something more of a highlight on which side is selected,
