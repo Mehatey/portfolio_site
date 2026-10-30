@@ -121,7 +121,6 @@ next_project:
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/process-discover.webp" alt="Stage 1, Discover: sprint planning, PRD documents, research, design board planner" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/process-define.webp" alt="Stage 2, Define: connect with the functional team, existing user flow, workshop" loading="lazy" decoding="async" /></div>
 </div>
-<div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/05-research.webp" alt="Secondary research, ideation and initial concepts" loading="lazy" decoding="async" /></div>
 
 <p class="cube-cap cube-cap--above">The information architecture: the full sitemap, and how each flow branches from it.</p>
 <div class="cs-grid cs-grid--fit">
@@ -139,18 +138,6 @@ next_project:
 <div class="fv-flow-scroll" aria-label="Get Care flow diagrams, scroll horizontally">
   <img src="{{ site.baseurl }}/assets/img/fairview/flow-get-care-1.webp" alt="Get Care Flow 1: care type's medium, online or in-person, up front" loading="lazy" decoding="async" />
   <img src="{{ site.baseurl }}/assets/img/fairview/flow-get-care-2.webp" alt="Get Care Flow 2: sort care through symptoms, conditions and speciality" loading="lazy" decoding="async" />
-</div>
-
-<p class="cube-cap cube-cap--above">A discussion with the client about the designs.</p>
-<div class="cs-grid cs-grid--fit">
-  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/client-opening-slide.webp" alt="Get Care flows, client review slide, February 13th 2023" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/client-mom-notes.webp" alt="Minutes of meeting: discussion points and action items from the JO review" loading="lazy" decoding="async" /></div>
-</div>
-
-<p class="cube-cap cube-cap--above">UI ideation: the specialty icon grid, and where it sits in the site's own navigation.</p>
-<div class="cs-grid cs-grid--fit">
-  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/ideation-icon-grid.webp" alt="Specialty icon set ideation: Routine Preventive Visit, Primary Care, Specialty Care" loading="lazy" decoding="async" /></div>
-  <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/ideation-left-nav.webp" alt="Website left nav states" loading="lazy" decoding="async" /></div>
 </div>
 
 <div class="cs-section">
