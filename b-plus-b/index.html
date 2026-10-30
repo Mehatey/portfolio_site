@@ -40,7 +40,7 @@
         "url": "https://siddharthmehta.design/",
         "image": "https://siddharthmehta.design/assets/img/sid_about.jpg",
         "jobTitle": "Product Designer and Design Engineer",
-        "description": "Product designer and design engineer in New York, working from research through shipped code across zero-to-one products, agentic systems, and spatial interfaces.",
+        "description": "Product designer and design engineer in New York, working across UI/UX, visual identity, brand systems, and AI products from research through shipped code.",
         "address": { "@type": "PostalAddress", "addressLocality": "New York", "addressRegion": "NY", "addressCountry": "US" },
         "email": "mailto:sidmehtadesign@gmail.com",
         "alumniOf": [
@@ -11786,15 +11786,16 @@
       var vids = film.querySelectorAll("video");
       var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+      function hydrateOne(v) {
+        if (!v || v.getAttribute("src") || !v.dataset.src) return;
+        v.src = v.dataset.src;
+        v.removeAttribute("data-src");
+        v.load();
+        v.play().catch(function () {});
+      }
+
       function hydrate() {
-        for (var i = 0; i < vids.length; i++) {
-          var v = vids[i];
-          if (v.getAttribute("src") || !v.dataset.src) continue;
-          v.src = v.dataset.src;
-          v.removeAttribute("data-src");
-          v.load();
-          v.play().catch(function () {});
-        }
+        hydrateOne(vids[0]);
       }
 
       if ("IntersectionObserver" in window) {
@@ -11813,6 +11814,16 @@
         io.observe(film);
       } else {
         hydrate();
+      }
+
+      if (!reduce) {
+        film.addEventListener(
+          "pointerenter",
+          function () {
+            hydrateOne(vids[1]);
+          },
+          { once: true, passive: true }
+        );
       }
 
       if (!reduce) {
@@ -19998,6 +20009,8 @@
                 const v = e.target;
                 if (v.readyState === 0) activateProjectVideo(v);
                 v.play().catch(() => {});
+              } else if (!e.target.paused) {
+                e.target.pause();
               }
             });
           },
@@ -20018,7 +20031,10 @@
         document.addEventListener("visibilitychange", () => {
           if (!document.hidden)
             vids.forEach((v) => {
-              if (v.paused) v.play().catch(() => {});
+              const rect = v.getBoundingClientRect();
+              const nearViewport =
+                rect.bottom > -400 && rect.top < window.innerHeight + 400;
+              if (nearViewport && v.paused) v.play().catch(() => {});
             });
         });
       })();
