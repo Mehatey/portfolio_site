@@ -4460,6 +4460,29 @@
           max-width: 96px;
         }
       }
+
+      .ide__panel::after {
+        content: "";
+        position: absolute;
+        z-index: 4;
+        left: 0;
+        right: 0;
+        top: var(--inspect-y, 50%);
+        height: 72px;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(-50%);
+        background: linear-gradient(to bottom, transparent, rgba(98, 224, 190, 0.07) 45%, rgba(122, 162, 255, 0.12) 50%, transparent);
+        border-top: 1px solid rgba(122, 162, 255, 0.14);
+        transition: opacity 220ms ease;
+      }
+      .ide__panel.is-inspecting::after {
+        opacity: 1;
+      }
+      html[data-theme="light"] .ide__panel::after {
+        background: linear-gradient(to bottom, transparent, rgba(38, 130, 104, 0.06) 45%, rgba(45, 91, 178, 0.1) 50%, transparent);
+        border-top-color: rgba(45, 91, 178, 0.16);
+      }
     </style>
     
     <script type="importmap">
@@ -11154,6 +11177,52 @@
       display: none;
     }
   }
+
+  .sid-tile {
+    --h: clamp(190px, 22vw, 320px);
+    transform-origin: 50% 50%;
+  }
+  .sid-tile:not(.sid-tile--type),
+  html[data-theme="light"] .sid-tile:not(.sid-tile--type) {
+    --pad: 0px;
+    --pad-b: 0px;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid rgba(185, 205, 232, 0.14);
+    border-radius: 12px;
+    background: #080c13;
+    box-shadow: none;
+  }
+  html[data-theme="light"] .sid-tile:not(.sid-tile--type) {
+    border-color: rgba(32, 48, 72, 0.18);
+  }
+  .sid-tile:not(.sid-tile--type)::before,
+  .sid-tile:not(.sid-tile--type)::after {
+    content: none !important;
+  }
+  .sid-tile:not(.sid-tile--type) img,
+  .sid-tile:not(.sid-tile--type) video,
+  html[data-theme="light"] .sid-tile:not(.sid-tile--type) img,
+  html[data-theme="light"] .sid-tile:not(.sid-tile--type) video {
+    border-radius: 11px;
+  }
+  .sid-tile:not(.sid-tile--type) figcaption,
+  .sid-tile--plate figcaption {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 42px 14px 12px;
+    color: #f6f8fb !important;
+    background: linear-gradient(to bottom, transparent, rgba(2, 5, 10, 0.88));
+  }
+  .sid-tile:not(.sid-tile--type) figcaption em,
+  .sid-tile--plate figcaption em {
+    color: rgba(230, 237, 247, 0.7) !important;
+  }
+  .sid-tile:not(.sid-tile--type) figcaption b,
+  .sid-tile--plate figcaption b {
+    color: #fff !important;
+  }
 </style>
 <script>
   function startFooterBuddha() {
@@ -12233,7 +12302,7 @@
           swing = 0,
           swingV = 0,
           steer = 0,
-          drift = reduce ? 0 : -1.05,
+          drift = reduce ? 0 : -0.38,
           dragging = false,
           lastPx = 0,
           raf = 0,
@@ -12248,7 +12317,7 @@
               var t = (e.clientX - r.left) / Math.max(1, r.width); /* 0..1 */
               var d = (t - 0.5) * 2; /* -1..1 */
               var mag = Math.max(0, Math.abs(d) - 0.33) / 0.67;
-              steer = -Math.sign(d) * mag * mag * 5.2;
+              steer = -Math.sign(d) * mag * mag * 2.2;
             },
             { passive: true }
           );
@@ -12398,7 +12467,7 @@
                 var d = i - hoverIdx;
                 lean = (d > 0 ? -1 : 1) * 2.4 * Math.exp(-Math.abs(d) / 1.7) * rowFocus;
               }
-              var ang = (swing * hang + breeze) * (1 - hv * 0.85) + lean;
+              var ang = 0;
               st.transform =
                 "translateY(" +
                 (-14 * c - 10 * hv).toFixed(1) +
@@ -15173,7 +15242,7 @@
         t("frame", "f");
         t("(context), {\n");
         t("    tools: ", "n");
-        t('["Figma", "code"]', "v");
+        t('["Figma", "Adobe CC", "Unity", "TouchDesigner", "JavaScript", "WebGL"]', "v");
         t(",\n");
         t("    test:  ", "n");
         t('["flow", "motion", "content", "edge cases"]', "v");
@@ -15211,7 +15280,6 @@
           out.innerHTML = html + (n < total ? '<span class="cur"></span>' : "");
         };
 
-        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         var typing = false;
 
         var run = function () {
@@ -15219,28 +15287,25 @@
           fig.classList.remove("is-live");
           void fig.offsetWidth;
           fig.classList.add("is-live");
-          if (reduce) return render(total);
-          typing = true;
-          var n = Math.round(total * 0.18);
-          render(n);
-          var chunk = Math.max(1, Math.round(total / 150));
-          var gate = 0;
-          var step = function (now) {
-            if (now < gate) return requestAnimationFrame(step);
-            gate = now + 11;
-            n = Math.min(total, n + chunk);
-            render(n);
-            if (n < total) return requestAnimationFrame(step);
-            typing = false;
-          };
-          requestAnimationFrame(function (now) {
-            gate = now + 90;
-            step(now);
-          });
+          render(total);
+          typing = false;
         };
 
-        fig.addEventListener("pointerenter", run);
-        fig.addEventListener("focusin", run);
+        var panel = fig.querySelector(".ide__panel");
+        if (panel) {
+          panel.addEventListener(
+            "pointermove",
+            function (e) {
+              var r = panel.getBoundingClientRect();
+              panel.style.setProperty("--inspect-y", Math.max(0, Math.min(r.height, e.clientY - r.top)) + "px");
+              panel.classList.add("is-inspecting");
+            },
+            { passive: true }
+          );
+          panel.addEventListener("pointerleave", function () {
+            panel.classList.remove("is-inspecting");
+          });
+        }
 
         var fired = false;
         var onScroll = function () {
