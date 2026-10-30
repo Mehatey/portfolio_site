@@ -122,24 +122,24 @@ import { Water } from "three/addons/objects/Water.js";
   const palette = () =>
     isLight()
       ? {
-          water: 0x4f7f9b,
-          fog: 0x9fb5bf,
-          sun: 0xc9dfe8,
+          water: 0x3e8fba,
+          fog: 0xaccbd9,
+          sun: 0xd9f0f7,
           key: 0xffc77f,
-          sky: 0x86a7b7,
-          ground: 0x445c68,
+          sky: 0x81b9d2,
+          ground: 0x315b73,
           stone: 0xb9b09f,
           island: 0xaaa394,
           leaf: 0x6f9a72,
           ink: 0x14161c,
         }
       : {
-          water: 0x0b1a2b,
-          fog: 0x07060c,
-          sun: 0x91b5cc,
+          water: 0x073b66,
+          fog: 0x061426,
+          sun: 0xa9dcf4,
           key: 0xffc98a,
-          sky: 0x3a4a66,
-          ground: 0x141a24,
+          sky: 0x315f8c,
+          ground: 0x071c2d,
           stone: 0x1a1e27,
           island: 0x171a20,
           leaf: 0x2c4a3c,
@@ -262,6 +262,9 @@ import { Water } from "three/addons/objects/Water.js";
     [4.35, -0.05, 0.31],
     [4.1, 2.45, 0.36],
     [-4.7, 3.35, 0.29],
+    [-3.35, 2.18, 0.2],
+    [2.05, -2.72, 0.19],
+    [5.05, 3.28, 0.23],
   ].forEach(([x, z, r], i) => {
     const sh = new THREE.Shape();
     sh.moveTo(0, 0);
@@ -298,10 +301,12 @@ import { Water } from "three/addons/objects/Water.js";
     group.position.set(x, 0.035, z);
     group.scale.setScalar(scale);
     scene.add(group);
-    flowers.push({ group, phase });
+    flowers.push({ group, phase, scale });
   }
   addFlower(-4.25, -0.25, 0.85, 0.4);
   addFlower(4.1, 2.45, 0.72, 2.2);
+  addFlower(-3.35, 2.18, 0.5, 1.3);
+  addFlower(5.05, 3.28, 0.46, 3.1);
 
   const reedMat = new THREE.MeshStandardMaterial({ color: 0x57715a, roughness: 0.9 });
   const reedGeo = new THREE.CylinderGeometry(0.012, 0.018, 0.62, 6);
@@ -328,7 +333,7 @@ import { Water } from "three/addons/objects/Water.js";
   function addAwardFloat(url, x, z, accent, phase) {
     const group = new THREE.Group();
     const base = new THREE.Mesh(
-      new THREE.BoxGeometry(1.34, 0.06, 0.76, 2, 1, 2),
+      new THREE.BoxGeometry(1.68, 0.07, 0.99, 2, 1, 2),
       new THREE.MeshPhysicalMaterial({
         color: 0x080a10,
         metalness: 0.75,
@@ -347,23 +352,27 @@ import { Water } from "three/addons/objects/Water.js";
       faceMat.map = texture;
       faceMat.needsUpdate = true;
     });
-    const face = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 0.68), faceMat);
+    /* Both supplied badge artworks are about 1.76:1. Preserve that ratio so
+       the lettering does not get squeezed merely to fit the float. */
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(1.57, 0.89), faceMat);
     face.rotation.x = -Math.PI / 2;
-    face.position.y = 0.0305;
+    /* Keep the printed badge just above the float's top face. The float is
+       0.07 high, so placing this below 0.035 hides it inside the geometry. */
+    face.position.y = 0.038;
     const trim = new THREE.LineSegments(
       new THREE.EdgesGeometry(base.geometry),
       new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.74 })
     );
     group.add(base, face, trim);
-    group.position.set(x, 0.055, z);
+    group.position.set(x, 0.07, z);
     /* Keep the award face aligned to the reader. Bobbing supplies life; a
        forty-degree yaw only made the identity and its caption harder to read. */
     group.rotation.y = 0;
     scene.add(group);
     awards.push({ group, x, z, phase, hover: 0, tap: 0 });
   }
-  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.85, -0.48, 0xd7ecff, 0.4);
-  addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.05, -0.82, 0x806cff, 2.1);
+  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.95, -0.42, 0xbcecff, 0.4);
+  addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.12, -0.78, 0x86d8ff, 2.1);
   const awardTargets = awards.map((award) => award.group);
   /* A cool daylight dome gives the water depth. The previous orange horizon
      contaminated the whole reflection and made the lake read brown. */
@@ -472,6 +481,7 @@ import { Water } from "three/addons/objects/Water.js";
   scene.add(cat);
   let lastCatSip = -10;
   let catHover = 0;
+  let introStart = 0;
 
   let figure = null,
     mixer = null,
@@ -487,7 +497,7 @@ import { Water } from "three/addons/objects/Water.js";
       const h = box.max.y - box.min.y || 1;
       const s = 2.08 / h;
       figureScale = s;
-      figure.scale.setScalar(s);
+      figure.scale.setScalar(s * 0.76);
       figure.position.set(2.92, 0.18, -1.55);
       figure.rotation.y = -0.35;
       figure.traverse((o) => {
@@ -503,6 +513,7 @@ import { Water } from "three/addons/objects/Water.js";
       /* Do not reveal a lake with its subject missing. The first frame opens
          from Cube Guy's position, then expands into the environment. */
       requestAnimationFrame(() => {
+        introStart = performance.now();
         host.classList.add("is-ready");
         if (mv && mv.parentNode) mv.parentNode.removeChild(mv);
       });
@@ -1010,6 +1021,12 @@ import { Water } from "three/addons/objects/Water.js";
     if (renderer.domElement.width !== w * renderer.getPixelRatio() || renderer.domElement.height !== h * renderer.getPixelRatio()) {
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
+      /* Portrait screens otherwise crop the shared stone between the second
+         award and the cat. A wider lens keeps the complete little tableau in
+         view instead of turning mobile into a random detail crop. */
+      const portrait = w / h < 0.72;
+      camera.fov = portrait ? 60 : 38;
+      camera.lookAt(portrait ? 0.38 : 0, 0.18, 0.55);
       camera.updateProjectionMatrix();
       if (letters.length) {
         layoutHomes();
@@ -1037,13 +1054,13 @@ import { Water } from "three/addons/objects/Water.js";
     const ctx = canvas.getContext("2d");
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     if (light) {
-      gradient.addColorStop(0, "#6f96aa");
-      gradient.addColorStop(0.48, "#9fb8c2");
-      gradient.addColorStop(1, "#c0c8c6");
+      gradient.addColorStop(0, "#75b2cf");
+      gradient.addColorStop(0.48, "#a9cedd");
+      gradient.addColorStop(1, "#d6e5e8");
     } else {
-      gradient.addColorStop(0, "#04060c");
-      gradient.addColorStop(0.55, "#111827");
-      gradient.addColorStop(1, "#22252a");
+      gradient.addColorStop(0, "#030b18");
+      gradient.addColorStop(0.55, "#092744");
+      gradient.addColorStop(1, "#164866");
     }
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1106,6 +1123,12 @@ import { Water } from "three/addons/objects/Water.js";
     if (!pageMoving && !hasPointer && renderTick % 12 === 0) renderer.shadowMap.needsUpdate = true;
     const dt = Math.min(0.05, clock.getDelta());
     const t = clock.elapsedTime;
+    const introAge = introStart ? Math.max(0, (stamp - introStart) / 1000) : 0;
+    const arrive = (delay, duration) => {
+      if (introAge >= 2.4) return 1;
+      const p = Math.max(0, Math.min(1, (introAge - delay) / duration));
+      return 1 - Math.pow(1 - p, 4);
+    };
     resize();
 
     /* Light source, target, water glint and visible bloom all meet under
@@ -1139,33 +1162,47 @@ import { Water } from "three/addons/objects/Water.js";
     water.material.uniforms.time.value += dt * 0.38;
 
     for (const a of awards) {
+      const awardIn = arrive(0.48 + a.phase * 0.06, 0.72);
       a.hover += ((a === hoveredAward ? 1 : 0) - a.hover) * 0.14;
       a.tap += (0 - a.tap) * 0.1;
       a.group.position.x = a.x + Math.sin(t * 0.16 + a.phase) * 0.11;
-      a.group.position.y = 0.055 + Math.sin(t * 0.72 + a.phase) * 0.012 + a.hover * 0.045 + Math.sin(t * 9 + a.phase) * a.tap * 0.018;
+      a.group.position.y =
+        0.07 - (1 - awardIn) * 0.12 + Math.sin(t * 0.72 + a.phase) * 0.012 + a.hover * 0.045 + Math.sin(t * 9 + a.phase) * a.tap * 0.018;
       a.group.position.z = a.z + Math.cos(t * 0.14 + a.phase) * 0.07;
       a.group.rotation.x = Math.sin(t * 0.54 + a.phase) * 0.026 + a.hover * 0.035;
       a.group.rotation.z = Math.cos(t * 0.48 + a.phase) * 0.034 + Math.sin(a.phase) * a.hover * 0.028 + Math.sin(t * 8) * a.tap * 0.045;
-      a.group.scale.setScalar(1 + a.hover * 0.025);
+      a.group.scale.setScalar((0.72 + awardIn * 0.28) * (1 + a.hover * 0.025));
     }
     for (const lf of leaves) {
+      const leafIn = arrive(0.68 + lf.phase * 0.025, 0.76);
       lf.mesh.position.y = 0.012 + Math.sin(t * 0.7 + lf.phase) * 0.006;
       lf.mesh.rotation.x = Math.sin(t * 0.5 + lf.phase) * lf.tilt;
       lf.mesh.rotation.z = Math.cos(t * 0.4 + lf.phase * 1.3) * lf.tilt;
+      lf.mesh.scale.setScalar(0.64 + leafIn * 0.36);
     }
     for (const f of flowers) {
+      const flowerIn = arrive(0.78 + f.phase * 0.035, 0.68);
       f.group.position.y = 0.035 + Math.sin(t * 0.7 + f.phase) * 0.007;
       f.group.rotation.z = Math.sin(t * 0.36 + f.phase) * 0.025;
+      f.group.scale.setScalar(f.scale * (0.45 + flowerIn * 0.55));
     }
-    for (const r of reeds) r.group.rotation.z = Math.sin(t * 0.42 + r.phase) * 0.025;
+    for (const r of reeds) {
+      const reedIn = arrive(0.72 + r.phase * 0.08, 0.78);
+      r.group.rotation.z = Math.sin(t * 0.42 + r.phase) * 0.025;
+      r.group.scale.set(0.7 + reedIn * 0.3, 0.4 + reedIn * 0.6, 0.7 + reedIn * 0.3);
+    }
 
     catHover += ((overCat ? 1 : 0) - catHover) * 0.12;
     figureHover += ((overFigure ? 1 : 0) - figureHover) * 0.12;
     if (figure) {
-      figure.scale.setScalar(figureScale * (1 + figureHover * 0.035));
+      const figureIn = arrive(0.08, 0.82);
+      figure.scale.setScalar(figureScale * (0.76 + figureIn * 0.24) * (1 + figureHover * 0.035));
       figure.rotation.y = -0.35 + figureHover * ndc.x * 0.07;
-      figure.position.y = 0.18 + figureHover * 0.025;
+      figure.position.y = 0.18 - (1 - figureIn) * 0.16 + figureHover * 0.025;
     }
+    const catIn = arrive(0.24, 0.78);
+    cat.scale.setScalar(1.12 * (0.72 + catIn * 0.28));
+    cat.position.y = 0.17 - (1 - catIn) * 0.12;
     const idleSip = Math.pow(Math.max(0, Math.sin(t * 0.62)), 7) * (1 - catHover);
     const hoverSip = catHover * (0.72 + Math.sin(t * 7.2) * 0.12);
     const drink = Math.max(idleSip, hoverSip);
