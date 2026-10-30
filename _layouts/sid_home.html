@@ -5778,6 +5778,32 @@
           max-width: 96px;
         }
       }
+
+      /* Hover inspects the process instead of replaying the typing animation.
+         The beam follows the pointer through the terminal like a debugger
+         stepping through a trace; the code itself is written once on entry. */
+      .ide__panel::after {
+        content: "";
+        position: absolute;
+        z-index: 4;
+        left: 0;
+        right: 0;
+        top: var(--inspect-y, 50%);
+        height: 72px;
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(-50%);
+        background: linear-gradient(to bottom, transparent, rgba(98, 224, 190, 0.07) 45%, rgba(122, 162, 255, 0.12) 50%, transparent);
+        border-top: 1px solid rgba(122, 162, 255, 0.14);
+        transition: opacity 220ms ease;
+      }
+      .ide__panel.is-inspecting::after {
+        opacity: 1;
+      }
+      html[data-theme="light"] .ide__panel::after {
+        background: linear-gradient(to bottom, transparent, rgba(38, 130, 104, 0.06) 45%, rgba(45, 91, 178, 0.1) 50%, transparent);
+        border-top-color: rgba(45, 91, 178, 0.16);
+      }
     </style>
     <!-- The lake (assets/js/hero-lake.js) is an ES module importing three
          and its addons by bare specifier; this map resolves them to the
@@ -7516,7 +7542,7 @@
         t("frame", "f");
         t("(context), {\n");
         t("    tools: ", "n");
-        t('["Figma", "code"]', "v");
+        t('["Figma", "Adobe CC", "Unity", "TouchDesigner", "JavaScript", "WebGL"]', "v");
         t(",\n");
         t("    test:  ", "n");
         t('["flow", "motion", "content", "edge cases"]', "v");
@@ -7554,7 +7580,6 @@
           out.innerHTML = html + (n < total ? '<span class="cur"></span>' : "");
         };
 
-        var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         var typing = false;
 
         var run = function () {
@@ -7563,54 +7588,31 @@
           /* force the wake-up sweep to restart rather than sit finished */
           void fig.offsetWidth;
           fig.classList.add("is-live");
-          if (reduce) return render(total);
-          typing = true;
-          /* THE PANEL MUST NEVER BE EMPTY.
-             Found in the full-page visual pass: at 400 steps of 12ms this took
-             about five seconds to fill, and it only started once the figure was
-             40% in view. At any normal scroll speed you arrive at this screen,
-             see a black window with a single cursor in it, and leave before it
-             has said anything -- so a whole viewport of the home page reads as
-             a broken panel next to a photograph.
-
-             Two changes. It opens with the first fifth already on screen, so
-             there is never a frame where the window is blank; typing then
-             continues from there, which is also how a real editor looks when
-             you tab back into it. And the whole run is now about 1.7s instead
-             of five, which is long enough to read as writing and short enough
-             to finish while you are still looking at it. */
-          var n = Math.round(total * 0.18);
-          render(n);
-          var chunk = Math.max(1, Math.round(total / 150));
-          var gate = 0;
-          var step = function (now) {
-            if (now < gate) return requestAnimationFrame(step);
-            gate = now + 11;
-            n = Math.min(total, n + chunk);
-            render(n);
-            if (n < total) return requestAnimationFrame(step);
-            typing = false;
-          };
-          requestAnimationFrame(function (now) {
-            gate = now + 90;
-            step(now);
-          });
+          /* Keep the terminal useful at a glance. Earlier builds rewrote the
+             code on every hover and made visitors wait for the actual content.
+             The wake sweep now supplies the motion while the complete process
+             is present immediately. */
+          render(total);
+          typing = false;
         };
 
-        fig.addEventListener("pointerenter", run);
-        fig.addEventListener("focusin", run);
+        var panel = fig.querySelector(".ide__panel");
+        if (panel) {
+          panel.addEventListener(
+            "pointermove",
+            function (e) {
+              var r = panel.getBoundingClientRect();
+              panel.style.setProperty("--inspect-y", Math.max(0, Math.min(r.height, e.clientY - r.top)) + "px");
+              panel.classList.add("is-inspecting");
+            },
+            { passive: true }
+          );
+          panel.addEventListener("pointerleave", function () {
+            panel.classList.remove("is-inspecting");
+          });
+        }
 
-        /* THE TRIGGER THAT ACTUALLY FIRES.
-           Measured: with only the IntersectionObserver below, scrolling this
-           panel to the centre of the viewport and waiting 2.5s left it at
-           ZERO characters, while dispatching pointerenter filled it at once.
-           So on a phone -- which never hovers -- and on any desktop visit
-           where you scroll past rather than park the cursor on it, the panel
-           was permanently blank: a whole screen of the home page, half of it
-           an empty black window beside a photograph.
-
-           The observer stays, because when it fires it fires at the right
-           moment. It is just no longer the only way in. */
+        /* Fill the panel shortly before it enters view. */
         var fired = false;
         var onScroll = function () {
           var r = fig.getBoundingClientRect();
