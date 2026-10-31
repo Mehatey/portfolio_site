@@ -105,15 +105,21 @@
   var heroEl = null,
     runwayEl = null,
     heroQueried = false,
+    runwayPx = 1,
     hp = 0,
     hpShown = -1;
-  function heroProgress() {
+  function measureHero() {
     if (!heroQueried) {
       heroEl = document.getElementById("hero");
       runwayEl = heroEl && heroEl.parentElement && heroEl.parentElement.classList.contains("hero-runway") ? heroEl.parentElement : null;
       heroQueried = true;
     }
     if (!heroEl) return;
+    runwayPx = runwayEl ? Math.max(1, runwayEl.offsetHeight - (window.innerHeight || heroEl.offsetHeight)) : Math.max(1, heroEl.offsetHeight * 0.92);
+  }
+  function heroProgress() {
+    if (!heroQueried) measureHero();
+    if (!heroEl) return false;
     /* The runway, when there is one, is the scroll DISTANCE the sticky hero
        stays put for: the wrapper's height less the one screenful the hero
        itself occupies. Measuring the hero instead would end the sequence
@@ -123,10 +129,7 @@
        Without a wrapper -- phone, reduced motion, any other layout -- it
        falls back to 0.92 of the hero's own height, the number cube-guy.js
        used, so nothing keyed to the old range shifts underneath. */
-    var runway = runwayEl
-      ? Math.max(1, runwayEl.offsetHeight - (window.innerHeight || heroEl.offsetHeight))
-      : Math.max(1, heroEl.offsetHeight * 0.92);
-    var target = Math.max(0, Math.min(1, (window.scrollY || 0) / runway));
+    var target = Math.max(0, Math.min(1, currentY / runwayPx));
     /* Lightly smoothed, as before: enough to take a trackpad's stutter out
        without the copy lagging behind the scroll, which would break the link
        between the two. */
@@ -139,22 +142,54 @@
       hpShown = hp;
       heroEl.style.setProperty("--hero-p", hp.toFixed(3));
     }
+    return Math.abs(target - hp) > 0.001;
   }
 
   var MAX = 2600; /* px/s that reads as 1 */
-  var lastY = window.scrollY || 0,
+  var currentY = window.scrollY || 0,
+    lastY = currentY,
     lastT = performance.now();
   var v = 0,
-    shown = 0;
+    shown = 0,
+    raf = 0;
+
+  /* Scroll position and hero geometry are events, not frame-by-frame facts.
+     Reading scrollY and offsetHeight after other effects wrote styles forced
+     synchronous layout. Cache both, wake the loop only when input changes,
+     then let it stop once velocity and hero easing settle. */
+  function wake() {
+    currentY = window.scrollY || 0;
+    if (!raf) {
+      lastT = performance.now();
+      raf = requestAnimationFrame(tick);
+    }
+  }
+  window.addEventListener("scroll", wake, { passive: true });
+  window.addEventListener(
+    "resize",
+    function () {
+      measureHero();
+      wake();
+    },
+    { passive: true }
+  );
+  if (window.ResizeObserver) {
+    var heroResizeObserver = new ResizeObserver(function () {
+      measureHero();
+      wake();
+    });
+    if (document.getElementById("hero")) heroResizeObserver.observe(document.getElementById("hero").parentElement || document.getElementById("hero"));
+  }
 
   window.__sv = function () {
     return { v: v, a: Math.abs(v) };
   };
 
   function tick(now) {
+    raf = 0;
     var dt = Math.min(0.1, (now - lastT) / 1000) || 0.016;
     lastT = now;
-    var y = window.scrollY || 0;
+    var y = currentY;
     var raw = (y - lastY) / dt / MAX;
     lastY = y;
     if (raw > 1) raw = 1;
@@ -177,8 +212,9 @@
       html.style.setProperty("--sv", v.toFixed(3));
       html.style.setProperty("--sva", Math.abs(v).toFixed(3));
     }
-    heroProgress();
-    requestAnimationFrame(tick);
+    var heroMoving = heroProgress();
+    if (v !== 0 || Math.abs(raw) > 0.001 || heroMoving) raf = requestAnimationFrame(tick);
   }
-  requestAnimationFrame(tick);
+  measureHero();
+  raf = requestAnimationFrame(tick);
 })();

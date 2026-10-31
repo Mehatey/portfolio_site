@@ -238,7 +238,28 @@
   img.onerror = function () {
     canvas.remove();
   };
-  img.src = host.getAttribute("data-src");
+  /* This image lives at the very end of the page. Assigning src here bypassed
+     the fallback image's loading="lazy" and downloaded the 251 KB desktop
+     texture during the hero. Request it only as the reader approaches. */
+  var textureRequested = false;
+  function requestTexture() {
+    if (textureRequested) return;
+    textureRequested = true;
+    img.src = host.getAttribute("data-src");
+  }
+  if ("IntersectionObserver" in window) {
+    var textureIO = new IntersectionObserver(
+      function (entries) {
+        if (!entries[0].isIntersecting) return;
+        textureIO.disconnect();
+        requestTexture();
+      },
+      { rootMargin: "1200px 0px" }
+    );
+    textureIO.observe(host);
+  } else {
+    requestTexture();
+  }
 
   var raf = 0,
     t0 = performance.now(),

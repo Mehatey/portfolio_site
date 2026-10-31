@@ -67,13 +67,34 @@
      already better factored than the replacement. So this writes the number
      and touches nothing else. */
   var state = cards.map(function (el) {
-    return { el: el, a: 0, v: 0, on: false };
+    return { el: el, a: 0, v: 0, on: false, top: 0, height: 0 };
   });
 
   var lastY = window.scrollY,
     impulse = 0,
     raf = 0,
-    idle = 0;
+    idle = 0,
+    measureRaf = 0;
+
+  /* Card geometry is stable while scrolling. Reading every rectangle after
+     the previous frame wrote --lens forced layout once per frame and made
+     this decorative bend the Works page's largest responsiveness cost. */
+  function measure() {
+    measureRaf = 0;
+    var pageY = window.scrollY || 0;
+    var rects = state.map(function (s) {
+      return s.el.getBoundingClientRect();
+    });
+    for (var i = 0; i < state.length; i++) {
+      state[i].top = rects[i].top + pageY;
+      state[i].height = rects[i].height;
+    }
+    wake();
+  }
+
+  function queueMeasure() {
+    if (!measureRaf) measureRaf = requestAnimationFrame(measure);
+  }
 
   function tick() {
     raf = 0;
@@ -106,10 +127,11 @@
 
     for (var i = 0; i < state.length; i++) {
       var s = state[i];
-      var r = s.el.getBoundingClientRect();
+      var top = s.top - y;
+      var bottom = top + s.height;
       /* Skip anything nowhere near the band, which on this page is most of
          the grid most of the time. */
-      if (r.bottom < HEAD - 60 || r.top > HEAD + BAND) {
+      if (bottom < HEAD - 60 || top > HEAD + BAND) {
         if (s.on) {
           s.el.style.removeProperty("--lens");
           s.a = 0;
@@ -121,7 +143,7 @@
 
       /* 0 at the bottom of the band, 1 once the card's top has reached the
          header. Eased so the bend arrives gently and finishes decisively. */
-      var t = 1 - (r.top - HEAD) / BAND;
+      var t = 1 - (top - HEAD) / BAND;
       if (t < 0) t = 0;
       else if (t > 1) t = 1;
       var e = t * t * (3 - 2 * t);
@@ -162,7 +184,8 @@
   }
 
   window.addEventListener("scroll", wake, { passive: true });
-  window.addEventListener("resize", wake, { passive: true });
+  window.addEventListener("resize", queueMeasure, { passive: true });
+  window.addEventListener("load", queueMeasure, { once: true });
   window.addEventListener("sid:perf", wake);
-  wake();
+  measure();
 })();

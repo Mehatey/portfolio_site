@@ -247,6 +247,45 @@
   var raf = 0,
     t0 = performance.now();
 
+  /* The navigation is fixed. Its geometry changes on resize or after fonts
+     settle, not sixty times a second. Reading three DOM rectangles inside the
+     render loop forced the browser to synchronously lay out the entire page on
+     every frame. Cache the measurements and let observers refresh them. */
+  var geometry = null,
+    sourceCanvas = null;
+  function measure() {
+    var nb = host.getBoundingClientRect();
+    var lb = links.getBoundingClientRect();
+    var mb = mark ? mark.getBoundingClientRect() : null;
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.6);
+    var w = Math.max(1, Math.round(nb.width * dpr));
+    var h = Math.max(1, Math.round(nb.height * dpr));
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width = w;
+      canvas.height = h;
+    }
+    geometry = {
+      nb: nb,
+      lb: lb,
+      mb: mb,
+      dpr: dpr,
+      w: w,
+      h: h,
+      vw: Math.max(1, window.innerWidth),
+      vh: Math.max(1, window.innerHeight),
+    };
+    sourceCanvas = document.querySelector("#site-field canvas") || document.getElementById("gl-stage");
+  }
+  measure();
+  window.addEventListener("resize", measure, { passive: true });
+  if (window.ResizeObserver) {
+    var geometryObserver = new ResizeObserver(measure);
+    geometryObserver.observe(nav);
+    geometryObserver.observe(links);
+    if (mark) geometryObserver.observe(mark);
+  }
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);
+
   function frame(now) {
     /* Decoration yields first. See assets/js/motion-budget.js: fourteen rAF
        loops and twenty two canvases put the home page at 13fps on a four
@@ -258,14 +297,13 @@
       return;
     }
     raf = 0;
-    var nb = host.getBoundingClientRect();
-    var dpr = Math.min(window.devicePixelRatio || 1, 1.6);
-    var w = Math.max(1, Math.round(nb.width * dpr));
-    var h = Math.max(1, Math.round(nb.height * dpr));
-    if (canvas.width !== w || canvas.height !== h) {
-      canvas.width = w;
-      canvas.height = h;
-    }
+    if (!geometry) measure();
+    var nb = geometry.nb,
+      lb = geometry.lb,
+      mb = geometry.mb,
+      dpr = geometry.dpr,
+      w = geometry.w,
+      h = geometry.h;
 
     /* ── WHAT IS ACTUALLY BEHIND THE NAV ─────────────────────────────────
        Not one canvas but whichever one this page puts full-viewport behind
@@ -278,15 +316,19 @@
        The FIRST attempt sampled #site-field only and got nothing on the home
        page: measured `field: false` with the glass running against an empty
        texture, which is a refraction of nothing and looks like a flat tint. */
-    var src = document.querySelector("#site-field canvas") || document.getElementById("gl-stage");
+    var src = sourceCanvas;
+    if (!src || !src.isConnected) {
+      sourceCanvas = document.querySelector("#site-field canvas") || document.getElementById("gl-stage");
+      src = sourceCanvas;
+    }
     if (src && src.width > 4 && src !== canvas) {
       /* The strip of that canvas that lies behind the nav, in ITS pixels.
          The nav is inset from the viewport -- 36px from the left and 22 from
          the top at 1440 -- so copying from 0,0 would refract the wrong part
          of the background and the displacement would not line up with what a
          reader can see beside the capsule. */
-      var vw = Math.max(1, window.innerWidth),
-        vh = Math.max(1, window.innerHeight);
+      var vw = geometry.vw,
+        vh = geometry.vh;
       var sx = Math.max(0, Math.round((nb.left / vw) * src.width));
       var sy = Math.max(0, Math.round((nb.top / vh) * src.height));
       var sw = Math.max(1, Math.round((nb.width / vw) * src.width));
@@ -300,8 +342,6 @@
 
     /* The capsules' real geometry, read from the DOM, so the glass is
        wherever the layout actually put them at this width. */
-    var lb = links.getBoundingClientRect();
-    var mb = mark ? mark.getBoundingClientRect() : null;
     var ox = nb.left,
       oy = nb.top;
     var px = (lb.left - ox + lb.width / 2) * dpr;

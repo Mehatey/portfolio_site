@@ -7607,36 +7607,54 @@
 
   // ── FLOATING DUST ──
   (function () {
+    /* Decorative dust must never own the interaction budget. Coarse pointers
+       cannot interact with it, and reduced-motion visitors explicitly asked
+       for a still page, so do not create a full-screen canvas for either. */
+    if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
     const canvas = document.createElement("canvas");
     canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:1;";
     document.body.appendChild(canvas);
     const ctx = canvas.getContext("2d");
-    let dpr = 1;
+    let dpr = 1,
+      viewW = 1,
+      viewH = 1;
 
     function resize() {
-      dpr = window.devicePixelRatio || 1;
-      canvas.width = window.innerWidth * dpr;
-      canvas.height = window.innerHeight * dpr;
+      /* Dust is sub-pixel atmosphere, not interface text. A retina-size
+         backing store quadrupled its fill work with no visible gain. Cache
+         viewport dimensions here as well: reading innerWidth/innerHeight
+         inside every particle on every frame forced layout repeatedly. */
+      dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+      viewW = window.innerWidth;
+      viewH = window.innerHeight;
+      canvas.width = Math.round(viewW * dpr);
+      canvas.height = Math.round(viewH * dpr);
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
     }
     resize();
     window.addEventListener("resize", resize, { passive: true });
 
-    const W = () => window.innerWidth;
-    const H = () => window.innerHeight;
-    let lastScroll = window.scrollY;
+    let lastScroll = window.scrollY,
+      currentScroll = lastScroll;
+    window.addEventListener(
+      "scroll",
+      () => {
+        currentScroll = window.scrollY;
+      },
+      { passive: true }
+    );
 
     let pageVisible = true;
     document.addEventListener("visibilitychange", () => {
       pageVisible = !document.hidden;
     });
 
-    const pts = Array.from({ length: 80 }, (_, i) => {
-      const isMote = i < 12;
+    const pts = Array.from({ length: 48 }, (_, i) => {
+      const isMote = i < 10;
       return {
-        x: Math.random() * window.innerWidth,
-        y: Math.random() * window.innerHeight,
+        x: Math.random() * viewW,
+        y: Math.random() * viewH,
         vx: (Math.random() - 0.5) * 0.1,
         vy: -Math.random() * 0.06 - 0.01,
         r: isMote ? Math.random() * 1.1 + 0.6 : Math.random() * 0.5 + 0.2,
@@ -7647,13 +7665,20 @@
       };
     });
 
+    let lastPaint = 0;
     (function draw(now) {
       requestAnimationFrame(draw);
       now = now || performance.now();
       if (!pageVisible) return;
-      ctx.clearRect(0, 0, W(), H());
+      /* The screensaver already replaces the page atmosphere. Do not paint a
+         hidden dust layer beneath it. Thirty frames per second is ample for
+         particles moving less than a tenth of a pixel per frame. */
+      if (document.documentElement.hasAttribute("data-idle")) return;
+      if (lastPaint && now - lastPaint < 32) return;
+      lastPaint = now;
+      ctx.clearRect(0, 0, viewW, viewH);
 
-      const curScroll = window.scrollY;
+      const curScroll = currentScroll;
       const scrollDelta = curScroll - lastScroll;
       lastScroll = curScroll;
 
@@ -7676,15 +7701,15 @@
         }
 
         if (p.y < -4) {
-          p.y = H() + 4;
-          p.x = Math.random() * W();
+          p.y = viewH + 4;
+          p.x = Math.random() * viewW;
         }
-        if (p.y > H() + 4) {
+        if (p.y > viewH + 4) {
           p.y = -4;
-          p.x = Math.random() * W();
+          p.x = Math.random() * viewW;
         }
-        if (p.x < -4) p.x = W() + 4;
-        if (p.x > W() + 4) p.x = -4;
+        if (p.x < -4) p.x = viewW + 4;
+        if (p.x > viewW + 4) p.x = -4;
 
         const alpha = p.a * (0.45 + 0.55 * Math.sin(p.ph));
         ctx.globalAlpha = alpha;
