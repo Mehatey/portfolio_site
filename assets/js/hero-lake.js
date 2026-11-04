@@ -327,6 +327,50 @@ import { Water } from "three/addons/objects/Water.js";
   addReeds(-5.05, 1.05, 7, 0.2);
   addReeds(4.85, 1.6, 6, 1.8);
 
+  /* ── FISH, AS THREE QUIET MOVING ACCENTS ───────────────────────────────
+     Shared geometry and materials keep them cheap. They sit just above the
+     Water pass so the silhouettes stay readable without another reflection
+     render. Hovering makes one dart out of frame and leaves a small DOM note
+     at the hand, which is clearer than trying to draw a music glyph in 3D. */
+  const fishBodyGeo = new THREE.SphereGeometry(0.2, 14, 8);
+  const fishTailGeo = new THREE.ConeGeometry(0.15, 0.24, 3);
+  fishTailGeo.rotateX(Math.PI / 2);
+  const fishColors = [0x78cce8, 0xf0ad76, 0xb3d69d];
+  const fish = [];
+  function addFish(x, z, speed, phase, note, color) {
+    const group = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({
+      color,
+      emissive: color,
+      emissiveIntensity: 0.16,
+      roughness: 0.48,
+      transparent: true,
+      opacity: 0.68,
+      depthWrite: false,
+    });
+    const body = new THREE.Mesh(fishBodyGeo, mat);
+    body.scale.set(0.78, 0.42, 1.45);
+    const tailPivot = new THREE.Group();
+    tailPivot.position.z = -0.31;
+    const tail = new THREE.Mesh(fishTailGeo, mat);
+    tail.position.z = -0.11;
+    tail.rotation.z = Math.PI / 2;
+    tailPivot.add(tail);
+    group.add(body, tailPivot);
+    group.position.set(x, 0.035, z);
+    group.rotation.y = speed > 0 ? Math.PI / 2 : -Math.PI / 2;
+    group.scale.setScalar(0.74 + phase * 0.06);
+    group.traverse((o) => {
+      if (o.isMesh) o.layers.set(1);
+    });
+    scene.add(group);
+    fish.push({ group, body, tailPivot, x, z, speed, phase, note, flee: 0, hiddenUntil: 0 });
+  }
+  addFish(-6.8, 0.05, 0.42, 0.2, "♪", fishColors[0]);
+  addFish(6.2, 2.9, -0.34, 1.3, "♫", fishColors[1]);
+  addFish(-5.4, -2.45, 0.29, 2.4, "♬", fishColors[2]);
+  const fishTargets = fish.map((item) => item.body);
+
   /* ── THE AWARDS, AS ENAMEL FLOATS ON THE WATER ───────────────────── */
   const awards = [];
   const badgeLoader = new THREE.TextureLoader();
@@ -400,6 +444,29 @@ import { Water } from "three/addons/objects/Water.js";
   stone.castShadow = true;
   stone.receiveShadow = true;
   scene.add(stone);
+
+  /* The figure already looks at the pointer. These rings and one small point
+     light make that attention visible across the water instead of expressing
+     it only as a 3.5% scale change. They are dormant unless he is hovered. */
+  const figureLight = new THREE.PointLight(0x9fe8ff, 0, 4.8, 2);
+  figureLight.position.set(2.55, 1.25, -1.35);
+  scene.add(figureLight);
+  const figureAura = [];
+  for (let i = 0; i < 3; i++) {
+    const mat = new THREE.MeshBasicMaterial({
+      color: 0xa9e8ff,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const ring = new THREE.Mesh(new THREE.RingGeometry(0.72, 0.76, 64), mat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(2.55, 0.026 + i * 0.001, -1.4);
+    ring.layers.set(1);
+    scene.add(ring);
+    figureAura.push({ ring, mat, phase: i / 3 });
+  }
 
   /* One little scene, not two disconnected props: the cat shares the stone
      with Sid and leans past its front edge to drink. */
@@ -488,7 +555,9 @@ import { Water } from "three/addons/objects/Water.js";
     clips = {},
     busy = false,
     figureScale = 1,
-    figureHover = 0;
+    figureHover = 0,
+    figureMats = [];
+  const figureGlowColor = new THREE.Color(0x8edfff);
   new GLTFLoader().load(
     BASE + "/assets/models/cube-guy-rigged.glb",
     (gltf) => {
@@ -504,6 +573,11 @@ import { Water } from "three/addons/objects/Water.js";
         if (o.isMesh) {
           o.castShadow = true;
           o.receiveShadow = false;
+          const mats = Array.isArray(o.material) ? o.material : [o.material];
+          mats.forEach((mat) => {
+            if (!mat || !mat.emissive || figureMats.some((entry) => entry.mat === mat)) return;
+            figureMats.push({ mat, color: mat.emissive.clone(), intensity: mat.emissiveIntensity || 0 });
+          });
         }
       });
       scene.add(figure);
@@ -637,7 +711,7 @@ import { Water } from "three/addons/objects/Water.js";
       totalW += w + gap;
     }
     const group = new THREE.Group();
-    let cursor = -totalW / 2;
+    let cursor = o.align === "left" ? 0 : -totalW / 2;
     for (const part of parts) {
       if (part.space) {
         cursor += part.w + gap;
@@ -660,6 +734,45 @@ import { Water } from "three/addons/objects/Water.js";
     scene.add(group);
     return group;
   }
+
+  /* Award names need to scan before their enamel plaques. A single canvas
+     texture per label stays crisp at laptop scale and costs far less than a
+     mesh per glyph, while the shallow plane keeps it inside the lake world. */
+  function buildAwardLabel(text, x, z, width) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1024;
+    canvas.height = 144;
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#ffffff";
+    ctx.font = '600 58px "DM Mono", "SFMono-Regular", monospace';
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, 30, canvas.height / 2);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+    const mat = new THREE.MeshBasicMaterial({
+      map: texture,
+      color: 0xf5f1e8,
+      transparent: true,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    sceneTypeMats.push(mat);
+    const label = new THREE.Mesh(new THREE.PlaneGeometry(width, width * (canvas.height / canvas.width)), mat);
+    label.position.set(x + width / 2, 0.09, z);
+    label.rotation.x = -Math.PI / 2 + 0.24;
+    label.renderOrder = 5;
+    label.layers.set(1);
+    scene.add(label);
+    return label;
+  }
+
+  buildAwardLabel("2X WEBBY AWARD", -2.79, -1.12, 2.12);
+  buildAwardLabel("KYOORIUS AWARD", -0.72, -1.48, 2.18);
 
   /* The glyphs stand as soon as the font is here; the physics arrives after
      and picks them up where they are. Nothing waits on the network for the
@@ -722,30 +835,6 @@ import { Water } from "three/addons/objects/Water.js";
     resize();
     layoutHomes();
     letters.forEach((l) => l.mesh.position.set(l.home.x, l.home.y, l.home.z));
-
-    /* Labels are facts, not more jewellery. Unlit material keeps their strokes
-       stable while the plaques and water continue to catch the moving light. */
-    const awardLabelMat = new THREE.MeshBasicMaterial({ color: 0xf5f1e8, toneMapped: false });
-    buildText3D("2X WEBBY AWARD", font, {
-      x: -1.85,
-      y: 0.045,
-      z: 0.48,
-      size: 0.155,
-      depth: 0.014,
-      gap: 0.012,
-      rotationX: -Math.PI / 2,
-      material: awardLabelMat,
-    });
-    buildText3D("KYOORIUS AWARD", font, {
-      x: 0.05,
-      y: 0.045,
-      z: 0.16,
-      size: 0.155,
-      depth: 0.014,
-      gap: 0.012,
-      rotationX: -Math.PI / 2,
-      material: awardLabelMat.clone(),
-    });
   }
 
   async function buildPhysics() {
@@ -818,6 +907,7 @@ import { Water } from "three/addons/objects/Water.js";
 
   /* ── POINTER ──────────────────────────────────────────────────────────── */
   const ray = new THREE.Raycaster();
+  ray.layers.enable(1);
   const ndc = new THREE.Vector2(0, 0);
   const lightPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.03); /* water surface */
   const dragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.16); /* y = 0.16 */
@@ -829,7 +919,8 @@ import { Water } from "three/addons/objects/Water.js";
     hovered = null,
     overFigure = false,
     overCat = false,
-    hoveredAward = null;
+    hoveredAward = null,
+    hoveredFish = null;
 
   function awardFor(object) {
     for (let node = object; node; node = node.parent) {
@@ -838,6 +929,43 @@ import { Water } from "three/addons/objects/Water.js";
     }
     return null;
   }
+
+  function fishFor(object) {
+    return fish.find((item) => item.body === object) || null;
+  }
+
+  function leaveNote(e, note, phase) {
+    const bounds = hero.getBoundingClientRect();
+    const glyph = document.createElement("span");
+    glyph.className = "lake-note";
+    glyph.setAttribute("aria-hidden", "true");
+    glyph.textContent = note;
+    glyph.style.left = e.clientX - bounds.left + "px";
+    glyph.style.top = e.clientY - bounds.top + "px";
+    glyph.style.setProperty("--note-r", -10 + phase * 8 + "deg");
+    hero.appendChild(glyph);
+    glyph.addEventListener("animationend", () => glyph.remove(), { once: true });
+  }
+
+  /* Small read-only probe for repeatable interaction QA. It keeps test code
+     out of scene internals while exposing only projected hit positions and
+     current hover state. */
+  function screenPoint(object) {
+    const point = new THREE.Vector3();
+    object.getWorldPosition(point);
+    point.project(camera);
+    const bounds = renderer.domElement.getBoundingClientRect();
+    return {
+      x: bounds.left + ((point.x + 1) / 2) * bounds.width,
+      y: bounds.top + ((1 - point.y) / 2) * bounds.height,
+    };
+  }
+  window.__lakeQA = () => ({
+    fish: fish.filter((item) => item.group.visible).map((item) => ({ ...screenPoint(item.body), flee: item.flee, note: item.note })),
+    figure: figure ? screenPoint(figure) : null,
+    figureHover,
+    auraOpacity: figureAura.map((item) => item.mat.opacity),
+  });
 
   function toNdc(e) {
     const r = renderer.domElement.getBoundingClientRect();
@@ -888,10 +1016,19 @@ import { Water } from "three/addons/objects/Water.js";
       const oc = ray.intersectObject(cat, true).length > 0;
       const awardHits = ray.intersectObjects(awardTargets, true);
       hoveredAward = awardHits.length ? awardFor(awardHits[0].object) : null;
+      const fishHits = ray.intersectObjects(fishTargets, false);
+      const nextFish = fishHits.length ? fishFor(fishHits[0].object) : null;
+      if (nextFish && nextFish !== hoveredFish && !nextFish.flee && nextFish.group.visible) {
+        nextFish.flee = 1;
+        nextFish.speed = Math.abs(nextFish.speed) * (nextFish.group.position.x >= fishHits[0].point.x ? 1 : -1);
+        leaveNote(e, nextFish.note, nextFish.phase);
+        splash(nextFish.group.position.x, nextFish.group.position.z, 0.16);
+      }
+      hoveredFish = nextFish;
       if (of && !overFigure && !busy) play("Look", 1, () => play("Idle"));
       overFigure = of;
       overCat = oc;
-      host.style.cursor = hovered || of || oc || hoveredAward ? "pointer" : "";
+      host.style.cursor = hovered || of || oc || hoveredAward || hoveredFish ? "pointer" : "";
     },
     { passive: true }
   );
@@ -900,6 +1037,7 @@ import { Water } from "three/addons/objects/Water.js";
     hovered = null;
     overCat = false;
     hoveredAward = null;
+    hoveredFish = null;
     host.style.cursor = "";
   });
   hero.addEventListener("pointerdown", (e) => {
@@ -1191,14 +1329,49 @@ import { Water } from "three/addons/objects/Water.js";
       r.group.rotation.z = Math.sin(t * 0.42 + r.phase) * 0.025;
       r.group.scale.set(0.7 + reedIn * 0.3, 0.4 + reedIn * 0.6, 0.7 + reedIn * 0.3);
     }
+    for (const f of fish) {
+      if (!f.group.visible) {
+        if (t < f.hiddenUntil) continue;
+        f.x = f.speed > 0 ? -7.6 : 7.6;
+        f.flee = 0;
+        f.group.visible = true;
+      }
+      const pace = f.flee ? 5.4 : 1;
+      f.x += f.speed * pace * dt;
+      if (Math.abs(f.x) > 8.1) {
+        if (f.flee) {
+          f.group.visible = false;
+          f.hiddenUntil = t + 2.2 + f.phase * 0.35;
+          continue;
+        }
+        f.x = f.speed > 0 ? -8 : 8;
+      }
+      f.group.position.x = f.x;
+      f.group.position.y = 0.035 + Math.sin(t * 1.25 + f.phase) * 0.012;
+      f.group.position.z = f.z + Math.sin(t * 0.48 + f.phase) * 0.34;
+      f.group.rotation.y = (f.speed > 0 ? Math.PI / 2 : -Math.PI / 2) + Math.sin(t * 0.34 + f.phase) * 0.12;
+      f.tailPivot.rotation.y = Math.sin(t * (f.flee ? 14 : 5.2) + f.phase) * (f.flee ? 0.72 : 0.34);
+      const fishScale = (0.74 + f.phase * 0.06) * (f.flee ? 0.88 : 1);
+      f.group.scale.setScalar(fishScale);
+    }
 
     catHover += ((overCat ? 1 : 0) - catHover) * 0.12;
     figureHover += ((overFigure ? 1 : 0) - figureHover) * 0.12;
     if (figure) {
       const figureIn = arrive(0.08, 0.82);
-      figure.scale.setScalar(figureScale * (0.76 + figureIn * 0.24) * (1 + figureHover * 0.035));
-      figure.rotation.y = -0.35 + figureHover * ndc.x * 0.07;
-      figure.position.y = 0.18 - (1 - figureIn) * 0.16 + figureHover * 0.025;
+      figure.scale.setScalar(figureScale * (0.76 + figureIn * 0.24) * (1 + figureHover * 0.075));
+      figure.rotation.y = -0.35 + figureHover * ndc.x * 0.12;
+      figure.position.y = 0.18 - (1 - figureIn) * 0.16 + figureHover * (0.045 + Math.sin(t * 3.2) * 0.012);
+    }
+    figureLight.intensity += ((overFigure ? (daylight ? 7 : 14) : 0) - figureLight.intensity) * 0.12;
+    for (const aura of figureAura) {
+      const wave = (t * 0.72 + aura.phase) % 1;
+      aura.ring.scale.setScalar(0.92 + wave * 1.15);
+      aura.mat.opacity = figureHover * (1 - wave) * (daylight ? 0.2 : 0.34);
+    }
+    for (const entry of figureMats) {
+      entry.mat.emissive.copy(entry.color).lerp(figureGlowColor, figureHover * 0.42);
+      entry.mat.emissiveIntensity = entry.intensity + figureHover * 0.38;
     }
     const catIn = arrive(0.24, 0.78);
     cat.scale.setScalar(1.12 * (0.72 + catIn * 0.28));
