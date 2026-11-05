@@ -535,7 +535,7 @@
            frame to notice -- only cards nearer the header being further
            bent. */
         filter: none;
-        will-change: transform;
+        will-change: auto;
       }
       /* The rim. A lens returns more light at its edge than through its
          middle, and without it the whole thing reads as the page going soft
@@ -919,19 +919,6 @@
         .wk-featured .wk-grid {
           align-items: start;
         }
-        .wk-featured .wk-grid > li.is-lead {
-          grid-column: span 2;
-          grid-row: span 2;
-        }
-        .wk-featured .wk-grid > li.is-lead .wk-cover {
-          aspect-ratio: 16 / 10;
-        }
-        .wk-featured .wk-grid > li.is-lead .wk-name {
-          font-size: 1.36rem;
-        }
-        .wk-featured .wk-grid > li.is-lead .wk-desc {
-          max-width: 54ch;
-        }
         .wk-lane .wk-grid > li:first-child {
           grid-column: span 2;
         }
@@ -1283,7 +1270,7 @@
         than from site.data.works. Getting this wrong is quiet: a hidden entry left in a count gives a page that promises sixteen projects and a grid
         that shows fourteen, and nothing errors. Assigned here rather than beside the filter pills because Liquid assigns run in document order, and
         the two "N projects" lines sit above the pills. See the featured/hidden note at the top of _data/works.yml. {% endcomment %}{% assign visible
-        = site.data.works | where_exp: "w", "w.hidden != true" %}{% assign featured = visible | where: "featured", true %}
+        = site.data.works | where_exp: "w", "w.hidden != true" %}{% assign featured = visible | where: "featured", true | sort: "featured_order" %}
         <div class="wk-head">
           <h2 data-livetype data-livetype-zone=".wk-head" data-livetype-base="400" data-livetype-peak="800" data-livetype-radius="120">
             Selected work
@@ -1302,9 +1289,9 @@
 
         <nav class="wk-filters" aria-label="Filter work by kind">
           <button type="button" class="wk-pill is-on" data-filter="all">All<span>{{ visible | size }}</span></button>
-          {% assign fl = "product,ai,culture" | split: "," %}{% for f in fl %}{% case f %}{% when "product" %}{% assign fn = "Product + design
-          engineering" %}{% when "ai" %}{% assign fn = "AI and creative tech" %}{% when "culture" %}{% assign fn = "Culture, brand and image" %}{%
-          endcase %}{% assign fc = visible | where: "lane", f | size %} {% if fc > 0 %}
+          {% assign fl = "product,ai,culture" | split: "," %}{% for f in fl %}{% case f %}{% when "product" %}{% assign fn = "Product" %}{% when "ai"
+          %}{% assign fn = "AI + creative tech" %}{% when "culture" %}{% assign fn = "Brand + visual" %}{% endcase %}{% assign fc = visible | where:
+          "lane", f | size %} {% if fc > 0 %}
           <button type="button" class="wk-pill" data-filter="{{ f }}">{{ fn }}<span>{{ fc }}</span></button>
           {% endif %} {% endfor %}
         </nav>
@@ -1338,7 +1325,7 @@
                  the rest makes every count exact. -->
             <li data-lane="{{ w.lane }}">
               <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}" {% if w.cube %} data-cube="{{ w.cube }}" {% endif %}>
-                <div class="wk-cover bend-media">
+                <div class="wk-cover">
                   {% comment %} One cover, always. The strip of extra frames used to sit behind it in a flex row, and the hover parallax slid the
                   first frame far enough to expose a sliver of the second down the right edge. Sid: "a thin column of the cover image which is cropped
                   and placed on top of it which shows up when u hover which i want to remove." The extras still live in works.yml for the quick look.
@@ -1409,7 +1396,6 @@
                  answers the question a recruiter actually has here -- "how much
                  product work is there" -- without them counting cards. -->
             <b class="wk-lane-n" aria-hidden="true">{{ lane_works | size }}</b>
-            <p>{{ lane_note }}</p>
           </div>
           <ul class="wk-grid">
             {% for w in lane_works %}
@@ -1419,7 +1405,7 @@
                  with nothing worth saying stays silent rather than being
                  handed a summary. See assets/js/cube-cursor.js. -->
               <a class="wk-card" href="{{ site.baseurl }}{{ w.url }}" {% if w.cube %} data-cube="{{ w.cube }}" {% endif %}>
-                <div class="wk-cover bend-media">
+                <div class="wk-cover">
                   <!-- ── SIZES ────────────────────────────────────────────────
                      The covers are 1500 to 1920px wide and this grid draws
                      them at about 450 device pixels, so the page was shipping
@@ -1528,22 +1514,6 @@
           var shelfCount = shelf ? shelf.querySelector(".wk-lane-n") : null;
           if (!pills.length || !lanes.length) return;
 
-          /* ── WHICHEVER ONE IS ACTUALLY FIRST ──────────────────────────
-             The hero treatment on the shelf cannot be :first-child, because
-             the filter hides shelf cards individually: filter to Culture and
-             Mool -- the first card in the DOM -- goes hidden, so the span
-             would land on something nobody can see, and Encoded would sit in
-             the third column as a thumbnail with two rows of dead space
-             beside it. The class follows the first VISIBLE card instead. */
-          function lead() {
-            var first = true;
-            featuredCards.forEach(function (li) {
-              var on = !li.hidden && first;
-              li.classList.toggle("is-lead", on);
-              if (on) first = false;
-            });
-          }
-          lead();
           pills.forEach(function (btn) {
             btn.addEventListener("click", function () {
               var want = btn.getAttribute("data-filter");
@@ -1582,7 +1552,6 @@
                 }).length;
                 shelf.hidden = left === 0;
                 if (shelfCount) shelfCount.textContent = left;
-                lead();
               }
             });
           });
@@ -1726,13 +1695,6 @@
     shader effect of curving media from top, before it enters the nav bar. Something subtle, not some crazy curve." Same effect, asked for again, so
     what returns has to differ in kind rather than in degree from the one he rejected. It does: no blur at all, and no band edge -- a 340px smoothstep
     ramp instead of a fixed 132px window, so there is no rectangle to see the sides of. The physics is new too; see the file. {% endcomment %}
-    <script src="{{ site.baseurl }}/assets/js/works-curve.js" defer></script>
-    <!-- The bend reads --sv, which scroll-velocity.js publishes. This page
-         did not load it before: /works/ had no velocity-driven effect until
-         now, so the property simply did not exist here and the bend would
-         have sat permanently flat. -->
-    <script src="{{ site.baseurl }}/assets/js/scroll-velocity.js" defer></script>
-    <script src="{{ site.baseurl }}/assets/js/media-bend.js" defer></script>
     <script src="{{ site.baseurl }}/assets/js/cover-pixels.js" defer></script>
     {% include motion_stack.html %}
   </body>
