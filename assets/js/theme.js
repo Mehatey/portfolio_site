@@ -271,11 +271,11 @@ let transTheme = () => {
 };
 
 // Determine the expected state of the theme toggle, which can be "dark", "light", or
-// "system". Dark is the default because the home scene is art-directed for it.
+// "system". Light is the first-visit default; a visitor's explicit choice persists.
 let determineThemeSetting = () => {
   let themeSetting = localStorage.getItem("theme");
   if (themeSetting != "dark" && themeSetting != "light" && themeSetting != "system") {
-    themeSetting = "dark";
+    themeSetting = "light";
   }
   return themeSetting;
 };

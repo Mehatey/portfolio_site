@@ -78,10 +78,10 @@ import { Water } from "three/addons/objects/Water.js";
   } catch (e) {
     return giveUp();
   }
-  /* The reflected water renders the scene twice. Above 1.1 DPR the extra
-     pixels were expensive on laptop Retina screens and visually lost under
-     the normal map, grain and soft fog. */
-  renderer.setPixelRatio(Math.min(1.1, devicePixelRatio || 1));
+  /* The scene is softened by fog, grain, water normals, and film texture. A
+     sub-1 DPR render is visually indistinguishable there, while cutting the
+     reflected-water pixel workload materially on Retina laptops. */
+  renderer.setPixelRatio(Math.min(0.9, devicePixelRatio || 1));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -122,11 +122,11 @@ import { Water } from "three/addons/objects/Water.js";
   const palette = () =>
     isLight()
       ? {
-          water: 0x3e8fba,
-          fog: 0xaccbd9,
-          sun: 0xd9f0f7,
+          water: 0x168fbd,
+          fog: 0xa9cfdf,
+          sun: 0xe7f8ff,
           key: 0xffc77f,
-          sky: 0x81b9d2,
+          sky: 0x73b6d4,
           ground: 0x315b73,
           stone: 0xb9b09f,
           island: 0xaaa394,
@@ -186,6 +186,11 @@ import { Water } from "three/addons/objects/Water.js";
     distortionScale: 1.55,
     fog: true,
   });
+  /* Water.js normally renders the entire scene a second time from a mirrored
+     camera before every visible frame. That hidden pass was the remaining
+     homepage bottleneck. Keep its animated normals, Fresnel edge, and moving
+     highlights, but use the authored sky and light as the reflection source. */
+  water.onBeforeRender = function () {};
   water.rotation.x = -Math.PI / 2;
   water.position.set(0, -0.005, -30);
   scene.add(water);
@@ -735,45 +740,6 @@ import { Water } from "three/addons/objects/Water.js";
     return group;
   }
 
-  /* Award names need to scan before their enamel plaques. A single canvas
-     texture per label stays crisp at laptop scale and costs far less than a
-     mesh per glyph, while the shallow plane keeps it inside the lake world. */
-  function buildAwardLabel(text, x, z, width) {
-    const canvas = document.createElement("canvas");
-    canvas.width = 1024;
-    canvas.height = 144;
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#ffffff";
-    ctx.font = '600 58px "DM Mono", "SFMono-Regular", monospace';
-    ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
-    ctx.fillText(text, 30, canvas.height / 2);
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.generateMipmaps = false;
-    const mat = new THREE.MeshBasicMaterial({
-      map: texture,
-      color: 0xf5f1e8,
-      transparent: true,
-      depthWrite: false,
-      toneMapped: false,
-    });
-    sceneTypeMats.push(mat);
-    const label = new THREE.Mesh(new THREE.PlaneGeometry(width, width * (canvas.height / canvas.width)), mat);
-    label.position.set(x + width / 2, 0.09, z);
-    label.rotation.x = -Math.PI / 2 + 0.24;
-    label.renderOrder = 5;
-    label.layers.set(1);
-    scene.add(label);
-    return label;
-  }
-
-  buildAwardLabel("2X WEBBY AWARD", -2.79, -1.12, 2.12);
-  buildAwardLabel("KYOORIUS AWARD", -0.72, -1.48, 2.18);
-
   /* The glyphs stand as soon as the font is here; the physics arrives after
      and picks them up where they are. Nothing waits on the network for the
      headline to exist. */
@@ -1247,18 +1213,18 @@ import { Water } from "three/addons/objects/Water.js";
     const stamp = typeof now === "number" ? now : performance.now();
     const scrollState = window.__sv ? window.__sv() : null;
     const pageMoving = !!scrollState && scrollState.a > 0.035;
-    /* The water is a slow surface, not a game camera. It runs at 30fps while
-       scrolling, 36fps while unattended, and 48fps under the pointer. Input
-       and the DOM transition keep their native cadence. */
-    const frameGap = pageMoving ? 33 : hasPointer ? 21 : 28;
+    /* The water is a slow surface, not a game camera. Cap it at 20fps while
+       scrolling, 24fps at rest, and 30fps during direct interaction. DOM
+       input stays at native cadence. */
+    const frameGap = pageMoving ? 50 : hasPointer ? 33 : 42;
     if (stamp - lastRenderMs < frameGap) return;
     lastRenderMs = stamp;
     /* The cursor is not changing the composition while a wheel gesture owns
        it. Reuse the last soft shadow instead of rebuilding the shadow map on
        every scrolling water frame; auto-update resumes as soon as it rests. */
     renderTick++;
-    renderer.shadowMap.autoUpdate = !pageMoving && hasPointer;
-    if (!pageMoving && !hasPointer && renderTick % 12 === 0) renderer.shadowMap.needsUpdate = true;
+    renderer.shadowMap.autoUpdate = false;
+    if (!pageMoving && renderTick % (hasPointer ? 8 : 24) === 0) renderer.shadowMap.needsUpdate = true;
     const dt = Math.min(0.05, clock.getDelta());
     const t = clock.elapsedTime;
     const introAge = introStart ? Math.max(0, (stamp - introStart) / 1000) : 0;
