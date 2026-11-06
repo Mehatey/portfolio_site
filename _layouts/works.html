@@ -1091,67 +1091,17 @@
         opacity: 1;
         transform: translateX(0);
       }
-      .wk-tags {
-        margin: 12px 0 0;
-        font-family: var(--font-mono);
-        font-size: 10px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--wk-faint);
-      }
-      .wk-tags span::after {
-        content: " · ";
-      }
-      .wk-tags span:last-child::after {
-        content: "";
-      }
-
-      /* ── THE DESCRIPTION IS NOT A REWARD ──────────────────────────────────
-         Sid: "check if the description are clear under each project and
-         legible and can you make them scroll animated in? so people have to
-         read the one or two liner."
-
-         It was gated behind hover — grid-template-rows: 0fr, span at opacity
-         0 — so all sixteen one-liners were literally unrenderable to anyone
-         scrolling the page. Measured: height 0, opacity 0, on every card.
-         The line that says what Mool actually IS was reachable only by a
-         mouse that happened to stop on it, and not at all on a phone.
-
-         So they are open by default and rise on scroll instead. The hover
-         reveal was a nice idea for a gallery of images; this is the page a
-         recruiter scans to find out what the work is, and the sentence that
-         answers that cannot be the thing you have to go looking for. */
+      /* One card, one decision: project name and one useful proof line.
+         Category labels repeated what the lane and filter already say, while
+         the animated third row slowed scanning. */
       .wk-desc {
-        display: grid;
-        grid-template-rows: 1fr;
+        margin: 8px 0 0;
       }
       .wk-desc > span {
-        overflow: hidden;
-        min-height: 0;
+        display: block;
         color: var(--wk-muted);
         font-size: 0.9rem;
-        line-height: 1.6;
-        padding-top: 12px;
-        /* Rises into place when the card reaches the viewport. .is-read is
-           set by the observer at the foot of this file, one card at a time,
-           so the sentences arrive as you reach them rather than all sixteen
-           being already there when the grid paints. */
-        opacity: 0;
-        transform: translateY(7px);
-        transition:
-          opacity 0.55s var(--ease-out),
-          transform 0.55s var(--ease-out);
-      }
-      .wk-card.is-read .wk-desc > span {
-        opacity: 1;
-        transform: none;
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .wk-desc > span {
-          opacity: 1;
-          transform: none;
-          transition: none;
-        }
+        line-height: 1.45;
       }
       /* The hover rules that used to open this are gone with the collapse —
          there is nothing left for hover to reveal. */
@@ -1305,7 +1255,6 @@
                 </div>
                 <div class="wk-body">
                   <h3 class="wk-name">{{ w.title }}<i aria-hidden="true">&rarr;</i></h3>
-                  <p class="wk-tags">{% for t in w.tags %}<span>{{ t }}</span>{% endfor %}</p>
                   <p class="wk-desc"><span>{{ w.proof | default: w.desc }}</span></p>
                 </div>
               </a>
@@ -1407,8 +1356,7 @@
                 </div>
                 <div class="wk-body">
                   <h3 class="wk-name">{{ w.title }}<i aria-hidden="true">&rarr;</i></h3>
-                  <p class="wk-tags">{% for t in w.tags %}<span>{{ t }}</span>{% endfor %}</p>
-                  <p class="wk-desc"><span>{{ w.desc }}</span></p>
+                  <p class="wk-desc"><span>{{ w.proof | default: w.desc }}</span></p>
                 </div>
               </a>
             </li>
@@ -1545,41 +1493,6 @@
            card below one that had just finished loading. One rect per
            pointermove on one element is cheap; sixteen cached ones that go
            stale are a bug. */
-        /* ── THE DESCRIPTIONS ARRIVE AS YOU REACH THEM ────────────────────
-           One observer, one class. Each card lights its own sentence when it
-           enters the viewport and is then unobserved, so this costs nothing
-           after the first pass. No stagger delay is applied on purpose: the
-           cards are already at different heights in a three-column grid, so
-           they naturally arrive at different moments and an added delay just
-           reads as lag.
-
-           Fails open — if IntersectionObserver is missing every card gets
-           .is-read immediately, because a description nobody can read is the
-           bug this was written to fix. */
-        (function () {
-          var cards = [].slice.call(document.querySelectorAll(".wk-card"));
-          if (!cards.length) return;
-          if (!("IntersectionObserver" in window)) {
-            cards.forEach(function (c) {
-              c.classList.add("is-read");
-            });
-            return;
-          }
-          var io = new IntersectionObserver(
-            function (entries) {
-              entries.forEach(function (e) {
-                if (!e.isIntersecting) return;
-                e.target.classList.add("is-read");
-                io.unobserve(e.target);
-              });
-            },
-            { rootMargin: "0px 0px -12% 0px", threshold: 0.15 }
-          );
-          cards.forEach(function (c) {
-            io.observe(c);
-          });
-        })();
-
         (function () {
           var grid = document.querySelector(".wk-grid");
           if (!grid) return;
