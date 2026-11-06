@@ -1108,6 +1108,7 @@ import { Water } from "three/addons/objects/Water.js";
      DOM transforms and pointer input remain native-rate. */
   let lastRenderMs = 0;
   let renderTick = 0;
+  let resizeDirty = true;
   let idlePaused = document.documentElement.hasAttribute("data-idle");
   let live = !idlePaused;
   let heroInView = true;
@@ -1119,6 +1120,8 @@ import { Water } from "three/addons/objects/Water.js";
     frame();
   }
   function resize() {
+    if (!resizeDirty) return;
+    resizeDirty = false;
     const r = host.getBoundingClientRect();
     const w = Math.max(1, Math.round(r.width)),
       h = Math.max(1, Math.round(r.height));
@@ -1149,6 +1152,24 @@ import { Water } from "three/addons/objects/Water.js";
         }
       }
     }
+  }
+  /* Reading getBoundingClientRect() inside every render frame forced Chrome
+     to synchronously lay out the whole hero whenever another animation had
+     invalidated styles. DevTools measured 132ms of forced reflow on a single
+     load. ResizeObserver turns that read into actual geometry work instead
+     of a permanent tax on the water loop. */
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(() => {
+      resizeDirty = true;
+    }).observe(host);
+  } else {
+    window.addEventListener(
+      "resize",
+      () => {
+        resizeDirty = true;
+      },
+      { passive: true }
+    );
   }
   let skyTexture = null;
   function makeSkyTexture(light) {
