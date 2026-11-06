@@ -3086,7 +3086,6 @@
         --progress-bar-color: transparent;
         --poster-color: transparent;
       }
-
       .cg-stage {
         position: absolute;
         left: 58%;
@@ -7027,8 +7026,8 @@
           <div class="hero-scene" id="hero-scene" data-base="" aria-hidden="true"></div>
 
           
-          <div class="cg-stage" id="cg-stage" aria-hidden="true">
-            <model-viewer id="cg-model" src="/assets/models/cube-guy-rigged.glb" camera-orbit="18deg 82deg 105%" field-of-view="30deg" environment-image="neutral" exposure="1.05" shadow-intensity="0.4" shadow-softness="1" animation-name="Idle" autoplay disable-zoom disable-pan disable-tap interaction-prompt="none" loading="lazy"></model-viewer>
+          <div class="cg-stage" id="cg-stage" role="img" aria-label="Cube Guy, Sid's interactive character">
+            <model-viewer id="cg-model" tabindex="-1" src="/assets/models/cube-guy-rigged.glb" camera-orbit="18deg 82deg 105%" field-of-view="30deg" environment-image="neutral" exposure="1.05" shadow-intensity="0.4" shadow-softness="1" animation-name="Idle" autoplay disable-zoom disable-pan disable-tap interaction-prompt="none" loading="lazy"></model-viewer>
           </div>
 
           
@@ -12821,7 +12820,7 @@
   }
   @media (hover: none), (pointer: coarse) {
     .coda__title {
-      opacity: 0.55;
+      opacity: 0.62;
       transform: none;
     }
   }
@@ -15059,6 +15058,30 @@
     <script>
       (function () {
         var loaded = false;
+        function needsLiteHero() {
+          var nav = window.navigator || {};
+          if (nav.connection && nav.connection.saveData) return true;
+          if (typeof nav.deviceMemory === "number" && nav.deviceMemory <= 4) return true;
+          if (typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4) return true;
+          try {
+            var canvas = document.createElement("canvas");
+            var gl = canvas.getContext("webgl", { powerPreference: "high-performance" });
+            if (!gl) return true;
+            var ext = gl.getExtension("WEBGL_debug_renderer_info");
+            var renderer = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : "";
+            var lose = gl.getExtension("WEBGL_lose_context");
+            if (lose) lose.loseContext();
+            return /swiftshader|llvmpipe|software|basic render/i.test(renderer || "");
+          } catch (e) {
+            return true;
+          }
+        }
+        window.__heroLite = needsLiteHero();
+        if (window.__heroLite) {
+          document.documentElement.classList.add("hero-lite");
+          var liteHero = document.getElementById("hero");
+          if (liteHero) liteHero.classList.remove("is-lake");
+        }
         function loadModelViewer() {
           if (loaded || (window.customElements && customElements.get("model-viewer"))) return;
           loaded = true;
@@ -15070,6 +15093,7 @@
         }
         window.__loadHeroFallback = loadModelViewer;
         var fallbackFirst =
+          window.__heroLite ||
           window.innerWidth < 900 ||
           (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
         if (fallbackFirst) loadModelViewer();
@@ -15083,6 +15107,7 @@
     <script>
       (function () {
         var skipLake =
+          window.__heroLite ||
           window.innerWidth < 900 ||
           (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
         if (skipLake) return;
