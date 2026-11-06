@@ -374,12 +374,8 @@ title: Play · Sid Mehta
       }
       .play-projects__rail {
         display: grid;
-        grid-auto-flow: column;
-        grid-auto-columns: minmax(210px, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 12px;
-        overflow-x: auto;
-        overscroll-behavior-inline: contain;
-        scrollbar-width: thin;
         padding-bottom: 10px;
       }
       .play-archive-head {
@@ -465,13 +461,61 @@ title: Play · Sid Mehta
           margin-top: 6px;
         }
         .play-projects__rail {
-          grid-auto-columns: minmax(180px, 72vw);
+          grid-template-columns: repeat(2, minmax(0, 1fr));
         }
       }
       @media (prefers-reduced-motion: reduce) {
         .play-project__media img {
           transition: none;
         }
+      }
+
+      /* Recruiter-facing Play: one title, one sentence, then work. The old
+         masthead repeated its description in a counter, section title and
+         second paragraph before a single project appeared. */
+      .play-header {
+        display: block;
+        margin-bottom: var(--sp-7, 48px);
+      }
+      .play-header h1 {
+        font: var(--type-display);
+        letter-spacing: var(--track-display);
+        line-height: 1;
+      }
+      .play-header p {
+        max-width: 52ch;
+        margin-top: var(--sp-4, 16px);
+        color: var(--ink-2);
+      }
+      .play-projects {
+        padding-top: 0;
+        border-top: 0;
+      }
+      .play-projects__head,
+      .play-header__count,
+      .play-archive-head {
+        display: none;
+      }
+      .play-photo-link {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--sp-2, 8px);
+        margin-top: var(--sp-5, 24px);
+        color: var(--ink-2);
+        font: var(--type-label);
+        text-decoration: none;
+      }
+      .play-photo-link::after {
+        content: "→";
+        transition: transform 220ms var(--ease-out);
+      }
+      .play-photo-link:hover,
+      .play-photo-link:focus-visible {
+        color: var(--ink);
+      }
+      .play-photo-link:hover::after,
+      .play-photo-link:focus-visible::after {
+        transform: translateX(4px);
       }
       /* Columns, not grid -- see the note on the markup. column-fill: balance
          is what keeps the last column from running short by half a screen. */
@@ -988,15 +1032,10 @@ title: Play · Sid Mehta
       {% assign play_projects = site.data.works | where: "play", true %}
       <header class="play-header">
         <h1>Play</h1>
-        <p>AI prototypes, installations, games, and visual experiments outside the core product case studies.</p>
-        <span class="play-header__count" aria-hidden="true">{{ play_projects | size }} projects · personal archive</span>
+        <p>AI prototypes, installations, games, and visual experiments.</p>
       </header>
 
-      <section class="play-projects" aria-labelledby="play-projects-title">
-        <div class="play-projects__head">
-          <h2 id="play-projects-title">Experiments and independent work</h2>
-          <p>AI prototypes, installations, character worlds, and smaller systems that show how I think and build.</p>
-        </div>
+      <section class="play-projects" aria-label="Experiments and independent work">
         <div class="play-projects__rail">
           {% for project in play_projects %}
           <a class="play-project" href="{{ site.baseurl }}{{ project.url }}">
@@ -1018,14 +1057,8 @@ title: Play · Sid Mehta
           </a>
           {% endfor %}
         </div>
+        <a class="play-photo-link" href="{{ site.baseurl }}/photography/">Photography and films</a>
       </section>
-
-      <div class="play-archive-head">
-        <h2>Photography and image archive</h2>
-        <p>A personal layer, kept separate from the project work above.</p>
-      </div>
-
-      <div class="play-grid" id="play-grid" aria-label="Play archive"></div>
 
       <!-- The instruction line lived here: "scrolling on its own · scroll to
            take over · click any piece to open it". Removed at Sid's request.
@@ -1052,16 +1085,6 @@ title: Play · Sid Mehta
            has a name. -->
     </main>
 
-    <div class="play-lightbox" id="play-lightbox" role="dialog" aria-modal="true" aria-labelledby="play-lightbox-title">
-      <button type="button" aria-label="Close selected piece">×</button>
-      <!-- No src attribute at all until a card is chosen. src="" is not an
-             empty image, it resolves against the document and makes the
-             browser re-request this page as an image on every load, which
-             then fails and leaves a broken-image node in the tree. -->
-        <div class="play-lightbox__media"><img alt="" /></div>
-      <div class="play-lightbox__copy"><h2 id="play-lightbox-title">Selected experiment</h2><p>Part of Sid’s ongoing practice across creative technology, image making, and spatial interaction.</p></div>
-    </div>
-
     <!--
       Bootstrap. The gallery below is an ES module that imports three.js from
       a CDN. If that import fails — blocked CDN, offline, a corporate proxy —
@@ -1073,6 +1096,10 @@ title: Play · Sid Mehta
     -->
     <script>
       (function () {
+      /* The personal image archive now has its own curated page. Keep this
+         legacy renderer dormant on Play so it does not create or observe 225
+         off-screen media nodes. */
+      if (!document.getElementById("play-grid")) return;
       /* THE WORKS COVERS COME OUT OF PLAY.
          Sid: "play also has a lot of covers from works remove those its
          supposed to be a seperate section."
