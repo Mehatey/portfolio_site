@@ -135,7 +135,8 @@ next_project:
   /* m-watch-link: link bar matching cube-guy */
   .m-watch-link {
     display: flex;
-    gap: 0;
+    gap: clamp(20px, 3vw, 40px);
+    flex-wrap: wrap;
     margin: 40px var(--gutter) 0;
     border-top: 1px solid rgba(255,255,255,0.07);
     border-bottom: 1px solid rgba(255,255,255,0.07);
@@ -251,8 +252,19 @@ next_project:
      definition for every step; there is nothing for these rules to do. */
   html[data-theme="light"] .thesis-doc-title { color: var(--ink); }
   html[data-theme="light"] .thesis-doc:hover .thesis-doc-meta { color: var(--ink); }
+  @media (max-width: 520px) {
+    .m-watch-link {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 0;
+    }
+  }
 </style>
 
+{% comment %}
+<!-- ARCHIVED LONG FORM BODY
+     Preserved in source, removed from the recruiter path. This mixed the final
+     installation with two earlier projects and more than fifty media files. -->
 <!-- THESIS DOCUMENTS -->
 <div class="thesis-docs">
   <a href="{{ site.baseurl }}/4.mandala/thesis-paper.pdf" target="_blank" rel="noopener" class="thesis-doc">
@@ -644,6 +656,118 @@ next_project:
   <video width="1440" height="810" autoplay muted loop playsinline preload="none">
     <source data-src="{{ site.baseurl }}/4.mandala/5.2.mp4" type="video/mp4" />
   </video>
+</div>
+
+{% endcomment %}
+
+<!-- CURATED CASE STORY -->
+<div class="cs-section" id="bloom-final">
+  <h2 class="cs-section-label">The final experience</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>A visitor enters a dark room, sits, and meets one question: who are you?</em></p>
+<div class="cs-bleed">
+  <video width="1440" height="810" autoplay muted loop playsinline preload="metadata">
+    <source src="{{ site.baseurl }}/4.mandala/final-walking.mp4" type="video/mp4" />
+  </video>
+</div>
+
+<div class="cs-grid">
+  <div class="cs-grid-item" style="position: relative">
+    <video width="1280" height="720" id="mandala-compiled-vid" autoplay muted loop playsinline preload="metadata">
+      <source src="{{ site.baseurl }}/4.mandala/mandala-shorter.mp4" type="video/mp4" />
+    </video>
+    <button class="grid-audio-btn muted" id="mandala-audio-btn" aria-label="Play the installation audio">
+      <svg class="icon-on" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      <svg class="icon-off" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></svg>
+    </button>
+  </div>
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/4.mandala/cover.jpg" alt="Bloom projected across the installation wall" loading="lazy" decoding="async" />
+  </div>
+</div>
+
+<div class="cs-section" id="bloom-intent">
+  <h2 class="cs-section-label">The question</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>The spiral became a record of a person: memory, voice, movement, and the stories people share.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/4.mandala/2.webp" alt="Early mandala studies arranged across the studio wall and floor" loading="lazy" decoding="async" />
+  </div>
+  <div class="cs-grid-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/4.mandala/people.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<div class="cs-section" id="bloom-system">
+  <h2 class="cs-section-label">Building the system</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>TouchDesigner shaped the mandala. Body tracking changed it slowly enough to be felt without turning the room into a game.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/4.mandala/ma1.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/4.mandala/ripple-web.mp4" type="video/mp4" />
+    </video>
+  </div>
+</div>
+
+<div class="cs-section" id="bloom-testing">
+  <h2 class="cs-section-label">Testing calm</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>An EEG headband made calm measurable. The room mattered as much as the software: darkness, fewer people, and quieter sound produced the strongest sessions.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <video width="1440" height="814" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/4.mandala/brainbit.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item ai-contain">
+    <img src="{{ site.baseurl }}/4.mandala/brainbit.jpg" alt="The Bloom operator view showing live EEG channels and session data" loading="lazy" decoding="async" />
+  </div>
+</div>
+
+<div class="cs-grid-3">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/4.mandala/13.1.webp" alt="The installation rig in the darkened studio" loading="lazy" decoding="async" />
+  </div>
+  <div class="cs-grid-item">
+    <video width="1080" height="1920" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/4.mandala/13.2.mp4" type="video/mp4" />
+    </video>
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/4.mandala/13.3.webp" alt="Bloom lit in red with its central question visible" loading="lazy" decoding="async" />
+  </div>
+</div>
+
+<div class="cs-section" id="bloom-outcome">
+  <h2 class="cs-section-label">What the room taught me</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Some visitors closed their eyes. The visual system worked, but the space carried the experience. Bloom became less about controlling attention and more about making room for it.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/4.mandala/p1.png" alt="A visitor sitting with Bloom as the mandala forms" loading="lazy" decoding="async" />
+  </div>
+  <div class="cs-grid-item">
+    <img src="{{ site.baseurl }}/4.mandala/p2.png" alt="A visitor moving through a Bloom session" loading="lazy" decoding="async" />
+  </div>
+</div>
+
+<div class="m-watch-link">
+  <a href="https://www.youtube.com/watch?v=v14nAzshrLs" target="_blank" rel="noopener">Watch the full meditation<span class="xarrow" aria-hidden="true"></span></a>
+  <a href="{{ site.baseurl }}/4.mandala/thesis-paper.pdf" target="_blank" rel="noopener">Read the thesis<span class="xarrow" aria-hidden="true"></span></a>
 </div>
 
 <script>

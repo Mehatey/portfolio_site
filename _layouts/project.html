@@ -7997,6 +7997,66 @@
         look();
       })();
 
+      /* Once the cover leaves, the left side of the persistent bar becomes a
+         live chapter marker. It uses the headings already authored in each
+         case rather than adding another navigation system to the page. */
+      (function () {
+        var sectionLabel = document.querySelector("[data-project-section]");
+        var projectName = document.querySelector("[data-project-name]");
+        var hero = document.querySelector(".proj-hero");
+        if (!sectionLabel || !projectName || !hero) return;
+
+        var title = sectionLabel.textContent.trim();
+        var points = [];
+        function add(el, label) {
+          if (!el || !label) return;
+          points.push({ el: el, label: label.trim() });
+        }
+        add(document.getElementById("case-overview"), "Overview");
+        add(document.getElementById("case-proof"), "Proof");
+        var chapters = document.querySelectorAll(".proj-body .cs-section");
+        if (chapters.length) {
+          chapters.forEach(function (section, index) {
+            var heading = section.querySelector(".cs-section-label, h2, h3");
+            if (!section.id) section.id = "case-chapter-" + (index + 1);
+            add(section, heading ? heading.textContent : "Process");
+          });
+        } else {
+          add(document.getElementById("case-archive"), "Visual story");
+        }
+        add(document.getElementById("reflection-section"), "Reflection");
+        add(document.getElementById("project-next-step"), "Next project");
+        if (!points.length) return;
+
+        projectName.textContent = title;
+        function setLabel(label) {
+          if (sectionLabel.textContent === label) return;
+          sectionLabel.parentElement.classList.add("is-changing");
+          window.setTimeout(function () {
+            sectionLabel.textContent = label;
+            sectionLabel.parentElement.classList.remove("is-changing");
+          }, 90);
+        }
+        var chapterFrame = 0;
+        function updateChapter() {
+          chapterFrame = 0;
+          var readingLine = window.innerHeight * 0.3;
+          var current = points[0];
+          points.forEach(function (point) {
+            if (point.el.getBoundingClientRect().top <= readingLine) current = point;
+          });
+          setLabel(current.label);
+        }
+        window.addEventListener(
+          "scroll",
+          function () {
+            if (!chapterFrame) chapterFrame = requestAnimationFrame(updateChapter);
+          },
+          { passive: true }
+        );
+        updateChapter();
+      })();
+
       (function () {
         var marker = document.getElementById("proj-marker");
         var hero = document.querySelector(".proj-hero");
