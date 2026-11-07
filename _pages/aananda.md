@@ -4,7 +4,7 @@ permalink: /aananda/
 project_title: Aananda
 proj_num: "13"
 tagline: >
-  Aananda explores how Jain philosophy reaches younger audiences without losing what makes it deep. The question was how to translate something ancient and dense into a form that feels present. The project spans a mobile app studied against existing religious platforms, a book drawing from the visual language of Jain temples, and a print identity that holds it together.
+  Identity, mobile app, and print system translating Jain philosophy for younger audiences without flattening its meaning.
 quick_read: "Designed a complete identity system, mobile app, book and print, that translates Jain philosophy into a visual language a younger audience can actually sit with."
 category: Branding · App Design
 year: 2020
@@ -73,6 +73,9 @@ next_project:
   }
 </style>
 
+{% comment %}
+<!-- ARCHIVED LONG FORM BODY. Preserved in source; the recruiter path now
+     keeps one coherent story and removes repeated mockups. -->
 <div class="cs-bleed">
   <img class="breathe" src="{{ site.baseurl }}/9.aananda/1.png" alt="Aananda: sat, chit, aanand" loading="eager" decoding="async" />
 </div>
@@ -201,4 +204,50 @@ next_project:
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/9.aananda/27.webp" alt="Backlit posters in a metro underpass" loading="lazy" decoding="async" />
+</div>
+{% endcomment %}
+
+<div class="cs-section" id="aananda-system">
+  <h2 class="cs-section-label">The system</h2>
+</div>
+<p class="cube-cap cube-cap--above"><em>One visual language spanning a learning app, book, and physical touchpoints.</em></p>
+<div class="cs-bleed">
+  <img class="breathe" src="{{ site.baseurl }}/9.aananda/1.png" alt="The Aananda identity and its central principles" loading="eager" decoding="async" />
+</div>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/6.webp" alt="Aananda profiles, live classes, and upcoming events" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/13.webp" alt="The Aananda book shown with the identity system" loading="lazy" decoding="async" /></div>
+</div>
+
+<div class="cs-section" id="aananda-source">
+  <h2 class="cs-section-label">Starting from the source</h2>
+</div>
+<p class="cube-cap cube-cap--above"><em>Conversations with my father, who studies Jain philosophy, shaped the structure before any visual decisions were made.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/3.webp" alt="Early notebook pages defining the product structure" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/4.webp" alt="Research connecting Jain stories, symbols, sculpture, and painting" loading="lazy" decoding="async" /></div>
+</div>
+
+<div class="cs-section" id="aananda-product">
+  <h2 class="cs-section-label">The learning experience</h2>
+</div>
+<p class="cube-cap cube-cap--above"><em>Teachers and learners could move between stories, classes, events, temples, and conversation without turning the philosophy into a feed.</em></p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/9.aananda/7.webp" alt="Aananda onboarding and the illustrated guide" loading="lazy" decoding="async" />
+</div>
+<div class="cs-bleed cs-bleed--narrow">
+  <img class="breathe" src="{{ site.baseurl }}/9.aananda/8.webp" alt="Stories, events, and temples inside the Aananda app" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-section" id="aananda-physical">
+  <h2 class="cs-section-label">Beyond the screen</h2>
+</div>
+<p class="cube-cap cube-cap--above"><em>The same system carried into a book and cards placed where people encountered the philosophy in person.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/14.webp" alt="The Ahimsa chapter opening in the Aananda book" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/20.webp" alt="Temple cards explaining Jain principles" loading="lazy" decoding="async" /></div>
+</div>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/22.webp" alt="A visitor reading an Aananda card beside a temple pillar" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/27.webp" alt="Aananda posters in a metro underpass" loading="lazy" decoding="async" /></div>
 </div>

@@ -5,7 +5,7 @@ permalink: /mool/
 project_title: Mool
 proj_num: "06"
 tagline: >
-  The majority of Indians deserve a better shot at money and a source that empowers them with the opportunities they truly need. Mool was built to be that source. A neo banking platform designed for underserved communities across India, blending the visual richness of Indian folk art, traditional motifs, and regional patterns with the precision and trust that financial tools demand. The challenge was making a banking app that doesn't just work, but feels like it belongs to the people using it.
+  Visual system and product experience for a neo-banking platform serving underserved communities across India. Folk-art references made the app feel local without compromising financial clarity.
 category: UI · Fintech
 year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
@@ -181,6 +181,10 @@ next_project:
   }
 </style>
 
+{% comment %}
+<!-- ARCHIVED LONG FORM BODY
+     Preserved in source. The recruiter path now shows the shipped product
+     before the research and removes repeated interface boards. -->
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/store-listing.webp" alt="The Mool app store listing, and the logo construction grid" loading="eager" decoding="async" />
 </div>
@@ -305,4 +309,62 @@ next_project:
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/closing-banking.webp" alt="One India unified by better banking: the Mool marketing site footer" loading="lazy" decoding="async" />
+</div>
+{% endcomment %}
+
+<div class="cs-section" id="mool-shipped">
+  <h2 class="cs-section-label">The shipped product</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>A banking experience built to feel familiar, trustworthy, and useful from the first screen.</em></p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/5.mool/store-listing.webp" alt="The Mool app store listing and logo construction" loading="eager" decoding="async" />
+</div>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/4.2.webp" alt="The Mool dashboard showing bank and investment balances" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/7.webp" alt="A savings goal written as a question in everyday language" loading="lazy" decoding="async" /></div>
+</div>
+
+<div class="cs-section" id="mool-problem">
+  <h2 class="cs-section-label">The problem</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Most digital banks borrowed a Western visual language. Mool needed to make money understandable without making its audience feel like an afterthought.</em></p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/5.mool/segmentation.webp" alt="Customer segments mapped by income and openness to digital tools" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-section" id="mool-system">
+  <h2 class="cs-section-label">A local visual system</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>Regional motifs and folk-art references became part of the interface system, while balances, dates, and account numbers stayed neutral and precise.</em></p>
+<div class="cs-grid cs-grid--one">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="The four Mool brand colors and the meanings assigned to them" loading="lazy" decoding="async" /></div>
+</div>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/3.webp" alt="Mool tone of voice and writing principles" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/6.webp" alt="Onboarding screens combining regional illustration with clear product language" loading="lazy" decoding="async" /></div>
+</div>
+
+<div class="cs-section" id="mool-decisions">
+  <h2 class="cs-section-label">Designing for trust</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>One decision per screen, explicit confirmation, and goals written in the words people already use for them.</em></p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/5.mool/money-mgmt.webp" alt="Income, expenses, and monthly balance shown through clear charts" loading="lazy" decoding="async" />
+</div>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/5.mool/10.webp" alt="Payments, transfers, and debit card controls" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-section" id="mool-outcome">
+  <h2 class="cs-section-label">Out in the world</h2>
+</div>
+
+<p class="cube-cap cube-cap--above"><em>The system extended from the app into a public campaign about empathy, equality, and freedom. Mool reached 100,000+ downloads and received a Kyoorius Design Award.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/13.jpg" alt="Mool outdoor campaign at a bus shelter" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/closing-banking.webp" alt="Mool campaign closing statement about better banking" loading="lazy" decoding="async" /></div>
 </div>

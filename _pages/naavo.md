@@ -4,7 +4,7 @@ permalink: /naavo/
 project_title: Naavo
 proj_num: "09"
 tagline: >
-  How can traditional Ayurveda feel relevant to a modern lifestyle? Naavo is a branding and packaging project that reimagines Ayurveda for a contemporary audience. The direction was neither clinical nor nostalgic: something rooted in the source but not dressed in its clichés, with a visual language that reads calm and grounded without defaulting to beige and botanicals.
+  Identity and packaging system making Ayurveda feel contemporary without becoming clinical or nostalgic.
 quick_read: "Built an Ayurveda brand end to end, identity through packaging, in eight weeks, landing on a calm and grounded visual language that avoids both clinical and nostalgic clichés."
 category: Branding · Packaging
 year: 2020
@@ -68,6 +68,9 @@ next_project:
   }
 </style>
 
+{% comment %}
+<!-- ARCHIVED LONG FORM BODY. Preserved in source; the recruiter path now
+     leads with the finished system and removes repeated collateral. -->
 <div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/7.naavo/1.png" alt="The Naavo identity: New Age Ayurveda, set under a mark of three coloured segments in a circle" loading="eager" decoding="async" />
 </div>
@@ -206,4 +209,57 @@ next_project:
 
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/24.webp" alt="A lit billboard at night: discover your dosha today" loading="lazy" decoding="async" />
+</div>
+{% endcomment %}
+
+<div class="cs-section" id="naavo-finished">
+  <h2 class="cs-section-label">The finished system</h2>
+</div>
+<p class="cube-cap cube-cap--above"><em>A calm, grounded identity built to work across packaging, retail, and a guided product experience.</em></p>
+<div class="cs-bleed breathe">
+  <img src="{{ site.baseurl }}/7.naavo/1.png" alt="The Naavo identity and New Age Ayurveda positioning" loading="eager" decoding="async" />
+</div>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/13.4 solo.webp" alt="Naavo face and body oils with printed packaging" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/12.webp" alt="Naavo app screens and guided product recommendations" loading="lazy" decoding="async" /></div>
+</div>
+
+<div class="cs-section" id="naavo-foundation">
+  <h2 class="cs-section-label">Five elements, three doshas</h2>
+</div>
+<p class="cube-cap cube-cap--above"><em>The core Ayurvedic model became the organizing principle rather than surface decoration.</em></p>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/2.webp" alt="Five elements combining into the three Ayurvedic doshas" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-section" id="naavo-mark">
+  <h2 class="cs-section-label">Building the mark</h2>
+</div>
+<p class="cube-cap cube-cap--above"><em>Overlapping forms reduced the elements and doshas into one flexible symbol and pattern language.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/4.2.webp" alt="Logo exploration and the dosha color system" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/6.webp" alt="Construction of the Naavo mark and its component forms" loading="lazy" decoding="async" /></div>
+</div>
+<div class="cs-bleed">
+  <video width="1400" height="800" autoplay muted loop playsinline preload="metadata"><source src="{{ site.baseurl }}/7.naavo/7.1.mp4" type="video/mp4" /></video>
+</div>
+
+<div class="cs-section" id="naavo-packaging">
+  <h2 class="cs-section-label">Packaging the range</h2>
+</div>
+<p class="cube-cap cube-cap--above"><em>Color, material, and pattern distinguish each product while keeping the family recognizable at shelf distance.</em></p>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.webp" alt="Naavo massage oil cartons in kraft board" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.webp" alt="Naavo body polisher packaging" loading="lazy" decoding="async" /></div>
+</div>
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/7.naavo/18.2.webp" alt="Naavo face serum photographed in a natural setting" loading="lazy" decoding="async" />
+</div>
+
+<div class="cs-section" id="naavo-world">
+  <h2 class="cs-section-label">Out in the world</h2>
+</div>
+<div class="cs-grid">
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/19.webp" alt="A Naavo tote carried through foliage" loading="lazy" decoding="async" /></div>
+  <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/24.webp" alt="Naavo billboard inviting people to discover their dosha" loading="lazy" decoding="async" /></div>
 </div>
