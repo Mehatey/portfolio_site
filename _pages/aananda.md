@@ -6,6 +6,7 @@ proj_num: "13"
 tagline: >
   Identity, mobile app, and print system translating Jain philosophy for younger audiences without flattening its meaning.
 quick_read: "Designed a complete identity system, mobile app, book and print, that translates Jain philosophy into a visual language a younger audience can actually sit with."
+cover_summary: A learning app and print system translating Jain philosophy for younger audiences.
 category: Branding · App Design
 year: 2020
 hero_bg: "radial-gradient(ellipse at 35% 65%, #24110c 0%, #120806 50%, #050202 100%)"

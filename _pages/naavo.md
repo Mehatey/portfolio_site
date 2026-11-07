@@ -6,6 +6,7 @@ proj_num: "09"
 tagline: >
   Identity and packaging system making Ayurveda feel contemporary without becoming clinical or nostalgic.
 quick_read: "Built an Ayurveda brand end to end, identity through packaging, in eight weeks, landing on a calm and grounded visual language that avoids both clinical and nostalgic clichés."
+cover_summary: A contemporary Ayurveda identity spanning packaging, retail, and guided products.
 category: Branding · Packaging
 year: 2020
 hero_bg: "radial-gradient(ellipse at 45% 55%, #141c16 0%, #0a0e0b 50%, #020302 100%)"
