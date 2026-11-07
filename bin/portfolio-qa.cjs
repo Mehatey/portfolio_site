@@ -210,9 +210,9 @@ async function checkWorkIndex(results, viewport, route, page) {
    the gallery actually has to do. */
 async function checkPlay(results, viewport, route, page) {
   const playHealth = await page.evaluate(() => {
-    const grid = document.getElementById("play-grid");
-    const tiles = grid ? grid.querySelectorAll("img, video").length : 0;
-    const firstImg = grid ? grid.querySelector("img") : null;
+    const projects = document.querySelector(".play-projects");
+    const tiles = projects ? projects.querySelectorAll(".play-project").length : 0;
+    const firstImg = projects ? projects.querySelector("img") : null;
     return {
       tiles,
       // The gallery is the page; an empty grid is a dead page even though
@@ -226,17 +226,17 @@ async function checkPlay(results, viewport, route, page) {
       //
       // What matters is that no tile is anonymous, so that is what is counted:
       // images with a non-empty alt, and videos with an aria-label.
-      namedTiles: [...document.querySelectorAll(".play-grid img, .play-grid video")].filter(
-        (el) => (el.getAttribute("alt") || el.getAttribute("aria-label") || "").trim().length > 0
+      namedTiles: [...document.querySelectorAll(".play-project")].filter(
+        (el) => (el.getAttribute("aria-label") || el.textContent || "").trim().length > 0
       ).length,
-      hasLightbox: Boolean(document.querySelector(".play-lightbox")),
+      hasPhotoArchive: Boolean(document.querySelector(".play-photo-link[href*='photography']")),
       // Play is where a recruiter lands after they like the work. Without the
       // footer that path dead-ends — it has been missing once already.
       hasFooter: Boolean(document.querySelector("footer.site-footer")),
     };
   });
 
-  record(results, viewport, route, playHealth.tiles >= 40, "play renders its gallery", `${playHealth.tiles} tiles`);
+  record(results, viewport, route, playHealth.tiles >= 5, "play renders its curated projects", `${playHealth.tiles} projects`);
   record(results, viewport, route, playHealth.firstTilePainted, "play's first tile actually decodes");
   record(
     results,
@@ -246,14 +246,14 @@ async function checkPlay(results, viewport, route, page) {
     "every play tile has an accessible name",
     `${playHealth.namedTiles} named of ${playHealth.tiles} tiles`
   );
-  record(results, viewport, route, playHealth.hasLightbox, "play can open a piece full size");
+  record(results, viewport, route, playHealth.hasPhotoArchive, "play links to the separate photo archive");
   record(results, viewport, route, playHealth.hasFooter, "play carries the site footer");
 }
 
 async function checkProject(results, viewport, route, page) {
   const projectHealth = await page.evaluate(() => {
     const text = document.body.innerText;
-    const details = document.querySelector(".project-details");
+    const details = document.querySelector(".project-details, .project-facts");
     const hero = document.querySelector(".proj-hero");
     const map = document.querySelector(".case-map, .case-map-nav, [aria-label*='Case map' i]");
     const mediaCount = document.querySelectorAll("img, video, model-viewer").length;

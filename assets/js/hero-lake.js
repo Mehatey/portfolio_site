@@ -81,7 +81,7 @@ import { Water } from "three/addons/objects/Water.js";
   /* The scene is softened by fog, grain, water normals, and film texture. A
      sub-1 DPR render is visually indistinguishable there, while cutting the
      reflected-water pixel workload materially on Retina laptops. */
-  renderer.setPixelRatio(Math.min(0.9, devicePixelRatio || 1));
+  renderer.setPixelRatio(Math.min(0.78, devicePixelRatio || 1));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -1237,7 +1237,7 @@ import { Water } from "three/addons/objects/Water.js";
     /* The water is a slow surface, not a game camera. Cap it at 20fps while
        scrolling, 24fps at rest, and 30fps during direct interaction. DOM
        input stays at native cadence. */
-    const frameGap = pageMoving ? 50 : hasPointer ? 33 : 42;
+    const frameGap = pageMoving ? 80 : hasPointer ? 42 : 66;
     if (stamp - lastRenderMs < frameGap) return;
     lastRenderMs = stamp;
     /* The cursor is not changing the composition while a wheel gesture owns

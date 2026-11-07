@@ -25,8 +25,6 @@ meta:
 highlights:
   - value: One question
     label: who are you?
-  - value: Solo
-    label: installation design & build
   - value: TouchDesigner
     label: generative visual system
 reflection: >
