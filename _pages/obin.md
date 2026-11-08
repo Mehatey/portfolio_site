@@ -3,9 +3,10 @@ layout: project
 permalink: /obin/
 project_title: Obin
 proj_num: "15"
-tagline: An agent writes the credit memo in four minutes. Then an analyst checks every number in it for four hours. This is the workspace that closes that gap.
+tagline: A verification workspace for AI-written venture debt memos. The agent drafts in minutes, then an analyst can see which claims are proved, unsupported, or still require judgment.
 quick_read: >
-  A verification workspace for AI-written venture debt memos. The agent drafts; the interface makes visible which figures it proved against a source, which it could not, and which two of its own it drew back at random for a person to check.
+  I designed and built a concept workflow for reviewing an AI-written credit memo. It makes every machine assertion inspectable, orders unresolved claims by risk, and deliberately returns sampled claims to a person instead of presenting automation as certainty.
+cover_summary: A verification workspace for AI-written credit memos.
 category: Agentic AI · Fintech
 year: "2026"
 hero_bg: "radial-gradient(ellipse at 40% 45%, #11151c 0%, #0a0d12 55%, #05070a 100%)"
@@ -18,7 +19,7 @@ meta:
   - label: Client
     value: Obin · concept
   - label: Role
-    value: Design · Prototype
+    value: Product design · Front-end prototype
   - label: Tools
     value: Claude · HTML · CSS · JS
   - label: Live
@@ -42,12 +43,12 @@ next_project:
 ---
 
 <div class="cs-intro">
-  <p>Obin verifies the numbers inside an AI written venture debt memo. It shows which figures were proved against a source, which remain unsupported, and which need a person to decide.</p>
+  <p>Obin is a concept workflow I designed and built around one question: after an agent writes a credit memo, how does an analyst know what deserves attention? Every machine-written figure carries its evidence state. The review queue starts with the highest-risk unresolved claim.</p>
 </div>
 
 <div class="cs-section"><span class="cs-section-label">The run</span></div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The agent reads the data room, writes the memo, marks each figure, then stops when judgment is required.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The workflow decision: draft fast, expose evidence immediately, then stop when judgment is required.</em></p>
 <div class="cs-bleed">
   <video width="1600" height="910" autoplay muted loop playsinline preload="none" aria-label="The Obin agent reading a data room, drafting a credit memo with each asserted figure marked, then halting and listing four decisions for a person">
     <source data-src="{{ site.baseurl }}/16.obin/v1-agent.mp4" type="video/mp4" />
@@ -56,12 +57,12 @@ next_project:
 
 <div class="cs-section"><span class="cs-section-label">The verification layer</span></div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Human writing stays in serif. Machine assertions use monospace. The underline shows whether each figure is proved, conflicting, or unsupported.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The interface makes authorship and evidence state legible at reading speed: human writing in serif, machine assertions in monospace, and an underline for proof, conflict, or missing support.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/16.obin/01-figures.webp" alt="A credit memo where every machine-asserted figure is set in monospace with a coloured underline: blue for proved, amber for conflict, red for unsupported" loading="lazy" decoding="async" />
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Risk order puts the most consequential unsupported claim first. Opening it reveals the source, the agent's reasoning, and the missing evidence.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The review decision: risk order puts the most consequential unsupported claim first. Opening it reveals the source, the agent's reasoning, and what is still missing.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/16.obin/02-risk-order.webp" alt="The queue in risk order, with the senior blanket lien at the top marked unsupported" loading="lazy" decoding="async" />

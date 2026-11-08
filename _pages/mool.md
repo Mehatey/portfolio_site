@@ -5,7 +5,7 @@ permalink: /mool/
 project_title: Mool
 proj_num: "06"
 tagline: >
-  Visual system and product experience for a neo-banking platform serving underserved communities across India. Folk-art references made the app feel local without compromising financial clarity.
+  Visual system and product UI for a neo-banking platform serving underserved communities across India. Local cultural references built trust, while money stayed precise and easy to read.
 category: UI · Fintech
 year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
@@ -22,7 +22,7 @@ og_image: "assets/img/og/mool-award.jpg"
 award_badge: "Kyoorius Design Award 2021"
 meta:
   - label: Role
-    value: Visual Designer
+    value: Visual design · Product UI
   - label: Duration
     value: 6 months
   - label: Year
@@ -42,7 +42,7 @@ highlights:
   - value: Kyoorius
     label: Design Award · 2021
 quick_read: >
-  Led visual design for a neo-banking product that made everyday financial tools feel familiar and trustworthy for underserved communities across India.
+  I led the visual design for Mool's product experience, turning regional references into a working interface system for people often underserved by digital banking. The result paired culturally familiar cues with clear, high-contrast financial information.
 cover_summary: A culturally resonant banking experience for underserved communities across India.
 refl_bg: "5.mool/reflection.png"
 reflection: >
@@ -317,7 +317,7 @@ next_project:
   <h2 class="cs-section-label">The shipped product</h2>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>A banking experience built to feel familiar, trustworthy, and useful from the first screen.</em></p>
+<p class="cube-cap cube-cap--above"><em>My remit was the visual system and product UI: make first-use banking feel familiar without ever making the money itself feel ornamental.</em></p>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/5.mool/store-listing.webp" alt="The Mool app store listing and logo construction" loading="eager" decoding="async" />
 </div>
@@ -339,7 +339,7 @@ next_project:
   <h2 class="cs-section-label">A local visual system</h2>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Regional motifs and folk-art references became part of the interface system, while balances, dates, and account numbers stayed neutral and precise.</em></p>
+<p class="cube-cap cube-cap--above"><em>The key design decision: regional motifs and folk-art references belong in the system, while balances, dates, and account numbers stay neutral and precise.</em></p>
 <div class="cs-grid cs-grid--one">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/5.mool/2.2.png" alt="The four Mool brand colors and the meanings assigned to them" loading="lazy" decoding="async" /></div>
 </div>

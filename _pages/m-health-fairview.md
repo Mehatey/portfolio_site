@@ -5,7 +5,7 @@ permalink: /m-health-fairview/
 project_title: M Health Fairview
 proj_num: "08"
 tagline: >
-  M Health Fairview is one of Minnesota's largest health systems, and its Get Care experience had grown into a maze. Patients landed on a page of overlapping options, online visits, virtual urgent care, in person urgent care, primary care and emergency care, with no clear sense of which one they needed or where to start. Working with Deloitte Digital, I reworked the entire care discovery and scheduling journey into one clear, urgency sorted path that guides patients to the right care and moves routine demand off overloaded emergency rooms.
+  With Deloitte Digital, redesigned M Health Fairview's care discovery and scheduling experience into one urgency-sorted path. Patients can find the right level of care without first learning the health system's internal structure.
 category: Healthcare · Enterprise UX
 year: 2024
 hero_bg: "radial-gradient(ellipse at 50% 35%, #3a0d16 0%, #1e0710 50%, #0a0305 100%)"
@@ -15,7 +15,7 @@ og_image: "assets/img/og/m-health-fairview.jpg"
 refl_bg: "assets/img/fairview/13-impact-crop.webp"
 meta:
   - label: Role
-    value: Product Designer
+    value: Product design · Care discovery
   - label: Partner
     value: Deloitte Digital
   - label: Client
@@ -32,7 +32,8 @@ highlights:
   - value: "4.4"
     label: top rated care app
 quick_read: >
-  Redesigned M Health Fairview's care discovery and scheduling into one urgency sorted journey with Deloitte Digital, lifting scheduling revenue and moving routine demand away from the emergency room.
+  I shaped the care-discovery experience, from the information architecture and wireframes through hi-fi delivery and build QA. Sorting options by urgency created a clearer patient path and helped move routine demand from emergency rooms to scheduled and virtual care.
+cover_summary: Care discovery and scheduling, redesigned around urgency.
 reflection: >
   The hardest part of this project was not visual, it was deciding what a patient should see first. A person looking for care is often anxious and short on time, so every extra option is a small tax on someone who is already stressed. We kept returning to one test, does this help someone in the first ten seconds know where to go. Sorting the whole experience by urgency, rather than by how the health system is organised internally, was the decision that made everything else fall into place.
 
@@ -116,7 +117,7 @@ next_project:
 <div class="cs-section">
   <h2 class="cs-section-label">03 · The process</h2>
 </div>
-<p class="cube-cap cube-cap--above">Six stages, two sprints. Discover and define with the functional team, design against a feasibility check, deliver hi-fi with dev notes, then QA every build.</p>
+<p class="cube-cap cube-cap--above">My role across two sprints: map the flow with the functional team, turn it into testable wireframes and hi-fi screens, document handoff, then QA the build.</p>
 <div class="cs-grid cs-grid--fit">
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/process-discover.webp" alt="Stage 1, Discover: sprint planning, PRD documents, research, design board planner" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/process-define.webp" alt="Stage 2, Define: connect with the functional team, existing user flow, workshop" loading="lazy" decoding="async" /></div>
@@ -143,7 +144,7 @@ next_project:
 <div class="cs-section">
   <h2 class="cs-section-label">04 · What shipped</h2>
 </div>
-<p class="cube-cap cube-cap--above">Before and after. Every action in the first fold, sorted by how soon you need care.</p>
+<p class="cube-cap cube-cap--above">The core decision, made visible: every action in the first fold, sorted by how soon a patient needs care.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
 <p class="cube-cap cube-cap--above">The new entry point, in motion.</p>
 <div class="cs-bleed"><video width="1200" height="674" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/07-choose-poster.jpg" aria-label="Choose the right care page in motion"><source src="{{ site.baseurl }}/assets/img/fairview/07-choose.mp4" type="video/mp4" /></video></div>
@@ -157,7 +158,6 @@ next_project:
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/09-comparison.webp" alt="Side by side comparison of every care type by cost, wait and what it treats" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item"><video width="796" height="1126" autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/fairview/11-assistant-poster.jpg" aria-label="Conversational care assistant"><source src="{{ site.baseurl }}/assets/img/fairview/11-assistant.mp4" type="video/mp4" /></video></div>
   <div class="cs-grid-item" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/12-prepare.webp" alt="Prepare for your appointment" loading="lazy" decoding="async" /></div>
-</div>
 </div>
 
 <div class="cs-section">

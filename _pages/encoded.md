@@ -5,7 +5,7 @@ permalink: /encoded/
 project_title: Encoded
 proj_num: "00"
 tagline: >
-  A guerrilla AR exhibition at the Metropolitan Museum of Art, reinterpreting the American Wing through contemporary Indigenous perspectives. 25 artworks scanned and activated using Polycam and Niantic Lightship VPS, generating over 2,000 user activations. Recognized with two Webby Awards and featured in Artnet and Agog.
+  An AR exhibition at the Metropolitan Museum of Art, reinterpreting the American Wing through contemporary Indigenous perspectives. I built the on-site capture and spatial deployment pipeline for 25 activated artworks, reaching 2,000+ visitors and earning two Webby Awards.
 category: AR · Exhibition
 year: 2025
 hero_bg: "radial-gradient(ellipse at 25% 55%, #0d1535 0%, #060b1f 50%, #010208 100%)"
@@ -22,7 +22,7 @@ meta:
   - label: Client
     value: Amplifier.org
   - label: Role
-    value: Creative Technologist
+    value: On-site capture · Spatial deployment
   - label: Tools
     value: Polycam · Niantic VPS
   - label: Learn More
@@ -36,7 +36,8 @@ highlights:
   - value: "2×"
     label: Webby Awards
 quick_read: >
-  Built the on-site capture and location-based AR pipeline that activated 25 American Wing artworks through contemporary Indigenous perspectives and reached more than 2,000 visitors.
+  I owned the on-site capture and location-based deployment pipeline, from Polycam scans in the galleries to Niantic Lightship VPS localisation. That made 25 artist-led AR activations discoverable in the American Wing for 2,000+ visitors.
+cover_summary: 25 artist-led AR activations in the American Wing.
 award_badge: "2x Webby Awards 2026"
 refl_type: Testimonial
 reflection: >
@@ -262,14 +263,14 @@ next_project:
   <h2 class="cs-section-label">Making it</h2>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Scanning in the American Wing.</em></p>
+<p class="cube-cap cube-cap--above"><em>My capture constraint: work like an ordinary visitor, without a rig, marker, or trace left in the gallery.</em></p>
 <div class="cs-bleed">
   <video width="1440" height="582" autoplay muted loop playsinline preload="none" style="width:100%">
     <source data-src="{{ site.baseurl }}/1.met/2.mp4" type="video/mp4" />
   </video>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>Pipeline and spatial alignment.</em></p>
+<p class="cube-cap cube-cap--above"><em>My deployment work: turn imperfect phone scans into location-aware activations that hold to the artwork in a live gallery.</em></p>
 <div class="cs-bleed">
   <video width="1440" height="666" autoplay muted loop playsinline preload="none" style="width:100%">
     <source data-src="{{ site.baseurl }}/1.met/3.mp4" type="video/mp4" />
