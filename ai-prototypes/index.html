@@ -2646,6 +2646,57 @@
       stroke-width: 0.6;
     }
   }
+
+  .nav-scrim {
+    display: none !important;
+  }
+  .studio-nav,
+  body.nav-lifted .studio-nav {
+    background: rgba(7, 10, 15, 0.9) !important;
+    -webkit-backdrop-filter: blur(14px) saturate(1.18) !important;
+    backdrop-filter: blur(14px) saturate(1.18) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.055),
+      0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  }
+  html[data-theme="light"] .studio-nav,
+  html[data-theme="light"] body.nav-lifted .studio-nav {
+    background: rgba(249, 247, 242, 0.92) !important;
+    border-bottom-color: rgba(7, 9, 15, 0.13) !important;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.82),
+      0 8px 24px rgba(20, 24, 32, 0.055) !important;
+  }
+
+  .studio-link:nth-of-type(1) > span,
+  .studio-link:nth-of-type(2) > span,
+  .studio-link:nth-of-type(4) > span {
+    position: static !important;
+    max-width: 9ch !important;
+    margin-left: 6px !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: none;
+  }
+  @media (max-width: 700px) {
+    .studio-links {
+      gap: 9px !important;
+    }
+    .studio-link:nth-of-type(1) > span,
+    .studio-link:nth-of-type(2) > span,
+    .studio-link:nth-of-type(4) > span {
+      margin-left: 4px !important;
+      font-size: 10px !important;
+      letter-spacing: 0.04em !important;
+    }
+    .studio-link:last-of-type {
+      margin-left: 8px;
+    }
+    .studio-link:last-of-type::before {
+      left: -9px;
+    }
+  }
 </style> <script>
   (function () {
     var caps = document.querySelector(".studio-links");
@@ -7981,116 +8032,27 @@
     });
 
 
-    var SCALE = [261.63, 293.66, 329.63, 392.0, 440.0, 523.25, 587.33, 659.25, 783.99, 880.0];
-    var step = 0;
-    function pianoNote() {
+    function digitalClick() {
       ensureCtx();
       if (!actx || actx.state === "closed") return;
       if (actx.state === "suspended") actx.resume();
-      step += Math.random() < 0.76 ? 1 : -2;
-      if (step >= SCALE.length) step = 3;
-      if (step < 0) step = 0;
-      var f = SCALE[step];
       var now = actx.currentTime;
       var g = actx.createGain();
       g.gain.setValueAtTime(0.0001, now);
-      g.gain.exponentialRampToValueAtTime(0.09, now + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, now + 1.7);
+      g.gain.exponentialRampToValueAtTime(0.035, now + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
       g.connect(actx.destination);
-      [
-        [1, 1],
-        [2, 0.26],
-        [3, 0.1],
-      ].forEach(function (pair) {
-        var o = actx.createOscillator();
-        o.type = "triangle";
-        o.frequency.value = f * pair[0];
-        var og = actx.createGain();
-        og.gain.value = pair[1];
-        o.connect(og).connect(g);
-        o.start(now);
-        o.stop(now + 1.8);
-      });
+      var o = actx.createOscillator();
+      o.type = "square";
+      o.frequency.setValueAtTime(1180, now);
+      o.frequency.exponentialRampToValueAtTime(720, now + 0.08);
+      o.connect(g);
+      o.start(now);
+      o.stop(now + 0.12);
     }
-
-    var bed = null;
-    function bedOn() {
-      ensureCtx();
-      if (!actx || bed || actx.state === "closed") return;
-      if (actx.state === "suspended") actx.resume();
-      var now = actx.currentTime;
-
-      var out = actx.createGain();
-      out.gain.setValueAtTime(0.0001, now);
-      out.gain.exponentialRampToValueAtTime(0.05, now + 1.5);
-      out.connect(actx.destination);
-
-      var len = actx.sampleRate * 2;
-      var buf = actx.createBuffer(1, len, actx.sampleRate);
-      var d = buf.getChannelData(0);
-      var last = 0;
-      for (var i = 0; i < len; i++) {
-        var w = Math.random() * 2 - 1;
-        last = (last + 0.02 * w) / 1.02;
-        d[i] = last * 3.5;
-      }
-      var noise = actx.createBufferSource();
-      noise.buffer = buf;
-      noise.loop = true;
-      var bp = actx.createBiquadFilter();
-      bp.type = "bandpass";
-      bp.frequency.value = 620;
-      bp.Q.value = 0.7;
-      var lfo = actx.createOscillator();
-      lfo.frequency.value = 0.07;
-      var lfoGain = actx.createGain();
-      lfoGain.gain.value = 260;
-      lfo.connect(lfoGain).connect(bp.frequency);
-      noise.connect(bp).connect(out);
-
-      var tones = [196.0, 293.66].map(function (f, i) {
-        var o = actx.createOscillator();
-        o.type = "sine";
-        o.frequency.value = f;
-        var og = actx.createGain();
-        og.gain.value = i ? 0.05 : 0.08;
-        o.connect(og).connect(out);
-        o.start(now);
-        return o;
-      });
-
-      noise.start(now);
-      lfo.start(now);
-      bed = { out: out, nodes: [noise, lfo].concat(tones) };
-    }
-    function bedOff() {
-      if (!bed || !actx) return;
-      var b = bed;
-      bed = null;
-      var now = actx.currentTime;
-      try {
-        b.out.gain.cancelScheduledValues(now);
-        b.out.gain.setValueAtTime(Math.max(0.0001, b.out.gain.value), now);
-        b.out.gain.exponentialRampToValueAtTime(0.0001, now + 2);
-      } catch (e) {}
-      setTimeout(function () {
-        b.nodes.forEach(function (nd) {
-          try {
-            nd.stop();
-          } catch (e) {}
-        });
-      }, 2200);
-    }
-
-    dev.addEventListener("pointerenter", bedOn);
-    dev.addEventListener("pointerleave", bedOff);
-    dev.addEventListener("blur", bedOff);
-    document.addEventListener("visibilitychange", function () {
-      if (document.hidden) bedOff();
-    });
 
     dev.addEventListener("pointerdown", function (e) {
-      pianoNote();
+      digitalClick();
       if (!window.SidVoxel) return;
       var stageEl = sec.querySelector(".coda__stage") || sec;
       var sr = stageEl.getBoundingClientRect();
