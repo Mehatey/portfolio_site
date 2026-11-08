@@ -21,7 +21,9 @@
 (function () {
   "use strict";
 
-  var BASE = "./audio/";
+  var scriptSrc = document.currentScript && document.currentScript.src;
+  var BASE = scriptSrc ? new URL("audio/", scriptSrc).href : "./audio/";
+  var isHome = document.body.classList.contains("home-page");
   /* Seven clips, each cut to about thirty seconds with a fade at both ends,
      loudness matched so skipping between them does not jump. `just-be` is the
      exception at ninety five seconds, because the thing Sid wants heard about
@@ -133,6 +135,12 @@
     "color:rgba(238,246,247,.82);font-size:10px;font-weight:600;letter-spacing:.06em;line-height:1.4;text-align:right;",
     "text-shadow:0 1px 12px rgba(0,0,0,.85);opacity:0;transform:translateY(4px);transition:opacity .4s ease,transform .4s ease;pointer-events:none}",
     ".vinyl.is-seated .vinyl__note,.vinyl:hover .vinyl__note{opacity:1;transform:none}",
+    ".home-page .vinyl{position:absolute;right:clamp(190px,18vw,300px);bottom:clamp(90px,11vh,132px);z-index:8;gap:8px}",
+    ".home-page .vinyl__deck{width:clamp(82px,8vw,116px)}",
+    ".home-page .vinyl__disc{background:radial-gradient(circle at 50% 50%,rgba(18,23,29,.78) 0 30%,rgba(9,12,17,.68) 30% 100%),repeating-conic-gradient(from 0deg,rgba(255,255,255,.08) 0deg 2deg,rgba(0,0,0,0) 2deg 6deg);backdrop-filter:blur(8px);box-shadow:0 16px 38px -18px rgba(0,0,0,.75),inset 0 0 0 1px rgba(210,235,245,.2)}",
+    ".home-page .vinyl__note{display:block;top:calc(100% + 10px);bottom:auto;left:50%;right:auto;transform:translate(-50%,0);opacity:.82;text-align:center;color:var(--home-ink);text-shadow:none;font-size:11px;letter-spacing:.08em;white-space:nowrap}",
+    ".home-page .vinyl:hover .vinyl__note{transform:translate(-50%,-2px);opacity:1}",
+    ".home-page .vinyl:after{content:'LISTEN';position:absolute;left:50%;top:calc(100% + 29px);transform:translateX(-50%);font:500 8px/1 'DM Mono',monospace;letter-spacing:.18em;color:var(--home-muted);pointer-events:none}",
     /* On a phone the conversation panel runs the full width of the bottom of
        the screen, so the corner the disc lives in on a desktop is occupied.
        It sits instead on the right edge just above the panel, which on this
@@ -146,6 +154,7 @@
     ".vinyl__step svg{width:10px;height:10px}",
     ".vinyl__seat{bottom:calc(100% + 6px);top:auto}",
     ".vinyl__note{display:none}}",
+    "@media(max-width:760px){.home-page .vinyl{position:absolute;right:18px;bottom:176px}.home-page .vinyl__deck{width:66px}.home-page .vinyl__note{display:block;font-size:9px}.home-page .vinyl:after{top:calc(100% + 27px)}}",
     "@media(max-height:520px) and (orientation:landscape){.vinyl__note{display:none}}",
     "@media(prefers-reduced-motion:reduce){",
     ".vinyl.is-playing .vinyl__disc{animation:none}",
@@ -157,7 +166,7 @@
   var style = document.createElement("style");
   style.textContent = css;
   document.head.appendChild(style);
-  document.body.appendChild(root);
+  (isHome && document.getElementById("hero") ? document.getElementById("hero") : document.body).appendChild(root);
 
   var deck = root.querySelector(".vinyl__deck");
   var disc = root.querySelector(".vinyl__disc");
@@ -190,11 +199,6 @@
   var music = new Audio();
   music.preload = "none";
   music.crossOrigin = "anonymous";
-  var ambient = new Audio(BASE + "ambient.mp3");
-  ambient.loop = true;
-  ambient.preload = "none";
-  ambient.volume = 0;
-
   var idx = 0;
   var playing = false;
   var ac = null;
@@ -249,7 +253,7 @@
     for (var k = 0; k < tickEls.length; k++) tickEls[k].classList.toggle("is-on", k === i);
     root.classList.toggle("is-seated", !!t.seated);
     seat.hidden = !t.seated;
-    noteEl.textContent = t.note || "";
+    noteEl.textContent = isHome ? t.name : t.note || t.name;
     disc.setAttribute("aria-label", (playing ? "Pause " : "Play ") + t.name);
   }
 
@@ -261,34 +265,12 @@
     if (go) start();
   }
 
-  function fade(el, to, ms) {
-    var from = el.volume;
-    var t0 = performance.now();
-    (function tick(now) {
-      var p = Math.min(1, (now - t0) / ms);
-      el.volume = Math.max(0, Math.min(1, from + (to - from) * p));
-      if (p < 1) requestAnimationFrame(tick);
-      else if (to === 0) el.pause();
-    })(t0);
-  }
-
   function start() {
     graph();
     if (ac && ac.state === "suspended") ac.resume();
     music.volume = 0.72;
     var p = music.play();
     if (p && p.catch) p.catch(function () {});
-    /* The bed sits under the music at a fifth of its level, so the room does
-       not fall silent in the gap between one clip ending and the next
-       starting. */
-    if (ambient.paused) {
-      ambient.play().then(
-        function () {
-          fade(ambient, 0.26, 1400);
-        },
-        function () {}
-      );
-    }
     playing = true;
     root.classList.add("is-playing");
     remember(true);
@@ -297,7 +279,6 @@
 
   function pause() {
     music.pause();
-    fade(ambient, 0, 900);
     playing = false;
     root.classList.remove("is-playing");
     remember(false);
@@ -341,8 +322,9 @@
   });
 
   /* ── THE RING AND THE BARS ───────────────────────────────────────────── */
-  (function frame() {
-    requestAnimationFrame(frame);
+  var frameRaf = 0;
+  function frame() {
+    frameRaf = 0;
     if (music.duration) {
       var p = music.currentTime / music.duration;
       fill.style.strokeDashoffset = (CIRC * (1 - p)).toFixed(1);
@@ -376,23 +358,17 @@
       lctx.stroke();
     }
     lctx.globalAlpha = 1;
-  })();
+    if (playing) frameRaf = requestAnimationFrame(frame);
+  }
+
+  music.addEventListener("play", function () {
+    if (!frameRaf) frameRaf = requestAnimationFrame(frame);
+  });
 
   load(0, false);
 
-  /* A visitor who already turned sound on somewhere else on the site has
-     asked once and should not have to ask again. Everyone else gets a still
-     disc until they press it. The gesture listener is here because even a
-     remembered yes cannot beat the autoplay policy without one. */
-  if (wantsSound()) {
-    var once = function () {
-      document.removeEventListener("pointerdown", once);
-      document.removeEventListener("keydown", once);
-      if (!playing) start();
-    };
-    document.addEventListener("pointerdown", once, { once: true });
-    document.addEventListener("keydown", once, { once: true });
-  }
+  /* Never turn music on from remembered state. Audio begins only when the
+     visitor deliberately presses this player. */
 
   window.sidVinyl = {
     play: start,
