@@ -7291,6 +7291,9 @@
         font-weight: 430;
         color: #fff !important;
         text-shadow: 0 2px 20px rgba(0, 0, 0, 0.52);
+        opacity: calc(1 - var(--hp, 0) * 1.7);
+        transform: translateY(calc(-10px * var(--hp, 0)));
+        transition: opacity 80ms linear;
       }
       .project-cover-summary {
         margin: 0;
@@ -7299,7 +7302,25 @@
         line-height: 1.45;
         letter-spacing: -0.01em;
         color: rgba(255, 255, 255, 0.94) !important;
+        opacity: calc(0.68 + var(--hp, 0) * 0.32);
+        transform: translateY(calc(8px - 8px * var(--hp, 0)));
       }
+      .project-cover-facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+        margin: 18px 0 0;
+        padding: 0;
+        list-style: none;
+        font-family: var(--font-mono);
+        font-size: clamp(10px, .72vw, 12px);
+        line-height: 1.35;
+        color: rgba(255, 255, 255, .86);
+        opacity: calc(.58 + var(--hp, 0) * .42);
+      }
+      .project-cover-facts li { display: inline-flex; gap: 6px; align-items: baseline; }
+      .project-cover-facts__label { color: rgba(255, 255, 255, .58); text-transform: uppercase; letter-spacing: .08em; }
+      .project-cover-facts a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
       .proj-hero .hero-overlay {
         background: linear-gradient(to top, rgba(5, 7, 10, 0.78) 0%, rgba(5, 7, 10, 0.2) 42%, transparent 68%) !important;
       }
@@ -7335,6 +7356,10 @@
           font-size: 15px;
           line-height: 1.4;
         }
+        .project-cover-title,
+        .project-cover-summary,
+        .project-cover-facts { opacity: 1; transform: none; }
+        .project-cover-facts { gap: 7px 14px; margin-top: 14px; font-size: 10px; }
       }
     </style>
   </head>
@@ -7464,6 +7489,23 @@
         <div class="project-cover-copy">
           <h1 class="project-cover-title">{{ page.project_title }}</h1>
           <p class="project-cover-summary">{{ page.cover_summary | default: page.quick_read | default: page.tagline }}</p>
+          {% if page.meta %}
+          <ul class="project-cover-facts" aria-label="Project facts and links">
+            {% assign cover_fact_labels = "Role|Client|Duration|Timeline|Year" | split: "|" %}
+            {% for item in page.meta %}
+              {% if cover_fact_labels contains item.label or item.url %}
+                {% assign skip_self = false %}
+                {% if item.label == "Client" and item.value == "Self Initiated" %}{% assign skip_self = true %}{% endif %}
+                {% unless skip_self %}
+                <li>
+                  <span class="project-cover-facts__label">{{ item.label }}</span>
+                  {% if item.url %}<a href="{{ item.url }}" target="_blank" rel="noopener noreferrer">{{ item.value }}</a>{% else %}<span>{{ item.value }}</span>{% endif %}
+                </li>
+                {% endunless %}
+              {% endif %}
+            {% endfor %}
+          </ul>
+          {% endif %}
         </div>
       </header>
         <div class="hero-inner" aria-hidden="true">

@@ -172,7 +172,10 @@
      fails, or the file is missing, hovering still answers rather than going
      silent -- a sound that sometimes does nothing reads as a broken page. */
   var sample = null,
-    sampleTried = false;
+    sampleTried = false,
+    clickSample = null,
+    shimmerSample = null,
+    magicSamplesTried = false;
   function loadSample() {
     if (sampleTried) return;
     sampleTried = true;
@@ -192,6 +195,37 @@
       .catch(function () {
         /* stays null; hover falls through to the oscillators */
       });
+  }
+
+  function loadMagicSamples() {
+    if (magicSamplesTried) return;
+    magicSamplesTried = true;
+    var c = audio();
+    if (!c || !window.fetch) return;
+    [
+      ["/assets/audio/ui/click.wav", function (buf) { clickSample = buf; }],
+      ["/assets/audio/ui/shimmer.wav", function (buf) { shimmerSample = buf; }],
+    ].forEach(function (entry) {
+      fetch(BASE + entry[0])
+        .then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
+        .then(function (ab) { return c.decodeAudioData(ab); })
+        .then(entry[1])
+        .catch(function () {});
+    });
+  }
+
+  function playSample(buf, gainValue) {
+    var c = audio();
+    if (!c || !buf) return false;
+    var src = c.createBufferSource();
+    var gain = c.createGain();
+    src.buffer = buf;
+    gain.gain.value = gainValue;
+    src.connect(gain);
+    /* Samples are mastered audio, so they bypass the tiny synth master. */
+    gain.connect(c.destination);
+    src.start();
+    return true;
   }
 
   function hover() {
@@ -256,6 +290,11 @@
      stepped back, so it is the one allowed to be definite. */
   function click() {
     if (!on) return;
+    if (playSample(clickSample, 0.22)) {
+      pulse();
+      return;
+    }
+    loadMagicSamples();
     var c = audio();
     if (!c) return;
     var g = c.createGain();
@@ -282,6 +321,17 @@
     g.connect(master);
     tick(0.022, 1800, 0.13);
     pulse();
+  }
+
+  function shimmer() {
+    if (!on) return;
+    if (playSample(shimmerSample, 0.2)) {
+      pulse();
+      return;
+    }
+    loadMagicSamples();
+    tone(880, 0.3, "sine", 0.28, 1760);
+    setTimeout(function () { tone(1320, 0.44, "sine", 0.2, 2400); }, 80);
   }
 
   /* The waveform only travels while something is sounding -- see the note on
@@ -518,8 +568,9 @@
   }
 
   function startBed() {
-    if (startTrackBed()) return;
-    startGenerativeBed();
+    /* No ambient bed. Sound now exists only as deliberate interaction
+       feedback; a recruiter never gets surprise music from a portfolio. */
+    return;
   }
 
   function startGenerativeBed() {
@@ -777,6 +828,11 @@
   function mount() {
     document.body.appendChild(btn);
     paint();
+    /* Decode after the page settles, not in its critical path. This makes the
+       supplied click ready for the first deliberate interaction without
+       competing with the portfolio imagery during load. */
+    if (window.requestIdleCallback) requestIdleCallback(loadMagicSamples, { timeout: 2400 });
+    else setTimeout(loadMagicSamples, 1800);
 
     /* Delegated, so anything added to the page later is covered without this
        file knowing about it. The selector is the site's real interactive
@@ -813,12 +869,28 @@
       },
       { passive: true }
     );
+    var magicClicks = 0;
+    var magicTimer = 0;
     document.addEventListener(
       "pointerdown",
       function (e) {
-        if (!on) return;
+        if (e.button != null && e.button !== 0) return;
+        loadMagicSamples();
         var t = e.target.closest && e.target.closest(CLICK_SEL);
-        if (t && t !== btn && !btn.contains(t)) click();
+        if (on && t && t !== btn && !btn.contains(t)) click();
+
+        /* Three quick beats unlock one short, self-contained Easter egg. */
+        clearTimeout(magicTimer);
+        magicClicks += 1;
+        if (magicClicks >= 3) {
+          magicClicks = 0;
+          shimmer();
+          window.dispatchEvent(new CustomEvent("sid:sparkle", {
+            detail: { x: e.clientX, y: e.clientY },
+          }));
+        } else {
+          magicTimer = setTimeout(function () { magicClicks = 0; }, 1050);
+        }
       },
       { passive: true }
     );
@@ -834,7 +906,7 @@
     var wake = function () {
       var c = audio();
       if (c && c.state === "suspended") c.resume();
-      startBed();
+      loadMagicSamples();
       window.removeEventListener("pointerdown", wake);
       window.removeEventListener("keydown", wake);
     };
