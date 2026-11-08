@@ -203,12 +203,27 @@
     var c = audio();
     if (!c || !window.fetch) return;
     [
-      ["/assets/audio/ui/click.wav", function (buf) { clickSample = buf; }],
-      ["/assets/audio/ui/shimmer.wav", function (buf) { shimmerSample = buf; }],
+      [
+        "/assets/audio/ui/click.wav",
+        function (buf) {
+          clickSample = buf;
+        },
+      ],
+      [
+        "/assets/audio/ui/shimmer.wav",
+        function (buf) {
+          shimmerSample = buf;
+        },
+      ],
     ].forEach(function (entry) {
       fetch(BASE + entry[0])
-        .then(function (r) { if (!r.ok) throw 0; return r.arrayBuffer(); })
-        .then(function (ab) { return c.decodeAudioData(ab); })
+        .then(function (r) {
+          if (!r.ok) throw 0;
+          return r.arrayBuffer();
+        })
+        .then(function (ab) {
+          return c.decodeAudioData(ab);
+        })
         .then(entry[1])
         .catch(function () {});
     });
@@ -331,7 +346,9 @@
     }
     loadMagicSamples();
     tone(880, 0.3, "sine", 0.28, 1760);
-    setTimeout(function () { tone(1320, 0.44, "sine", 0.2, 2400); }, 80);
+    setTimeout(function () {
+      tone(1320, 0.44, "sine", 0.2, 2400);
+    }, 80);
   }
 
   /* The waveform only travels while something is sounding -- see the note on
@@ -885,11 +902,15 @@
         if (magicClicks >= 3) {
           magicClicks = 0;
           shimmer();
-          window.dispatchEvent(new CustomEvent("sid:sparkle", {
-            detail: { x: e.clientX, y: e.clientY },
-          }));
+          window.dispatchEvent(
+            new CustomEvent("sid:sparkle", {
+              detail: { x: e.clientX, y: e.clientY },
+            })
+          );
         } else {
-          magicTimer = setTimeout(function () { magicClicks = 0; }, 1050);
+          magicTimer = setTimeout(function () {
+            magicClicks = 0;
+          }, 1050);
         }
       },
       { passive: true }
