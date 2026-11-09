@@ -46,7 +46,7 @@
   a2d.fillStyle = "#000";
   a2d.fillRect(0, 0, atlasCv.width, atlasCv.height);
   a2d.fillStyle = "#fff";
-  a2d.font = "600 " + Math.round(CELL * 0.78) + "px 'DM Mono', ui-monospace, monospace";
+  a2d.font = "600 " + Math.round(CELL * 0.78) + "px Figtree, sans-serif";
   a2d.textAlign = "center";
   a2d.textBaseline = "middle";
   for (var i = 0; i < RAMP.length; i++) {
@@ -980,10 +980,10 @@
     raf = requestAnimationFrame(frame);
   }
 
-  /* Wait for the mono face before the atlas is drawn, or the glyphs are
+  /* Wait for the display face before the atlas is drawn, or the glyphs are
      whatever the fallback happens to be and the ink ramp is wrong. */
   function boot() {
-    a2d.font = "600 " + Math.round(CELL * 0.78) + "px 'DM Mono', ui-monospace, monospace";
+    a2d.font = "600 " + Math.round(CELL * 0.78) + "px Figtree, sans-serif";
     a2d.fillStyle = "#000";
     a2d.fillRect(0, 0, atlasCv.width, atlasCv.height);
     a2d.fillStyle = "#fff";

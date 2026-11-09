@@ -86,17 +86,6 @@ next_project:
   </video>
 </div>
 
-<div class="cs-section"><span class="cs-section-label">The evidence</span></div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/17.ledger/02-rubric.webp" alt="A scorecard with written descriptions for every point on each criterion" loading="lazy" decoding="async" />
-  </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/17.ledger/03-evidence.webp" alt="Repository evidence shown beside the candidate's claims, with each line traceable to a file" loading="lazy" decoding="async" />
-  </div>
-</div>
-
 <div class="cs-intro cs-try">
   <p><a class="cs-try__link" href="{{ site.baseurl }}/ai-prototypes/ledger/"><span>Open the Ledger prototype</span><i aria-hidden="true">&rarr;</i></a></p>
   <p class="cs-try__note">Review a candidate, inspect the evidence, and take the shortlist to a handoff.</p>
