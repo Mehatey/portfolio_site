@@ -886,8 +886,6 @@
       },
       { passive: true }
     );
-    var magicClicks = 0;
-    var magicTimer = 0;
     document.addEventListener(
       "pointerdown",
       function (e) {
@@ -896,22 +894,6 @@
         var t = e.target.closest && e.target.closest(CLICK_SEL);
         if (on && t && t !== btn && !btn.contains(t)) click();
 
-        /* Three quick beats unlock one short, self-contained Easter egg. */
-        clearTimeout(magicTimer);
-        magicClicks += 1;
-        if (magicClicks >= 3) {
-          magicClicks = 0;
-          shimmer();
-          window.dispatchEvent(
-            new CustomEvent("sid:sparkle", {
-              detail: { x: e.clientX, y: e.clientY },
-            })
-          );
-        } else {
-          magicTimer = setTimeout(function () {
-            magicClicks = 0;
-          }, 1050);
-        }
       },
       { passive: true }
     );
