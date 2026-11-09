@@ -33,8 +33,7 @@ highlights:
     label: lift in inventory accuracy
 quick_read: >
   Designed SPOG, a single pane of glass employee application for Marriott Bonvoy properties, unifying daily operations, reservations and loyalty enrolment into one calm, information dense dashboard.
-cover_summary: >
-  One dashboard for Marriott hotel staff, unifying daily operations, reservations, and loyalty enrolment. Inventory accuracy rose 17%.
+cover_summary: One Marriott staff dashboard for operations, reservations, and loyalty. Inventory accuracy rose 17%.
 reflection: >
   Enterprise tools are usually judged by how much they can show. This one was judged by how fast a busy associate could understand a shift. That reframing changed every decision. The dashboard carries a large amount of live data, arrivals, departures, occupancy, room status, cases and events, yet it had to read in a glance for someone standing at a front desk mid conversation.
 

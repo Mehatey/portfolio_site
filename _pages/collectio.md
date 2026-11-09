@@ -6,7 +6,7 @@ proj_num: "17"
 tagline: A municipal waste system for Panaji, Goa, designed around where its classifier fails rather than where it works. The truck delivers a weight. The belt says what was in it. The ward sees both. Each part only claims what it can actually know.
 quick_read: >
   A municipal waste system for Panaji: a driver's route, a sorting camera running a network I trained from scratch, and a ward queue that holds what the model cannot vouch for.
-cover_summary: "A municipal waste system for Panaji, designed to hold uncertain sorting decisions instead of guessing."
+cover_summary: "A Panaji waste system that holds uncertain sorting decisions instead of guessing."
 category: AI · Civic systems
 year: "2019 · 2026"
 hero_bg: "radial-gradient(ellipse at 40% 45%, #121a14 0%, #0b100c 55%, #06080a 100%)"

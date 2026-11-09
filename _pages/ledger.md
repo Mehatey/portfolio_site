@@ -6,7 +6,7 @@ proj_num: "16"
 tagline: A reviewer has twenty three submissions, one sitting, and a dozen browser tabs per candidate. Ledger puts the repo, the demo, the README and the walkthrough on one surface and asks for a decision.
 quick_read: >
   A submission review layer for hiring. Every candidate's repository, live demo, screenshots and walkthrough live in one reviewable surface, with scoring that separates what a candidate shipped from what they merely claimed.
-cover_summary: "One review surface for a candidate's repository, demo, evidence, and score, built for fair hiring decisions."
+cover_summary: "One review surface for a candidate's repository, demo, evidence, and score."
 category: Agentic AI · Design Systems
 year: "2026"
 hero_bg: "radial-gradient(ellipse at 45% 40%, #1b1e2c 0%, #12141d 55%, #0a0b11 100%)"

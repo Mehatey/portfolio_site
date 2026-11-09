@@ -31,8 +31,7 @@ highlights:
     label: spatial AI experience
 quick_read: >
   Designed and built a Vision Pro thesis experience where a spatial AI tree uses gaze, voice, and deliberate pacing to make attention the interface.
-cover_summary: >
-  An AI-inhabited Vision Pro tree responds to gaze, voice, and drawings in the room. Attention is the interface.
+cover_summary: A Vision Pro tree responds to gaze, voice, and drawings. Attention is the interface.
 reflection: >
   Building for Vision Pro meant learning a new spatial design language from scratch. There are no flat screens to fall back on. Every UI decision is a room decision. Where the tree sits, how large it reads at arm's length, whether the voice feels near or distant. All of it had to be felt in space, not sketched on a canvas.
 

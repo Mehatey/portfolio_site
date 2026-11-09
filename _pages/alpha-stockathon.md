@@ -6,7 +6,7 @@ proj_num: "14"
 tagline: >
   Alpha Stockathon is a gamified desktop application that teaches the stock market through a pixel-art world. A character journeys to rescue a wizard, and each level introduces one concept: options, shorting, market cap. Players make decisions and face consequences inside a simulated market rather than reading about one.
 quick_read: "Designed a pixel-art desktop game that teaches options, shorting and market cap through consequence rather than instruction, taken from research to working prototype in three days."
-cover_summary: "A pixel-art desktop game teaching options, shorting, and market cap through consequences, prototyped in three days."
+cover_summary: "Pixel-art game teaching options, shorting, and market cap through consequences. Built in three days."
 category: UI · Gamification
 year: 2021
 hero_bg: "radial-gradient(ellipse at 55% 45%, #0d0d1a 0%, #07070d 50%, #020205 100%)"
