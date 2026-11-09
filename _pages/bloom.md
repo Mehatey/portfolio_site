@@ -31,6 +31,8 @@ highlights:
     label: spatial AI experience
 quick_read: >
   Designed and built a Vision Pro thesis experience where a spatial AI tree uses gaze, voice, and deliberate pacing to make attention the interface.
+cover_summary: >
+  An AI-inhabited Vision Pro tree responds to gaze, voice, and drawings in the room. Attention is the interface.
 reflection: >
   Building for Vision Pro meant learning a new spatial design language from scratch. There are no flat screens to fall back on. Every UI decision is a room decision. Where the tree sits, how large it reads at arm's length, whether the voice feels near or distant. All of it had to be felt in space, not sketched on a canvas.
 
@@ -215,31 +217,12 @@ next_project:
   </button>
 </div>
 
-<!-- VP SCENES: show the headset experience before the physical archive -->
+<!-- The interaction walkthrough. One sequence shows the room, instead of
+     asking a recruiter to infer it from multiple adjacent clips. -->
 <p class="cube-cap cube-cap--above"><em>Inside Vision Pro: the tree, the voice, the room, the marks you leave.</em></p>
 <div class="cs-bleed bl-focus-video">
   <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-21.mp4" type="video/mp4" />
-  </video>
-</div>
-
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-22.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-scene-23.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
-<p class="cube-cap cube-cap--above"><em>The tree settles into Bloom when the visitor stays with it long enough.</em></p>
-<div class="cs-bleed bl-focus-video">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
-    <source data-src="{{ site.baseurl }}/15.bloom-vp/vp-scene-4.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -260,20 +243,6 @@ next_project:
   </video>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>No question it asks has a right answer. It just continues.</em></p>
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/visitor-1.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/visitor-2.mp4" type="video/mp4" />
-    </video>
-  </div>
-</div>
-
 <!-- SECTION: DRAW IN SPACE -->
 <div class="cs-section">
   <h2 class="cs-section-label">Draw in space</h2>
@@ -284,25 +253,6 @@ next_project:
   <video width="1280" height="720" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/15.bloom-vp/wall-objects-assemble.mp4" type="video/mp4" />
   </video>
-</div>
-
-<p class="cube-cap cube-cap--above"><em>Earlier scene studies, kept in the archive.</em></p>
-<div class="cs-grid-3 grid-compact">
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-18.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-21.mp4" type="video/mp4" />
-    </video>
-  </div>
-  <div class="cs-grid-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="none">
-      <source data-src="{{ site.baseurl }}/15.bloom-vp/scene-22.mp4" type="video/mp4" />
-    </video>
-  </div>
 </div>
 
 <!-- The "Measuring the calm" section — the EEG headband video and the
