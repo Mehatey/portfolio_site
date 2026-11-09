@@ -627,7 +627,7 @@ next_project:
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>Meh thanks you for staying till the end.</em></p>
 <div class="cs-bleed cs-bleed--no-fade">
   <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width:100%;display:block;">
-    <source data-src="{{ site.baseurl }}/2.cube/end%20of%20cube%20.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/2.cube/end-of-cube.mp4" type="video/mp4" />
   </video>
 </div>
 
