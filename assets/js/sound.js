@@ -893,7 +893,6 @@
         loadMagicSamples();
         var t = e.target.closest && e.target.closest(CLICK_SEL);
         if (on && t && t !== btn && !btn.contains(t)) click();
-
       },
       { passive: true }
     );
