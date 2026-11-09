@@ -81,6 +81,7 @@ next_project:
   /* Wireframes: a manual horizontal scroll, not an auto-playing band, since
      these are meant to be read one at a time rather than glanced at in motion. */
   .fv-wire-scroll { display: flex; gap: 16px; overflow-x: auto; margin: clamp(24px, 4vw, 40px) 0; padding-bottom: 8px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+  .fv-wire-scroll:focus-visible, .fv-flow-scroll:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
   .fv-wire-scroll img { flex: 0 0 auto; height: clamp(260px, 38vw, 460px); width: auto; border-radius: 10px; scroll-snap-align: start; box-shadow: 0 1px 0 rgba(0,0,0,0.06); }
 
   /* Sid: "small text wireframe, almost full width, not the usual 2 grid
@@ -130,13 +131,13 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above">Wireframing, before any of the visual system landed.</p>
-<div class="fv-wire-scroll" aria-label="Wireframes, scroll horizontally">
+<div class="fv-wire-scroll" role="region" tabindex="0" aria-label="Wireframes, scroll horizontally">
   <img src="{{ site.baseurl }}/assets/img/fairview/wire-urgent-care.webp" alt="Wireframe: Urgent Care and Emergency Care, with online and in-person options" loading="lazy" decoding="async" />
   <img src="{{ site.baseurl }}/assets/img/fairview/wire-how-would-you.webp" alt="Wireframe: How would you like to get care, online or in person" loading="lazy" decoding="async" />
   <img src="{{ site.baseurl }}/assets/img/fairview/wire-hi-there.webp" alt="Wireframe: what would you like to do today, get care urgently, find the right care, book other services" loading="lazy" decoding="async" />
 </div>
 
-<div class="fv-flow-scroll" aria-label="Get Care flow diagrams, scroll horizontally">
+<div class="fv-flow-scroll" role="region" tabindex="0" aria-label="Get Care flow diagrams, scroll horizontally">
   <img src="{{ site.baseurl }}/assets/img/fairview/flow-get-care-1.webp" alt="Get Care Flow 1: care type's medium, online or in-person, up front" loading="lazy" decoding="async" />
   <img src="{{ site.baseurl }}/assets/img/fairview/flow-get-care-2.webp" alt="Get Care Flow 2: sort care through symptoms, conditions and speciality" loading="lazy" decoding="async" />
 </div>
