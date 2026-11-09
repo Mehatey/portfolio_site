@@ -6,6 +6,7 @@ proj_num: "08"
 tagline: >
   This project began as a response to the Shot on iPhone format, questioning the idea of photography as a one-way broadcast. While campaigns like these highlight what the camera can do, they often stop at the image itself. The project reimagines these images as entry points into conversations around self, nature, family, and everyday life. Scanning a QR code opens the story behind the frame. The photograph becomes a question rather than a statement.
 quick_read: "Turned a photography series into a QR-linked print experiment so each image opens the story behind the frame instead of ending as a finished statement."
+cover_summary: "A QR-linked photography series that turns each print into an opening for the story behind the frame."
 category: Photography · Interactive
 year: 2024
 hero_bg: "radial-gradient(ellipse at 30% 50%, #0d1a18 0%, #05100e 50%, #010504 100%)"

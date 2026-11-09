@@ -7,6 +7,7 @@ tagline: >
   A collection of illustrations built over the years, functioning more like a playground than a single project. Experiments across styles, themes, and mediums: visual diaries, abstract compositions, cultural graphics, conceptual storytelling. The only rule was following what felt interesting at the time.
 quick_read: >
   An independent illustration practice developed over seven years that sharpened the visual range behind the product and spatial work. The full archive is here for anyone who wants to see the trail.
+cover_summary: "A seven-year independent illustration practice behind the visual range of my product and spatial work."
 category: Illustration · Visual Diary
 year: 2018-2025
 hero_bg: "radial-gradient(ellipse at 50% 50%, #1a0d1a 0%, #0d050d 50%, #050105 100%)"
