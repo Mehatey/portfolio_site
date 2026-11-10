@@ -119,8 +119,8 @@
      it defers to the toggle. A press is something they asked for, and it is
      also the user gesture browsers demand before allowing any audio at all,
      which is why this always works where the hover sometimes will not. */
-  var btn = document.getElementById("hero-say");
-  if (!btn) return;
+  var buttons = [document.getElementById("hero-say"), document.getElementById("ftr-name-audio")].filter(Boolean);
+  if (!buttons.length) return;
   var say = null;
 
   /* ── THE NUDGE ────────────────────────────────────────────────────────
@@ -136,36 +136,44 @@
   try {
     heard = localStorage.getItem(HEARD) === "1";
   } catch (_) {}
-  if (!heard) btn.classList.add("is-new");
+  if (!heard && buttons[0].id === "hero-say") buttons[0].classList.add("is-new");
 
-  btn.addEventListener("click", function () {
-    btn.classList.remove("is-new");
-    try {
-      localStorage.setItem(HEARD, "1");
-    } catch (_) {}
-    if (!say) {
-      say = new Audio(BASE + "/assets/audio/name/say-my-name.m4a");
-      say.preload = "auto";
-      say.volume = 0.9;
-      say.addEventListener("ended", function () {
-        btn.classList.remove("is-saying");
+  buttons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      buttons.forEach(function (control) {
+        control.classList.remove("is-new");
       });
-      say.addEventListener("pause", function () {
-        btn.classList.remove("is-saying");
-      });
-    }
-    /* A second press restarts rather than stacking. Pausing would leave the
-       control looking available while saying nothing. */
-    try {
-      say.currentTime = 0;
-      var p = say.play();
-      btn.classList.add("is-saying");
-      if (p && p.catch)
-        p.catch(function () {
-          btn.classList.remove("is-saying");
+      try {
+        localStorage.setItem(HEARD, "1");
+      } catch (_) {}
+      if (!say) {
+        say = new Audio(BASE + "/assets/audio/name/say-my-name.m4a");
+        say.preload = "auto";
+        say.volume = 0.9;
+        say.addEventListener("ended", function () {
+          buttons.forEach(function (control) {
+            control.classList.remove("is-saying");
+          });
         });
-    } catch (e) {
-      btn.classList.remove("is-saying");
-    }
+        say.addEventListener("pause", function () {
+          buttons.forEach(function (control) {
+            control.classList.remove("is-saying");
+          });
+        });
+      }
+      /* A second press restarts rather than stacking. Pausing would leave the
+       control looking available while saying nothing. */
+      try {
+        say.currentTime = 0;
+        var p = say.play();
+        btn.classList.add("is-saying");
+        if (p && p.catch)
+          p.catch(function () {
+            btn.classList.remove("is-saying");
+          });
+      } catch (e) {
+        btn.classList.remove("is-saying");
+      }
+    });
   });
 })();
