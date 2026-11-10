@@ -6,7 +6,7 @@ proj_num: "15"
 tagline: A verification workspace for AI-written venture debt memos. The agent drafts in minutes, then an analyst can see which claims are proved, unsupported, or still require judgment.
 quick_read: >
   I designed and built a concept workflow for reviewing an AI-written credit memo. It makes every machine assertion inspectable, orders unresolved claims by risk, and deliberately returns sampled claims to a person instead of presenting automation as certainty.
-cover_summary: A verification workspace for AI-written credit memos.
+cover_summary: A verification workspace that turns an AI-drafted credit memo into claims, evidence, and decision points for an analyst.
 category: Agentic AI · Fintech
 year: "2026"
 hero_bg: "radial-gradient(ellipse at 40% 45%, #11151c 0%, #0a0d12 55%, #05070a 100%)"

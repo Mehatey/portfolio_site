@@ -79,7 +79,7 @@
   var css = [
     ".vinyl{position:fixed;right:clamp(18px,2.4vw,34px);bottom:clamp(18px,3vh,34px);z-index:4;",
     "display:flex;align-items:center;gap:6px;pointer-events:auto;",
-    "font-family:'Helvetica Neue',Helvetica,Arial,sans-serif}",
+    "font-family:'Figtree',system-ui,sans-serif}",
     ".vinyl__deck{position:relative;width:clamp(74px,7.4vw,104px);aspect-ratio:1}",
     /* The disc itself: grooves as a repeating conic sheen over a dark body,
        with the track's own hue pooled in the label. No album art, because
@@ -154,7 +154,7 @@
     ".vinyl__step svg{width:10px;height:10px}",
     ".vinyl__seat{bottom:calc(100% + 6px);top:auto}",
     ".vinyl__note{display:none}}",
-    "@media(max-width:760px){.home-page .vinyl{position:absolute;right:18px;bottom:176px}.home-page .vinyl__deck{width:66px}.home-page .vinyl__note{display:block;font-size:9px}.home-page .vinyl:after{top:calc(100% + 27px)}}",
+    "@media(max-width:760px){.home-page .vinyl{position:absolute;right:18px;bottom:260px}.home-page .vinyl__deck{width:66px}.home-page .vinyl__note{display:block;font-size:9px}.home-page .vinyl:after{top:calc(100% + 27px)}}",
     "@media(max-height:520px) and (orientation:landscape){.vinyl__note{display:none}}",
     "@media(prefers-reduced-motion:reduce){",
     ".vinyl.is-playing .vinyl__disc{animation:none}",

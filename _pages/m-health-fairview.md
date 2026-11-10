@@ -33,7 +33,7 @@ highlights:
     label: top rated care app
 quick_read: >
   I shaped the care-discovery experience, from the information architecture and wireframes through hi-fi delivery and build QA. Sorting options by urgency created a clearer patient path and helped move routine demand from emergency rooms to scheduled and virtual care.
-cover_summary: Care discovery and scheduling, redesigned around urgency.
+cover_summary: Care discovery redesigned around urgency, helping drive $13.6M+ in scheduling revenue.
 reflection: >
   The hardest part of this project was not visual, it was deciding what a patient should see first. A person looking for care is often anxious and short on time, so every extra option is a small tax on someone who is already stressed. We kept returning to one test, does this help someone in the first ten seconds know where to go. Sorting the whole experience by urgency, rather than by how the health system is organised internally, was the decision that made everything else fall into place.
 

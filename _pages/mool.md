@@ -43,7 +43,7 @@ highlights:
     label: Design Award · 2021
 quick_read: >
   I led the visual design for Mool's product experience, turning regional references into a working interface system for people often underserved by digital banking. The result paired culturally familiar cues with clear, high-contrast financial information.
-cover_summary: A culturally resonant banking experience for underserved communities across India.
+cover_summary: A culturally resonant banking experience that reached 100k+ downloads across India.
 refl_bg: "5.mool/reflection.png"
 reflection: >
   Before Mool I thought accessible meant simpler. This project taught me it really means resonant. People trust an app not because it looks clean but because it feels like it was made by someone who understands their world. We studied Indian folk art, regional patterns, and traditional color palettes not as decoration but as signals of belonging.
