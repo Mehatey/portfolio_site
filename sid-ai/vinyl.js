@@ -113,9 +113,9 @@
     ".vinyl__ticks circle.is-on{fill:hsl(var(--vin-h,196) 82% 70%);r:2.4}",
     /* Skip controls stay out of the way until the pointer is on the player.
        They are the part a visitor does not need to see to understand it. */
-    ".vinyl__step{width:26px;height:26px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;",
-    "background:rgba(6,10,14,.5);color:rgba(238,246,247,.7);cursor:pointer;opacity:0;transform:scale(.7);",
-    "transition:opacity .3s ease,transform .3s cubic-bezier(.16,1,.3,1),color .2s}",
+    ".vinyl__step{width:44px;height:44px;display:grid;place-items:center;padding:0;border:0;border-radius:50%;",
+    "background:rgba(6,10,14,.5);color:rgba(238,246,247,.7);cursor:pointer;opacity:0;transform:none;",
+    "transition:opacity .3s ease,color .2s}",
     ".vinyl__step svg{width:11px;height:11px;fill:currentColor}",
     ".vinyl:hover .vinyl__step,.vinyl:focus-within .vinyl__step{opacity:1;transform:none}",
     ".vinyl__step:hover{color:#fff}",
@@ -140,7 +140,7 @@
     ".home-page .vinyl__disc{background:radial-gradient(circle at 50% 50%,rgba(18,23,29,.78) 0 30%,rgba(9,12,17,.68) 30% 100%),repeating-conic-gradient(from 0deg,rgba(255,255,255,.08) 0deg 2deg,rgba(0,0,0,0) 2deg 6deg);backdrop-filter:blur(8px);box-shadow:0 16px 38px -18px rgba(0,0,0,.75),inset 0 0 0 1px rgba(210,235,245,.2)}",
     ".home-page .vinyl__note{display:block;top:calc(100% + 10px);bottom:auto;left:50%;right:auto;transform:translate(-50%,0);opacity:.82;text-align:center;color:var(--home-ink);text-shadow:none;font-size:11px;letter-spacing:.08em;white-space:nowrap}",
     ".home-page .vinyl:hover .vinyl__note{transform:translate(-50%,-2px);opacity:1}",
-    ".home-page .vinyl:after{content:'LISTEN';position:absolute;left:50%;top:calc(100% + 29px);transform:translateX(-50%);font:500 8px/1 'DM Mono',monospace;letter-spacing:.18em;color:var(--home-muted);pointer-events:none}",
+    ".home-page .vinyl:after{content:'Play music';position:absolute;left:50%;top:calc(100% + 29px);transform:translateX(-50%);font:500 10px/1 'Figtree',system-ui,sans-serif;letter-spacing:.02em;color:var(--home-muted);white-space:nowrap;pointer-events:none}",
     /* On a phone the conversation panel runs the full width of the bottom of
        the screen, so the corner the disc lives in on a desktop is occupied.
        It sits instead on the right edge just above the panel, which on this
@@ -150,7 +150,7 @@
        rather than waiting on a hover a touch screen cannot give. */
     "@media(max-width:760px),(orientation:portrait) and (max-width:1024px){",
     ".vinyl{right:14px;bottom:calc(196px + env(safe-area-inset-bottom,0px));top:auto;gap:2px}",
-    ".vinyl__deck{width:54px}.vinyl__step{width:32px;height:32px;opacity:1;transform:none}",
+    ".vinyl__deck{width:54px}.vinyl__step{width:44px;height:44px;opacity:1;transform:none}",
     ".vinyl__step svg{width:10px;height:10px}",
     ".vinyl__seat{bottom:calc(100% + 6px);top:auto}",
     ".vinyl__note{display:none}}",
