@@ -96,7 +96,7 @@ next_project:
      what shipped, what it did. Eleven media blocks, down from fourteen. -->
 
 <div class="cs-section">
-  <h2 class="cs-section-label">01 · About the project</h2>
+  <h2 class="cs-section-label">About the project</h2>
 </div>
 <p class="cube-cap cube-cap--above">One of Minnesota's largest health systems: 100+ hospitals and 60 clinics, one promise to patients.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/00-about.webp" alt="M Health Fairview: care you can trust, on your terms" loading="lazy" decoding="async" /></div>
@@ -104,7 +104,7 @@ next_project:
 <div class="fv-band"><div class="fv-band__track"><img src="{{ site.baseurl }}/assets/img/fairview/band.webp" alt="" loading="lazy" decoding="async" /><img src="{{ site.baseurl }}/assets/img/fairview/band.webp" alt="" loading="lazy" decoding="async" /></div></div>
 
 <div class="cs-section">
-  <h2 class="cs-section-label">02 · The problem</h2>
+  <h2 class="cs-section-label">The problem</h2>
 </div>
 <p class="cube-cap cube-cap--above">Four problems for patients, five needs for the business. The brief was to solve both on one page.</p>
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/01-requirements.webp" alt="Problems to solve and business needs" loading="lazy" decoding="async" /></div>
@@ -113,7 +113,7 @@ next_project:
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/fairview/04-constraints.webp" alt="Project constraints: third party API, two sprints, no patient access" loading="lazy" decoding="async" /></div>
 
 <div class="cs-section">
-  <h2 class="cs-section-label">03 · The process</h2>
+  <h2 class="cs-section-label">The process</h2>
 </div>
 <p class="cube-cap cube-cap--above">My role across two sprints: map the flow with the functional team, turn it into testable wireframes and hi-fi screens, document handoff, then QA the build.</p>
 <div class="cs-grid cs-grid--fit">
@@ -140,7 +140,7 @@ next_project:
 </div>
 
 <div class="cs-section">
-  <h2 class="cs-section-label">04 · What shipped</h2>
+  <h2 class="cs-section-label">What shipped</h2>
 </div>
 <p class="cube-cap cube-cap--above">The core decision, made visible: every action in the first fold, sorted by how soon a patient needs care.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/06-beforeafter.webp" alt="Before and after of the Get Care page" loading="lazy" decoding="async" /></div>
@@ -159,7 +159,7 @@ next_project:
 </div>
 
 <div class="cs-section">
-  <h2 class="cs-section-label">05 · Impact</h2>
+  <h2 class="cs-section-label">Impact</h2>
 </div>
 <p class="cube-cap cube-cap--above">$13.6M through scheduling, 32% more new patients booking themselves, 22% more e-visits, and the top-rated care app against every direct competitor.</p>
 <div class="cs-bleed" style="text-align:center;"><img src="{{ site.baseurl }}/assets/img/fairview/13-impact.webp" alt="Impact: 22% more e-visits, 32% more new patients scheduling, $13.6M revenue through scheduling, 4.4 rated app" loading="lazy" decoding="async" style="max-width:1100px;width:100%;" /></div>
