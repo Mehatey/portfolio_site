@@ -1292,7 +1292,11 @@ import { Water } from "three/addons/objects/Water.js";
       a.tap += (0 - a.tap) * 0.1;
       a.group.position.x = a.x + Math.sin(t * a.drift + a.phase) * (0.16 + a.phase * 0.018);
       a.group.position.y =
-        0.07 - (1 - awardIn) * 0.12 + Math.sin(t * (0.42 + a.phase * 0.04) + a.phase) * 0.026 + a.hover * 0.045 + Math.sin(t * 9 + a.phase) * a.tap * 0.018;
+        0.07 -
+        (1 - awardIn) * 0.12 +
+        Math.sin(t * (0.42 + a.phase * 0.04) + a.phase) * 0.026 +
+        a.hover * 0.045 +
+        Math.sin(t * 9 + a.phase) * a.tap * 0.018;
       a.group.position.z = a.z + Math.cos(t * (a.drift * 0.82) + a.phase * 1.7) * (0.1 + a.phase * 0.012);
       a.group.rotation.x = Math.sin(t * 0.28 + a.phase) * 0.045 + a.hover * 0.035;
       a.group.rotation.y = Math.sin(t * 0.17 + a.phase * 1.4) * 0.11;
