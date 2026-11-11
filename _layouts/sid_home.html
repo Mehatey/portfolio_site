@@ -5922,6 +5922,114 @@
       body.home-page :where(.hero__col--l, .hero.is-lake .hero__col--l .tw, .hero-archive__say b, .ide__title) {
         letter-spacing: -0.03em !important;
       }
+
+      .hero__proof {
+        max-width: 58ch;
+        margin: 18px 0 0;
+        color: var(--ink-2);
+        font-size: 13px;
+        font-weight: 450;
+        line-height: 1.55;
+      }
+      @media (min-width: 761px) {
+        h1.hero__title {
+          color: var(--ink) !important;
+          mix-blend-mode: normal !important;
+        }
+        .hero__proof {
+          position: absolute;
+          left: 4vw;
+          bottom: 86px;
+          margin: 0;
+        }
+        .hero.is-lake .hero__scene-meta {
+          top: auto;
+          bottom: 45px;
+          left: 4vw;
+        }
+      }
+
+      .cg-stage__mobile {
+        display: none;
+      }
+
+      /* Phone composition is authored independently from desktop. One short
+         text block, one quiet character, one compact audio control. No 3D
+         runtime, no overlapping control stack, no viewport of dead space. */
+      @media (max-width: 760px) {
+        .hero {
+          min-height: 640px;
+          height: min(100svh, 760px);
+          padding: calc(var(--nav-h, 56px) + 44px) 0 32px;
+          overflow: hidden;
+        }
+        .hero__inner {
+          position: relative;
+          z-index: 6;
+          width: 100%;
+          padding: 0 22px;
+        }
+        .hero__status {
+          max-width: 32ch;
+          margin-bottom: 16px;
+          font-size: 11px !important;
+          line-height: 1.45;
+          letter-spacing: 0.045em !important;
+        }
+        h1.hero__title {
+          max-width: 19ch;
+          font-size: clamp(1.3rem, 6vw, 1.55rem);
+          line-height: 1.2;
+          letter-spacing: -0.035em;
+        }
+        .hero__proof {
+          max-width: 35ch;
+          margin-top: 16px;
+          font-size: 12px;
+          line-height: 1.5;
+        }
+        .cg-stage {
+          display: block;
+          left: auto;
+          right: 12px;
+          top: auto;
+          bottom: 36px;
+          width: min(54vw, 210px);
+          height: 52%;
+          transform: none;
+          opacity: 1;
+          pointer-events: none;
+        }
+        .cg-stage.is-live {
+          opacity: 1;
+        }
+        .cg-stage model-viewer {
+          display: none;
+        }
+        .cg-stage__mobile {
+          display: block;
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          object-position: bottom center;
+          opacity: 0.34;
+          filter: contrast(0.94);
+        }
+        html[data-theme="light"] .cg-stage__mobile {
+          opacity: 0.18;
+          filter: invert(1) contrast(0.8);
+        }
+        .hero-room,
+        .hero-scene,
+        .hero-wash-code {
+          display: none;
+        }
+        #theme-toggle,
+        #shortcut-key,
+        #cube-chat-fab {
+          display: none !important;
+        }
+      }
     </style>
     <!-- The lake (assets/js/hero-lake.js) is an ES module importing three
          and its addons by bare specifier; this map resolves them to the
@@ -6175,10 +6283,18 @@
                dependency the site already loads for the cap and the Buddha
                would be the wrong kind of stubborn. -->
           <div class="cg-stage" id="cg-stage" role="img" aria-label="Cube Guy, Sid's interactive character">
+            <img
+              class="cg-stage__mobile"
+              src="{{ site.baseurl }}/assets/img/home/cube-guy-drawn.png"
+              width="298"
+              height="451"
+              alt=""
+              decoding="async"
+            />
             <model-viewer
               id="cg-model"
               tabindex="-1"
-              src="{{ site.baseurl }}/assets/models/cube-guy-rigged.glb"
+              data-src="{{ site.baseurl }}/assets/models/cube-guy-rigged.glb"
               camera-orbit="18deg 82deg 105%"
               field-of-view="30deg"
               environment-image="neutral"
@@ -6271,6 +6387,7 @@
             <h1 class="hero__title" id="hero-title">
               <span class="hero__statement">Product designer and design engineer. I design the product, then build it in code.</span>
             </h1>
+            <p class="hero__proof">$13.6M through scheduling at M Health Fairview · 9,000+ Marriott properties · 2 Webby Awards at The Met</p>
             <p class="hero__scene-meta">
               <span>Previously · <strong>Deloitte · EyeJack · Philips · Leaf</strong></span>
             </p>
@@ -6506,7 +6623,7 @@
                 <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener noreferrer"
                   >LinkedIn<i aria-hidden="true"></i
                 ></a>
-                <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Résumé<i aria-hidden="true"></i></a>
+                <a href="{{ site.baseurl }}/assets/Siddharth_Mehta_Resume.pdf" target="_blank" rel="noopener noreferrer">Résumé<i aria-hidden="true"></i></a>
               </span>
             </p>
           </div>
@@ -6953,6 +7070,8 @@
         }
         function loadModelViewer() {
           if (loaded || (window.customElements && customElements.get("model-viewer"))) return;
+          var model = document.getElementById("cg-model");
+          if (model && !model.getAttribute("src")) model.setAttribute("src", model.getAttribute("data-src"));
           loaded = true;
           var script = document.createElement("script");
           script.type = "module";
@@ -6965,7 +7084,12 @@
           window.__heroLite ||
           window.innerWidth < 900 ||
           (window.matchMedia && (window.matchMedia("(hover: none)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches));
-        if (fallbackFirst) loadModelViewer();
+        /* Touch gets a deliberate still illustration. Loading a 217KB viewer
+           and a 2.4MB rig for a translucent background figure made the phone
+           slower without making the composition better. */
+        if (fallbackFirst) {
+          document.documentElement.classList.add("hero-static");
+        }
         else
           window.setTimeout(function () {
             /* A slow network can still be fetching Three's dependencies at
@@ -6977,7 +7101,25 @@
           }, 1800);
       })();
     </script>
-    <script src="{{ site.baseurl }}/assets/js/hero-motes.js" defer></script>
+    <script>
+      (function () {
+        if (window.innerWidth < 900) return;
+        if (window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse), (prefers-reduced-motion: reduce)").matches) return;
+        ["scroll-velocity.js", "hero-motion.js"].forEach(function (file) {
+          var script = document.createElement("script");
+          script.src = "{{ site.baseurl }}/assets/js/" + file;
+          script.async = false;
+          document.body.appendChild(script);
+        });
+        function loadMotes() {
+          var script = document.createElement("script");
+          script.src = "{{ site.baseurl }}/assets/js/hero-motes.js";
+          document.body.appendChild(script);
+        }
+        if ("requestIdleCallback" in window) requestIdleCallback(loadMotes, { timeout: 2200 });
+        else setTimeout(loadMotes, 1400);
+      })();
+    </script>
     <script>
       /* Phones use the lightweight model-viewer composition. Do not import a
          second Three runtime only to have hero-lake immediately decline the
@@ -7079,7 +7221,6 @@
     <!-- One damped scroll velocity for the whole page to read, as --sv and
          --sva on <html> and window.__sv() for the WebGL layers. Loaded before
          anything that consumes it. -->
-    <script src="{{ site.baseurl }}/assets/js/scroll-velocity.js" defer></script>
     <!-- The lake is the hero renderer. The former room, fluid wash and
          90,000-point monolith were still compiling and animating behind its
          opaque canvas. Removing those hidden renderers fixes input lag
@@ -7118,7 +7259,6 @@
          SDF march with fourteen smooth minima in its inner loop. All three
          files stay in the repo.
          assets/js/home-gl-ink.js · home-gl-mercury.js · home-gl-solid.js -->
-    <script src="{{ site.baseurl }}/assets/js/hero-motion.js" defer></script>
     <!-- ── THE CONDUCTOR IS GONE ────────────────────────────────────────────
          home-hero.js ran a seventeen-second beat: the figure holds, then
          dissolves, then the FILM holds, then he reassembles. That was correct
@@ -7634,7 +7774,7 @@
         t("practice", "n");
         t(" = {\n");
         t("  role:      ", "n");
-        t('"product designer + creative technologist"', "v");
+        t('"product designer + design engineer"', "v");
         t(",\n");
         t("  range:     ", "n");
         t('["research", "systems", "interaction", "code"]', "v");
@@ -7944,7 +8084,20 @@
          canvas rather than under it. -->
     {% comment %} The grade moved into site_footer.html, which every layout includes — it was only ever on the home page, which is exactly the seam it
     exists to remove. {% endcomment %} {% include cursor_fluid.html %}
-    <script src="{{ '/sid-ai/vinyl.js?v=6' | relative_url }}" defer></script>
+    <style>
+      @media (max-width: 760px) {
+        body.home-page #theme-toggle,
+        body.home-page #shortcut-key,
+        body.home-page #cube-chat-fab {
+          display: none !important;
+        }
+        body.home-page .vinyl .vinyl__step {
+          display: none !important;
+        }
+      }
+    </style>
+    <!-- Audio remains opt-in; the disc never starts playback on its own. -->
+    <script src="{{ '/sid-ai/vinyl.js?v=7' | relative_url }}" defer></script>
     <!-- The cube guy's line came off this page. Sid: "the random text u added
          on bottom right, he built this or whatever, needs to go." It was a
          remark nobody asked for, floating in a corner of the one screen that

@@ -387,10 +387,10 @@ next_project:
 
 <!-- SECTION: MEASURING THE CALM -->
 <div class="cs-section">
-  <h2 class="cs-section-label">Measuring the calm</h2>
+  <h2 class="cs-section-label">Measuring arousal</h2>
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>Calm should not be a claim, so an EEG headband read every visitor.</em></p>
+<p class="cube-cap cube-cap--above" style="padding-top: 24px;"><em>An EEG headband recorded each visitor's response instead of relying on a mood claim.</em></p>
 <div class="cs-bleed">
   <video width="1440" height="814" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
     <source data-src="{{ site.baseurl }}/4.mandala/brainbit.mp4" type="video/mp4" />
@@ -723,10 +723,10 @@ next_project:
 </div>
 
 <div class="cs-section" id="bloom-testing">
-  <h2 class="cs-section-label">Testing calm</h2>
+  <h2 class="cs-section-label">Testing the room</h2>
 </div>
 
-<p class="cube-cap cube-cap--above"><em>An EEG headband made calm measurable. The room mattered as much as the software: darkness, fewer people, and quieter sound produced the strongest sessions.</em></p>
+<p class="cube-cap cube-cap--above"><em>The EEG readings showed that darkness, fewer people and quieter sound produced the strongest sessions.</em></p>
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video width="1440" height="814" autoplay muted loop playsinline preload="none">
@@ -753,7 +753,7 @@ next_project:
 </div>
 
 <div class="cs-section" id="bloom-outcome">
-  <h2 class="cs-section-label">What the room taught me</h2>
+  <h2 class="cs-section-label">What changed after testing</h2>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>Some visitors closed their eyes. The visual system worked, but the space carried the experience. Bloom became less about controlling attention and more about making room for it.</em></p>

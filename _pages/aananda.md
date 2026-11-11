@@ -33,7 +33,7 @@ reflection: >
   This project pushed me to work with something deeply personal and culturally layered. Translating Jain philosophy into design meant carrying responsibility alongside the aesthetics. The process was shaped more by conversations than by references: sitting with my father and understanding these ideas from the inside changed how I approached the visual decisions.
 
 
-  What stayed with me was how much the work depended on staying faithful to the source. Every type choice, color, and compositional pattern had to feel earned rather than borrowed. Design here was interpretation, not just production.
+  The work depended on staying faithful to the source. Type, color and compositional patterns had to interpret the material instead of borrowing its surface.
 next_project:
   title: "Naavo"
   url: /naavo/

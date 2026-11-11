@@ -5,7 +5,7 @@ project_title: Naavo
 proj_num: "09"
 tagline: >
   Identity and packaging system making Ayurveda feel contemporary without becoming clinical or nostalgic.
-quick_read: "Built an Ayurveda brand end to end, identity through packaging, in eight weeks, landing on a calm and grounded visual language that avoids both clinical and nostalgic clichés."
+quick_read: "Built an Ayurveda brand end to end, identity through packaging, in eight weeks, using botanical forms and warm materials without clinical or nostalgic clichés."
 cover_summary: A contemporary Ayurveda identity spanning packaging, retail, and guided products.
 category: Branding · Packaging
 year: 2020
@@ -31,7 +31,7 @@ highlights:
   - value: Solo
     label: concept & visual system
 reflection: >
-  This project taught me how much restraint branding requires. It was easy to lean too heavily into traditional visuals or make it feel too modern and lose its essence. Finding that balance meant being intentional with every element, color, form, and typography.
+  Traditional references could quickly become nostalgic, while a clinical system would lose Ayurveda's material character. Botanical forms, warm materials and a precise typographic structure held the identity between those extremes.
 
 
   I started thinking more carefully about packaging as a physical encounter. How it sits in someone's hand, how it reads from three feet away on a shelf, and what it says before anyone reads the label.
@@ -216,7 +216,7 @@ next_project:
 <div class="cs-section" id="naavo-finished">
   <h2 class="cs-section-label">The finished system</h2>
 </div>
-<p class="cube-cap cube-cap--above"><em>A calm, grounded identity built to work across packaging, retail, and a guided product experience.</em></p>
+<p class="cube-cap cube-cap--above"><em>A botanical identity built to work across packaging, retail, and a guided product experience.</em></p>
 <div class="cs-bleed breathe">
   <img src="{{ site.baseurl }}/7.naavo/1.png" alt="The Naavo identity and New Age Ayurveda positioning" loading="eager" decoding="async" />
 </div>

@@ -30,22 +30,22 @@ highlights:
   - value: "1 pane"
     label: for the whole shift
   - value: "17%"
-    label: lift in inventory accuracy
+    label: lift in employee usage and customer satisfaction
 quick_read: >
-  Designed SPOG, a single pane of glass employee application for Marriott Bonvoy properties, unifying daily operations, reservations and loyalty enrolment into one calm, information dense dashboard.
-cover_summary: One Marriott staff dashboard for operations, reservations, and loyalty. Inventory accuracy rose 17%.
+  Designed SPOG, a single pane of glass employee application for Marriott Bonvoy properties, unifying daily operations, reservations and loyalty enrolment in one information dense dashboard.
+cover_summary: One Marriott staff dashboard for operations, reservations, and loyalty across 9,000+ properties.
 reflection: >
-  Enterprise tools are usually judged by how much they can show. This one was judged by how fast a busy associate could understand a shift. That reframing changed every decision. The dashboard carries a large amount of live data, arrivals, departures, occupancy, room status, cases and events, yet it had to read in a glance for someone standing at a front desk mid conversation.
+  A busy associate had to understand the shift during a front desk conversation. The dashboard carries live arrivals, departures, occupancy, room status, cases and events, with the most urgent information visible first.
 
 
-  The craft was in restraint. A warm neutral system, one accent and a strict hierarchy let dense information feel calm instead of overwhelming. Designing the same experience for a tablet at the desk and a browser in the back office taught me how much layout discipline a real operational tool demands.
+  The same system works on a tablet at the desk and in a browser in the back office. A warm neutral base, one accent and a strict hierarchy keep the operational states distinct.
 decisions:
   - choice: "Built one dashboard that reads in a glance, not a wall of dashboards"
     why: >
       An associate does not have time to hunt across screens mid shift. We put the whole day on one overview, arrivals and departures, occupancy, room status, cases and events, with a strict visual hierarchy so the most time sensitive numbers read first and detail waits one tap away.
     tradeoff: >
-      Fitting that much on one surface meant relentless editing of what earned a place on the first screen. Several secondary metrics had to move into detail views to keep the overview calm.
-  - choice: "Used a warm neutral system with a single accent to keep dense data calm"
+      Several secondary metrics moved into detail views so the overview could prioritize the live shift.
+  - choice: "Used a warm neutral system with one accent for dense operational data"
     why: >
       Operational data is unforgiving, and colour used carelessly turns a dashboard into noise. We held to a warm neutral base with one gold accent and reserved stronger colour only for states that need attention, so an alert actually feels like an alert.
     tradeoff: >
@@ -58,7 +58,7 @@ decisions:
 next_project:
   title: "Cube of Creations"
   url: /cube-guy/
-  desc: Seven years of a character world, made for play.
+  desc: Six years of a character world, made for play.
 ---
 
 <style>

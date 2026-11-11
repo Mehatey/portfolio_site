@@ -19,7 +19,7 @@ meta:
   - label: Timeline
     value: 5 months
   - label: Tools
-    value: visionOS, RealityKit, ElevenLabs
+    value: Swift, visionOS, RealityKit, ElevenLabs
   - label: Year
     value: "2025 to 2026"
 highlights:
@@ -33,7 +33,7 @@ quick_read: >
   Designed and built a Vision Pro thesis experience where a spatial AI tree uses gaze, voice, and deliberate pacing to make attention the interface.
 cover_summary: A Vision Pro tree responds to gaze, voice, and drawings. Attention is the interface.
 reflection: >
-  Building for Vision Pro meant learning a new spatial design language from scratch. There are no flat screens to fall back on. Every UI decision is a room decision. Where the tree sits, how large it reads at arm's length, whether the voice feels near or distant. All of it had to be felt in space, not sketched on a canvas.
+  Building for Vision Pro meant testing the tree's distance, scale and voice inside the room. Those choices had to be evaluated in space rather than on a flat canvas.
 
 
   What surprised me was how much the voice carried the experience. The visuals set the stage, but the moment the tree spoke, everything changed. The right pacing made it feel alive. The wrong pacing made it feel like a demo. That line was narrower than I expected, and finding it took more iteration than any technical problem.

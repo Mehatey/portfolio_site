@@ -10,7 +10,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
 <section class="reel-hero">
   <p class="reel-hero__kicker">Siddharth Mehta · New York</p>
   <h1 class="reel-hero__name">Designs it. Builds it. Ships it.</h1>
-  <p class="reel-hero__line">Product designer and creative technologist. Two Webby Awards, a Kyoorius, 100,000+ people using the work.</p>
+  <p class="reel-hero__line">Product designer and design engineer. Two Webby Awards, a Kyoorius, 100,000+ people using the work.</p>
   <p class="reel-hero__hint"><i></i>Scroll</p>
 </section>
 
@@ -246,7 +246,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
   <h2>Available to work. New York, or anywhere.</h2>
   <div class="reel-close__row">
     <a class="is-primary" href="mailto:sidmehtadesign@gmail.com">Email Sid</a>
-    <a href="{{ B }}/assets/resume.pdf" target="_blank" rel="noopener">Résumé</a>
+    <a href="{{ B }}/assets/Siddharth_Mehta_Resume.pdf" target="_blank" rel="noopener">Résumé</a>
     <a href="https://www.linkedin.com/in/siddharth-mehta-35560916b/" target="_blank" rel="noopener">LinkedIn</a>
     <a href="{{ B }}/works/">All 16 projects</a>
   </div>

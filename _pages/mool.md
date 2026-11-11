@@ -46,10 +46,7 @@ quick_read: >
 cover_summary: A culturally resonant banking experience that reached 100k+ downloads across India.
 refl_bg: "5.mool/reflection.png"
 reflection: >
-  Before Mool I thought accessible meant simpler. This project taught me it really means resonant. People trust an app not because it looks clean but because it feels like it was made by someone who understands their world. We studied Indian folk art, regional patterns, and traditional color palettes not as decoration but as signals of belonging.
-
-
-  Every visual decision was tested against one question: does this make someone from a small town feel like this was built for them. Clarity is emotional, not just functional. A user who feels seen will trust you with their money.
+  Regional motifs carry the brand through illustration, empty states and confirmations, while balances, dates and account numbers remain neutral and precise. The split lets the interface feel locally familiar without making financial information decorative.
 decisions:
   - choice: "Built the folk-art vocabulary into the system, not onto it"
     why: >

@@ -34,7 +34,7 @@ highlights:
 reflection: >
   I built the interface in two days and spent the rest of the project reading what people submitted. The responses were more specific than I expected. Not "my grandmother" but "my grandmother at 3am." That specificity kept appearing across hundreds of entries: people writing for themselves but somehow writing for each other.
 
-  Running public research taught me that the artifact matters less than the opening you create. The prompt did most of the work.
+  In public research, the prompt created the opening. The artifact recorded what people chose to share.
 refl_bg: "5.bb/board2.2.mp4"
 # Was Shot on iPhone, now hidden from the grid. Rerouted to what that page
 # pointed at, so the handover chain stays a complete cycle over the thirteen

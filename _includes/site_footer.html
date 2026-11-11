@@ -4777,7 +4777,7 @@ wall and the Buddha all sit inside the one `
                  piece of the code and not the account holding all of it. The
                  footer is on every page, which is the other half of the fix. -->
             <a href="https://github.com/Mehatey" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="{{ site.baseurl }}/assets/resume.pdf" target="_blank" rel="noopener noreferrer">Resume</a>
+            <a href="{{ site.baseurl }}/assets/Siddharth_Mehta_Resume.pdf" target="_blank" rel="noopener noreferrer">Résumé</a>
           </nav>
         </div>
 
@@ -6037,16 +6037,9 @@ wall and the Buddha all sit inside the one `
     })();
   </script>
 
-  <!-- The kinetic type in the band above the colophon. -->
-  <script src="{{ site.baseurl }}/assets/js/strip-ascii.js" defer></script>
-  <script src="{{ site.baseurl }}/assets/js/kinetic-type.js" defer></script>
-
-  <!-- Two grace notes, loaded from the one include every layout pulls in.
-     Both are deliberately idle by default: ambient.js holds a single timer and
-     creates nothing until an event fires, and sound.js builds no AudioContext
-     until somebody turns it on. -->
-  <script src="{{ site.baseurl }}/assets/js/ambient.js" defer></script>
-  <script src="{{ site.baseurl }}/assets/js/sound.js" defer></script>
+  <!-- Footer interaction scripts are mounted only when this section nears the
+       viewport. Touch and reduced-motion visitors keep the complete static
+       footer without paying for decorative pointer systems. -->
 
   <script>
     /* ── DRAWING THE SHELF ──────────────────────────────────────────────────
@@ -6142,18 +6135,15 @@ wall and the Buddha all sit inside the one `
     })();
   </script>
 
-  <script src="{{ site.baseurl }}/assets/js/collect.js" defer></script>
   {% comment %} The pixel field is off. Sid: "I don't want any of that pixel hover. Just remove that pixel hover and instead just make it a sort of
   wind or a light movement." It was the second answer to the same brief -- first a row of squares above the footer, then a field of them lit around
   the cursor -- and the note in that file argued the field was the honest version of "pixel art". It is still a grid of squares switching on and off
   under the pointer, and a grid switching on and off reads as a readout however it is drawn. What he keeps asking for is MOVEMENT, not marks. What
   replaces it is assets/js/wind.js. assets/js/pixel-field.js stays in the repo and nothing loads it. {% endcomment %}
-  <script src="{{ site.baseurl }}/assets/js/wind.js" defer></script>
   <!-- Controls lean toward the cursor as it approaches. Loaded from the shared
      footer so every page's buttons behave the same way; it costs one
      pointermove listener and a rAF loop that stops when nothing is moving.
      See assets/js/magnetic.js. -->
-  <script src="{{ site.baseurl }}/assets/js/magnetic.js" defer></script>
 
   {% comment %} The colour reader, and the cursor that uses it. hue.js is a plain module with no side effects and must load first; cursor-hue.js is
   the panel that follows the pointer, and the photo-strip field in strip-hue.js reads the same palettes. See the note at the top of assets/js/hue.js
@@ -6190,13 +6180,8 @@ wall and the Buddha all sit inside the one `
 
   {% comment %} The shared voxel burst: the phone on the home page and the Buddha both come apart through it. See assets/js/voxel-burst.js. {%
   endcomment %}
-  <script src="{{ site.baseurl }}/assets/js/voxel-burst.js" defer></script>
-  <script src="{{ site.baseurl }}/assets/js/footer-jaali.js" defer></script>
   {% comment %} Hand steering. Loads nothing -- no model, no wasm, no camera -- until the visitor presses the control. See assets/js/hand.js. {%
   endcomment %}
-  <script src="{{ site.baseurl }}/assets/js/hand.js" defer></script>
-  <script src="{{ site.baseurl }}/assets/js/hue.js" defer></script>
-  <script src="{{ site.baseurl }}/assets/js/cursor-hue.js" defer></script>
   <script>
     /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
      Sets `body.controls-near`, which site_footer's stylesheet has referenced
@@ -6317,7 +6302,58 @@ wall and the Buddha all sit inside the one `
      the shared footer so it exists on every route; it costs one pointerenter
      listener at rest and builds nothing until the mark is touched.
      See assets/js/mark-lens.js. -->
-  <script src="{{ site.baseurl }}/assets/js/mark-lens.js" defer></script>
+  <script>
+    (function () {
+      var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      var coarse = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
+      if (reduced || coarse) return;
+      var footer = document.currentScript.closest(".site-footer");
+      if (!footer) return;
+      var loaded = false;
+      function load() {
+        if (loaded) return;
+        loaded = true;
+        [
+          "strip-ascii.js",
+          "kinetic-type.js",
+          "collect.js",
+          "wind.js",
+          "footer-jaali.js",
+          "hue.js",
+          "cursor-hue.js",
+          "mark-lens.js",
+        ].forEach(function (file) {
+          var script = document.createElement("script");
+          script.src = "{{ site.baseurl }}/assets/js/" + file;
+          script.async = false;
+          document.body.appendChild(script);
+        });
+      }
+      if (!("IntersectionObserver" in window)) return load();
+      var observer = new IntersectionObserver(
+        function (entries) {
+          if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+          observer.disconnect();
+          load();
+        },
+        { rootMargin: "400px 0px" }
+      );
+      observer.observe(footer);
+
+      /* Sound is user-controlled. Prepare its handler after first intent, not
+         at page load, and never on touch where the audit calls for silence. */
+      function loadSound() {
+        ["pointermove", "keydown"].forEach(function (event) {
+          window.removeEventListener(event, loadSound);
+        });
+        var script = document.createElement("script");
+        script.src = "{{ site.baseurl }}/assets/js/sound.js";
+        document.body.appendChild(script);
+      }
+      window.addEventListener("pointermove", loadSound, { once: true, passive: true });
+      window.addEventListener("keydown", loadSound, { once: true });
+    })();
+  </script>
 </footer>
 
 <script>

@@ -11,6 +11,7 @@ category: Agentic AI · Fintech
 year: "2026"
 hero_bg: "radial-gradient(ellipse at 40% 45%, #11151c 0%, #0a0d12 55%, #05070a 100%)"
 hero_image: "16.obin/00-full.webp"
+og_image: "16.obin/v1-agent-poster.jpg"
 hero_pos: "50% 30%"
 hero_mode: artifact
 meta:
@@ -35,7 +36,7 @@ highlights:
 reflection: >
   The thing I keep coming back to is that the agent made the analyst's job worse before it made it better. Four hours became four minutes, and what came out the other side was a well written memo with thirty eight numbers in it and no way to tell which the machine had invented. So the analyst checked all thirty eight. The speed went somewhere, but not to them.
 
-  What I would test first is the one assumption the whole ordering rests on: that leverage crossed with reliability is the right sort. Every workflow decision here is inferred rather than observed, and the design says so on its own face rather than hiding it in a footnote.
+  The first test would examine the ordering assumption: whether debt load crossed with evidence reliability is the right sort. The workflow is a concept, so the interface identifies inferred behavior instead of presenting it as validated.
 refl_bg: "16.obin/01-figures.webp"
 next_project:
   title: "Ledger"
@@ -70,6 +71,18 @@ next_project:
   <div class="cs-grid-item">
     <img src="{{ site.baseurl }}/16.obin/04-review.webp" alt="The verification pane showing the source record beside what the agent did with it" loading="lazy" decoding="async" />
   </div>
+</div>
+
+<div class="cs-section"><span class="cs-section-label">What I built</span></div>
+
+<div class="cs-intro">
+  <p>The working prototype connects four states that are usually split across tools: the agent run, the drafted memo, a risk-ordered verification queue, and the source record behind each figure. The analyst can move from an assertion to its evidence without leaving the memo, then advance, hold, or pass the review with private notes attached.</p>
+</div>
+
+<div class="cs-section"><span class="cs-section-label">Result</span></div>
+
+<div class="cs-intro">
+  <p>Obin is a designed and built concept, not a deployed lending product. It demonstrates a review model in which automation makes its evidence visible and stops at judgment. The next step is testing the queue with venture debt analysts to learn whether the risk ordering matches how they investigate a memo under time pressure.</p>
 </div>
 
 <div class="cs-intro cs-try">

@@ -11,6 +11,7 @@ category: Agentic AI · Design Systems
 year: "2026"
 hero_bg: "radial-gradient(ellipse at 45% 40%, #1b1e2c 0%, #12141d 55%, #0a0b11 100%)"
 hero_image: "17.ledger/01-review.webp"
+og_image: "17.ledger/v3-review-poster.jpg"
 hero_pos: "50% 16%"
 # ── THE COVER IS THE PRODUCT NOW ──────────────────────────────────────────
 # Sid: "ledger cover pic looks bad and tells me nothing about the product, at
@@ -52,8 +53,8 @@ highlights:
     label: external tabs to reach a verdict
   - value: "5"
     label: material checks, scored apart
-  - value: "0"
-    label: contrast failures, light and dark
+  - value: "2"
+    label: interface modes, light and dark
 reflection: >
   The decision I would defend hardest is separating whether a submission is complete from whether it is good. Those two questions arrive at the same moment and a single star rating collapses them, so a candidate who shipped strong work with no README scores like a candidate who shipped nothing. Pulling them apart cost a column of screen and made every score afterwards mean something narrower and more honest.
 

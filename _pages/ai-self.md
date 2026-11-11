@@ -32,7 +32,7 @@ reflection: >
   The research started as a joke. Feeding images into Cloud Vision just to see how badly it misread them. But the patterns kept surfacing. Not about what AI fails at, but about what it has decided is worth noticing in the first place.
 
 
-  Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was always about restraint: when presence becomes intrusion, and how to build something that knows the difference. AI Self was the most difficult to make. Unity is unforgiving if you do not know what you are doing, and at the start I did not. What I ended up with was rougher than intended, but the roughness felt appropriate. Something trying to understand humanity by building a room out of it is going to get some of the proportions wrong.
+  Chaise was the harder problem. If AI sees pattern instead of meaning, what would it feel like to have that living alongside you all day? The design question was when presence becomes intrusion. AI Self was the most difficult to make. Unity was new to me, and the result was rougher than intended. That roughness fit a system trying to understand humanity by building a room out of it.
 refl_bg: "2.ai-self/reflection.webp"
 next_project:
   title: "Aananda"

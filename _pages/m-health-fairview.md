@@ -29,16 +29,13 @@ highlights:
     label: revenue through scheduling
   - value: "32%"
     label: more new patients scheduling
-  - value: "4.4"
-    label: top rated care app
+  - value: "22%"
+    label: more e-visits
 quick_read: >
   I shaped the care-discovery experience, from the information architecture and wireframes through hi-fi delivery and build QA. Sorting options by urgency created a clearer patient path and helped move routine demand from emergency rooms to scheduled and virtual care.
 cover_summary: Care discovery redesigned around urgency, helping drive $13.6M+ in scheduling revenue.
 reflection: >
-  The hardest part of this project was not visual, it was deciding what a patient should see first. A person looking for care is often anxious and short on time, so every extra option is a small tax on someone who is already stressed. We kept returning to one test, does this help someone in the first ten seconds know where to go. Sorting the whole experience by urgency, rather than by how the health system is organised internally, was the decision that made everything else fall into place.
-
-
-  I also learned how much a single clear entry point can do for a business. By centralising every care option in one place and pushing the right patients toward virtual and preventive care, the same demand produced far better outcomes for both patients and the system.
+  Anxious patients pay for every extra option, so the first fold carries only what they need now. Sorting care by urgency, instead of the health system's internal structure, gave patients one entry point and directed routine demand toward virtual and preventive care.
 decisions:
   - choice: "Sorted the whole experience by urgency, not by how the health system is organised"
     why: >
@@ -52,7 +49,7 @@ decisions:
       Some clinically important nuance, cost ranges and eligibility, had to move a click away. We accepted that trade in exchange for a first screen a patient could act on without reading a wall of text.
   - choice: "Designed for the patient and the business at the same time"
     why: >
-      The brief was not only to help patients, it was to move routine demand off the emergency room and to promote virtual and preventive care. We built entry points for labs, checkups and a promotional banner into the same page, so a patient journey and a business goal could be served by one clear layout.
+      The brief paired patient clarity with moving routine demand away from the emergency room. We built entry points for labs, checkups and preventive care into the same page, so the patient path and business goal shared one structure.
     tradeoff: >
       More goals on one page risks clutter. We contained it by keeping everything inside the urgency framework, so promotional content never competed with a patient who needed care right now.
 next_project:
@@ -104,7 +101,7 @@ next_project:
 <p class="cube-cap cube-cap--above">One of Minnesota's largest health systems: 100+ hospitals and 60 clinics, one promise to patients.</p>
 <div class="cs-bleed"><img src="{{ site.baseurl }}/assets/img/fairview/00-about.webp" alt="M Health Fairview: care you can trust, on your terms" loading="lazy" decoding="async" /></div>
 
-<div class="fv-band" aria-hidden="true"><div class="fv-band__track"><img src="{{ site.baseurl }}/assets/img/fairview/band.webp" alt="" loading="lazy" decoding="async" /><img src="{{ site.baseurl }}/assets/img/fairview/band.webp" alt="" loading="lazy" decoding="async" /></div></div>
+<div class="fv-band"><div class="fv-band__track"><img src="{{ site.baseurl }}/assets/img/fairview/band.webp" alt="" loading="lazy" decoding="async" /><img src="{{ site.baseurl }}/assets/img/fairview/band.webp" alt="" loading="lazy" decoding="async" /></div></div>
 
 <div class="cs-section">
   <h2 class="cs-section-label">02 · The problem</h2>
