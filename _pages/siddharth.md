@@ -152,7 +152,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--8"><img src="{{ B }}/2.ai-self/cover.jpg" alt="AI Self, the dream" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/17.ledger/v3-review-poster.jpg"><source src="{{ B }}/17.ledger/v3-review.mp4" type="video/mp4" /></video></div>
   </div>
-  <div class="reel-strip" aria-label="AI experiments">
+  <section class="reel-strip" aria-label="AI experiments">
     <div class="reel-strip__track">
           <!-- Sid: "the vids u have used in ai protos arent great and barely
                visible, use some from latent atlas and more visually strong
@@ -172,7 +172,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
           <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/revision/revision-map-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/revision/revision-map.mp4" type="video/mp4" /></video></div>
           <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/captcha/CAPTCHA-03-where-the-wild-begins-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/captcha/CAPTCHA-03-where-the-wild-begins.mp4" type="video/mp4" /></video></div>
     </div>
-  </div>
+  </section>
 </section>
 
 <!-- 05 -->

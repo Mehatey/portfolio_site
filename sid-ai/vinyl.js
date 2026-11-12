@@ -139,9 +139,9 @@
     ".home-page .vinyl__deck{width:clamp(104px,9.5vw,138px)}",
     "@keyframes vinyl-float{0%,100%{transform:translate3d(0,0,0) rotate(-1.2deg)}45%{transform:translate3d(7px,-13px,0) rotate(1.5deg)}72%{transform:translate3d(-4px,-7px,0) rotate(.2deg)}}",
     ".home-page .vinyl__disc{background:radial-gradient(circle at 50% 50%,rgba(18,23,29,.78) 0 30%,rgba(9,12,17,.68) 30% 100%),repeating-conic-gradient(from 0deg,rgba(255,255,255,.08) 0deg 2deg,rgba(0,0,0,0) 2deg 6deg);backdrop-filter:blur(8px);box-shadow:0 16px 38px -18px rgba(0,0,0,.75),inset 0 0 0 1px rgba(210,235,245,.2)}",
-    ".home-page .vinyl__note{display:block;top:calc(100% + 10px);bottom:auto;left:50%;right:auto;transform:translate(-50%,0);opacity:.82;text-align:center;color:var(--home-ink);text-shadow:none;font-size:11px;letter-spacing:.08em;white-space:nowrap}",
+    ".home-page .vinyl__note{display:block;top:calc(100% + 10px);bottom:auto;left:50%;right:auto;transform:translate(-50%,0);opacity:1;padding:4px 8px;border-radius:5px;background:rgba(4,9,14,.78);text-align:center;color:#f4f7f8;text-shadow:0 1px 8px rgba(2,8,12,.72);font-size:13px;font-weight:600;letter-spacing:.02em;white-space:nowrap}",
     ".home-page .vinyl:hover .vinyl__note{transform:translate(-50%,-2px);opacity:1}",
-    ".home-page .vinyl:after{content:'Play music';position:absolute;left:50%;top:calc(100% + 29px);transform:translateX(-50%);font:500 10px/1 'Figtree',system-ui,sans-serif;letter-spacing:.02em;color:var(--home-muted);white-space:nowrap;pointer-events:none}",
+    ".home-page .vinyl:after{content:'Play music';position:absolute;left:50%;top:calc(100% + 31px);transform:translateX(-50%);font:500 12px/1.2 'Figtree',system-ui,sans-serif;letter-spacing:.01em;color:rgba(244,247,248,.82);text-shadow:0 1px 8px rgba(2,8,12,.72);white-space:nowrap;pointer-events:none}",
     /* On a phone the conversation panel runs the full width of the bottom of
        the screen, so the corner the disc lives in on a desktop is occupied.
        It sits instead on the right edge just above the panel, which on this

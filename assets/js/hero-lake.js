@@ -418,7 +418,15 @@ import { Water } from "three/addons/objects/Water.js";
        forty-degree yaw only made the identity and its caption harder to read. */
     group.rotation.y = 0;
     scene.add(group);
-    awards.push({ group, x, z, phase, hover: 0, tap: 0, drift: 0.12 + phase * 0.025 });
+    awards.push({
+      group,
+      x,
+      z,
+      phase,
+      hover: 0,
+      tap: 0,
+      travelOffset: awards.length === 0 ? 0.02 : 0.18,
+    });
   }
   addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.95, -0.42, 0xbcecff, 0.4);
   addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.12, -0.78, 0x86d8ff, 2.1);
@@ -1287,21 +1295,23 @@ import { Water } from "three/addons/objects/Water.js";
     water.material.uniforms.time.value += dt * 0.38;
 
     for (const a of awards) {
-      const awardIn = arrive(0.48 + a.phase * 0.06, 0.72);
+      /* Let the plaques behave like objects carried by the same slow surface
+         current. They begin and reset beyond the camera frustum, so the loop
+         is never visible: each one enters from open water, crosses without an
+         artificial ease or turnaround, and leaves completely on the far side.
+         A shared crossing time keeps the pair from overtaking one another. */
+      const crossing = (t / 46 + a.travelOffset) % 1;
+      const currentX = THREE.MathUtils.lerp(-8.4, 8.4, crossing);
       a.hover += ((a === hoveredAward ? 1 : 0) - a.hover) * 0.14;
       a.tap += (0 - a.tap) * 0.1;
-      a.group.position.x = a.x + Math.sin(t * a.drift + a.phase) * (0.16 + a.phase * 0.018);
+      a.group.position.x = currentX + Math.sin(t * 0.19 + a.phase) * 0.08;
       a.group.position.y =
-        0.07 -
-        (1 - awardIn) * 0.12 +
-        Math.sin(t * (0.42 + a.phase * 0.04) + a.phase) * 0.026 +
-        a.hover * 0.045 +
-        Math.sin(t * 9 + a.phase) * a.tap * 0.018;
-      a.group.position.z = a.z + Math.cos(t * (a.drift * 0.82) + a.phase * 1.7) * (0.1 + a.phase * 0.012);
+        0.07 - Math.sin(t * (0.42 + a.phase * 0.04) + a.phase) * 0.026 + a.hover * 0.045 + Math.sin(t * 9 + a.phase) * a.tap * 0.018;
+      a.group.position.z = a.z + Math.sin(t * 0.13 + a.phase * 1.7) * 0.16;
       a.group.rotation.x = Math.sin(t * 0.28 + a.phase) * 0.045 + a.hover * 0.035;
-      a.group.rotation.y = Math.sin(t * 0.17 + a.phase * 1.4) * 0.11;
-      a.group.rotation.z = Math.cos(t * 0.22 + a.phase * 0.7) * 0.065 + Math.sin(a.phase) * a.hover * 0.028 + Math.sin(t * 8) * a.tap * 0.045;
-      a.group.scale.setScalar((0.72 + awardIn * 0.28) * (1 + a.hover * 0.025));
+      a.group.rotation.y = Math.sin(t * 0.11 + a.phase * 1.4) * 0.08;
+      a.group.rotation.z = Math.sin(t * 0.16 + a.phase * 0.7) * 0.055 + Math.sin(a.phase) * a.hover * 0.028 + Math.sin(t * 8) * a.tap * 0.045;
+      a.group.scale.setScalar(1 + a.hover * 0.025);
     }
     for (const lf of leaves) {
       const leafIn = arrive(0.68 + lf.phase * 0.025, 0.76);
