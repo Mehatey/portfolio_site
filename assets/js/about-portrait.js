@@ -334,6 +334,10 @@
     var card = document.getElementById("about-profile-card");
     if (!card) return;
     if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    /* Pointer-driven WebGL adds no useful interaction on a phone and was the
+       most expensive decoration on the mobile About route. The finished CSS
+       dissolve remains visible as the intentional mobile treatment. */
+    if (window.innerWidth < 768 || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches)) return;
 
     var img = card.querySelector(".about-photo.active") || card.querySelector(".about-photo");
     if (!img) return;

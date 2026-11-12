@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Latent Atlas: a museum, by meaning</title>
     <meta
       name="description"
@@ -18,11 +18,143 @@
       href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='13'>◹</text></svg>"
     />
     <link rel="preconnect" href="https://images.metmuseum.org" />
-    <script type="module" crossorigin src="/ai-prototypes/latent-atlas/assets/index-kIKLrk04.js"></script>
     <link rel="stylesheet" crossorigin href="/ai-prototypes/latent-atlas/assets/index-B9kZPyGk.css" />
+    <style>
+      .demo-gate {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: #060a12;
+        color: #f4f7fb;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        transition: opacity 320ms ease, visibility 320ms ease;
+      }
+      .demo-gate.is-leaving {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .demo-gate__card {
+        width: min(100%, 760px);
+        display: grid;
+        grid-template-columns: minmax(0, 1.1fr) minmax(260px, 0.9fr);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 14px;
+        background: #0b111d;
+      }
+      .demo-gate__poster {
+        width: 100%;
+        height: 100%;
+        min-height: 360px;
+        object-fit: cover;
+      }
+      .demo-gate__copy {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding: clamp(28px, 5vw, 52px);
+      }
+      .demo-gate__copy h1 {
+        margin: 0 0 14px;
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 0.98;
+        letter-spacing: -0.035em;
+      }
+      .demo-gate__copy p {
+        margin: 0;
+        color: rgba(244, 247, 251, 0.76);
+        font-size: 16px;
+        line-height: 1.55;
+      }
+      .demo-gate__actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 28px;
+      }
+      .demo-gate__start {
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid #f4f7fb;
+        border-radius: 6px;
+        background: #f4f7fb;
+        color: #07101c;
+        font: 650 14px/1 ui-sans-serif, system-ui, sans-serif;
+        cursor: pointer;
+      }
+      .demo-gate__start:focus-visible {
+        outline: 3px solid #70a7ff;
+        outline-offset: 3px;
+      }
+      .demo-gate__hint {
+        color: rgba(244, 247, 251, 0.6);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+      @media (max-width: 680px) {
+        .demo-gate__card { grid-template-columns: 1fr; }
+        .demo-gate__poster { min-height: 220px; max-height: 34vh; }
+        .demo-gate__copy { padding: 26px; }
+        .demo-gate__actions { align-items: flex-start; flex-direction: column; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .demo-gate { transition: none; }
+      }
+    </style>
   </head>
   <body>
-    <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0">Latent Atlas</h1>
+    <section class="demo-gate" id="demo-gate" aria-labelledby="demo-gate-title">
+      <div class="demo-gate__card">
+        <img
+          class="demo-gate__poster"
+          src="/ai-prototypes/latent-atlas/assets/cover-iHsdcUBA.png"
+          width="1200"
+          height="630"
+          alt="Latent Atlas, an explorable field of artworks from The Met"
+          fetchpriority="high"
+        />
+        <div class="demo-gate__copy">
+          <h1 id="demo-gate-title">Latent Atlas</h1>
+          <p>Explore 1,500 works from The Met by visual meaning, with semantic search running entirely in your browser.</p>
+          <div class="demo-gate__actions">
+            <button class="demo-gate__start" id="start-demo" type="button">Start demo</button>
+            <span class="demo-gate__hint" id="demo-gate-hint">About 300 MB. Best on desktop Wi-Fi.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <script>
+      (function () {
+        var button = document.getElementById("start-demo");
+        var gate = document.getElementById("demo-gate");
+        var hint = document.getElementById("demo-gate-hint");
+        if (!button || !gate) return;
+        button.addEventListener("click", function () {
+          if (button.disabled) return;
+          button.disabled = true;
+          button.textContent = "Opening…";
+          hint.textContent = "Loading the collection. Model progress appears in the search bar.";
+          var script = document.createElement("script");
+          script.type = "module";
+          script.crossOrigin = "anonymous";
+          script.src = "/ai-prototypes/latent-atlas/assets/index-kIKLrk04.js";
+          script.addEventListener("load", function () {
+            gate.classList.add("is-leaving");
+            window.setTimeout(function () { gate.remove(); }, 340);
+          });
+          script.addEventListener("error", function () {
+            button.disabled = false;
+            button.textContent = "Try again";
+            hint.textContent = "The demo could not load. Check your connection and try again.";
+          });
+          document.head.appendChild(script);
+        });
+      })();
+    </script>
     <canvas id="scene"></canvas>
 
     <!-- HUD -->
