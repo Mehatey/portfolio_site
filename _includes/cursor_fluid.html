@@ -3125,7 +3125,9 @@
   #cube-chat {
     position: fixed;
     bottom: 22px;
-    right: 22px;
+    /* Leave the revealed tool rail visible. The More control is a launcher,
+       so covering every control it just opened made the expansion pointless. */
+    right: 86px;
     z-index: 9990;
     width: 360px;
     max-width: calc(100vw - 32px);
@@ -6101,7 +6103,7 @@
      way of drawing things. A big spark with a small one beside it is the
      shape that reads as "generated" at 20 pixels; on this grid it also
      reads as belonging to the same set as the work spiral and the flower. -->
-<button type="button" id="cube-chat-fab" aria-label="Ask Sid's AI" data-tip="Ask AI">
+<button type="button" id="cube-chat-fab" aria-label="Open site tools and Sid's AI" data-tip="More">
   <span class="fab-pulse" aria-hidden="true"></span>
   <!-- ── IT HAS TO SAY "MORE IN HERE" ─────────────────────────────────────
        Sid: "the icon which should open the others looks like a weird flower
@@ -6131,11 +6133,11 @@
        carry less ink than four solid blocks. -->
   <svg class="nav-pixel fab-ai fab-flower" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
     <g class="fab-flower__bloom">
-      <rect x="10" y="3" width="4" height="4" rx="1" />
-      <rect x="5" y="7" width="4" height="4" rx="1" />
-      <rect x="15" y="7" width="4" height="4" rx="1" />
-      <rect x="7" y="12" width="4" height="4" rx="1" />
-      <rect x="13" y="12" width="4" height="4" rx="1" />
+      <rect class="fab-flower__petal fab-flower__petal--1" x="10" y="3" width="4" height="4" rx="1" />
+      <rect class="fab-flower__petal fab-flower__petal--2" x="5" y="7" width="4" height="4" rx="1" />
+      <rect class="fab-flower__petal fab-flower__petal--3" x="15" y="7" width="4" height="4" rx="1" />
+      <rect class="fab-flower__petal fab-flower__petal--4" x="7" y="12" width="4" height="4" rx="1" />
+      <rect class="fab-flower__petal fab-flower__petal--5" x="13" y="12" width="4" height="4" rx="1" />
       <rect class="fab-flower__center" x="10" y="8" width="4" height="4" rx="1" />
     </g>
     <rect class="fab-flower__stem" x="11" y="15" width="2" height="6" rx=".7" />
@@ -6151,7 +6153,12 @@
   }
   #cube-chat-fab .fab-flower__bloom {
     transform-origin: 12px 11px;
-    animation: pixelFlowerBreathe 3.4s steps(4, end) infinite;
+    animation: pixelFlowerBreathe 4.8s ease-in-out infinite;
+  }
+  #cube-chat-fab .fab-flower__petal {
+    transform-box: fill-box;
+    transform-origin: center;
+    transition: transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
   }
   #cube-chat-fab .fab-flower__center {
     color: #76d7a5;
@@ -6163,24 +6170,50 @@
     fill: currentColor;
   }
   #cube-chat-fab:hover .fab-flower__bloom,
-  #cube-chat-fab:focus-visible .fab-flower__bloom {
-    animation: pixelFlowerBloom 520ms steps(4, end) both;
+  #cube-chat-fab:focus-visible .fab-flower__bloom,
+  body.controls-peek #cube-chat-fab .fab-flower__bloom {
+    animation: pixelFlowerBloom 620ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  #cube-chat-fab:hover .fab-flower__petal--1,
+  #cube-chat-fab:focus-visible .fab-flower__petal--1,
+  body.controls-peek #cube-chat-fab .fab-flower__petal--1 {
+    transform: translateY(-2px) rotate(8deg);
+  }
+  #cube-chat-fab:hover .fab-flower__petal--2,
+  #cube-chat-fab:focus-visible .fab-flower__petal--2,
+  body.controls-peek #cube-chat-fab .fab-flower__petal--2 {
+    transform: translate(-2px, -1px) rotate(-10deg);
+  }
+  #cube-chat-fab:hover .fab-flower__petal--3,
+  #cube-chat-fab:focus-visible .fab-flower__petal--3,
+  body.controls-peek #cube-chat-fab .fab-flower__petal--3 {
+    transform: translate(2px, -1px) rotate(10deg);
+  }
+  #cube-chat-fab:hover .fab-flower__petal--4,
+  #cube-chat-fab:focus-visible .fab-flower__petal--4,
+  body.controls-peek #cube-chat-fab .fab-flower__petal--4 {
+    transform: translate(-2px, 2px) rotate(-8deg);
+  }
+  #cube-chat-fab:hover .fab-flower__petal--5,
+  #cube-chat-fab:focus-visible .fab-flower__petal--5,
+  body.controls-peek #cube-chat-fab .fab-flower__petal--5 {
+    transform: translate(2px, 2px) rotate(8deg);
   }
   @keyframes pixelFlowerBreathe {
     0%,
     100% {
-      transform: rotate(-3deg) scale(0.94);
+      transform: rotate(-2deg) scale(0.96);
     }
     50% {
-      transform: rotate(3deg) scale(1.04);
+      transform: rotate(2deg) scale(1.035);
     }
   }
   @keyframes pixelFlowerBloom {
     from {
-      transform: rotate(-8deg) scale(0.78);
+      transform: rotate(-5deg) scale(0.9);
     }
     to {
-      transform: rotate(8deg) scale(1.12);
+      transform: rotate(8deg) scale(1.08);
     }
   }
   @media (prefers-reduced-motion: reduce) {
@@ -6347,6 +6380,7 @@
     function open() {
       clearTimeout(closeTimer);
       panel.classList.remove("is-closing");
+      document.body.classList.add("controls-peek");
       if (!initialized) {
         showTyping(900, function () {
           addMsg(greeting, "cube");
@@ -6367,10 +6401,14 @@
       fab.classList.remove("is-open");
       closeTimer = setTimeout(function () {
         panel.classList.remove("is-closing");
+        document.body.classList.remove("controls-peek");
       }, 360);
     }
 
-    fab.addEventListener("click", open);
+    fab.addEventListener("click", function () {
+      document.body.classList.add("controls-peek");
+      setTimeout(open, 420);
+    });
     closeBtn.addEventListener("click", close);
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && panel.classList.contains("is-open")) close();
