@@ -282,7 +282,7 @@ import { Water } from "three/addons/objects/Water.js";
     m.rotation.y = (i * 1.7) % (Math.PI * 2);
     m.receiveShadow = true;
     scene.add(m);
-    leaves.push({ mesh: m, phase: i * 1.3, tilt: 0.02 + (i % 3) * 0.01 });
+    leaves.push({ mesh: m, x, z, vx: 0, vz: 0, ox: 0, oz: 0, phase: i * 1.3, tilt: 0.02 + (i % 3) * 0.01 });
   });
 
   const flowerPetalGeo = new THREE.SphereGeometry(0.085, 10, 6);
@@ -306,7 +306,7 @@ import { Water } from "three/addons/objects/Water.js";
     group.position.set(x, 0.035, z);
     group.scale.setScalar(scale);
     scene.add(group);
-    flowers.push({ group, phase, scale });
+    flowers.push({ group, x, z, vx: 0, vz: 0, ox: 0, oz: 0, phase, scale });
   }
   addFlower(-4.25, -0.25, 0.85, 0.4);
   addFlower(4.1, 2.45, 0.72, 2.2);
@@ -369,7 +369,7 @@ import { Water } from "three/addons/objects/Water.js";
       if (o.isMesh) o.layers.set(1);
     });
     scene.add(group);
-    fish.push({ group, body, tailPivot, x, z, speed, phase, note, flee: 0, hiddenUntil: 0 });
+    fish.push({ group, body, tailPivot, x, z, speed, phase, note, flee: 0, avoid: 0, avoidDir: 0, hiddenUntil: 0 });
   }
   addFish(-6.8, 0.05, 0.42, 0.2, "♪", fishColors[0]);
   addFish(6.2, 2.9, -0.34, 1.3, "♫", fishColors[1]);
@@ -1294,6 +1294,7 @@ import { Water } from "three/addons/objects/Water.js";
     water.material.uniforms.sunDirection.value.copy(tmpV);
     water.material.uniforms.time.value += dt * 0.38;
 
+    let stageWake = 0;
     for (const a of awards) {
       /* Let the plaques behave like objects carried by the same slow surface
          current. They begin and reset beyond the camera frustum, so the loop
@@ -1307,23 +1308,85 @@ import { Water } from "three/addons/objects/Water.js";
       a.group.position.x = currentX + Math.sin(t * 0.19 + a.phase) * 0.08;
       a.group.position.y =
         0.07 - Math.sin(t * (0.42 + a.phase * 0.04) + a.phase) * 0.026 + a.hover * 0.045 + Math.sin(t * 9 + a.phase) * a.tap * 0.018;
-      a.group.position.z = a.z + Math.sin(t * 0.13 + a.phase * 1.7) * 0.16;
+      const openWaterZ = a.z + Math.sin(t * 0.13 + a.phase * 1.7) * 0.16;
+      /* The stone is an elliptical obstacle, not scenery the plaques can
+         ghost through. As a float enters its wake it is carried around the
+         near edge, rolls slightly, then settles back into the current. */
+      const stoneDx = (a.group.position.x - 2.55) / 2.15;
+      const stoneDz = (openWaterZ + 1.4) / 1.18;
+      const stoneDistance = Math.hypot(stoneDx, stoneDz);
+      const stoneDeflect = stoneDistance < 1 ? (1 - stoneDistance) * (stoneDz >= 0 ? 1.35 : -1.35) : 0;
+      stageWake = Math.max(stageWake, Math.max(0, 1 - stoneDistance));
+      a.group.position.z = openWaterZ + stoneDeflect;
       a.group.rotation.x = Math.sin(t * 0.28 + a.phase) * 0.045 + a.hover * 0.035;
       a.group.rotation.y = Math.sin(t * 0.11 + a.phase * 1.4) * 0.08;
-      a.group.rotation.z = Math.sin(t * 0.16 + a.phase * 0.7) * 0.055 + Math.sin(a.phase) * a.hover * 0.028 + Math.sin(t * 8) * a.tap * 0.045;
+      a.group.rotation.z =
+        Math.sin(t * 0.16 + a.phase * 0.7) * 0.055 + stoneDeflect * 0.12 + Math.sin(a.phase) * a.hover * 0.028 + Math.sin(t * 8) * a.tap * 0.045;
       a.group.scale.setScalar(1 + a.hover * 0.025);
+
+      /* Nearby floating objects receive a small radial impulse. Spring and
+         drag below return them to their composition after the plaque passes. */
+      for (const lf of leaves) {
+        const dx = lf.mesh.position.x - a.group.position.x;
+        const dz = lf.mesh.position.z - a.group.position.z;
+        const distance = Math.max(0.08, Math.hypot(dx, dz));
+        if (distance < 1.18) {
+          const impulse = (1.18 - distance) * 3.1 * dt;
+          lf.vx += (dx / distance) * impulse;
+          lf.vz += (dz / distance) * impulse;
+        }
+      }
+      for (const f of flowers) {
+        const dx = f.group.position.x - a.group.position.x;
+        const dz = f.group.position.z - a.group.position.z;
+        const distance = Math.max(0.08, Math.hypot(dx, dz));
+        if (distance < 1.08) {
+          const impulse = (1.08 - distance) * 2.6 * dt;
+          f.vx += (dx / distance) * impulse;
+          f.vz += (dz / distance) * impulse;
+        }
+      }
+      for (const f of fish) {
+        if (!f.group.visible) continue;
+        const dx = f.group.position.x - a.group.position.x;
+        const dz = f.group.position.z - a.group.position.z;
+        const distance = Math.hypot(dx, dz);
+        if (distance < 1.35) {
+          f.avoid = Math.max(f.avoid, 1 - distance / 1.35);
+          f.avoidDir = dz >= 0 ? 1 : -1;
+        }
+      }
     }
+    stone.scale.set(1 + stageWake * 0.025, 1 - stageWake * 0.035, 0.78 + stageWake * 0.02);
     for (const lf of leaves) {
       const leafIn = arrive(0.68 + lf.phase * 0.025, 0.76);
+      lf.vx += -lf.ox * 3.8 * dt;
+      lf.vz += -lf.oz * 3.8 * dt;
+      const leafDrag = Math.exp(-3.2 * dt);
+      lf.vx *= leafDrag;
+      lf.vz *= leafDrag;
+      lf.ox += lf.vx * dt;
+      lf.oz += lf.vz * dt;
+      lf.mesh.position.x = lf.x + lf.ox;
+      lf.mesh.position.z = lf.z + lf.oz;
       lf.mesh.position.y = 0.012 + Math.sin(t * 0.7 + lf.phase) * 0.006;
       lf.mesh.rotation.x = Math.sin(t * 0.5 + lf.phase) * lf.tilt;
-      lf.mesh.rotation.z = Math.cos(t * 0.4 + lf.phase * 1.3) * lf.tilt;
+      lf.mesh.rotation.z = Math.cos(t * 0.4 + lf.phase * 1.3) * lf.tilt + lf.vx * 0.2;
       lf.mesh.scale.setScalar(0.64 + leafIn * 0.36);
     }
     for (const f of flowers) {
       const flowerIn = arrive(0.78 + f.phase * 0.035, 0.68);
+      f.vx += -f.ox * 4.2 * dt;
+      f.vz += -f.oz * 4.2 * dt;
+      const flowerDrag = Math.exp(-3.6 * dt);
+      f.vx *= flowerDrag;
+      f.vz *= flowerDrag;
+      f.ox += f.vx * dt;
+      f.oz += f.vz * dt;
+      f.group.position.x = f.x + f.ox;
+      f.group.position.z = f.z + f.oz;
       f.group.position.y = 0.035 + Math.sin(t * 0.7 + f.phase) * 0.007;
-      f.group.rotation.z = Math.sin(t * 0.36 + f.phase) * 0.025;
+      f.group.rotation.z = Math.sin(t * 0.36 + f.phase) * 0.025 + f.vx * 0.18;
       f.group.scale.setScalar(f.scale * (0.45 + flowerIn * 0.55));
     }
     for (const r of reeds) {
@@ -1338,7 +1401,8 @@ import { Water } from "three/addons/objects/Water.js";
         f.flee = 0;
         f.group.visible = true;
       }
-      const pace = f.flee ? 5.4 : 1;
+      f.avoid *= Math.exp(-2.4 * dt);
+      const pace = f.flee ? 5.4 : 1 + f.avoid * 1.9;
       f.x += f.speed * pace * dt;
       if (Math.abs(f.x) > 8.1) {
         if (f.flee) {
@@ -1350,8 +1414,8 @@ import { Water } from "three/addons/objects/Water.js";
       }
       f.group.position.x = f.x;
       f.group.position.y = 0.035 + Math.sin(t * 1.25 + f.phase) * 0.012;
-      f.group.position.z = f.z + Math.sin(t * 0.48 + f.phase) * 0.34;
-      f.group.rotation.y = (f.speed > 0 ? Math.PI / 2 : -Math.PI / 2) + Math.sin(t * 0.34 + f.phase) * 0.12;
+      f.group.position.z = f.z + Math.sin(t * 0.48 + f.phase) * 0.34 + f.avoidDir * f.avoid * 0.7;
+      f.group.rotation.y = (f.speed > 0 ? Math.PI / 2 : -Math.PI / 2) + Math.sin(t * 0.34 + f.phase) * 0.12 + f.avoidDir * f.avoid * 0.28;
       f.tailPivot.rotation.y = Math.sin(t * (f.flee ? 14 : 5.2) + f.phase) * (f.flee ? 0.72 : 0.34);
       const fishScale = (0.74 + f.phase * 0.06) * (f.flee ? 0.88 : 1);
       f.group.scale.setScalar(fishScale);
@@ -1362,8 +1426,8 @@ import { Water } from "three/addons/objects/Water.js";
     if (figure) {
       const figureIn = arrive(0.08, 0.82);
       figure.scale.setScalar(figureScale * (0.76 + figureIn * 0.24) * (1 + figureHover * 0.075));
-      figure.rotation.y = -0.35 + figureHover * ndc.x * 0.12;
-      figure.position.y = 0.18 - (1 - figureIn) * 0.16 + figureHover * (0.045 + Math.sin(t * 3.2) * 0.012);
+      figure.rotation.y = -0.35 + figureHover * ndc.x * 0.12 + stageWake * 0.09;
+      figure.position.y = 0.18 - (1 - figureIn) * 0.16 + figureHover * (0.045 + Math.sin(t * 3.2) * 0.012) + stageWake * 0.025;
     }
     figureLight.intensity += ((overFigure ? (daylight ? 7 : 14) : 0) - figureLight.intensity) * 0.12;
     for (const aura of figureAura) {
@@ -1377,7 +1441,8 @@ import { Water } from "three/addons/objects/Water.js";
     }
     const catIn = arrive(0.24, 0.78);
     cat.scale.setScalar(1.12 * (0.72 + catIn * 0.28));
-    cat.position.y = 0.17 - (1 - catIn) * 0.12;
+    cat.position.y = 0.17 - (1 - catIn) * 0.12 + stageWake * 0.018;
+    cat.rotation.z = -stageWake * 0.05;
     const idleSip = Math.pow(Math.max(0, Math.sin(t * 0.62)), 7) * (1 - catHover);
     const hoverSip = catHover * (0.72 + Math.sin(t * 7.2) * 0.12);
     const drink = Math.max(idleSip, hoverSip);
