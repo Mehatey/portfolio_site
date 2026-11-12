@@ -3150,6 +3150,11 @@
     display: flex;
     animation: cubeChatIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  #cube-chat.is-closing {
+    display: flex;
+    pointer-events: none;
+    animation: cubeChatOut 0.34s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
   @keyframes cubeChatIn {
     from {
       opacity: 0;
@@ -3158,6 +3163,16 @@
     to {
       opacity: 1;
       transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes cubeChatOut {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(12px) scale(0.96);
     }
   }
   .cc-header {
@@ -3205,10 +3220,10 @@
     color: rgba(255, 255, 255, 0.95);
   }
   .cc-status {
-    font-family: var(--font-mono, "DM Mono", monospace);
-    font-size: 9px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-family: var(--font-head, "Figtree", sans-serif);
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: none;
     color: rgba(160, 230, 160, 0.85);
     display: flex;
     align-items: center;
@@ -3332,10 +3347,10 @@
     gap: 6px;
   }
   .cc-chip {
-    font-family: var(--font-mono, "DM Mono", monospace);
-    font-size: 10px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-family: var(--font-head, "Figtree", sans-serif);
+    font-size: 11px;
+    letter-spacing: 0;
+    text-transform: none;
     padding: 7px 11px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -3353,6 +3368,16 @@
     border-color: rgba(160, 200, 255, 0.35);
     color: #fff;
     transform: translateY(-1px);
+  }
+  .cc-chip.is-demo-choice {
+    background: rgba(160, 200, 255, 0.16);
+    border-color: rgba(160, 200, 255, 0.48);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 4px rgba(160, 200, 255, 0.08);
+  }
+  #cube-chat.is-demoing .cc-chip:nth-child(n + 5) {
+    display: none;
   }
   /* Hide on hover-none / coarse-pointer mobile by default but keep available */
   @media (max-width: 600px) {
@@ -6198,6 +6223,10 @@
 
     var qa = [
       {
+        q: "How does Sid work?",
+        a: "He makes the system legible before polishing screens, prototypes uncertain behavior early, connects user needs to business and technical constraints, then stays through documentation, QA, and launch.",
+      },
+      {
         q: "Who's Sid?",
         a: "Designer × technologist in NYC. MFA from Parsons (2026), diploma from ISDI Mumbai before that. Has shipped with EyeJack, Deloitte, Philips. Disclaimer: I'm a sentient cube, so consider my objectivity loosely.",
       },
@@ -6236,10 +6265,13 @@
       },
     ];
 
-    var greeting = "Hi. I'm Sid's cube. Ask me anything, or pick a chip below. Powered by JavaScript and good faith.";
+    var greeting = "Hi. I'm Sid's cube. I can show you how he works, what he shipped, or where to start.";
 
     var typing = false;
     var initialized = false;
+    var closeTimer = 0;
+    var autoDemo = false;
+    var autoEngaged = false;
 
     function addMsg(text, who) {
       var el = document.createElement("div");
@@ -6263,6 +6295,41 @@
       }, duration);
     }
 
+    function ask(item) {
+      if (typing) return;
+      addMsg(item.q, "user");
+      var delay = 600 + Math.min(900, item.a.length * 12);
+      showTyping(delay, function () {
+        addMsg(item.a, "cube");
+        if (item.action === "random") {
+          setTimeout(function () {
+            var projects = [
+              "/encoded/",
+              "/cube-guy/",
+              "/ai-self/",
+              "/bloom/",
+              "/mandalas/",
+              "/mind-your-feelings/",
+              "/b-plus-b/",
+              "/mool/",
+              "/naavo/",
+              "/aananda/",
+              "/illustrations/",
+              "/obin/",
+              "/ledger/",
+              "/collectio/",
+            ];
+            var cur = window.location.pathname;
+            var pool = projects.filter(function (p) {
+              return p !== cur;
+            });
+            var t = pool[Math.floor(Math.random() * pool.length)];
+            window.location.href = "{{ site.baseurl }}" + t;
+          }, 700);
+        }
+      });
+    }
+
     function renderChips() {
       suggestions.innerHTML = "";
       qa.forEach(function (item) {
@@ -6271,44 +6338,15 @@
         chip.className = "cc-chip";
         chip.textContent = item.q;
         chip.addEventListener("click", function () {
-          if (typing) return;
-          addMsg(item.q, "user");
-          var delay = 600 + Math.min(900, item.a.length * 12);
-          showTyping(delay, function () {
-            addMsg(item.a, "cube");
-            if (item.action === "random") {
-              setTimeout(function () {
-                var projects = [
-                  "/encoded/",
-                  "/cube-guy/",
-                  "/ai-self/",
-                  "/bloom/",
-                  "/mandalas/",
-                  "/mind-your-feelings/",
-                  "/b-plus-b/",
-                  "/mool/",
-                  "/naavo/",
-                  "/aananda/",
-                  "/illustrations/",
-                  "/obin/",
-                  "/ledger/",
-                  "/collectio/",
-                ];
-                var cur = window.location.pathname;
-                var pool = projects.filter(function (p) {
-                  return p !== cur;
-                });
-                var t = pool[Math.floor(Math.random() * pool.length)];
-                window.location.href = "{{ site.baseurl }}" + t;
-              }, 700);
-            }
-          });
+          ask(item);
         });
         suggestions.appendChild(chip);
       });
     }
 
     function open() {
+      clearTimeout(closeTimer);
+      panel.classList.remove("is-closing");
       if (!initialized) {
         showTyping(900, function () {
           addMsg(greeting, "cube");
@@ -6322,9 +6360,14 @@
     }
 
     function close() {
+      if (!panel.classList.contains("is-open")) return;
+      panel.classList.add("is-closing");
       panel.classList.remove("is-open");
       panel.setAttribute("aria-hidden", "true");
       fab.classList.remove("is-open");
+      closeTimer = setTimeout(function () {
+        panel.classList.remove("is-closing");
+      }, 360);
     }
 
     fab.addEventListener("click", open);
@@ -6334,6 +6377,54 @@
     });
 
     window.__sidOpenChat = open;
+
+    /* One quiet homepage demonstration makes the More control discoverable.
+       It behaves like a short exchange, not a tooltip: the panel arrives,
+       the relevant question is selected, the cube thinks, answers, then the
+       whole exchange leaves. Desktop only so it never blocks the mobile
+       first screen. One run per tab session, and direct interaction hands
+       control to the visitor instead of dismissing their conversation. */
+    function runHomepageDemo() {
+      if (!document.body.classList.contains("home-page")) return;
+      if (window.innerWidth < 900 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      try {
+        if (sessionStorage.getItem("sid_chat_demo")) return;
+        sessionStorage.setItem("sid_chat_demo", "1");
+      } catch (_) {}
+      autoDemo = true;
+      panel.classList.add("is-demoing");
+      open();
+      setTimeout(function () {
+        if (!autoDemo || autoEngaged) return;
+        var chip = Array.prototype.find.call(suggestions.querySelectorAll(".cc-chip"), function (el) {
+          return el.textContent === qa[0].q;
+        });
+        if (chip) {
+          chip.classList.add("is-demo-choice");
+          setTimeout(function () {
+            chip.classList.remove("is-demo-choice");
+            ask(qa[0]);
+          }, 720);
+        } else {
+          ask(qa[0]);
+        }
+      }, 1700);
+      setTimeout(function () {
+        if (autoDemo && !autoEngaged) close();
+        panel.classList.remove("is-demoing");
+        autoDemo = false;
+      }, 10500);
+    }
+
+    panel.addEventListener("pointerdown", function () {
+      if (autoDemo) {
+        autoEngaged = true;
+        panel.classList.remove("is-demoing");
+      }
+    });
+    window.addEventListener("load", function () {
+      setTimeout(runHomepageDemo, 4200);
+    });
   })();
 </script>
 
