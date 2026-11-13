@@ -29,9 +29,6 @@
    So one signed, damped velocity is published for the whole site to read:
 
      --sv    signed, -1 (up, fast) to 1 (down, fast)
-     --sva   its magnitude, 0 to 1, for anything that does not care which
-             way you went -- a blur, a stretch, a curvature
-
    Written on <html>, so any element anywhere can key off it in pure CSS
    with no listener of its own, and read by the WebGL layers through
    window.__sv. One subscriber, one damped value, every consumer in sync.
@@ -53,7 +50,6 @@
     /* Published as zero rather than left undefined, so consumers can read
        var(--sv) with no fallback dance and simply get stillness. */
     html.style.setProperty("--sv", "0");
-    html.style.setProperty("--sva", "0");
     window.__sv = function () {
       return { v: 0, a: 0 };
     };
@@ -210,7 +206,6 @@
     if (Math.abs(v - shown) > 0.004 || (v === 0 && shown !== 0)) {
       shown = v;
       html.style.setProperty("--sv", v.toFixed(3));
-      html.style.setProperty("--sva", Math.abs(v).toFixed(3));
     }
     var heroMoving = heroProgress();
     if (v !== 0 || Math.abs(raw) > 0.001 || heroMoving) raf = requestAnimationFrame(tick);
