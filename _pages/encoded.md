@@ -22,7 +22,7 @@ meta:
   - label: Client
     value: Amplifier.org
   - label: Role
-    value: On-site capture · Spatial deployment
+    value: XR developer · Spatial deployment
   - label: Tools
     value: Polycam · Niantic VPS
   - label: Learn More

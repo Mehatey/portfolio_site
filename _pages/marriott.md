@@ -32,8 +32,8 @@ highlights:
   - value: "17%"
     label: lift in employee usage and customer satisfaction
 quick_read: >
-  Designed SPOG, a single pane of glass employee application for Marriott Bonvoy properties, unifying daily operations, reservations and loyalty enrolment in one information dense dashboard.
-cover_summary: One Marriott staff dashboard for operations, reservations, and loyalty across 9,000+ properties.
+  I designed SPOG, a single pane of glass employee application that unified daily operations, reservations and loyalty enrolment across 9,000+ Marriott properties. The shipped system increased employee usage and customer satisfaction by 17%.
+cover_summary: One staff dashboard across 9,000+ Marriott properties, with a 17% lift in employee usage and customer satisfaction.
 reflection: >
   A busy associate had to understand the shift during a front desk conversation. The dashboard carries live arrivals, departures, occupancy, room status, cases and events, with the most urgent information visible first.
 

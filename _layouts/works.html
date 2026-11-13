@@ -610,21 +610,12 @@
           transform 0.72s cubic-bezier(0.16, 1, 0.3, 1),
           filter 0.5s ease;
       }
-      /* Set by the decode handler below — never by a scroll observer. */
-      .wk-cover img.is-in {
-        opacity: 1;
-      }
       /* One quiet response. The cover lifts slightly; no cursor copy, pixel
          canvas, breathing loop, or pointer-tracked spotlight competes with it. */
       .wk-card:hover .wk-cover img,
       .wk-card:focus-visible .wk-cover img {
         filter: saturate(1.02) brightness(1.02);
         transform: scale(1.018);
-      }
-      @media (prefers-reduced-motion: reduce) {
-        .wk-cover img.is-in {
-          animation: none;
-        }
       }
       /* The frame darkens at its edges as the picture lifts out of it, which
          is the other half of the depth: something in front has to cast into
@@ -1205,8 +1196,8 @@
                     srcset="{{ site.baseurl }}{{ img_base }}-480.webp 480w, {{ site.baseurl }}{{ img_base }}-900.webp 900w, {{ site.baseurl }}{{ w.img }} {{ w.imgw }}w"
                     sizes="(max-width: 640px) calc(100vw - 56px), (max-width: 1080px) calc(50vw - 40px), min(680px, 50vw)"
                     alt="{{ w.title }}"
-                    loading="eager"
-                    decoding="async"
+                    loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                    {% if forloop.first %}fetchpriority="high"{% else %}decoding="async"{% endif %}
                     width="1200"
                     height="900"
                   />
@@ -1438,38 +1429,6 @@
         })();
       </script>
 
-      <script>
-        /* The only script on the page.
-
-           Covers start at opacity 0 and are switched on the moment their own
-           bytes are decoded, so a picture never paints halfway through a scroll.
-           decode() resolves per image and in whatever order they finish, which
-           is the point: there is no queue, no stagger and no relationship to
-           the viewport. An image that is already in cache resolves on the next
-           microtask and is simply there.
-
-           The catch matters. decode() rejects on a broken or cross-origin image
-           and an unhandled rejection would leave that cover invisible forever,
-           so failure falls through to showing it. */
-        (function () {
-          var imgs = document.querySelectorAll(".wk-cover img");
-          for (var i = 0; i < imgs.length; i++) {
-            (function (im) {
-              var show = function () {
-                im.classList.add("is-in");
-              };
-              if (im.decode) {
-                im.decode().then(show, show);
-              } else if (im.complete) {
-                show();
-              } else {
-                im.addEventListener("load", show, { once: true });
-                im.addEventListener("error", show, { once: true });
-              }
-            })(imgs[i]);
-          }
-        })();
-      </script>
     </main>
 
     {% include work_quick.html %} {% include live_type.html %} {% include hero_morph.html %} {% include site_footer.html %} {% include

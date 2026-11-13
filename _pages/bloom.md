@@ -208,6 +208,7 @@ next_project:
 <p class="cube-cap cube-cap--above"><em>The first encounter is not a menu. A tree appears, and begins talking.</em></p>
 <div class="cs-bleed" style="position: relative;">
   <video width="1440" height="810" id="tree-vid" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
+    <source src="{{ site.baseurl }}/15.bloom-vp/tree-mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
     <source src="{{ site.baseurl }}/15.bloom-vp/tree.mp4" type="video/mp4" />
   </video>
   <button class="cover-audio-btn muted" id="tree-audio-btn" aria-label="Toggle audio">
