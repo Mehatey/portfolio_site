@@ -1301,7 +1301,7 @@ import { Water } from "three/addons/objects/Water.js";
          is never visible: each one enters from open water, crosses without an
          artificial ease or turnaround, and leaves completely on the far side.
          A shared crossing time keeps the pair from overtaking one another. */
-      const crossing = (t / 46 + a.travelOffset) % 1;
+      const crossing = (t / 34 + a.travelOffset) % 1;
       const currentX = THREE.MathUtils.lerp(-8.4, 8.4, crossing);
       a.hover += ((a === hoveredAward ? 1 : 0) - a.hover) * 0.14;
       a.tap += (0 - a.tap) * 0.1;
