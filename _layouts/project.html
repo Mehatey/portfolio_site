@@ -1039,6 +1039,7 @@
         --media-breathe: 9s;
       }
       .case-context {
+        display: block;
         position: sticky;
         top: calc(var(--nav-h) + 28px);
         align-self: start;
@@ -4081,6 +4082,11 @@
       }
       .case-context {
         display: block;
+        position: sticky;
+        top: calc(var(--nav-h) + 16px);
+        align-self: start;
+        max-height: calc(100svh - var(--nav-h) - 32px);
+        overflow-y: auto;
         padding: 16px 0 24px;
       }
       .case-context__eyebrow {
@@ -4098,7 +4104,30 @@
         letter-spacing: 0;
       }
       .case-context__links {
-        display: none !important;
+        display: grid;
+        gap: 8px;
+      }
+      .case-context__facts {
+        display: grid;
+        gap: 14px;
+        margin: 0 0 24px;
+      }
+      .case-context__fact {
+        display: grid;
+        gap: 3px;
+      }
+      .case-context__fact dt {
+        font: var(--type-micro);
+        color: var(--ink-4);
+      }
+      .case-context__fact dd {
+        margin: 0;
+        font: var(--type-meta);
+        color: var(--ink-2);
+      }
+      .case-context__links a.is-current {
+        color: var(--ink);
+        border-color: var(--ink-3);
       }
       .case-chapter-map {
         grid-column: auto;
@@ -4689,6 +4718,7 @@
       }
 
       .case-study-layout {
+        display: grid;
         grid-template-columns: minmax(190px, 260px) minmax(0, 1fr) !important;
         column-gap: clamp(32px, 5vw, 90px) !important;
       }
@@ -4718,6 +4748,19 @@
         }
         .case-study-layout {
           display: block !important;
+        }
+        .case-context {
+          position: static;
+          max-height: none;
+          overflow: visible;
+        }
+        .case-context__facts {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .case-context__links {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 18px;
         }
       }
 
@@ -7380,9 +7423,6 @@
       .proj-intro {
         display: none !important;
       }
-      .case-context {
-        display: none !important;
-      }
       .case-story .cs-section-label {
         font-size: clamp(13px, 1vw, 15px) !important;
         line-height: 1.35 !important;
@@ -7556,7 +7596,7 @@
           <h1 class="project-cover-title">{{ page.project_title }}</h1>
         </div>
       </header>
-      <section class="project-brief" aria-label="Project overview">
+      <section class="project-brief" id="case-overview" aria-label="Project overview">
         <div class="project-brief__inner">
           <p class="project-brief__summary">{{ page.cover_summary | default: page.quick_read | default: page.tagline }}</p>
           {% if page.meta %}
@@ -7726,7 +7766,7 @@
 
       <!-- INTRO -->
       {% unless page.hide_overview %}
-      <div class="proj-intro" id="case-overview">
+      <div class="proj-intro">
         <div class="intro-inner">
           <span class="intro-label">Overview</span>
           <p class="intro-tagline" {% unless page.quick_read %}data-dupe="1"{% endunless %}>{{ page.quick_read | default: page.tagline }}</p>
@@ -7744,44 +7784,46 @@
       </div>
       {% endunless %}
 
-      <!-- DESIGN DECISIONS — moved above the visual story.
+      <!-- Existing decision records sit before the visual archive so recruiters
+           can understand the reasoning before evaluating the execution. -->
+      {% if page.decisions %}
+      <section class="proj-decisions" id="case-decisions" aria-labelledby="case-decisions-title">
+        <div class="proj-decisions__head">
+          <h2 class="proj-decisions__eyebrow" id="case-decisions-title" data-reveal>Decisions</h2>
+        </div>
+        <ol class="decision-list">
+          {% for d in page.decisions %}
+          <li class="decision" data-reveal>
+            <h3 class="decision__choice">
+              <span class="decision__n" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>{{ d.choice }}
+            </h3>
+            <div class="decision__body">
+              <p class="decision__why">{{ d.why }}</p>
+              {% if d.tradeoff %}
+              <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>{{ d.tradeoff }}</span></p>
+              {% endif %}
+            </div>
+          </li>
+          {% endfor %}
+        </ol>
+      </section>
+      {% endif %}
 
-           This section carries the only writing on a case study that answers
-           "can he think": three decisions, each with a why and, crucially, a
-           tradeoff. On /mool/ that is the paragraph admitting the paced
-           transfer flow costs experienced users taps and has no express path.
-
-           It used to render after the page body. On /mool/ that body is
-           twelve full-bleed images with no captions, so the reader met the
-           argument at roughly 9,000px of an 11,572px page — after the gallery,
-           on faith. Most never arrived.
-
-           Above the visual story, the order becomes: what it was, what it
-           proved, what I decided and what it cost — then the pictures as
-           evidence for a case already made, rather than a slideshow the reader
-           has to sit through before being told why any of it mattered. -->
-      <!-- ── THE DECISIONS SECTION CAME OUT ──────────────────────────────
-           Sid: "on each of the work pages, you've added too much text, like
-           all the design decisions and all of that. nobody's gonna read
-           that. just give me the initial blurb."
-
-           It was three numbered decisions per project, each with a reason
-           and a TRADEOFF paragraph, plus a "What I'd do next" essay — on
-           /mool/ that ran to roughly nine hundred words of body copy sitting
-           between the reader and the work, on a page whose whole purpose is
-           to show the work.
-
-           The copy is NOT deleted: `decisions:` and `next_steps:` are still
-           in each page's front matter, untouched, so nothing is lost and the
-           section can be restored by putting this markup back. It is the
-           rendering that stops. What remains above is the overview blurb and
-           the proof figures, which is what he asked for, and then the visual
-           story.
-
-           The story-path nav below no longer offers a "Decisions" step, for
-           the same reason. -->
       <div class="case-study-layout">
         <aside class="case-context" aria-label="Case-study navigation">
+          {% if page.meta %}
+          {% assign rail_fact_labels = "Role|Client|Year|Timeline|Duration" | split: "|" %}
+          <dl class="case-context__facts">
+            {% for item in page.meta %}
+              {% if rail_fact_labels contains item.label %}
+              <div class="case-context__fact">
+                <dt>{{ item.label }}</dt>
+                <dd>{{ item.value }}</dd>
+              </div>
+              {% endif %}
+            {% endfor %}
+          </dl>
+          {% endif %}
           <div class="case-progress" aria-live="off">
             <div class="case-progress__head"><span>Visual story</span><span class="case-progress__value" id="case-progress-value">00%</span></div>
             <div class="case-progress__track" aria-hidden="true"><span class="case-progress__fill" id="case-progress-fill"></span></div>
@@ -7794,9 +7836,10 @@
                "Summary" and "Visual story" vs "Process", sitting next to each
                other and disagreeing about what the page contains. -->
           <nav class="case-context__links" aria-label="Project sections">
-            <a href="#case-overview">Overview</a>
-            {% if page.highlights %}<a href="#case-proof">Proof</a>{% endif %}
-            <a href="#case-archive">Visual story</a>
+            <a href="#case-overview">01 Overview</a>
+            {% if page.decisions %}<a href="#case-decisions">02 Decisions</a>{% endif %}
+            <a href="#case-archive">0{% if page.decisions %}3{% else %}2{% endif %} Build</a>
+            {% if page.reflection %}<a href="#reflection-section">0{% if page.decisions %}4{% else %}3{% endif %} Result</a>{% endif %}
             <a href="#project-next-step">Next project</a>
           </nav>
           <!-- ── THE CHAPTER MAP CAME OUT ────────────────────────────────
@@ -8793,7 +8836,7 @@
       // cue: it marks the current beat of a long story without pinning a loud UI
       // control to the viewport or taking over scroll.
       (function () {
-        const rail = document.querySelector(".case-rail");
+        const rail = document.querySelector(".case-context__links, .case-rail");
         if (!rail) return;
         const links = Array.from(rail.querySelectorAll('a[href^="#"]'));
         const targets = links.map((link) => ({ link, target: document.querySelector(link.getAttribute("href")) })).filter((item) => item.target);
