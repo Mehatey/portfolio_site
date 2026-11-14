@@ -83,3 +83,5 @@ For troubleshooting, see:
 ## Handoff / working guide
 
 Before starting, read `HANDOFF.md` at the repo root — it captures Sid's design taste, how he likes to work (keep momentum, take creative calls, verify light+dark), repo conventions, known traps, and the current open items.
+
+Use the shared grid tokens for case-study layout. Never add a new `max-width` in `_layouts/project.html`.

@@ -80,8 +80,11 @@ Works:
 
 Project detail:
 
-- Hero first, then concise overview, then metrics, then visual chapters.
-- Keep the chapter map useful and labelled.
+- Use the shared 12 column case grid: `--grid-cols`, `--grid-gap`, `--grid-margin`, and `--measure` in `design_tokens.html`.
+- Compose with `.case-grid`, `.col-rail`, `.col-text`, `.col-wide`, `.col-full`, `.col-pair-a`, and `.col-pair-b`. Do not add one-off content widths in `project.html`.
+- Keep body copy within `--measure` and collapse all grid columns to one column at 900px.
+- Order the case story as hero, overview and proof, decisions, build archive, result, then next project.
+- Keep the sticky section index useful and labelled. On phones it returns to normal document flow.
 - Long archives should follow the quick case path.
 
 Play:
