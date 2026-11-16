@@ -1055,6 +1055,14 @@ include film_grade.html %}
     .site-footer {
       position: relative;
       z-index: 5;
+      --ink: #f2f5f8;
+      --ink-2: rgba(235, 242, 248, 0.82);
+      --ink-3: rgba(226, 236, 244, 0.64);
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 18% 14%, rgba(55, 101, 153, 0.18), transparent 28%),
+        radial-gradient(circle at 82% 34%, rgba(98, 66, 142, 0.15), transparent 30%),
+        linear-gradient(180deg, #080d16 0%, #07111f 46%, #050912 100%);
       /* clip, not hidden. An `overflow: hidden` ancestor is a scroll container,
          and a scroll container is what `position: sticky` resolves against — so
          with `hidden` here the pinned water layer inside had a scrollport that
@@ -1071,6 +1079,42 @@ include film_grade.html %}
          a hairline, and pushed the strip up under the fixed nav at the bottom of
          every page. Cutting it fixes the collision and the emptiness at once. */
       padding: clamp(28px, 3vw, 44px) var(--gutter, clamp(20px, 4vw, 64px)) 0;
+    }
+    .site-footer::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(34px);
+      background-image:
+        radial-gradient(circle, rgba(205, 229, 255, 0.65) 0 1px, transparent 1.4px),
+        radial-gradient(circle, rgba(153, 196, 238, 0.42) 0 1px, transparent 1.5px);
+      background-size: 137px 137px, 211px 211px;
+      background-position: 17px 29px, 91px 47px;
+      -webkit-mask-image: linear-gradient(to bottom, transparent, #000 11%, #000 82%, transparent);
+      mask-image: linear-gradient(to bottom, transparent, #000 11%, #000 82%, transparent);
+      transition: opacity 1.4s ease, transform 2.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .site-footer::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: min(34vh, 340px);
+      pointer-events: none;
+      background: linear-gradient(to bottom, var(--paper, #070b12), transparent);
+      opacity: 0.86;
+      transition: opacity 1.2s ease;
+    }
+    .site-footer.is-entered::before { opacity: 0.58; transform: none; }
+    .site-footer.is-entered::after { opacity: 0.18; }
+    @media (prefers-reduced-motion: reduce) {
+      .site-footer::before { transform: none; transition: none; }
+      .site-footer::after { transition: none; }
     }
 
     /* ── THE WATER LAYER ────────────────────────────────────────────────────
@@ -1181,12 +1225,14 @@ include film_grade.html %}
        light mode the two seams where the cream stopped and the water resumed
        were the most visible edges in the footer. */
     .site-footer > .kts {
-      background: var(--bg);
+      background: linear-gradient(180deg, rgba(8, 13, 22, 0.96), rgba(7, 17, 31, 0.88));
       margin-inline: calc(-1 * var(--gutter, max(24px, 4vw)));
     }
 
     .site-footer > .sid-strip {
-      background: linear-gradient(to bottom, var(--bg) 0%, var(--bg) 74%, transparent 100%);
+      background:
+        radial-gradient(circle at 72% 18%, rgba(88, 72, 138, 0.14), transparent 34%),
+        linear-gradient(to bottom, #080d16 0%, rgba(7, 17, 31, 0.9) 76%, transparent 100%);
       margin-inline: calc(-1 * var(--gutter, max(24px, 4vw)));
       padding-inline: var(--gutter, max(24px, 4vw));
       padding-bottom: var(--sp-8);
@@ -6428,8 +6474,10 @@ wall and the Buddha all sit inside the one `
   (function () {
     var strip = document.querySelector(".sid-strip");
     if (!strip) return;
+    var footer = strip.closest(".site-footer");
     if (!("IntersectionObserver" in window)) {
       strip.classList.add("is-near");
+      if (footer) footer.classList.add("is-entered");
       return;
     }
     var io = new IntersectionObserver(
@@ -6441,6 +6489,7 @@ wall and the Buddha all sit inside the one `
         )
           return;
         strip.classList.add("is-near");
+        if (footer) footer.classList.add("is-entered");
         io.disconnect();
       },
       { rootMargin: "150% 0px 150% 0px" }

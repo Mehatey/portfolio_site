@@ -122,9 +122,9 @@ import { Water } from "three/addons/objects/Water.js";
   const palette = () =>
     isLight()
       ? {
-          water: 0x168fbd,
-          fog: 0xa9cfdf,
-          sun: 0xe7f8ff,
+          water: 0x087fbd,
+          fog: 0x8fc6df,
+          sun: 0xd9f5ff,
           key: 0xffc77f,
           sky: 0x73b6d4,
           ground: 0x315b73,
@@ -134,9 +134,9 @@ import { Water } from "three/addons/objects/Water.js";
           ink: 0x14161c,
         }
       : {
-          water: 0x073b66,
-          fog: 0x061426,
-          sun: 0xa9dcf4,
+          water: 0x075b8f,
+          fog: 0x051a2f,
+          sun: 0xbceaff,
           key: 0xffc98a,
           sky: 0x315f8c,
           ground: 0x071c2d,
@@ -161,10 +161,10 @@ import { Water } from "three/addons/objects/Water.js";
   key.shadow.normalBias = 0.03;
   key.shadow.radius = 3;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x9fc2ff, 0.7);
+  const rim = new THREE.DirectionalLight(0x82d5ff, 0.92);
   rim.position.set(4, 6, -6);
   scene.add(rim);
-  const fill = new THREE.DirectionalLight(0xb9d8e8, 0.32);
+  const fill = new THREE.DirectionalLight(0x8ccde8, 0.42);
   fill.position.set(-5, 3.5, 2);
   scene.add(fill);
   const cursorLight = new THREE.PointLight(0xffc98a, 0, 7.5, 2);
@@ -428,8 +428,8 @@ import { Water } from "three/addons/objects/Water.js";
       travelOffset: awards.length === 0 ? 0.02 : 0.18,
     });
   }
-  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.95, -0.42, 0xbcecff, 0.4);
-  addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.12, -0.78, 0x86d8ff, 2.1);
+  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.95, 0.36, 0xbcecff, 0.4);
+  addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.12, 1.42, 0x86d8ff, 2.1);
   const awardTargets = awards.map((award) => award.group);
   /* A cool daylight dome gives the water depth. The previous orange horizon
      contaminated the whole reflection and made the lake read brown. */
@@ -1187,9 +1187,9 @@ import { Water } from "three/addons/objects/Water.js";
     const ctx = canvas.getContext("2d");
     const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
     if (light) {
-      gradient.addColorStop(0, "#75b2cf");
-      gradient.addColorStop(0.48, "#a9cedd");
-      gradient.addColorStop(1, "#d6e5e8");
+      gradient.addColorStop(0, "#3f9fc9");
+      gradient.addColorStop(0.48, "#7dc4dd");
+      gradient.addColorStop(1, "#c4e7ee");
     } else {
       gradient.addColorStop(0, "#030b18");
       gradient.addColorStop(0.55, "#092744");
@@ -1312,10 +1312,10 @@ import { Water } from "three/addons/objects/Water.js";
       /* The stone is an elliptical obstacle, not scenery the plaques can
          ghost through. As a float enters its wake it is carried around the
          near edge, rolls slightly, then settles back into the current. */
-      const stoneDx = (a.group.position.x - 2.55) / 2.15;
-      const stoneDz = (openWaterZ + 1.4) / 1.18;
+      const stoneDx = (a.group.position.x - 2.55) / 2.6;
+      const stoneDz = (openWaterZ + 1.4) / 1.55;
       const stoneDistance = Math.hypot(stoneDx, stoneDz);
-      const stoneDeflect = stoneDistance < 1 ? (1 - stoneDistance) * (stoneDz >= 0 ? 1.35 : -1.35) : 0;
+      const stoneDeflect = stoneDistance < 1 ? (1 - stoneDistance) * (stoneDz >= 0 ? 2.15 : -2.15) : 0;
       stageWake = Math.max(stageWake, Math.max(0, 1 - stoneDistance));
       a.group.position.z = openWaterZ + stoneDeflect;
       a.group.rotation.x = Math.sin(t * 0.28 + a.phase) * 0.045 + a.hover * 0.035;
