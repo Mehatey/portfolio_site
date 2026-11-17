@@ -2153,7 +2153,7 @@
         list-style: none;
       }
       .decision {
-        grid-template-columns: 44px minmax(220px, 0.34fr) minmax(0, 0.66fr);
+        grid-template-columns: minmax(220px, 0.34fr) minmax(0, 0.66fr);
         gap: 0 clamp(20px, 2.6vw, 44px);
         padding: 28px 14px 28px 0;
         border-bottom: 1px solid rgba(255, 255, 255, 0.08);
@@ -2179,7 +2179,7 @@
          10px type. 0.6 clears it at ~5.1:1 and still reads as an index rather
          than as part of the heading. */
       .decision__n {
-        display: block;
+        display: none;
         margin: 4px 0 0;
         font: var(--type-micro);
         letter-spacing: var(--track-micro);
@@ -2210,25 +2210,18 @@
          in the section, so it gets its own rule above it rather than being
          demoted to fine print at the end of the paragraph. */
       .decision__tradeoff {
-        display: grid;
-        grid-template-columns: max-content minmax(0, 1fr);
-        gap: 12px;
-        margin: 16px 0 0;
-        padding: 12px 0 0;
+        display: block;
+        margin: 14px 0 0;
+        padding: 0;
         max-width: 66ch;
-        border-top: 1px solid rgba(255, 255, 255, 0.09);
         font-family: var(--font-head);
         font-size: 13px;
-        font-weight: 300;
+        font-weight: 400;
         line-height: 1.65;
         color: var(--ink-3);
       }
       .decision__tradeoff-label {
-        flex: none;
-        font: var(--type-micro);
-        letter-spacing: var(--track-micro);
-        text-transform: uppercase;
-        color: var(--accent-dim);
+        display: none;
       }
 
       /* ─── WHAT I'D DO NEXT ───
@@ -2276,15 +2269,32 @@
         .proj-next-steps__body { margin-top: 13px; }
       }
       @media (max-width: 600px) {
-        .decision { padding: 22px 0; }
+        .decision {
+          padding: 28px 0;
+        }
         /* The label sits on its own line below 600px — at this width a 9px
            flex-none label plus a 13px sentence leaves the sentence about 22
            characters wide, which is unreadable. */
-        .decision__tradeoff { display: grid; }
-        .decision__tradeoff-label {
-          display: inline;
-          margin-bottom: 0;
-          line-height: 1.4;
+        .decision__n {
+          display: none;
+        }
+        .decision__choice {
+          font-size: 21px;
+          line-height: 1.35;
+        }
+        .decision__body {
+          margin-top: 18px;
+        }
+        .decision__why {
+          font-size: 16px;
+          line-height: 1.62;
+        }
+        .decision__tradeoff {
+          display: block;
+          margin-top: 14px;
+          font-size: 14px;
+          line-height: 1.6;
+          color: var(--ink-4);
         }
       }
 
@@ -7828,7 +7838,7 @@
             <div class="decision__body">
               <p class="decision__why">{{ d.why }}</p>
               {% if d.tradeoff %}
-              <p class="decision__tradeoff"><span class="decision__tradeoff-label">Tradeoff</span><span>{{ d.tradeoff }}</span></p>
+              <p class="decision__tradeoff">{{ d.tradeoff }}</p>
               {% endif %}
             </div>
           </li>
@@ -8368,10 +8378,7 @@
 
         var fill = section.querySelector(".nextscroll__fill");
         var hint = section.querySelector(".nextscroll__hint");
-        var went = false;
         var armed = false;
-        var armedAt = 0;
-        var hold = 0;
         var raf = 0;
 
         function read() {
@@ -8411,38 +8418,12 @@
           section.style.setProperty("--ns-cover-s", (1.06 - 0.06 * pe).toFixed(4));
           section.style.setProperty("--ns-copy-y", (18 - 18 * pe).toFixed(1) + "px");
 
-          if (p > 0.985) {
-            if (!armed) {
-              armed = true;
-              armedAt = performance.now();
-              section.classList.add("is-ready");
-            }
-            /* ── A BEAT BEFORE IT COMMITS ─────────────────────────────────
-               Reaching the end of the runway used to navigate on the same
-               frame, so the last flick of a trackpad and the page change were
-               one event and the handover read as a trapdoor. Holding for four
-               hundred milliseconds is below the threshold where it feels like
-               waiting and above the one where it feels like a slip: the cover
-               is fully drawn, you see the project you are about to open, and
-               scrolling back up in that window still cancels it.
-
-               Only travel that ENDS here counts. Landing at the bottom
-               because the browser restored a position is not a gesture. */
-            if (!went && performance.now() - armedAt > 400) {
-              went = true;
-              window.location.href = url;
-            } else if (!went && !hold) {
-              hold = setTimeout(function () {
-                hold = 0;
-                onScroll();
-              }, 430);
-            }
-          } else if (p < 0.9 && armed) {
-            armed = false;
-            clearTimeout(hold);
-            hold = 0;
-            section.classList.remove("is-ready");
-          }
+          /* Reaching the end must not navigate. A recruiter can inspect the
+             footer, reverse direction, or use Back to top without the page
+             changing underneath them. The panel remains one large ordinary
+             link, so continuing is explicit and keyboard safe. */
+          armed = p > 0.985;
+          section.classList.toggle("is-ready", armed);
         }
 
         function onScroll() {

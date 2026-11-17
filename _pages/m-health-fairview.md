@@ -37,21 +37,21 @@ cover_summary: Care discovery redesigned around urgency, helping drive $13.6M+ i
 reflection: >
   Anxious patients pay for every extra option, so the first fold carries only what they need now. Sorting care by urgency, instead of the health system's internal structure, gave patients one entry point and directed routine demand toward virtual and preventive care.
 decisions:
-  - choice: "Sorted the whole experience by urgency, not by how the health system is organised"
+  - choice: "Organised care around urgency"
     why: >
-      The old page mirrored the hospital's internal structure, which meant a patient had to already understand the difference between urgent care, virtual urgent care and an eVisit to make a choice. We reorganised everything around a single human question, how soon do you need care, so the first decision a patient makes is one they can actually answer.
+      The old page reflected the hospital's internal structure. We reframed it around a question patients could answer immediately: how soon do you need care?
     tradeoff: >
-      It meant working against internal expectations, since several teams wanted their service surfaced first. We defended the urgency model with the reasoning that a clearer path for patients ultimately sends more qualified demand to every service.
-  - choice: "Put every action in the first fold and cut the long explanatory copy"
+      Several internal teams wanted their service surfaced first. The urgency model gave every service more qualified demand instead.
+  - choice: "Put actions in the first screen"
     why: >
-      The audit showed the most important actions sitting below the fold under paragraphs a stressed patient would never read. We surfaced the core choices immediately and moved detail into progressive layers, so the page leads with action and reveals explanation only on request.
+      Important actions were buried beneath copy a stressed patient was unlikely to read. We surfaced the core choices first and moved explanation into progressive layers.
     tradeoff: >
-      Some clinically important nuance, cost ranges and eligibility, had to move a click away. We accepted that trade in exchange for a first screen a patient could act on without reading a wall of text.
-  - choice: "Designed for the patient and the business at the same time"
+      Cost, eligibility, and clinical nuance moved one click deeper so the first screen stayed actionable.
+  - choice: "Joined patient clarity to the business goal"
     why: >
-      The brief paired patient clarity with moving routine demand away from the emergency room. We built entry points for labs, checkups and preventive care into the same page, so the patient path and business goal shared one structure.
+      The brief also needed to move routine demand away from the emergency room. Labs, checkups, and preventive care became part of the same urgency-led path.
     tradeoff: >
-      More goals on one page risks clutter. We contained it by keeping everything inside the urgency framework, so promotional content never competed with a patient who needed care right now.
+      More goals risked clutter, so promotional content never outranked an immediate care need.
 next_project:
   title: "Marriott"
   url: /marriott/
