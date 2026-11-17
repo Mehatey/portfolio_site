@@ -58,5 +58,5 @@ Consolidated from Sid's feedback, the Lovable audit briefs, and the Codex handof
 - [x] Desktop and mobile visual QA passes in light and dark modes.
 - [x] No horizontal overflow at 390px, 768px, or 1440px.
 - [x] Key navigation and project links resolve.
-- [ ] Only intended source changes are committed.
-- [ ] CI completes before production is called ready.
+- [x] Only intended source changes are committed.
+- [x] CI completes before production is called ready.
