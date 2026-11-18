@@ -237,7 +237,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
   <div class="reel-awards">
     <div class="reel-award"><img src="{{ B }}/assets/img/badge_webby.webp" alt="Webby Award" loading="lazy" /><b>Webby · Best Use of AR</b><span>Encoded · 2026</span></div>
     <div class="reel-award"><img src="{{ B }}/assets/img/badge_webby.webp" alt="Webby Award" loading="lazy" /><b>Webby · Community Engagement</b><span>Encoded · 2026</span></div>
-    <div class="reel-award"><img src="{{ B }}/assets/img/badge_kyoorius.png" alt="Kyoorius Design Award" loading="lazy" /><b>Kyoorius Design Award</b><span>Mool · 2021</span></div>
+    <div class="reel-award"><img src="{{ B }}/assets/img/badge_kyoorius.webp" alt="Kyoorius Design Award" loading="lazy" /><b>Kyoorius Design Award</b><span>Mool · 2021</span></div>
     <div class="reel-award"><b>MIT Reality Hack</b><span>2026</span></div>
   </div>
 </section>
