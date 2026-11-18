@@ -59,20 +59,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     await p.evaluate(() => document.elementFromPoint(innerWidth / 2, innerHeight / 2) !== document.getElementById("cur-dot")),
   ]);
   R.push(["hover state engages", await p.evaluate(() => document.getElementById("cur-dot").classList.contains("is-hover"))]);
-  R.push(["chips appear at the mark", await p.evaluate(() => document.querySelectorAll(".cube-says__hues i").length > 2)]);
+  /* The old hover treatment grew chips and a speech bubble at the pointer.
+     It was removed because it obscured work and read as generic AI UI. */
   R.push([
-    "chips are square",
-    await p.evaluate(() => {
-      const i = document.querySelector(".cube-says__hues i");
-      return !!i && getComputedStyle(i).borderRadius === "0px";
-    }),
-  ]);
-  R.push([
-    "cursor bubble speaks",
-    await p.evaluate(() => {
-      const c2 = document.querySelector(".curhue");
-      return !!c2 && c2.classList.contains("is-in") && c2.querySelector(".curhue__say").textContent.length > 4;
-    }),
+    "legacy hover clutter stays removed",
+    await p.evaluate(() => !document.querySelector(".cube-says") && !document.querySelector(".curhue")),
   ]);
   /* Checked away from any link. Over something pressable the lens correctly
      switches its refraction off so the target stays readable, so asserting it
@@ -85,8 +76,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
   await glide(...(await centre(".wk-card")));
   R.push([
-    "refraction off on hover",
-    await p.evaluate(() => !getComputedStyle(document.getElementById("cur-dot")).backdropFilter.includes("cur-lens")),
+    "hover target remains reachable",
+    await p.evaluate(() => {
+      const card = document.querySelector(".wk-card");
+      const r = card.getBoundingClientRect();
+      return card.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+    }),
   ]);
 
   const before = await p.evaluate(() => [...document.querySelectorAll(".studio-link")].map((a) => Math.round(a.getBoundingClientRect().x)));
@@ -110,9 +105,16 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   R.push([
     "active label keeps its own colour",
     await p.evaluate(() => {
-      const a = document.querySelector(".studio-link.is-active b");
+      const a = document.querySelector(".studio-link.is-active");
       return !!a && getComputedStyle(a).color === "rgb(111, 183, 255)";
     }),
+  ]);
+
+  const resumeTop = await p.evaluate(() => document.querySelector(".studio-out a")?.getBoundingClientRect().top);
+  await glide(...(await centre(".studio-out a")));
+  R.push([
+    "resume link does not jump on hover",
+    await p.evaluate((top) => Math.abs(document.querySelector(".studio-out a").getBoundingClientRect().top - top) < 1, resumeTop),
   ]);
 
   console.log("");

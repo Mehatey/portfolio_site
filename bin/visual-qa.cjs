@@ -19,6 +19,7 @@ const path = require("path");
 const baseUrl = (process.argv[2] || "http://127.0.0.1:4123").replace(/\/$/, "");
 const outDir = process.argv[3] || "/tmp/visual-qa";
 const only = process.argv[4] || null;
+const colorScheme = process.env.QA_COLOR_SCHEME === "dark" ? "dark" : "light";
 
 const viewports = [
   { name: "desktop", width: 1440, height: 900 },
@@ -33,7 +34,11 @@ const routes = [
   { path: "/ai-prototypes/", name: "ai-prototypes", depths: [0, 0.33, 0.66, 1] },
   { path: "/play/", name: "play", depths: [0, 0.4, 0.8] },
   { path: "/mool/", name: "mool", depths: [0, 0.3, 0.6, 1] },
+  { path: "/m-health-fairview/", name: "fairview", depths: [0, 0.3, 0.6, 1] },
+  { path: "/marriott/", name: "marriott", depths: [0, 0.3, 0.6, 1] },
   { path: "/encoded/", name: "encoded", depths: [0, 0.5, 1] },
+  { path: "/obin/", name: "obin", depths: [0, 0.3, 0.6, 1] },
+  { path: "/ledger/", name: "ledger", depths: [0, 0.3, 0.6, 1] },
   { path: "/cube-guy/", name: "cube-guy", depths: [0, 0.5, 1] },
   { path: "/bloom/", name: "bloom", depths: [0, 0.5] },
   { path: "/mind-your-feelings/", name: "myf", depths: [0, 0.5] },
@@ -117,6 +122,7 @@ async function run() {
       isMobile: !!vp.isMobile,
       hasTouch: !!vp.hasTouch,
       deviceScaleFactor: 1,
+      colorScheme,
     });
     /* The home page opens behind #enter-gate, a fixed full-viewport door that
      * only lifts on a click of Enter. It does not respond to scroll, so an
@@ -151,7 +157,7 @@ async function run() {
       await page.waitForTimeout(3500);
 
       const info = await probe(page);
-      report.push({ vp: vp.name, route: route.name, errors, ...info });
+      report.push({ theme: colorScheme, vp: vp.name, route: route.name, errors, ...info });
 
       for (const d of route.depths) {
         await page.evaluate((frac) => {
@@ -166,7 +172,7 @@ async function run() {
         await page.waitForTimeout(2600);
         const tag = String(Math.round(d * 100)).padStart(3, "0");
         await page.screenshot({
-          path: path.join(outDir, `${route.name}--${vp.name}--${tag}.png`),
+          path: path.join(outDir, `${route.name}--${colorScheme}--${vp.name}--${tag}.png`),
         });
       }
     }
