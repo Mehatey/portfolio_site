@@ -444,10 +444,15 @@ import { Water } from "three/addons/objects/Water.js";
   /* Sid: "award labels come over grass and over fish." Both the plaque
      and the reed cluster at (-5.05, 1.05) are opaque and depth-tested
      correctly -- this was never a z-sorting bug, the camera's view ray
-     toward the old position (-1.95, 0.36) just grazed the reed
-     silhouette at wider viewports where both come into frame. Pulled
-     forward and down-frame, clear of that line of sight. */
-  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.1, -1.35, 0xbcecff, 0.4);
+     toward the original z=0.36 just grazed the reed silhouette at wider
+     viewports where both come into frame. A first attempt at (-1.1,
+     -1.35) cleared the reeds but pulled the plaque forward into the
+     hero sentence's own text at the default 1440 viewport -- checked
+     only the wide framing, not the one everyone actually loads first.
+     Same x as the original (keeps it clear of the headline's text box),
+     z nudged by -0.71 rather than -1.71: enough to clear the reeds,
+     not enough to reach the text. Verified at 1440x900 and 2000x1050. */
+  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.95, -0.35, 0xbcecff, 0.4);
   addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.12, 1.42, 0x86d8ff, 2.1);
   const awardTargets = awards.map((award) => award.group);
   /* A cool daylight dome gives the water depth. The previous orange horizon
