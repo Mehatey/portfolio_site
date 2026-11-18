@@ -6368,20 +6368,36 @@ wall and the Buddha all sit inside the one `
       var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       var coarse = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
       if (reduced || coarse) return;
-      var footer = document.currentScript.closest(".site-footer");
+      /* Was document.currentScript.closest(".site-footer") -- this script
+         tag sits after the footer's own closing tag in the markup (the
+         footer closes mid-file; this loader block was added further down
+         the same include), so closest() always returned null and every
+         script in the list below, hand.js included, silently never loaded
+         on any route, including production. Confirmed live: hue.js and
+         cursor-hue.js never appeared in document.scripts after scrolling
+         past the footer on siddharthmehta.design before this fix. */
+      var footer = document.querySelector(".site-footer");
       if (!footer) return;
       var loaded = false;
       function load() {
         if (loaded) return;
         loaded = true;
-        ["strip-ascii.js", "kinetic-type.js", "collect.js", "wind.js", "footer-jaali.js", "hue.js", "cursor-hue.js", "mark-lens.js"].forEach(
-          function (file) {
-            var script = document.createElement("script");
-            script.src = "{{ site.baseurl }}/assets/js/" + file;
-            script.async = false;
-            document.body.appendChild(script);
-          }
-        );
+        [
+          "strip-ascii.js",
+          "kinetic-type.js",
+          "collect.js",
+          "wind.js",
+          "footer-jaali.js",
+          "hand.js",
+          "hue.js",
+          "cursor-hue.js",
+          "mark-lens.js",
+        ].forEach(function (file) {
+          var script = document.createElement("script");
+          script.src = "{{ site.baseurl }}/assets/js/" + file;
+          script.async = false;
+          document.body.appendChild(script);
+        });
       }
       if (!("IntersectionObserver" in window)) return load();
       var observer = new IntersectionObserver(
