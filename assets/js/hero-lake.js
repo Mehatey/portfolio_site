@@ -66,6 +66,19 @@ import { Water } from "three/addons/objects/Water.js";
   const budget = !window.SidGL || window.SidGL.claim("hero-lake");
   if (prefersLess || coarse || !budget) return giveUp();
 
+  /* The real pronunciation control, already built and wired by
+     name-say.js. Hovering the figure nudges this instead of starting a
+     second audio path -- same localStorage key that file uses, so the
+     nudge still stops for good once a visitor has actually pressed it. */
+  const sayBtn = document.getElementById("hero-say");
+  function heardName() {
+    try {
+      return localStorage.getItem("sid_name_heard") === "1";
+    } catch (e) {
+      return false;
+    }
+  }
+
   const BASE = host.getAttribute("data-base") || "";
   /* The headline and award names are crisp DOM or badge artwork now. No
      perspective-skewed text geometry competes with the water. */
@@ -877,6 +890,44 @@ import { Water } from "three/addons/objects/Water.js";
     m.scale.setScalar(size * 0.3);
     scene.add(m);
     rings.push({ mesh: m, t: 0, size });
+
+    /* Sid: "every click on water let it create a ripple which interacts
+       with the environment." The ring was decoration only -- leaves,
+       flowers and fish never felt it. They already carry the spring/drag
+       fields the award floats use to push them as they drift (ox/oz/vx/vz
+       below), so a splash gives the same radial impulse once, scaled by
+       the ripple's own size, instead of inventing a second system. */
+    const reach = Math.max(0.6, size * 2.4);
+    for (const lf of leaves) {
+      const dx = lf.mesh.position.x - x;
+      const dz = lf.mesh.position.z - z;
+      const distance = Math.max(0.08, Math.hypot(dx, dz));
+      if (distance < reach) {
+        const impulse = ((reach - distance) / reach) * 1.4;
+        lf.vx += (dx / distance) * impulse;
+        lf.vz += (dz / distance) * impulse;
+      }
+    }
+    for (const f of flowers) {
+      const dx = f.group.position.x - x;
+      const dz = f.group.position.z - z;
+      const distance = Math.max(0.08, Math.hypot(dx, dz));
+      if (distance < reach) {
+        const impulse = ((reach - distance) / reach) * 1.1;
+        f.vx += (dx / distance) * impulse;
+        f.vz += (dz / distance) * impulse;
+      }
+    }
+    for (const f of fish) {
+      if (!f.group.visible) continue;
+      const dx = f.group.position.x - x;
+      const dz = f.group.position.z - z;
+      const distance = Math.hypot(dx, dz);
+      if (distance < reach * 1.2) {
+        f.avoid = Math.max(f.avoid, 1 - distance / (reach * 1.2));
+        f.avoidDir = dz >= 0 ? 1 : -1;
+      }
+    }
   }
 
   /* ── POINTER ──────────────────────────────────────────────────────────── */
@@ -1000,6 +1051,22 @@ import { Water } from "three/addons/objects/Water.js";
       }
       hoveredFish = nextFish;
       if (of && !overFigure && !busy) play("Look", 1, () => play("Idle"));
+      /* Sid: "when hover on cube he glows but let it say hey im sid and
+         then an audio button which plays my name pronunciation." The glow
+         already existed (figureLight/figureHover below). This adds the
+         other two: a one-line note on hover-in, reusing the same glyph
+         leaveNote already draws for the fish, and a nudge on the real
+         pronunciation button (#hero-say) rather than a second audio
+         system -- it already plays on click and already owns the
+         discoverability animation via .is-new, so hovering the figure
+         just asks for that same attention instead of inventing a new one. */
+      if (of && !overFigure) {
+        leaveNote(e, "Hey, I'm Sid", 0.5);
+        /* Once pressed, the nudge is retired for good (name-say.js's own
+           rule) -- a figure hover must not bring it back. */
+        if (sayBtn && !heardName()) sayBtn.classList.add("is-new");
+      }
+      if (oc && !overCat) leaveNote(e, "Gingu is thirsty", 0.3);
       overFigure = of;
       overCat = oc;
       host.style.cursor = hovered || of || oc || hoveredAward || hoveredFish ? "pointer" : "";

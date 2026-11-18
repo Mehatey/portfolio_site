@@ -1304,7 +1304,13 @@ html[data-theme="light"] .hero__prev b {
   animation: none;
 }
 .hero.is-lake .hero__scene-meta {
-  animation: heroClaimIn 560ms cubic-bezier(0.16, 1, 0.3, 1) 90ms both;
+  /* Sid: "the type should animate... there is no hierarchy or story being
+     told in the order of things arriving, it all just shows up." Measured:
+     this line was arriving at 90ms, the headline at 120ms -- the
+     supporting detail was landing BEFORE the claim it supports. Pushed
+     behind the headline's own 780ms so the read order matches the
+     reading order: the sentence first, who he worked with after. */
+  animation: heroClaimIn 560ms cubic-bezier(0.16, 1, 0.3, 1) 760ms both;
 }
 .hero__statement-line {
   display: block;
@@ -1316,10 +1322,15 @@ html[data-theme="light"] .hero__prev b {
   display: block;
   max-width: 50ch;
   color: #f8f5ee;
-  font-size: clamp(1.1rem, 1.46vw, 1.34rem);
+  /* Was clamp(1.1rem, 1.46vw, 1.34rem) -- ~21px at 1440, the size of a
+     caption, for the one sentence a recruiter has five seconds to read.
+     This is the rule that actually wins (higher specificity than the
+     bare .hero__statement block below), so it is the one that had to
+     change. Raised to the site's title register. */
+  font-size: clamp(1.7rem, 2.6vw, 2.5rem);
   font-weight: 520;
-  line-height: 1.42;
-  letter-spacing: -0.018em;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
   text-wrap: pretty;
 }
 
@@ -1438,6 +1449,47 @@ html[data-theme="light"] .hero__prev b {
   text-decoration: none;
   text-underline-offset: 4px;
 }
+/* Sid: "when hover on companies show logos." A small mono mark above the
+   name on hover/focus, the same mono assets the client strip further down
+   the page already uses -- no new artwork, just a second place they show
+   up. Skipped for Compete: there is no mono/compete.png in that folder. */
+.hero__co {
+  position: relative;
+}
+.hero__co::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  width: 86px;
+  height: 30px;
+  background-image: var(--logo-img);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  background-color: rgba(10, 13, 18, 0.88);
+  border-radius: 6px;
+  padding: 6px;
+  box-sizing: border-box;
+  opacity: 0;
+  transform: translate(-50%, 4px) scale(0.92);
+  transition:
+    opacity 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)),
+    transform 180ms var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1));
+  pointer-events: none;
+  filter: brightness(0) invert(1);
+  z-index: 8;
+}
+.hero__co:hover::after,
+.hero__co:focus-visible::after {
+  opacity: 0.95;
+  transform: translate(-50%, 0) scale(1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero__co::after {
+    transition: none;
+  }
+}
 .hero__scene-meta a:hover,
 .hero__scene-meta a:focus-visible {
   color: #fff;
@@ -1512,9 +1564,18 @@ html[data-theme="light"] .hero.is-lake .hero__scene-meta-role {
 .hero.is-lake .hero__title {
   position: absolute !important;
   left: var(--grid-left, 5vw);
-  bottom: clamp(138px, 18vh, 176px);
+  /* Was clamp(138px, 18vh, 176px) -- measured on the live page, that put
+     the claim's top edge at ~69% of viewport height, under the avatar and
+     the award plaques rather than ahead of them. Raised so the sentence
+     is read first, not last. */
+  bottom: clamp(340px, 44vh, 460px);
   z-index: 5;
-  width: min(72vw, 980px);
+  /* Sid asked to try 3 lines: widening this to min(76vw, 1060px) was
+     tried and reverted -- at this font size it still wrapped to four AND
+     ran the first line under the avatar on the right. Getting to three
+     without colliding with the figure needs either a narrower sentence
+     or a smaller size; flagged rather than shipped broken. */
+  width: min(60vw, 820px);
 }
 .hero.is-lake .hero__cols,
 .hero.is-lake .hero__col--l,
@@ -1562,7 +1623,7 @@ html[data-theme="light"] .hero.is-lake .hero__statement {
   position: absolute;
   z-index: 7;
   color: #bcecff;
-  font-family: Georgia, serif;
+  font-family: var(--font-head, "Figtree", sans-serif);
   font-size: clamp(24px, 2.1vw, 34px);
   line-height: 1;
   pointer-events: none;
@@ -5962,8 +6023,8 @@ body.home-page :where(.hero__col--l, .hero.is-lake .hero__col--l .tw, .hero-arch
 .hero.is-lake .hero__scene-meta,
 html[data-theme="light"] .hero.is-lake .hero__scene-meta {
   color: rgba(244, 247, 248, 0.9);
-  font-size: 14px;
-  font-weight: 460;
+  font-size: 15px;
+  font-weight: 490;
   line-height: 1.45;
   text-shadow: none;
 }
@@ -6011,11 +6072,15 @@ html[data-theme="light"] .hero.is-lake .hero__scene-meta {
   }
   .hero.is-lake .hero__scene-meta {
     top: auto;
-    /* Keep the employer links above the name-audio and recruiter links. The
-       two rows previously occupied the same hit area at shorter desktop
-       heights even though both looked individually positioned. */
-    bottom: 132px;
-    left: 4vw;
+    /* Was a fixed bottom: 132px, tuned against the OLD low title position.
+       Once the headline moved up (see .hero.is-lake .hero__title), that
+       fixed value left a ~240px dead gap between the sentence and this
+       line, reading as an unrelated caption instead of its continuation.
+       Anchored to the same clamp family as the title now, offset by the
+       headline's own height plus a close reading gap, so the two move
+       together instead of drifting apart as viewport height changes. */
+    bottom: clamp(190px, 26vh, 300px);
+    left: var(--grid-left, 5vw);
   }
 }
 
