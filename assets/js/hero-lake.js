@@ -441,7 +441,13 @@ import { Water } from "three/addons/objects/Water.js";
       travelOffset: awards.length === 0 ? 0.02 : 0.18,
     });
   }
-  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.95, 0.36, 0xbcecff, 0.4);
+  /* Sid: "award labels come over grass and over fish." Both the plaque
+     and the reed cluster at (-5.05, 1.05) are opaque and depth-tested
+     correctly -- this was never a z-sorting bug, the camera's view ray
+     toward the old position (-1.95, 0.36) just grazed the reed
+     silhouette at wider viewports where both come into frame. Pulled
+     forward and down-frame, clear of that line of sight. */
+  addAwardFloat(BASE + "/assets/img/badge_webby.webp", -1.1, -1.35, 0xbcecff, 0.4);
   addAwardFloat(BASE + "/assets/img/badge_kyoorius.png", 0.12, 1.42, 0x86d8ff, 2.1);
   const awardTargets = awards.map((award) => award.group);
   /* A cool daylight dome gives the water depth. The previous orange horizon
