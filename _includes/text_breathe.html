@@ -1,0 +1,108 @@
+<!-- ══════════════════════════════════════════════════════════════════════════
+     TEXT THAT BREATHES
+
+     Sid, pointing at jackiehu.design's About section: "subtle gentle
+     movement... it moves on its own no need to hover." Confirmed on that
+     site it's a continuous, per-character animation each letter slightly
+     out of phase with its neighbours -- which is why a single screenshot
+     mostly catches it at rest and only one or two letters show it at once.
+
+     This is the same idea in the site's own existing vocabulary rather than
+     a copy of theirs: `.breathe` already does this for images site-wide
+     (project.html) -- "you should register that it is alive, not that it
+     is animating," amplitude kept below the threshold of consciously
+     seeing it move. Text asks for even more restraint than an image,
+     because the thing moving is the thing being read, so the drift here is
+     smaller again and the only property that ever changes is `transform`
+     (compositor-only, no layout cost per frame).
+
+     Deliberately NOT built on live_type.html's splitter. That one exists
+     for the cursor-proximity weight effect and bails out entirely on touch
+     and coarse pointers, because there is no cursor there to answer. This
+     is ambient -- it has nothing to do with the pointer -- so it needs its
+     own splitter that runs everywhere motion is otherwise allowed.
+
+     Opt in with `data-breathe-text` on any element whose direct text should
+     breathe. Characters are grouped into words (word stays whole, same
+     "camel-break" fix live_type.html already found: an inline-block
+     character is a break opportunity, and a narrow column will wrap mid
+     word without this). Short display lines only, by design -- a project
+     tagline, an about paragraph's lead sentence -- never a dense, multi-
+     paragraph block where the point is comfortable reading, not presence.
+     ══════════════════════════════════════════════════════════════════════ -->
+<style>
+  [data-breathe-text] .bt-w {
+    white-space: nowrap;
+  }
+  [data-breathe-text] .bt-c {
+    display: inline-block;
+    animation: btDrift var(--bt-dur, 6400ms) ease-in-out infinite;
+    animation-delay: var(--bt-delay, 0ms);
+  }
+  @keyframes btDrift {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-0.6px);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-breathe-text] .bt-c {
+      animation: none !important;
+      transform: none !important;
+    }
+  }
+</style>
+<script>
+  (function () {
+    "use strict";
+    if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    /* Seeded per character from its own position in the host rather than
+       Math.random(), so the stagger is stable across a resize-triggered
+       re-split instead of reshuffling itself. */
+    function splitOne(host) {
+      if (host.__btDone) return;
+      host.__btDone = true;
+      var text = host.textContent;
+      var words = text.split(/(\s+)/); /* keep the separators as their own tokens */
+      host.textContent = "";
+      var charIndex = 0;
+      words.forEach(function (token) {
+        if (!token) return;
+        if (/^\s+$/.test(token)) {
+          host.appendChild(document.createTextNode(token));
+          return;
+        }
+        var w = document.createElement("span");
+        w.className = "bt-w";
+        for (var i = 0; i < token.length; i++) {
+          var c = document.createElement("span");
+          c.className = "bt-c";
+          c.textContent = token[i];
+          /* Durations 5.6-7.2s, delays 0-3.8s -- wide enough that no two
+             characters visibly share a phase, narrow enough that the whole
+             line still reads as one breathing thing rather than many. */
+          var seed = (charIndex * 37) % 100;
+          c.style.setProperty("--bt-dur", 5600 + (seed % 17) * 100 + "ms");
+          c.style.setProperty("--bt-delay", "-" + (seed % 38) * 100 + "ms");
+          w.appendChild(c);
+          charIndex++;
+        }
+        host.appendChild(w);
+      });
+    }
+
+    function pass() {
+      document.querySelectorAll("[data-breathe-text]").forEach(splitOne);
+    }
+    pass();
+    /* Some hosts (a case study's tagline) can be populated by Liquid after
+       this script runs in document order in rare includes ordering; one
+       deferred retry covers it without a MutationObserver running forever
+       for an effect this minor. */
+    if (document.readyState !== "complete") window.addEventListener("load", pass, { once: true });
+  })();
+</script>
