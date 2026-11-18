@@ -611,11 +611,26 @@
           filter 0.5s ease;
       }
       /* One quiet response. The cover lifts slightly; no cursor copy, pixel
-         canvas, breathing loop, or pointer-tracked spotlight competes with it. */
-      .wk-card:hover .wk-cover img,
-      .wk-card:focus-visible .wk-cover img {
-        filter: saturate(1.02) brightness(1.02);
-        transform: scale(1.018);
+         canvas, breathing loop, or pointer-tracked spotlight competes with it.
+
+         Scoped to (hover: hover) and (pointer: fine) -- a real mouse or
+         trackpad. Without that gate, a touchscreen fires :hover on tap and
+         then has nothing to release it on (there is no "leave" gesture),
+         so the card can be left mid-lift, saturated and shadowed, until
+         something else on the page happens to steal focus. The card is
+         a full <a> with a title and image already; the lift was always a
+         mouse-only flourish, not the thing that tells a thumb it's tappable. */
+      @media (hover: hover) and (pointer: fine) {
+        .wk-card:hover .wk-cover img {
+          filter: saturate(1.02) brightness(1.02);
+          transform: scale(1.018);
+        }
+        .wk-card:hover .wk-cover {
+          box-shadow: inset 0 0 44px 8px rgba(0, 0, 0, 0.34);
+        }
+        html[data-theme="light"] .wk-card:hover .wk-cover {
+          box-shadow: inset 0 0 40px 6px rgba(22, 34, 52, 0.18);
+        }
       }
       /* The frame darkens at its edges as the picture lifts out of it, which
          is the other half of the depth: something in front has to cast into
@@ -624,11 +639,15 @@
         box-shadow: inset 0 0 0 0 rgba(0, 0, 0, 0);
         transition: box-shadow 460ms cubic-bezier(0.16, 1, 0.3, 1);
       }
-      .wk-card:hover .wk-cover,
+      /* :focus-visible stays unscoped by pointer type -- a keyboard user on
+         any device still gets the same response a mouse hover gives. */
+      .wk-card:focus-visible .wk-cover img {
+        filter: saturate(1.02) brightness(1.02);
+        transform: scale(1.018);
+      }
       .wk-card:focus-visible .wk-cover {
         box-shadow: inset 0 0 44px 8px rgba(0, 0, 0, 0.34);
       }
-      html[data-theme="light"] .wk-card:hover .wk-cover,
       html[data-theme="light"] .wk-card:focus-visible .wk-cover {
         box-shadow: inset 0 0 40px 6px rgba(22, 34, 52, 0.18);
       }
