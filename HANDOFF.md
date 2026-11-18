@@ -1193,3 +1193,15 @@ view transitions; bundled Chromium never fires pagereveal.
 
 Open, Sid's call: the LinkedIn/Résumé foot pair duplicates the nav chips
 on the first screen; the About hover effect on the portrait.
+
+## 18 Nov, UI/UX review pass
+
+**Stale doc, not a stale feature.** The Works hover note above
+(`assets/js/cover-pixels.js`, pixel mosaic resolving) describes a file
+that no longer exists. The current `_layouts/works.html` hover is a
+single restrained response -- the cover lifts and saturates slightly,
+nothing else -- with its own comment explaining why: "no cursor copy,
+pixel canvas, breathing loop, or pointer-tracked spotlight competes with
+it." Someone simplified it after this entry was written and never
+updated the note. Confirmed live (hovered a real `.wk-card`, read the
+computed `transform`); the simplification is correct and current.
