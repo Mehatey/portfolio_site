@@ -34,7 +34,7 @@ highlights:
 decisions:
   - choice: "Asked one open question instead of a structured survey"
     why: >
-      The prompt created the opening; the artifact just recorded what people chose to share. An open question is what got answers as specific as "my grandmother at 3am" instead of "my grandmother" — people writing for themselves, which is what let the piece feel like people writing for each other.
+      The prompt created the opening; the artifact just recorded what people chose to share. An open question is what got answers as specific as "my grandmother at 3am" instead of "my grandmother," people writing for themselves, which is what let the piece feel like people writing for each other.
     tradeoff: >
       285+ free-text answers don't aggregate into anything you can chart. Reading them was the analysis; there was no faster way through it.
   - choice: "Spent two days on the interface and the rest of the project reading submissions"
