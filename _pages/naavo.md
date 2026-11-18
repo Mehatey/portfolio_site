@@ -30,6 +30,17 @@ highlights:
     label: brand · logo · packaging
   - value: Solo
     label: concept & visual system
+decisions:
+  - choice: "Balanced botanical forms and warm materials against a precise typographic structure, instead of leaning into either"
+    why: >
+      Traditional references alone could quickly become nostalgic. A clinical system alone would lose Ayurveda's material character. Holding both at once is what kept the identity contemporary without becoming either.
+    tradeoff: >
+      Every choice was a compromise between two pulls rather than a confident single direction. Neither the warmth nor the precision could be pushed as far as it could have gone alone.
+  - choice: "Designed packaging for how it is physically encountered, not just how the identity reads flat"
+    why: >
+      How it sits in someone's hand, how it reads from three feet away on a shelf, and what it says before anyone reads the label are three different moments, and a system that only works as a flat logo application fails at least two of them.
+    tradeoff: >
+      Designing for three distinct distances made the system harder to finish than a single, consistent application would have been.
 reflection: >
   Traditional references could quickly become nostalgic, while a clinical system would lose Ayurveda's material character. Botanical forms, warm materials and a precise typographic structure held the identity between those extremes.
 

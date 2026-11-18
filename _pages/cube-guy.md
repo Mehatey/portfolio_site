@@ -28,6 +28,17 @@ highlights:
     label: film · game · character
   - value: Unreal
     label: engine & interactive build
+decisions:
+  - choice: "Kept the character and its idea constant across film, game, and interactive build instead of redesigning it per format"
+    why: >
+      The medium kept shifting, from six minutes of film to a playable game to an interactive build in Unreal, and the character did not need to change to survive any of it. That stability is what let six years of work read as one world rather than three separate experiments.
+    tradeoff: >
+      Staying faithful to the original idea meant the hard problems each format raised had to be solved around the character rather than by changing it.
+  - choice: "Built the game's interactivity from scratch rather than starting from an existing system"
+    why: >
+      Learning by breaking things is slower, but it is also the reason I came out understanding the work in a way I could not have otherwise.
+    tradeoff: >
+      It cost real versions. I lost work and rebuilt sections more than once getting there.
 reflection: >
   The film was the first time it felt finished. Years of sketching finally became six minutes of something I could actually share, and that alone made it one of the most fulfilling things I had made.
 

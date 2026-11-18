@@ -31,6 +31,12 @@ highlights:
   - value: "Real-time"
     label: touchscreen-to-LED response
 refl_bg: "6.mindu/refl_bg.jpg"
+decisions:
+  - choice: "Treated the latency between a touchscreen choice and the brain lighting up as the thing to get right, over any other feature"
+    why: >
+      The Arduino brain needed to respond within milliseconds or the experience would feel broken. Done right, it responded before people had finished choosing, which is what made it feel like the room was reacting to them rather than running a script.
+    tradeoff: >
+      Getting the Python backend to reliably bridge the web interface to the WLED controller took more debugging than I expected, time that could have gone toward more features instead of one response time.
 reflection: >
   This was the first project where I had to connect physical hardware to a live software system in a public space. The Arduino brain needed to respond to user input within milliseconds or the experience would feel broken. Getting the Python backend to reliably bridge the web interface to the WLED controller took more debugging than I expected, but once it worked, the brain responded before people had finished choosing. That lag mattered more than I expected.
 

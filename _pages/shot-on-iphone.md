@@ -28,6 +28,17 @@ highlights:
     label: photography & print experiment
   - value: Solo
     label: concept, capture & design
+decisions:
+  - choice: "Added one QR code per print as the only interaction, instead of a dedicated app or AR layer"
+    why: >
+      The strength of the original idea is how effortless it feels. A heavier layer risks overcomplicating something that works because it is simple. Knowing when to stop became the actual design decision.
+    tradeoff: >
+      A single scan is a much thinner interaction than a built app could offer. The project deliberately does less than it technically could.
+  - choice: "Made the photograph a question by pairing it with the story behind the frame, instead of leaving it to stand alone"
+    why: >
+      Shot on iPhone campaigns prove the camera is good and stop there: you see something beautiful and move on. What interested me was what happens after that moment, why someone chose that frame, and whether a photograph could carry that with it.
+    tradeoff: >
+      Anyone who sees the print without scanning the code only gets half of what the piece is doing. The photograph alone no longer carries the whole point on its own.
 reflection: >
   This project made me question what most campaigns stop at. Shot on iPhone proves capability, it shows that the camera is good. But after a point it becomes one way. You see something beautiful and move on. What interested me was what happens after that moment, why someone chose that frame, what they felt, and whether a photograph could carry that with it.
 

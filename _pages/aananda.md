@@ -29,9 +29,19 @@ highlights:
     label: identity & product concept
   - value: 2020
     label: self-initiated study
+decisions:
+  - choice: "Started from conversations with my father, who studies Jain philosophy, instead of from visual references"
+    why: >
+      Translating Jain philosophy into design meant carrying responsibility alongside the aesthetics. Understanding these ideas from the inside, before any visual decision, changed how I approached the system that followed.
+    tradeoff: >
+      There was no existing visual library to adapt. The vocabulary for stories, symbols, and sculpture had to be built from the source material rather than borrowed from comparable apps.
+  - choice: "Carried one identity across the app, the book, and physical touchpoints like temple cards and stands"
+    why: >
+      The work depended on staying faithful to the source, so type, colour, and compositional patterns had to interpret the material rather than just decorate it, and that interpretation needed to hold from a phone screen to a card left at the foot of an idol.
+    tradeoff: >
+      A system tuned to read well in a book spread still had to survive being printed small, in black and white, on a card someone reads standing in a temple.
 reflection: >
   This project pushed me to work with something deeply personal and culturally layered. Translating Jain philosophy into design meant carrying responsibility alongside the aesthetics. The process was shaped more by conversations than by references: sitting with my father and understanding these ideas from the inside changed how I approached the visual decisions.
-
 
   The work depended on staying faithful to the source. Type, color and compositional patterns had to interpret the material instead of borrowing its surface.
 next_project:

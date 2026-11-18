@@ -30,6 +30,17 @@ highlights:
     label: financial learning system
   - value: Solo
     label: product concept & UI
+decisions:
+  - choice: "Taught each concept through consequence inside a simulated market, not through explanation"
+    why: >
+      Simplification is not dumbing down: every financial concept, options, shorting, market cap, has a core mechanic, and finding that mechanic was the real design problem. A player who makes a bad short and feels it learns faster than one who reads a definition.
+    tradeoff: >
+      I had three days, and I was still learning the stock market myself while building the mechanic that was supposed to teach it. The simplification is real, but some of it is necessity rather than pure design judgment.
+  - choice: "Committed to pixel art instead of a more flexible, higher-fidelity style"
+    why: >
+      Pixel art made commitment unavoidable. Each shape landed and stayed, which matched the pace a three-day build needed.
+    tradeoff: >
+      That same commitment left little room to revise a level's visual read once it was placed.
 reflection: >
   Three days to understand the stock market and turn it into a game. I had to start teaching it before I'd finished learning it myself.
 

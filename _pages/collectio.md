@@ -31,6 +31,17 @@ highlights:
     label: on a raw crop off a real belt
   - value: "0"
     label: wrong dispatches, 8 of 23 held
+decisions:
+  - choice: "Built the belt around abstention instead of a classifier that always answers"
+    why: >
+      72% is not a good number. A softmax always answers; the product should not. Before anything is sent, the belt asks two more questions, have you seen this before and how sure are you, and fails either one to a person.
+    tradeoff: >
+      That is why 8 of 23 real dispatches got held for a person instead of auto-sorted. Zero wrong dispatches came from being conservative, not from the model being good.
+  - choice: "Named what the lab number does not prove, instead of presenting 72% as production-ready"
+    why: >
+      The belt footage used for tracking and classification is generated reference footage. It is real in what it tests, but a real camera brings dirt, glare, and overlap the training set never saw.
+    tradeoff: >
+      That gap is why the next version has to start with the belt, not the lab. The 29% on a raw crop off a real belt is the number that matters more, and it is the one still unresolved.
 reflection: >
   72% is not a good number. That is why the product is built around abstention. A softmax always answers. The product should not. Before anything is sent, the belt asks two more questions, have you seen this before and how sure are you, and fails either one to a person.
 

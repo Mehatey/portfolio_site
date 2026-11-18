@@ -55,6 +55,17 @@ highlights:
     label: material checks, scored apart
   - value: "2"
     label: interface modes, light and dark
+decisions:
+  - choice: "Scored whether a submission is complete separately from whether it is good"
+    why: >
+      Those two questions arrive at the same moment, and a single star rating collapses them: a candidate who shipped strong work with no README would score the same as one who shipped nothing. Splitting them means every score afterward means something narrower and more honest.
+    tradeoff: >
+      Pulling them apart cost a column of screen a single combined score would not have needed.
+  - choice: "Wrote an anchored rubric with a behavioural description for every point on every criterion"
+    why: >
+      It is the reason a reviewer can score consistently at submission nineteen instead of drifting from submission one.
+    tradeoff: >
+      It is also the heaviest thing on the page. I would want to watch somebody use it for an hour before defending the weight.
 reflection: >
   The decision I would defend hardest is separating whether a submission is complete from whether it is good. Those two questions arrive at the same moment and a single star rating collapses them, so a candidate who shipped strong work with no README scores like a candidate who shipped nothing. Pulling them apart cost a column of screen and made every score afterwards mean something narrower and more honest.
 

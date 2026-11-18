@@ -33,6 +33,17 @@ highlights:
     label: proved without a person
   - value: "2"
     label: drawn back at random, unnamed
+decisions:
+  - choice: "Marked every machine-asserted figure with its own evidence state instead of shipping a clean-looking memo"
+    why: >
+      An agent that drafts in minutes and looks finished is the problem, not the fix: a well written memo with thirty eight numbers in it and no way to tell which the machine invented just moves the four hours of checking onto the analyst. Underlining proof, conflict, and missing support at reading speed means the speed the agent saved actually reaches the person reviewing it.
+    tradeoff: >
+      The workflow is a concept, so the interface identifies inferred behaviour rather than presenting it as validated. It has not been tested against a real analyst's workload.
+  - choice: "Ordered the review queue by risk rather than by the memo's own order"
+    why: >
+      The most consequential unsupported claim should be the first thing a reviewer sees, not whatever the agent happened to write first.
+    tradeoff: >
+      The ordering assumption itself, crossing debt load with evidence reliability, is the first thing that needs testing with venture debt analysts under real time pressure.
 reflection: >
   The thing I keep coming back to is that the agent made the analyst's job worse before it made it better. Four hours became four minutes, and what came out the other side was a well written memo with thirty eight numbers in it and no way to tell which the machine had invented. So the analyst checked all thirty eight. The speed went somewhere, but not to them.
 

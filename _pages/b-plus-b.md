@@ -31,6 +31,17 @@ highlights:
     label: interface build
   - value: NYC
     label: public interaction
+decisions:
+  - choice: "Asked one open question instead of a structured survey"
+    why: >
+      The prompt created the opening; the artifact just recorded what people chose to share. An open question is what got answers as specific as "my grandmother at 3am" instead of "my grandmother" — people writing for themselves, which is what let the piece feel like people writing for each other.
+    tradeoff: >
+      285+ free-text answers don't aggregate into anything you can chart. Reading them was the analysis; there was no faster way through it.
+  - choice: "Spent two days on the interface and the rest of the project reading submissions"
+    why: >
+      The responses were the actual material. Once the piece could collect what people wrote, more time on the build would have been time away from the thing worth paying attention to.
+    tradeoff: >
+      The interface itself stayed intentionally minimal and has not had the polish pass the engagement it generated would justify.
 reflection: >
   I built the interface in two days and spent the rest of the project reading what people submitted. The responses were more specific than I expected. Not "my grandmother" but "my grandmother at 3am." That specificity kept appearing across hundreds of entries: people writing for themselves but somehow writing for each other.
 

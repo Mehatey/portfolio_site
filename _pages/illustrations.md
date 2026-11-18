@@ -30,6 +30,17 @@ highlights:
     label: illustration tools in rotation
   - value: Solo
     label: independent visual practice
+decisions:
+  - choice: "Followed interest rather than a brief across seven years, with no fixed style"
+    why: >
+      Without a brief, it was easier to take risks, try things that contradicted each other, and move between structure and intuition without needing to justify the shift.
+    tradeoff: >
+      There is no single consistent style to point to as a signature. What's here is range, not a brand.
+  - choice: "Kept the full archive rather than curating it down to a highlight reel"
+    why: >
+      The value is not in any single piece but in the accumulation. Looking back at all of it together is where the patterns appear.
+    tradeoff: >
+      An uncurated seven-year archive puts weaker, earlier work next to the strongest pieces, rather than only showing a tight best-of.
 reflection: >
   These illustrations track how my visual instincts developed over the years. Without a brief, it was easier to take risks, try things that contradicted each other, and move between structure and intuition without needing to justify the shift.
 

@@ -28,6 +28,17 @@ highlights:
     label: modes of exploration
   - value: Solo
     label: research & prototyping
+decisions:
+  - choice: "Designed Chaise as a mascot that becomes a companion over time, not a chat assistant you open and close"
+    why: >
+      If an AI perceives pattern rather than meaning, the real design question isn't what it can answer, it's what it feels like to have that living alongside you all day.
+    tradeoff: >
+      That question, when presence becomes intrusion, is one I raised and did not resolve. Chaise is a design concept, not a tested one.
+  - choice: "Let AI Self stay rough rather than polish it, in Unity, a tool I was learning for the first time"
+    why: >
+      The roughness fit the premise: a system trying to understand humanity by building a room out of everything it had learned shouldn't look finished.
+    tradeoff: >
+      Some of that roughness is genuinely Unity being new to me, not a deliberate choice, and it would be dishonest to call all of it intentional.
 reflection: >
   The research started as a joke. Feeding images into Cloud Vision just to see how badly it misread them. But the patterns kept surfacing. Not about what AI fails at, but about what it has decided is worth noticing in the first place.
 
