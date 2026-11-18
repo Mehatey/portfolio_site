@@ -177,16 +177,36 @@
   var ctx = null;
   var raf = 0;
 
+  /* Sid: "can u make the click icons sharper and nicer... and crisper."
+     They were soft because the canvas backing store was sized in CSS
+     pixels (cv.width = innerWidth) with no regard for devicePixelRatio,
+     so on any Retina or high-DPI screen the browser stretched a
+     lower-resolution bitmap up to fill the same CSS box -- the exact
+     blur a canvas always gets when its buffer and its display size
+     disagree. Capped at 2 rather than the raw ratio (which can be 3 on a
+     phone) because this canvas can cover the whole viewport and a 3x
+     buffer there is real memory for sprites that are 27 CSS px wide. */
+  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+  function sizeCanvas() {
+    if (!cv) return;
+    cv.width = Math.round(innerWidth * DPR);
+    cv.height = Math.round(innerHeight * DPR);
+    /* Resizing the backing store resets every piece of context state,
+       scale included, so this has to run again after every resize. */
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+  }
+
   function stage() {
     if (cv) return;
     cv = document.createElement("canvas");
     cv.className = "collect-layer";
     cv.setAttribute("aria-hidden", "true");
-    cv.width = innerWidth;
-    cv.height = innerHeight;
     cv.style.cssText = "position:fixed;inset:0;width:100%;height:100%;z-index:8600;pointer-events:none;";
     document.body.appendChild(cv);
     ctx = cv.getContext("2d");
+    sizeCanvas();
   }
   function teardown() {
     if (raf) cancelAnimationFrame(raf);
@@ -219,6 +239,23 @@
       ctx.fill();
       ctx.restore();
     }
+
+    /* ── THE GLOW ─────────────────────────────────────────────────────
+       Sid: "some glow" to make them read as lit objects rather than flat
+       stickers. One soft disc in the sprite's own lit colour, with a
+       canvas shadowBlur around it for the bloom -- drawn ONCE per sprite,
+       not per cell. shadowBlur on all eighty cells of a sprite would be
+       both slow (shadows are the most expensive thing a 2D context does)
+       and wrong-looking (eighty small blurs read as noise, not a glow). */
+    ctx.save();
+    ctx.globalAlpha = alpha * (grounded ? 0.5 : 0.32);
+    ctx.shadowColor = sprite.lit || sprite.ink;
+    ctx.shadowBlur = s * 2.2;
+    ctx.fillStyle = sprite.lit || sprite.ink;
+    ctx.beginPath();
+    ctx.arc(0, 0, half * 0.55, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
 
     /* One pass per tone rather than one fillStyle change per pixel: eighty
        sprites of eighty cells is 6,400 state changes a frame the other way
@@ -379,6 +416,14 @@
           o.vy = 0;
           o.rot = (Math.random() - 0.5) * 0.22;
           o.restAt = performance.now();
+          /* Sid: "they shpould have some slight animation in them to make
+             them come alive." The frame loop already runs every frame for
+             the whole 4.2s rest -- that's what redraws the shove physics
+             and the fade-out below -- so a gentle idle bob costs nothing
+             new, it just rides the loop that was already paying for itself.
+             Phase is random per piece so a pile of four doesn't bob in
+             unison like a single breathing mass. */
+          o.bobPhase = Math.random() * Math.PI * 2;
           piled.push(o);
           if (piled.length > MAX_PILE) piled.shift();
           live.splice(i, 1);
@@ -464,7 +509,13 @@
 
       var sy = q.y - vy;
       if (sy < -60 || sy > innerHeight + 120) continue;
-      draw(q.sprite, q.x, sy, q.rot, alpha, 1, age <= REST_MS);
+      var resting = age <= REST_MS;
+      /* Small on purpose: this is a thing settled on a ledge, not a thing
+         floating. 1.1px of lift and a hair of extra rotation reads as
+         breathing; much more and it looks like it's trying to get up. */
+      var bob = resting ? Math.sin(nowT / 900 + q.bobPhase) * 1.1 : 0;
+      var sway = resting ? Math.sin(nowT / 1400 + q.bobPhase) * 0.035 : 0;
+      draw(q.sprite, q.x, sy - Math.abs(bob), q.rot + sway, alpha, 1, resting);
     }
     for (var m = 0; m < live.length; m++) {
       var f = live[m];
@@ -527,10 +578,7 @@
   addEventListener(
     "resize",
     function () {
-      if (cv) {
-        cv.width = innerWidth;
-        cv.height = innerHeight;
-      }
+      sizeCanvas();
       measureLedges();
     },
     { passive: true }
