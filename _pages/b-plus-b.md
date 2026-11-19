@@ -173,8 +173,17 @@ next_project:
 </div>
 
 <p class="cube-cap cube-cap--above"><em>A Reddit thread: places to cry in NYC.</em></p>
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/5.bb/2.webp" alt="Reddit thread: places to cry in NYC" loading="lazy" decoding="async" />
+<div class="cs-zoom">
+  <div class="cs-zoom__frame">
+    <img
+      style="--zx: 14%; --zy: 18%; --zs: 1.4"
+      src="{{ site.baseurl }}/5.bb/2.webp"
+      alt="Pushing into a Reddit thread on r/AskNYC that asks for the best spots to cry in the city"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <p class="cs-zoom__label">A real r/AskNYC thread. People answered with a bridge, a cemetery and a waterfall.</p>
 </div>
 
 <div class="cs-bleed">
