@@ -61,10 +61,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   R.push(["hover state engages", await p.evaluate(() => document.getElementById("cur-dot").classList.contains("is-hover"))]);
   /* The old hover treatment grew chips and a speech bubble at the pointer.
      It was removed because it obscured work and read as generic AI UI. */
-  R.push([
-    "legacy hover clutter stays removed",
-    await p.evaluate(() => !document.querySelector(".cube-says") && !document.querySelector(".curhue")),
-  ]);
+  R.push(["legacy hover clutter stays removed", await p.evaluate(() => !document.querySelector(".cube-says") && !document.querySelector(".curhue"))]);
   /* Checked away from any link. Over something pressable the lens correctly
      switches its refraction off so the target stays readable, so asserting it
      while hovering a card tests the opposite of what it means to. */
