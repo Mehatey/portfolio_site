@@ -120,7 +120,7 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item">
     <video width="1096" height="1004" autoplay muted loop playsinline preload="auto">
-      <source src="{{ site.baseurl }}/6.mindu/0.1.mp4" type="video/mp4" />
+      <source data-src="{{ site.baseurl }}/6.mindu/0.1.mp4" type="video/mp4" />
     </video>
   </div>
   <div class="cs-grid-item">

@@ -163,7 +163,7 @@ next_project:
 <!-- HERO -->
 <div class="cs-bleed-full">
   <video width="1440" height="810" autoplay muted loop playsinline preload="auto">
-    <source src="{{ site.baseurl }}/5.bb/d8.mp4" type="video/mp4" />
+    <source data-src="{{ site.baseurl }}/5.bb/d8.mp4" type="video/mp4" />
   </video>
 </div>
 

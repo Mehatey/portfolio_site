@@ -99,11 +99,11 @@ next_project:
 <p class="cube-cap cube-cap--above">The specification. Every element mapped to a requirement.</p>
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/03-spec.webp" alt="Annotated dashboard specification" loading="lazy" decoding="async" /></div>
 
-<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/09-dashboard-rec-poster.jpg" aria-label="The dashboard, screen recorded"><source src="{{ site.baseurl }}/assets/img/marriott/09-dashboard-rec.mp4" type="video/mp4" /></video></div>
+<div class="cs-bleed"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/09-dashboard-rec-poster.jpg" aria-label="The dashboard, screen recorded"><source data-src="{{ site.baseurl }}/assets/img/marriott/09-dashboard-rec.mp4" type="video/mp4" /></video></div>
 
 <div class="cs-grid cs-grid--fit">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source src="{{ site.baseurl }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/04-overview-poster.jpg" aria-label="Operational overview metrics"><source data-src="{{ site.baseurl }}/assets/img/marriott/04-overview.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/05-flow-poster.jpg" aria-label="Peak reservation flow and cases"><source data-src="{{ site.baseurl }}/assets/img/marriott/05-flow.mp4" type="video/mp4" /></video></div>
 </div>
 
 <p class="cube-cap cube-cap--above">Notifications, broken down: the banner, the bell, and every state in the panel.</p>
@@ -115,8 +115,8 @@ next_project:
 
 <p class="cube-cap cube-cap--above">Loyalty enrolment, without leaving the desk.</p>
 <div class="cs-grid cs-grid--fit">
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source src="{{ site.baseurl }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
-  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/06-enroll-poster.jpg" aria-label="Bonvoy loyalty enrolment carousel"><source data-src="{{ site.baseurl }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
+  <div class="cs-grid-item"><video autoplay muted loop playsinline preload="none" poster="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal-poster.jpg" aria-label="Enroll new member modal"><source data-src="{{ site.baseurl }}/assets/img/marriott/08-enrollmodal.mp4" type="video/mp4" /></video></div>
 </div>
 
 <div class="cs-bleed" data-zoom><img src="{{ site.baseurl }}/assets/img/marriott/07-enrollspec.webp" alt="Loyalty enrolment key functionality" loading="lazy" decoding="async" /></div>
