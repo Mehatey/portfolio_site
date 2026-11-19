@@ -9135,18 +9135,21 @@
 
       function activateProjectVideo(v) {
         if (v.dataset.csActivated) return;
-        var deferredSource = v.querySelector("source[data-src]");
+        // Every deferred source is swapped, not just the first: a clip with a
+        // mobile and a desktop <source media=...> would otherwise give
+        // desktop the mobile file, because load() picks among whatever has a src.
+        var deferredSources = v.querySelectorAll("source[data-src]");
         // A clip that already has its source (e.g. the hero) just needs a
         // nudge to play — never a reload, which would restart it mid-scroll.
-        if (!deferredSource && v.preload !== "none") {
+        if (!deferredSources.length && v.preload !== "none") {
           playProjectVideo(v);
           return;
         }
         v.dataset.csActivated = "1";
-        if (deferredSource) {
-          deferredSource.src = deferredSource.dataset.src;
-          deferredSource.removeAttribute("data-src");
-        }
+        deferredSources.forEach(function (src) {
+          src.src = src.dataset.src;
+          src.removeAttribute("data-src");
+        });
         v.preload = "auto";
         v.load();
         // Calling play() straight after load() is routinely aborted by the

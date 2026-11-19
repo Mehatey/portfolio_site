@@ -207,9 +207,9 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>The first encounter is not a menu. A tree appears, and begins talking.</em></p>
 <div class="cs-bleed" style="position: relative;">
-  <video width="1440" height="810" id="tree-vid" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
-    <source src="{{ site.baseurl }}/15.bloom-vp/tree-mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
-    <source src="{{ site.baseurl }}/15.bloom-vp/tree.mp4" type="video/mp4" />
+  <video width="1440" height="810" id="tree-vid" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/tree-mobile.mp4" type="video/mp4" media="(max-width: 767px)" />
+    <source data-src="{{ site.baseurl }}/15.bloom-vp/tree.mp4" type="video/mp4" />
   </video>
   <button class="cover-audio-btn muted" id="tree-audio-btn" aria-label="Toggle audio">
     <svg class="audio-icon-on" viewBox="0 0 24 24" width="14" height="14"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
