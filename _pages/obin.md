@@ -90,6 +90,19 @@ next_project:
   <p>The working prototype connects four states that are usually split across tools: the agent run, the drafted memo, a risk-ordered verification queue, and the source record behind each figure. The analyst can move from an assertion to its evidence without leaving the memo, then advance, hold, or pass the review with private notes attached.</p>
 </div>
 
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>This is the memo running live, not a recording of it. Open a figure, check what the blue, amber, and red underlines actually mean.</em></p>
+<div class="cs-embed">
+  <div class="cs-embed__bar">
+    <span>OBIN · LIVE</span>
+    <a href="{{ site.baseurl }}/ai-prototypes/obin/" target="_blank" rel="noopener">Open full screen &rarr;</a>
+  </div>
+  <iframe
+    src="{{ site.baseurl }}/ai-prototypes/obin/"
+    title="Obin, the live verification prototype"
+    loading="lazy"
+  ></iframe>
+</div>
+
 <div class="cs-section"><span class="cs-section-label">Result</span></div>
 
 <div class="cs-intro">

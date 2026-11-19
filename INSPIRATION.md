@@ -29,6 +29,7 @@ Ordered by how often they appear across sessions.
 - [FWA](https://thefwa.com) and its [RSS feed](https://thefwa.com/rss)
 - [webdesignawards.io portfolio](https://www.webdesignawards.io/categories/portfolio)
 - [siteinspire](https://siteinspire.com), [land-book](https://land-book.com), [lapa.ninja](https://lapa.ninja), [httpster](https://httpster.net), [onepagelove](https://onepagelove.com)
+- [Are.na](https://www.are.na) and [Cosmos](https://www.cosmos.so) for moodboards, palettes, and material mood rather than DOM-level reference
 
 ## 2. Individual sites and studios
 

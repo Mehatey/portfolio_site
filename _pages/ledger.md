@@ -98,6 +98,19 @@ next_project:
   </video>
 </div>
 
+<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>This is the review running live, not a recording of it. Page submissions, open the evidence drawer, score a criterion.</em></p>
+<div class="cs-embed">
+  <div class="cs-embed__bar">
+    <span>LEDGER · LIVE</span>
+    <a href="{{ site.baseurl }}/ai-prototypes/ledger/" target="_blank" rel="noopener">Open full screen &rarr;</a>
+  </div>
+  <iframe
+    src="{{ site.baseurl }}/ai-prototypes/ledger/"
+    title="Ledger, the live review prototype"
+    loading="lazy"
+  ></iframe>
+</div>
+
 <div class="cs-intro cs-try">
   <p><a class="cs-try__link" href="{{ site.baseurl }}/ai-prototypes/ledger/"><span>Open the Ledger prototype</span><i aria-hidden="true">&rarr;</i></a></p>
   <p class="cs-try__note">Review a candidate, inspect the evidence, and take the shortlist to a handoff.</p>
