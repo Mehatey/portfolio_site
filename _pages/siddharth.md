@@ -59,7 +59,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/10.alpha/12.1.webp" alt="Alpha Stockathon, a module chapter screen" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/assets/img/pricing-analyzer/pizzahut-portal.webp" alt="Pizza Hut pricing portal dashboard" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/assets/img/pricing-analyzer/arbys-onboarding.webp" alt="Arby's pricing analyzer onboarding" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/img/marriott/06-enroll-poster.jpg"><source src="{{ B }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--third"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/img/marriott/06-enroll-poster.jpg"><source src="{{ B }}/assets/img/marriott/06-enroll.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/assets/img/fairview/13-impact.webp" alt="Fairview impact" loading="lazy" decoding="async" style="--pos: 50% 0" /></div>
     <div class="reel-plate reel-plate--wide" style="--ar: 2000/550"><img src="{{ B }}/assets/img/pricing-analyzer/pizzahut-illustrations.webp" alt="Pizza Hut brand illustrations: pizza, delivery, the kitchen, the storefront" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><img src="{{ B }}/assets/img/pricing-analyzer/error-states.webp" alt="Error state illustrations for the Yum! Brands pricing portals: Pizza Hut, Taco Bell, KFC, Arby's" loading="lazy" decoding="async" /></div>
@@ -83,7 +83,7 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/9.aananda/27.webp" alt="Aananda posters" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third reel-plate--fit" style="--plate-bg: #f4f2ec"><img src="{{ B }}/5.mool/2.2.png" alt="Mool brand" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--8"><img src="{{ B }}/5.bb/cover.webp" alt="Broken and Beautiful, on the street" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video autoplay muted loop playsinline preload="metadata"><source src="{{ B }}/7.naavo/3.2.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video muted loop playsinline preload="none" data-lazy-play><source src="{{ B }}/7.naavo/3.2.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
 
@@ -98,36 +98,36 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
   </div>
   <div class="reel-grid">
     <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><img src="{{ B }}/1.met/0.jpg" alt="Encoded at The Met" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata"><source src="{{ B }}/1.met/6.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play><source src="{{ B }}/1.met/6.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate"><img src="{{ B }}/1.met/12.webp" alt="Visitors activating Encoded" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/cover.jpg"><source src="{{ B }}/15.bloom-vp/visitor-1.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--8"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/15.bloom-vp/cover.jpg"><source src="{{ B }}/15.bloom-vp/visitor-1.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/6.mindu/7.1.webp" alt="Mind Your Feelings kiosk" loading="lazy" decoding="async" /></div>
     <!-- Sid: "add both of these together in the creative tech section."
          The Neural Landscape: the lit brain sculpture's build (Grasshopper
          script, 3D print) and the kiosk in the wild at a library. -->
     <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><img src="{{ B }}/6.mindu/neural-landscape-process.webp" alt="The Neural Landscape: Grasshopper script, 3D print test, the lit brain sculpture" loading="lazy" decoding="async" /></div>
     <div class="reel-plate"><img src="{{ B }}/6.mindu/neural-landscape-kiosk.webp" alt="The Neural Landscape kiosk in a public library" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/poster.jpg"><source src="{{ B }}/15.bloom-vp/lotus.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--third"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/15.bloom-vp/poster.jpg"><source src="{{ B }}/15.bloom-vp/lotus.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/6.mindu/cover2.webp" alt="Mind Your Feelings" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/4.mandala/cover.jpg" alt="Bloom, EEG installation" loading="lazy" decoding="async" style="--pos: 70% 50%" /></div>
-    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata"><source src="{{ B }}/4.mandala/final-walking.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--8"><video muted loop playsinline preload="none" data-lazy-play><source src="{{ B }}/4.mandala/final-walking.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/4.mandala/2.webp" alt="Bloom" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/4.mandala/9.2.webp" alt="Bloom, the table" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><video autoplay muted loop playsinline preload="metadata"><source src="{{ B }}/1.met/9.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 21/9"><video muted loop playsinline preload="none" data-lazy-play><source src="{{ B }}/1.met/9.mp4" type="video/mp4" /></video></div>
     <!-- Sid: "add these to the scroll, they are creative tech." The live
          visuals, the headset piece and the generative mandala, in the
          chapter about rooms people stood in. -->
-    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-projection-poster.jpg"><source src="{{ B }}/4.mandala/ct-projection.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-headset-poster.jpg"><source src="{{ B }}/4.mandala/ct-headset.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/4.mandala/ct-projection-poster.jpg"><source src="{{ B }}/4.mandala/ct-projection.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/4.mandala/ct-headset-poster.jpg"><source src="{{ B }}/4.mandala/ct-headset.mp4" type="video/mp4" /></video></div>
     <!-- Sid: "one of them needs to be bigger so u can see the concept, dont
          make small media too small on scroll." The generative mandala runs
          the whole column. -->
-    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-ripple-poster.jpg"><source src="{{ B }}/4.mandala/ct-ripple.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/4.mandala/ct-ripple-poster.jpg"><source src="{{ B }}/4.mandala/ct-ripple.mp4" type="video/mp4" /></video></div>
     <!-- Vision Pro passthrough: a tree in the station, a garden on the street. -->
-    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/vp-subway-tree-poster.jpg"><source src="{{ B }}/15.bloom-vp/vp-subway-tree.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/15.bloom-vp/vp-street-garden-poster.jpg"><source src="{{ B }}/15.bloom-vp/vp-street-garden.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-ar-mandalas-poster.jpg"><source src="{{ B }}/4.mandala/ct-ar-mandalas.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/4.mandala/ct-pixel-poster.jpg"><source src="{{ B }}/4.mandala/ct-pixel.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/15.bloom-vp/vp-subway-tree-poster.jpg"><source src="{{ B }}/15.bloom-vp/vp-subway-tree.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/15.bloom-vp/vp-street-garden-poster.jpg"><source src="{{ B }}/15.bloom-vp/vp-street-garden.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/4.mandala/ct-ar-mandalas-poster.jpg"><source src="{{ B }}/4.mandala/ct-ar-mandalas.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/4.mandala/ct-pixel-poster.jpg"><source src="{{ B }}/4.mandala/ct-pixel.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
 
@@ -143,34 +143,34 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
          original ratio." 16/9 was cropping a screen recording shot at
          1600x910; the box now matches the file's own ratio, so cover has
          nothing left to crop. -->
-    <div class="reel-plate reel-plate--wide" style="--ar: 1600/910"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/16.obin/v1-agent-poster.jpg"><source src="{{ B }}/16.obin/v1-agent.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/25.1-poster.jpg"><source src="{{ B }}/2.ai-self/25.1.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/23-poster.jpg"><source src="{{ B }}/2.ai-self/23.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/19-poster.jpg"><source src="{{ B }}/2.ai-self/19.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.ai-self/26-poster.jpg"><source src="{{ B }}/2.ai-self/26.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 1600/910"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/16.obin/v1-agent-poster.jpg"><source src="{{ B }}/16.obin/v1-agent.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--8"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.ai-self/25.1-poster.jpg"><source src="{{ B }}/2.ai-self/25.1.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.ai-self/23-poster.jpg"><source src="{{ B }}/2.ai-self/23.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--third"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.ai-self/19-poster.jpg"><source src="{{ B }}/2.ai-self/19.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--third"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.ai-self/26-poster.jpg"><source src="{{ B }}/2.ai-self/26.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/2.ai-self/12.webp" alt="AI Self, choose an AI" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--8"><img src="{{ B }}/2.ai-self/cover.jpg" alt="AI Self, the dream" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/17.ledger/v3-review-poster.jpg"><source src="{{ B }}/17.ledger/v3-review.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--wide" style="--ar: 16/9"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/17.ledger/v3-review-poster.jpg"><source src="{{ B }}/17.ledger/v3-review.mp4" type="video/mp4" /></video></div>
   </div>
   <section class="reel-strip" aria-label="AI experiments">
     <div class="reel-strip__track">
           <!-- Sid: "the vids u have used in ai protos arent great and barely
                visible, use some from latent atlas and more visually strong
                ones." Stronger, more legible clips in. -->
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/latent-atlas/atlas-ar-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/latent-atlas/atlas-ar.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/latent-atlas/atlas-formation-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/latent-atlas/atlas-formation.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/mimic/mimic-ring-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/mimic/mimic-ring.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/mimic/mimic-specimens-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/mimic/mimic-specimens.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/vantage/transition-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/vantage/opening.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/vantage/vantage-desk-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/vantage/vantage-desk.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/guise/GUISE-transforms-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/guise/GUISE-transforms.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/feral/FERAL-walkthrough-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/feral/FERAL-walkthrough.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/forecast/FORECAST-assembly-transition-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/forecast/FORECAST-assembly-transition.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/watcher/WATCHER-dossiers-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/watcher/WATCHER-dossiers.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/flatten/flatten-cloud-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/flatten/flatten-cloud.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/mirror/mirror-figure-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/mirror/mirror-figure.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/revision/revision-map-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/revision/revision-map.mp4" type="video/mp4" /></video></div>
-          <div class="reel-plate"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/assets/media/ai-prototypes/captcha/CAPTCHA-03-where-the-wild-begins-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/captcha/CAPTCHA-03-where-the-wild-begins.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/latent-atlas/atlas-ar-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/latent-atlas/atlas-ar.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/latent-atlas/atlas-formation-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/latent-atlas/atlas-formation.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/mimic/mimic-ring-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/mimic/mimic-ring.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/mimic/mimic-specimens-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/mimic/mimic-specimens.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/vantage/transition-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/vantage/opening.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/vantage/vantage-desk-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/vantage/vantage-desk.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/guise/GUISE-transforms-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/guise/GUISE-transforms.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/feral/FERAL-walkthrough-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/feral/FERAL-walkthrough.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/forecast/FORECAST-assembly-transition-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/forecast/FORECAST-assembly-transition.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/watcher/WATCHER-dossiers-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/watcher/WATCHER-dossiers.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/flatten/flatten-cloud-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/flatten/flatten-cloud.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/mirror/mirror-figure-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/mirror/mirror-figure.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/revision/revision-map-poster.jpg"><source src="{{ B }}/assets/media/ai-prototypes/revision/revision-map.mp4" type="video/mp4" /></video></div>
+          <div class="reel-plate"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/assets/media/ai-prototypes/captcha/CAPTCHA-03-where-the-wild-begins-poster.webp"><source src="{{ B }}/assets/media/ai-prototypes/captcha/CAPTCHA-03-where-the-wild-begins.mp4" type="video/mp4" /></video></div>
     </div>
   </section>
 </section>
@@ -187,15 +187,15 @@ description: Everything Siddharth Mehta makes, in one scroll. Product, brand, sp
     <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><img src="{{ B }}/11.illu/31.1.webp" alt="Chaat" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/2.cube/conception/6.1.webp" alt="Sketchbook" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/11.illu/13.webp" alt="Illustration" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--third"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/2d/4-poster.jpg"><source src="{{ B }}/2.cube/2d/4.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/end-of-cube-poster.jpg"><source src="{{ B }}/2.cube/end-of-cube.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/3d/13-poster.jpg"><source src="{{ B }}/2.cube/3d/13.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--third"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.cube/2d/4-poster.jpg"><source src="{{ B }}/2.cube/2d/4.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--8"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.cube/end-of-cube-poster.jpg"><source src="{{ B }}/2.cube/end-of-cube.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.cube/3d/13-poster.jpg"><source src="{{ B }}/2.cube/3d/13.mp4" type="video/mp4" /></video></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p66.webp" alt="Avengers, watercolour" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p40.webp" alt="Horses, oil" loading="lazy" decoding="async" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/play/assets/hi/p71.webp" alt="Buddha, oil" loading="lazy" decoding="async" style="--pos: 50% 30%" /></div>
     <div class="reel-plate reel-plate--third"><img src="{{ B }}/11.illu/18.webp" alt="Dashavatara icon set" loading="lazy" decoding="async" /></div>
-    <div class="reel-plate reel-plate--8"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/3d/10.1-web-poster.jpg"><source src="{{ B }}/2.cube/3d/10.1-web.mp4" type="video/mp4" /></video></div>
-    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video autoplay muted loop playsinline preload="metadata" poster="{{ B }}/2.cube/3d/10.2-web-poster.jpg"><source src="{{ B }}/2.cube/3d/10.2-web.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--8"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.cube/3d/10.1-web-poster.jpg"><source src="{{ B }}/2.cube/3d/10.1-web.mp4" type="video/mp4" /></video></div>
+    <div class="reel-plate reel-plate--tall" style="--ar: 3/4"><video muted loop playsinline preload="none" data-lazy-play poster="{{ B }}/2.cube/3d/10.2-web-poster.jpg"><source src="{{ B }}/2.cube/3d/10.2-web.mp4" type="video/mp4" /></video></div>
   </div>
 </section>
 

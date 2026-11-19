@@ -776,6 +776,44 @@
       </clipPath>
     </svg>
     <script>
+      /* ── 39 CLIPS, ONE AT A TIME ──────────────────────────────────────────
+         Every clip on this page used to be `autoplay`, so the browser fetched
+         all of them on arrival: 163MB across 105 requests before anyone had
+         scrolled, with two single files over 20MB. They are `preload="none"`
+         now and this plays each one only while it is near the viewport and
+         pauses it on the way out, so the page costs what has actually been
+         seen. Reduced motion gets the first frame and no playback. */
+      (function () {
+        var vids = [].slice.call(document.querySelectorAll("video[data-lazy-play]"));
+        if (!vids.length) return;
+        var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        if (still || !("IntersectionObserver" in window)) {
+          vids.forEach(function (v) {
+            v.preload = "metadata";
+            if (!still) v.autoplay = true;
+          });
+          return;
+        }
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (e) {
+              var v = e.target;
+              if (e.isIntersecting) {
+                var p = v.play();
+                if (p && p.catch) p.catch(function () {});
+              } else if (!v.paused) {
+                v.pause();
+              }
+            });
+          },
+          { rootMargin: "300px 0px" }
+        );
+        vids.forEach(function (v) {
+          io.observe(v);
+        });
+      })();
+    </script>
+    <script>
       /* The page's own edges arc with the scroll. One path in bounding-box
          units on the whole <main>; the top edge sags in the middle when the
          page is being pulled down, the bottom edge bows the other way on the
