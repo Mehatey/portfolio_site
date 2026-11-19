@@ -85,8 +85,30 @@ next_project:
 <div class="cs-section"><span class="cs-section-label">The verification layer</span></div>
 
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The interface makes authorship and evidence state legible at reading speed: human writing in serif, machine assertions in monospace, and an underline for proof, conflict, or missing support.</em></p>
-<div class="cs-bleed">
-  <img src="{{ site.baseurl }}/16.obin/01-figures.webp" alt="A credit memo where every machine-asserted figure is set in monospace with a coloured underline: blue for proved, amber for conflict, red for unsupported" loading="lazy" decoding="async" />
+<div class="cs-zoom" data-zoom>
+  <div class="cs-zoom__frame">
+    <img
+      style="--zx: 30%; --zy: 74%; --zs: 1.7"
+      src="{{ site.baseurl }}/16.obin/01-figures.webp"
+      alt="A credit memo where every machine-asserted figure is set in monospace with a coloured underline: blue for proved, amber for conflict, red for unsupported, pushing in on a lien marked unsupported in red"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <p class="cs-zoom__label">The agent went to the Delaware registry uninvited and found a lien nobody in the data room disclosed.</p>
+</div>
+
+<div class="cs-zoom" data-zoom>
+  <div class="cs-zoom__frame">
+    <img
+      style="--zx: 30%; --zy: 29%; --zs: 1.7"
+      src="{{ site.baseurl }}/16.obin/02-risk-order.webp"
+      alt="The review queue, pushing in on the senior blanket lien now sitting first, marked unsupported"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <p class="cs-zoom__label">Sorted by risk, that lien moves to the first row an analyst sees. Toggle the order below to watch it happen.</p>
 </div>
 
 <div class="cs-compare" data-reveal>

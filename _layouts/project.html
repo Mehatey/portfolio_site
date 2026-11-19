@@ -6918,6 +6918,82 @@
         }
       }
 
+      /* ══ THE CAMERA MOVES, NOT THE READER ═══════════════════════════════
+         Sid: "people wont click through the whole thing i thought you knew
+         how pros show design portfolios." Fair: a toggle is still an ask.
+         This is the thing that does not ask anything. A real screenshot,
+         already cropped in close, holds for a beat, then pushes further
+         into the one detail the decision is actually about, on its own,
+         once, the moment it scrolls into view. No loop, because a detail
+         that keeps re-zooming stops meaning anything the second time.
+
+         The push is one `transform: scale()` with `transform-origin` set
+         to the detail's own coordinate, so the zoom and the pan are the
+         same declaration instead of two animations that can drift out of
+         sync with each other. --zx/--zy are percentages into the source
+         image, set per instance inline, not guessed by a center crop. */
+      .cs-zoom {
+        margin: clamp(28px, 3.2vw, 44px) 0;
+      }
+      .cs-zoom__frame {
+        position: relative;
+        height: clamp(360px, 48vw, 540px);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--surface-1, #0b0d12);
+      }
+      .cs-zoom__frame img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: var(--zx, 50%) var(--zy, 50%);
+        transform-origin: var(--zx, 50%) var(--zy, 50%);
+        transform: scale(1);
+        transition: transform 2.6s cubic-bezier(0.19, 1, 0.22, 1);
+        will-change: transform;
+      }
+      .cs-zoom.is-playing .cs-zoom__frame img {
+        transform: scale(var(--zs, 1.6));
+      }
+      .cs-zoom__label {
+        /* Sid's own rule, already written for .cs-compare__note: no
+           low-contrast text sitting inside an effect. A caption below the
+           frame reads the same regardless of what colour the screenshot
+           happens to be, where an overlay has to fight the one image it
+           cannot control. */
+        margin: 14px 0 0;
+        max-width: 60ch;
+        font-size: 15px;
+        line-height: 1.55;
+        color: var(--ink-2, rgba(198, 214, 236, 0.72));
+        opacity: 0;
+        transform: translateY(6px);
+        transition:
+          opacity 0.5s ease 0.9s,
+          transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.9s;
+      }
+      .cs-zoom.is-playing .cs-zoom__label {
+        opacity: 1;
+        transform: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .cs-zoom__frame img {
+          transition: none;
+          transform: scale(var(--zs, 1.6));
+        }
+        .cs-zoom__label {
+          transition: none;
+          opacity: 1;
+          transform: none;
+        }
+      }
+      @media (max-width: 760px) {
+        .cs-zoom__frame {
+          height: clamp(280px, 90vw, 380px);
+        }
+      }
 
       /* ══ THE HANDOVER'S THREE SIGNALS ═══════════════════════════════════
          Sid: "next project footer: clearer boundary, arrow signalling you are
@@ -7330,7 +7406,7 @@
          continuously resampled layer: no filter, no will-change, and no
          slow scale animation, which is a rescale of the bitmap on every
          frame it runs and the other half of why the boards read soft */
-      .proj-body img,
+      .proj-body img:not(.cs-zoom__frame img),
       .proj-body video,
       .cs-rail-item img,
       .cs-rail-item video,
@@ -7342,6 +7418,13 @@
         animation: none !important;
         transform: none !important;
       }
+      /* .cs-zoom__frame img is deliberately excluded above. That rule exists
+         to kill a *continuous* rescale, a slow perpetual loop that was
+         resampling the bitmap every frame and reading as soft -- Sid's own
+         words, "a rescale of the bitmap on every frame it runs". This is a
+         single CSS transition that runs once on scroll-in and then holds, a
+         GPU-composited scale with nothing left running after it settles,
+         which is a different thing wearing a similar name. */
       .reveal,
       .proj-body .cs-bleed,
       .proj-body .cs-grid-item,
@@ -8640,6 +8723,39 @@
               });
             });
           });
+        });
+      })();
+    </script>
+
+    <script>
+      // ── THE CAMERA PUSHES IN ONCE, ON ITS OWN ───────────────────────────
+      // No click, no hover, no loop: it plays the moment a .cs-zoom crosses
+      // the middle of the viewport and never plays again, because a detail
+      // that re-zooms every time it scrolls back into view reads as a GIF
+      // doing a trick, not as a camera finding something worth a closer
+      // look. Reduced motion shows the zoomed frame immediately; see the
+      // .cs-zoom__frame img rule in the matching media query above.
+      (function () {
+        var blocks = document.querySelectorAll(".cs-zoom");
+        if (!blocks.length) return;
+        if (!("IntersectionObserver" in window)) {
+          blocks.forEach(function (b) {
+            b.classList.add("is-playing");
+          });
+          return;
+        }
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (!entry.isIntersecting) return;
+              entry.target.classList.add("is-playing");
+              io.unobserve(entry.target);
+            });
+          },
+          { threshold: 0.45 }
+        );
+        blocks.forEach(function (b) {
+          io.observe(b);
         });
       })();
     </script>

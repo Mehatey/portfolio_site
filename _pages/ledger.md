@@ -106,6 +106,19 @@ next_project:
 
 <div class="cs-section"><span class="cs-section-label">The review</span></div>
 
+<div class="cs-zoom" data-zoom>
+  <div class="cs-zoom__frame">
+    <img
+      style="--zx: 82%; --zy: 24%; --zs: 1.65"
+      src="{{ site.baseurl }}/17.ledger/02-rubric.webp"
+      alt="The scorecard, pushing in on the anchored rubric: four criteria, each zero to four, each number defined in words on hover"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <p class="cs-zoom__label">Every number on the scale is written out. Two reviewers scoring the same submission are scoring the same definition.</p>
+</div>
+
 <p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The prototype runs beside the evidence and scorecard. A reviewer can check what shipped, score it, and move forward without losing context.</em></p>
 <div class="cs-bleed">
   <video width="1600" height="910" autoplay muted loop playsinline preload="none" aria-label="The review surface: the submission queue, then a candidate opened with their prototype running inline beside the scorecard">
