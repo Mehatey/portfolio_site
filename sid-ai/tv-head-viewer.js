@@ -1620,7 +1620,8 @@ let model,
   effectKind = 0,
   effectStrength = 0,
   faceWashLife = 0,
-  voiceEnergy = 0;
+  voiceEnergy = 0,
+  musicVibe = 0;
 // Where the cube is touched, that region of the glass answers: a damped ring
 // spreads from the exact contact point and dies out. It is the only motion in
 // the scene that is caused by a specific place rather than by time.
@@ -1796,67 +1797,18 @@ const chipLabels = {
   reach: "Reach him",
 };
 const scriptOrder = Object.keys(cubeScript);
-const noteLabel = $("#cube-note-label"),
-  noteQuestion = $("#cube-note-question"),
-  noteAnswer = $("#cube-note-answer"),
-  noteChips = $("#cube-note-chips");
-const askedNodes = new Set();
 let currentNode = "who",
-  turnCount = 0;
-function unaskedFrom(list) {
-  return list.filter((id) => !askedNodes.has(id));
-}
-function nextThread() {
-  const node = cubeScript[currentNode],
-    onward = unaskedFrom(node ? node.next : []);
-  if (onward.length) return onward[0];
-  const anywhere = unaskedFrom(scriptOrder);
-  if (anywhere.length) return anywhere[0];
-  return currentNode === "reach" ? "best" : "reach";
-}
-function renderChips() {
-  if (!noteChips) return;
-  const node = cubeScript[currentNode],
-    picks = [];
-  for (const id of node.next) if (!askedNodes.has(id) && !picks.includes(id)) picks.push(id);
-  for (const id of scriptOrder) {
-    if (picks.length >= 3) break;
-    if (id !== currentNode && !askedNodes.has(id) && !picks.includes(id)) picks.push(id);
-  }
-  for (const id of node.next) {
-    if (picks.length >= 3) break;
-    if (id !== currentNode && !picks.includes(id)) picks.push(id);
-  }
-  noteChips.replaceChildren(
-    ...picks.slice(0, 3).map((id) => {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = askedNodes.has(id) ? "cube-note-chip is-asked" : "cube-note-chip";
-      button.dataset.cubeNote = id;
-      button.textContent = chipLabels[id] || cubeScript[id].q;
-      return button;
-    })
-  );
-}
-function setCubeNote(id) {
-  const node = cubeScript[id];
-  if (!node) return;
-  currentNode = id;
-  askedNodes.add(id);
-  turnCount++;
-  if (noteQuestion) noteQuestion.textContent = node.q;
-  if (noteAnswer) noteAnswer.textContent = node.a;
-  if (noteLabel) noteLabel.textContent = askedNodes.size >= scriptOrder.length ? "Still here" : "The cube says";
-  renderChips();
-}
+  clickCursor = -1;
 // One beat of the conversation: a voice, an answer, a released relic, and the
-// scene state that goes with that voice.
-function speakNode(id, hit) {
+// scene state that goes with that voice. `text` is spoken; `nodeId` (when the
+// text is one of the thirteen scripted answers) is what lets a real
+// recording, if one exists, play instead of synthesis.
+function playAnswer(text, nodeId, hit) {
   document.body.classList.add("ai-touched");
   restlessness = Math.min(3.2, restlessness + 0.85);
-  const turn = (voiceIndex + 1) % voiceVariants.length;
-  startVoice(turn, id);
-  setCubeNote(id);
+  currentNode = nodeId || currentNode;
+  const turn = personaOverride >= 0 ? personaOverride : (voiceIndex + 1) % voiceVariants.length;
+  startVoice(turn, nodeId, text);
   effectKind = turn;
   effectStrength = 1;
   pulse = 0.001;
@@ -1865,7 +1817,7 @@ function speakNode(id, hit) {
   expressionGoal = 0.84;
   document.body.classList.add("ai-awake");
   paintClickedFace(hit, voiceVariants[turn].color);
-  releaseNavRelic(Math.max(0, scriptOrder.indexOf(id)));
+  releaseNavRelic(Math.max(0, scriptOrder.indexOf(nodeId || currentNode)));
   addInkDrop();
   gradeTarget = [0.08, 0.82, 0.16, 0.28, 0.58, 0.02][turn];
   kaleidoTarget = turn === 3 ? 0.68 : 0;
@@ -1881,18 +1833,17 @@ function speakNode(id, hit) {
     turn === 3 ? 2600 : 1850
   );
 }
-askedNodes.add("who");
-renderChips();
-noteChips?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-cube-note]");
-  if (!button) return;
-  const id = button.dataset.cubeNote;
-  if (!cubeScript[id]) return;
-  const index = Math.max(0, scriptOrder.indexOf(id));
-  waterInk++;
-  waterSwirl((index * 0.17 + 0.12) % 1, THREE.MathUtils.clamp(0.3 + ((index * 0.19) % 0.44), 0.08, 0.92), 0.95, index % 2 ? 1 : -1);
-  speakNode(id, null);
-});
+function speakNode(id, hit) {
+  const node = cubeScript[id];
+  if (!node) return;
+  playAnswer(node.a, id, hit);
+}
+// A click with nothing typed just takes the next scripted thread, in order,
+// so the cube always has something to say even before a visitor types.
+function pickClickNode() {
+  clickCursor = (clickCursor + 1) % scriptOrder.length;
+  return scriptOrder[clickCursor];
+}
 const voicePlayer = new Audio();
 voicePlayer.preload = "auto";
 let voiceIndex = -1,
@@ -2025,30 +1976,144 @@ function updateCaptions() {
       .forEach((span, i) => span.classList.toggle("is-current", time >= phrase.words[i][1] && time < phrase.words[i][2]));
   }
 }
-function playVoiceColour(index) {
-  const voice = voiceVariants[index];
+// ── TWO VOICES ────────────────────────────────────────────────────────────
+// "Sid's voice" plays a real recording, exactly where one exists (the
+// audio/lines/ system below). "AI voice" speaks the answer live, with the
+// browser's own synthesis, so an answer the cube has never said before is
+// still actually said rather than mimed over a wordless hum. A visitor can
+// switch at any time; toggling to Sid's voice on an answer with no
+// recording falls back to AI voice rather than going silent, and says so.
+let voiceMode = "ai",
+  personaOverride = -1,
+  synthVoices = [],
+  ttsSpeaking = false,
+  ttsCaptionRaf = 0,
+  ttsCaptionStart = 0,
+  ttsLine = null,
+  ttsToken = 0;
+function refreshSynthVoices() {
+  synthVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+}
+if (window.speechSynthesis) {
+  refreshSynthVoices();
+  window.speechSynthesis.addEventListener("voiceschanged", refreshSynthVoices);
+}
+// Six personas, six rough timbres, tuned by pitch and rate rather than by
+// matching voice names: a device with one system voice still gets six
+// distinct characters, and one with many gets variety on top of that.
+const personaTuning = [
+  { pitch: 1.0, rate: 0.98 },
+  { pitch: 1.12, rate: 1.05 },
+  { pitch: 1.2, rate: 0.95 },
+  { pitch: 0.82, rate: 0.9 },
+  { pitch: 1.3, rate: 1.12 },
+  { pitch: 0.92, rate: 0.92 },
+];
+function pickSynthVoice(index) {
+  if (!synthVoices.length) refreshSynthVoices();
+  const list = synthVoices,
+    english = list.filter((v) => /^en/i.test(v.lang)),
+    pool = english.length ? english : list,
+    tuning = personaTuning[index % personaTuning.length];
+  return { voice: pool.length ? pool[index % pool.length] : null, pitch: tuning.pitch, rate: tuning.rate };
+}
+function stopSynthesis() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  ttsSpeaking = false;
+  if (ttsCaptionRaf) cancelAnimationFrame(ttsCaptionRaf);
+  ttsCaptionRaf = 0;
+}
+function driveTtsCaptions() {
+  ttsCaptionRaf = 0;
+  if (!ttsSpeaking || !ttsLine) return;
+  const time = (performance.now() - ttsCaptionStart) / 1000;
+  let index = -1;
+  for (let i = 0; i < ttsLine.length; i++)
+    if (time >= ttsLine[i].start - 0.2 && time < ttsLine[i].end + 0.25) {
+      index = i;
+      break;
+    }
+  if (index >= 0) {
+    const sentence = ttsLine[index];
+    renderCaption(`tts:${index}`, sentence.words);
+    captions.querySelectorAll("span").forEach((span, i) => {
+      const word = sentence.words[i];
+      span.classList.toggle("is-current", !!word && time >= word[1] && time < word[2]);
+    });
+  }
+  ttsCaptionRaf = requestAnimationFrame(driveTtsCaptions);
+}
+function endSpeaking() {
+  document.body.classList.remove("is-speaking");
+  captionHideTimer = setTimeout(() => {
+    renderCaption("", null);
+    activeCaption = -1;
+  }, 420);
+}
+function speakSynthesis(text, index) {
   pendingLineNode = null;
   activeLine = null;
   activeLineNode = null;
-  voicePlayer.src = voice.file;
-  voicePlayer.currentTime = 0;
-  voicePlayer.play().catch(() => {});
+  const synth = window.speechSynthesis;
+  if (!synth) {
+    // No speech synthesis on this device: captions still carry the words,
+    // timed by a plain word-count estimate instead of real audio.
+    const estDuration = Math.max(1.4, text.split(/\s+/).length * 0.33);
+    ttsLine = buildLineCaption(text, estDuration);
+    ttsSpeaking = true;
+    ttsCaptionStart = performance.now();
+    driveTtsCaptions();
+    setTimeout(() => {
+      ttsSpeaking = false;
+      endSpeaking();
+    }, estDuration * 1000);
+    return;
+  }
+  synth.cancel();
+  const { voice, pitch, rate } = pickSynthVoice(index),
+    utter = new SpeechSynthesisUtterance(text);
+  if (voice) utter.voice = voice;
+  utter.pitch = pitch;
+  utter.rate = rate;
+  ttsSpeaking = true;
+  const token = ++ttsToken;
+  const estDuration = Math.max(1.2, text.split(/\s+/).length / (2.4 * rate));
+  ttsLine = buildLineCaption(text, estDuration);
+  ttsCaptionStart = performance.now();
+  driveTtsCaptions();
+  const finish = () => {
+    if (token !== ttsToken || !ttsSpeaking) return;
+    ttsSpeaking = false;
+    endSpeaking();
+  };
+  utter.onend = utter.onerror = finish;
+  // Some browsers are known to drop the end event on a backgrounded tab or
+  // a system sleep/wake. A visitor stuck with the cube forever "mid word" is
+  // worse than one whose speech cuts a beat early, so this is the floor.
+  setTimeout(finish, estDuration * 1000 + 2500);
+  synth.speak(utter);
 }
-function startVoice(index, nodeId) {
+function startVoice(index, nodeId, text) {
   ensureAudioGraph();
   voiceIndex = index;
   const voice = voiceVariants[index];
   voicePlayer.pause();
+  stopSynthesis();
   activeLine = null;
   activeLineNode = null;
   renderCaption("", null);
-  if (nodeId && cubeScript[nodeId] && hasLine(nodeId)) {
+  const hasRecording = nodeId && cubeScript[nodeId] && hasLine(nodeId),
+    useRecording = voiceMode === "sid" && hasRecording;
+  if (useRecording) {
     pendingLineNode = nodeId;
     voicePlayer.src = `${LINE_AUDIO.dir}${nodeId}${LINE_AUDIO.ext}`;
     voicePlayer.currentTime = 0;
     voicePlayer.play().catch(() => {});
-  } else playVoiceColour(index);
-  voicePersona.textContent = `${voice.name}`;
+    voicePersona.textContent = "Sid";
+  } else {
+    speakSynthesis(text, index);
+    voicePersona.textContent = voiceMode === "sid" ? `${voice.name} — no recording for this one yet` : voice.name;
+  }
   document.documentElement.style.setProperty("--voice", voice.color);
   document.body.classList.add("is-speaking");
   clearTimeout(captionHideTimer);
@@ -2062,10 +2127,12 @@ voicePlayer.addEventListener("loadedmetadata", () => {
 });
 voicePlayer.addEventListener("error", () => {
   if (!pendingLineNode) return;
-  // No recording for this thread yet. Remember that, and speak in a voice colour.
+  // The manifest claimed this recording but the file itself 404s. Fall back
+  // to AI voice on the same scripted text rather than going silent.
   missingLines.add(pendingLineNode);
+  const node = cubeScript[pendingLineNode];
   pendingLineNode = null;
-  playVoiceColour(voiceIndex < 0 ? 0 : voiceIndex);
+  speakSynthesis(node ? node.a : "", voiceIndex < 0 ? 0 : voiceIndex);
 });
 voicePlayer.addEventListener("ended", () => {
   document.body.classList.remove("is-speaking");
@@ -2104,7 +2171,7 @@ function triggerCubeInteraction(hit) {
   waterSwirl(ux, uy, 0.95, 1);
   setTimeout(() => waterSwirl((ux + 0.14) % 1, THREE.MathUtils.clamp(uy + 0.15, 0.05, 0.95), 0.8, -1), 170);
   setTimeout(() => waterSwirl((ux + 0.86) % 1, THREE.MathUtils.clamp(uy - 0.17, 0.05, 0.95), 0.7, 1), 340);
-  speakNode(nextThread(), hit);
+  speakNode(pickClickNode(), hit);
 }
 
 function cloneFadeMaterial(o, opacity) {
@@ -2607,7 +2674,16 @@ function frame() {
     let energy = 0;
     for (let i = 2; i < 24; i++) energy += voiceSamples[i];
     voiceEnergy += (energy / (22 * 255) - voiceEnergy) * 0.24;
+  } else if (ttsSpeaking) {
+    // Speech synthesis gives no waveform to read, so the same mouth/light
+    // energy is approximated with a steady synthetic pulse instead of
+    // sitting dead while the cube is visibly talking.
+    voiceEnergy += (0.3 + 0.22 * Math.abs(Math.sin(t * 9.4)) - voiceEnergy) * 0.3;
   } else voiceEnergy *= 0.88;
+  // The cube chilling to whatever is on the record player in the corner.
+  // Quiet when the cube is actually speaking, so the two never compete.
+  const vinylLevel = !document.body.classList.contains("is-speaking") && window.sidVinyl ? window.sidVinyl.level() : 0;
+  musicVibe += (vinylLevel - musicVibe) * 0.08;
   if (effectStrength > 0) effectStrength = Math.max(0, effectStrength - dt * 0.48);
   cosmicBurst *= Math.exp(-dt * 1.35);
   if (impactUniforms.uImpactAge.value < 9) impactUniforms.uImpactAge.value = Math.min(9, impactUniforms.uImpactAge.value + dt * 1.9);
@@ -2691,7 +2767,7 @@ function frame() {
     model.position.z += effectKind === 5 ? easeKick * 0.2 : 0;
     model.rotation.y = 0.035 + (effectKind === 1 ? easeKick * 0.1 : 0);
     model.rotation.z = effectKind === 3 ? easeKick * 0.065 : 0;
-    pointerLight.intensity = 4 + reveal * 24 + echoEnergy * 36 + voiceEnergy * 24;
+    pointerLight.intensity = 4 + reveal * 24 + echoEnergy * 36 + voiceEnergy * 24 + musicVibe * 14;
     pointerLight.position.set(1.35 + smoothPointer.x * 1.7, 1.35 + smoothPointer.y * 0.9, 2.4);
   }
 
@@ -2880,9 +2956,34 @@ function frame() {
   }
   paintTexture.needsUpdate = true;
   skyUniforms.uTime.value = reducedMotion ? 0 : t;
-  bloom.strength += (0.18 + (effectKind === 4 ? effectStrength * 0.24 : 0) + voiceEnergy * 0.08 - bloom.strength) * 0.08;
+  bloom.strength += (0.18 + (effectKind === 4 ? effectStrength * 0.24 : 0) + voiceEnergy * 0.08 + musicVibe * 0.04 - bloom.strength) * 0.08;
   dustUniforms.uTime.value = t;
   dust.rotation.y = t * 0.003;
   composer.render();
 }
 startFrames();
+
+// ── THE PUBLIC SEAM ───────────────────────────────────────────────────────
+// live-chat.js owns the ask bar, the customize panel, and the live model;
+// this is the only surface it touches on the cube itself.
+window.sidCube = {
+  cubeScript,
+  chipLabels,
+  scriptOrder,
+  voiceVariants,
+  ask(text, nodeId, hit) {
+    playAnswer(text, nodeId || null, hit || null);
+  },
+  setVoiceMode(mode) {
+    voiceMode = mode === "sid" ? "sid" : "ai";
+  },
+  getVoiceMode() {
+    return voiceMode;
+  },
+  setPersona(index) {
+    personaOverride = Number.isInteger(index) && index >= 0 && index < voiceVariants.length ? index : -1;
+  },
+  hasRecording(nodeId) {
+    return hasLine(nodeId);
+  },
+};

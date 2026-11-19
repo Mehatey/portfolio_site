@@ -314,7 +314,7 @@
     var t = e.target;
     if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
     if (t && t.id === "stage") return;
-    if (e.key === " " && !(t && t.classList && t.classList.contains("cube-note-chip"))) {
+    if (e.key === " " && !(t && t.closest && t.closest(".cube-ask, .cube-tune"))) {
       e.preventDefault();
       toggle();
     } else if (e.key === "ArrowRight" && e.shiftKey) {
@@ -373,6 +373,17 @@
   /* Never turn music on from remembered state. Audio begins only when the
      visitor deliberately presses this player. */
 
+  /* A level reader for anything else on the page that wants to react to the
+     music (the Sid AI cube, chiefly) without opening a second
+     MediaElementSource on the same <audio> element, which Safari refuses. */
+  function level() {
+    if (!playing || !analyser) return 0;
+    analyser.getByteFrequencyData(bins);
+    var sum = 0;
+    for (var i = 0; i < bins.length; i++) sum += bins[i];
+    return sum / (bins.length * 255);
+  }
+
   window.sidVinyl = {
     play: start,
     pause: pause,
@@ -382,5 +393,6 @@
     state: function () {
       return { playing: playing, track: TRACKS[idx].name, index: idx };
     },
+    level: level,
   };
 })();
