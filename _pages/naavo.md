@@ -264,6 +264,19 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/15.1.webp" alt="Naavo massage oil cartons in kraft board" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/18.1.webp" alt="Naavo body polisher packaging" loading="lazy" decoding="async" /></div>
 </div>
+
+<div class="cs-zoom">
+  <div class="cs-zoom__frame">
+    <img
+      style="--zx: 42%; --zy: 38%; --zs: 1.55"
+      src="{{ site.baseurl }}/7.naavo/15.2 2.webp"
+      alt="Pushing in on a massage oil box: kraft board, the mark, and the handwritten New Age Ayurveda line"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <p class="cs-zoom__label">Kraft board, not gloss. The mark has to hold at arm's length and still feel warm in the hand.</p>
+</div>
 <div class="cs-bleed">
   <img src="{{ site.baseurl }}/7.naavo/18.2.webp" alt="Naavo face serum photographed in a natural setting" loading="lazy" decoding="async" />
 </div>

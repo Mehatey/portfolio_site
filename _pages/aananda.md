@@ -239,6 +239,19 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/9.aananda/4.webp" alt="Research connecting Jain stories, symbols, sculpture, and painting" loading="lazy" decoding="async" /></div>
 </div>
 
+<div class="cs-zoom">
+  <div class="cs-zoom__frame">
+    <img
+      style="--zx: 18%; --zy: 87%; --zs: 1.8"
+      src="{{ site.baseurl }}/9.aananda/4.webp"
+      alt="Pushing into the research board: the Namokar Mantra, copied out in Sanskrit, among the stories, symbols and sculpture gathered before any screen was designed"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <p class="cs-zoom__label">The Namokar Mantra, copied out by hand. The research came before the interface did, not the other way round.</p>
+</div>
+
 <div class="cs-section" id="aananda-product">
   <h2 class="cs-section-label">The learning experience</h2>
 </div>

@@ -106,7 +106,7 @@ next_project:
 
 <div class="cs-section"><span class="cs-section-label">The review</span></div>
 
-<div class="cs-zoom" data-zoom>
+<div class="cs-zoom">
   <div class="cs-zoom__frame">
     <img
       style="--zx: 82%; --zy: 24%; --zs: 1.65"
