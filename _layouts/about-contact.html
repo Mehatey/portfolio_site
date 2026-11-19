@@ -1303,7 +1303,19 @@
         width: 100%;
         margin: 0 auto;
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        /* Two columns, not three. Experience and Education run about 620px;
+           Recognition was 330 and Currently 170 beside them, so two thirds of
+           the block was empty. Currently (where, availability) now leads the
+           right column and Recognition sits under it, so both columns end
+           within a few dozen pixels of each other. */
+        grid-template-columns: 1.3fr 1fr;
+        /* The tall left column spans both rows, and its extra height is shared
+           between them unless one row takes it. The second row does, so
+           Recognition sits directly under Currently. */
+        grid-template-rows: auto 1fr;
+        grid-template-areas:
+          "exp cur"
+          "exp rec";
         padding: 0 var(--gutter);
         opacity: 0;
         transform: translateY(16px);
@@ -1356,6 +1368,20 @@
       .gcol:not(:first-child) {
         padding-left: 44px;
       }
+      .gcol:nth-child(1) {
+        grid-area: exp;
+      }
+      .gcol:nth-child(2) {
+        grid-area: rec;
+        padding-right: 0;
+        padding-top: 8px;
+      }
+      .gcol:nth-child(2)::after {
+        display: none;
+      }
+      .gcol:nth-child(3) {
+        grid-area: cur;
+      }
 
       /* The dark ladder on this page is 0.72 ink / 0.58 secondary / 0.5 micro.
          White at 0.36 over the near-black ground computes to 3.22:1, and the
@@ -1365,10 +1391,11 @@
          size, weight and letterspacing instead. 0.5 clears 5.29:1. */
       .g-label {
         display: block;
-        font-family: var(--font-mono);
-        font-size: 11px;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
+        font-family: var(--font-head);
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0;
+        text-transform: none;
         /* 0.5 was chosen against the arithmetic and the arithmetic was right
            about the colour and wrong about the paint. At 10px with 0.14em
            tracking almost none of the glyph is a whole pixel, so the stems
@@ -2521,24 +2548,22 @@
           max-width: min(410px, 100%);
         }
         .about-grid {
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: 1fr;
+          grid-template-areas:
+            "exp"
+            "cur"
+            "rec";
         }
-        .gcol {
-          padding: 36px 32px 44px 0;
+        .gcol,
+        .gcol:nth-child(2) {
+          padding: 36px 0 28px;
         }
         .gcol:not(:first-child) {
-          padding-left: 32px;
-        }
-        /* Two columns here, so the second one sits at the right edge and its
-           rule would hang in space. */
-        .gcol:nth-child(2)::after {
-          display: none;
-        }
-        .gcol:last-child {
-          grid-column: 1 / -1;
-          border-top: 1px solid rgba(255, 255, 255, 0.05);
           padding-left: 0;
-          padding-right: 0;
+          border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .gcol::after {
+          display: none;
         }
       }
       @media (max-width: 600px) {
@@ -3607,7 +3632,7 @@
       <div class="faq-section">
         <h2 class="g-label">Working together</h2>
         <div class="faq-list">
-          <details class="faq-item" data-reveal>
+          <details class="faq-item" data-reveal open>
             <summary>Which project taught you the most?</summary>
             <div class="faq-panel">
               <div>
