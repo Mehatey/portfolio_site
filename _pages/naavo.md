@@ -253,7 +253,7 @@ next_project:
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/7.naavo/6.webp" alt="Construction of the Naavo mark and its component forms" loading="lazy" decoding="async" /></div>
 </div>
 <div class="cs-bleed">
-  <video width="1400" height="800" autoplay muted loop playsinline preload="metadata"><source src="{{ site.baseurl }}/7.naavo/7.1.mp4" type="video/mp4" /></video>
+  <video width="1400" height="800" autoplay muted loop playsinline preload="none"><source data-src="{{ site.baseurl }}/7.naavo/7.1.mp4" type="video/mp4" /></video>
 </div>
 
 <div class="cs-section" id="naavo-packaging">

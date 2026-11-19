@@ -157,16 +157,16 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>Walkthrough of the kiosk.</em></p>
 <div class="cs-bleed">
-  <video width="1280" height="720" src="{{ site.baseurl }}/6.mindu/kiosk1.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Walkthrough of the Mind Your Feelings kiosk"></video>
+  <video width="1280" height="720" muted loop playsinline autoplay preload="none" aria-label="Walkthrough of the Mind Your Feelings kiosk"><source data-src="{{ site.baseurl }}/6.mindu/kiosk1.mp4" type="video/mp4" /></video>
 </div>
 
 <p class="cube-cap cube-cap--above"><em>The color of the emotion you draw is sent to the brain, which lights up in that color.</em></p>
 <div class="cs-bleed">
-  <video width="1280" height="720" src="{{ site.baseurl }}/6.mindu/kiosk2.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Color of the drawn emotion sent to the brain"></video>
+  <video width="1280" height="720" muted loop playsinline autoplay preload="none" aria-label="Color of the drawn emotion sent to the brain"><source data-src="{{ site.baseurl }}/6.mindu/kiosk2.mp4" type="video/mp4" /></video>
 </div>
 
 <div class="cs-bleed">
-  <video width="1280" height="720" src="{{ site.baseurl }}/6.mindu/kiosk3.mp4" muted loop playsinline autoplay preload="metadata" aria-label="Mind Your Feelings kiosk in use"></video>
+  <video width="1280" height="720" muted loop playsinline autoplay preload="none" aria-label="Mind Your Feelings kiosk in use"><source data-src="{{ site.baseurl }}/6.mindu/kiosk3.mp4" type="video/mp4" /></video>
 </div>
 
 <div class="cs-section">

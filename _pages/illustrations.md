@@ -93,13 +93,13 @@ next_project:
 
 <div class="cs-rail cs-rail--art" tabindex="0" role="group" aria-label="Music illustrations, scroll sideways">
   <figure class="cs-rail-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/2.mp4" type="video/mp4" /> </video>
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"> <source data-src="{{ site.baseurl }}/11.illu/2.mp4" type="video/mp4" /> </video>
   </figure>
   <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/11.illu/3.webp" alt="An essay about hearing the same song differently every time, set on a pink field" loading="lazy" decoding="async" />
   </figure>
   <figure class="cs-rail-item">
-    <video width="1280" height="720" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/4.mp4" type="video/mp4" /> </video>
+    <video width="1280" height="720" autoplay muted loop playsinline preload="none"> <source data-src="{{ site.baseurl }}/11.illu/4.mp4" type="video/mp4" /> </video>
   </figure>
   <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/11.illu/5.1.webp" alt="The 11.2 km/s mark tattooed on a forearm" loading="lazy" decoding="async" />
@@ -169,10 +169,10 @@ next_project:
     <img src="{{ site.baseurl }}/11.illu/16.webp" alt="The Dashavatara explained as the ten incarnations of Vishnu, and as the evolution of consciousness" loading="lazy" decoding="async" />
   </figure>
   <figure class="cs-rail-item">
-    <video width="1040" height="936" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/17.1.mp4" type="video/mp4" /> </video>
+    <video width="1040" height="936" autoplay muted loop playsinline preload="none"> <source data-src="{{ site.baseurl }}/11.illu/17.1.mp4" type="video/mp4" /> </video>
   </figure>
   <figure class="cs-rail-item">
-    <video width="1200" height="686" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/17.2.mp4" type="video/mp4" /> </video>
+    <video width="1200" height="686" autoplay muted loop playsinline preload="none"> <source data-src="{{ site.baseurl }}/11.illu/17.2.mp4" type="video/mp4" /> </video>
   </figure>
   <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/11.illu/18.webp" alt="The ten avatars, each drawn as a gold medallion" loading="lazy" decoding="async" />
@@ -192,8 +192,8 @@ next_project:
 <div class="cs-grid">
   <div class="cs-grid-item"><img src="{{ site.baseurl }}/11.illu/b20.1.png" alt="Three geometric constructions used to build the cards" loading="lazy" decoding="async" /></div>
   <div class="cs-grid-item">
-    <video width="1400" height="1400" autoplay muted loop playsinline preload="metadata">
-      <source src="{{ site.baseurl }}/11.illu/b20.2.mp4" type="video/mp4" />
+    <video width="1400" height="1400" autoplay muted loop playsinline preload="none">
+      <source data-src="{{ site.baseurl }}/11.illu/b20.2.mp4" type="video/mp4" />
     </video>
   </div>
 </div>
@@ -222,7 +222,7 @@ next_project:
     <img src="{{ site.baseurl }}/11.illu/21.1.webp" alt="Laying out the specimen sheets on the floor" loading="lazy" decoding="async" />
   </figure>
   <figure class="cs-rail-item">
-    <video width="1440" height="810" autoplay muted loop playsinline preload="metadata"> <source src="{{ site.baseurl }}/11.illu/21.2.mp4" type="video/mp4" /> </video>
+    <video width="1440" height="810" autoplay muted loop playsinline preload="none"> <source data-src="{{ site.baseurl }}/11.illu/21.2.mp4" type="video/mp4" /> </video>
   </figure>
   <figure class="cs-rail-item">
     <img src="{{ site.baseurl }}/11.illu/22.1.png" alt="Reminiscence: the logic of the letterform, five bars of music and a circle for continuity" loading="lazy" decoding="async" />
@@ -263,8 +263,8 @@ next_project:
 </div>
 
 <div class="cs-bleed">
-  <video width="1104" height="730" autoplay muted loop playsinline preload="metadata">
-    <source src="{{ site.baseurl }}/11.illu/27.2.mp4" type="video/mp4" />
+  <video width="1104" height="730" autoplay muted loop playsinline preload="none">
+    <source data-src="{{ site.baseurl }}/11.illu/27.2.mp4" type="video/mp4" />
   </video>
 </div>
 

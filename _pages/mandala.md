@@ -283,8 +283,8 @@ next_project:
 <!-- KINECT EXPERIENCE - opening clips -->
 <p class="cube-cap cube-cap--above"><em>The world I was asking people to step away from. Loud, lit, everything at once.</em></p>
 <div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="metadata" style="width: 100%; display: block;">
-    <source src="{{ site.baseurl }}/4.mandala/final-walking.mp4" type="video/mp4" />
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none" style="width: 100%; display: block;">
+    <source data-src="{{ site.baseurl }}/4.mandala/final-walking.mp4" type="video/mp4" />
   </video>
 </div>
 
@@ -668,8 +668,8 @@ next_project:
 
 <p class="cube-cap cube-cap--above"><em>A visitor enters a dark room, sits, and meets one question: who are you?</em></p>
 <div class="cs-bleed">
-  <video width="1440" height="810" autoplay muted loop playsinline preload="metadata">
-    <source src="{{ site.baseurl }}/4.mandala/final-walking.mp4" type="video/mp4" />
+  <video width="1440" height="810" autoplay muted loop playsinline preload="none">
+    <source data-src="{{ site.baseurl }}/4.mandala/final-walking.mp4" type="video/mp4" />
   </video>
 </div>
 
