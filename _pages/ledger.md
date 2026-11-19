@@ -66,6 +66,21 @@ decisions:
       It is the reason a reviewer can score consistently at submission nineteen instead of drifting from submission one.
     tradeoff: >
       It is also the heaviest thing on the page. I would want to watch somebody use it for an hour before defending the weight.
+  - choice: "Scored product judgment, craft, implementation, and communication as four separate numbers instead of one rating"
+    why: >
+      A single star rating invites halo bias: one strong first impression bleeds into every other dimension. Four axes make it visible when someone writes a beautiful README but builds carelessly, or the reverse.
+    tradeoff: >
+      Four decisions per submission instead of one. The anchored wording from the rubric above is what keeps that from feeling slower than it is worth.
+  - choice: "Tagged every item in a candidate's stack as detected evidence or an unverified claim, instead of one flat list"
+    why: >
+      Review tools tend to render whatever a candidate typed as though it were fact. Marking the difference costs one visual token and changes how much weight a reviewer gives the rest of the page.
+    tradeoff: >
+      It only means anything if detection is honest. A badge that claims to have checked something it has not would be worse than no badge at all.
+  - choice: "Gave a submitted verdict a six second undo instead of only confirming it went through"
+    why: >
+      Recording a judgment on someone's work is the one action in the tool that most deserves a way back. People change their mind in the second after clicking, and a tool that makes correction expensive quietly encourages a wrong verdict to stand.
+    tradeoff: >
+      None taken. This was one of the cheaper decisions on the page and I would make it again immediately.
 reflection: >
   The decision I would defend hardest is separating whether a submission is complete from whether it is good. Those two questions arrive at the same moment and a single star rating collapses them, so a candidate who shipped strong work with no README scores like a candidate who shipped nothing. Pulling them apart cost a column of screen and made every score afterwards mean something narrower and more honest.
 
