@@ -126,6 +126,32 @@ next_project:
   ></iframe>
 </div>
 
+<div class="cs-compare" data-reveal>
+  <div class="cs-compare__tabs" role="tablist" aria-label="Glass">
+    <button type="button" data-compare-tab="a" class="is-active">Glass on</button>
+    <button type="button" data-compare-tab="b">Glass off</button>
+  </div>
+  <div class="cs-compare__stage cs-compare__stage--strip">
+    <img
+      class="is-active"
+      data-compare-img="a"
+      src="{{ site.baseurl }}/17.ledger/09-glass-on.webp"
+      alt="The toolbar with liquid glass on, frosting and bending the content scrolling behind it"
+      loading="lazy"
+      decoding="async"
+    />
+    <img
+      data-compare-img="b"
+      src="{{ site.baseurl }}/17.ledger/10-glass-off.webp"
+      alt="The same toolbar with glass off, a flat solid bar with no refraction"
+      loading="lazy"
+      decoding="async"
+    />
+  </div>
+  <p class="cs-compare__note" data-compare-note="a">Glass stays on chrome only, the toolbar and overlays, never behind body copy where it would fight legibility.</p>
+  <p class="cs-compare__note" data-compare-note="b" hidden>Off is a real accessibility control, not a decoration setting, for <code>prefers-reduced-transparency</code> and anyone who finds the frost harder to read.</p>
+</div>
+
 <div class="cs-intro cs-try">
   <p><a class="cs-try__link" href="{{ site.baseurl }}/ai-prototypes/ledger/"><span>Open the Ledger prototype</span><i aria-hidden="true">&rarr;</i></a></p>
   <p class="cs-try__note">Review a candidate, inspect the evidence, and take the shortlist to a handoff.</p>
