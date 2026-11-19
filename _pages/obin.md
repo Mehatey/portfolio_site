@@ -44,6 +44,21 @@ decisions:
       The most consequential unsupported claim should be the first thing a reviewer sees, not whatever the agent happened to write first.
     tradeoff: >
       The ordering assumption itself, crossing debt load with evidence reliability, is the first thing that needs testing with venture debt analysts under real time pressure.
+  - choice: "Disclosed that two of the twelve queued figures are spot checks drawn at random, without disclosing which two"
+    why: >
+      It answers the strongest objection to the whole product: what if a wrong figure sits in the twenty eight the agent already marked proved and nobody ever looks at. Measuring accuracy only on what the agent chose to show would let the system grade its own homework.
+    tradeoff: >
+      An analyst who knows a sample exists may work all twelve rows harder, which biases the measured accuracy upward. Blind on both count and identity would be cleaner science. I took the disclosed version anyway: a measurement that flatters slightly is recoverable, a sampling mechanism a compliance reviewer finds undisclosed is not.
+  - choice: "Split the two things the product learns from into separate loops: outcomes train the accuracy score, decisions train what the agent surfaces next time"
+    why: >
+      If analyst agreement trained the accuracy number, the system would learn to flatter the analyst instead of to be correct. Keeping the loops apart is the difference between a tool that gets more agreeable and one that gets more right.
+    tradeoff: >
+      It means waiting on real outcomes, audited statements, tripped covenants, to move the one number that matters most, which is slower than training on agreement would have been.
+  - choice: "Made the one metric the product claims to improve, an analyst's attention time, pause itself after 45 seconds idle or when the tab is hidden"
+    why: >
+      A throughput claim measured dishonestly would make the whole product's premise hypocritical. The clock only runs while someone is actually working.
+    tradeoff: >
+      None taken. A metric that cannot be trusted is worse than no metric, and this was the cheap way to make sure it could be.
 reflection: >
   The thing I keep coming back to is that the agent made the analyst's job worse before it made it better. Four hours became four minutes, and what came out the other side was a well written memo with thirty eight numbers in it and no way to tell which the machine had invented. So the analyst checked all thirty eight. The speed went somewhere, but not to them.
 
@@ -74,14 +89,34 @@ next_project:
   <img src="{{ site.baseurl }}/16.obin/01-figures.webp" alt="A credit memo where every machine-asserted figure is set in monospace with a coloured underline: blue for proved, amber for conflict, red for unsupported" loading="lazy" decoding="async" />
 </div>
 
-<p class="cube-cap cube-cap--above" style="padding-top: 40px;"><em>The review decision: risk order puts the most consequential unsupported claim first. Opening it reveals the source, the agent's reasoning, and what is still missing.</em></p>
-<div class="cs-grid">
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/16.obin/02-risk-order.webp" alt="The queue in risk order, with the senior blanket lien at the top marked unsupported" loading="lazy" decoding="async" />
+<div class="cs-compare" data-reveal>
+  <div class="cs-compare__tabs" role="tablist" aria-label="Queue order">
+    <button type="button" data-compare-tab="a" class="is-active">Document order</button>
+    <button type="button" data-compare-tab="b">Risk order</button>
   </div>
-  <div class="cs-grid-item">
-    <img src="{{ site.baseurl }}/16.obin/04-review.webp" alt="The verification pane showing the source record beside what the agent did with it" loading="lazy" decoding="async" />
+  <div class="cs-compare__stage">
+    <img
+      class="is-active"
+      data-compare-img="a"
+      src="{{ site.baseurl }}/16.obin/03-document-order.webp"
+      alt="The queue in the order the memo wrote it, lien buried at position nine"
+      loading="lazy"
+      decoding="async"
+    />
+    <img
+      data-compare-img="b"
+      src="{{ site.baseurl }}/16.obin/02-risk-order.webp"
+      alt="The same queue reordered by risk, the senior blanket lien now first"
+      loading="lazy"
+      decoding="async"
+    />
   </div>
+  <p class="cs-compare__note" data-compare-note="a">The memo's own order. The blanket lien, the one fact that changes the recommendation, sits ninth.</p>
+  <p class="cs-compare__note" data-compare-note="b" hidden>Sorted by risk instead. Same data, same agent, one toggle: the lien moves to first.</p>
+</div>
+
+<div class="cs-bleed">
+  <img src="{{ site.baseurl }}/16.obin/04-review.webp" alt="The verification pane showing the source record beside what the agent did with it" loading="lazy" decoding="async" />
 </div>
 
 <div class="cs-section"><span class="cs-section-label">What I built</span></div>

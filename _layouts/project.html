@@ -6838,6 +6838,81 @@
         }
       }
 
+      /* ══ THE SAME SCREEN, TWO DECISIONS ═══════════════════════════════
+         A real pair of screenshots of the identical interface, one per
+         decision, flipped by a reader rather than described in prose. The
+         images are stacked and crossfaded rather than swapped, so the eye
+         can actually compare the thing that moved instead of re-finding
+         its place in a new layout. */
+      .cs-compare {
+        margin: clamp(28px, 3.2vw, 44px) 0;
+      }
+      .cs-compare__tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 14px;
+      }
+      .cs-compare__tabs button {
+        border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+        background: none;
+        padding: 9px 16px;
+        color: var(--ink-2, rgba(198, 214, 236, 0.66));
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition:
+          border-color 0.2s,
+          color 0.2s,
+          background 0.2s;
+      }
+      .cs-compare__tabs button.is-active {
+        border-color: var(--ink, #f0f6fc);
+        color: var(--ink, #f0f6fc);
+        background: var(--surface-1, rgba(255, 255, 255, 0.06));
+      }
+      .cs-compare__tabs button:hover,
+      .cs-compare__tabs button:focus-visible {
+        color: var(--ink, #f0f6fc);
+      }
+      .cs-compare__stage {
+        position: relative;
+        /* A fixed height rather than an assumed aspect ratio, because the
+           two screenshots being compared are not always the same shape as
+           a 16:9 hero plate -- a tall sidebar panel needs to stay whole,
+           not get cropped to fit a landscape frame built for something
+           else. */
+        height: clamp(420px, 56vw, 640px);
+        border-radius: 10px;
+        overflow: hidden;
+        background: var(--surface-1, #0b0d12);
+      }
+      .cs-compare__stage img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        opacity: 0;
+        transition: opacity 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .cs-compare__stage img.is-active {
+        opacity: 1;
+      }
+      .cs-compare__note {
+        margin: 14px 0 0;
+        max-width: 60ch;
+        font-size: 15px;
+        line-height: 1.55;
+        color: var(--ink-2, rgba(198, 214, 236, 0.72));
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .cs-compare__stage img {
+          transition: none;
+        }
+      }
+
 
       /* ══ THE HANDOVER'S THREE SIGNALS ═══════════════════════════════════
          Sid: "next project footer: clearer boundary, arrow signalling you are
@@ -8530,6 +8605,37 @@
         /* Not on load: a restored scroll position at the foot of the page
            would navigate before the reader has done anything. The first
            genuine scroll event starts it. */
+      })();
+    </script>
+
+    <script>
+      // ── A DECISION YOU CAN TOGGLE, NOT A PARAGRAPH ABOUT ONE ───────────
+      // Sid: "i dont want paragraphs of text that was the problem." The
+      // first draft of this fix was more prose, which was exactly wrong.
+      // .cs-compare pairs two real screenshots of the same screen under two
+      // different decisions and lets a reader flip between them, instead of
+      // describing the difference in a sentence they have to take on faith.
+      (function () {
+        document.querySelectorAll(".cs-compare").forEach(function (block) {
+          var tabs = block.querySelectorAll("[data-compare-tab]"),
+            imgs = block.querySelectorAll("[data-compare-img]"),
+            notes = block.querySelectorAll("[data-compare-note]");
+          if (!tabs.length) return;
+          tabs.forEach(function (tab) {
+            tab.addEventListener("click", function () {
+              var key = tab.getAttribute("data-compare-tab");
+              tabs.forEach(function (t) {
+                t.classList.toggle("is-active", t === tab);
+              });
+              imgs.forEach(function (img) {
+                img.classList.toggle("is-active", img.getAttribute("data-compare-img") === key);
+              });
+              notes.forEach(function (note) {
+                note.hidden = note.getAttribute("data-compare-note") !== key;
+              });
+            });
+          });
+        });
       })();
     </script>
 
