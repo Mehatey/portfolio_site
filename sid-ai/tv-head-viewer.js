@@ -1697,12 +1697,12 @@ const moodPresets = [
 ];
 
 const voiceVariants = [
-  { name: "Friendly oracle", file: "./audio/sid-hello-friendly-gandalf.m4a", color: "#9ef2ea" },
-  { name: "Sunlit guide", file: "./audio/sid-hello-02-sunlit-guide.m4a", color: "#ffd28f" },
-  { name: "Glass oracle", file: "./audio/sid-hello-03-glass-oracle.m4a", color: "#8fcfff" },
-  { name: "Cosmic mentor", file: "./audio/sid-hello-04-cosmic-mentor.m4a", color: "#c8a6ff" },
-  { name: "Playful spark", file: "./audio/sid-hello-05-playful-spark.m4a", color: "#ff9eb8" },
-  { name: "Intimate machine", file: "./audio/sid-hello-06-intimate-machine.m4a", color: "#b8ffd7" },
+  { name: "Clear", file: "./audio/sid-hello-friendly-gandalf.m4a", color: "#9ef2ea" },
+  { name: "Warm", file: "./audio/sid-hello-02-sunlit-guide.m4a", color: "#ffd28f" },
+  { name: "Calm", file: "./audio/sid-hello-03-glass-oracle.m4a", color: "#8fcfff" },
+  { name: "Thoughtful", file: "./audio/sid-hello-04-cosmic-mentor.m4a", color: "#c8a6ff" },
+  { name: "Playful", file: "./audio/sid-hello-05-playful-spark.m4a", color: "#ff9eb8" },
+  { name: "Low key", file: "./audio/sid-hello-06-intimate-machine.m4a", color: "#b8ffd7" },
 ];
 const captionPhrases = [
   {
@@ -1807,6 +1807,7 @@ function playAnswer(text, nodeId, hit) {
   document.body.classList.add("ai-touched");
   restlessness = Math.min(3.2, restlessness + 0.85);
   currentNode = nodeId || currentNode;
+  if (character === "cubeguy") cubeGuyReact("ThoughtRelease");
   const turn = personaOverride >= 0 ? personaOverride : (voiceIndex + 1) % voiceVariants.length;
   startVoice(turn, nodeId, text);
   effectKind = turn;
@@ -1837,12 +1838,6 @@ function speakNode(id, hit) {
   const node = cubeScript[id];
   if (!node) return;
   playAnswer(node.a, id, hit);
-}
-// A click with nothing typed just takes the next scripted thread, in order,
-// so the cube always has something to say even before a visitor types.
-function pickClickNode() {
-  clickCursor = (clickCursor + 1) % scriptOrder.length;
-  return scriptOrder[clickCursor];
 }
 const voicePlayer = new Audio();
 voicePlayer.preload = "auto";
@@ -2171,7 +2166,10 @@ function triggerCubeInteraction(hit) {
   waterSwirl(ux, uy, 0.95, 1);
   setTimeout(() => waterSwirl((ux + 0.14) % 1, THREE.MathUtils.clamp(uy + 0.15, 0.05, 0.95), 0.8, -1), 170);
   setTimeout(() => waterSwirl((ux + 0.86) % 1, THREE.MathUtils.clamp(uy - 0.17, 0.05, 0.95), 0.7, 1), 340);
-  speakNode(pickClickNode(), hit);
+  // The cube is an invitation into a live conversation, never a playback
+  // button for a hidden scripted sequence.
+  window.sidCube?.focusConversation?.();
+  if (character === "cubeguy") cubeGuyReact("ClickReact");
 }
 
 function cloneFadeMaterial(o, opacity) {
@@ -2453,6 +2451,100 @@ gltfLoader.load(
   }
 );
 
+// ── CUBE GUY, THE OTHER CHARACTER ──────────────────────────────────────────
+// Sid: "let there be a nice ui option to switch and a good animation entry
+// so people can decide." Same rig that lives at assets/models/cube-guy-rigged.glb
+// on the rest of the site (Idle, Wave, ClickReact, ThoughtRelease, Walk,
+// Look, all built in). It shares the stage with the glass cube rather than
+// replacing it in code; only one is visible at a time, and the switch is a
+// scale tween, not a material crossfade, specifically because the glass
+// cube's transmission/shader materials have no uniform opacity to fade
+// through safely and a shrink-to-nothing reads fine on glass anyway.
+let cubeGuy = null,
+  cubeGuyMixer = null,
+  cubeGuyMouth = null,
+  cubeGuyActions = {},
+  character = "cube",
+  cubeGuyScaleTarget = 0.0001,
+  cubeScaleFactor = 1;
+const CUBE_GUY_SCALE = 1.55;
+new GLTFLoader().load(
+  "../assets/models/cube-guy-rigged.glb",
+  (gltf) => {
+    cubeGuy = gltf.scene;
+    cubeGuy.position.set(1.44, -0.92, 0.1);
+    cubeGuy.scale.setScalar(0.0001);
+    cubeGuy.traverse((o) => {
+      if (o.isMesh) {
+        o.castShadow = true;
+        o.receiveShadow = true;
+      }
+    });
+    cubeGuyMouth = cubeGuy.getObjectByName("Mouth");
+    cubeGuyMixer = new THREE.AnimationMixer(cubeGuy);
+    gltf.animations.forEach((clip) => {
+      cubeGuyActions[clip.name] = cubeGuyMixer.clipAction(clip);
+    });
+    cubeGuyActions.Idle?.play();
+    scene.add(cubeGuy);
+  },
+  undefined,
+  () => {
+    /* Cube Guy is additive; if he fails to load the glass cube carries on
+       exactly as it did before this feature existed. */
+  }
+);
+function cubeGuyReact(name) {
+  if (!cubeGuyMixer || !cubeGuyActions[name] || !cubeGuyActions.Idle) return;
+  const action = cubeGuyActions[name];
+  action.reset();
+  action.setLoop(THREE.LoopOnce, 1);
+  action.clampWhenFinished = true;
+  action.crossFadeFrom(cubeGuyActions.Idle, 0.2, false);
+  action.play();
+  setTimeout(() => {
+    cubeGuyActions.Idle.reset().play();
+    cubeGuyActions.Idle.crossFadeFrom(action, 0.3, false);
+  }, action.getClip().duration * 1000);
+}
+function setCharacter(next) {
+  if ((next !== "cube" && next !== "cubeguy") || next === character) return;
+  character = next;
+  cubeGuyScaleTarget = next === "cubeguy" ? CUBE_GUY_SCALE : 0.0001;
+  try {
+    localStorage.setItem("sid_ai_character", next);
+  } catch (_) {}
+  if (next === "cubeguy") cubeGuyReact("Wave");
+}
+try {
+  const saved = localStorage.getItem("sid_ai_character");
+  if (saved === "cubeguy") {
+    character = "cubeguy";
+    cubeGuyScaleTarget = CUBE_GUY_SCALE;
+  }
+} catch (_) {}
+// Driven once per frame from frame(): grows/shrinks whichever character is
+// not current, crossfades the glass cube the same way since scale is the
+// one transform every material on it (shader or standard) respects safely.
+// Also drives Cube Guy's mouth, reusing the same voiceEnergy the glass cube
+// already computes, real waveform or synthetic, so "which character is on
+// screen" never changes how talking looks from the signal's point of view.
+function updateCharacters(dt) {
+  if (cubeGuy) {
+    cubeGuy.scale.x += (cubeGuyScaleTarget - cubeGuy.scale.x) * Math.min(1, dt * 4.2);
+    cubeGuy.scale.y = cubeGuy.scale.z = cubeGuy.scale.x;
+    cubeGuy.visible = cubeGuy.scale.x > 0.01;
+    if (cubeGuyMixer) cubeGuyMixer.update(dt);
+    // Additive on top of whatever Idle just set this frame, the same
+    // technique proven in sid-ai/lip-test.html: mixer.update() above
+    // already wrote a fresh base, so adding here never compounds.
+    if (cubeGuyMouth) cubeGuyMouth.scale.y += voiceEnergy * 1.6;
+  }
+  const cubeTarget = character === "cube" ? 1 : 0.0001;
+  cubeScaleFactor += (cubeTarget - cubeScaleFactor) * Math.min(1, dt * 4.2);
+  if (model) model.visible = cubeScaleFactor > 0.01;
+}
+
 // Every click pushes the next pigment onto the sheet, so the background keeps
 // gaining colour as the conversation goes on rather than repeating one wash.
 const WATER_INKS = [
@@ -2684,6 +2776,7 @@ function frame() {
   // Quiet when the cube is actually speaking, so the two never compete.
   const vinylLevel = !document.body.classList.contains("is-speaking") && window.sidVinyl ? window.sidVinyl.level() : 0;
   musicVibe += (vinylLevel - musicVibe) * 0.08;
+  updateCharacters(dt);
   if (effectStrength > 0) effectStrength = Math.max(0, effectStrength - dt * 0.48);
   cosmicBurst *= Math.exp(-dt * 1.35);
   if (impactUniforms.uImpactAge.value < 9) impactUniforms.uImpactAge.value = Math.min(9, impactUniforms.uImpactAge.value + dt * 1.9);
@@ -2761,7 +2854,7 @@ function frame() {
     const effectPhase = 1 - effectStrength,
       easeKick = Math.sin(effectPhase * Math.PI) * effectStrength;
     model.position.copy(modelBasePosition);
-    model.scale.setScalar(baseScale * (1 + (effectKind === 2 ? easeKick * 0.065 : 0)));
+    model.scale.setScalar(baseScale * cubeScaleFactor * (1 + (effectKind === 2 ? easeKick * 0.065 : 0)));
     model.position.y +=
       effectKind === 0 ? easeKick * 0.12 : effectKind === 4 ? Math.abs(Math.sin(effectPhase * Math.PI * 2)) * effectStrength * 0.28 : 0;
     model.position.z += effectKind === 5 ? easeKick * 0.2 : 0;
@@ -2985,5 +3078,11 @@ window.sidCube = {
   },
   hasRecording(nodeId) {
     return hasLine(nodeId);
+  },
+  setCharacter(next) {
+    setCharacter(next);
+  },
+  getCharacter() {
+    return character;
   },
 };

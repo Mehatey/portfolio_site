@@ -1,17 +1,15 @@
 /* ══ THE LIVE PART ════════════════════════════════════════════════════════
    Sid: "make it live instead of just saying a prerecorded clip with pills."
 
-   tv-head-viewer.js owns the cube, the two voices, and the thirteen
-   scripted answers it ships with. This file owns everything that lets a
-   visitor actually talk to it: a typed question, a small model answering
-   it live in the browser, and the customize panel for voice and character.
+   tv-head-viewer.js owns the cube and its visual reactions. This file owns
+   everything that lets a
+   visitor actually talk to it: typed or spoken input, a small model answering
+   it live in the browser, and the customize panel for voice and scene.
 
    The model is Llama-3.2-1B-Instruct, the same one this site's other
    browser-AI pieces (Mirror, Amnesiac) already use, run entirely on-device
    through WebGPU via web-llm. No account, no key, no server. A device with
-   no WebGPU gets a keyword match over the same thirteen answers instead of
-   a live one; it is told so, rather than left to guess why its answers are
-   suddenly less specific. */
+   no WebGPU gets a clear, honest fallback instead of fake scripted dialogue. */
 (function () {
   "use strict";
 
@@ -28,7 +26,7 @@
     var sidCube = window.sidCube;
     var form = document.getElementById("cube-ask");
     var input = document.getElementById("cube-ask-input");
-    var suggestRow = document.getElementById("cube-ask-suggest");
+    var micButton = document.getElementById("cube-ask-mic");
     var statusEl = document.getElementById("cube-ask-status");
     var tune = document.getElementById("cube-tune");
     var tuneToggle = document.getElementById("cube-tune-toggle");
@@ -39,23 +37,7 @@
     var tuneNote = document.getElementById("cube-tune-note");
     if (!form || !input) return;
 
-    /* ── SUGGESTED OPENERS ─────────────────────────────────────────────
-       Plain text, not pills. An underline on hover is the whole affordance. */
-    var STARTERS = ["who", "best", "reach"];
-    STARTERS.forEach(function (id) {
-      var node = sidCube.cubeScript[id];
-      if (!node) return;
-      var button = document.createElement("button");
-      button.type = "button";
-      button.textContent = sidCube.chipLabels[id] || node.q;
-      button.addEventListener("click", function () {
-        input.value = node.q;
-        form.requestSubmit();
-      });
-      suggestRow.appendChild(button);
-    });
-
-    /* ── CUSTOMIZE: VOICE MODE + CHARACTER ─────────────────────────────── */
+    /* ── CUSTOMIZE: VOICE MODE + DELIVERY + SCENE ─────────────────────── */
     var voiceMode = sidCube.getVoiceMode();
     var personaIndex = -1;
 
@@ -63,7 +45,7 @@
       modeRow.replaceChildren();
       [
         { id: "ai", label: "AI voice" },
-        { id: "sid", label: "Sid’s voice" },
+        { id: "sid", label: "Sid voice, needs sample" },
       ].forEach(function (opt) {
         var b = document.createElement("button");
         b.type = "button";
@@ -82,7 +64,7 @@
       personaRow.replaceChildren();
       var autoBtn = document.createElement("button");
       autoBtn.type = "button";
-      autoBtn.textContent = "Auto";
+      autoBtn.textContent = "Natural";
       autoBtn.className = personaIndex < 0 ? "is-active" : "";
       autoBtn.addEventListener("click", function () {
         personaIndex = -1;
@@ -106,8 +88,8 @@
     function renderNote() {
       tuneNote.textContent =
         voiceMode === "sid"
-          ? "Plays a real recording where one exists. Falls back to AI voice on anything that hasn’t been recorded yet."
-          : "Spoken live by the browser, so it can say anything, not just the thirteen answers Sid wrote out.";
+          ? "Sid voice activates after Sid supplies and approves a voice sample. AI voice stays on until then."
+          : "AI voice speaks live replies in the browser. Your conversation is not a prerecorded clip.";
     }
     /* The room the cube sits in. The vinyl player in the corner already does
        the actual playing; this is just a second, discoverable way to reach
@@ -242,32 +224,8 @@
       return text;
     }
 
-    /* ── THE FALLBACK ────────────────────────────────────────────────────
-       No WebGPU, or the model failed to load: match the question against
-       the thirteen written answers by shared words, rather than failing
-       silently. Because this reuses a real scripted node, it is also the
-       one path where "Sid's voice" can still play an actual recording. */
-    function fallbackMatch(question) {
-      var q = question.toLowerCase();
-      var words = q.split(/[^a-z0-9]+/).filter(function (w) {
-        return w.length > 2;
-      });
-      var bestId = null,
-        bestScore = 0;
-      Object.keys(sidCube.cubeScript).forEach(function (id) {
-        var node = sidCube.cubeScript[id];
-        var hay = (id + " " + node.q).toLowerCase();
-        var score = 0;
-        words.forEach(function (w) {
-          if (hay.indexOf(w) >= 0) score++;
-        });
-        if (score > bestScore) {
-          bestScore = score;
-          bestId = id;
-        }
-      });
-      var id = bestId || "who";
-      return { id: id, text: sidCube.cubeScript[id].a };
+    function unavailableReply() {
+      return "I can’t start my local brain on this device yet. Try a browser with WebGPU enabled, or come back when the live service is connected.";
     }
 
     var busy = false;
@@ -287,12 +245,59 @@
         statusEl.textContent = "";
         sidCube.ask(text, null, null);
       } catch (err) {
-        var match = fallbackMatch(question);
-        statusEl.textContent = gpuChecked && !gpuOk ? "This device has no WebGPU, so these are the quick answers." : "";
-        sidCube.ask(match.text, match.id, null);
+        statusEl.textContent = "";
+        sidCube.ask(unavailableReply(), null, null);
       } finally {
         busy = false;
       }
     });
+
+    /* Browser speech recognition keeps the interaction conversational without
+       pretending a recording exists. It is optional because Firefox and some
+       privacy configurations do not expose it. */
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      if (micButton) {
+        micButton.hidden = true;
+        micButton.setAttribute("aria-hidden", "true");
+      }
+    } else if (micButton) {
+      var recognition = new SpeechRecognition();
+      recognition.lang = navigator.language || "en-US";
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.addEventListener("start", function () {
+        micButton.classList.add("is-listening");
+        statusEl.textContent = "Listening";
+      });
+      recognition.addEventListener("result", function (event) {
+        input.value = event.results[event.results.length - 1][0].transcript.trim();
+        form.requestSubmit();
+      });
+      recognition.addEventListener("end", function () {
+        micButton.classList.remove("is-listening");
+        if (!busy) statusEl.textContent = "";
+      });
+      recognition.addEventListener("error", function () {
+        micButton.classList.remove("is-listening");
+        statusEl.textContent = "Microphone unavailable";
+      });
+      micButton.addEventListener("click", function () {
+        try {
+          recognition.start();
+        } catch (_) {
+          recognition.stop();
+        }
+      });
+    }
+
+    sidCube.focusConversation = function () {
+      // The canvas itself is focusable (tabindex, for keyboard activation),
+      // so a click's own default focus handling runs right after this and
+      // would otherwise steal it straight back.
+      setTimeout(function () {
+        input.focus({ preventScroll: true });
+      }, 0);
+    };
   });
 })();

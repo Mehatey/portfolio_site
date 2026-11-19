@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Cube Guy lip rig test</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #0a0c11;
+        color: #f2f1ed;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+      .hud {
+        position: fixed;
+        left: 18px;
+        top: 18px;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 320px;
+      }
+      .hud button {
+        border: 1px solid rgba(158, 242, 234, 0.5);
+        background: rgba(5, 10, 14, 0.5);
+        color: #eef6f7;
+        padding: 10px 16px;
+        font: 600 12px/1 "Helvetica Neue", Helvetica, Arial, sans-serif;
+        letter-spacing: 0.04em;
+        cursor: pointer;
+      }
+      .hud button:hover {
+        border-color: #9ef2ea;
+      }
+      .hud p {
+        margin: 0;
+        font-size: 11px;
+        line-height: 1.5;
+        color: rgba(234, 242, 247, 0.6);
+      }
+      .hud label {
+        font-size: 11px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: rgba(234, 242, 247, 0.8);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="hud">
+      <p>Cube Guy, rigged model, Idle clip looping. "Talk" drives the real Mouth bone additively off the same voice-amplitude signal the real page will use, live through actual speech synthesis.</p>
+      <button id="talk">Talk (real speech)</button>
+      <button id="wave">Wave</button>
+      <button id="react">Click react</button>
+      <label><input type="range" id="jaw" min="0" max="1" step="0.01" value="0.55" /> jaw open amount</label>
+      <p id="status"></p>
+    </div>
+    <script type="importmap">
+      { "imports": { "three": "./vendor/three/build/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+      const statusEl = document.getElementById("status");
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+      renderer.setSize(innerWidth, innerHeight);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      document.body.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0c11);
+      const camera = new THREE.PerspectiveCamera(32, innerWidth / innerHeight, 0.05, 50);
+      camera.position.set(0, 1.5, 4.2);
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.target.set(0, 1.25, 0);
+      controls.enableDamping = true;
+
+      scene.add(new THREE.HemisphereLight(0xbfe6ff, 0x0a0c11, 1.4));
+      const key = new THREE.DirectionalLight(0xffffff, 2.4);
+      key.position.set(2, 3, 2);
+      scene.add(key);
+      const rim = new THREE.DirectionalLight(0x9ef2ea, 1.2);
+      rim.position.set(-2, 1.5, -2);
+      scene.add(rim);
+
+      let mixer, mouthBone, idleAction, actions = {};
+      const clock = new THREE.Clock();
+      let voiceEnergy = 0,
+        ttsSpeaking = false;
+
+      new GLTFLoader().load(
+        "../assets/models/cube-guy-rigged.glb",
+        (gltf) => {
+          const model = gltf.scene;
+          model.position.y = 0;
+          scene.add(model);
+          mouthBone = model.getObjectByName("Mouth");
+          statusEl.textContent = mouthBone ? "Mouth bone found: " + mouthBone.name : "No Mouth bone found";
+
+          mixer = new THREE.AnimationMixer(model);
+          gltf.animations.forEach((clip) => {
+            actions[clip.name] = mixer.clipAction(clip);
+          });
+          idleAction = actions.Idle;
+          if (idleAction) {
+            idleAction.play();
+          }
+          document.getElementById("wave").addEventListener("click", () => playOnce("Wave"));
+          document.getElementById("react").addEventListener("click", () => playOnce("ClickReact"));
+        },
+        undefined,
+        (err) => {
+          statusEl.textContent = "Load error: " + err.message;
+        }
+      );
+
+      function playOnce(name) {
+        const action = actions[name];
+        if (!action || !idleAction) return;
+        action.reset();
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
+        action.crossFadeFrom(idleAction, 0.2, false);
+        action.play();
+        setTimeout(() => {
+          idleAction.reset().play();
+          idleAction.crossFadeFrom(action, 0.3, false);
+        }, action.getClip().duration * 1000);
+      }
+
+      /* The same two mechanisms the real page uses: a real SpeechSynthesisUtterance
+         and the identical synthetic envelope that drives the mouth while it talks,
+         since the Web Speech API gives no waveform to read from. */
+      const jawSlider = document.getElementById("jaw");
+      document.getElementById("talk").addEventListener("click", () => {
+        const text = "Hey, I'm the cube. Well, I'm Cube Guy now, apparently. Ask me something.";
+        if (!window.speechSynthesis) {
+          statusEl.textContent = "No speech synthesis on this device.";
+          return;
+        }
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        ttsSpeaking = true;
+        statusEl.textContent = "Talking…";
+        utter.onend = utter.onerror = () => {
+          ttsSpeaking = false;
+          statusEl.textContent = "";
+        };
+        window.speechSynthesis.speak(utter);
+      });
+
+      function frame() {
+        requestAnimationFrame(frame);
+        const dt = Math.min(0.033, clock.getDelta()),
+          t = clock.elapsedTime;
+        if (mixer) mixer.update(dt);
+        if (ttsSpeaking) voiceEnergy += (0.3 + 0.22 * Math.abs(Math.sin(t * 9.4)) - voiceEnergy) * 0.3;
+        else voiceEnergy *= 0.88;
+        if (mouthBone) {
+          // The mouth is a flat stitched line on a soft plush head, not a
+          // jaw with a cavity, so rotating it like a hinge makes it foreshorten
+          // to nearly nothing from most angles. Scaling it open, the way a
+          // plush or emoji mouth stretches into an O, reads correctly instead.
+          const amount = parseFloat(jawSlider.value);
+          mouthBone.scale.y += voiceEnergy * amount * 1.6;
+        }
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      frame();
+
+      addEventListener("resize", () => {
+        camera.aspect = innerWidth / innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(innerWidth, innerHeight);
+      });
+    </script>
+  </body>
+</html>
