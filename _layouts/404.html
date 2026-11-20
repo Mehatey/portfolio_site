@@ -53,6 +53,12 @@
         line-height: 1.55;
         color: #c8cbd1;
       }
+      #guess {
+        margin-top: 24px;
+      }
+      #guess[hidden] {
+        display: none;
+      }
       nav {
         display: flex;
         flex-wrap: wrap;
@@ -110,6 +116,29 @@
         <a href="{{ site.baseurl }}/contact/">Contact</a>
         <a href="{{ site.baseurl }}/assets/Siddharth_Mehta_Resume.pdf">Résumé</a>
       </nav>
+      <p class="note" id="guess" hidden></p>
     </main>
+    <script>
+      (function () {
+        var W = [{% for w in site.data.works %}{% unless w.hidden %}{ t: {{ w.title | jsonify }}, u: {{ w.url | jsonify }} }{% unless forloop.last %},{% endunless %}{% endunless %}{% endfor %}];
+        var parts = location.pathname.toLowerCase().split(/[^a-z0-9]+/).filter(function (x) { return x.length > 2; });
+        if (!parts.length) return;
+        var best = null, score = 0;
+        W.forEach(function (w) {
+          var hay = (w.u + " " + w.t).toLowerCase(), sc = 0;
+          parts.forEach(function (x) { if (hay.indexOf(x) > -1) sc += x.length; else if (x.length > 3 && hay.indexOf(x.slice(0, 4)) > -1) sc += 2; });
+          if (sc > score) { score = sc; best = w; }
+        });
+        if (!best || score < 3) return;
+        var g = document.getElementById("guess");
+        g.innerHTML = "Looking for ";
+        var a = document.createElement("a");
+        a.href = {{ site.baseurl | jsonify }} + best.u;
+        a.textContent = best.t;
+        g.appendChild(a);
+        g.appendChild(document.createTextNode("?"));
+        g.hidden = false;
+      })();
+    </script>
   </body>
 </html>
