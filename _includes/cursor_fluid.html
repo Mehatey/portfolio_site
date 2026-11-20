@@ -607,6 +607,36 @@
   #cur-dot.is-hover::before {
     opacity: 0;
   }
+  /* Warming up: something clickable is within about 40px. A soft ring and a
+     faint glow, so the orb leans toward the target before it commits. */
+  #cur-dot.is-near:not(.is-hover) {
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.28),
+      0 0 16px 3px rgba(140, 195, 255, 0.22);
+  }
+  /* Over a Works card the hover plate takes the card's lane colour. */
+  #cur-dot.is-lane.is-hover {
+    background: rgba(var(--lane-rgb), 0.92);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.45),
+      0 0 22px 6px rgba(var(--lane-rgb), 0.5);
+  }
+  #cur-dot.is-lane.is-near:not(.is-hover) {
+    box-shadow:
+      0 0 0 1px rgba(var(--lane-rgb), 0.55),
+      0 0 18px 4px rgba(var(--lane-rgb), 0.3);
+  }
+  html[data-theme="light"] #cur-dot.is-lane.is-hover {
+    background: rgba(var(--lane-rgb), 0.9);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.6),
+      0 0 20px 5px rgba(var(--lane-rgb), 0.38);
+  }
+  html[data-theme="light"] #cur-dot.is-near:not(.is-hover):not(.is-lane) {
+    box-shadow:
+      0 0 0 1px rgba(30, 50, 80, 0.22),
+      0 0 14px 3px rgba(60, 110, 190, 0.2);
+  }
   /* ── CONTEXT FORMS ───────────────────────────────────────────────────
      The orb changes form for what is under it, never for decoration.
      TEXT: a slim solid caret (JS scales the plate to ~3px by the line height),
@@ -7034,6 +7064,19 @@
         (e) => {
           const t = e.target;
           if (!t || !t.closest) return;
+          /* Over a Works card the orb takes the colour of that project's lane
+             (product blue, AI amber, culture violet), the same colour as the
+             card's tags, so pointing at a card and reading its tags say one
+             thing. Anywhere else the tint is released. */
+          const laneCard = t.closest(".wk-card");
+          const laneEl = laneCard && laneCard.closest("[data-lane]");
+          const laneName = laneEl && laneEl.getAttribute("data-lane");
+          if (laneName && /^(product|ai|culture)$/.test(laneName)) {
+            dot.style.setProperty("--lane-rgb", "var(--pillar-" + laneName + ")");
+            dot.classList.add("is-lane");
+          } else if (dot.classList.contains("is-lane")) {
+            dot.classList.remove("is-lane");
+          }
           const rail = t.closest(".cs-rail");
           if (rail && rail.scrollWidth > rail.clientWidth + 4) {
             dot.classList.add("is-drag");
@@ -7058,6 +7101,43 @@
           if (dot.classList.contains("is-text")) {
             dot.classList.remove("is-text");
             wake();
+          }
+        },
+        { passive: true }
+      );
+    }
+
+    // ── PROXIMITY ── the orb warms as it nears something clickable, before it lands
+    if (!isTouchDevice) {
+      const NEAR_SEL = 'a[href], button, [role="button"], summary, [data-cursor-action]';
+      const PROBES = [
+        [40, 0],
+        [-40, 0],
+        [0, 40],
+        [0, -40],
+        [28, 28],
+        [-28, -28],
+        [28, -28],
+        [-28, 28],
+      ];
+      let lastProbe = 0;
+      let near = false;
+      window.addEventListener(
+        "mousemove",
+        (e) => {
+          const now = performance.now();
+          if (now - lastProbe < 90) return;
+          lastProbe = now;
+          let found = false;
+          if (!dot.classList.contains("is-hover") && !dot.classList.contains("is-drag")) {
+            for (let i = 0; i < PROBES.length && !found; i++) {
+              const el = document.elementFromPoint(e.clientX + PROBES[i][0], e.clientY + PROBES[i][1]);
+              if (el && el.closest && el.closest(NEAR_SEL)) found = true;
+            }
+          }
+          if (found !== near) {
+            near = found;
+            dot.classList.toggle("is-near", found);
           }
         },
         { passive: true }
