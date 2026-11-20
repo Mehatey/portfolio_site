@@ -9,7 +9,7 @@ tagline: >
 category: UI · Fintech
 year: 2021
 hero_bg: "radial-gradient(ellipse at 50% 40%, #1a237e 0%, #0d1442 50%, #050818 100%)"
-hero_image: "5.mool/cover-award.jpg"
+hero_image: "5.mool/cover-award.webp"
 # The Kyoorius ribbon is the point of this cover and it was being cut in half.
 # Measured: the image is 2000x1333 and the hero box is 1440x520, so `cover`
 # scales to 1440x960 and shows a 520px band -- 54% of the picture. The ribbon
