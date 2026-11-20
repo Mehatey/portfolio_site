@@ -577,6 +577,52 @@
   #cur-dot.is-hover::before {
     opacity: 0;
   }
+  /* ── CONTEXT FORMS ───────────────────────────────────────────────────
+     The orb changes form for what is under it, never for decoration.
+     TEXT: a slim solid caret (JS scales the plate to ~3px by the line height),
+     unrefracted so it stays crisp, because a warped caret is unreadable.
+     DRAG: the lens stays glass and gains two chevrons, shown only over a rail
+     that a mouse can really drag (see the rail handler in the case-study
+     layout). KEYBOARD: while someone is tabbing or arrowing, the orb steps
+     aside so it is not left parked beside the real focus ring. */
+  #cur-dot.is-text {
+    background: rgba(226, 244, 255, 0.94);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: 0 0 10px 1px rgba(120, 185, 255, 0.32);
+  }
+  #cur-dot.is-text::before {
+    opacity: 0;
+  }
+  html[data-theme="light"] #cur-dot.is-text {
+    background: rgba(16, 24, 40, 0.86);
+    box-shadow: none;
+  }
+  #cur-dot.is-drag::after {
+    content: "\2039  \203A";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font: 600 17px/1 var(--font-head, "Figtree", sans-serif);
+    letter-spacing: 0.28em;
+    padding-left: 0.28em;
+    color: rgba(236, 245, 255, 0.96);
+    text-shadow: 0 0 6px rgba(0, 0, 0, 0.4);
+    animation: curCore 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  html[data-theme="light"] #cur-dot.is-drag::after {
+    color: rgba(16, 24, 40, 0.92);
+    text-shadow: none;
+  }
+  html.cur-kbd #cur-dot,
+  html.cur-kbd #cur-core,
+  html.cur-kbd #cur-trail,
+  html.cur-kbd #cur-action,
+  html.cur-kbd #cursor-spotlight {
+    opacity: 0 !important;
+    transition: opacity 160ms ease;
+  }
   html[data-theme="light"] #cur-dot.is-hover {
     /* Hover used to swap the lens for a solid navy plate with a white ring,
        which is the most visible version of the outline Sid asked to remove --
@@ -6663,7 +6709,12 @@
       stretch = 0,
       dirX = 1,
       dirY = 0,
-      hoverScale = 1;
+      hoverScale = 1,
+      shapeX = 1,
+      shapeY = 1,
+      caretH = 20,
+      raf = 0,
+      idleFrames = 0;
     const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     document.addEventListener(
@@ -6673,6 +6724,7 @@
         my = e.clientY;
         window.__cursorX = mx;
         window.__cursorY = my;
+        wake();
         if (!alive) {
           alive = true;
           // Snap so the dot doesn't streak in from the corner on first appearance
@@ -6689,15 +6741,26 @@
       alive = false;
       dot.style.opacity = "0";
       if (core) core.style.opacity = "0";
+      wake();
     });
     document.addEventListener("mouseenter", () => {
       alive = true;
       dot.style.opacity = "1";
+      wake();
     });
 
     const spotlight = document.getElementById("cursor-spotlight");
-    (function loop() {
-      requestAnimationFrame(loop);
+    /* The loop used to run at 60fps for as long as the page was open, one of
+       five perpetual loops measured on /works/ with the mouse completely still.
+       It now stops once the orb has settled on the pointer and every state has
+       finished easing, and wake() restarts it on any pointer, key or scroll
+       event. Nothing visible changes; the idle cost goes to zero. */
+    function wake() {
+      idleFrames = 0;
+      if (!raf) raf = requestAnimationFrame(loop);
+    }
+    function loop() {
+      raf = requestAnimationFrame(loop);
 
       // Ease the rendered position toward the real pointer — a touch of trail gives it weight
       rx += (mx - rx) * 0.5;
@@ -6750,14 +6813,31 @@
          covers more of the thing you are about to press and is what every
          cursor library does; it contracts to a point instead. See the
          .is-hover rule in the stylesheet above. */
-      const targetHover = dot.classList.contains("is-mark") ? 0.62 : dot.classList.contains("is-hover") ? 0.42 : 1;
+      const targetHover = dot.classList.contains("is-mark")
+        ? 0.62
+        : dot.classList.contains("is-hover")
+          ? 0.42
+          : dot.classList.contains("is-drag")
+            ? document.documentElement.classList.contains("cs-dragging")
+              ? 0.72
+              : 0.86
+            : 1;
       hoverScale += (targetHover - hoverScale) * 0.18;
+      /* Over reading text the plate narrows to a caret: about 3px wide and as
+         tall as the line under it. Non-uniform scale is fine here because the
+         shape is not trying to look like a circle any more, and it tells the
+         reader "this is text" without covering a single word. */
+      const inText = dot.classList.contains("is-text");
+      const tShapeX = inText ? 0.085 : 1;
+      const tShapeY = inText ? Math.max(0.32, caretH / 38) : 1;
+      shapeX += (tShapeX - shapeX) * 0.26;
+      shapeY += (tShapeY - shapeY) * 0.26;
 
       dot.style.left = rx + "px";
       dot.style.top = ry + "px";
       /* No rotation: a circle has none to show, and rotating one was only
          ever in service of the elongation that has gone. */
-      dot.style.transform = "translate(-50%, -50%) scale(" + sx * hoverScale + ", " + sy * hoverScale + ")";
+      dot.style.transform = "translate(-50%, -50%) scale(" + sx * hoverScale * shapeX + ", " + sy * hoverScale * shapeY + ")";
       /* ── THE DROPLET ─────────────────────────────────────────────────────
          A circle dragged through anything deforms: it narrows at the front and
          swells at the back. border-radius takes eight values here, eased off
@@ -6826,7 +6906,43 @@
         actionCue.style.left = actionX + "px";
         actionCue.style.top = actionY + "px";
       }
-    })();
+      if (
+        Math.abs(mx - rx) < 0.08 &&
+        Math.abs(my - ry) < 0.08 &&
+        Math.abs(hoverScale - targetHover) < 0.004 &&
+        Math.abs(shapeX - tShapeX) < 0.003 &&
+        Math.abs(shapeY - tShapeY) < 0.003
+      ) {
+        if (++idleFrames > 24) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+        }
+      } else {
+        idleFrames = 0;
+      }
+    }
+    loop();
+    window.addEventListener("scroll", wake, { passive: true });
+    document.addEventListener(
+      "keydown",
+      function (e) {
+        /* Someone tabbing or arrowing through the page is not using the
+           pointer, and an orb parked wherever the mouse last was reads as a
+           stray object beside the real focus ring. It steps aside until the
+           mouse moves again. */
+        if (e.key === "Tab" || e.key.indexOf("Arrow") === 0 || e.key === "PageDown" || e.key === "PageUp" || e.key === "Home" || e.key === "End") {
+          document.documentElement.classList.add("cur-kbd");
+        }
+      },
+      true
+    );
+    document.addEventListener(
+      "mousemove",
+      function () {
+        document.documentElement.classList.remove("cur-kbd");
+      },
+      { passive: true }
+    );
 
     // Skip cursor-driven hover/magnetic effects entirely on touch devices
     const isTouchDevice = window.matchMedia && window.matchMedia("(hover: none), (pointer: coarse)").matches;
@@ -6873,6 +6989,45 @@
               dot.classList.remove("is-mark");
               document.documentElement.classList.remove("cur-on-mark");
             }
+          }
+        },
+        { passive: true }
+      );
+    }
+
+    // ── CONTEXT AWARENESS ── what is under the pointer decides the orb's form
+    if (!isTouchDevice) {
+      const CTX_HOVER = 'a, button, [role="button"], [data-cursor-action], input, textarea, select, summary, label[for], video, .nav-icon';
+      const CTX_TEXT = "p, li, h1, h2, h3, h4, h5, h6, blockquote, figcaption, dd, dt, td, .cube-cap";
+      document.addEventListener(
+        "mouseover",
+        (e) => {
+          const t = e.target;
+          if (!t || !t.closest) return;
+          const rail = t.closest(".cs-rail");
+          if (rail && rail.scrollWidth > rail.clientWidth + 4) {
+            dot.classList.add("is-drag");
+            dot.classList.remove("is-hover", "is-text");
+            wake();
+            return;
+          }
+          dot.classList.remove("is-drag");
+          /* is-hover was set by the listener above for anything the site already
+             treats as interactive (cards, filters, CTAs), so text inside those
+             keeps the contracted point instead of becoming a caret. */
+          const txt = !dot.classList.contains("is-hover") && !t.closest(CTX_HOVER) && t.closest(CTX_TEXT);
+          if (txt && txt.textContent.trim().length > 1) {
+            const cs = getComputedStyle(txt);
+            if (cs.userSelect !== "none") {
+              caretH = Math.min(34, Math.max(15, parseFloat(cs.fontSize) * 1.2));
+              dot.classList.add("is-text");
+              wake();
+              return;
+            }
+          }
+          if (dot.classList.contains("is-text")) {
+            dot.classList.remove("is-text");
+            wake();
           }
         },
         { passive: true }

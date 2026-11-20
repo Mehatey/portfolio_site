@@ -1490,6 +1490,22 @@
         outline: 1px solid var(--accent, #6cf);
         outline-offset: 4px;
       }
+      /* A mouse cannot drag a native overflow scroller, so on a desktop the
+         rails could only be moved with a trackpad or shift+wheel. The handler
+         below adds drag-to-scroll; while it is active snapping is off (or the
+         row would fight the pointer) and the pictures stop being drag targets. */
+      .cs-rail img,
+      .cs-rail video {
+        -webkit-user-drag: none;
+        user-select: none;
+      }
+      .cs-rail.is-dragging {
+        scroll-snap-type: none;
+        user-select: none;
+      }
+      .cs-rail.is-dragging * {
+        pointer-events: none;
+      }
       .cs-rail-item {
         /* The item sizes to its picture rather than to a column width, so a
            tall sketch and a wide screenshot both keep their proportions. */
@@ -9684,6 +9700,71 @@
         updateStoryMap();
         window.addEventListener("scroll", updateStoryMap, { passive: true });
         window.addEventListener("resize", updateStoryMap, { passive: true });
+      })();
+
+      // Rails: drag to scroll with a mouse. Native overflow scrollers cannot be
+      // dragged, so on a desktop the only ways along a filmstrip were a
+      // trackpad or shift+wheel. Touch already scrolls natively and is left
+      // alone, as is keyboard (rails are focusable).
+      (function () {
+        if (!window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+        document.querySelectorAll(".cs-rail").forEach(function (rail) {
+          var down = false,
+            moved = 0,
+            startX = 0,
+            startLeft = 0,
+            pid = null,
+            swallow = false;
+          rail.addEventListener("pointerdown", function (e) {
+            if (e.pointerType !== "mouse" || e.button !== 0) return;
+            if (rail.scrollWidth <= rail.clientWidth + 4) return;
+            down = true;
+            moved = 0;
+            startX = e.clientX;
+            startLeft = rail.scrollLeft;
+            pid = e.pointerId;
+          });
+          window.addEventListener("pointermove", function (e) {
+            if (!down || e.pointerId !== pid) return;
+            var dx = e.clientX - startX;
+            moved = Math.max(moved, Math.abs(dx));
+            if (moved > 5) {
+              if (!rail.classList.contains("is-dragging")) {
+                rail.classList.add("is-dragging");
+                document.documentElement.classList.add("cs-dragging");
+              }
+              rail.scrollLeft = startLeft - dx;
+            }
+          });
+          function end() {
+            if (!down) return;
+            down = false;
+            if (moved > 5) {
+              // A drag that ends over a picture must not also open the lightbox.
+              swallow = true;
+              setTimeout(function () {
+                swallow = false;
+              }, 60);
+            }
+            rail.classList.remove("is-dragging");
+            document.documentElement.classList.remove("cs-dragging");
+          }
+          window.addEventListener("pointerup", end);
+          window.addEventListener("pointercancel", end);
+          rail.addEventListener(
+            "click",
+            function (e) {
+              if (swallow) {
+                e.stopPropagation();
+                e.preventDefault();
+              }
+            },
+            true
+          );
+          rail.addEventListener("dragstart", function (e) {
+            e.preventDefault();
+          });
+        });
       })();
 
       // Video guardian — keeps all autoplay videos playing through scroll
