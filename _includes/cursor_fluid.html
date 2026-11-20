@@ -1,19 +1,32 @@
-<script type="speculationrules">
-  {
-    "prefetch": [
-      {
-        "where": {
-          "and": [
-            { "href_matches": "/*" },
-            { "not": { "href_matches": "/assets/*" } },
-            { "not": { "href_matches": "/*.*" } },
-            { "not": { "selector_matches": "[download], [target=_blank], [rel~=nofollow]" } }
-          ]
+<script>
+  /* Hover prefetch, only where there is a real pointer to hover with. A phone
+     has no hover, and Chrome fills the gap by prefetching links that merely
+     scroll into view, which on mobile data pulls whole case-study pages the
+     visitor never asked for. Injected from script so it can be gated. */
+  (function () {
+    if (!HTMLScriptElement.supports || !HTMLScriptElement.supports("speculationrules")) return;
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    var c = navigator.connection;
+    if (c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || ""))) return;
+    var s = document.createElement("script");
+    s.type = "speculationrules";
+    s.textContent = JSON.stringify({
+      prefetch: [
+        {
+          where: {
+            and: [
+              { href_matches: "/*" },
+              { not: { href_matches: "/assets/*" } },
+              { not: { href_matches: "/*.*" } },
+              { not: { selector_matches: "[download], [target=_blank], [rel~=nofollow]" } },
+            ],
+          },
+          eagerness: "moderate",
         },
-        "eagerness": "moderate"
-      }
-    ]
-  }
+      ],
+    });
+    document.head.appendChild(s);
+  })();
 </script>
 <style>
   /* ── TOOLTIPS ARE OURS, NOT THE OPERATING SYSTEM'S ─────────────────────
