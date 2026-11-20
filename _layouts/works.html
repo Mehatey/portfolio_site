@@ -1558,6 +1558,12 @@
           pills.forEach(function (btn) {
             btn.addEventListener("click", function () {
               var want = btn.getAttribute("data-filter");
+              /* The filter is part of the address, so /works/#ai can be sent to
+                 someone and a refresh keeps it. replaceState, not a new entry:
+                 back should leave the page, not step through filters. */
+              try {
+                history.replaceState(null, "", want === "all" ? location.pathname + location.search : "#" + want);
+              } catch (_) {}
               pills.forEach(function (b) {
                 b.classList.toggle("is-on", b === btn);
                 b.setAttribute("aria-pressed", b === btn ? "true" : "false");
@@ -1613,6 +1619,14 @@
               }
             });
           });
+          /* Open on the lane named in the address, if any. */
+          var wanted = (location.hash || "").replace("#", "");
+          if (wanted) {
+            var target = pills.filter(function (p) {
+              return p.getAttribute("data-filter") === wanted;
+            })[0];
+            if (target && !target.classList.contains("is-on")) target.click();
+          }
         })();
         (function () {
           if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
