@@ -7572,6 +7572,44 @@
         { label: "Résumé PDF", url: "/assets/Siddharth_Mehta_Resume.pdf", group: "Connect", kbd: "↗" },
       ];
 
+      /* ── PROJECTS COME FROM works.yml ─────────────────────────────────
+         The list above is hand-written, which is how Marriott, M Health
+         Fairview and the AI experiments were never reachable from here and
+         how a search for "fintech" or "AR" found nothing. Every work now
+         lends its tags, focus, proof line and year as searchable keywords,
+         and any visible project the hand list forgot is appended. */
+      const WORKS = [
+        {%- for w in site.data.works -%}
+        {"t":{{ w.title | jsonify }},"u":{{ w.url | jsonify }},"h":{{ w.hidden | default: false | jsonify }},"y":{{ w.year | default: "" | jsonify }},"k":{{ w.tags | join: " " | append: " " | append: w.focus | append: " " | append: w.label | append: " " | append: w.proof | append: " " | append: w.award | append: " " | append: w.lane | jsonify }}}{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      ];
+      (function mergeWorks() {
+        const byUrl = {};
+        WORKS.forEach((w) => (byUrl[w.u] = w));
+        items.forEach((it) => {
+          const w = byUrl[it.url];
+          if (w) {
+            it.kw = w.k;
+            it.meta = w.y;
+          }
+        });
+        const known = {};
+        items.forEach((it) => (known[it.url] = true));
+        const extra = WORKS.filter((w) => !w.h && w.u && !known[w.u]).map((w, i) => ({
+          label: w.t,
+          url: w.u,
+          group: "Projects",
+          kbd: String(15 + i),
+          kw: w.k,
+          meta: w.y,
+        }));
+        if (extra.length) {
+          let at = items.findIndex((it) => it.group === "Discover");
+          if (at < 0) at = items.length;
+          items.splice(at, 0, ...extra);
+        }
+      })();
+
       // Read recent history (set on each page load by the cmdk_recent IIFE)
       function getRecentItems() {
         try {
@@ -7604,12 +7642,48 @@
         return false;
       }
 
+      /* Ranked, multi-word search. Every word must land somewhere (label,
+         keywords or group); label hits outrank keyword hits, prefixes outrank
+         substrings, and loose subsequence is the last resort for typos. Results
+         are bucketed by group, best group first, so a group label never repeats. */
+      function scoreWord(w, it) {
+        const l = it.label.toLowerCase();
+        const kw = (it.kw || "").toLowerCase();
+        const words = (t) => t.split(/[^a-z0-9+]+/);
+        if (l.startsWith(w)) return 100;
+        if (words(l).some((x) => x.startsWith(w))) return 80;
+        if (words(kw).some((x) => x.startsWith(w))) return 60;
+        if (w.length <= 2) return 0;
+        if (l.includes(w)) return 70;
+        if (kw.includes(w)) return 50;
+        if (it.group.toLowerCase().includes(w)) return 30;
+        if (w.length > 2 && fuzzy(w, l)) return 10;
+        return 0;
+      }
+      function search(q) {
+        const ws = q.toLowerCase().split(/\s+/).filter(Boolean);
+        const hits = [];
+        items.forEach((it, i) => {
+          let total = 0;
+          for (const w of ws) {
+            const sc = scoreWord(w, it);
+            if (!sc) return;
+            total += sc;
+          }
+          hits.push({ it, total, i });
+        });
+        const best = {};
+        hits.forEach((h) => (best[h.it.group] = Math.max(best[h.it.group] || 0, h.total)));
+        hits.sort((a, b) => best[b.it.group] - best[a.it.group] || (a.it.group === b.it.group ? b.total - a.total || a.i - b.i : a.it.group < b.it.group ? -1 : 1));
+        return hits.map((h) => h.it);
+      }
+
       function render() {
         const q = input.value.trim();
         const base = q ? items : getRecentItems().concat(items);
-        filtered = q ? items.filter((it) => fuzzy(q, it.label) || fuzzy(q, it.group)) : base;
+        filtered = q ? search(q) : base;
         if (filtered.length === 0) {
-          list.innerHTML = '<div class="cmdk-empty">No match. Try a project name, or hit <kbd>R</kbd> for random.</div>';
+          list.innerHTML = '<div class="cmdk-empty">No match. Try a project, a topic like fintech or AR, or hit <kbd>R</kbd> for random.</div>';
           return;
         }
         let html = "";
@@ -7622,7 +7696,7 @@
           html += `<div class="cmdk-item${idx === activeIndex ? " is-active" : ""}" data-idx="${idx}">
             <span class="cmdk-item-icon">${it.kbd}</span>
             <span>${it.label}</span>
-            ${it.external ? '<span class="cmdk-item-meta">↗</span>' : ""}
+            ${it.external ? '<span class="cmdk-item-meta">↗</span>' : it.meta ? '<span class="cmdk-item-meta">' + it.meta + "</span>" : ""}
           </div>`;
         });
         list.innerHTML = html;
