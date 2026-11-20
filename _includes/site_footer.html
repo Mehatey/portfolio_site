@@ -3057,6 +3057,37 @@ include film_grade.html %}
     margin: 0 8px;
     opacity: 0.5;
   }
+  .ftr__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-right: 14px;
+  }
+  .ftr__live[hidden] {
+    display: none;
+  }
+  .ftr__live i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #3ecf8e;
+    box-shadow: 0 0 0 0 rgba(62, 207, 142, 0.5);
+    animation: ftr-live-pulse 2.4s ease-out infinite;
+  }
+  .ftr__live b {
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  @keyframes ftr-live-pulse {
+    to {
+      box-shadow: 0 0 0 8px rgba(62, 207, 142, 0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ftr__live i {
+      animation: none;
+    }
+  }
   .ftr__updated {
     opacity: 1;
   }
@@ -4825,6 +4856,9 @@ wall and the Buddha all sit inside the one `
 
         <div class="ftr__right">
           <p class="ftr__status">
+            {% if site.presence_url and site.presence_url != "" %}<span class="ftr__live" id="ftr-live" hidden
+              ><i aria-hidden="true"></i><b id="ftr-live-n">1</b> here now</span
+            >{% endif %}
             <span class="ftr__clock" id="ftr-clock">—</span>
             <time class="ftr__updated" datetime="{{ site.time | date_to_xmlschema }}">Last updated {{ site.time | date: "%b %-d, %Y" }}</time>
           </p>
@@ -6240,9 +6274,35 @@ wall and the Buddha all sit inside the one `
     })();
   </script>
 
-  {% comment %} The shared voxel burst: the phone on the home page and the Buddha both come apart through it. See assets/js/voxel-burst.js. {%
-  endcomment %} {% comment %} Hand steering. Loads nothing -- no model, no wasm, no camera -- until the visitor presses the control. See
-  assets/js/hand.js. {% endcomment %}
+  {% if site.presence_url and site.presence_url != "" %}
+  <script>
+    /* The count is real or absent: a socket to the presence Worker, and the pill stays hidden until the
+       first number arrives. Reconnects quietly; shows nothing if it cannot. */
+    (function () {
+      var box = document.getElementById("ftr-live");
+      var n = document.getElementById("ftr-live-n");
+      if (!box || !n || !window.WebSocket) return;
+      var tries = 0;
+      function open() {
+        var ws;
+        try { ws = new WebSocket({{ site.presence_url | jsonify }}); } catch (e) { return; }
+        ws.onmessage = function (m) {
+          try {
+            var c = JSON.parse(m.data).n;
+            if (c > 0) { n.textContent = c; box.hidden = false; tries = 0; }
+          } catch (e) {}
+        };
+        ws.onclose = function () {
+          box.hidden = true;
+          if (++tries < 5) setTimeout(open, 3000 * tries);
+        };
+      }
+      open();
+    })();
+  </script>
+  {% endif %} {% comment %} The shared voxel burst: the phone on the home page and the Buddha both come apart through it. See
+  assets/js/voxel-burst.js. {% endcomment %} {% comment %} Hand steering. Loads nothing -- no model, no wasm, no camera -- until the visitor presses
+  the control. See assets/js/hand.js. {% endcomment %}
   <script>
     /* ── THE CORNER NOTICES YOU ──────────────────────────────────────────────
      Sets `body.controls-near`, which site_footer's stylesheet has referenced
