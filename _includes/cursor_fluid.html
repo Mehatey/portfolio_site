@@ -3757,6 +3757,32 @@
     font-family: var(--font-mono, "DM Mono", monospace);
     font-size: 11px;
   }
+  .cmdk-item {
+    min-height: 46px;
+  }
+  .cmdk-item-thumb {
+    margin-left: auto;
+    width: 0;
+    height: 30px;
+    object-fit: cover;
+    border-radius: 4px;
+    opacity: 0;
+    transition:
+      width 0.18s ease,
+      opacity 0.18s ease;
+  }
+  .cmdk-item.is-active .cmdk-item-thumb[src] {
+    width: 52px;
+    opacity: 1;
+  }
+  .cmdk-item-thumb ~ .cmdk-item-meta {
+    margin-left: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cmdk-item-thumb {
+      transition: none;
+    }
+  }
   .cmdk-item-meta {
     margin-left: auto;
     font-family: var(--font-mono, "DM Mono", monospace);
@@ -7670,7 +7696,7 @@
          and any visible project the hand list forgot is appended. */
       const WORKS = [
         {%- for w in site.data.works -%}
-        {"t":{{ w.title | jsonify }},"u":{{ w.url | jsonify }},"h":{{ w.hidden | default: false | jsonify }},"y":{{ w.year | default: "" | jsonify }},"k":{{ w.tags | join: " " | append: " " | append: w.focus | append: " " | append: w.label | append: " " | append: w.proof | append: " " | append: w.award | append: " " | append: w.lane | jsonify }}}{% unless forloop.last %},{% endunless %}
+        {"t":{{ w.title | jsonify }},"u":{{ w.url | jsonify }},"h":{{ w.hidden | default: false | jsonify }},"y":{{ w.year | default: "" | jsonify }},"i":{{ w.img | default: "" | jsonify }},"k":{{ w.tags | join: " " | append: " " | append: w.focus | append: " " | append: w.label | append: " " | append: w.proof | append: " " | append: w.award | append: " " | append: w.lane | jsonify }}}{% unless forloop.last %},{% endunless %}
         {%- endfor -%}
       ];
       (function mergeWorks() {
@@ -7681,6 +7707,7 @@
           if (w) {
             it.kw = w.k;
             it.meta = w.y;
+            it.img = w.i;
           }
         });
         const known = {};
@@ -7692,6 +7719,7 @@
           kbd: String(15 + i),
           kw: w.k,
           meta: w.y,
+          img: w.i,
         }));
         if (extra.length) {
           let at = items.findIndex((it) => it.group === "Discover");
@@ -7786,6 +7814,7 @@
           html += `<div class="cmdk-item${idx === activeIndex ? " is-active" : ""}" data-idx="${idx}">
             <span class="cmdk-item-icon">${it.kbd}</span>
             <span>${it.label}</span>
+            ${it.img ? '<img class="cmdk-item-thumb" alt="" decoding="async" ' + (idx === activeIndex ? 'src="{{ site.baseurl }}' + it.img + '"' : 'data-src="{{ site.baseurl }}' + it.img + '"') + ">" : ""}
             ${it.external ? '<span class="cmdk-item-meta">↗</span>' : it.meta ? '<span class="cmdk-item-meta">' + it.meta + "</span>" : ""}
           </div>`;
         });
@@ -7806,7 +7835,11 @@
           el.classList.toggle("is-active", parseInt(el.dataset.idx, 10) === activeIndex);
         });
         const active = list.querySelector(".cmdk-item.is-active");
-        if (active) active.scrollIntoView({ block: "nearest" });
+        if (active) {
+          active.scrollIntoView({ block: "nearest" });
+          const th = active.querySelector(".cmdk-item-thumb");
+          if (th && !th.getAttribute("src")) th.src = th.dataset.src;
+        }
       }
       function navigate() {
         const it = filtered[activeIndex];
