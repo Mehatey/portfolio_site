@@ -169,6 +169,9 @@ import { Water } from "three/addons/objects/Water.js";
      the headline and award captions. */
   camera.position.set(0, 5.35, 9.35);
   camera.lookAt(0, 0.18, 0.55);
+  let baseLookX = 0;
+  let camDriftX = 0;
+  let camDriftY = 0;
   /* Sid: "the 3d text doesn't work" -- diagnosed by disabling the physics
      sim entirely and finding the exact same artifact, which meant it was
      never the geometry: it was the water's own reflection of the text.
@@ -1270,7 +1273,8 @@ import { Water } from "three/addons/objects/Water.js";
          view instead of turning mobile into a random detail crop. */
       const portrait = w / h < 0.72;
       camera.fov = portrait ? 60 : 38;
-      camera.lookAt(portrait ? 0.38 : 0, 0.18, 0.55);
+      baseLookX = portrait ? 0.38 : 0;
+      camera.lookAt(baseLookX, 0.18, 0.55);
       camera.updateProjectionMatrix();
       if (letters.length) {
         layoutHomes();
@@ -1774,6 +1778,24 @@ import { Water } from "three/addons/objects/Water.js";
       m.opacity = 1;
     }
 
+    /* ── CURSOR PARALLAX ─────────────────────────────────────────────────
+       The camera was bolted down, so the lake read as a picture. A small,
+       heavily damped drift toward where the cursor is makes the island, the
+       plaques and the far lily pads slide against each other: depth you can
+       feel without anything in the scene being told to move. Fine pointers
+       only, off for reduced motion and while the page is scrolling. */
+    if (!prefersLess && hasPointer && !pageMoving && matchMedia("(pointer: fine)").matches) {
+      camDriftX += (ndc.x * 0.42 - camDriftX) * 0.045;
+      camDriftY += (ndc.y * 0.16 - camDriftY) * 0.045;
+    } else {
+      camDriftX *= 0.94;
+      camDriftY *= 0.94;
+    }
+    if (Math.abs(camDriftX) > 0.0005 || Math.abs(camDriftY) > 0.0005) {
+      camera.position.x = camDriftX;
+      camera.position.y = 5.35 + camDriftY;
+      camera.lookAt(baseLookX + camDriftX * 0.35, 0.18, 0.55);
+    }
     renderer.render(scene, camera);
   }
   resize();
