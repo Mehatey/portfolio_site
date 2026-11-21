@@ -1309,6 +1309,7 @@ import { Water } from "three/addons/objects/Water.js";
     );
   }
   let skyTexture = null;
+  let mirrorSky = null;
   function makeSkyTexture(light) {
     const canvas = document.createElement("canvas");
     canvas.width = 8;
@@ -1337,6 +1338,18 @@ import { Water } from "three/addons/objects/Water.js";
     if (skyTexture) skyTexture.dispose();
     skyTexture = makeSkyTexture(isLight());
     scene.background = skyTexture;
+    /* The reflection pass is switched off for speed, which left the water's
+       mirror texture blank, and a blank mirror is why the surface read as flat
+       grey instead of picking up the sky. Feeding it the sky gradient gives
+       the reflection something to show at no render cost. */
+    if (water.material.uniforms.mirrorSampler) {
+      /* The hero type and buttons are set in white on the water in both
+         themes, so even the daylight lake reflects the deeper sky: a pale
+         reflection washed the headline out. */
+      if (mirrorSky) mirrorSky.dispose();
+      mirrorSky = makeSkyTexture(false);
+      water.material.uniforms.mirrorSampler.value = mirrorSky;
+    }
     scene.fog = new THREE.Fog(p.fog, isLight() ? 12 : 9, isLight() ? 52 : 42);
     stone.material.color.set(p.stone);
     islandMat.color.set(p.island);
