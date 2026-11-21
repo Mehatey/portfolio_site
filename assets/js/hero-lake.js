@@ -94,7 +94,58 @@ import { Water } from "three/addons/objects/Water.js";
   /* The scene is softened by fog, grain, water normals, and film texture. A
      sub-1 DPR render is visually indistinguishable there, while cutting the
      reflected-water pixel workload materially on Retina laptops. */
-  renderer.setPixelRatio(Math.min(0.78, devicePixelRatio || 1));
+  /* ── ADAPTIVE RESOLUTION ───────────────────────────────────────────
+     The fixed 0.78 above made every edge soft: the cube guy's outline, the
+     award captions and the headline-sized glyphs all read blurry on a Retina
+     screen. A fixed number is also wrong in the other direction, because it
+     punishes a machine that could easily afford more. So the scene starts as
+     sharp as the device allows (capped at 1.25) and a small governor watches
+     how fast the browser actually delivers frames. If delivery slips it steps
+     down one rung and stays down; if there is a long stretch of headroom it
+     steps back up once. Two drops and it stops trying, so it never oscillates. */
+  const DPR_STEPS = [1.25, 1, 0.78, 0.62].filter((v) => v <= Math.max(0.78, devicePixelRatio || 1));
+  let dprRung = 0;
+  let dprDrops = 0;
+  let dprLastMove = 0;
+  let rafEma = 16.7;
+  let rafPrev = 0;
+  let rafGood = 0;
+  let rafBad = 0;
+  renderer.setPixelRatio(DPR_STEPS[0] || 0.78);
+  function governDpr(stamp) {
+    /* A gap this long is a hidden tab or a pause, not slow rendering. */
+    if (rafPrev && stamp - rafPrev < 60) rafEma += (stamp - rafPrev - rafEma) * 0.08;
+    rafPrev = stamp;
+    if (stamp - dprLastMove < 4000) return;
+    /* A 60Hz display delivers at 16.7ms; slower than ~22ms is the scene, not
+       the display, missing frames. */
+    if (rafEma > 22) {
+      rafBad++;
+      rafGood = 0;
+    } else if (rafEma < 17.5) {
+      rafGood++;
+      rafBad = 0;
+    } else {
+      rafGood = 0;
+      rafBad = 0;
+    }
+    if (rafBad > 45 && dprRung < DPR_STEPS.length - 1) {
+      dprRung++;
+      dprDrops++;
+      applyDpr(stamp);
+    } else if (rafGood > 600 && dprRung > 0 && dprDrops < 2) {
+      dprRung--;
+      applyDpr(stamp);
+    }
+  }
+  function applyDpr(stamp) {
+    renderer.setPixelRatio(DPR_STEPS[dprRung]);
+    dprLastMove = stamp;
+    rafBad = 0;
+    rafGood = 0;
+    resizeDirty = true;
+    resize();
+  }
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
@@ -169,7 +220,7 @@ import { Water } from "three/addons/objects/Water.js";
   key.target.position.set(0, 0, 2.5);
   scene.add(key.target);
   key.castShadow = true;
-  key.shadow.mapSize.set(512, 512);
+  key.shadow.mapSize.set(1024, 1024);
   key.shadow.bias = -0.0015;
   key.shadow.normalBias = 0.03;
   key.shadow.radius = 3;
@@ -1318,6 +1369,7 @@ import { Water } from "three/addons/objects/Water.js";
     if (!live) return;
     requestAnimationFrame(frame);
     const stamp = typeof now === "number" ? now : performance.now();
+    governDpr(stamp);
     const scrollState = window.__sv ? window.__sv() : null;
     const pageMoving = !!scrollState && scrollState.a > 0.035;
     /* The water is a slow surface, not a game camera. Cap it at 20fps while
