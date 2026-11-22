@@ -822,7 +822,7 @@
        Two words, verb first, naming what pressing it will do. The aria
        label keeps the longer form, because a screen reader is not reading
        a row of chips and "Sound off" alone is ambiguous out of context. */
-    var t = on ? "Sound off" : "Sound on";
+    var t = on ? "Sound on" : "Sound off";
     btn.setAttribute("aria-label", on ? "Turn sound off" : "Turn sound on");
     btn.setAttribute("data-tip", t);
   }

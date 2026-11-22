@@ -28,16 +28,19 @@
      loudness matched so skipping between them does not jump. `just-be` is the
      exception at ninety five seconds, because the thing Sid wants heard about
      that one happens in the first minute and a half. */
+  /* artist: fill in the credit for each record. An empty string shows "Sid's pick"
+     rather than a guess. */
   var TRACKS = [
-    { src: "music/lift-off.mp3", name: "Lift Off", hue: 196 },
-    { src: "music/elysium.mp3", name: "Elysium", hue: 268 },
-    { src: "music/enough.mp3", name: "Enough", hue: 22 },
-    { src: "music/instructions-earth.mp3", name: "Instructions for Earth", hue: 146 },
-    { src: "music/eternal-now.mp3", name: "The Eternal Now", hue: 44 },
-    { src: "music/jaago.mp3", name: "Jaago", hue: 336 },
+    { src: "music/lift-off.mp3", name: "Lift Off", artist: "", hue: 196 },
+    { src: "music/elysium.mp3", name: "Elysium", artist: "", hue: 268 },
+    { src: "music/enough.mp3", name: "Enough", artist: "", hue: 22 },
+    { src: "music/instructions-earth.mp3", name: "Instructions for Earth", artist: "", hue: 146 },
+    { src: "music/eternal-now.mp3", name: "The Eternal Now", artist: "", hue: 44 },
+    { src: "music/jaago.mp3", name: "Jaago", artist: "", hue: 336 },
     {
       src: "music/just-be.mp3",
       name: "Just Be",
+      artist: "",
       hue: 168,
       /* The one track that gets a mark of its own. Sid: "the first one to two
          minutes will give you goosebumps." */
@@ -63,9 +66,10 @@
     '<g class="vinyl__ticks"></g>',
     "</svg>",
     '<button class="vinyl__disc" type="button" aria-label="Play music">',
-    '<span class="vinyl__label" aria-hidden="true"></span>',
+    '<span class="vinyl__label" aria-hidden="true"><svg viewBox="0 0 100 100"><defs><path id="vinyl-arc" d="M50 50m-36 0a36 36 0 1 1 72 0a36 36 0 1 1-72 0"/></defs><text><textPath href="#vinyl-arc" textLength="224" lengthAdjust="spacing"></textPath></text></svg></span>',
     '<span class="vinyl__spindle" aria-hidden="true"></span>',
     "</button>",
+    '<svg class="vinyl__arm" viewBox="0 0 60 120" aria-hidden="true"><circle class="vinyl__arm-base" cx="46" cy="14" r="9"/><circle cx="46" cy="14" r="3.2" fill="#0b0f14"/><path class="vinyl__arm-bar" d="M46 14 L46 70 L26 104"/><rect class="vinyl__arm-head" x="17" y="100" width="14" height="9" rx="2" transform="rotate(-30 24 104)"/></svg>',
     "</div>",
     '<button class="vinyl__step vinyl__step--next" type="button" aria-label="Next track">',
     '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.6 2.2 7.9 6l-4.3 3.8zM7.4 2.2h1V9.8h-1z"/></svg>',
@@ -163,6 +167,21 @@
     ".vinyl.is-playing .vinyl__disc{animation:none}",
     ".vinyl.is-seated .vinyl__seat{animation:none}",
     ".vinyl__disc,.vinyl__step,.vinyl__ring-fill{transition:none}}",
+    /* Redesign: a coloured record with fine grooves, a curved-text label, and a tonearm that lowers onto it. */
+    ".vinyl__label svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}",
+    ".vinyl__label text{font:700 7.4px 'Figtree',system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;fill:hsl(var(--vin-h,196) 90% 10%/.78)}",
+    ".vinyl__arm{position:absolute;right:-24%;top:-14%;width:42%;height:auto;pointer-events:none;overflow:visible;transform-origin:76% 12%;transform:rotate(-18deg);transition:transform .9s cubic-bezier(.16,1,.3,1);filter:drop-shadow(0 6px 8px rgba(0,0,0,.45))}",
+    ".vinyl__arm-base{fill:#c9d3d8;stroke:rgba(0,0,0,.35);stroke-width:1}",
+    ".vinyl__arm-bar{fill:none;stroke:#dfe7ea;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}",
+    ".vinyl__arm-head{fill:hsl(var(--vin-h,196) 70% 62%)}",
+    ".vinyl.is-playing .vinyl__arm{transform:rotate(7deg)}",
+    ".home-page .vinyl__disc{background:radial-gradient(circle,rgba(0,0,0,0) 0 44%,rgba(0,0,0,.0) 44%),repeating-radial-gradient(circle at 50% 50%,rgba(255,255,255,.055) 0 1px,rgba(0,0,0,0) 1px 3px),conic-gradient(from 20deg,hsl(var(--vin-h,196) 60% 22%/.92),hsl(var(--vin-h,196) 70% 38%/.8) 18%,hsl(var(--vin-h,196) 55% 16%/.94) 40%,hsl(calc(var(--vin-h,196) + 40) 65% 34%/.82) 62%,hsl(var(--vin-h,196) 60% 16%/.94) 82%,hsl(var(--vin-h,196) 60% 22%/.92));transition:background .9s ease,box-shadow .4s ease,transform .4s cubic-bezier(.16,1,.3,1)}",
+    ".home-page .vinyl__label{width:46%}",
+    ".home-page .vinyl__note{display:grid;gap:2px;justify-items:center;white-space:nowrap}",
+    ".home-page .vinyl__note b{font-weight:700;font-size:14px;letter-spacing:.01em}",
+    ".home-page .vinyl__note i{font-style:normal;font-weight:500;font-size:11.5px;letter-spacing:.04em;opacity:.78}",
+    ".home-page .vinyl:after{top:calc(100% + 56px);font-size:11px;letter-spacing:.12em;text-transform:uppercase}",
+    ".home-page .vinyl.is-playing:after{content:'Now playing'}",
     "@media print{.vinyl{display:none}}",
   ].join("");
 
@@ -256,7 +275,22 @@
     for (var k = 0; k < tickEls.length; k++) tickEls[k].classList.toggle("is-on", k === i);
     root.classList.toggle("is-seated", !!t.seated);
     seat.hidden = !t.seated;
-    noteEl.textContent = isHome ? t.name : t.note || t.name;
+    var who = t.artist || "Sid's pick";
+    if (isHome) {
+      noteEl.innerHTML = "";
+      var b = document.createElement("b");
+      b.textContent = t.name;
+      var a = document.createElement("i");
+      a.textContent = who;
+      noteEl.appendChild(b);
+      noteEl.appendChild(a);
+    } else noteEl.textContent = t.note || t.name;
+    var tp = labelEl.querySelector("textPath");
+    if (tp) {
+      var line = t.name + " \u00b7 " + who + " \u00b7 ";
+      while (line.length < 34) line += line;
+      tp.textContent = line;
+    }
     disc.setAttribute("aria-label", (playing ? "Pause " : "Play ") + t.name);
   }
 

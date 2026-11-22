@@ -4652,30 +4652,33 @@ wall and the Buddha all sit inside the one `
                 lean = (d > 0 ? -1 : 1) * 2.4 * Math.exp(-Math.abs(d) / 1.7) * rowFocus;
               }
               var ang = 0;
+              /* ── THE SIDES CURVE AWAY, AND STRETCH ─────────────────────────
+                 Sid: "instead of the sides being blurred and low opacity can
+                 we try some 3D WebGL treatment to the sides of images and
+                 vids where they get stretched or warped, something cool. The
+                 pixelation barely does anything."
+
+                 The rail is a curved wall now. `sx` runs -1 to 1 across the
+                 band; a tile's own perspective turns it toward the middle as
+                 it travels outward, pushes it back in depth, and stretches it
+                 sideways like a lens, so the edge of the rail wraps around the
+                 viewer instead of dissolving. Tiles stay sharp and opaque, so
+                 the clips on the sides keep playing in full colour. */
+              var sx = Math.max(-1.25, Math.min(1.25, (mid - bandW / 2) / (bandW / 2)));
+              var ax = Math.min(1, Math.abs(sx));
+              var curve = ax * ax;
+              var baseS = 0.98 + 0.1 * c + 0.03 * hv;
               st.transform =
                 "translateY(" +
                 (-14 * c - 10 * hv).toFixed(1) +
-                "px) rotate(" +
-                ang.toFixed(2) +
-                "deg) scale(" +
-                /* ── A NARROWER BAND, BECAUSE THE TYPE IS INSIDE IT ─────
-                   Sid: "the polaroid text crops and warps as the size shrinks
-                   as it goes to sides, can u please keep the frame and border
-                   same and more space and possibly a more legible text."
-
-                   The frame and the caption are parts of the tile, so every
-                   scale the rail applies is applied to them too: 0.86 at the
-                   edges against 1.25 at the centre is a 45% spread, which
-                   means the same 12px label is drawn anywhere from 10px to
-                   15px depending on where it happens to be standing, and the
-                   ellipsis truncation moved with it -- a caption that fits at
-                   the centre is cut at the edge. That is the warping and the
-                   cropping, and both are the spread.
-
-                   0.96 to 1.12 keeps the procession past the middle, which is
-                   the part that works, and takes the type's variation down to
-                   about a pixel and a half, which nobody can see. */
-                (0.96 + 0.04 * k + 0.1 * c + 0.03 * hv).toFixed(3) +
+                "px) perspective(900px) rotateY(" +
+                (sx * 44).toFixed(1) +
+                "deg) translateZ(" +
+                (-curve * 170).toFixed(0) +
+                "px) scale(" +
+                (baseS * (1 + 0.34 * curve)).toFixed(3) +
+                "," +
+                (baseS * (1 - 0.05 * curve)).toFixed(3) +
                 ")";
 
               /* ── AND THE HOVER HAS TO BEAT THE POSITION ────────────────
@@ -4719,13 +4722,13 @@ wall and the Buddha all sit inside the one `
                being read and the one under the pointer. Folded into the
                same quantised write as the grade, so a level change costs
                one filter write rather than a second one. */
-              var lvl = hv > 0.05 ? 0 : Math.min(4, Math.max(0, 5 - Math.round(c * 5 + 1)));
+              var lvl = 0;
               var fq = Math.round(sat * 50) + ":" + Math.round(bri * 50) + ":" + lvl;
               if (fq !== lastF[i]) {
                 lastF[i] = fq;
                 st.filter = (lvl ? "url(#sid-px-" + lvl + ") " : "") + "saturate(" + sat.toFixed(2) + ") brightness(" + bri.toFixed(2) + ")";
               }
-              var op = Math.round((0.1 + 0.9 * k) * (1 - 0.3 * rowFocus * others) * 100);
+              var op = Math.round((0.38 + 0.62 * k) * (1 - 0.18 * rowFocus * others) * 100);
               if (op !== lastO[i]) {
                 lastO[i] = op;
                 st.opacity = (op / 100).toFixed(2);

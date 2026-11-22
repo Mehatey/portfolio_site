@@ -479,7 +479,33 @@ import { Water } from "three/addons/objects/Water.js";
       new THREE.EdgesGeometry(base.geometry),
       new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: 0.74 })
     );
-    group.add(base, face, trim);
+    /* A moving specular band across the printed face, with glitter that only
+       shows inside the band. Driven per frame from hover and click. */
+    const sheen = new THREE.ShaderMaterial({
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+      uniforms: { uPos: { value: -1 }, uAmt: { value: 0 }, uTime: { value: 0 } },
+      vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
+      fragmentShader:
+        "varying vec2 vUv; uniform float uPos; uniform float uAmt; uniform float uTime;" +
+        "float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }" +
+        "void main(){" +
+        "  float d = (vUv.x + vUv.y * 0.42) - uPos;" +
+        "  float band = exp(-d * d * 38.0);" +
+        "  float core = exp(-d * d * 260.0);" +
+        "  vec2 g = floor(vUv * vec2(72.0, 40.0));" +
+        "  float tw = step(0.965, h(g)) * (0.5 + 0.5 * sin(uTime * 9.0 + h(g + 3.0) * 6.28));" +
+        "  vec3 col = vec3(1.0, 0.96, 0.86) * (band * 0.55 + core * 0.9) + vec3(1.0) * tw * band * 1.6;" +
+        "  gl_FragColor = vec4(col * uAmt, 1.0);" +
+        "}",
+    });
+    const sheenMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.57, 0.89), sheen);
+    sheenMesh.rotation.x = -Math.PI / 2;
+    sheenMesh.position.y = 0.043;
+    sheenMesh.renderOrder = 3;
+    group.add(base, face, trim, sheenMesh);
     group.position.set(x, 0.07, z);
     /* Keep the award face aligned to the reader. Bobbing supplies life; a
        forty-degree yaw only made the identity and its caption harder to read. */
@@ -492,6 +518,12 @@ import { Water } from "three/addons/objects/Water.js";
       phase,
       hover: 0,
       tap: 0,
+      sheen,
+      trim,
+      sweep: 0,
+      sweepSpeed: 1,
+      flash: 0,
+      name: awards.length === 0 ? "Webby!" : "Kyoorius!",
       travelOffset: awards.length === 0 ? 0.02 : 0.18,
     });
   }
@@ -1037,6 +1069,372 @@ import { Water } from "three/addons/objects/Water.js";
     glyph.addEventListener("animationend", () => glyph.remove(), { once: true });
   }
 
+  /* ── COMIC CAPTIONS ───────────────────────────────────────────────────────
+     Sid: "better comic and animated captions rather than some big basic text
+     without any styling." Each character gets a speech bubble that pops in
+     with overshoot, sits on its owner, and bounces letter by letter. Pure DOM,
+     one element per character, positioned from the projected head each frame. */
+  (function injectBubbleCss() {
+    const st = document.createElement("style");
+    st.textContent = `
+.lake-bubble{position:absolute;z-index:8;left:0;top:0;pointer-events:none;opacity:0;--ink:#14110f;--paper:#fff3b0;
+  transform:translate(-50%,-100%) scale(.35) rotate(-8deg);transform-origin:50% 100%;
+  transition:opacity .16s ease,transform .5s cubic-bezier(.34,1.9,.5,1)}
+.lake-bubble.is-on{opacity:1;transform:translate(-50%,-100%) scale(1) rotate(var(--r,-3deg))}
+.lake-bubble--cat{--paper:#ffd3de;--r:3deg}
+.lake-bubble--pow{--paper:#ffe14d;--r:-5deg}
+.lake-bubble__in{position:relative;display:block;padding:9px 16px 10px;border:3px solid var(--ink);border-radius:20px 22px 20px 8px;
+  background:radial-gradient(rgba(20,17,15,.16) 1px,transparent 1.4px) 0 0/6px 6px,var(--paper);color:var(--ink);
+  font:800 clamp(15px,1.45vw,21px)/1 var(--font-head,"Figtree",sans-serif);letter-spacing:.01em;white-space:nowrap;
+  box-shadow:4px 5px 0 var(--ink)}
+.lake-bubble__in:after{content:"";position:absolute;left:20px;bottom:-13px;width:16px;height:16px;background:var(--paper);
+  border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:skewX(28deg) rotate(45deg);transform-origin:0 0;border-bottom-right-radius:3px}
+.lake-bubble--pow .lake-bubble__in{border-radius:6px 24px 6px 24px;font-size:clamp(20px,2.2vw,32px);letter-spacing:.04em;text-transform:uppercase}
+.lake-bubble i{display:inline-block;font-style:normal;animation:bubHop 1.3s ease-in-out infinite;animation-delay:calc(var(--i) * 65ms)}
+@keyframes bubHop{0%,60%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-3px) rotate(-4deg)}45%{transform:translateY(-1px) rotate(3deg)}}
+@media(prefers-reduced-motion:reduce){.lake-bubble i{animation:none}.lake-bubble{transition:opacity .15s}}
+`;
+    document.head.appendChild(st);
+  })();
+  function makeBubble(cls) {
+    const el = document.createElement("div");
+    el.className = "lake-bubble " + cls;
+    el.setAttribute("aria-hidden", "true");
+    hero.appendChild(el);
+    return { el, text: "", on: false };
+  }
+  function setBubble(b, text) {
+    if (b.text === text) return;
+    b.text = text;
+    el_clear(b.el);
+    const inner = document.createElement("span");
+    inner.className = "lake-bubble__in";
+    Array.from(text).forEach((ch, i) => {
+      const c = document.createElement("i");
+      c.textContent = ch === " " ? " " : ch;
+      c.style.setProperty("--i", i);
+      inner.appendChild(c);
+    });
+    b.el.appendChild(inner);
+  }
+  function el_clear(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+  const bubSid = makeBubble("lake-bubble--sid");
+  const bubCat = makeBubble("lake-bubble--cat");
+  const bubPow = makeBubble("lake-bubble--pow");
+  const bubV = new THREE.Vector3();
+  function placeBubble(b, x, y, z, on) {
+    if (on !== b.on) {
+      b.on = on;
+      b.el.classList.toggle("is-on", on);
+    }
+    if (!on) return;
+    bubV.set(x, y, z).project(camera);
+    const r = renderer.domElement.getBoundingClientRect();
+    const h = hero.getBoundingClientRect();
+    const w = b.el.offsetWidth || 160;
+    const px = Math.max(w / 2 + 12, Math.min(h.width - w / 2 - 12, r.left - h.left + ((bubV.x + 1) / 2) * r.width));
+    const py = Math.max(96 + (b.el.offsetHeight || 44), r.top - h.top + ((1 - bubV.y) / 2) * r.height);
+    b.el.style.left = px.toFixed(1) + "px";
+    b.el.style.top = py.toFixed(1) + "px";
+  }
+  const bubAward = makeBubble("lake-bubble--pow");
+  bubAward.el.style.setProperty("--paper", "#bdf3ff");
+  let awardUntil = 0;
+  let awardHit = null;
+  let hoveredPad = null;
+  let _padT = null;
+  function padTargets() {
+    if (!_padT) _padT = [...leaves.map((l) => l.mesh), ...flowers.map((f) => f.group)];
+    return _padT;
+  }
+  let catDrinkUntil = 0;
+  let catHoverSince = 0;
+  let powUntil = 0;
+
+  /* ── A RIPPLE THAT TRAVELS ────────────────────────────────────────────────
+     Sid: "when I click on the water let me make a ripple that moves and
+     interacts with things on screen." A click starts a wavefront that
+     actually expands across the lake; everything it passes gets a push or a
+     bob at the moment the front reaches it, so the lake answers in order. */
+  const waveGeo = new THREE.RingGeometry(0.965, 1, 96);
+  waveGeo.rotateX(-Math.PI / 2);
+  const waves = [];
+  function startWave(x, z) {
+    const meshes = [1, 0.78, 0.56].map((k, i) => {
+      const m = new THREE.Mesh(waveGeo, new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthWrite: false }));
+      m.position.set(x, 0.02 + i * 0.001, z);
+      m.scale.setScalar(0.01);
+      scene.add(m);
+      return { m, k };
+    });
+    waves.push({ x, z, t: 0, meshes, hit: new Set() });
+    if (waves.length > 4) {
+      const old = waves.shift();
+      old.meshes.forEach(({ m }) => {
+        scene.remove(m);
+        m.material.dispose();
+      });
+    }
+  }
+  let catBob = 0,
+    figBob = 0;
+  function updateWaves(dt) {
+    for (let i = waves.length - 1; i >= 0; i--) {
+      const w = waves[i];
+      w.t += dt;
+      const R = w.t * 2.6;
+      const life = w.t / 3.4;
+      w.meshes.forEach(({ m, k }, j) => {
+        const r = Math.max(0.01, R * k);
+        m.scale.setScalar(r);
+        m.material.opacity = Math.max(0, 0.5 * (1 - life) * (1 - life)) * (j === 0 ? 1 : 0.55);
+      });
+      const gain = 1 / (1 + R * 0.28);
+      const reach = (px, pz, item, fn) => {
+        if (w.hit.has(item)) return;
+        if (Math.hypot(px - w.x, pz - w.z) <= R) {
+          w.hit.add(item);
+          const dx = px - w.x,
+            dz = pz - w.z,
+            d = Math.max(0.08, Math.hypot(dx, dz));
+          fn(dx / d, dz / d);
+        }
+      };
+      for (const lf of leaves)
+        reach(lf.mesh.position.x, lf.mesh.position.z, lf, (nx, nz) => {
+          lf.vx += nx * 2.4 * gain;
+          lf.vz += nz * 2.4 * gain;
+        });
+      for (const f of flowers)
+        reach(f.group.position.x, f.group.position.z, f, (nx, nz) => {
+          f.vx += nx * 1.9 * gain;
+          f.vz += nz * 1.9 * gain;
+        });
+      for (const f of fish)
+        if (f.group.visible)
+          reach(f.group.position.x, f.group.position.z, f, () => {
+            f.avoid = Math.max(f.avoid, 0.8);
+          });
+      for (const a of awards)
+        reach(a.group.position.x, a.group.position.z, a, () => {
+          a.tap = Math.max(a.tap, 0.9 * Math.min(1, gain * 2.2));
+        });
+      reach(cat.position.x, cat.position.z, cat, () => {
+        catBob = 1;
+      });
+      if (figure)
+        reach(figure.position.x, figure.position.z, figure, () => {
+          figBob = 1;
+        });
+      if (world)
+        for (const l of letters)
+          if (l.body && !l.wet)
+            reach(l.mesh.position.x, l.mesh.position.z, l, () => {
+              const b = l.body;
+              const m = b.mass();
+              b.wakeUp();
+              b.applyImpulse({ x: 0, y: m * 0.55 * gain * 3, z: 0 }, true);
+              b.applyTorqueImpulse({ x: 0, y: (Math.random() - 0.5) * m * 0.02, z: 0 }, true);
+              l.touched = performance.now();
+              l.homing = false;
+            });
+      if (w.t > 3.4) {
+        w.meshes.forEach(({ m }) => {
+          scene.remove(m);
+          m.material.dispose();
+        });
+        waves.splice(i, 1);
+      }
+    }
+    catBob *= 0.9;
+    figBob *= 0.9;
+  }
+
+  /* ── CUBE GUY, INTO PIXELS AND BACK ───────────────────────────────────────
+     Sid: "when I click on cube guy let him explode across the scene into 3D
+     pixels and then come back together." Points are sampled from the live
+     skinned surface (colour from its texture), flown out with a little drag
+     and gravity, bounced on the water, then pulled home by a spring. */
+  const PIX_N = 1300;
+  const pixGeo = new THREE.BoxGeometry(1, 1, 1);
+  const pixMat = new THREE.MeshStandardMaterial({ roughness: 0.55, metalness: 0.04 });
+  const pix = new THREE.InstancedMesh(pixGeo, pixMat, PIX_N);
+  pix.visible = false;
+  pix.frustumCulled = false;
+  pix.castShadow = true;
+  scene.add(pix);
+  const pixData = [];
+  let blast = null;
+  const _p = [new THREE.Vector3(), new THREE.Vector3(), new THREE.Vector3()];
+  const _c = new THREE.Color();
+  const _m4 = new THREE.Matrix4();
+  const _q = new THREE.Quaternion();
+  const _e = new THREE.Euler();
+  const _s = new THREE.Vector3();
+  const texCache = new Map();
+  function texPixels(map) {
+    if (texCache.has(map)) return texCache.get(map);
+    let out = null;
+    try {
+      const img = map.image;
+      const c = document.createElement("canvas");
+      c.width = c.height = 64;
+      const g = c.getContext("2d", { willReadFrequently: true });
+      g.drawImage(img, 0, 0, 64, 64);
+      out = g.getImageData(0, 0, 64, 64).data;
+    } catch (_) {}
+    texCache.set(map, out);
+    return out;
+  }
+  function samplePixels() {
+    const meshes = [];
+    figure.updateMatrixWorld(true);
+    figure.traverse((o) => {
+      if (o.isMesh && o.geometry && o.geometry.attributes.position && o.visible) meshes.push(o);
+    });
+    if (!meshes.length) return false;
+    const tris = meshes.map((o) => (o.geometry.index ? o.geometry.index.count : o.geometry.attributes.position.count) / 3);
+    const total = tris.reduce((a, b) => a + b, 0);
+    pixData.length = 0;
+    const center = new THREE.Vector3(figure.position.x, figure.position.y + 0.8, figure.position.z);
+    for (let n = 0; n < PIX_N; n++) {
+      let pick = Math.random() * total,
+        mi = 0;
+      while (mi < meshes.length - 1 && pick >= tris[mi]) pick -= tris[mi++];
+      const o = meshes[mi];
+      const tri = Math.floor(pick);
+      const idx = o.geometry.index;
+      const ids = [0, 1, 2].map((k) => (idx ? idx.getX(tri * 3 + k) : tri * 3 + k));
+      ids.forEach((id, k) => {
+        o.getVertexPosition(id, _p[k]);
+        _p[k].applyMatrix4(o.matrixWorld);
+      });
+      let u = Math.random(),
+        v = Math.random();
+      if (u + v > 1) {
+        u = 1 - u;
+        v = 1 - v;
+      }
+      const pos = new THREE.Vector3()
+        .copy(_p[0])
+        .multiplyScalar(1 - u - v)
+        .addScaledVector(_p[1], u)
+        .addScaledVector(_p[2], v);
+      const mat = Array.isArray(o.material) ? o.material[0] : o.material;
+      _c.set(0xdddddd);
+      if (mat && mat.color) _c.copy(mat.color);
+      if (mat && mat.map) {
+        const uv = o.geometry.attributes.uv;
+        const data = uv && texPixels(mat.map);
+        if (data) {
+          const tu = uv.getX(ids[0]) * (1 - u - v) + uv.getX(ids[1]) * u + uv.getX(ids[2]) * v;
+          const tv = uv.getY(ids[0]) * (1 - u - v) + uv.getY(ids[1]) * u + uv.getY(ids[2]) * v;
+          const x = Math.max(0, Math.min(63, Math.floor((((tu % 1) + 1) % 1) * 64)));
+          const y = Math.max(0, Math.min(63, Math.floor((mat.map.flipY ? 1 - (((tv % 1) + 1) % 1) : ((tv % 1) + 1) % 1) * 64)));
+          const k = (y * 64 + x) * 4;
+          _c.setRGB(data[k] / 255, data[k + 1] / 255, data[k + 2] / 255, THREE.SRGBColorSpace);
+        }
+      }
+      pix.setColorAt(n, _c);
+      const away = pos.clone().sub(center);
+      const dist = Math.max(0.2, away.length());
+      away.normalize();
+      const sp = 3 + Math.random() * 7;
+      pixData.push({
+        home: pos,
+        p: pos.clone(),
+        v: new THREE.Vector3(
+          away.x * sp + (Math.random() - 0.5) * 2,
+          1.2 + Math.random() * 3 + away.y * 1.2,
+          away.z * sp * 0.9 + (Math.random() - 0.2) * 2.2
+        ),
+        spin: new THREE.Vector3(Math.random() * 7 - 3.5, Math.random() * 7 - 3.5, Math.random() * 7 - 3.5),
+        rot: new THREE.Vector3(Math.random() * 6, Math.random() * 6, 0),
+        size: 0.035 + Math.random() * 0.03,
+        delay: Math.random() * 0.55 + (1 - Math.min(1, dist / 1.6)) * 0.15,
+        wet: false,
+      });
+    }
+    pix.instanceColor.needsUpdate = true;
+    return true;
+  }
+  function explodeFigure(bounds) {
+    if (!figure || blast) return false;
+    if (!samplePixels()) return false;
+    blast = { t: 0, returned: false, splashAt: 0 };
+    busy = true;
+    if (mixer) mixer.timeScale = 0;
+    figure.visible = false;
+    pix.visible = true;
+    powUntil = performance.now() + 1100;
+    splash(figure.position.x, figure.position.z + 0.2, 0.5);
+    startWave(figure.position.x, figure.position.z + 0.3);
+    return true;
+  }
+  function updateBlast(dt) {
+    if (!blast) return;
+    blast.t += dt;
+    const T = blast.t;
+    const BACK = 2.15;
+    let settled = 0;
+    for (let i = 0; i < pixData.length; i++) {
+      const d = pixData[i];
+      if (T < BACK + d.delay) {
+        d.v.y -= 4.2 * dt;
+        const drag = Math.max(0, 1 - 0.7 * dt);
+        d.v.x *= drag;
+        d.v.z *= drag;
+        d.p.addScaledVector(d.v, dt);
+        if (d.p.y < 0.04) {
+          d.p.y = 0.04;
+          if (d.v.y < -0.8 && !d.wet && T - blast.splashAt > 0.09) {
+            splash(d.p.x, d.p.z, 0.12);
+            blast.splashAt = T;
+          }
+          d.wet = true;
+          d.v.y *= -0.28;
+          d.v.x *= 0.78;
+          d.v.z *= 0.78;
+        }
+        d.rot.x += d.spin.x * dt;
+        d.rot.y += d.spin.y * dt;
+        d.rot.z += d.spin.z * dt;
+      } else {
+        /* the spring: critically damped, so they arrive without overshoot */
+        const k = 70,
+          c = 2 * Math.sqrt(k) * 0.92;
+        d.v.x += ((d.home.x - d.p.x) * k - d.v.x * c) * dt;
+        d.v.y += ((d.home.y - d.p.y) * k - d.v.y * c) * dt;
+        d.v.z += ((d.home.z - d.p.z) * k - d.v.z * c) * dt;
+        d.p.addScaledVector(d.v, dt);
+        d.rot.multiplyScalar(Math.max(0, 1 - 6 * dt));
+        if (d.p.distanceToSquared(d.home) < 0.0004) settled++;
+      }
+      _e.set(d.rot.x, d.rot.y, d.rot.z);
+      _q.setFromEuler(_e);
+      const sc = d.size * (1 + (T > BACK ? Math.max(0, 1 - (T - BACK) / 1.1) * 0.5 : 0));
+      _s.setScalar(sc);
+      _m4.compose(d.p, _q, _s);
+      pix.setMatrixAt(i, _m4);
+    }
+    pix.instanceMatrix.needsUpdate = true;
+    if (!blast.returned && T > BACK && (settled > pixData.length * 0.96 || T > BACK + 1.9)) {
+      blast.returned = true;
+      figure.visible = true;
+      pix.visible = false;
+      if (mixer) mixer.timeScale = 1;
+      figBob = 1;
+      splash(figure.position.x, figure.position.z + 0.2, 0.3);
+      play("Wave", 1, () => {
+        play("Idle");
+        busy = false;
+      });
+      blast = null;
+    }
+  }
+
   /* Small read-only probe for repeatable interaction QA. It keeps test code
      out of scene internals while exposing only projected hit positions and
      current hover state. */
@@ -1053,6 +1451,8 @@ import { Water } from "three/addons/objects/Water.js";
   window.__lakeQA = () => ({
     fish: fish.filter((item) => item.group.visible).map((item) => ({ ...screenPoint(item.body), flee: item.flee, note: item.note })),
     figure: figure ? screenPoint(figure) : null,
+    cat: screenPoint(cat),
+    exploding: !!blast,
     figureHover,
     auraOpacity: figureAura.map((item) => item.mat.opacity),
   });
@@ -1115,6 +1515,27 @@ import { Water } from "three/addons/objects/Water.js";
         splash(nextFish.group.position.x, nextFish.group.position.z, 0.16);
       }
       hoveredFish = nextFish;
+      /* Lily pads and blossoms answer a hover too: a ring and a nudge away. */
+      {
+        const padHit = ray.intersectObjects(padTargets(), true);
+        const pad = padHit.length ? padHit[0].object : null;
+        let root = pad;
+        while (root && root.parent && root.parent !== scene) root = root.parent;
+        if (root && root !== hoveredPad) {
+          const px = root.position.x,
+            pz = root.position.z;
+          splash(px, pz, 0.16);
+          const lf = leaves.find((l) => l.mesh === root) || flowers.find((f) => f.group === root);
+          if (lf) {
+            const dx = px - padHit[0].point.x,
+              dz = pz - padHit[0].point.z,
+              d = Math.max(0.05, Math.hypot(dx, dz));
+            lf.vx += (dx / d) * 1.3;
+            lf.vz += (dz / d) * 1.3;
+          }
+        }
+        hoveredPad = root;
+      }
       if (of && !overFigure && !busy) play("Look", 1, () => play("Idle"));
       /* Sid: "when hover on cube he glows but let it say hey im sid and
          then an audio button which plays my name pronunciation." The glow
@@ -1126,12 +1547,11 @@ import { Water } from "three/addons/objects/Water.js";
          discoverability animation via .is-new, so hovering the figure
          just asks for that same attention instead of inventing a new one. */
       if (of && !overFigure) {
-        leaveNote(e, "Hey, I'm Sid", 0.5);
         /* Once pressed, the nudge is retired for good (name-say.js's own
            rule) -- a figure hover must not bring it back. */
         if (sayBtn && !heardName()) sayBtn.classList.add("is-new");
       }
-      if (oc && !overCat) leaveNote(e, "Gingu is thirsty", 0.3);
+      if (oc && !overCat) catHoverSince = performance.now();
       overFigure = of;
       overCat = oc;
       host.style.cursor = hovered || of || oc || hoveredAward || hoveredFish ? "pointer" : "";
@@ -1210,12 +1630,24 @@ import { Water } from "three/addons/objects/Water.js";
       const award = awardFor(awardHits[0].object);
       if (award) {
         award.tap = 1;
+        award.flash = 1;
+        award.sweep = 1;
+        award.sweepSpeed = 2.6;
+        awardHit = award;
+        awardUntil = performance.now() + 1100;
         splash(award.group.position.x, award.group.position.z, 0.34);
+        if (!prefersLess) startWave(award.group.position.x, award.group.position.z);
         e.preventDefault();
         return;
       }
     }
+    if (ray.intersectObject(cat, true).length) {
+      if (performance.now() >= catDrinkUntil) catHoverSince = performance.now();
+      catDrinkUntil = performance.now() + 3600;
+      return;
+    }
     if (figure && ray.intersectObject(figure, true).length && !busy) {
+      if (!prefersLess && explodeFigure()) return;
       busy = true;
       play("ClickReact", 1, () => {
         play("Idle");
@@ -1225,7 +1657,10 @@ import { Water } from "three/addons/objects/Water.js";
     }
     /* The water itself is responsive. One ring is cheaper and clearer than
        another decorative object or a second post-processing pass. */
-    if (ray.ray.intersectPlane(lightPlane, hit)) splash(hit.x, hit.z, 0.24);
+    if (ray.ray.intersectPlane(lightPlane, hit)) {
+      splash(hit.x, hit.z, 0.24);
+      if (!prefersLess) startWave(hit.x, hit.z);
+    }
   });
   window.addEventListener("pointerup", () => {
     if (dragging) host.style.cursor = "";
@@ -1452,9 +1887,21 @@ import { Water } from "three/addons/objects/Water.js";
       const currentX = THREE.MathUtils.lerp(-8.4, 8.4, crossing);
       a.hover += ((a === hoveredAward ? 1 : 0) - a.hover) * 0.14;
       a.tap += (0 - a.tap) * 0.1;
+      /* The shine: a band sweeps the face while it is hovered, and a hard,
+         fast one with a flash goes across when it is pressed. */
+      if (a.hover > 0.5 && a.sweep <= 0) {
+        a.sweep = 1;
+        a.sweepSpeed = 1;
+      }
+      if (a.sweep > 0) a.sweep = Math.max(0, a.sweep - (dt * a.sweepSpeed) / 1.5);
+      a.flash *= 0.92;
+      a.sheen.uniforms.uPos.value = -0.45 + (1 - a.sweep) * 2.1;
+      a.sheen.uniforms.uAmt.value = (a.sweep > 0 ? 0.35 + a.hover * 0.55 : 0) + a.flash * 1.1;
+      a.sheen.uniforms.uTime.value = t;
+      a.trim.material.opacity = 0.74 + a.hover * 0.26;
       a.group.position.x = currentX + Math.sin(t * 0.19 + a.phase) * 0.08;
       a.group.position.y =
-        0.07 - Math.sin(t * (0.42 + a.phase * 0.04) + a.phase) * 0.026 + a.hover * 0.045 + Math.sin(t * 9 + a.phase) * a.tap * 0.018;
+        0.07 - Math.sin(t * (0.42 + a.phase * 0.04) + a.phase) * 0.026 + a.hover * 0.09 + Math.sin(t * 9 + a.phase) * a.tap * 0.018;
       const openWaterZ = a.z + Math.sin(t * 0.13 + a.phase * 1.7) * 0.16;
       /* The stone is an elliptical obstacle, not scenery the plaques can
          ghost through. As a float enters its wake it is carried around the
@@ -1469,7 +1916,7 @@ import { Water } from "three/addons/objects/Water.js";
       a.group.rotation.y = Math.sin(t * 0.11 + a.phase * 1.4) * 0.08;
       a.group.rotation.z =
         Math.sin(t * 0.16 + a.phase * 0.7) * 0.055 + stoneDeflect * 0.12 + Math.sin(a.phase) * a.hover * 0.028 + Math.sin(t * 8) * a.tap * 0.045;
-      a.group.scale.setScalar(1 + a.hover * 0.025);
+      a.group.scale.setScalar(1 + a.hover * 0.06 + a.flash * 0.05);
 
       /* Nearby floating objects receive a small radial impulse. Spring and
          drag below return them to their composition after the plaque passes. */
@@ -1568,7 +2015,8 @@ import { Water } from "three/addons/objects/Water.js";
       f.group.scale.setScalar(fishScale);
     }
 
-    catHover += ((overCat ? 1 : 0) - catHover) * 0.12;
+    const drinking = overCat || performance.now() < catDrinkUntil;
+    catHover += ((drinking ? 1 : 0) - catHover) * 0.12;
     figureHover += ((overFigure ? 1 : 0) - figureHover) * 0.12;
     if (figure) {
       const figureIn = arrive(0.08, 0.82);
@@ -1591,18 +2039,40 @@ import { Water } from "three/addons/objects/Water.js";
     cat.position.y = 0.17 - (1 - catIn) * 0.12 + stageWake * 0.018;
     cat.rotation.z = -stageWake * 0.05;
     const idleSip = Math.pow(Math.max(0, Math.sin(t * 0.62)), 7) * (1 - catHover);
-    const hoverSip = catHover * (0.72 + Math.sin(t * 7.2) * 0.12);
-    const drink = Math.max(idleSip, hoverSip);
-    catHeadPivot.rotation.x = 0.7 + drink * 0.62;
-    catHeadPivot.position.y = 0.4 - catHover * 0.105;
-    catHeadPivot.position.z = 0.28 + catHover * 0.09;
-    catBody.rotation.x = 0.2 + catHover * 0.12;
+    /* Drinking for real: the head dips past the stone's lip to the water, the
+       tongue laps in time, and each lap puts a small ring where it touches. */
+    const lap = Math.sin(t * 9);
+    const drink = Math.max(idleSip, catHover);
+    catHeadPivot.rotation.x = 0.7 + idleSip * 0.5 + catHover * (0.62 + lap * 0.07);
+    catHeadPivot.position.y = 0.4 - catHover * 0.2 - idleSip * 0.06;
+    catHeadPivot.position.z = 0.28 + catHover * 0.2 + idleSip * 0.05;
+    catBody.rotation.x = 0.2 + catHover * 0.3;
     catBody.scale.y = 1 + Math.sin(t * 1.4) * 0.012 - catHover * 0.05;
-    catTail.rotation.y = Math.sin(t * (overCat ? 2.2 : 0.48)) * (0.16 + catHover * 0.2);
-    tongue.scale.setScalar(catHover * (0.78 + Math.sin(t * 7.2) * 0.2));
-    if (drink > 0.78 && t - lastCatSip > (overCat ? 0.82 : 4.5)) {
-      splash(cat.position.x, cat.position.z + 0.62, 0.18);
+    cat.position.y += Math.sin(catBob * 6) * catBob * 0.03;
+    catTail.rotation.y = Math.sin(t * (drinking ? 2.2 : 0.48)) * (0.16 + catHover * 0.2);
+    tongue.scale.setScalar(catHover * (0.78 + Math.max(0, lap) * 0.3));
+    if (drink > 0.7 && t - lastCatSip > (drinking ? 0.42 : 4.5)) {
+      catHeadPivot.getWorldPosition(tmpV);
+      splash(tmpV.x, cat.position.z + 0.85, drinking ? 0.1 : 0.18);
       lastCatSip = t;
+    }
+    updateWaves(dt);
+    updateBlast(dt);
+    if (figure && figure.visible) figure.position.y += Math.sin(figBob * 6) * figBob * 0.035;
+    {
+      const nowMs = performance.now();
+      const sidOn = (overFigure && !blast) || false;
+      if (sidOn) setBubble(bubSid, "Hey, I'm Sid!");
+      placeBubble(bubSid, figure ? figure.position.x : 0, 2.12, figure ? figure.position.z : 0, sidOn);
+      const catOn = drinking;
+      if (catOn) setBubble(bubCat, nowMs - catHoverSince > 900 ? "Slurp slurp!" : "Gingu is thirsty");
+      placeBubble(bubCat, cat.position.x, 1.18, cat.position.z + 0.2, catOn);
+      const awardOn = nowMs < awardUntil && !!awardHit;
+      if (awardOn) setBubble(bubAward, awardHit.name);
+      placeBubble(bubAward, awardHit ? awardHit.group.position.x : 0, 0.55, awardHit ? awardHit.group.position.z : 0, awardOn);
+      const powOn = nowMs < powUntil;
+      if (powOn) setBubble(bubPow, "Ka-pow!");
+      placeBubble(bubPow, figure ? figure.position.x : 0, 1.5, figure ? figure.position.z : 0, powOn);
     }
     for (let i = rings.length - 1; i >= 0; i--) {
       const r = rings[i];

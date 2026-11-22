@@ -50,50 +50,7 @@
            this", and a timecode for a ten-second nothing was the label
            explaining a joke nobody asked about. -->
       <h2 class="coda__title" id="coda-title">Everything above was made to this.</h2>
-      <!-- This section is a 2,000px scroll-pinned film. For someone scrolling
-           for the work rather than for the film, it is a wall between the
-           intro and everything else, so there is one quiet way past it. -->
-      <a class="coda__skip" href="#wall">Skip ahead<span aria-hidden="true">&darr;</span></a>
-      <style>
-        .coda__skip {
-          position: absolute;
-          left: 50%;
-          bottom: clamp(18px, 4vh, 40px);
-          z-index: 6;
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          min-height: 40px;
-          padding: 0 16px;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.24);
-          background: rgba(8, 10, 16, 0.4);
-          -webkit-backdrop-filter: blur(12px);
-          backdrop-filter: blur(12px);
-          color: rgba(246, 243, 236, 0.92) !important;
-          font: 500 13px/1 var(--font-head, "Figtree", sans-serif);
-          text-decoration: none;
-          transform: translateX(-50%);
-          opacity: 0.8;
-          transition:
-            opacity 0.2s,
-            border-color 0.2s,
-            background 0.2s;
-        }
-        .coda__skip span {
-          transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-        }
-        .coda__skip:hover,
-        .coda__skip:focus-visible {
-          opacity: 1;
-          border-color: rgba(255, 255, 255, 0.6);
-          background: rgba(8, 10, 16, 0.6);
-        }
-        .coda__skip:hover span,
-        .coda__skip:focus-visible span {
-          transform: translateY(3px);
-        }
-      </style>
+      <canvas class="coda__world" id="coda-world" aria-hidden="true"></canvas>
 
       <div class="coda__device" id="coda-device" tabindex="0" role="group" aria-labelledby="coda-title" data-cursor-action="Click me">
         <canvas
@@ -155,6 +112,24 @@
 </section>
 
 <style>
+  /* ── THE WORLD BEHIND THE PHONE ─────────────────────────────────────────
+     Sid: "just dots for a lively world like music, with no bg hover effects."
+     A 2D field drawn behind the device: sound rings leaving the phone like
+     speaker pulses, notes and little record squares rising on three depths,
+     and an equaliser skyline along the floor that swells with scroll speed.
+     It never listens to the pointer. */
+  .coda__world {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .coda__device {
+    position: relative;
+    z-index: 2;
+  }
   .coda {
     position: relative;
     z-index: 1;
@@ -444,10 +419,6 @@
       opacity 600ms ease,
       background 900ms ease;
     pointer-events: none;
-  }
-  .coda__device:hover::before,
-  .coda__device:focus-within::before {
-    opacity: 1;
   }
 
   /* The whole face of the device is the target. The mark is a small filled
@@ -1024,5 +995,142 @@
         },
       });
     });
+  })();
+</script>
+
+<script>
+  (function () {
+    var cv = document.getElementById("coda-world");
+    var sec = document.getElementById("coda");
+    if (!cv || !sec || !cv.getContext) return;
+    var ctx = cv.getContext("2d");
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var W = 0,
+      H = 0,
+      dpr = 1,
+      live = false,
+      raf = 0,
+      last = 0,
+      lastY = window.scrollY,
+      boost = 0;
+    var GLY = ["\u266a", "\u266b", "\u2669", "\u266c"];
+    var parts = [];
+    var BARS = 64;
+    var bars = [];
+    for (var i = 0; i < BARS; i++) bars.push({ v: Math.random(), p: Math.random() * 6.28, s: 0.6 + Math.random() * 1.4 });
+    function hue() {
+      var h = parseFloat(getComputedStyle(sec).getPropertyValue("--coda-h"));
+      var d = document.getElementById("coda-device");
+      if (d) {
+        var dh = parseFloat(d.style.getPropertyValue("--coda-h"));
+        if (!isNaN(dh)) return dh;
+      }
+      return isNaN(h) ? 208 : h;
+    }
+    function size() {
+      var r = cv.getBoundingClientRect();
+      dpr = Math.min(1.5, window.devicePixelRatio || 1);
+      W = Math.max(1, r.width);
+      H = Math.max(1, r.height);
+      cv.width = Math.round(W * dpr);
+      cv.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      parts = [];
+      var n = Math.round(Math.min(46, W / 34));
+      for (var i = 0; i < n; i++) parts.push(spawn(true));
+    }
+    function spawn(any) {
+      var z = Math.random();
+      return {
+        x: Math.random() * W,
+        y: any ? Math.random() * H : H + 30,
+        z: z,
+        g: Math.random() < 0.72 ? GLY[(Math.random() * GLY.length) | 0] : "",
+        s: 10 + z * 22,
+        v: 8 + z * 26,
+        p: Math.random() * 6.28,
+        sq: Math.random() < 0.18,
+      };
+    }
+    function draw(t) {
+      var h = hue();
+      ctx.clearRect(0, 0, W, H);
+      var cx = W / 2,
+        cy = H * 0.5;
+      /* sound rings, leaving the phone at a steady beat */
+      for (var k = 0; k < 5; k++) {
+        var ph = (((t * 0.00022 + k / 5) % 1) + 1) % 1;
+        var r = 120 + ph * Math.max(W, H) * 0.62;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy, r * 1.25, r * 0.92, 0, 0, 6.2832);
+        ctx.strokeStyle = "hsla(" + h + ",80%,68%," + (0.2 * (1 - ph) * (1 - ph)).toFixed(3) + ")";
+        ctx.lineWidth = 1.5 + (1 - ph) * 2;
+        ctx.stroke();
+      }
+      /* the equaliser skyline */
+      var bw = W / BARS;
+      for (var b = 0; b < BARS; b++) {
+        var o = bars[b];
+        var near = 1 - Math.abs(b / BARS - 0.5) * 1.5;
+        var target = (0.35 + 0.65 * Math.abs(Math.sin(t * 0.0011 * o.s + o.p))) * (0.4 + near * 0.6) * (0.5 + boost * 0.9);
+        o.v += (target - o.v) * 0.12;
+        var bh = Math.max(3, o.v * H * 0.22);
+        ctx.fillStyle = "hsla(" + (h + b * 1.4) + ",78%,64%," + (0.1 + o.v * 0.16).toFixed(3) + ")";
+        ctx.fillRect(b * bw + bw * 0.22, H - bh, bw * 0.56, bh);
+      }
+      /* notes and record squares, rising on three depths */
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        var a = 0.16 + p.z * 0.4;
+        ctx.save();
+        ctx.translate(p.x + Math.sin(t * 0.0008 + p.p) * (10 + p.z * 16), p.y);
+        ctx.globalAlpha = a;
+        if (p.sq || !p.g) {
+          ctx.rotate(Math.sin(t * 0.0006 + p.p) * 0.4);
+          ctx.fillStyle = "hsl(" + ((h + p.p * 40) % 360).toFixed(0) + ",70%,62%)";
+          var q = 4 + p.z * 9;
+          ctx.fillRect(-q / 2, -q / 2, q, q);
+        } else {
+          ctx.fillStyle = "hsl(" + h + ",85%,76%)";
+          ctx.font = "600 " + p.s.toFixed(0) + "px Figtree, system-ui, sans-serif";
+          ctx.fillText(p.g, 0, 0);
+        }
+        ctx.restore();
+      }
+    }
+    function step(now) {
+      raf = 0;
+      if (!live) return;
+      var dt = Math.min(0.06, (now - last) / 1000 || 0.016);
+      last = now;
+      var dy = Math.abs(window.scrollY - lastY);
+      lastY = window.scrollY;
+      boost += (Math.min(1, dy / 40) - boost) * 0.1;
+      for (var i = 0; i < parts.length; i++) {
+        var p = parts[i];
+        p.y -= (p.v + boost * 90 * p.z) * dt;
+        if (p.y < -40) parts[i] = spawn(false);
+      }
+      draw(now);
+      raf = requestAnimationFrame(step);
+    }
+    size();
+    window.addEventListener("resize", size, { passive: true });
+    if (reduce) {
+      draw(4000);
+      return;
+    }
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(
+        function (en) {
+          live = en[0].isIntersecting;
+          if (live && !raf) {
+            last = performance.now();
+            raf = requestAnimationFrame(step);
+          }
+        },
+        { rootMargin: "120px" }
+      ).observe(sec);
+    }
   })();
 </script>

@@ -447,7 +447,14 @@
          being a picture next to some text and becomes half of a spread. */
       .hero-ident {
         position: sticky;
-        top: clamp(80px, 12vh, 140px);
+        /* Sid: "the description should be on the right and in the middle of my
+           pic." Both columns now pin to the same band, between the nav and the
+           bottom of the window, and centre inside it, so the text is level with
+           the middle of the portrait for the whole hold. */
+        top: var(--nav-h, 72px);
+        min-height: calc(100vh - var(--nav-h, 72px));
+        display: grid;
+        align-content: center;
         /* ── AND STICKY MADE IT A CONTAINING BLOCK ──────────────────────
            `position: sticky` is not `static`, so this element became the
            containing block for its absolutely positioned children -- and
@@ -466,6 +473,7 @@
       @media (max-width: 900px) {
         .hero-ident {
           position: static;
+          min-height: 0;
         }
       }
       /* The @property registration for --blob-a went with the blob. It
@@ -783,6 +791,13 @@
         position: relative;
         animation: none;
       }
+      /* The shader owns the first paint on desktop. Until it reports in, the
+         plain photograph is held back, so the card never shows the real
+         picture, then the cells, then the picture again. A timer in the
+         markup releases it if the shader never arrives. */
+      .about-profile-card.px-wait .about-photo.active {
+        opacity: 0;
+      }
       .about-profile-card:hover .about-photo,
       .about-profile-card:focus-visible .about-photo {
         filter: saturate(1.06) contrast(1) brightness(1.02);
@@ -1083,9 +1098,8 @@
         top: var(--nav-h, 72px);
         min-height: calc(100vh - var(--nav-h, 72px));
         display: grid;
-        align-content: start;
-        padding-top: 28px;
-        justify-items: center;
+        align-content: center;
+        justify-items: start;
         /* box-sizing, because this pin sits inside a column that is already
            the full width of its track: without it the horizontal padding is
            added to 100% and the page gains a scrollbar. QA caught it as 55px
@@ -1104,8 +1118,8 @@
          recruiter discovers the effect; motion adds emphasis, not access. */
       .about-say .w {
         color: var(--ink);
-        opacity: 0.68;
-        transition: opacity 260ms ease;
+        opacity: 0.22;
+        transition: opacity 320ms ease;
       }
       .about-say .w.on {
         opacity: 1;
@@ -2919,6 +2933,146 @@
       .cap-group__name {
         margin-bottom: 12px;
       }
+
+      /* ── BREATHING ROOM, AND THE KANU DROPDOWN ───────────────────────────
+         Sid: "too much small text, repetitive, more breathable" and "the
+         dropdown style from Kanu, ours sometimes does not click."
+         The Code group is gone because the tool rail above it already shows
+         the same names as marks. The rest steps up a size and gets air. */
+      .cap-groups {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 64px 56px;
+      }
+      .cap-group__name {
+        font-size: 17px;
+        font-weight: 500;
+        color: var(--ink);
+        margin-bottom: 14px;
+      }
+      .cap-tag {
+        font-size: 16px !important;
+        line-height: 1.9 !important;
+      }
+      .about-caps .g-label,
+      .faq-section .g-label {
+        font-size: clamp(26px, 2.4vw, 36px);
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        text-transform: none;
+        margin-bottom: 28px;
+      }
+      .faq-section {
+        display: grid;
+        grid-template-columns: minmax(220px, 0.8fr) minmax(0, 1.6fr);
+        column-gap: clamp(48px, 7vw, 120px);
+        align-items: start;
+        padding-top: 120px;
+        padding-bottom: 120px;
+      }
+      .faq-section .g-label {
+        position: sticky;
+        top: calc(var(--nav-h, 72px) + 32px);
+      }
+      @media (max-width: 900px) {
+        .faq-section {
+          grid-template-columns: 1fr;
+          padding-top: 80px;
+          padding-bottom: 80px;
+        }
+        .faq-section .g-label {
+          position: static;
+        }
+      }
+      .faq-item {
+        border-top: 1px solid var(--rule, rgba(255, 255, 255, 0.12));
+        padding: 0;
+      }
+      .faq-item:last-child {
+        border-bottom: 1px solid var(--rule, rgba(255, 255, 255, 0.12));
+      }
+      html[data-theme="light"] .faq-item {
+        border-color: rgba(20, 24, 30, 0.14);
+      }
+      .faq-item::before {
+        display: none;
+      }
+      .faq-item summary,
+      .faq-item:hover summary,
+      .faq-item[open] summary {
+        display: flex;
+        align-items: baseline;
+        gap: 14px;
+        padding: 30px 56px 30px 0;
+        font-size: clamp(18px, 1.55vw, 23px);
+        font-weight: 500;
+        line-height: 1.3;
+        color: var(--ink);
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: color 0.25s ease;
+      }
+      .faq-item summary::before,
+      .faq-item:hover summary::before,
+      .faq-item[open] summary::before {
+        position: static;
+        transform: none;
+        opacity: 1;
+        flex: none;
+        font-size: inherit;
+        font-family: var(--font-head);
+        font-weight: 500;
+        color: var(--ink-3);
+        content: "0" counter(faq) "/";
+      }
+      .faq-item summary:hover {
+        color: var(--accent);
+      }
+      /* The mark on the right is a row of dots that flattens to a line when
+         the answer is open, as Kanu does. */
+      .faq-item summary::after,
+      .faq-item:hover summary::after,
+      .faq-item[open] summary::after {
+        content: "· · · · ·";
+        font-family: var(--font-head);
+        font-size: 16px;
+        letter-spacing: 0.08em;
+        font-weight: 400;
+        color: var(--ink-3);
+        transform: translateY(-50%);
+        transition: color 0.25s ease;
+      }
+      .faq-item.is-open summary::after {
+        content: "\2014";
+        color: var(--ink);
+      }
+      .faq-item summary:hover::after {
+        color: var(--ink);
+      }
+      .faq-item .faq-panel,
+      .faq-item:hover .faq-panel,
+      .faq-item[open] .faq-panel {
+        padding-left: 0;
+      }
+      .faq-list.js-faq .faq-item .faq-panel {
+        grid-template-rows: 0fr;
+        opacity: 0;
+        transition:
+          grid-template-rows 420ms cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 260ms ease;
+      }
+      .faq-list.js-faq .faq-item.is-open .faq-panel {
+        grid-template-rows: 1fr;
+        opacity: 1;
+      }
+      .faq-item p {
+        font-size: clamp(16px, 1.25vw, 19px);
+        line-height: 1.65;
+        color: var(--ink-2);
+        max-width: 62ch;
+        margin: 0 0 34px 0;
+        padding-left: 38px;
+      }
     </style>
   </head>
   <body>
@@ -2972,6 +3126,18 @@
             into the photograph as you approach it, cell by cell from the centre out. The grid is the site's whole visual argument about images; this
             is the one image of the person making that argument, so it ought to be made of it. The canvas is drawn from the <img /> itself, so there
             is no second asset and nothing to keep in sync, and if the script never runs the photograph is simply a photograph. {% endcomment %}
+            <script>
+              (function () {
+                var c = document.getElementById("about-profile-card");
+                var m = window.matchMedia;
+                if (!c || !m || m("(prefers-reduced-motion: reduce)").matches || !m("(hover: hover) and (pointer: fine)").matches || innerWidth < 768)
+                  return;
+                c.classList.add("px-wait");
+                setTimeout(function () {
+                  c.classList.remove("px-wait");
+                }, 3200);
+              })();
+            </script>
             <canvas class="about-pixels" id="about-pixels" aria-hidden="true"></canvas>
             <span class="about-focus" aria-hidden="true"></span>
             <img
@@ -3598,16 +3764,6 @@
             </div>
           </div>
           <div class="cap-group" data-reveal>
-            <h3 class="cap-group__name">Code</h3>
-            <div class="cap-tags">
-              <span class="cap-tag">JavaScript · TypeScript</span>
-              <span class="cap-tag">Swift · SwiftUI</span>
-              <span class="cap-tag">React</span>
-              <span class="cap-tag">Three.js · WebGPU</span>
-              <span class="cap-tag">Shaders</span>
-            </div>
-          </div>
-          <div class="cap-group" data-reveal>
             <h3 class="cap-group__name">AI</h3>
             <div class="cap-tags">
               <span class="cap-tag">LLM tools and agents</span>
@@ -3621,7 +3777,6 @@
             <div class="cap-tags">
               <span class="cap-tag">visionOS · RealityKit</span>
               <span class="cap-tag">ARKit</span>
-              <span class="cap-tag">Unity</span>
               <span class="cap-tag">TouchDesigner</span>
             </div>
           </div>
@@ -3832,54 +3987,26 @@
         setInterval(paint, 20000);
       })();
 
-      // FAQ accordion: <details> toggles instantly, so the summary click is
-      // intercepted and the `open` attribute is held for the length of the
-      // transition. Opening pins the panel shut for one frame first, so the
-      // 0fr → 1fr ease actually runs instead of the content appearing at
-      // full height. Without JS the CSS `[open]` rule still shows the answer.
+      // FAQ accordion. The state is a class flipped on the click itself, so a
+      // press always does something at once. No waiting on a transition and no
+      // ignored clicks; the height ease is pure CSS.
       (function () {
+        var list = document.querySelector(".faq-list");
         var items = document.querySelectorAll(".faq-item");
-        if (!items.length) return;
-        var still = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
+        if (!list || !items.length) return;
+        list.classList.add("js-faq");
         items.forEach(function (item) {
           var summary = item.querySelector("summary");
-          var panel = item.querySelector(".faq-panel");
-          if (!summary || !panel) return;
-
+          if (!summary) return;
+          if (item.hasAttribute("open")) item.classList.add("is-open");
+          item.open = true;
+          summary.setAttribute("role", "button");
+          summary.setAttribute("aria-expanded", item.classList.contains("is-open") ? "true" : "false");
           summary.addEventListener("click", function (event) {
-            if (still) return;
             event.preventDefault();
-            if (panel.dataset.busy === "1") return;
-
-            if (item.open) {
-              panel.dataset.busy = "1";
-              panel.classList.add("is-shut");
-              var shut = function (e) {
-                if (e.propertyName !== "grid-template-rows") return;
-                panel.removeEventListener("transitionend", shut);
-                item.open = false;
-                panel.classList.remove("is-shut");
-                panel.dataset.busy = "";
-              };
-              panel.addEventListener("transitionend", shut);
-              // Belt and braces: if the transition never fires (tab hidden,
-              // panel display:none) the accordion must still close.
-              setTimeout(function () {
-                if (panel.dataset.busy !== "1") return;
-                panel.removeEventListener("transitionend", shut);
-                item.open = false;
-                panel.classList.remove("is-shut");
-                panel.dataset.busy = "";
-              }, 700);
-            } else {
-              panel.classList.add("is-shut");
-              item.open = true;
-              void panel.offsetHeight;
-              requestAnimationFrame(function () {
-                panel.classList.remove("is-shut");
-              });
-            }
+            var on = !item.classList.contains("is-open");
+            item.classList.toggle("is-open", on);
+            summary.setAttribute("aria-expanded", on ? "true" : "false");
           });
         });
       })();
@@ -3963,15 +4090,15 @@
         function read() {
           raf = 0;
           var r = sec.getBoundingClientRect();
-          var travel = r.height - window.innerHeight;
+          var vh = window.innerHeight;
+          /* Starts when the block's top reaches mid-screen, finishes just before
+             the pin releases, so every word is read at the pace of the scroll. */
+          var travel = r.height - vh * 0.7;
           if (travel <= 0) return;
-          var p = Math.max(0, Math.min(1, -r.top / travel));
+          var p = Math.max(0, Math.min(1, (vh * 0.5 - r.top) / travel));
           /* Lit slightly ahead of the scroll so the word under the reader's
-             eye is already on rather than arriving as they reach it. And the
-             first sentence is lit on arrival: a recruiter landing here saw a
-             grey block until they scrolled, which is the wrong first
-             impression for the one page about the person. */
-          var n = Math.round(Math.max(0.22, Math.min(1, p * 1.15)) * words.length);
+             eye is already on rather than arriving as they reach it. */
+          var n = Math.round(Math.max(0.06, Math.min(1, p * 1.12)) * words.length);
           if (n === lit) return;
           if (n > lit) {
             for (var i = Math.max(0, lit); i < n; i++) words[i].classList.add("on");

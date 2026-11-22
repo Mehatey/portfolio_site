@@ -3119,6 +3119,7 @@
   #theme-toggle:focus-visible,
   .sound-toggle:focus-visible,
   .hand-toggle:focus-visible,
+  #cube-chat-fab.is-open ~ .sound-toggle,
   #cube-chat-fab.is-open ~ #theme-toggle {
     transform: translate(0, 0) scale(1) rotate(0deg);
     opacity: 1;
@@ -3239,10 +3240,11 @@
       transform: scale(1.4);
     }
   }
+  /* It stays put while the conversation is open and turns to an x, so the
+     stack never loses a member and the same button that opened the chat closes it. */
   #cube-chat-fab.is-open {
-    opacity: 0;
-    pointer-events: none;
-    transform: scale(0.6);
+    opacity: 1;
+    pointer-events: auto;
   }
 
   #cube-chat {
@@ -6287,21 +6289,41 @@
        bottom right doesnt look pixel art and feels like a visual style
        different from all other icons." Lighter, too: four small clusters
        carry less ink than four solid blocks. -->
-  <svg class="nav-pixel fab-ai fab-flower" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-    <g class="fab-flower__bloom">
-      <rect class="fab-flower__petal fab-flower__petal--1" x="10" y="3" width="4" height="4" rx="1" />
-      <rect class="fab-flower__petal fab-flower__petal--2" x="5" y="7" width="4" height="4" rx="1" />
-      <rect class="fab-flower__petal fab-flower__petal--3" x="15" y="7" width="4" height="4" rx="1" />
-      <rect class="fab-flower__petal fab-flower__petal--4" x="7" y="12" width="4" height="4" rx="1" />
-      <rect class="fab-flower__petal fab-flower__petal--5" x="13" y="12" width="4" height="4" rx="1" />
-      <rect class="fab-flower__center" x="10" y="8" width="4" height="4" rx="1" />
+  <svg class="nav-pixel fab-ai fab-grid" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+    <g class="fab-grid__cells">
+      <rect x="4" y="4" width="3" height="3" rx="1" />
+      <rect x="7" y="4" width="3" height="3" rx="1" />
+      <rect x="4" y="7" width="3" height="3" rx="1" />
+      <rect x="7" y="7" width="3" height="3" rx="1" />
+      <rect x="14" y="4" width="3" height="3" rx="1" />
+      <rect x="17" y="4" width="3" height="3" rx="1" />
+      <rect x="14" y="7" width="3" height="3" rx="1" />
+      <rect x="17" y="7" width="3" height="3" rx="1" />
+      <rect x="4" y="14" width="3" height="3" rx="1" />
+      <rect x="7" y="14" width="3" height="3" rx="1" />
+      <rect x="4" y="17" width="3" height="3" rx="1" />
+      <rect x="7" y="17" width="3" height="3" rx="1" />
+      <rect x="14" y="14" width="3" height="3" rx="1" />
+      <rect x="17" y="14" width="3" height="3" rx="1" />
+      <rect x="14" y="17" width="3" height="3" rx="1" />
+      <rect x="17" y="17" width="3" height="3" rx="1" />
     </g>
-    <rect class="fab-flower__stem" x="11" y="15" width="2" height="6" rx=".7" />
-    <rect class="fab-flower__leaf" x="13" y="17" width="4" height="2" rx=".7" />
   </svg>
 </button>
 
 <style>
+  #cube-chat-fab .fab-grid {
+    width: 24px;
+    height: 24px;
+    overflow: visible;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  #cube-chat-fab:hover .fab-grid {
+    transform: rotate(45deg) scale(1.06);
+  }
+  #cube-chat-fab.is-open .fab-grid {
+    transform: rotate(45deg);
+  }
   #cube-chat-fab .fab-flower {
     width: 25px;
     height: 25px;
@@ -6445,7 +6467,13 @@
     }
 
     function ask(item) {
-      if (typing) return;
+      if (typing || item.asked) return;
+      item.asked = true;
+      /* A question that has been answered leaves the list, so the same answer
+         is never asked for twice. */
+      Array.prototype.forEach.call(suggestions.children, function (c) {
+        if (c.textContent === item.q) c.parentNode.removeChild(c);
+      });
       addMsg(item.q, "user");
       var delay = 600 + Math.min(900, item.a.length * 12);
       showTyping(delay, function () {
@@ -6522,9 +6550,30 @@
     }
 
     fab.addEventListener("click", function () {
+      if (panel.classList.contains("is-open")) {
+        close();
+        return;
+      }
       document.body.classList.add("controls-peek");
       setTimeout(open, 420);
     });
+    /* Pressing any control keeps the whole stack out for a few seconds, so
+       using one never makes its neighbours vanish under the pointer. */
+    var peekTimer = 0;
+    function holdPeek() {
+      document.body.classList.add("controls-peek");
+      clearTimeout(peekTimer);
+      peekTimer = setTimeout(function () {
+        if (!panel.classList.contains("is-open")) document.body.classList.remove("controls-peek");
+      }, 4200);
+    }
+    document.addEventListener(
+      "click",
+      function (e) {
+        if (e.target && e.target.closest && e.target.closest("#theme-toggle, .sound-toggle, .hand-toggle")) holdPeek();
+      },
+      true
+    );
     closeBtn.addEventListener("click", close);
     document.addEventListener("keydown", function (e) {
       if (e.key === "Escape" && panel.classList.contains("is-open")) close();
