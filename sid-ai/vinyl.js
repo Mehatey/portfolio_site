@@ -160,7 +160,7 @@
     ".vinyl__step svg{width:10px;height:10px}",
     ".vinyl__seat{bottom:calc(100% + 6px);top:auto}",
     ".vinyl__note{display:none}}",
-    "@media(max-width:760px){.home-page .vinyl{position:absolute;left:22px;right:auto;bottom:72px;gap:0}.home-page .vinyl__deck{width:58px}.home-page .vinyl__step,.home-page .vinyl__seat,.home-page .vinyl__note,.home-page .vinyl:after,.home-page .vinyl__levels{display:none}.home-page .vinyl__disc{background:radial-gradient(circle at 50% 50%,rgba(58,128,148,.72) 0 10%,rgba(15,29,39,.76) 11% 48%,rgba(96,150,163,.28) 49% 51%,rgba(13,23,31,.72) 52% 100%);box-shadow:0 10px 26px -14px rgba(0,0,0,.62),inset 0 0 0 1px rgba(210,235,245,.18)}}",
+    "@media(max-width:760px){.home-page .vinyl{position:absolute;left:22px;right:auto;bottom:72px;gap:0}.home-page .vinyl__deck{width:58px}.home-page .vinyl__arm,.home-page .vinyl__step,.home-page .vinyl__seat,.home-page .vinyl__note,.home-page .vinyl:after,.home-page .vinyl__levels{display:none}.home-page .vinyl__disc{background:radial-gradient(circle at 50% 50%,rgba(58,128,148,.72) 0 10%,rgba(15,29,39,.76) 11% 48%,rgba(96,150,163,.28) 49% 51%,rgba(13,23,31,.72) 52% 100%);box-shadow:0 10px 26px -14px rgba(0,0,0,.62),inset 0 0 0 1px rgba(210,235,245,.18)}}",
     "@media(max-height:520px) and (orientation:landscape){.vinyl__note{display:none}}",
     "@media(prefers-reduced-motion:reduce){",
     ".home-page .vinyl{animation:none}",
