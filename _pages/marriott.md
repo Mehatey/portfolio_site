@@ -2,6 +2,7 @@
 layout: project
 pillar: product
 permalink: /marriott/
+why: "A front desk associate has no time to hunt across screens mid shift, so the whole day sits on one."
 project_title: Marriott
 proj_num: "09"
 tagline: >

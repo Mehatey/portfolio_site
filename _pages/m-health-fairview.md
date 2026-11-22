@@ -2,6 +2,7 @@
 layout: project
 pillar: product
 permalink: /m-health-fairview/
+why: "A stressed patient can answer one question right away, how soon they need care, so the page starts there."
 project_title: M Health Fairview
 proj_num: "08"
 tagline: >

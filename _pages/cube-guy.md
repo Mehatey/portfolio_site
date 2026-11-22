@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /cube-guy/
+why: "He is a character I have been building since 2018, a square in an unfamiliar world adding sides."
 project_title: Cube of Creations
 proj_num: "01"
 tagline: A character built since 2018. A square in an unfamiliar world, collecting insights, adding sides, becoming a cube.

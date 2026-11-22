@@ -2,6 +2,7 @@
 layout: project
 pillar: ai
 permalink: /encoded/
+why: "The exhibition was unsanctioned, so I captured 25 artworks on a phone and looked like any other visitor."
 project_title: Encoded
 proj_num: "00"
 tagline: >

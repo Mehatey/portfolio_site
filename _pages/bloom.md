@@ -2,6 +2,7 @@
 layout: project
 pillar: ai
 permalink: /bloom/
+why: "I wanted a room you sit inside, where attention is the only interface and the voice has infinite patience."
 project_title: "Bodhi on Vision Pro"
 proj_num: "07"
 status: "Thesis · visionOS"

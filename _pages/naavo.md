@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /naavo/
+why: "Tradition alone turns nostalgic and a clinical system loses Ayurveda's warmth, so the identity holds both."
 project_title: Naavo
 proj_num: "09"
 tagline: >

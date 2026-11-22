@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /obin/
+why: "The agent drafts in minutes, so the analyst needs to see which claims are proved, unsupported, or still need judgment."
 project_title: Obin
 proj_num: "15"
 tagline: A verification workspace for AI-written venture debt memos. The agent drafts in minutes, then an analyst can see which claims are proved, unsupported, or still require judgment.

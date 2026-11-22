@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /aananda/
+why: "I started from conversations with my father, who studies Jain philosophy, before I looked at a single visual reference."
 project_title: Aananda
 proj_num: "13"
 tagline: >

@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /mind-your-feelings/
+why: "I wanted the room to react before people had finished choosing, so the brain answers in milliseconds."
 project_title: Mind Your Feelings
 proj_num: "03"
 tagline: >

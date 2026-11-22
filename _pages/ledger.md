@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /ledger/
+why: "A reviewer with twenty three submissions and a dozen tabs per candidate needs one surface and a decision."
 project_title: Ledger
 proj_num: "16"
 tagline: A reviewer has twenty three submissions, one sitting, and a dozen browser tabs per candidate. Ledger puts the repo, the demo, the README and the walkthrough on one surface and asks for a decision.

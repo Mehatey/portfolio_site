@@ -2,6 +2,7 @@
 layout: project
 pillar: product
 permalink: /mool/
+why: "Every fintech product for this audience looked like a Western banking app translated, so I built the folk art into the system."
 project_title: Mool
 proj_num: "06"
 tagline: >

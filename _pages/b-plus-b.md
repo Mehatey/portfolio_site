@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /b-plus-b/
+why: "After hours reading anonymous thoughts on the Strangers Project, I wanted to ask people one simple question: what feels beautiful, and what feels broken."
 project_title: Broken and Beautiful
 proj_num: "05"
 tagline: "A public interaction project inspired by the Strangers Project. After hours reading anonymous thoughts there, I wanted to recreate that sense of shared emotion by asking one simple question: what feels beautiful, and what feels broken."

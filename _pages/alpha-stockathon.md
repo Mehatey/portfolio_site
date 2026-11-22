@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /alpha-stockathon/
+why: "I was still learning the stock market myself, so every level had to teach one idea through a consequence."
 project_title: Alpha Stockathon
 proj_num: "14"
 tagline: >

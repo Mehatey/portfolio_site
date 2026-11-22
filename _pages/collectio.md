@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /collectio/
+why: "I designed it around where the classifier fails, so each part only claims what it can actually know."
 project_title: Collectio
 proj_num: "17"
 tagline: A municipal waste system for Panaji, Goa, designed around where its classifier fails rather than where it works. The truck delivers a weight. The belt says what was in it. The ward sees both. Each part only claims what it can actually know.

@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /ai-self/
+why: "I wanted to know what an AI actually notices, and whether living beside one all day feels like company or like intrusion."
 project_title: AI Self
 proj_num: "02"
 tagline: A research arc in three phases. First, experiments asking what AI actually perceives, and what that reveals about the gap between pattern and meaning. Second, a design concept for an AI that lives alongside you in mixed reality. Third, a VR world where an AI wakes up inside everything it has ever learned about humanity.
