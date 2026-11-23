@@ -2174,6 +2174,53 @@
       .proj-why + .proj-hero {
         margin-top: 0;
       }
+      .proj-pop {
+        position: fixed;
+        bottom: 22px;
+        z-index: 40;
+        display: grid;
+        gap: 2px;
+        padding: 10px 16px 11px;
+        border-radius: 14px;
+        border: 1px solid var(--ctl-edge, rgba(255, 255, 255, 0.2));
+        background: var(--ctl-glass, rgba(10, 15, 22, 0.6));
+        -webkit-backdrop-filter: blur(16px) saturate(1.3);
+        backdrop-filter: blur(16px) saturate(1.3);
+        color: var(--ink, #f4f7f8);
+        font-family: var(--font-head, "Figtree", sans-serif);
+        pointer-events: none;
+        opacity: 0;
+        transform: translateY(14px) scale(0.96);
+        transition:
+          opacity 0.35s ease,
+          transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .proj-pop span {
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        opacity: 0.6;
+      }
+      .proj-pop b {
+        font-size: 16px;
+        font-weight: 500;
+      }
+      .proj-pop--l {
+        left: 76px;
+      }
+      .proj-pop--r {
+        right: 84px;
+        transition-delay: 70ms;
+      }
+      .proj-pop.is-on {
+        opacity: 1;
+        transform: none;
+      }
+      @media (max-width: 760px), print {
+        .proj-pop {
+          display: none;
+        }
+      }
       .proj-decisions {
         max-width: 1180px;
         margin: 0 auto;
@@ -8027,21 +8074,6 @@
           {% endif %}
           <p class="project-brief__summary">{{ page.cover_summary | default: page.quick_read | default: page.tagline }}</p>
           {% if page.meta %}
-          <ul class="project-brief__facts" aria-label="Project facts">
-          {% assign cover_fact_labels = "Role|Partner|Studio|Agency|Team|Client|Duration|Timeline|Year" | split: "|" %}
-            {% for item in page.meta %}
-              {% if cover_fact_labels contains item.label %}
-                {% assign skip_self = false %}
-                {% if item.label == "Client" and item.value == "Self Initiated" %}{% assign skip_self = true %}{% endif %}
-                {% unless skip_self %}
-                <li>
-                  <span class="project-brief__label">{{ item.label }}</span>
-                  <span>{{ item.value }}</span>
-                </li>
-                {% endunless %}
-              {% endif %}
-            {% endfor %}
-          </ul>
           {% assign has_cover_links = false %}
           {% for item in page.meta %}{% assign item_link = item.url | default: item.href %}{% if item_link %}{% assign has_cover_links = true %}{% endif %}{% endfor %}
           {% if has_cover_links %}
@@ -8235,6 +8267,30 @@
       </section>
       {% endif %}
 
+      {% if page.meta %}
+      {% assign pop_year = "" %}{% assign pop_role = "" %}
+      {% for item in page.meta %}{% if item.label == "Year" %}{% assign pop_year = item.value %}{% endif %}{% if item.label == "Role" %}{% assign pop_role = item.value %}{% endif %}{% endfor %}
+      {% if pop_year != "" %}<div class="proj-pop proj-pop--l" aria-hidden="true"><span>When</span><b>{{ pop_year }}</b></div>{% endif %}
+      {% if pop_role != "" %}<div class="proj-pop proj-pop--r" aria-hidden="true"><span>Role</span><b>{{ pop_role }}</b></div>{% endif %}
+      <script>
+        (function () {
+          var pops = document.querySelectorAll(".proj-pop");
+          if (!pops.length) return;
+          function tick() {
+            var vh = window.innerHeight;
+            var y = window.scrollY || 0;
+            var doc = document.documentElement.scrollHeight;
+            var on = y > vh * 0.85 && y + vh < doc - 520;
+            pops.forEach(function (p) {
+              p.classList.toggle("is-on", on);
+            });
+          }
+          window.addEventListener("scroll", tick, { passive: true });
+          window.addEventListener("resize", tick, { passive: true });
+          tick();
+        })();
+      </script>
+      {% endif %}
       <div class="case-study-layout">
         <aside class="case-context" aria-label="Case-study navigation">
           {% comment %} The Role, Client and Year facts that sat here are already the row under the title. Said twice, the second time only costs reading.
