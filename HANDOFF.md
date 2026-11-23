@@ -1244,3 +1244,10 @@ Role/Client/Year block was removed because the row under the title says it.
 **About.** FAQ is a class toggle (`.is-open`), not a waiting transition, so a
 click always lands. Portrait is held back with `.px-wait` until the shader
 reports in, to stop the real photo flashing first.
+
+Later the same day: a hairline at the top of every page fills as you scroll
+(`.page-line`, scroll-driven CSS, in `studio_nav.html`). On phones the contact
+desk starts pixelated and a tap reveals the photo. The print sheet now hides
+the dock, popups, vinyl and background field. The vinyl label no longer prints
+curved text, which was unreadable at that size. The 18 project pages all carry
+a `why:` line; any new project needs one too.
