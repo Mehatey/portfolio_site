@@ -30,6 +30,51 @@
       main {
         width: min(680px, 100%);
       }
+      .face {
+        position: relative;
+        width: 64px;
+        height: 64px;
+        margin-bottom: 30px;
+        border: 1.5px solid currentColor;
+        border-radius: 8px;
+        opacity: 0.9;
+        animation: faceBob 4s ease-in-out infinite;
+      }
+      .face i {
+        position: absolute;
+        top: 22px;
+        width: 7px;
+        height: 11px;
+        border-radius: 2px;
+        background: currentColor;
+        transform: translate(var(--ex, 0), var(--ey, 0));
+        transition: transform 120ms ease-out;
+      }
+      .face i:nth-child(1) {
+        left: 17px;
+      }
+      .face i:nth-child(2) {
+        right: 17px;
+      }
+      .face b {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: 15px;
+        height: 2px;
+        background: currentColor;
+        transform: rotate(-4deg);
+      }
+      @keyframes faceBob {
+        50% {
+          transform: translateY(-6px) rotate(-2deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .face {
+          animation: none;
+        }
+      }
       p {
         margin: 0;
       }
@@ -97,6 +142,7 @@
   </head>
   <body>
     <main>
+      <div class="face" id="face" aria-hidden="true"><i></i><i></i><b></b></div>
       <p class="code">404 · Page not found</p>
       <h1>This page is not here.</h1>
       <p class="note">The address may have changed. Here's the rest of the site.</p>
@@ -118,6 +164,21 @@
       </nav>
       <p class="note" id="guess" hidden></p>
     </main>
+    <script>
+      (function () {
+        var f = document.getElementById("face");
+        if (!f || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        addEventListener("pointermove", function (e) {
+          var r = f.getBoundingClientRect();
+          var dx = e.clientX - (r.left + r.width / 2),
+            dy = e.clientY - (r.top + r.height / 2);
+          var d = Math.hypot(dx, dy) || 1,
+            k = Math.min(1, d / 300);
+          f.style.setProperty("--ex", (dx / d) * 4 * k + "px");
+          f.style.setProperty("--ey", (dy / d) * 4 * k + "px");
+        });
+      })();
+    </script>
     <script>
       (function () {
         var W = [{% for w in site.data.works %}{% unless w.hidden %}{ t: {{ w.title | jsonify }}, u: {{ w.url | jsonify }} }{% unless forloop.last %},{% endunless %}{% endunless %}{% endfor %}];
