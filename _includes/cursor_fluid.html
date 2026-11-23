@@ -7084,15 +7084,42 @@
 
     // ── HOVER AWARENESS ── grow cursor over interactive surfaces
     if (!isTouchDevice) {
+      // ── THE CURSOR NAMES THE IMPORTANT THINGS ── a short verb on the few targets worth one.
+      // Authored data-cursor-action wins; the rest come from this table. Deliberately short:
+      // project tiles, the vinyl, case-study pictures and the next-project panel, not every link.
+      const CUE_MAP = [
+        [".nextscroll__pin", "Next project"],
+        [".wk-card, .play-project", "View project"],
+        [".vinyl__disc", () => (document.querySelector(".vinyl.is-playing") ? "Pause" : "Play")],
+        [".case-story .cs-grid-item, .case-story .cs-bleed, .case-story .cs-bleed-full", "Expand"],
+      ];
+      function cueTarget(node) {
+        if (!node || !node.closest) return null;
+        const own = node.closest("[data-cursor-action]");
+        if (own) return own;
+        for (const [sel] of CUE_MAP) {
+          const hit = node.closest(sel);
+          if (hit) return hit;
+        }
+        return null;
+      }
+      function cueText(el) {
+        const own = el.getAttribute("data-cursor-action");
+        if (own) return own;
+        for (const [sel, label] of CUE_MAP) {
+          if (el.matches(sel)) return typeof label === "function" ? label() : label;
+        }
+        return "Click me";
+      }
       const HOVER_SELECTOR =
         'a, button, [role="button"], [data-cursor-action], .work-card, .nav-icon, .card, video, .filter-btn, .footer-cta, .site-footer-cta, .about-resume-link, .desk-play-reel, .meta-item';
       document.addEventListener(
         "mouseover",
         (e) => {
           if (e.target.closest && e.target.closest(HOVER_SELECTOR)) dot.classList.add("is-hover");
-          const actionTarget = e.target.closest && e.target.closest("[data-cursor-action]");
+          const actionTarget = cueTarget(e.target);
           if (actionTarget && actionCue) {
-            actionCue.textContent = actionTarget.getAttribute("data-cursor-action") || "Click me";
+            actionCue.textContent = cueText(actionTarget);
             actionCue.classList.add("is-visible");
             dot.classList.add("is-action");
           }
@@ -7111,9 +7138,9 @@
             const to = e.relatedTarget;
             if (!to || !(to.closest && to.closest(HOVER_SELECTOR))) dot.classList.remove("is-hover");
           }
-          if (e.target.closest && e.target.closest("[data-cursor-action]")) {
+          if (cueTarget(e.target)) {
             const actionTo = e.relatedTarget;
-            if (!actionTo || !(actionTo.closest && actionTo.closest("[data-cursor-action]"))) {
+            if (!actionTo || cueTarget(actionTo) !== cueTarget(e.target)) {
               if (actionCue) actionCue.classList.remove("is-visible");
               dot.classList.remove("is-action");
             }

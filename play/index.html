@@ -2233,6 +2233,8 @@ title: Play · Sid Mehta
           "uniform float uVel;",
           "uniform float uWide;",
           "uniform float uLight;",
+          "uniform float uTravel;",
+          "uniform vec2 uM;",
           "",
           "float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}",
           "float noise(vec2 p){",
@@ -2256,65 +2258,41 @@ title: Play · Sid Mehta
           "  return w/(d+w);",
           "}",
           "",
+          // A corridor in perspective. Every pixel is measured from a vanishing point that drifts with
+          // the pointer; the larger of its two offsets picks the wall it is on, and 1/that offset is its
+          // depth. Rings at whole depths are the receding frames, rays at whole positions along a wall are
+          // the converging edges. Scrolling pushes the depth, so the page reads as travelling forward
+          // through a room that the photographs hang inside, behind them and in the gaps between them.
           "void main(){",
           "  vec2 uv=gl_FragCoord.xy/uRes;",
           "  float ar=uRes.x/max(1.0,uRes.y);",
-          "",
-          // The hole in the middle. `edge` is 1 at the two page edges and 0
-          // across the band the photographs occupy. On a narrow viewport that
-          // band is the whole screen, so the field simply goes away.
-          "  float centre=abs(uv.x-0.5)*2.0;",
-          // 0.80 is the page's own margin expressed in this coordinate: the
-          // grid stops 9% of the viewport short of each edge, so |x-0.5|*2
-          // reaches 0.82 there. Starting the falloff just inside that means
-          // the curves are always fully outside the pictures.
-          "  float edge=smoothstep(0.78,0.90,centre);",
-          // uWide is the CSS width, not uRes.x. The canvas runs at 0.4 scale, so
-          // uRes.x is 605 on a 1512px screen and gating on it faded the field to
-          // a tenth of itself on exactly the wide displays it exists for.
-          "  edge*=smoothstep(560.0,980.0,uWide);",
-          "  if(edge<=0.001){gl_FragColor=vec4(0.0);return;}",
-          "",
-          // Velocity stretches the noise along y (streaking) and lifts gain.
-          "  float stretch=mix(2.6,0.9,clamp(uVel,0.0,1.0));",
-          "  float gain=1.0+uVel*1.35;",
-          "",
-          "  float acc=0.0;",
-          "  vec3 col=vec3(0.0);",
-          "  const int N=3;",
-          "  for(int i=0;i<N;i++){",
-          "    float fi=float(i);",
-          "    float t=fi/float(N-1);",
-          // Mirrored pairs: the same seed on both sides, so the two margins
-          // rhyme without being identical.
-          // The band the mask actually lets through is the outer 10% of the
-          // viewport — about 150px at 1512. Every one of these numbers is sized
-          // to that: two of the three ribbons used to sit at x=178 and x=302,
-          // which is behind the photographs, and the wander was 146–360px wide,
-          // so what survived the mask was one faint line that spent most of its
-          // time outside the band. They live in the margin now.
-          "    float amp=mix(0.013,0.032,t)*ar;",
-          "    float w=mix(0.0026,0.0011,t)*ar;",
-          "    float L=ribbon(uv,mix(0.022,0.080,t),fi*3.7,amp,w,stretch);",
-          "    float R=ribbon(uv,mix(0.978,0.920,t),fi*3.7+53.0,amp,w,stretch);",
-          "    float s=(L+R)*mix(1.0,0.42,t);",
-          "    acc+=s;",
-          // Cold ramp with one warm ribbon in it (i==2).
-          // Light mode is not the dark palette dimmed — it is the opposite
-          // problem. On cream, pale blue light *added* to the ground is
-          // invisible by construction; measured, the brightest pixel in the
-          // margin was the background itself. So in light the ribbons are ink:
-          // deep slate-teal drawn onto paper, with the same one warm line.
-          "    vec3 cd=(i==2)?vec3(0.98,0.62,0.40):mix(vec3(0.42,0.72,1.0),vec3(0.55,0.95,0.92),t);",
-          "    vec3 cl=(i==2)?vec3(0.55,0.24,0.12):mix(vec3(0.10,0.24,0.42),vec3(0.09,0.31,0.31),t);",
-          "    vec3 c=mix(cd,cl,uLight);",
-          "    col+=c*s;",
-          "  }",
-          "  col/=max(acc,0.0001);",
-          "",
-          // A slow vertical breath so the field is never uniformly bright.
-          "  float breath=0.72+0.28*noise(vec2(uv.y*1.4-uTime*0.03,uTime*0.017));",
-          "  float a=clamp(acc*mix(0.20,0.30,uLight)*edge*gain*breath,0.0,0.62);",
+          "  vec2 p=(uv-vec2(0.5+uM.x*0.06,0.5+uM.y*0.05))*vec2(ar,1.0);",
+          "  float r=max(abs(p.x),abs(p.y));",
+          "  r=max(r,0.0001);",
+          "  float z=0.2/r;",
+          "  float zz=z+uTravel;",
+          "  float s=(abs(p.x)>abs(p.y))?p.y/abs(p.x):p.x/abs(p.y);",
+          // Screen-constant line width: depth changes by z/r per unit of r, so the width in depth units
+          // grows with z/r, and the width along a wall is a fixed fraction over r.
+          "  float wz=z/r*0.0016;",
+          "  float fr=fract(zz);",
+          "  float dr=min(fr,1.0-fr);",
+          "  float ring=smoothstep(wz,0.0,dr);",
+          "  float sk=s*5.0;",
+          "  float d2=abs(fract(sk+0.5)-0.5);",
+          "  float ws=0.0016/r*5.0;",
+          "  float ray=smoothstep(ws,0.0,d2);",
+          // Far end of the corridor melts away, and the middle column is held back so it can never fight
+          // the headline or a photograph.
+          "  float fade=smoothstep(0.05,0.4,r);",
+          "  float side=mix(0.5,1.0,smoothstep(0.2,0.6,abs(uv.x-0.5)*2.0));",
+          "  float a=(ring*0.9+ray*0.55)*fade*side;",
+          "  a*=mix(0.34,0.52,uLight)*(1.0+uVel*0.9);",
+          "  a=clamp(a,0.0,0.6);",
+          "  float warm=(mod(floor(zz),4.0)<0.5)?1.0:0.0;",
+          "  vec3 cd=mix(vec3(0.42,0.72,1.0),vec3(0.98,0.66,0.42),warm*ring);",
+          "  vec3 cl=mix(vec3(0.10,0.24,0.42),vec3(0.55,0.24,0.12),warm*ring);",
+          "  vec3 col=mix(cd,cl,uLight);",
           "  gl_FragColor=vec4(col*a,a);",
           "}",
         ].join("\n");
@@ -2348,6 +2326,21 @@ title: Play · Sid Mehta
         var uVel = gl.getUniformLocation(prog, "uVel");
         var uWide = gl.getUniformLocation(prog, "uWide");
         var uLight = gl.getUniformLocation(prog, "uLight");
+        var uTravel = gl.getUniformLocation(prog, "uTravel");
+        var uM = gl.getUniformLocation(prog, "uM");
+        var mx = 0,
+          my = 0,
+          sx = 0,
+          sy = 0,
+          travel = 0;
+        window.addEventListener(
+          "pointermove",
+          function (e) {
+            mx = (e.clientX / window.innerWidth) * 2 - 1;
+            my = -((e.clientY / window.innerHeight) * 2 - 1);
+          },
+          { passive: true }
+        );
 
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -2435,6 +2428,11 @@ title: Play · Sid Mehta
           gl.uniform1f(uTime, (now - t0) / 1000);
           gl.uniform1f(uVel, vel);
           gl.uniform1f(uWide, window.innerWidth);
+          sx += (mx - sx) * 0.05;
+          sy += (my - sy) * 0.05;
+          travel += 0.0009 + d * 0.0016;
+          gl.uniform1f(uTravel, travel);
+          gl.uniform2f(uM, sx, sy);
           gl.uniform1f(uLight, document.documentElement.getAttribute("data-theme") === "light" ? 1 : 0);
           // Clear every frame. The blend accumulates, so without this the field
           // saturates to a solid band after a few seconds.
