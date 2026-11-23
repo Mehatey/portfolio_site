@@ -1223,10 +1223,11 @@ trimmed and restyled; `sid-ai/vinyl.js` has an `artist` field per track that
 is empty until Sid supplies credits (shows "Sid's pick").
 
 **Traps.**
+
 - The lake does not start in headless Chrome with SwiftShader, because
   `needsLiteHero()` in `sid_home.html` treats it as a weak GPU. Launch with
   real GPU and `--blink-settings=primaryHoverType=2,availableHoverTypes=2,
-  primaryPointerType=4,availablePointerTypes=4` or `(hover: none)` skips it.
+primaryPointerType=4,availablePointerTypes=4` or `(hover: none)` skips it.
 - `_site` JS is minified in production-like builds, so grepping function
   names there finds nothing.
 - Prettier prints "unchanged" for several layouts that are in its ignore
