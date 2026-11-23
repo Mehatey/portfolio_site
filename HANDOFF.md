@@ -1205,3 +1205,41 @@ pixel canvas, breathing loop, or pointer-tracked spotlight competes with
 it." Someone simplified it after this entry was written and never
 updated the note. Confirmed live (hovered a real `.wk-card`, read the
 computed `transform`); the simplification is correct and current.
+
+## 22 Nov, interaction pass
+
+**The Works hover note above is superseded.** Sid asked for every hover and
+click to be very visible, so `.wk-card` and `.play-project` now lift 8px, zoom
+the picture, light a rim and dim their siblings (`:has(:hover)`).
+
+**Hero lake (`assets/js/hero-lake.js`).** New: comic speech bubbles (DOM,
+`.lake-bubble`, CSS injected by the script), Gingu drinks for real on
+hover or click, clicking Sid explodes him into ~1300 instanced cubes sampled
+from the skinned mesh (colour from the texture) that spring home, clicks on
+water start a travelling wavefront (`startWave`) that pushes pads, fish,
+awards and letters as it reaches them, award plaques have a ShaderMaterial
+sheen, hovering a lily pad ripples it. The hero text row and vinyl were
+trimmed and restyled; `sid-ai/vinyl.js` has an `artist` field per track that
+is empty until Sid supplies credits (shows "Sid's pick").
+
+**Traps.**
+- The lake does not start in headless Chrome with SwiftShader, because
+  `needsLiteHero()` in `sid_home.html` treats it as a weak GPU. Launch with
+  real GPU and `--blink-settings=primaryHoverType=2,availableHoverTypes=2,
+  primaryPointerType=4,availablePointerTypes=4` or `(hover: none)` skips it.
+- `_site` JS is minified in production-like builds, so grepping function
+  names there finds nothing.
+- Prettier prints "unchanged" for several layouts that are in its ignore
+  list; `--check` still passes.
+- `assets/css/sid-home.scss` is Sid's uncommitted file. Never stage it.
+- `?` already opens a shortcuts panel (G then W/P/A/C/N/H, R, T, Esc). Do not
+  add a second one.
+
+**Project pages.** Every project has a `why:` front matter line shown above
+the cover (`.proj-why`), written from facts already on that page. When and
+Role pop up bottom left and right while reading (`.proj-pop`). The rail's
+Role/Client/Year block was removed because the row under the title says it.
+
+**About.** FAQ is a class toggle (`.is-open`), not a waiting transition, so a
+click always lands. Portrait is held back with `.px-wait` until the shader
+reports in, to stop the real photo flashing first.
