@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /illustrations/
+why: "For seven years the only rule was following what felt interesting at the time, so this is range, not a brand."
 project_title: Illustrations
 proj_num: "16"
 tagline: >

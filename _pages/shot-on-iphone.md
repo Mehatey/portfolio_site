@@ -1,6 +1,7 @@
 ---
 layout: project
 permalink: /shot-on-iphone/
+why: "I wanted a photograph to work as a question instead of a statement, so each print opens the story behind the frame with one scan."
 project_title: Shot on iPhone
 proj_num: "08"
 tagline: >
