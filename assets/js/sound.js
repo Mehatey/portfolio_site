@@ -91,7 +91,16 @@
        come down again on top of that so the interface reads as a texture you
        notice rather than a thing that answers you. */
     master.gain.value = 0.028;
-    master.connect(ctx.destination);
+    /* A soft limiter after the master: hovering fast across a grid stacks voices, and stacked
+       voices are the only way this file can ever clip. */
+    var lim = ctx.createDynamicsCompressor();
+    lim.threshold.value = -14;
+    lim.knee.value = 12;
+    lim.ratio.value = 8;
+    lim.attack.value = 0.003;
+    lim.release.value = 0.12;
+    master.connect(lim);
+    lim.connect(ctx.destination);
     return ctx;
   }
 
