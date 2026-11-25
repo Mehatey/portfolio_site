@@ -1,0 +1,140 @@
+<!-- ── CUBE GUY ON THE READING LINE ──────────────────────────────────────────
+     The hairline across the top of a case study fills as the page is read. He
+     hangs from it upside down and walks along with the scroll: his position is
+     the same scroll timeline as the line, so he is always at its leading edge.
+     He walks only while the page is moving, faces the way you scroll, stands
+     still when you stop, and hops once when you reach the end. Same gate as
+     the line itself: needs scroll timelines, off for reduced motion and print.
+     The only script toggles three classes. No loop, nothing while idle. -->
+<span class="line-walker" aria-hidden="true"
+  ><span class="line-walker__body"
+    ><svg viewBox="0 0 8 9" width="16" height="18" shape-rendering="crispEdges">
+      <g class="lw-leg lw-leg--a"><rect x="2" y="0" width="1" height="2" fill="#0b0d14" /></g>
+      <g class="lw-leg lw-leg--b"><rect x="5" y="0" width="1" height="2" fill="#0b0d14" /></g>
+      <rect x="0" y="1" width="8" height="8" fill="rgba(255,255,255,0.9)" />
+      <rect x="1" y="2" width="6" height="6" fill="#0b0d14" />
+      <g class="lw-eyes" fill="#fff">
+        <rect x="2" y="4" width="1" height="2" />
+        <rect x="5" y="4" width="1" height="2" />
+      </g></svg></span
+></span>
+<style>
+  .line-walker {
+    display: none;
+  }
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      .line-walker {
+        display: block;
+        position: fixed;
+        top: 3px;
+        left: 0;
+        width: 16px;
+        height: 18px;
+        z-index: 9501;
+        pointer-events: none;
+        opacity: 0;
+        animation: lwTravel linear both;
+        animation-timeline: scroll(root block);
+      }
+      @keyframes lwTravel {
+        0% {
+          transform: translateX(0);
+          opacity: 0;
+        }
+        2% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateX(calc(100vw - 16px));
+          opacity: 1;
+        }
+      }
+      .line-walker__body {
+        display: block;
+        width: 16px;
+        height: 18px;
+        transform-origin: 50% 0;
+      }
+      .line-walker.is-left .line-walker__body {
+        transform: scaleX(-1);
+      }
+      .line-walker svg {
+        display: block;
+        overflow: visible;
+      }
+      .lw-eyes {
+        transform: translateX(0.5px);
+      }
+      .line-walker.is-left .lw-eyes {
+        transform: translateX(-0.5px);
+      }
+      /* two legs trade places while the page moves */
+      .line-walker.is-walking .lw-leg--a {
+        animation: lwStep 0.36s steps(2, jump-none) infinite;
+      }
+      .line-walker.is-walking .lw-leg--b {
+        animation: lwStep 0.36s steps(2, jump-none) infinite reverse;
+      }
+      @keyframes lwStep {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-1px);
+        }
+      }
+      .line-walker.is-done svg {
+        animation: lwHop 0.7s cubic-bezier(0.3, 1.5, 0.5, 1) both;
+      }
+      @keyframes lwHop {
+        0% {
+          transform: translateY(0);
+        }
+        40% {
+          transform: translateY(-3px);
+        }
+        100% {
+          transform: translateY(0);
+        }
+      }
+    }
+  }
+  @media print {
+    .line-walker {
+      display: none !important;
+    }
+  }
+</style>
+<script>
+  (function () {
+    var el = document.querySelector(".line-walker");
+    if (!el || getComputedStyle(el).display === "none") return;
+    var last = window.scrollY,
+      idle = 0,
+      done = false;
+    window.addEventListener(
+      "scroll",
+      function () {
+        var y = window.scrollY,
+          max = document.documentElement.scrollHeight - window.innerHeight;
+        if (y !== last) el.classList.toggle("is-left", y < last);
+        last = y;
+        el.classList.add("is-walking");
+        clearTimeout(idle);
+        idle = setTimeout(function () {
+          el.classList.remove("is-walking");
+        }, 140);
+        var atEnd = max > 0 && y >= max - 2;
+        if (atEnd && !done) {
+          done = true;
+          el.classList.add("is-done");
+        } else if (!atEnd && done) {
+          done = false;
+          el.classList.remove("is-done");
+        }
+      },
+      { passive: true }
+    );
+  })();
+</script>
