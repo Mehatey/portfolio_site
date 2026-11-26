@@ -9710,6 +9710,8 @@
       }
 
       // Water — smooth multi-scale caustics, no blobs
+      /* Reduced motion: the water paints one still frame and stops, and the motes below are not created at all. */
+      const stillOnly = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
       function initWater(canvasId, parentSel, amp, tickSpeed, phaseOffset) {
         const canvas = document.getElementById(canvasId);
         if (!canvas) return;
@@ -9869,7 +9871,7 @@
           }
           ctx.putImageData(img, 0, 0);
           wt += tickSpeed || 0.003;
-          if (!waterHidden && !waterOff) waterRaf = requestAnimationFrame(draw);
+          if (!waterHidden && !waterOff && !stillOnly) waterRaf = requestAnimationFrame(draw);
           else waterRaf = 0;
         }
         document.addEventListener("visibilitychange", () => {
@@ -9901,6 +9903,7 @@
 
       // ── AMBIENT PARTICLES — subtle motes biased to right side ──
       (function () {
+        if (stillOnly) return;
         const canvas = document.createElement("canvas");
         // z-index:1 — behind all content, only visible on black areas
         canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1;";
