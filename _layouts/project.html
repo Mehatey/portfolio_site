@@ -64,7 +64,15 @@
     {%- if pw and pw.desc and pw.desc != "" -%}
       {%- assign proj_desc = pw.desc | strip_newlines -%}
       {%- assign proj_desc_long = proj_desc -%}
-      {%- if pw.proof and pw.proof != "" -%}{%- assign proj_desc_long = proj_desc | append: " " | append: pw.proof | append: "." -%}{%- endif -%}
+      {%- comment -%} A concept or self initiated project says so in the preview, so a quoted figure is never read as a shipped result. A
+      combined line over 200 characters falls back to the description alone rather than ending in an ellipsis. {%- endcomment -%}
+      {%- if pw.proof and pw.proof != "" -%}
+        {%- assign proj_status = "" -%}
+        {%- if pw.status == "Concept" or pw.status == "Self initiated" -%}{%- assign proj_status = pw.status | append: ". " -%}{%- endif -%}
+        {%- assign proj_combined = proj_desc | append: " " | append: proj_status | append: pw.proof | append: "." -%}
+        {%- assign proj_combined_len = proj_combined | size -%}
+        {%- if proj_combined_len <= 200 -%}{%- assign proj_desc_long = proj_combined -%}{%- endif -%}
+      {%- endif -%}
     {%- endif -%}
     <meta name="description" content="{{ proj_desc | truncate: 160 | escape }}" />
     <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.permalink }}" />
