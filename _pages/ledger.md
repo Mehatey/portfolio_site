@@ -12,7 +12,7 @@ category: Agentic AI · Design Systems
 year: "2026"
 hero_bg: "radial-gradient(ellipse at 45% 40%, #1b1e2c 0%, #12141d 55%, #0a0b11 100%)"
 hero_image: "17.ledger/01-review.webp"
-og_image: "17.ledger/v3-review-poster.jpg"
+og_image: "assets/img/og/ledger.jpg"
 hero_pos: "50% 16%"
 # ── THE COVER IS THE PRODUCT NOW ──────────────────────────────────────────
 # Sid: "ledger cover pic looks bad and tells me nothing about the product, at

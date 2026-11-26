@@ -12,7 +12,7 @@ category: Agentic AI · Fintech
 year: "2026"
 hero_bg: "radial-gradient(ellipse at 40% 45%, #11151c 0%, #0a0d12 55%, #05070a 100%)"
 hero_image: "16.obin/00-full.webp"
-og_image: "16.obin/v1-agent-poster.jpg"
+og_image: "assets/img/og/obin.jpg"
 hero_pos: "50% 30%"
 hero_mode: artifact
 meta:
