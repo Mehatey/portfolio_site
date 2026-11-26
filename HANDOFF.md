@@ -1251,3 +1251,32 @@ desk starts pixelated and a tap reveals the photo. The print sheet now hides
 the dock, popups, vinyl and background field. The vinyl label no longer prints
 curved text, which was unreadable at that size. The 18 project pages all carry
 a `why:` line; any new project needs one too.
+
+## 25 Nov, two small tab and line additions
+
+**Tab life** (`assets/js/tab-life.js`, loaded from `_includes/head_bootstrap.html`,
+so every page). When the tab is hidden the favicon becomes the cube with closed
+eyes and the title reads `Still here · <title>`. On return the eyes open, the
+title reads `Hi again · <title>` for 1.6s, then the real title and the original
+favicon come back. The favicon is a canvas data URL appended as a second
+`rel=icon` link and removed again, so the real icons are never edited. No timers
+run while hidden.
+
+**Cube Guy on the reading line** (`_includes/line_walker.html`, included at the
+end of `_layouts/project.html`, case studies only). A 16x18 pixel cube hangs
+upside down from the `.page-line` and rides the same `scroll(root block)`
+timeline, so he is always at the leading edge. A passive scroll listener only
+toggles `is-walking` (140ms idle timeout), `is-left` (scroll direction) and
+`is-done` (within 2px of the bottom, one hop). Same gate as the line: needs
+scroll timelines, off for reduced motion and print.
+
+Traps found while testing both:
+
+- The hop animates the SVG, not `.line-walker__body`, because the body carries
+  the direction flip transform and an animation on it would drop the flip.
+- Case study height changes as media lazy-loads (10078 to 9350 over one visit),
+  so a single `scrollTo(bottom)` in a test lands short. Loop it, and compute
+  `max` at event time as the listener does.
+- Puppeteer `clip` is in document coordinates, not viewport coordinates. Pass
+  `scrollY` as `y` or the screenshot is of the top of the page.
+- `/now/` is gone on purpose (6b70eed9). A 404 there is not a bug.
