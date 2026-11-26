@@ -1280,3 +1280,24 @@ Traps found while testing both:
 - Puppeteer `clip` is in document coordinates, not viewport coordinates. Pass
   `scrollY` as `y` or the screenshot is of the top of the page.
 - `/now/` is gone on purpose (6b70eed9). A 404 there is not a bug.
+
+## 26 Nov, recruiter ready pass
+
+Four read only reviewers (home, case studies, works/play/about/contact, technical) fed this. Everything fixed is in
+TASKS_RECRUITER_READY.md along with the list held for Sid. Traps found on the way:
+
+- **The lite hero has two grounds.** `html.hero-lite` is a cream ground above 760px and a dark teal gradient at 760px
+  and below. Any rule that assumes one breaks the other. The first lite hero fix assumed cream everywhere and made
+  phones unreadable until it was scoped to `min-width: 761px`.
+- **Link previews come from works.yml**, not the tagline: `desc` for the meta description, `desc` plus status
+  (only "Concept" or "Self initiated") plus `proof` for og, twitter and JSON-LD. Over 200 characters it falls back to
+  `desc`. So a works.yml entry is now the source of what a recruiter sees when a link is shared.
+- **Shared touch target rules fight local ones.** `design_tokens.html` put a 44px min-height on `.contact-copybtn`,
+  which beat the page's own pseudo-element hit area and made the pills 47x44 circles.
+- **The About card carries a pixel dissolve mask** over its top fifth and clips its children, so anything placed there
+  (the seal) is cut up. On phones the seal sits at `top: 22%`.
+- **Case studies now skip the ambient motes and paint one still water frame under reduced motion.**
+- **Tablet portrait (761 to 900px) shows the hero buttons again**; only the duplicate status line is hidden.
+- **Puppeteer `clip` is in document coordinates.** Pass `scrollY` as `y` or the screenshot is of the top of the page.
+- **A `requestAnimationFrame` hook is the fast way to find a runaway loop**: wrap it in evaluateOnNewDocument and key
+  counts by stack.
