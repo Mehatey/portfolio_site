@@ -37,8 +37,8 @@ highlights:
   - value: "2×"
     label: Webby Awards
 quick_read: >
-  I owned the on-site capture and location-based deployment pipeline, from Polycam scans in the galleries to Niantic Lightship VPS localisation. That made 25 artist-led AR activations discoverable in the American Wing for 2,000+ visitors.
-cover_summary: 25 artist-led AR activations, discovered by 2,000+ visitors in the American Wing.
+  I owned the on-site capture and location-based deployment pipeline, from Polycam scans in the galleries to Niantic Lightship VPS localisation. That made 25 artist-led AR activations discoverable in the American Wing, and they were activated 2,000+ times.
+cover_summary: 25 artist-led AR activations, opened 2,000+ times in the American Wing.
 award_badge: "2x Webby Awards 2026"
 refl_type: Testimonial
 reflection: >
