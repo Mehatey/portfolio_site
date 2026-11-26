@@ -555,9 +555,10 @@
 
     var reveal = 1,
       want = 1,
-      /* Start with the coloured pixel treatment: it preserves the face and
-         reads as a finished illustration before the slower cycle begins. */
-      mode = 6,
+      /* Start on DUST, the photograph reconstructed. The coarse PIXEL law
+         arrives later in the cycle; as the first frame it left the only
+         face on the page unrecognisable. */
+      mode = 0,
       burst = 0,
       t0 = performance.now(),
       visible = true,
