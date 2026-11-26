@@ -57,10 +57,19 @@
     {%- assign pw = site.data.works | where: "url", page.url | first -%}
     {%- if pw and pw.label and pw.label != "" -%}{%- assign proj_head = page.project_title | append: ": " | append: pw.label -%}{%- endif -%}
     <title>{{ proj_head }} · Sid Mehta</title>
-    <meta name="description" content="{{ page.tagline | default: page.project_title | strip_newlines | truncate: 155 }}" />
+    {%- comment -%} Previews come from the curated one line `desc` and `proof` in works.yml, not from the long tagline, which was being cut off
+    mid sentence with an ellipsis in every link unfurl. The tagline stays the fallback for a project with no works.yml entry. {%- endcomment -%}
+    {%- assign proj_desc = page.tagline | default: page.project_title | strip_newlines -%}
+    {%- assign proj_desc_long = proj_desc -%}
+    {%- if pw and pw.desc and pw.desc != "" -%}
+      {%- assign proj_desc = pw.desc | strip_newlines -%}
+      {%- assign proj_desc_long = proj_desc -%}
+      {%- if pw.proof and pw.proof != "" -%}{%- assign proj_desc_long = proj_desc | append: " " | append: pw.proof | append: "." -%}{%- endif -%}
+    {%- endif -%}
+    <meta name="description" content="{{ proj_desc | truncate: 160 }}" />
     <link rel="canonical" href="{{ site.url }}{{ site.baseurl }}{{ page.permalink }}" />
     <meta property="og:title" content="{{ proj_head }} · Sid Mehta" />
-    <meta property="og:description" content="{{ page.tagline | default: page.project_title | strip_newlines | truncate: 200 }}" />
+    <meta property="og:description" content="{{ proj_desc_long | truncate: 200 }}" />
     <meta property="og:type" content="article" />
     <meta property="og:url" content="{{ site.url }}{{ site.baseurl }}{{ page.permalink }}" />
     <meta property="og:site_name" content="Sid Mehta" />
@@ -100,7 +109,7 @@
     {% endif %}
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{{ proj_head }} · Sid Mehta" />
-    <meta name="twitter:description" content="{{ page.tagline | default: page.project_title | strip_newlines | truncate: 200 }}" />
+    <meta name="twitter:description" content="{{ proj_desc_long | truncate: 200 }}" />
     {% if share_img %}
     <meta name="twitter:image" content="{{ site.url }}{{ site.baseurl }}/{{ share_img }}" />
     {% endif %}
@@ -111,7 +120,7 @@
         "@context": "https://schema.org",
         "@type": "CreativeWork",
         "name": "{{ page.project_title }}",
-        "description": "{{ page.tagline | default: page.project_title | strip_newlines | truncate: 240 | escape }}",
+        "description": "{{ proj_desc_long | truncate: 240 | escape }}",
         "url": "{{ site.url }}{{ site.baseurl }}{{ page.permalink }}",
         {% if page.hero_image %}"image": "{{ site.url }}{{ site.baseurl }}/{{ page.hero_image }}",{% endif %}
         {% if page.year %}"dateCreated": "{{ page.year | split: '–' | first | split: '-' | first }}",{% endif %}
